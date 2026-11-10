@@ -124,7 +124,7 @@ describe("a scripted run", () => {
 		await until(() => m.run.phase === "idle");
 		expect(m.groups.find((g) => g.id === "ready")).toBeUndefined();
 		// LRCGET is the one problem left in the default list.
-		expect(m.sentence).toBe("1 need a look");
+		expect(m.sentence).toBe("1 needs a look");
 	});
 
 	test("Stop after this one returns the rest to ready and ticks them again", async () => {

@@ -2,7 +2,10 @@
 	import type { AppState } from "../../shared/types";
 	import { CHIP, KIND_LABEL, TEXT, statusText } from "../lib/copy";
 	import { formatBytes } from "../lib/format";
-	import type { Model } from "../lib/model.svelte";
+	import { fitWords } from "../lib/fit";
+	import { IN_RUN, type Model } from "../lib/model.svelte";
+	import { ms } from "../lib/motion";
+	import { fade } from "svelte/transition";
 	import { CARE, glyphColor, isQuiet, restoreText } from "../lib/state";
 	import Glyph from "./Glyph.svelte";
 	import Stem from "./Stem.svelte";
@@ -12,9 +15,9 @@
 
 	const care = $derived(CARE[app.status]);
 	const open = $derived(model.openKey === app.key);
-	const tickable = $derived(app.status === "ready" || app.status === "queued");
 	const quiet = $derived(isQuiet(app));
 	const inRun = $derived(model.run.phase === "installing");
+	const place = $derived(model.queue.findIndex((a) => a.key === app.key) + 1);
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
 	const restore = $derived(restoreText(app));
 	const stemmed = $derived(app.status === "working" || app.status === "done");
@@ -32,21 +35,26 @@
 	class="row ledger-cols s-{app.status}"
 	class:quiet
 	class:open
-	class:dim={inRun && app.status !== "working"}
+	class:dim={inRun && !IN_RUN.has(app.status)}
 	data-testid="row-{app.key}"
 	style:--band={care.band}
 >
 	<span class="band" aria-hidden="true"></span>
 	<span class="cell tick">
-		{#if tickable}
-			<input
-				type="checkbox"
-				checked={app.status === "queued" || model.ticked.has(app.key)}
-				disabled={app.status === "queued" || model.run.phase !== "idle"}
-				aria-labelledby="name-{app.key}"
-				data-testid="tick-{app.key}"
-				onchange={() => model.toggle(app.key)}
-			/>
+		{#if app.status === "queued" && place > 0}
+			<span class="place mono" data-testid="place-{app.key}">{place}</span>
+		{:else if app.status === "ready"}
+			<!-- The label widens the hit area past the 16 px box to 28 px. -->
+			<label class="tickhit">
+				<input
+					type="checkbox"
+					checked={model.ticked.has(app.key)}
+					disabled={model.run.phase !== "idle"}
+					aria-labelledby="name-{app.key}"
+					data-testid="tick-{app.key}"
+					onchange={() => model.toggle(app.key)}
+				/>
+			</label>
 		{/if}
 	</span>
 	<button
@@ -63,7 +71,6 @@
 		<span class="cell name">
 			<span class="line">
 				<span class="tag-name" id="name-{app.key}">{app.name}</span>
-				{#if app.repo}<span class="latin">{app.repo}</span>{/if}
 				{#if !quiet || app.running}
 					<span class="chips">
 						{#if app.running}<span class="chip running" title={CHIP.running.title} data-testid="chip-running"
@@ -77,20 +84,36 @@
 							>{/if}
 					</span>
 				{/if}
+				<!-- Last in a one-line wrapping box: a repo that does not fit whole wraps out of sight, never cut. -->
+				{#if app.repo}<span class="latin">{app.repo}</span>{/if}
 			</span>
-			{#if sentence}<span class="sentence">{sentence}</span>{/if}
+			{#if sentence}<span class="sentence" title={sentence}>{sentence}</span>{/if}
 		</span>
 		<span class="cell kind">{KIND_LABEL[app.kind]}</span>
 		<span class="cell ver"><Versions {app} {from} /></span>
 		<span class="cell size mono">{!quiet && typeof app.size === "number" ? formatBytes(app.size) : ""}</span>
 		<span class="cell restore">
 			{#if app.status !== "checking"}
-				{#if restore}<span class="mono">{restore}</span>{:else}<span class="none">{TEXT.none}</span>{/if}
+				{#key restore}
+					<span class="restore-in" in:fade={{ duration: ms(240) }}>
+						{#if restore}
+							<svg class="saved" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"
+								><path d="M2.25 6.25 4.75 8.75 9.75 3.5" /></svg
+							><span class="mono">{restore}</span>
+						{:else}
+							<span class="sr-only">{TEXT.none}</span>
+						{/if}
+					</span>
+				{/key}
 			{/if}
 		</span>
 		<span class="cell status">
 			{#if stemmed}
 				<Stem {app} />
+			{:else if app.status === "manual" && app.run}
+				<span class="sr-only">{app.run}</span>
+				<span class="command mono" aria-hidden="true" title={app.run} data-testid="status-{app.key}" {@attach fitWords(app.run)}
+				></span>
 			{:else}
 				<span class="status-text" data-testid="status-{app.key}">{statusText(app)}</span>
 			{/if}
@@ -138,7 +161,7 @@
 		background: var(--raised);
 	}
 	.row.dim {
-		opacity: 0.6;
+		opacity: 0.72;
 	}
 	.band {
 		position: absolute;
@@ -156,6 +179,21 @@
 		justify-content: flex-end;
 		align-items: center;
 		align-self: stretch;
+	}
+	.tickhit {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		margin-right: -6px;
+		cursor: pointer;
+	}
+	.place {
+		width: 16px;
+		text-align: center;
+		font-size: var(--fs-11);
+		color: var(--sun);
 	}
 	.hit {
 		position: relative;
@@ -200,8 +238,11 @@
 	}
 	.line {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: baseline;
-		gap: var(--s2);
+		column-gap: var(--s2);
+		height: 18px;
+		overflow: hidden;
 		min-width: 0;
 	}
 	.tag-name {
@@ -216,9 +257,6 @@
 		color: var(--text-2);
 	}
 	.latin {
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 	.chips {
@@ -252,6 +290,26 @@
 	.restore {
 		padding-left: var(--s3);
 		color: var(--text-2);
+	}
+	.restore-in {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+	}
+	.saved {
+		flex: none;
+		fill: none;
+		stroke: var(--leaf);
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.command {
+		display: block;
+		font-size: var(--fs-12);
+		color: var(--text);
+		white-space: nowrap;
+		overflow: hidden;
 	}
 	.none {
 		color: var(--text-3);

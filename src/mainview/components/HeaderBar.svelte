@@ -15,10 +15,11 @@
 	const checking = $derived(model.run.phase === "checking");
 
 	function onTabKey(e: KeyboardEvent, i: number) {
-		const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-		if (step === 0) return;
+		const to: Record<string, number> = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
+		const target = to[e.key];
+		if (target === undefined) return;
 		e.preventDefault();
-		const next = tabs[(i + step + tabs.length) % tabs.length];
+		const next = tabs[(target + tabs.length) % tabs.length];
 		if (!next) return;
 		model.view = next.id;
 		document.querySelector<HTMLElement>(`[data-testid="tab-${next.id}"]`)?.focus();
@@ -46,7 +47,7 @@
 							>
 						{/each}
 					</div>
-					<button type="button" class="btn small" data-testid="check" disabled={model.run.phase !== "idle"} onclick={() => model.check()}>
+					<button type="button" class="btn small" data-testid="check" aria-disabled={model.run.phase !== "idle"} onclick={() => model.run.phase === "idle" && model.check()}>
 						<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"
 							><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.75V5.5h-2.75" /></svg
 						>

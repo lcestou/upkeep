@@ -33,6 +33,12 @@
 	const failed = $derived(app.status === "failed" || app.status === "rolled_back");
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
 
+	async function retryOne() {
+		await model.install([app.key]);
+		// The Retry button leaves with the failure; keep focus inside the pane.
+		document.querySelector<HTMLElement>('[data-testid="inspector-close"]')?.focus();
+	}
+
 	async function copyCommand(text: string) {
 		const res = await model.request("copy", { text });
 		if (!res.ok) return;
@@ -82,7 +88,7 @@
 					class="btn"
 					data-testid="retry-one"
 					disabled={inRun}
-					onclick={() => model.install([app.key])}>Retry</button
+					onclick={retryOne}>Retry</button
 				>
 			</div>
 		{/if}

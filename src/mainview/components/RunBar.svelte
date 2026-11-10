@@ -1,14 +1,17 @@
 <script lang="ts">
+	import { workingText } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
 	import { CARE, glyphColor, progressOf } from "../lib/state";
 	import Glyph from "./Glyph.svelte";
 
 	let { model }: { model: Model } = $props();
 
-	// The run's own order: native kinds first, then the old script's, as the engine queues them.
-	const stops = $derived(model.queue.toSorted((a, b) => Number(a.kind === "legacy") - Number(b.kind === "legacy")));
+	const stops = $derived(model.queue);
+	// Announced once per stage, not per percent: the stage word without its number.
+	const stage = $derived(model.current ? `${model.current.name}: ${workingText(model.current.stage, null)}` : "");
 </script>
 
+<span class="sr-only" role="status">{stage}</span>
 <ol class="runbar" data-testid="runbar">
 	{#each stops as app (app.key)}
 		{@const p = app.status === "failed" || app.status === "rolled_back" ? 1 : progressOf(app)}

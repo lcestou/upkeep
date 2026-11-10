@@ -1,5 +1,6 @@
 import type {
 	AppState,
+	AppStatus,
 	Bridge,
 	EngineEvent,
 	HistoryRow,
@@ -42,6 +43,8 @@ export function readyLabel(phase: RunState["phase"]): string {
 export type Group = { id: GroupId; label: string; apps: AppState[] };
 
 const LOG_CAP = 2000;
+
+export const IN_RUN: ReadonlySet<AppStatus> = new Set(["queued", "working", "done", "failed", "rolled_back"]);
 
 const idleRun = (): RunState => ({
 	id: null,
@@ -99,9 +102,12 @@ export class Model {
 		}),
 	);
 	failedKeys: string[] = $derived(this.run.results.filter((r) => r.result !== "updated").map((r) => r.key));
+	/** The apps in this run in the engine's order: native kinds in list order, then the old script's. */
 	queue: AppState[] = $derived(
 		this.run.phase === "installing" || this.run.phase === "summary"
-			? this.apps.filter((a) => ["queued", "working", "done", "failed", "rolled_back"].includes(a.status))
+			? this.apps
+					.filter((a) => IN_RUN.has(a.status))
+					.toSorted((a, b) => Number(a.kind === "legacy") - Number(b.kind === "legacy"))
 			: [],
 	);
 

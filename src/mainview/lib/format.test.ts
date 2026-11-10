@@ -39,6 +39,7 @@ test("plural", () => {
 test("formatDuration", () => {
 	expect(formatDuration(2400)).toBe("2.4 s");
 	expect(formatDuration(21_800)).toBe("22 s");
-	expect(formatDuration(64_000)).toBe("1 min 4 s");
+	expect(formatDuration(64_000)).toBe("1 min");
+	expect(formatDuration(100_000)).toBe("2 min");
 	expect(formatDuration(120_000)).toBe("2 min");
 });

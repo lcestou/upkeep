@@ -19,11 +19,11 @@
 	<span class="versions"><span class="versionless">{TEXT.versionless}</span></span>
 {:else}
 	<span class="versions mono" class:pending>
-		<span class="installed">{before ?? ""}</span>
+		<span class="installed" title={before ?? undefined}>{before ?? ""}</span>
 		{#if pending}
 			{#if arrow}<svg class="arrow" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M1.5 6h8.25M7 3.25 9.75 6 7 8.75" /></svg>
 				<span class="sr-only">to</span>{/if}
-			<span class="latest" class:done class:struck={isStruck(app)}>{after}</span>
+			<span class="latest" class:done class:struck={isStruck(app)} title={after ?? undefined}>{after}</span>
 		{/if}
 	</span>
 {/if}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HistoryRow } from "../../shared/types";
-	import { TEXT } from "../lib/copy";
+	import { TEXT, resultCounts } from "../lib/copy";
 	import { formatDuration, formatRunTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { CARE, glyphColor } from "../lib/state";
@@ -24,7 +24,7 @@
 	{:else}
 		{#each runs as run (run.id)}
 			<section>
-				<h2>{formatRunTime(run.at)}</h2>
+				<h2>{formatRunTime(run.at)} <span class="counts">{resultCounts(run.rows)}</span></h2>
 				<ul>
 					{#each run.rows as row (row.key)}
 						{@const status = STATUS[row.result]}
@@ -66,6 +66,11 @@
 		font-weight: 640;
 		color: var(--text);
 		font-variant-numeric: tabular-nums;
+	}
+	.counts {
+		margin-left: var(--s2);
+		font-weight: 440;
+		color: var(--text-3);
 	}
 	ul {
 		list-style: none;

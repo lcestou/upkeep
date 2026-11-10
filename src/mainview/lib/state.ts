@@ -1,12 +1,12 @@
 import type { AppState, AppStatus } from "../../shared/types";
 
-export type GlyphName = "dot" | "bud" | "drop" | "leaf" | "hand" | "pause" | "bang" | "cross";
+export type GlyphName = "dot" | "wait" | "bud" | "drop" | "leaf" | "hand" | "pause" | "bang" | "cross";
 
 /** The care band's token and glyph for each status (plan F4b). */
 export const CARE: Record<AppStatus, { band: string; glyph: GlyphName }> = {
 	checking: { band: "var(--line)", glyph: "dot" },
 	ready: { band: "var(--sun)", glyph: "bud" },
-	queued: { band: "var(--sun)", glyph: "bud" },
+	queued: { band: "var(--sun)", glyph: "wait" },
 	working: { band: "var(--water)", glyph: "drop" },
 	done: { band: "var(--leaf)", glyph: "leaf" },
 	fresh: { band: "var(--leaf)", glyph: "leaf" },

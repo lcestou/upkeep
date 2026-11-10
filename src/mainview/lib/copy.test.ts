@@ -43,6 +43,7 @@ test("state sentence", () => {
 	expect(sentence({}, 7)).toBe("7 updates ready");
 	expect(sentence({})).toBe("Everything is fresh");
 	expect(sentence({}, 0, 3)).toBe("3 need a look");
+	expect(sentence({}, 0, 1)).toBe("1 needs a look");
 	expect(sentence({ phase: "installing", index: 2, total: 4 }, 0, 0, "Zen Browser")).toBe(
 		"Installing Zen Browser, 2 of 4",
 	);
@@ -53,6 +54,7 @@ test("state sentence", () => {
 });
 
 test("install and selection labels", () => {
+	expect(installLabel(0)).toBe("Install updates");
 	expect(installLabel(1)).toBe("Install 1 update");
 	expect(installLabel(4)).toBe("Install 4 updates");
 	expect(selectionText(0, null)).toBe("Nothing selected");
