@@ -553,6 +553,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		async install(keys) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
 			if (run.phase === "installing") return { started: false, reason: REASON_BUSY };
+			// Retry from the summary: closing it puts each failed app back to ready, which is what gets picked below.
+			if (run.phase === "summary") this.dismissSummary();
 			const wanted = new Set(keys);
 			const pick = specs.filter((s) => {
 				const a = apps.get(s.key);

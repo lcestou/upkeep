@@ -31,7 +31,7 @@ let quitAfterRun = false;
 function openWindow(): void {
 	if (win) {
 		win.show();
-		win.focus();
+		win.activate();
 		return;
 	}
 	win = new BrowserWindow({

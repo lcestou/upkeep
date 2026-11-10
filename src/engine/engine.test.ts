@@ -257,6 +257,22 @@ test("one app's exception fails that app and the run continues", async () => {
 	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.installed).toBe("10.5.2");
 });
 
+test("retry from the summary runs only the failed app again", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	await engine.install(["boom", "fd"]);
+	await engine.idle();
+	expect(engine.snapshot().run.phase).toBe("summary");
+	expect(statuses(engine)).toMatchObject({ boom: "failed", fd: "done" });
+	const r = await engine.install(["boom"]);
+	expect(r).toEqual({ started: true });
+	await engine.idle();
+	const snap = engine.snapshot();
+	expect(snap.run.results.map((x) => [x.key, x.result])).toEqual([["boom", "failed"]]);
+	// The app that succeeded in the first run is not touched again and reads as up to date.
+	expect(statuses(engine)).toMatchObject({ boom: "failed", fd: "fresh" });
+});
+
 test("install refuses while checking, with nothing ready, and while the old updater runs", async () => {
 	const engine = createEngine(await deps());
 	const checking = engine.check();
