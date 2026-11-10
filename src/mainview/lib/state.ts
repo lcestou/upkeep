@@ -1,7 +1,5 @@
 import type { AppState, AppStatus } from "../../shared/types";
 
-export type Layout = "a" | "b" | "c";
-
 export type GlyphName = "dot" | "bud" | "drop" | "leaf" | "hand" | "pause" | "bang" | "cross";
 
 /** The care band's token and glyph for each status (plan F4b). */

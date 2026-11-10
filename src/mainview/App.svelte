@@ -8,10 +8,9 @@
 	import SettingsView from "./components/SettingsView.svelte";
 	import { getBridge } from "./lib/bridge";
 	import { Model } from "./lib/model.svelte";
-	import type { Layout } from "./lib/state";
-
-	const asked = new URLSearchParams(location.search).get("layout");
-	const layout: Layout = asked === "b" || asked === "c" ? asked : "a";
+	import { ms } from "./lib/motion";
+	import { shade } from "./lib/shade";
+	import { fly } from "svelte/transition";
 
 	let model = $state<Model | null>(null);
 	let logOpen = $state(false);
@@ -22,63 +21,67 @@
 		return live.start();
 	});
 
-	// B always shows one app's tag; during a run it follows the app being installed.
-	$effect(() => {
-		if (layout !== "b" || !model?.loaded) return;
-		const key =
-			model.run.phase === "installing"
-				? model.run.currentKey
-				: model.run.phase === "summary"
-					? (model.failedKeys[0] ?? null)
-					: null;
-		if (key) model.open = key;
-		else if (!model.openApp) model.open = model.groups[0]?.apps[0]?.key ?? null;
-	});
+	function focusRow(key: string | null) {
+		if (key) document.querySelector<HTMLElement>(`[data-row="${CSS.escape(key)}"]`)?.focus();
+	}
+
+	function closeInspector() {
+		const key = model?.openKey ?? null;
+		model?.close();
+		focusRow(key);
+	}
+
+	function onkeydown(e: KeyboardEvent) {
+		if (e.key !== "Escape") return;
+		if (logOpen) {
+			logOpen = false;
+			document.querySelector<HTMLElement>('[data-testid="log-toggle"]')?.focus();
+		} else if (model?.openKey) {
+			closeInspector();
+		}
+	}
 
 	$effect(() => {
 		if (model?.view === "history" && model.run.phase !== "installing") void model.loadHistory();
 	});
-
-	function onkeydown(e: KeyboardEvent) {
-		if (e.key === "Escape" && logOpen) {
-			logOpen = false;
-			document.querySelector<HTMLElement>('[data-testid="log-toggle"]')?.focus();
-		}
-	}
 </script>
 
 <svelte:window {onkeydown} />
 
 {#if model?.loaded}
 	{@const m = model}
-	<div class="shell layout-{layout}" data-layout={layout}>
-		<HeaderBar model={m} {layout} {logOpen} ontogglelog={() => (logOpen = !logOpen)} />
+	<div class="shell">
+		<HeaderBar model={m} />
 		<main id="view" role={m.view === "updates" ? undefined : "tabpanel"} aria-labelledby="tab-{m.view}">
 			{#if m.view === "history"}
 				<HistoryView model={m} />
 			{:else if m.view === "settings"}
 				<SettingsView model={m} />
-			{:else if layout === "b"}
-				<div class="bench">
-					<AppList model={m} {layout} />
-					<aside class="tag" data-testid="tag-pane">
-						{#if m.openApp}
-							<!-- Keyed so a different app starts with no leftover Copied or Restored message. -->
-							{#key m.openApp.key}
-								<RowDetail app={m.openApp} model={m} pane />
-							{/key}
-						{/if}
-					</aside>
-				</div>
 			{:else}
-				<AppList model={m} {layout} />
+				<div class="bench" class:open={m.openApp !== null}>
+					<AppList model={m} />
+					{#if m.openApp}
+						<aside
+							class="inspector"
+							id="inspector"
+							data-testid="inspector"
+							aria-label={m.openApp.name}
+							transition:fly={{ x: 32, duration: ms(200) }}
+						>
+							<div class="scroll" {@attach shade}>
+								<!-- Keyed so a different app starts with no leftover Copied or Restored message. -->
+								{#key m.openApp.key}
+									<RowDetail app={m.openApp} model={m} onclose={closeInspector} />
+								{/key}
+							</div>
+						</aside>
+					{/if}
+				</div>
 			{/if}
 		</main>
-		{#if layout !== "c"}
-			<FooterBar model={m} {logOpen} ontogglelog={() => (logOpen = !logOpen)} />
-		{/if}
+		<FooterBar model={m} {logOpen} ontogglelog={() => (logOpen = !logOpen)} />
 		{#if logOpen}
-			<LogDrawer model={m} bottom={layout === "c" ? 0 : 64} />
+			<LogDrawer model={m} bottom={64} />
 		{/if}
 		{#if m.refusal}
 			<p class="refusal" role="alert">{m.refusal}</p>
@@ -93,24 +96,71 @@
 		height: 100%;
 		min-width: 0;
 	}
-	.layout-c {
-		grid-template-rows: 56px minmax(0, 1fr);
-	}
 	main {
+		position: relative;
 		min-height: 0;
 		min-width: 0;
-		position: relative;
 	}
 	.bench {
+		position: relative;
 		display: grid;
-		grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+		grid-template-columns: minmax(0, 1fr);
 		height: 100%;
 	}
-	.tag {
+	.inspector {
+		position: relative;
 		min-height: 0;
-		overflow-y: auto;
 		background: var(--surface);
-		border-left: 1px solid var(--line-soft);
+	}
+	.scroll {
+		height: 100%;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+	/* Scroll shadows: an edge with more content behind it carries a soft shade. */
+	.inspector::before,
+	.inspector::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 16px;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 150ms ease-out;
+		z-index: 1;
+	}
+	.inspector::before {
+		top: 0;
+		background: linear-gradient(oklch(0.08 0.02 165 / 0.6), transparent);
+	}
+	.inspector::after {
+		bottom: 0;
+		background: linear-gradient(transparent, oklch(0.08 0.02 165 / 0.6));
+	}
+	.inspector:has(:global(.scroll[data-more-top])):before {
+		opacity: 1;
+	}
+	.inspector:has(:global(.scroll[data-more-bottom])):after {
+		opacity: 1;
+	}
+	@media (min-width: 900px) {
+		.bench.open {
+			grid-template-columns: minmax(0, 1fr) max(380px, 42%);
+		}
+		.inspector {
+			border-left: 1px solid var(--line-soft);
+		}
+	}
+	@media (max-width: 899px) {
+		/* A sheet over the list from the right edge; a 56 px strip of list stays in view. */
+		.inspector {
+			position: absolute;
+			inset: 0 0 0 56px;
+			z-index: 3;
+			border-left: 1px solid var(--line);
+			box-shadow: var(--shadow-pop);
+		}
 	}
 	.refusal {
 		position: fixed;

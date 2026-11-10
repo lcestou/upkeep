@@ -2,28 +2,17 @@
 	import { TEXT } from "../lib/copy";
 	import type { Model, View } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
-	import type { Layout } from "../lib/state";
 	import { fade } from "svelte/transition";
-	import LogToggle from "./LogToggle.svelte";
-	import RunBar from "./RunBar.svelte";
-	import RunControls from "./RunControls.svelte";
 	import StateSentence from "./StateSentence.svelte";
 
-	let {
-		model,
-		layout,
-		logOpen,
-		ontogglelog,
-	}: { model: Model; layout: Layout; logOpen: boolean; ontogglelog: () => void } = $props();
+	let { model }: { model: Model } = $props();
 
 	const tabs: { id: View; text: string }[] = [
 		{ id: "updates", text: TEXT.updates },
 		{ id: "history", text: TEXT.history },
 		{ id: "settings", text: TEXT.settings },
 	];
-	const running = $derived(model.run.phase === "installing" || model.run.phase === "summary");
 	const checking = $derived(model.run.phase === "checking");
-	const runInHeader = $derived(layout === "c" && running);
 
 	function onTabKey(e: KeyboardEvent, i: number) {
 		const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
@@ -36,19 +25,12 @@
 	}
 </script>
 
-<header class="bar {layout}">
+<header class="bar">
 	<div class="lead">
 		<StateSentence {model} />
 	</div>
 	<div class="side">
-		{#key runInHeader}
-			<div class="cluster" in:fade={{ duration: ms(240) }} out:fade={{ duration: ms(120) }}>
-				{#if runInHeader}
-					<RunBar {model} compact />
-					<LogToggle open={logOpen} ontoggle={ontogglelog} />
-					<RunControls {model} />
-				{:else}
-					<div class="tabs" role="tablist">
+		<div class="tabs" role="tablist">
 						{#each tabs as tab, i (tab.id)}
 							<button
 								type="button"
@@ -70,13 +52,6 @@
 						>
 						{TEXT.check}
 					</button>
-					{#if layout === "c"}
-						<LogToggle open={logOpen} ontoggle={ontogglelog} />
-						<RunControls {model} />
-					{/if}
-				{/if}
-			</div>
-		{/key}
 	</div>
 	{#if checking}
 		<span class="checkbar" aria-hidden="true" transition:fade={{ duration: ms(200) }}>
@@ -102,24 +77,11 @@
 		min-width: 0;
 	}
 	.side {
-		display: grid;
-		justify-items: end;
-		flex: 0 1 auto;
-		min-width: 0;
-	}
-	.c .side {
-		flex: 1 1 auto;
-	}
-	.cluster {
-		grid-area: 1 / 1;
 		display: flex;
 		align-items: center;
 		gap: var(--s2);
+		flex: 0 1 auto;
 		min-width: 0;
-	}
-	.c .cluster:has(:global(.runbar)) {
-		width: 100%;
-		min-width: 280px;
 	}
 	.tabs {
 		display: flex;

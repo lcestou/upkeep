@@ -1,39 +1,38 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
-	import { CHIP, COLUMN, KIND_LABEL, TEXT, statusText } from "../lib/copy";
+	import { CHIP, KIND_LABEL, TEXT, statusText } from "../lib/copy";
 	import { formatBytes } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
-	import { CARE, type Layout, glyphColor, isQuiet, restoreText } from "../lib/state";
+	import { CARE, glyphColor, isQuiet, restoreText } from "../lib/state";
 	import Glyph from "./Glyph.svelte";
 	import Stem from "./Stem.svelte";
 	import Versions from "./Versions.svelte";
 
-	let { app, model, layout }: { app: AppState; model: Model; layout: Layout } = $props();
+	let { app, model, tabbable }: { app: AppState; model: Model; tabbable: boolean } = $props();
 
 	const care = $derived(CARE[app.status]);
-	const open = $derived(model.open === app.key);
+	const open = $derived(model.openKey === app.key);
 	const tickable = $derived(app.status === "ready" || app.status === "queued");
 	const quiet = $derived(isQuiet(app));
 	const inRun = $derived(model.run.phase === "installing");
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
 	const restore = $derived(restoreText(app));
-	const stemmed = $derived(
-		layout === "c"
-			? ["ready", "queued", "working", "done"].includes(app.status)
-			: app.status === "working" || app.status === "done",
-	);
+	const stemmed = $derived(app.status === "working" || app.status === "done");
 	const sentence = $derived(
 		app.detail && ["problem", "failed", "rolled_back", "done"].includes(app.status) ? app.detail : null,
 	);
-	const command = $derived(layout === "c" && app.status === "manual" ? (app.run ?? null) : null);
+
+	function onclick() {
+		if (open) model.close();
+		else model.select(app.key);
+	}
 </script>
 
 <div
-	class="row {layout} s-{app.status}"
+	class="row ledger-cols s-{app.status}"
 	class:quiet
 	class:open
 	class:dim={inRun && app.status !== "working"}
-	class:stemmed
 	data-testid="row-{app.key}"
 	style:--band={care.band}
 >
@@ -53,26 +52,28 @@
 	<button
 		type="button"
 		class="hit"
-		aria-expanded={layout === "b" ? undefined : open}
-		aria-current={layout === "b" && open ? "true" : undefined}
-		aria-controls="detail-{app.key}"
+		data-row={app.key}
+		tabindex={tabbable ? 0 : -1}
+		aria-current={open ? "true" : undefined}
+		aria-controls="inspector"
 		data-testid="open-{app.key}"
-		onclick={() => model.toggleRow(app.key, layout === "b")}
+		{onclick}
 	>
 		<span class="cell mark"><Glyph name={care.glyph} color={glyphColor(app.status)} /></span>
 		<span class="cell name">
 			<span class="line">
 				<span class="tag-name" id="name-{app.key}">{app.name}</span>
 				{#if app.repo}<span class="latin">{app.repo}</span>{/if}
-				<span class="kind-inline">{KIND_LABEL[app.kind]}</span>
 				{#if !quiet || app.running}
 					<span class="chips">
 						{#if app.running}<span class="chip running" title={CHIP.running.title} data-testid="chip-running"
 								>{CHIP.running.text}</span
 							>{/if}
-						{#if app.sudo && !quiet}<span class="chip" title={CHIP.root.title} data-testid="chip-root">{CHIP.root.text}</span
+						{#if app.sudo && !quiet}<span class="chip" title={CHIP.root.title} data-testid="chip-root"
+								>{CHIP.root.text}</span
 							>{/if}
-						{#if app.auto && !quiet}<span class="chip" title={CHIP.auto.title} data-testid="chip-auto">{CHIP.auto.text}</span
+						{#if app.auto && !quiet}<span class="chip" title={CHIP.auto.title} data-testid="chip-auto"
+								>{CHIP.auto.text}</span
 							>{/if}
 					</span>
 				{/if}
@@ -81,14 +82,8 @@
 		</span>
 		<span class="cell kind">{KIND_LABEL[app.kind]}</span>
 		<span class="cell ver"><Versions {app} {from} /></span>
-		<span class="cell size">
-			{#if !quiet && typeof app.size === "number"}
-				<span class="label">{COLUMN.size}</span>
-				<span class="mono">{formatBytes(app.size)}</span>
-			{/if}
-		</span>
+		<span class="cell size mono">{!quiet && typeof app.size === "number" ? formatBytes(app.size) : ""}</span>
 		<span class="cell restore">
-			<span class="label">{COLUMN.restore}</span>
 			{#if app.status !== "checking"}
 				{#if restore}<span class="mono">{restore}</span>{:else}<span class="none">{TEXT.none}</span>{/if}
 			{/if}
@@ -96,34 +91,44 @@
 		<span class="cell status">
 			{#if stemmed}
 				<Stem {app} />
-			{:else if command}
-				<span class="command mono" title={command}>{command}</span>
-				<span class="status-text">{statusText(app)}</span>
 			{:else}
 				<span class="status-text" data-testid="status-{app.key}">{statusText(app)}</span>
 			{/if}
 		</span>
+		{#if open}<svg class="marker" viewBox="0 0 8 14" aria-hidden="true"><path d="M8 0v14L1 7Z" /></svg>{/if}
 	</button>
 </div>
 
 <style>
-	/* The grid template belongs to the layout (--cols on the list); the cells are the same in all three. */
+	/* Column sets follow the list's own width, so the same rows serve the full ledger and the narrowed one beside the inspector. */
 	.row {
 		position: relative;
 		display: grid;
 		grid-template-columns: var(--cols);
-		column-gap: var(--gap, 12px);
+		column-gap: var(--gap);
 		align-items: center;
-		min-height: var(--row-h, 44px);
-		padding-right: var(--pad-r, 16px);
+		height: 44px;
+		padding-right: var(--pad-r);
 		background: var(--surface);
 		border-bottom: 1px solid var(--line-soft);
+		scroll-margin: 40px 0 52px;
 		transition:
 			opacity 240ms ease-out,
-			background-color 120ms ease-out;
+			background-color 100ms ease-out;
+	}
+	@container list (max-width: 899px) {
+		.kind,
+		.size {
+			display: none;
+		}
+	}
+	@container list (max-width: 639px) {
+		.restore {
+			display: none;
+		}
 	}
 	.row.quiet {
-		min-height: var(--quiet-h, 36px);
+		height: 36px;
 		background: transparent;
 	}
 	.row:hover {
@@ -131,7 +136,6 @@
 	}
 	.row.open {
 		background: var(--raised);
-		border-bottom-color: transparent;
 	}
 	.row.dim {
 		opacity: 0.6;
@@ -154,6 +158,7 @@
 		align-self: stretch;
 	}
 	.hit {
+		position: relative;
 		grid-column: 2 / -1;
 		display: grid;
 		grid-template-columns: subgrid;
@@ -161,15 +166,25 @@
 		align-self: stretch;
 		min-width: 0;
 		margin: 0;
-		padding: 6px 0;
+		padding: 0;
 		border: 0;
 		background: none;
 		text-align: left;
 		cursor: pointer;
 	}
 	.hit:focus-visible {
+		outline: 2px solid var(--focus);
 		outline-offset: -2px;
 		border-radius: var(--radius-sm);
+	}
+	.marker {
+		position: absolute;
+		right: calc(-1 * var(--pad-r));
+		top: 50%;
+		width: 8px;
+		height: 14px;
+		transform: translateY(-50%);
+		fill: var(--text);
 	}
 	.cell {
 		min-width: 0;
@@ -181,7 +196,7 @@
 	.name {
 		display: flex;
 		flex-direction: column;
-		gap: 3px;
+		gap: 2px;
 	}
 	.line {
 		display: flex;
@@ -214,33 +229,29 @@
 	}
 	.sentence {
 		font-size: var(--fs-12);
+		line-height: 15px;
 		color: var(--text-2);
-		line-height: 1.35;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.s-failed .sentence,
 	.s-rolled_back .sentence,
 	.s-problem .sentence {
 		color: oklch(0.82 0.09 48);
 	}
-	.kind,
-	.kind-inline {
+	.kind {
 		font-size: var(--fs-12);
 		color: var(--text-3);
 		white-space: nowrap;
-	}
-	.kind-inline,
-	.label {
-		display: none;
 	}
 	.size {
 		text-align: right;
 		color: var(--text-2);
 	}
 	.restore {
-		color: var(--text-2);
-	}
-	.a .restore {
 		padding-left: var(--s3);
+		color: var(--text-2);
 	}
 	.none {
 		color: var(--text-3);
@@ -250,7 +261,6 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
-		gap: 2px;
 		min-width: 0;
 	}
 	.status-text {
@@ -279,102 +289,5 @@
 	.quiet .status-text {
 		font-weight: 440;
 		color: var(--text-3);
-	}
-	.command {
-		color: var(--text);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	/* A, the ledger: the stem takes over size, restore point and status while it runs. */
-	.a.stemmed .size,
-	.a.stemmed .restore {
-		display: none;
-	}
-	.a.stemmed .status {
-		grid-column: stem / end;
-	}
-	@media (max-width: 859px) {
-		.a .size {
-			display: none;
-		}
-	}
-	@media (max-width: 799px) {
-		.a .kind {
-			display: none;
-		}
-	}
-
-	/* B, bench and tag: narrow rows, the rest lives in the tag pane. */
-	.b .kind,
-	.b .size,
-	.b .restore,
-	.b .latin {
-		display: none;
-	}
-	.b.open {
-		box-shadow: inset -3px 0 0 var(--sun);
-	}
-	@container list (max-width: 519px) {
-		.b {
-			--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [stem status] 128px [end];
-		}
-		.b .latin {
-			display: none;
-		}
-		.b .mark,
-		.b .status {
-			grid-row: 1 / span 2;
-		}
-		.b .name {
-			grid-row: 1;
-		}
-		.b .ver {
-			grid-column: name;
-			grid-row: 2;
-		}
-		.b .ver :global(.versions) {
-			grid-template-columns: auto 20px auto;
-			justify-content: start;
-		}
-	}
-
-	/* C, queue first: tall rows with labelled facts and the stem always out. */
-	.c {
-		--row-h: 64px;
-	}
-	.c .kind {
-		display: none;
-	}
-	.c .status {
-		padding-right: 6px;
-	}
-	.c .line {
-		flex-wrap: wrap;
-		row-gap: 2px;
-	}
-	.c .tag-name {
-		font-size: var(--fs-16);
-		flex-basis: 100%;
-	}
-	.c .kind-inline {
-		display: inline;
-	}
-	.c .size,
-	.c .restore {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		text-align: left;
-	}
-	.c .label {
-		display: block;
-		font-size: var(--fs-11);
-		color: var(--text-3);
-		white-space: nowrap;
-	}
-	.c :global(.versions) {
-		font-size: var(--fs-13);
 	}
 </style>

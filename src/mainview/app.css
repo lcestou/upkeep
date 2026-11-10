@@ -295,6 +295,22 @@ input[type="checkbox"]:disabled {
 	color: var(--water);
 }
 
+/* The ledger's column sets, keyed to the list's own width (the list narrows beside a docked inspector). */
+.ledger-cols {
+	--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [kind] 84px [ver] 168px [size] 64px [restore] 96px [status]
+		248px [end];
+}
+@container list (max-width: 899px) {
+	.ledger-cols {
+		--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [ver] 168px [restore] 96px [status] 212px [end];
+	}
+}
+@container list (max-width: 639px) {
+	.ledger-cols {
+		--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [ver] 150px [status] 168px [end];
+	}
+}
+
 .sr-only {
 	position: absolute;
 	width: 1px;

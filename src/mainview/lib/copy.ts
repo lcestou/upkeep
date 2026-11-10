@@ -22,8 +22,10 @@ export const STAGE_NAME: Record<Stage, string> = {
 
 export type GroupId = "ready" | "manual" | "problem" | "held" | "checking" | "fresh";
 
-export const GROUP_LABEL: Record<GroupId, string> = {
+export const GROUP_LABEL: Record<GroupId | "installing" | "thisRun", string> = {
 	ready: "Ready to install",
+	installing: "Installing",
+	thisRun: "This run",
 	manual: "By hand",
 	problem: "Needs a look",
 	held: "Held back",

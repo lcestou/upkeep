@@ -3,13 +3,13 @@
 	import { CARE, glyphColor, progressOf } from "../lib/state";
 	import Glyph from "./Glyph.svelte";
 
-	let { model, compact = false }: { model: Model; compact?: boolean } = $props();
+	let { model }: { model: Model } = $props();
 
 	// The run's own order: native kinds first, then the old script's, as the engine queues them.
 	const stops = $derived(model.queue.toSorted((a, b) => Number(a.kind === "legacy") - Number(b.kind === "legacy")));
 </script>
 
-<ol class="runbar" class:compact data-testid="runbar">
+<ol class="runbar" data-testid="runbar">
 	{#each stops as app (app.key)}
 		{@const p = app.status === "failed" || app.status === "rolled_back" ? 1 : progressOf(app)}
 		<li class="stop s-{app.status}" style:--tone={CARE[app.status].band}>
@@ -73,14 +73,5 @@
 		transition:
 			transform 200ms linear,
 			background-color 200ms ease-out;
-	}
-	.compact {
-		gap: 4px;
-	}
-	.compact .stop {
-		gap: 4px;
-	}
-	.compact .label :global(.glyph) {
-		display: none;
 	}
 </style>
