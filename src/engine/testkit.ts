@@ -56,3 +56,20 @@ export function recordingRun(
 }
 
 export const ok = (stdout = ""): RunResult => ({ code: 0, stdout, stderr: "", timedOut: false });
+
+/**
+ * A runner that never reaches a real process: every argv must be answered by handle, and any other argv throws.
+ * The extras tests use only this one.
+ */
+export function strictRun(
+	handle: (argv: string[], opts: RunOpts) => RunResult | undefined | Promise<RunResult | undefined>,
+): { run: Run; calls: Call[] } {
+	const calls: Call[] = [];
+	const run: Run = async (argv, opts = {}) => {
+		calls.push({ argv, opts });
+		const r = await handle(argv, opts);
+		if (!r) throw new Error(`strictRun: no answer for ${argv.join(" ")}`);
+		return r;
+	};
+	return { run, calls };
+}

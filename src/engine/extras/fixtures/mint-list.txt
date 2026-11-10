@@ -1,0 +1,7 @@
+package         google-chrome-stable                          157.0.8103.50-1
+security        libgphoto2                                    2.5.31-2.1ubuntu1.2
+security        libnfs                                        5.0.2-1ubuntu0.24.04.2
+security        libsoup3                                      3.4.4-5ubuntu0.11
+security        openjdk-21                                    21.0.13.0.3+1-1~24.04.1
+security        openjdk-8                                     8u512-b09~us1-0ubuntu1~24.04.1
+security        perl                                          5.38.2-3.2ubuntu0.7

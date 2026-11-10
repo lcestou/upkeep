@@ -206,13 +206,48 @@ export type HistoryRow = RunResult & {
 
 export type LogLine = { at: string; key: string | null; text: string };
 
+/** Opt-in areas beside the app list. Kept in extras.json, apart from state.json. */
+export type ExtrasSettings = {
+	/** "off": nothing runs. "show": list the system's own updates, read-only. */
+	system: "off" | "show";
+};
+
+/** One pending update from Update Manager's list or from Flatpak. Read-only: Upkeep never installs these. */
+export type SystemRow = {
+	/** "apt:<source>" or "flatpak:<ref>". */
+	id: string;
+	source: "apt" | "flatpak";
+	name: string;
+	type: "security" | "package" | "kernel" | "driver" | "app" | "runtime";
+	installed: string | null;
+	latest: string;
+	/** A Flatpak app with a process running now. */
+	running: boolean;
+	/** Kernel and driver rows: Update Manager is the place to install them. */
+	note?: "update-manager-only";
+};
+
+export type SystemState = {
+	mode: ExtrasSettings["system"];
+	phase: "off" | "checking" | "idle";
+	rows: SystemRow[];
+	checkedAt: string | null;
+	/** Codes, never sentences: the view words them. */
+	problem: { code: "missing"; command: string } | { code: "failed"; command: string; detail: string } | null;
+	/** The NVIDIA driver version whose Flatpak GL runtime is missing, or null. */
+	glMissing: string | null;
+};
+
+export type ExtrasSnapshot = { settings: ExtrasSettings; system: SystemState };
+
 export type EngineEvent =
 	| { type: "app"; app: AppState }
 	| { type: "run"; run: RunState }
 	| { type: "log"; line: LogLine }
 	| { type: "meta"; rate: Snapshot["rate"]; checkedAt: string | null; settings: Settings }
 	| { type: "removed"; key: string }
-	| { type: "chrome"; chrome: WindowChrome };
+	| { type: "chrome"; chrome: WindowChrome }
+	| { type: "extras"; extras: ExtrasSnapshot };
 
 /** What the view can ask of the main process. */
 export type Requests = {
@@ -237,6 +272,10 @@ export type Requests = {
 	addApps: { params: { specs: AppSpec[] }; response: { added: string[]; problems: { key: string; detail: string }[] } };
 	removeApp: { params: { key: string }; response: { ok: boolean; detail?: string } };
 	pickFile: { params: Record<string, never>; response: { path: string | null } };
+	extras: { params: Record<string, never>; response: ExtrasSnapshot };
+	setExtras: { params: Partial<ExtrasSettings>; response: ExtrasSettings };
+	systemCheck: { params: Record<string, never>; response: { started: boolean } };
+	openTool: { params: { what: "update-manager" }; response: { ok: boolean } };
 };
 
 /** The surface the view programs against. The Electrobun bridge and the dev fixture both implement it. */

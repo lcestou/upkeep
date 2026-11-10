@@ -2,6 +2,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { BrowserView, Utils } from "electrobun/main";
 import type { Engine, EngineDeps } from "../engine/engine";
+import type { Extras } from "../engine/extras/extras";
 import type { UpkeepRPC } from "../mainview/lib/bridge";
 import type { WindowButton, WindowChrome } from "../shared/types";
 
@@ -22,6 +23,8 @@ export type WindowHooks = {
 	onSettings: () => void;
 	chrome: () => WindowChrome;
 	windowOp: (op: WindowButton) => void;
+	/** The read-only system updates list, beside the engine. */
+	extras: Extras;
 };
 
 export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, hooks: WindowHooks) {
@@ -103,6 +106,19 @@ export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, hooks: WindowH
 					});
 					// A cancelled dialog gives no path, or an empty one.
 					return { path: picked.find((p) => p !== "") ?? null };
+				},
+				extras: () => hooks.extras.snapshot(),
+				setExtras: (patch) => hooks.extras.setSettings(patch),
+				systemCheck: () => hooks.extras.checkSystem(),
+				openTool: ({ what }) => {
+					if (what !== "update-manager") return { ok: false };
+					try {
+						// Update Manager installs the system's updates; Upkeep only opens it, detached, and never waits.
+						Bun.spawn(["mintupdate"], { stdin: "ignore", stdout: "ignore", stderr: "ignore" }).unref();
+						return { ok: true };
+					} catch {
+						return { ok: false };
+					}
 				},
 			},
 			messages: {},
