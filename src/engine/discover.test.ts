@@ -19,6 +19,7 @@ import {
 } from "./discover";
 import { tomlTable } from "./manifest";
 import fdRelease from "./fixtures/sharkdp_fd.json";
+import lazygitRelease from "./fixtures/jesseduffield_lazygit.json";
 import rustdeskRelease from "./fixtures/rustdesk_rustdesk.json";
 import zenRelease from "./fixtures/zen-browser_desktop.json";
 import type { Asset, FetchLike } from "./github";
@@ -142,6 +143,26 @@ test("the asset filter keeps what runs on Linux x86_64, best first, on three rea
 	]);
 	// What is on disk leads.
 	expect(machineAssets(names(rustdeskRelease), ["deb"]).candidates[0]?.asset.name).toBe("rustdesk-1.5.1-x86_64.deb");
+});
+
+test("32-bit, other architectures, and an asset that names no architecture all lose to this machine's build", () => {
+	expect(machineAssets(names(lazygitRelease)).candidates.map((c) => c.asset.name)).toEqual([
+		"lazygit_0.66.3_linux_x86_64.tar.gz",
+	]);
+	const odd = [
+		"t_386.tar.gz",
+		"t-i586.tar.gz",
+		"t-ia32.tar.gz",
+		"t-x86-32.zip",
+		"t-loong64.tar.gz",
+		"t-mips.tar.gz",
+		"t.tar.gz",
+		"t-linux-64bit.tar.gz",
+		"t-x86-64.tar.gz",
+	];
+	expect(
+		machineAssets(odd.map((name) => ({ name, url: "", size: 1, digest: null }))).candidates.map((c) => c.asset.name),
+	).toEqual(["t-x86-64.tar.gz", "t-linux-64bit.tar.gz", "t.tar.gz"]);
 });
 
 test("kinds: bare names, -gh and the machine triple are files; archives the installer cannot open are named", () => {

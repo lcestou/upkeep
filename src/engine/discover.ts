@@ -44,7 +44,10 @@ export function readInput(input: string): { repo: string } | { file: string } | 
 
 const OTHER_SYSTEM =
 	/darwin|macos|osx|apple|windows|win32|win64|\.exe$|\.msi$|\.dmg$|\.pkg$|android|freebsd|netbsd|openbsd/i;
-const OTHER_ARCH = /arm64|aarch64|armv[0-9]|arm-|armhf|armel|i686|i386|x86(?!_64)|ppc64|riscv|s390x/i;
+const OTHER_ARCH =
+	/arm64|aarch64|armv|arm-|armhf|armel|i[3-6]86|ia32|32-?bit|x86-32|x86(?![_-]64)|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
+// An asset that names this machine outright beats one that names no architecture.
+const THIS_MACHINE = /x86_64|x86-64|amd64|x64|64-?bit/i;
 const SIDE_FILE = /\.(sha256|sha512|sig|asc|zsync|sbom|json|txt|pem|minisig)$/i;
 const OTHER_PACKAGE = /\.(rpm|apk|pacman|flatpak|snap)$/i;
 const UNOPENED = /\.(tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
@@ -83,9 +86,14 @@ export function machineAssets(assets: Asset[], prefer: AppKind[] = []): { candid
 		else if (kind) candidates.push({ asset, kind });
 	}
 	const preferred = (c: Candidate) => (prefer.includes(c.kind) ? 0 : 1);
+	const named = (c: Candidate) => (THIS_MACHINE.test(c.asset.name) ? 0 : 1);
 	// Within a rank the shortest name is the plain build; variants add words (sciter, unattended, musl).
 	const sorted = candidates.toSorted(
-		(a, b) => preferred(a) - preferred(b) || rank(a) - rank(b) || a.asset.name.length - b.asset.name.length,
+		(a, b) =>
+			preferred(a) - preferred(b) ||
+			rank(a) - rank(b) ||
+			named(a) - named(b) ||
+			a.asset.name.length - b.asset.name.length,
 	);
 	return { candidates: sorted, unopened };
 }

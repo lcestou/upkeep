@@ -1,0 +1,19 @@
+{
+	"assets": [
+		{ "name": "checksums.txt", "size": 1314 },
+		{ "name": "lazygit_0.66.3_darwin_arm64.tar.gz", "size": 6934054 },
+		{ "name": "lazygit_0.66.3_darwin_x86_64.tar.gz", "size": 7454863 },
+		{ "name": "lazygit_0.66.3_freebsd_32-bit.tar.gz", "size": 6927565 },
+		{ "name": "lazygit_0.66.3_freebsd_arm64.tar.gz", "size": 6618633 },
+		{ "name": "lazygit_0.66.3_freebsd_armv6.tar.gz", "size": 6904973 },
+		{ "name": "lazygit_0.66.3_freebsd_x86_64.tar.gz", "size": 7300279 },
+		{ "name": "lazygit_0.66.3_linux_32-bit.tar.gz", "size": 6977778 },
+		{ "name": "lazygit_0.66.3_linux_arm64.tar.gz", "size": 6656897 },
+		{ "name": "lazygit_0.66.3_linux_armv6.tar.gz", "size": 6941782 },
+		{ "name": "lazygit_0.66.3_linux_x86_64.tar.gz", "size": 7337304 },
+		{ "name": "lazygit_0.66.3_windows_32-bit.zip", "size": 7274520 },
+		{ "name": "lazygit_0.66.3_windows_arm64.zip", "size": 6762773 },
+		{ "name": "lazygit_0.66.3_windows_x86_64.zip", "size": 7576049 }
+	],
+	"tag_name": "v0.66.3"
+}
