@@ -1,0 +1,106 @@
+import { afterEach, beforeEach, expect, test } from "bun:test";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { ensureManifest, loadManifest } from "./manifest";
+import { paths } from "./paths";
+
+const SEED = join(import.meta.dir, "../../manifest/apps.toml");
+let dir = "";
+
+beforeEach(() => {
+	dir = mkdtempSync(join(tmpdir(), "upkeep-manifest-"));
+});
+afterEach(() => {
+	rmSync(dir, { recursive: true, force: true });
+});
+
+test("the seed manifest loads 32 apps with no errors", () => {
+	const { apps, errors } = loadManifest(SEED);
+	expect(errors).toEqual([]);
+	expect(apps.length).toBe(32);
+	const counts: Record<string, number> = {};
+	for (const a of apps) counts[a.kind] = (counts[a.kind] ?? 0) + 1;
+	expect(counts).toEqual({ appimage: 3, archive: 9, file: 1, deb: 2, source: 2, command: 4, legacy: 5, manual: 6 });
+	const fd = apps.find((a) => a.key === "fd");
+	expect(fd).toEqual({
+		key: "fd",
+		name: "fd",
+		kind: "archive",
+		repo: "sharkdp/fd",
+		asset: "x86_64-unknown-linux-gnu\\.tar\\.gz$",
+		dest: "~/.local/bin/fd",
+		bins: ["fd"],
+	});
+});
+
+test("an invalid table is left out and reported, the rest load", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(
+		file,
+		[
+			"[apps.good]",
+			'name = "Good"',
+			'kind = "file"',
+			'repo = "a/b"',
+			'asset = "x$"',
+			'dest = "~/x"',
+			"[apps.noasset]",
+			'name = "No asset"',
+			'kind = "appimage"',
+			'repo = "a/b"',
+			'dest = "~/y"',
+			"[apps.nobins]",
+			'name = "No bins"',
+			'kind = "archive"',
+			'repo = "a/b"',
+			'asset = "x"',
+			'dest = "~/z"',
+			"[apps.cmd]",
+			'name = "Cmd"',
+			'kind = "command"',
+			'check = ["x", "--version"]',
+			'latest = "npm:x"',
+			"[apps.leg]",
+			'name = "Leg"',
+			'kind = "legacy"',
+			'legacy_key = "leg"',
+			"[apps.legv]",
+			'name = "Leg v"',
+			'kind = "legacy"',
+			'legacy_key = "legv"',
+			"versionless = true",
+			"[apps.man]",
+			'name = "Man"',
+			'kind = "manual"',
+			'legacy_name = "man"',
+		].join("\n"),
+	);
+	const { apps, errors } = loadManifest(file);
+	expect(apps.map((a) => a.key)).toEqual(["good", "legv"]);
+	expect(errors).toEqual([
+		"noasset: asset is required for kind appimage",
+		"nobins: bins is required for kind archive",
+		"cmd: update is required for kind command",
+		"leg: legacy_name is required for kind legacy",
+		"man: run is required for kind manual",
+	]);
+});
+
+test("a file that is not TOML is one error and no apps", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(file, "[apps.x\nname = ");
+	const { apps, errors } = loadManifest(file);
+	expect(apps).toEqual([]);
+	expect(errors.length).toBe(1);
+});
+
+test("ensureManifest copies the seed once and never overwrites", () => {
+	const p = paths({ HOME: dir, XDG_CONFIG_HOME: join(dir, "c") }, 1000);
+	const target = ensureManifest(p, SEED);
+	expect(target).toBe(join(dir, "c/upkeep/apps.toml"));
+	expect(readFileSync(target, "utf8")).toBe(readFileSync(SEED, "utf8"));
+	writeFileSync(target, "# mine\n");
+	ensureManifest(p, SEED);
+	expect(readFileSync(target, "utf8")).toBe("# mine\n");
+});
