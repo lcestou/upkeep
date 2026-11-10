@@ -53,6 +53,11 @@ test("during a run the menu cannot start another and quitting waits", () => {
 	expect(labels).toEqual(["Open Upkeep", "Check now", "-", "Quit after this run"]);
 });
 
+test("during a check the menu offers no install, because the engine would refuse it", () => {
+	const labels = trayMenu(snap(3, { ...idle, phase: "checking" })).map((i) => (i.type === "normal" ? i.label : "-"));
+	expect(labels).toEqual(["Open Upkeep", "Check now", "-", "Quit"]);
+});
+
 test("icon names", () => {
 	expect(trayIcon(snap(0))).toBe("idle");
 	expect(trayIcon(snap(1))).toBe("count-1");

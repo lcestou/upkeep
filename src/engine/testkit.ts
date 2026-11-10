@@ -7,17 +7,14 @@ import { createRunner, type Run, type RunOpts, type RunResult } from "./run";
 /** A temp home with every Upkeep directory under it. Tests never touch the real one. */
 export function tempHome(prefix: string): { dir: string; paths: Paths; cleanup(): void } {
 	const dir = mkdtempSync(join(tmpdir(), `upkeep-${prefix}-`));
-	const p = paths(
-		{
-			HOME: join(dir, "home"),
-			XDG_CONFIG_HOME: join(dir, "config"),
-			XDG_STATE_HOME: join(dir, "state"),
-			XDG_DATA_HOME: join(dir, "data"),
-			XDG_CACHE_HOME: join(dir, "cache"),
-			XDG_RUNTIME_DIR: join(dir, "run"),
-		},
-		1000,
-	);
+	const p = paths({
+		HOME: join(dir, "home"),
+		XDG_CONFIG_HOME: join(dir, "config"),
+		XDG_STATE_HOME: join(dir, "state"),
+		XDG_DATA_HOME: join(dir, "data"),
+		XDG_CACHE_HOME: join(dir, "cache"),
+		XDG_RUNTIME_DIR: join(dir, "run"),
+	});
 	mkdirSync(p.home, { recursive: true });
 	return { dir, paths: p, cleanup: () => rmSync(dir, { recursive: true, force: true }) };
 }

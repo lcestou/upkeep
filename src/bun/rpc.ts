@@ -19,7 +19,7 @@ function newestLog(logDir: string): string | null {
 export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, onSettings: () => void) {
 	const logDir = join(deps.paths.state, "logs");
 	return BrowserView.defineRPC<UpkeepRPC>({
-		// A restore copies files and runs a version probe, which can take a few seconds.
+		// Limits requests from this process to the view, of which there are none. The view's own limit is in bridge.ts.
 		maxRequestTime: 15000,
 		handlers: {
 			requests: {
@@ -52,7 +52,12 @@ export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, onSettings: ()
 				},
 				setSettings: (patch) => {
 					const settings = engine.setSettings(patch);
-					onSettings();
+					try {
+						onSettings();
+					} catch (err) {
+						// The setting is saved; a login entry that cannot be written is reported, not fatal.
+						console.error("login entry:", err);
+					}
 					return settings;
 				},
 				history: ({ limit }) => engine.history(limit),

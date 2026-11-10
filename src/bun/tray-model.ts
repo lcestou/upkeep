@@ -12,11 +12,13 @@ export function readyNames(snapshot: Snapshot): string[] {
 export function trayMenu(snapshot: Snapshot): TrayItem[] {
 	const ready = readyNames(snapshot).length;
 	const installing = snapshot.run.phase === "installing";
+	// During a check the engine would refuse an install, and the ready count is in flux.
+	const busy = installing || snapshot.run.phase === "checking";
 	const items: TrayItem[] = [
 		{ type: "normal", label: "Open Upkeep", action: "open" },
 		{ type: "normal", label: "Check now", action: "check" },
 	];
-	if (ready > 0 && !installing) items.push({ type: "normal", label: `Install ${ready} ready`, action: "install" });
+	if (ready > 0 && !busy) items.push({ type: "normal", label: `Install ${ready} ready`, action: "install" });
 	items.push({ type: "divider" });
 	items.push({ type: "normal", label: installing ? "Quit after this run" : "Quit", action: "quit" });
 	return items;

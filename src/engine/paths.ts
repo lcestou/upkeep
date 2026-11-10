@@ -17,7 +17,7 @@ export type Paths = {
 
 type Env = Record<string, string | undefined>;
 
-export function paths(env: Env, uid: number = process.getuid?.() ?? 0): Paths {
+export function paths(env: Env): Paths {
 	const home = env.HOME;
 	if (!home) throw new Error("HOME is not set.");
 	const runtime = env.XDG_RUNTIME_DIR;
@@ -26,7 +26,10 @@ export function paths(env: Env, uid: number = process.getuid?.() ?? 0): Paths {
 		state: join(env.XDG_STATE_HOME || join(home, ".local/state"), "upkeep"),
 		data: join(env.XDG_DATA_HOME || join(home, ".local/share"), "upkeep"),
 		cache: join(env.XDG_CACHE_HOME || join(home, ".cache"), "upkeep"),
-		socket: runtime ? join(runtime, "upkeep.sock") : `/tmp/upkeep-${uid}.sock`,
+		// Without a runtime directory the socket stays in the owner's own state directory, never in shared /tmp.
+		socket: runtime
+			? join(runtime, "upkeep.sock")
+			: join(env.XDG_STATE_HOME || join(home, ".local/state"), "upkeep", "upkeep.sock"),
 		home,
 	};
 }
