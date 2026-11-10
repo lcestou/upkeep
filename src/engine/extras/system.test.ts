@@ -65,7 +65,7 @@ test("parsers read the real output saved from this box", () => {
 		{
 			id: "flatpak:app/com.discordapp.Discord/x86_64/stable",
 			source: "flatpak",
-			name: "com.discordapp.Discord",
+			name: "Discord",
 			type: "app",
 			installed: "1.0.168",
 			latest: "1.0.169",
@@ -74,7 +74,7 @@ test("parsers read the real output saved from this box", () => {
 		{
 			id: "flatpak:app/org.gimp.GIMP/x86_64/stable",
 			source: "flatpak",
-			name: "org.gimp.GIMP",
+			name: "GNU Image Manipulation Program",
 			type: "app",
 			installed: "3.2.8",
 			latest: "3.2.8",
@@ -83,9 +83,9 @@ test("parsers read the real output saved from this box", () => {
 		{
 			id: "flatpak:runtime/org.gnome.Platform/x86_64/51",
 			source: "flatpak",
-			name: "org.gnome.Platform",
+			name: "GNOME Application Platform",
 			type: "runtime",
-			installed: null,
+			installed: "51",
 			latest: "51",
 			running: false,
 		},
@@ -94,7 +94,19 @@ test("parsers read the real output saved from this box", () => {
 	expect(glMissing(fx("dpkg-gl.txt"), fx("flatpak-runtimes.txt"))).toBeNull();
 	expect(glMissing("un \t\nii \t590.44.01-0ubuntu1\n", fx("flatpak-runtimes.txt"))).toBe("590.44.01");
 	expect(glMissing("un \t\nrc \t570.1-1\n", "")).toBeNull();
-	expect(parseFlatpakUpdates("app/us.zoom.Zoom/x86_64/stable\t7.0\n", "", "us.zoom.Zoom\n")[0]?.running).toBe(true);
+	expect(parseFlatpakUpdates("app/us.zoom.Zoom/x86_64/stable\tZoom\t7.0\n", "", "us.zoom.Zoom\n")[0]?.running).toBe(
+		true,
+	);
+	// No name from Flatpak: the last segment of the id, never the whole id. A runtime not installed stays null.
+	const bare = parseFlatpakUpdates(
+		"app/org.gimp.GIMP/x86_64/stable\t\t3.2.9\nruntime/org.kde.Platform/x86_64/6.9\tKDE Application Platform 6.9\n",
+		"",
+		"",
+	);
+	expect(bare.map((r) => [r.name, r.installed, r.latest])).toEqual([
+		["GIMP", null, "3.2.9"],
+		["KDE Application Platform", null, "6.9"],
+	]);
 });
 
 test("a check lists Update Manager's rows and Flatpak's, with installed versions", async () => {
@@ -111,7 +123,7 @@ test("a check lists Update Manager's rows and Flatpak's, with installed versions
 		["apt:perl", "security", "5.38.2-3.2ubuntu0.6", "5.38.2-3.2ubuntu0.7"],
 		["flatpak:app/com.discordapp.Discord/x86_64/stable", "app", "1.0.168", "1.0.169"],
 		["flatpak:app/org.gimp.GIMP/x86_64/stable", "app", "3.2.8", "3.2.8"],
-		["flatpak:runtime/org.gnome.Platform/x86_64/51", "runtime", null, "51"],
+		["flatpak:runtime/org.gnome.Platform/x86_64/51", "runtime", "51", "51"],
 	]);
 	expect(r.glMissing).toBeNull();
 });

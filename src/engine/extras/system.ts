@@ -8,8 +8,8 @@ export type SystemCheck = Pick<SystemState, "rows" | "problem" | "glMissing">;
 /** The seven read-only commands. None needs root; none changes anything. */
 export const MINT_LIST = ["mintupdate-cli", "list"];
 export const SOURCE_VERSIONS = ["dpkg-query", "-W", "-f", "${source:Package}\t${Version}\n"];
-export const FLATPAK_UPDATES = ["flatpak", "remote-ls", "--updates", "--columns=ref,version"];
-export const FLATPAK_INSTALLED = ["flatpak", "list", "--columns=ref,version"];
+export const FLATPAK_UPDATES = ["flatpak", "remote-ls", "--updates", "--columns=ref,name,version"];
+export const FLATPAK_INSTALLED = ["flatpak", "list", "--columns=ref,name,version"];
 export const FLATPAK_RUNNING = ["flatpak", "ps", "--columns=application"];
 // db:Status-Abbrev, so "un" (never installed) and "rc" (removed) driver packages can be left out.
 export const DRIVER_GL = ["dpkg-query", "-W", "-f", "${db:Status-Abbrev}\t${Version}\n", "libnvidia-gl-*"];
@@ -41,26 +41,38 @@ export function parseSourceVersions(stdout: string): Map<string, string> {
 	return out;
 }
 
+/**
+ * What a person calls it: Flatpak's own name, without a trailing version for a runtime (the version cell
+ * carries that), else the last segment of the id, never the whole id.
+ */
+function displayName(name: string, app: string, kind: "app" | "runtime"): string {
+	const short = kind === "runtime" ? name.replace(/\s+(version\s+)?v?\d[\w.]*$/i, "").trim() : name.trim();
+	return short || app.split(".").at(-1) || app;
+}
+
 /** One row per pending Flatpak ref, with the installed version and whether the app runs now. */
 export function parseFlatpakUpdates(updates: string, installed: string, running: string): SystemRow[] {
-	const have = new Map<string, string>();
+	// Lines are "ref\tname\tversion"; a runtime has no version, so its line stops after the name.
+	const have = new Map<string, { name: string; version: string }>();
 	for (const l of lines(installed)) {
-		const [ref, version] = l.split("\t");
-		if (ref) have.set(ref, version ?? "");
+		const [ref, name = "", version = ""] = l.split("\t");
+		if (ref) have.set(ref, { name, version });
 	}
 	const live = new Set(lines(running));
 	const rows: SystemRow[] = [];
 	for (const l of lines(updates)) {
-		const [ref = "", version = ""] = l.split("\t");
+		const [ref = "", listed = "", version = ""] = l.split("\t");
 		const [kind, app = "", , branch = ""] = ref.split("/");
 		if (kind !== "app" && kind !== "runtime") continue;
 		const bare = ref.slice(kind.length + 1);
+		const mine = have.get(bare);
 		rows.push({
 			id: `flatpak:${ref}`,
 			source: "flatpak",
-			name: app,
+			name: displayName(listed || mine?.name || "", app, kind),
 			type: kind,
-			installed: have.get(bare) || null,
+			// A runtime's branch is its version: found by ref, it is installed at that branch.
+			installed: mine ? mine.version || (kind === "runtime" ? branch : null) : null,
 			// A runtime often has no version column: its branch is what changes.
 			latest: version || branch,
 			running: kind === "app" && live.has(app),
