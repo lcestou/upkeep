@@ -14,5 +14,8 @@ First version.
 - Skip one version of an app, hold an app, or mark it to install without asking.
 - A tray icon shows how many updates are ready. One notification per new set of updates.
 - History of every install, and a log per run.
+- The window draws its own title bar inside its header, with the window buttons on the side your desktop puts them. Settings can move them, square the corners, or hand the frame back to the desktop.
+- The list opens with what the last check found and refreshes in place. On the first machine 28 of 32 apps report in under two seconds.
+- "Restart to apply" stays on a row until the old copy of the app is no longer running.
 - `upkeep check`, `install`, `restore` and `history` from the command line.
 - Apps not yet ported run through the old `lutechi-updater` script with its dialogs answered for it.

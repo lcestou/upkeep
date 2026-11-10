@@ -98,11 +98,13 @@ Root steps use `sudo -n`. If sudo wants a password the app fails with a message 
 | `~/.local/state/upkeep/logs/` | one log per run, the newest 50 |
 | `~/.local/share/upkeep/history.jsonl` | every install, append-only |
 | `~/.local/share/upkeep/backups/` | restore points |
-| `~/.cache/upkeep/` | release lookups, downloads, source clones. Safe to delete. |
+| `~/.cache/upkeep/` | release lookups, downloads, source clones, the last check's rows. Safe to delete. |
 
 ## The old script
 
 `legacy` and `manual` apps still go through `~/.local/bin/lutechi-updater`. Upkeep runs it with stand-ins for `zenity`, `notify-send` and `curl` first in its `PATH`, so its dialogs are answered, its progress bars become progress in the window, and its GitHub lookups use your `gh` token. Upkeep never edits that script, and it refuses to install anything while the script holds its own lock.
+
+A `legacy` or `manual` app whose table carries `check` and `latest` is looked up by Upkeep itself, at the same time as the rest. The others wait for one run of the old script's `--check`, which takes 8 to 15 seconds here, and until it answers their rows show what the last check found.
 
 ## Build and install
 
@@ -114,6 +116,16 @@ This writes `artifacts/linux-x64-Upkeep-Setup.tar.gz`. Unpack it and run `./inst
 
 "Check at login" in Settings writes `~/.config/autostart/upkeep.desktop` and turning it off removes the file.
 
+## The window
+
+Upkeep draws its own title bar: the header is the drag area, a double click on it maximises, and the window buttons sit on the side the desktop uses (read from `org.cinnamon.desktop.wm.preferences button-layout`, then GNOME's key). Settings has three controls for it:
+
+- **Window frame**: Built in, or System for the desktop's own title bar.
+- **Window buttons**: Follow the desktop, Left or Right.
+- **Window corners**: Rounded or Square. A rounded window is built see-through so its corners can be cut, and the desktop draws no shadow under a see-through window. Square keeps the shadow.
+
+Changing the frame or the corners rebuilds the window, which takes a moment.
+
 ## Develop
 
 ```sh
@@ -121,5 +133,7 @@ bun run validate     # format check, lint, types, unit tests, view build, browse
 bun run dev:view     # the view alone at http://localhost:5182/?fixture
 bun run e2e          # Playwright over the fixture
 ```
+
+The identity (app icon, mark, wordmark, tray drawings) is in `assets/brand`. `bun run tray-icons` renders the tray pictures and the launcher icon from it.
 
 `CLAUDE.md` has the rules for working in this repo. `PRODUCT.md` is the product record and `DESIGN.md` the visual system.
