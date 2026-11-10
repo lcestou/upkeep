@@ -361,6 +361,8 @@ export function bareName(file: string): string {
 	return n;
 }
 
+const MIN_STARS = 300;
+
 type Search = { repo: string } | { none: true } | { problem: string; rate: boolean };
 
 /** GitHub's repository search for a project named name; only an exact name match counts. */
@@ -380,15 +382,21 @@ async function searchRepo(name: string, ctx: DiscoverCtx): Promise<Search> {
 	if (res.status === 403 || res.status === 429)
 		return { problem: "GitHub's request limit is used up. Try again after it resets.", rate: true };
 	if (!res.ok) return { problem: `GitHub answered ${res.status} for ${name}.`, rate: false };
-	let items: { name?: unknown; full_name?: unknown }[] = [];
+	let items: { name?: unknown; full_name?: unknown; stargazers_count?: unknown }[] = [];
 	try {
 		const body = (await res.json()) as { items?: unknown };
 		if (Array.isArray(body.items)) items = body.items as typeof items;
 	} catch {
 		// not JSON: no match
 	}
+	// A wrong repo is worse than none: only an exact name with a following counts.
 	const hit = items.find(
-		(i) => typeof i.name === "string" && i.name.toLowerCase() === name.toLowerCase() && typeof i.full_name === "string",
+		(i) =>
+			typeof i.name === "string" &&
+			i.name.toLowerCase() === name.toLowerCase() &&
+			typeof i.full_name === "string" &&
+			typeof i.stargazers_count === "number" &&
+			i.stargazers_count >= MIN_STARS,
 	);
 	return hit ? { repo: String(hit.full_name) } : { none: true };
 }
@@ -408,6 +416,8 @@ function fileProblem(path: string, home: string, problem: string, source: Sugges
 		problem,
 	};
 }
+
+const unknownSource = (base: string) => `Could not tell where ${base} comes from. Paste its GitHub repo to add it.`;
 
 /** A suggestion for a file on disk. Never runs it; probe allows the version probe once a repo is known. */
 export async function fromFile(
@@ -448,12 +458,7 @@ export async function fromFile(
 		if ("problem" in s) return { suggestion: fileProblem(path, home, s.problem, source), rate: s.rate, searched };
 		if ("none" in s)
 			return {
-				suggestion: fileProblem(
-					path,
-					home,
-					`Could not tell where ${base} comes from. Paste its GitHub repo to add it.`,
-					source,
-				),
+				suggestion: fileProblem(path, home, unknownSource(base), source),
 				searched,
 			};
 		repo = s.repo;
@@ -468,7 +473,11 @@ export async function fromFile(
 			: `Guessed from the file name. Check that ${repo} is the right project.`,
 		probe: !opts.scan,
 	});
-	if ("problem" in r) return { suggestion: fileProblem(path, home, r.problem, source), rate: r.rate, searched };
+	if ("problem" in r) {
+		// A guessed repo without a release for this machine was not the right guess.
+		const problem = embedded || r.rate ? r.problem : unknownSource(base);
+		return { suggestion: fileProblem(path, home, problem, source), rate: r.rate, searched };
+	}
 	return { suggestion: r.suggestion, searched };
 }
 

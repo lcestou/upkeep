@@ -29,7 +29,7 @@ type Fixture = { tag_name: string; assets: { name: string; size: number }[] };
 
 let t: ReturnType<typeof tempHome>;
 let releases: Record<string, Fixture> = {};
-let searches: Record<string, { name: string; full_name: string }[]> = {};
+let searches: Record<string, { name: string; full_name: string; stargazers_count?: number }[]> = {};
 let fetched: string[] = [];
 let onPath: Record<string, string> = {};
 let lines: string[] = [];
@@ -330,7 +330,7 @@ test("from a file: a name search hit is a guess, a miss keeps the path", async (
 	const fd = elf(join(t.dir, "bin/fd-v10.5.2-x86_64-unknown-linux-gnu"));
 	searches.fd = [
 		{ name: "fd-find", full_name: "x/fd-find" },
-		{ name: "FD", full_name: "sharkdp/fd" },
+		{ name: "FD", full_name: "sharkdp/fd", stargazers_count: 41000 },
 	];
 	const hit = await suggest(fd, ctx().c);
 	expect(hit.suggestions[0]).toMatchObject({
@@ -493,4 +493,28 @@ dest = "~/.local/bin/obsidian.AppImage"
 install_if_missing = true
 `);
 	expect(rec.calls.filter((x) => x.argv[0] !== "which").map((x) => x.argv[0])).toEqual(["/usr/bin/rustdesk"]);
+});
+
+const plain = (n: string) => `Could not tell where ${n} comes from. Paste its GitHub repo to add it.`;
+
+test("a name search keeps only an exact name with 300 stars whose release runs here; anything else is not a guess", async () => {
+	const server = elf(join(t.dir, "bin/llama-server"));
+	searches["llama-server"] = [{ name: "llama-server", full_name: "nuance1979/llama-server", stargazers_count: 12 }];
+	// Its release would install fine: only the stars keep it out.
+	releases["nuance1979/llama-server"] = {
+		tag_name: "v1.0",
+		assets: [{ name: "llama-server-1.0-x86_64-linux.tar.gz", size: 1 }],
+	};
+	const few = (await suggest(server, ctx().c)).suggestions[0];
+	expect(few).toMatchObject({ problem: plain("llama-server"), spec: { key: "llama-server", kind: "file" } });
+	expect(few?.spec.repo).toBeUndefined();
+	const omp = elf(join(t.dir, "bin/omp"));
+	searches.omp = [{ name: "omp", full_name: "nini22P/omp", stargazers_count: 900 }];
+	releases["nini22P/omp"] = { tag_name: "v1.0", assets: [{ name: "omp-1.0-windows.zip", size: 1 }] };
+	expect((await suggest(omp, ctx().c)).suggestions[0]).toMatchObject({ problem: plain("omp") });
+	const cursor = elf(join(t.dir, "bin/cursor"));
+	searches.cursor = [{ name: "cursor", full_name: "cursor/cursor", stargazers_count: 30000 }];
+	const cur = (await suggest(cursor, ctx().c)).suggestions[0];
+	expect(cur).toMatchObject({ problem: plain("cursor") });
+	expect(cur?.spec.repo).toBeUndefined();
 });
