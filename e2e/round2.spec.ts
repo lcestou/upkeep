@@ -219,3 +219,55 @@ test("in add mode the footer's Install steps down to the secondary style", async
 	await page.getByTestId("add-app").click();
 	await expect(page.getByTestId("install")).not.toHaveClass(/primary/);
 });
+
+test("the subline's dot has the same gap on both sides", async ({ page }) => {
+	await load(page);
+	const gaps = await page.evaluate(() => {
+		const box = (id: string) => document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect();
+		const range = document.createRange();
+		const checked = document.querySelector('[data-testid="checked"]');
+		if (!checked) return null;
+		range.selectNodeContents(checked);
+		const a = range.getBoundingClientRect();
+		const sep = box("subline-sep");
+		const next = box("by-hand-line");
+		return sep && next ? [sep.left - a.right, next.left - sep.right] : null;
+	});
+	expect(gaps).not.toBeNull();
+	const [before = 0, after = 0] = gaps ?? [];
+	expect(Math.abs(before - after)).toBeLessThanOrEqual(1);
+	expect(before).toBeGreaterThan(2);
+});
+
+test("History marks a failure in the failure red, not the rust of Needs a look", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("tab-history").click();
+	const rolled = await page.locator("li.r-rolled_back .result").evaluate((el) => getComputedStyle(el).color);
+	const fail = await page.evaluate(() => {
+		const probe = document.createElement("span");
+		probe.style.color = "var(--fail)";
+		document.body.append(probe);
+		const c = getComputedStyle(probe).color;
+		probe.remove();
+		return c;
+	});
+	expect(rolled).toBe(fail);
+});
+
+test("on a 2x screen the ready glyph is the vector mark", async ({ page }) => {
+	await load(page);
+	const glyph = page.getByTestId("row-fd").locator(".mark > svg");
+	await expect(glyph.locator("svg.hi")).toBeVisible();
+	await expect(glyph.locator("path.lo")).toBeHidden();
+});
+
+test.describe("on a 1x screen", () => {
+	test.use({ deviceScaleFactor: 1 });
+	test("the ready glyph is the 16 px pixel cut, drawn crisp", async ({ page }) => {
+		await load(page);
+		const glyph = page.getByTestId("row-fd").locator(".mark > svg");
+		await expect(glyph.locator("svg.hi")).toBeHidden();
+		await expect(glyph.locator("path.lo")).toHaveAttribute("shape-rendering", "crispEdges");
+		expect((await glyph.boundingBox())?.width).toBe(16);
+	});
+});

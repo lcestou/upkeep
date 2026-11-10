@@ -553,6 +553,33 @@ async function sweepChips(browser, table) {
 	table.push({ state: "chip-sweep", misses, worst: blank(), rows: 0 });
 }
 
+/** The ready glyph beside By hand's hand, at 1x (pixel cut) and 2x (vector mark). */
+async function glyphs(browser) {
+	for (const dsf of [1, 2]) {
+		// oxlint-disable-next-line no-await-in-loop -- one density at a time
+		const ctx = await browser.newContext({
+			viewport: { width: 980, height: 720 },
+			deviceScaleFactor: dsf,
+			colorScheme: "dark",
+		});
+		// oxlint-disable-next-line no-await-in-loop -- one density at a time
+		const page = await ctx.newPage();
+		// oxlint-disable-next-line no-await-in-loop -- one density at a time
+		await page.goto(`${BASE}?fixture`);
+		// oxlint-disable-next-line no-await-in-loop -- one density at a time
+		await page.getByTestId("install").waitFor();
+		// oxlint-disable-next-line no-await-in-loop -- one density at a time
+		await page.evaluate(() => document.fonts.ready);
+		// oxlint-disable-next-line no-await-in-loop -- one density at a time
+		await sleep(300);
+		// oxlint-disable-next-line no-await-in-loop -- one density at a time
+		await page.screenshot({ path: join(OUT, `glyph-${dsf}x.png`), clip: { x: 0, y: 230, width: 460, height: 380 } });
+		// oxlint-disable-next-line no-await-in-loop -- one density at a time
+		await ctx.close();
+	}
+	return 2;
+}
+
 /** At 1400 the header's and the footer's content line up with the capped ledger's edges. */
 async function edges(browser, table) {
 	const ctx = await browser.newContext({
@@ -615,6 +642,7 @@ async function main() {
 			}
 			count += await captureSize(browser, BIG, errors, table, { full: false });
 			await sweepChips(browser, table);
+			count += await glyphs(browser);
 			await edges(browser, table);
 		} finally {
 			await browser.close();

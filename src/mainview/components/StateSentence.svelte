@@ -35,14 +35,18 @@
 	</h1>
 	<!-- One line that wraps out of sight: a note that cannot fit whole is left out, never cut. -->
 	<span class="more">
+		<!-- A zero-width first item, so even the first note can wrap away whole instead of being cut. -->
+		<span class="lead-in" aria-hidden="true"></span>
 		{#if model.notice}
 			<span class="checked" data-testid="notice">{model.notice}</span>
 		{:else if restart.length > 0}
 			<span class="checked restart" data-testid="restart-line">{restartLine(restart)}</span>
 		{:else if checked && model.run.phase === "idle"}
 			<span class="checked" data-testid="checked">{checked}</span>
-			{#if manual > 0}<span class="checked" data-testid="by-hand-line"
-					><span aria-hidden="true">· </span>{byHandLine(manual)}</span
+			{#if manual > 0}<span class="checked unit"
+					><span class="sep" aria-hidden="true" data-testid="subline-sep">·</span><span data-testid="by-hand-line"
+						>{byHandLine(manual)}</span
+					></span
 				>{/if}
 		{/if}
 	</span>
@@ -88,14 +92,21 @@
 		flex: none;
 		max-width: 100%;
 	}
+	/* Notes sit 6 px apart; the dot carries the same 6 px after it as before it. */
 	.more {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
-		column-gap: var(--s3);
+		column-gap: 6px;
 		min-width: 0;
 		height: 1.4em;
 		overflow: hidden;
+	}
+	.lead-in {
+		width: 0;
+	}
+	.sep {
+		margin-right: 6px;
 	}
 	.checked {
 		font-size: var(--fs-12);

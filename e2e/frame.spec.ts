@@ -120,9 +120,9 @@ test("the identity: the mark in the title bar, the sprout on ready rows drawn cr
 	const mark = page.locator("header .brand svg.mark");
 	await expect(mark).toHaveAttribute("viewBox", "0 0 256 256");
 	await expect(mark.locator("g")).toHaveAttribute("transform", "translate(35.38 41.92) scale(0.7526)");
-	const sprout = page.getByTestId("row-fd").locator(".mark svg path");
+	const sprout = page.getByTestId("row-fd").locator(".mark svg path.lo");
 	await expect(sprout).toHaveAttribute("shape-rendering", "crispEdges");
-	expect((await page.getByTestId("row-fd").locator(".mark svg").boundingBox())?.width).toBe(16);
+	expect((await page.getByTestId("row-fd").locator(".mark > svg").boundingBox())?.width).toBe(16);
 });
 
 test.describe("at 760 by 520", () => {

@@ -148,20 +148,21 @@
 	}
 	.struck {
 		text-decoration: line-through;
-		text-decoration-color: var(--rust);
+		text-decoration-color: var(--fail);
 		color: var(--text-3);
 	}
 	.detail {
 		font-size: var(--fs-12);
-		color: oklch(0.82 0.09 48);
+		color: oklch(0.84 0.09 25);
 	}
 	.result {
 		font-weight: 560;
 		color: var(--leaf);
 	}
+	/* One colour, one meaning: failure red, as in the ledger; rust stays for Needs a look. */
 	.r-failed .result,
 	.r-rolled_back .result {
-		color: var(--rust);
+		color: var(--fail);
 	}
 	.dur {
 		justify-self: end;
