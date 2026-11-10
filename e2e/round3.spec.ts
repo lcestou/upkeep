@@ -95,3 +95,94 @@ test("the close button's hover cross measures 4.5:1 or better", async ({ page })
 	});
 	expect(ratio).toBeGreaterThanOrEqual(4.5);
 });
+
+// 6. Each Settings segment is one radio group: one tab stop, the arrows move and select, Home and End.
+test("the Settings segments are radio groups with one tab stop and arrow keys", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("tab-settings").click();
+	const frame = page.getByTestId("setting-frame");
+	await expect(frame.locator('[tabindex="0"]')).toHaveCount(1);
+	await expect(page.getByTestId("setting-buttons").locator('[tabindex="0"]')).toHaveCount(1);
+	await expect(page.getByTestId("setting-corners").locator('[tabindex="0"]')).toHaveCount(1);
+	const buttons = page.getByTestId("setting-buttons");
+	await page.getByTestId("setting-buttons-auto").focus();
+	await page.keyboard.press("ArrowRight");
+	await expect(page.getByTestId("setting-buttons-left")).toBeFocused();
+	await expect(page.getByTestId("setting-buttons-left")).toHaveAttribute("aria-checked", "true");
+	await expect(buttons.locator('[tabindex="0"]')).toHaveAttribute("data-testid", "setting-buttons-left");
+	await page.keyboard.press("End");
+	await expect(page.getByTestId("setting-buttons-right")).toHaveAttribute("aria-checked", "true");
+	await page.keyboard.press("ArrowDown");
+	await expect(page.getByTestId("setting-buttons-auto")).toHaveAttribute("aria-checked", "true");
+	await page.keyboard.press("ArrowUp");
+	await expect(page.getByTestId("setting-buttons-right")).toBeFocused();
+	await page.keyboard.press("Home");
+	await expect(page.getByTestId("setting-buttons-auto")).toHaveAttribute("aria-checked", "true");
+	// Tab leaves the group in one step, onto the next group's checked option.
+	await page.keyboard.press("Tab");
+	await expect(page.getByTestId("setting-corners-rounded")).toBeFocused();
+});
+
+// 7. The Add error is announced and tied to the field.
+test("the Add pane's error is an alert and describes the field while it shows", async ({ page }) => {
+	await load(page, "fixture&fail=suggest");
+	await page.getByTestId("add-app").click();
+	const input = page.getByTestId("add-input");
+	await expect(input).not.toHaveAttribute("aria-invalid", "true");
+	await input.fill("sharkdp/bat");
+	await input.press("Enter");
+	const error = page.getByTestId("add-error");
+	await expect(error).toHaveAttribute("role", "alert");
+	await expect(input).toHaveAttribute("aria-invalid", "true");
+	const ids = ((await input.getAttribute("aria-describedby")) ?? "").split(" ");
+	expect(ids).toContain(await error.getAttribute("id"));
+	expect(ids).toContain("add-hint");
+});
+
+// 8. Focus lands on a row after Add and after Remove, never on the page.
+test("after Add focus is on the new row; after Remove on the next row, or the one before for the last", async ({ page }) => {
+	await page.setViewportSize({ width: 1200, height: 800 });
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-input").fill("BurntSushi/ripgrep");
+	await page.keyboard.press("Enter");
+	await page.getByTestId("suggestion-ripgrep").getByTestId("sug-add").click();
+	await expect(page.getByTestId("open-ripgrep")).toBeFocused();
+
+	const order = () => page.locator("[data-row]").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.row));
+	const before = await order();
+	const victim = before[1] ?? "";
+	await page.getByTestId(`open-${victim}`).click();
+	await page.getByTestId("remove-app").click();
+	await page.getByTestId("remove-confirm").click();
+	await expect(page.getByTestId(`open-${before[2]}`)).toBeFocused();
+
+	const ready = await order();
+	const last = ready.at(-1) ?? "";
+	await page.getByTestId("group-fresh-toggle").click();
+	const all = await order();
+	const lastAll = all.at(-1) ?? last;
+	await page.getByTestId(`open-${lastAll}`).click();
+	await page.getByTestId("remove-app").click();
+	await page.getByTestId("remove-confirm").click();
+	await expect(page.getByTestId(`open-${all.at(-2)}`)).toBeFocused();
+});
+
+// 9. PageDown and PageUp move row focus by a page of rows.
+test("PageDown and PageUp move row focus by the rows that fit in the list", async ({ page }) => {
+	await page.setViewportSize({ width: 980, height: 720 });
+	await load(page, "fixture=many", { wait: "sentence" });
+	await page.getByTestId("group-fresh-toggle").click();
+	const rows = await page.locator("[data-row]").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.row));
+	const fit = await page
+		.getByTestId("app-list")
+		.evaluate((el) => Math.max(1, Math.floor((el.clientHeight - 34) / 44)));
+	await page.getByTestId(`open-${rows[0]}`).focus();
+	await page.keyboard.press("PageDown");
+	await expect(page.getByTestId(`open-${rows[fit]}`)).toBeFocused();
+	await page.keyboard.press("PageDown");
+	await expect(page.getByTestId(`open-${rows[2 * fit]}`)).toBeFocused();
+	await page.keyboard.press("PageUp");
+	await expect(page.getByTestId(`open-${rows[fit]}`)).toBeFocused();
+	await expect(page.getByTestId(`open-${rows[fit]}`)).toBeInViewport({ ratio: 1 });
+});

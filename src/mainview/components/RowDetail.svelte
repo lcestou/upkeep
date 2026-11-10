@@ -66,13 +66,20 @@
 
 	async function remove() {
 		const name = app.name;
+		// Focus goes to the next row, or the one before when this was the last.
+		const rows = [...document.querySelectorAll<HTMLElement>("[data-row]")].map((r) => r.dataset.row);
+		const i = rows.indexOf(app.key);
+		const next = rows[i + 1] ?? rows[i - 1] ?? null;
 		const res = await model.send("removeApp", { key: app.key });
 		if (!res?.ok) {
 			asking = false;
 			return;
 		}
 		model.flash("notice", removedNote(name));
-		document.querySelector<HTMLElement>("[data-row]")?.focus();
+		await tick();
+		await tick();
+		const row = next ? document.querySelector<HTMLElement>(`[data-row="${CSS.escape(next)}"]`) : null;
+		(row ?? document.querySelector<HTMLElement>('[data-testid="filter"]'))?.focus();
 	}
 
 	async function retryOne() {

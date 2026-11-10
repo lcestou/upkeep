@@ -74,13 +74,24 @@
 	}
 
 	function onkeydown(e: KeyboardEvent) {
-		// PageUp and PageDown scroll the list by a page from anywhere in it.
+		const target = e.target;
+		// PageUp and PageDown move row focus by as many rows as the list shows; elsewhere in the list they scroll a page.
 		if ((e.key === "PageDown" || e.key === "PageUp") && root) {
 			e.preventDefault();
-			root.scrollBy({ top: (e.key === "PageDown" ? 1 : -1) * root.clientHeight * 0.9 });
+			const dir = e.key === "PageDown" ? 1 : -1;
+			const rows = rowButtons();
+			const i = target instanceof HTMLElement ? rows.indexOf(target) : -1;
+			if (i < 0) {
+				root.scrollBy({ top: dir * root.clientHeight * 0.9 });
+				return;
+			}
+			const page = Math.max(1, Math.floor((root.clientHeight - 34) / 44));
+			const next = rows[Math.max(0, Math.min(rows.length - 1, i + dir * page))];
+			next?.focus({ preventScroll: true });
+			next?.scrollIntoView({ block: "nearest" });
+			if (model.openKey && next?.dataset.row) model.select(next.dataset.row);
 			return;
 		}
-		const target = e.target;
 		if (!(target instanceof HTMLElement) || !target.dataset.row) return;
 		const key = target.dataset.row;
 		if (e.key === " ") {

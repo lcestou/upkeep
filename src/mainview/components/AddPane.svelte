@@ -97,8 +97,7 @@
 		model.select(spec.key);
 		model.reveal++;
 		model.flash("added", addedOne(spec.name), spec.key);
-		await tick();
-		document.querySelector(`[data-row="${CSS.escape(spec.key)}"]`)?.scrollIntoView({ block: "nearest" });
+		await focusRow(spec.key);
 	}
 
 	async function addScanned() {
@@ -112,6 +111,16 @@
 		scanTicks = new Set([...scanTicks].filter((k) => !added.has(k)));
 		scanNote = res.added.length > 0 ? addedMany(res.added.length) : null;
 		model.reveal++;
+		if (res.added[0]) await focusRow(res.added[0]);
+	}
+
+	/** Focus goes to the new app's row once it is drawn; under 900 px the sheet keeps it instead, and the list is inert. */
+	async function focusRow(key: string) {
+		await tick();
+		await tick();
+		const row = document.querySelector<HTMLElement>(`[data-row="${CSS.escape(key)}"]`);
+		row?.scrollIntoView({ block: "nearest" });
+		if (row && !row.closest("[inert]")) row.focus({ preventScroll: true });
 	}
 
 	// shortcut: assumes the Linux /home/<user> layout for "~"; upgrade when the bridge reports the home dir.
@@ -160,7 +169,8 @@
 				spellcheck="false"
 				data-testid="add-input"
 				readonly={working}
-				aria-describedby="add-hint"
+				aria-invalid={error || problem ? "true" : undefined}
+				aria-describedby={[error && "add-error", problem && "add-problem", "add-hint"].filter(Boolean).join(" ")}
 				bind:value={input}
 				bind:this={field}
 				{@attach (node: HTMLInputElement) => node.focus()}
@@ -183,9 +193,9 @@
 		<p class="status" role="status" data-testid="add-status">
 			{#if busy === "find" || busy === "pick"}{ADD.lookingRelease}{:else if busy === "scan"}{ADD.lookingDisk}{/if}
 		</p>
-		{#if error}<p class="problem" data-testid="add-error">{error}</p>{/if}
+		{#if error}<p class="problem" id="add-error" role="alert" data-testid="add-error">{error}</p>{/if}
 		{#if model.dropProblem}<p class="problem" data-testid="drop-problem">{model.dropProblem}</p>{/if}
-		{#if problem}<p class="problem" data-testid="add-problem">{problem}</p>{/if}
+		{#if problem}<p class="problem" id="add-problem" role="alert" data-testid="add-problem">{problem}</p>{/if}
 	</div>
 
 	{#each found as s (s.spec.key + (s.asset?.name ?? ""))}
