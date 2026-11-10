@@ -17,7 +17,8 @@
 		>
 		<path class="lo solid" d={SPROUT_PATH} shape-rendering="crispEdges" />
 	{:else if name === "drop"}
-		<path d="M8 1.9c2.9 3.35 4.45 5.8 4.45 7.7a4.45 4.45 0 0 1-8.9 0c0-1.9 1.55-4.35 4.45-7.7Z" class="fill" />
+		<!-- Working: three rising dashes, as the tray's working picture draws them, so it never reads as the done leaf. -->
+		<path d="M4.5 13h7M5.75 8.5h4.5M7 4h2" />
 	{:else if name === "leaf"}
 		<path d={LEAF_PATH} class="solid" />
 	{:else if name === "hand"}
@@ -43,10 +44,6 @@
 		stroke-linecap: round;
 		stroke-linejoin: round;
 	}
-	.fill {
-		fill: currentColor;
-		fill-opacity: 0.22;
-	}
 	/* Switched in CSS by the screen's density, so there is no script and no flash. */
 	.lo {
 		display: none;
@@ -69,10 +66,10 @@
 	.pulse {
 		animation: pulse 1.2s ease-in-out infinite;
 	}
-	/* Between 0.8 and 1, so the dot never drops under 3:1. */
+	/* Between 0.85 and 1, so the dot never drops under 3:1, on the ground or under the scroll shade. */
 	@keyframes pulse {
 		50% {
-			opacity: 0.8;
+			opacity: 0.85;
 		}
 	}
 </style>

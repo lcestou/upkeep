@@ -22,6 +22,28 @@
 		{ v: "right", t: WIN.buttonsRight },
 	] as const;
 
+	/** One tab stop per group, on the checked option; the arrows move and select, Home and End go to the ends. */
+	function onseg(e: KeyboardEvent) {
+		const group = e.currentTarget instanceof HTMLElement ? e.currentTarget.closest('[role="radiogroup"]') : null;
+		if (!group) return;
+		const radios = [...group.querySelectorAll<HTMLButtonElement>('[role="radio"]')];
+		const i = radios.findIndex((r) => r === e.currentTarget);
+		const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+		const to =
+			e.key === "Home"
+				? 0
+				: e.key === "End"
+					? radios.length - 1
+					: step === undefined
+						? -1
+						: (i + step + radios.length) % radios.length;
+		const next = radios[to];
+		if (!next) return;
+		e.preventDefault();
+		next.focus();
+		next.click();
+	}
+
 	async function set(patch: Partial<Settings>) {
 		const next = await model.send("setSettings", patch);
 		if (next) model.settings = next;
@@ -76,7 +98,9 @@
 					<button
 						type="button"
 						role="radio"
+						onkeydown={onseg}
 						aria-checked={model.settings.frame === f.v}
+						tabindex={model.settings.frame === f.v ? 0 : -1}
 						data-testid="setting-frame-{f.v}"
 						onclick={() => set({ frame: f.v })}>{f.t}</button
 					>
@@ -92,7 +116,9 @@
 						<button
 							type="button"
 							role="radio"
+						onkeydown={onseg}
 							aria-checked={model.settings.buttons === b.v}
+						tabindex={model.settings.buttons === b.v ? 0 : -1}
 							data-testid="setting-buttons-{b.v}"
 							onclick={() => set({ buttons: b.v })}>{b.t}</button
 						>
@@ -106,7 +132,9 @@
 						<button
 							type="button"
 							role="radio"
+						onkeydown={onseg}
 							aria-checked={model.settings.corners === c.v}
+						tabindex={model.settings.corners === c.v ? 0 : -1}
 							data-testid="setting-corners-{c.v}"
 							onclick={() => set({ corners: c.v })}>{c.t}</button
 						>

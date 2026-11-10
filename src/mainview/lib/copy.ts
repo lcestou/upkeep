@@ -61,6 +61,7 @@ export const TEXT = {
 	stop: "Stop after this one",
 	done: "Done",
 	none: "None",
+	noneYet: "none yet",
 	versionless: "checks itself when run",
 	runNow: "Run now",
 	whatChanged: "What changed",
@@ -129,9 +130,13 @@ export const NO_RESTORE: Partial<Record<AppKind, string>> = {
 	deb: "dpkg owns these files, so there is no restore point.",
 	source: "Built from source, so there is no restore point.",
 	command: "It updates itself, so there is no restore point.",
-	legacy: "The updater script keeps no restore point.",
+	legacy: "Upkeep hands this one to lutechi-updater.",
 };
 
+/** A row's version cell when nothing is installed, read in place of "to". */
+export const notInstalledLine = (latest: string) => `Not installed. ${latest} is the latest.`;
+export const installedText = (v: string) => `Installed ${v}`;
+export const lastTryFailed = (why: string) => `Last try failed. ${why}`;
 export const restartLine = (names: string[]) => `Restart ${names.join(", ")} to finish.`;
 export const byHandLine = (n: number) => `${n} more by hand`;
 export const RUN_TEXT = {
@@ -198,6 +203,12 @@ export function resultCounts(results: readonly { result: RunResult["result"] }[]
 	const failed = results.filter((r) => r.result === "failed" || r.result === "rolled_back").length;
 	return failed === 0 ? `${ok} updated` : `${ok} updated, ${failed} failed`;
 }
+
+/** A History run's sentence; a retry says so first. */
+export const runSentence = (rows: readonly { result: RunResult["result"]; retry?: boolean }[]) =>
+	`${rows.some((r) => r.retry) ? "Retry: " : ""}${resultCounts(rows)}`;
+
+export const tomlWriteFailed = (reason: string) => `Could not write apps.toml: ${reason}. Nothing was changed.`;
 
 export type SentenceInput = {
 	run: RunState;

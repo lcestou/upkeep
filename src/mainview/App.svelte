@@ -148,7 +148,9 @@
 	});
 
 	$effect(() => {
-		if (model?.view === "history" && model.run.phase !== "installing") void model.loadHistory();
+		// Past runs load during a run too, and again whenever the run's phase changes, so a finished run appears.
+		const phase = model?.run.phase;
+		if (model?.view === "history" && phase) void model.loadHistory();
 	});
 </script>
 

@@ -50,7 +50,7 @@ test("system rows read their type, versions and notes", async ({ page }) => {
 	const perl = page.getByTestId("sys-row-apt:perl");
 	await expect(perl.getByTestId("sys-name")).toHaveText("perl");
 	await expect(perl.getByTestId("sys-type")).toHaveText("Security");
-	await expect(perl.getByTestId("sys-ver")).toHaveText(/5\.38\.2-3\.2ubuntu0\.6\s*to\s*5\.38\.2-3\.2ubuntu0\.7/);
+	await expect(perl.getByTestId("sys-ver")).toHaveAttribute("title", "5.38.2-3.2ubuntu0.6 → 5.38.2-3.2ubuntu0.7");
 	await expect(page.getByTestId("sys-row-apt:google-chrome-stable").getByTestId("sys-type")).toHaveText("Package");
 	const kernel = page.getByTestId("sys-row-apt:linux-generic");
 	await expect(kernel.getByTestId("sys-type")).toHaveText("Kernel");
@@ -61,11 +61,14 @@ test("system rows read their type, versions and notes", async ({ page }) => {
 	await expect(discord.getByTestId("sys-chip-running")).toHaveText("In use");
 	await expect(perl.getByTestId("sys-note")).toHaveCount(0);
 	const gimp = page.getByTestId("sys-row-flatpak:org.gimp.GIMP");
-	await expect(gimp.getByTestId("sys-ver")).toHaveText(/^\s*3\.2\.8\s*new build\s*$/);
+	await expect(gimp.getByTestId("sys-ver")).toHaveAttribute("title", "3.2.8 new build");
+	await expect(gimp.getByTestId("sys-newbuild")).toHaveText("new build");
 	const platform = page.getByTestId("sys-row-flatpak:org.gnome.Platform");
 	await expect(platform.getByTestId("sys-type")).toHaveText("Flatpak runtime");
 	// No installed version: the arrow, then latest.
-	await expect(platform.getByTestId("sys-ver")).toHaveText(/^\s*to\s*51\s*$/);
+	await expect(platform.getByTestId("sys-ver")).toHaveAttribute("title", "Not installed. 51 is the latest.");
+	await expect(platform.getByTestId("sys-old")).toHaveText("");
+	await expect(platform.getByTestId("sys-new")).toHaveText("51");
 	await expect(platform.locator(".arrow")).toHaveCount(1);
 });
 
@@ -158,7 +161,14 @@ test("system rows share the app rows' column edges", async ({ page }) => {
 			const box = (el: Element | null) => (el ? Math.round(el.getBoundingClientRect().left * 2) / 2 : null);
 			const app = document.querySelector('[data-testid="row-fd"]');
 			const sys = document.querySelector('[data-testid="sys-row-apt:perl"]');
-			return ["mark", "name", "ver", "status"].map((c) => [box(app?.querySelector(`.cell.${c}`) ?? null), box(sys?.querySelector(`.cell.${c}`) ?? null)]);
+			const centre = (el: Element | null | undefined) => {
+				const r = el?.getBoundingClientRect();
+				return r ? Math.round((r.left + r.width / 2) * 2) / 2 : null;
+			};
+			return [
+				...["mark", "name", "ver"].map((c) => [box(app?.querySelector(`.cell.${c}`) ?? null), box(sys?.querySelector(`.cell.${c}`) ?? null)]),
+				[centre(app?.querySelector(".arrow")), centre(sys?.querySelector(".arrow"))],
+			];
 		});
 		for (const [a, s] of edges) expect(s, `width ${width}`).toBe(a);
 	}

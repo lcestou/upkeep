@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppSpec, Suggestion } from "../../shared/types";
-	import { ADD, TEXT, addApps, addedMany, addedOne, foundApps } from "../lib/copy";
+	import { ADD, TEXT, addApps, addedMany, addedOne, foundApps, tomlWriteFailed } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
 	import { tick } from "svelte";
 	import SuggestionCard from "./SuggestionCard.svelte";
@@ -23,6 +23,7 @@
 	let field = $state<HTMLInputElement | null>(null);
 
 	const working = $derived(busy !== null);
+	const TOML_FAIL = tomlWriteFailed("").split(":")[0] ?? "";
 	const tickedSpecs = $derived((scanned ?? []).filter((s) => scanTicks.has(s.spec.key) && !s.problem));
 
 	// A drop hands text over and asks for a Find: once on opening with it, and again for each later drop.
@@ -54,7 +55,14 @@
 
 	async function find(asset?: string) {
 		const text = input.trim();
-		if (!text) return;
+		// An empty Find clears what the last one said, so the hint reads alone again.
+		if (!text) {
+			error = null;
+			problem = null;
+			model.dropProblem = null;
+			found = [];
+			return;
+		}
 		problem = null;
 		model.dropProblem = null;
 		const res = await guard("find", () => model.request("suggest", { input: text, asset }));
@@ -97,8 +105,7 @@
 		model.select(spec.key);
 		model.reveal++;
 		model.flash("added", addedOne(spec.name), spec.key);
-		await tick();
-		document.querySelector(`[data-row="${CSS.escape(spec.key)}"]`)?.scrollIntoView({ block: "nearest" });
+		await focusRow(spec.key);
 	}
 
 	async function addScanned() {
@@ -112,6 +119,16 @@
 		scanTicks = new Set([...scanTicks].filter((k) => !added.has(k)));
 		scanNote = res.added.length > 0 ? addedMany(res.added.length) : null;
 		model.reveal++;
+		if (res.added[0]) await focusRow(res.added[0]);
+	}
+
+	/** Focus goes to the new app's row once it is drawn; under 900 px the sheet keeps it instead, and the list is inert. */
+	async function focusRow(key: string) {
+		await tick();
+		await tick();
+		const row = document.querySelector<HTMLElement>(`[data-row="${CSS.escape(key)}"]`);
+		row?.scrollIntoView({ block: "nearest" });
+		if (row && !row.closest("[inert]")) row.focus({ preventScroll: true });
 	}
 
 	// shortcut: assumes the Linux /home/<user> layout for "~"; upgrade when the bridge reports the home dir.
@@ -160,7 +177,8 @@
 				spellcheck="false"
 				data-testid="add-input"
 				readonly={working}
-				aria-describedby="add-hint"
+				aria-invalid={error || problem ? "true" : undefined}
+				aria-describedby={[error && "add-error", problem && "add-problem", "add-hint"].filter(Boolean).join(" ")}
 				bind:value={input}
 				bind:this={field}
 				{@attach (node: HTMLInputElement) => node.focus()}
@@ -183,9 +201,9 @@
 		<p class="status" role="status" data-testid="add-status">
 			{#if busy === "find" || busy === "pick"}{ADD.lookingRelease}{:else if busy === "scan"}{ADD.lookingDisk}{/if}
 		</p>
-		{#if error}<p class="problem" data-testid="add-error">{error}</p>{/if}
+		{#if error}<p class="problem" id="add-error" role="alert" data-testid="add-error">{error}</p>{/if}
 		{#if model.dropProblem}<p class="problem" data-testid="drop-problem">{model.dropProblem}</p>{/if}
-		{#if problem}<p class="problem" data-testid="add-problem">{problem}</p>{/if}
+		{#if problem}<p class="problem" id="add-problem" role="alert" data-testid="add-problem">{problem}</p>{/if}
 	</div>
 
 	{#each found as s (s.spec.key + (s.asset?.name ?? ""))}
@@ -195,6 +213,7 @@
 			failure={failures[s.spec.key] ?? null}
 			onadd={addOne}
 			onasset={(asset) => find(asset)}
+			onmanifest={() => model.send("open", { what: "manifest" })}
 		/>
 	{/each}
 
@@ -219,12 +238,18 @@
 								{/if}
 							</span>
 							<span class="what">
-								<span class="file">{file}</span>
+								<span class="tag-name file" data-testid="scan-name-{s.spec.key}">{file}</span>
 								<span class="mono path" title={s.path}>
 									{#each tilde(s.path ?? "").split("/") as part, i (i)}{i > 0 ? "/" : ""}<wbr />{part}{/each}
 								</span>
 								{#if failures[s.spec.key]}
 									<span class="fail" data-testid="scan-fail-{s.spec.key}">{failures[s.spec.key]}</span>
+									{#if failures[s.spec.key]?.startsWith(TOML_FAIL)}<button
+											type="button"
+											class="btn small toml"
+											data-testid="scan-open-manifest-{s.spec.key}"
+											onclick={() => model.send("open", { what: "manifest" })}>{TEXT.openManifest}</button
+										>{/if}
 								{:else if s.problem}
 									<span class="why">{s.problem}</span>
 								{:else if s.spec.repo}
@@ -464,9 +489,12 @@
 		min-width: 0;
 	}
 	.file {
-		font-weight: 600;
 		color: var(--text);
 		overflow-wrap: anywhere;
+	}
+	.toml {
+		justify-self: start;
+		margin-top: var(--s1);
 	}
 	/* A path breaks only after a slash, never inside a name. */
 	.path {

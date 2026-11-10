@@ -1,28 +1,22 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
-	import { TEXT } from "../lib/copy";
+	import { TEXT, notInstalledLine } from "../lib/copy";
 	import { isQuiet, isStruck } from "../lib/state";
 
 	let {
 		app,
 		from = null,
-		unknown = "?",
-		note = null,
 	}: {
 		app: Pick<AppState, "status" | "installed" | "latest" | "versionless" | "skipped">;
 		from?: string | null;
-		/** What stands in the installed slot when it is not known. */
-		unknown?: string;
-		/** A quiet word after a single version, such as "new build". */
-		note?: string | null;
 	} = $props();
 
 	const done = $derived(app.status === "done");
 	const before = $derived(done ? (from ?? app.installed) : app.installed);
 	const after = $derived(done ? app.installed : app.latest);
 	const pending = $derived(!isQuiet(app) && after !== null && after !== before);
-	// One axis for every row: an unknown installed version is a "?" in its slot, then the arrow.
-	const arrow = $derived(pending);
+	// One axis for every row: with nothing installed the installed slot stays empty, then the arrow.
+	const absent = $derived(pending && before === null);
 </script>
 
 {#if app.status === "checking" && app.installed === null && app.latest === null}
@@ -31,15 +25,13 @@
 	<span class="versions"><span class="versionless">{TEXT.versionless}</span></span>
 {:else}
 	<span class="versions mono" class:pending>
-		<span class="installed" class:unknown={before === null && pending} title={before ?? undefined}
-			>{before ?? (pending ? unknown : "")}</span
-		>
+		{#if absent && after}<span class="sr-only">{notInstalledLine(after)}</span>{/if}
+		<span class="installed" title={before ?? undefined} aria-hidden={absent ? "true" : undefined}>{before ?? ""}</span>
 		{#if pending}
-			{#if arrow}<svg class="arrow" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M1.5 6h8.25M7 3.25 9.75 6 7 8.75" /></svg>
-				<span class="sr-only">to</span>{/if}
-			<span class="latest" class:done class:struck={isStruck(app)} class:lost={app.status === "failed" || app.status === "rolled_back"} title={after ?? undefined}>{after}</span>
+			<svg class="arrow" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M1.5 6h8.25M7 3.25 9.75 6 7 8.75" /></svg>
+			{#if !absent}<span class="sr-only">to</span>{/if}
+			<span aria-hidden={absent ? "true" : undefined} class="latest" class:done class:struck={isStruck(app)} class:lost={app.status === "failed" || app.status === "rolled_back"} title={after ?? undefined}>{after}</span>
 		{/if}
-		{#if note && !pending}<span class="note" data-testid="ver-note">{note}</span>{/if}
 	</span>
 {/if}
 
@@ -61,9 +53,6 @@
 	}
 	.pending .installed {
 		color: var(--text-3);
-	}
-	.installed.unknown {
-		font-family: var(--sans);
 	}
 	.arrow {
 		grid-column: 2;
@@ -98,15 +87,6 @@
 	.latest.lost {
 		color: var(--fail);
 		text-decoration-color: var(--fail);
-	}
-	.note {
-		grid-column: 3;
-		justify-self: start;
-		padding-left: 6px;
-		font-family: var(--sans);
-		font-size: var(--fs-12);
-		color: var(--text-3);
-		white-space: nowrap;
 	}
 	.versionless {
 		grid-column: 1 / -1;

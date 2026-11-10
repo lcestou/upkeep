@@ -21,9 +21,15 @@
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
 	const restore = $derived(restoreText(app));
 	const stemmed = $derived(app.status === "working" || app.status === "done");
+	// A ready row may carry why its last try ended; it reads like any reason line.
 	const sentence = $derived(
-		app.detail && ["problem", "failed", "rolled_back", "done"].includes(app.status) ? app.detail : null,
+		app.detail && ["problem", "failed", "rolled_back", "done", "ready"].includes(app.status) ? app.detail : null,
 	);
+	// While a row is re-checked it keeps what it showed before: its versions and its (disabled) tick.
+	const was = $derived(app.status === "checking" ? model.prior[app.key] : undefined);
+	const look = $derived(was ? { ...app, status: was } : app);
+	// An app that can keep a restore point but has none yet says so; one that cannot stays blank.
+	const canRestore = $derived(app.canRestore);
 	const noVersions = $derived(app.installed === null && app.latest === null && !app.versionless);
 	// During a run only the working row and a failure burn at full colour; the rest of the run steps back.
 	const back = $derived(inRun && (app.status === "queued" || app.status === "done"));
@@ -46,7 +52,7 @@
 	<span class="cell tick">
 		{#if app.status === "queued" && place > 0}
 			<span class="place mono" data-testid="place-{app.key}">{place}</span>
-		{:else if app.status === "ready"}
+		{:else if look.status === "ready"}
 			<!-- The label widens the hit area past the 16 px box to 28 px; Space on the row ticks it from the keyboard. -->
 			<label class="tickhit">
 				<input
@@ -79,7 +85,7 @@
 				<span class="tag-name" id="name-{app.key}">{app.name}</span>
 				{#if app.running || (!fresh && (app.sudo || app.auto))}
 					<span class="chips">
-						{#if app.running}<span class="chip-use" title={chip.title} data-testid="chip-running"
+						{#if app.running}<span class="chip-use" title={chip.text} data-testid="chip-running"
 								><span class="dot" aria-hidden="true"></span><span class="ct">{chip.text}</span></span
 							>{/if}
 						{#if app.sudo && !fresh}<span class="chip" title={CHIP.root.title} data-testid="chip-root"
@@ -97,7 +103,7 @@
 			{#if sentence}<span class="sentence" title={sentence} data-testid="sentence-{app.key}">{sentence}</span>{/if}
 		</span>
 		<span class="cell kind">{KIND_LABEL[app.kind]}</span>
-		<span class="cell ver"><Versions {app} {from} /></span>
+		<span class="cell ver"><Versions app={look} {from} /></span>
 		<span class="cell size mono">{!fresh && typeof app.size === "number" ? formatBytes(app.size) : ""}</span>
 		<span class="cell restore">
 			{#key restore}
@@ -106,6 +112,8 @@
 						<svg class="saved" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"
 							><path d="M2.25 6.25 4.75 8.75 9.75 3.5" /></svg
 						><span class="mono">{restore}</span>
+					{:else if canRestore}
+						<span class="none-yet" data-testid="none-yet-{app.key}">{TEXT.noneYet}</span>
 					{:else}
 						<span class="sr-only">{TEXT.none}</span>
 					{/if}
@@ -335,6 +343,16 @@
 	.line:global(.compact) .ct {
 		display: none;
 	}
+	/* In use keeps its words for assistive tech when only its dot shows. */
+	.line:global(.compact) .chip-use .ct {
+		display: inline;
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
 	.line:global(.compact) .cg {
 		display: inline-block;
 	}
@@ -413,18 +431,6 @@
 	.s-rolled_back .sentence {
 		color: oklch(0.84 0.09 25);
 	}
-	/* A row with a sentence lends it the Kind column, and the Version column when it has no versions. */
-	.said .name {
-		grid-column: name / ver;
-	}
-	.said.wide .name {
-		grid-column: name / size;
-	}
-	/* Hidden in place, not removed, so the row keeps the same grid items in every state. */
-	.said .kind,
-	.said.wide .ver {
-		visibility: hidden;
-	}
 	.kind {
 		font-size: var(--fs-12);
 		color: var(--text-3);
@@ -437,6 +443,10 @@
 	.restore {
 		padding-left: var(--s3);
 		color: var(--text-2);
+	}
+	.none-yet {
+		font-size: var(--fs-12);
+		color: var(--text-3);
 	}
 	.restore-in {
 		display: inline-flex;

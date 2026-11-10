@@ -229,8 +229,13 @@ export class Model {
 				const key = e.app.key;
 				const i = this.apps.findIndex((a) => a.key === key);
 				const before = i === -1 ? undefined : this.apps[i];
-				if (i === -1) this.apps.push(e.app);
-				else this.apps[i] = e.app;
+				// A row being checked keeps its last known versions until the answer arrives.
+				const app: AppState =
+					e.app.status === "checking" && before
+						? { ...e.app, installed: e.app.installed ?? before.installed, latest: e.app.latest ?? before.latest }
+						: e.app;
+				if (i === -1) this.apps.push(app);
+				else this.apps[i] = app;
 				if (e.app.status === "queued" && !this.runKeys.has(key)) this.runKeys = new Set([...this.runKeys, key]);
 				if (e.app.status === "checking") {
 					// A re-check leaves the tick alone and remembers where the row was.
