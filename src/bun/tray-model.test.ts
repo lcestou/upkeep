@@ -10,7 +10,16 @@ import {
 	updatedNotice,
 } from "./tray-model";
 
-const idle: RunState = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
+const idle: RunState = {
+	id: null,
+	phase: "idle",
+	index: 0,
+	total: 0,
+	currentKey: null,
+	stopping: false,
+	results: [],
+	retry: false,
+};
 
 function snap(ready: number, run: RunState = idle): Snapshot {
 	const apps = Array.from({ length: ready + 2 }, (_, i) => ({

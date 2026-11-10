@@ -21,6 +21,8 @@ export type State = {
 	auto: Record<string, boolean>;
 	settings: Settings;
 	notified: string;
+	/** Apps replaced while they ran: key to the ISO time the install ended. Cleared once no older process remains. */
+	restart: Record<string, string>;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -62,6 +64,7 @@ export function loadState(paths: Paths): State {
 		auto: obj<boolean>(raw.auto),
 		settings: clampSettings(obj(raw.settings)),
 		notified: typeof raw.notified === "string" ? raw.notified : "",
+		restart: obj<string>(raw.restart),
 	};
 }
 

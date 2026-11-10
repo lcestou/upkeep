@@ -64,6 +64,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		auto: {},
 		settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" },
 		notified: "",
+		restart: {},
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";
