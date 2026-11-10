@@ -19,22 +19,40 @@
 	const parts = $derived(model.run.phase === "summary" ? model.sentence.split(", ") : null);
 	const restart = $derived(model.restarts.map((a) => a.name));
 	const manual = $derived(model.apps.filter((a) => a.status === "manual").length);
+	// Only the app's name may give way: "Installing", ", 1 of 4" and the like stay whole.
+	const name = $derived(model.current?.name ?? null);
+	const split = $derived.by(() => {
+		const at = name && !parts ? model.sentence.indexOf(name) : -1;
+		return at < 0 || !name
+			? null
+			: { pre: model.sentence.slice(0, at), name, post: model.sentence.slice(at + name.length) };
+	});
+	const subline = $derived(
+		model.notice ??
+			(restart.length > 0
+				? restartLine(restart)
+				: checked && model.run.phase === "idle"
+					? [checked, ...(manual > 0 ? [byHandLine(manual)] : [])].join(" · ")
+					: ""),
+	);
 </script>
 
 <div class="lead">
-	<h1 class="sentence" data-testid="state-sentence" title={checked ?? undefined} tabindex="-1" aria-live="polite">
+	<h1 class="sentence" data-testid="state-sentence" title={model.sentence} tabindex="-1" aria-live="polite">
 		<!-- Fade in only: an outgoing copy would sit in the DOM beside the new one and be read out with it.
 		     Counts while checking update in place instead of fading on every app. -->
 		{#key model.run.phase === "checking" ? "checking" : model.sentence}
-			<span in:fade={{ duration: ms(160) }}
-				>{#if parts}{#each parts as part, i (i)}{i > 0 ? ", " : ""}{#if part.endsWith(" failed")}<em class="failed"
+			<span class="said" class:split={split !== null} in:fade={{ duration: ms(160) }}
+				>{#if split}<span class="fixed">{split.pre}</span><span class="nm">{split.name}</span><span class="fixed"
+						>{split.post}</span
+					>{:else if parts}{#each parts as part, i (i)}{i > 0 ? ", " : ""}{#if part.endsWith(" failed")}<em class="failed"
 								>{part}</em
 							>{:else}{part}{/if}{/each}{:else}{model.sentence}{/if}</span
 			>
 		{/key}
 	</h1>
 	<!-- One line that wraps out of sight: a note that cannot fit whole is left out, never cut. -->
-	<span class="more">
+	<span class="more" title={subline || undefined} data-testid="subline">
 		<!-- A zero-width first item, so even the first note can wrap away whole instead of being cut. -->
 		<span class="lead-in" aria-hidden="true"></span>
 		{#if model.notice}
@@ -76,8 +94,22 @@
 	.sentence:focus {
 		outline: none;
 	}
-	span {
+	/* Only the sentence's own text gives way with an ellipsis; the notes beside it wrap away whole. */
+	.said {
 		grid-area: 1 / 1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.said.split {
+		display: flex;
+		min-width: 0;
+	}
+	.fixed {
+		flex: none;
+		white-space: pre;
+	}
+	.nm {
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
@@ -102,16 +134,27 @@
 		height: 1.4em;
 		overflow: hidden;
 	}
+	/* A zero-width space gives the line a baseline even when no note shows, so the title never hops. */
 	.lead-in {
 		width: 0;
+	}
+	.lead-in::before {
+		content: "\200b";
+	}
+	/* Below 860 px the by-hand count leaves first; By hand is in the list. */
+	@media (max-width: 859px) {
+		.unit {
+			display: none;
+		}
 	}
 	.sep {
 		margin-right: 6px;
 	}
+	/* A note never shrinks: it fits whole on the line or wraps out of sight. */
 	.checked {
+		flex: none;
 		font-size: var(--fs-12);
 		color: var(--text-3);
 		white-space: nowrap;
-		min-width: 0;
 	}
 </style>

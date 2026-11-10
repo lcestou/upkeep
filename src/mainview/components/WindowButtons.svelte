@@ -66,8 +66,9 @@
 		background: var(--shell-hi);
 		color: var(--text);
 	}
+	/* A deeper red than --fail, so the cross on it measures 4.5:1. */
 	.wb.close:hover {
-		background: var(--fail);
+		background: oklch(0.54 0.19 25);
 		color: var(--text);
 	}
 	svg {

@@ -324,6 +324,8 @@
 		align-items: center;
 		height: 34px;
 		padding: 0 var(--pad-r) 0 0;
+		user-select: none;
+		-webkit-user-select: none;
 		background: var(--ground);
 		box-shadow: inset 0 -1px 0 var(--line-soft);
 		font-size: var(--fs-11);

@@ -76,13 +76,15 @@
 				class="btn small"
 				class:electrobun-webkit-app-region-no-drag={own}
 				data-testid="check"
+				aria-label={TEXT.check}
+				title={TEXT.check}
 				aria-disabled={model.run.phase !== "idle"}
 				onclick={() => model.run.phase === "idle" && model.check()}
 			>
 				<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"
 					><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.75V5.5h-2.75" /></svg
 				>
-				{TEXT.check}
+				<span class="check-text">{TEXT.check}</span>
 			</button>
 		</div>
 	</div>
@@ -179,6 +181,15 @@
 		background: var(--shell-hi);
 		color: var(--text);
 		box-shadow: 0 1px 2px oklch(0.1 0.03 160 / 0.5);
+	}
+	/* Below 860 px Check again keeps its icon and its name, and gives its word's width to the check time. */
+	@media (max-width: 859px) {
+		.check-text {
+			display: none;
+		}
+		[data-testid="check"] {
+			padding: 0 6px;
+		}
 	}
 	.btn svg {
 		fill: none;
