@@ -14,6 +14,7 @@ kind = "appimage"
 repo = "pkgforge-dev/ghostty-appimage"
 asset = 'x86_64\.AppImage$'
 dest = "~/.local/bin/ghostty.appimage"
+process = "ghostty"
 
 [apps.lrcget]
 name = "LRCGET"
