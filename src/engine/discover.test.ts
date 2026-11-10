@@ -433,6 +433,19 @@ test("scan skips listed apps, symlinks, scripts and leftovers, and never runs wh
 	expect(listedBin).toBeDefined();
 });
 
+test("scan skips a file named after an app the list tracks without a dest", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	elf(join(bin, "cursor.appimage"), { image: true });
+	elf(join(bin, "Strata"));
+	elf(join(bin, "cursory"));
+	const specs: AppSpec[] = [
+		{ key: "cursor", name: "Cursor", kind: "legacy", legacy_key: "cursor" },
+		{ key: "strata-engine", name: "Strata", kind: "manual", process: "strata" },
+	];
+	const r = await scan(ctx(specs).c);
+	expect(r.suggestions.map((s) => s.path)).toEqual([join(bin, "cursory")]);
+});
+
 test("a rate-limited search stops the scan with what it has", async () => {
 	const bin = join(t.paths.home, ".local/bin");
 	elf(join(bin, "aaa"));

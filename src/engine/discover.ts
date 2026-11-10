@@ -617,7 +617,10 @@ const MAX_SCAN = 40;
 export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[] }> {
 	const home = ctx.paths.home;
 	const listed = new Set<string>();
+	// Apps with no dest in the list (the old script's, the owner's by-hand ones) are known by name only.
+	const known = new Set<string>();
 	for (const s of ctx.specs) {
+		for (const n of [s.key, s.legacy_key, s.process]) if (n) known.add(n.toLowerCase());
 		if (!s.dest) continue;
 		const dest = expandHome(s.dest, home);
 		listed.add(dest);
@@ -634,7 +637,7 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 		}
 		for (const n of names) {
 			const p = join(root, n);
-			if (SKIP_NAME.test(n) || listed.has(p)) continue;
+			if (SKIP_NAME.test(n) || listed.has(p) || known.has(n.replace(/\.appimage$/i, "").toLowerCase())) continue;
 			try {
 				const st = lstatSync(p);
 				if (!st.isFile() || (st.mode & 0o111) === 0) continue;
