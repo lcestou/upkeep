@@ -55,7 +55,9 @@ export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult
 export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true): Promise<Checked | null> {
 	const dest = destOf(spec, ctx);
 	const probe = await probeInstalled(spec, ctx);
-	if ("state" in probe && probe.state === "absent") {
+	// An app the owner added before installing it is listed as ready, not left out.
+	const missing = "state" in probe && probe.state === "absent" && spec.install_if_missing === true;
+	if ("state" in probe && probe.state === "absent" && !missing) {
 		ctx.log(`${spec.name} is not installed at ${dest}, skipped.`);
 		return null;
 	}
@@ -78,7 +80,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			...base,
 		};
 	const latest = release.version;
-	if (!("version" in probe)) {
+	if (!("version" in probe) && !missing) {
 		if (!needAsset && probe.state === "broken")
 			return {
 				installed: latest,
@@ -107,7 +109,8 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		target = { ...target, asset: pick.asset };
 		size = pick.asset.size;
 	}
-	return { installed, latest, status: isNewer(installed, latest) ? "ready" : "fresh", size, target, ...base };
+	const status = missing || isNewer(installed, latest) ? "ready" : "fresh";
+	return { installed, latest, status, size, target, ...base };
 }
 
 function findFile(dir: string, name: string): string | null {
@@ -191,6 +194,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				renameSync(next, dest);
 			}
 		} else if (spec.kind === "archive") {
+			if (!spec.sudo) mkdirSync(dirname(dest), { recursive: true });
 			rmSync(extract, { recursive: true, force: true });
 			mkdirSync(extract, { recursive: true });
 			const unpack = asset.name.endsWith(".zip")

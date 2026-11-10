@@ -77,6 +77,20 @@ export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, onSettings: ()
 					Utils.clipboardWriteText(text);
 					return { ok: true };
 				},
+				suggest: ({ input, asset }) => engine.suggest(input, asset),
+				scan: () => engine.scan(),
+				addApps: ({ specs }) => engine.addApps(specs),
+				removeApp: ({ key }) => engine.removeApp(key),
+				pickFile: async () => {
+					const picked = await Utils.openFileDialog({
+						startingFolder: deps.paths.home,
+						canChooseFiles: true,
+						canChooseDirectory: false,
+						allowsMultipleSelection: false,
+					});
+					// A cancelled dialog gives no path, or an empty one.
+					return { path: picked.find((p) => p !== "") ?? null };
+				},
 			},
 			messages: {},
 		},

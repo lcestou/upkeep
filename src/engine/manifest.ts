@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppKind, AppSpec } from "../shared/types";
 import type { Paths } from "./paths";
@@ -19,7 +19,7 @@ const STRING_FIELDS = [
 	"note",
 ] as const;
 const LIST_FIELDS = ["bins", "version_args", "build", "check", "update"] as const;
-const BOOL_FIELDS = ["sudo", "versionless", "auto"] as const;
+const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing"] as const;
 
 type Field = keyof AppSpec;
 
@@ -46,7 +46,8 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 	return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
-function lift(key: string, table: Record<string, unknown>): AppSpec | string {
+/** One [apps.<key>] table checked and lifted into an AppSpec, or the reason it is refused. */
+export function lift(key: string, table: Record<string, unknown>): AppSpec | string {
 	const kind = table.kind;
 	if (typeof kind !== "string" || !KINDS.includes(kind as AppKind))
 		return `${key}: kind is not one of ${KINDS.join(", ")}`;
@@ -112,4 +113,57 @@ export function ensureManifest(paths: Paths, seedFile: string): string {
 		copyFileSync(seedFile, target);
 	}
 	return target;
+}
+
+/** The field order a written table uses; key is the table name and is never a field. */
+const ORDER: (keyof AppSpec)[] = [
+	"name",
+	"kind",
+	...STRING_FIELDS.filter((f) => f !== "name"),
+	...LIST_FIELDS,
+	...BOOL_FIELDS,
+];
+
+const basic = (v: string) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
+
+/** An [apps.<key>] table holding only the fields the spec has. asset is a literal string when it can be. */
+export function tomlTable(spec: AppSpec): string {
+	const lines = [`[apps.${spec.key}]`];
+	for (const f of ORDER) {
+		const v = spec[f];
+		if (v === undefined) continue;
+		let text: string;
+		if (typeof v === "boolean") text = String(v);
+		else if (Array.isArray(v)) text = `[${v.map(basic).join(", ")}]`;
+		else if (f === "asset" && !v.includes("'") && !v.includes("\n")) text = `'${v}'`;
+		else text = basic(String(v));
+		lines.push(`${f} = ${text}`);
+	}
+	return `${lines.join("\n")}\n`;
+}
+
+/** Writes text to file through a temp name and a rename, keeping the old file as <file>.bak. */
+export function replaceManifest(file: string, text: string): void {
+	copyFileSync(file, `${file}.bak`);
+	const tmp = `${file}.${process.pid}.tmp`;
+	writeFileSync(tmp, text);
+	renameSync(tmp, file);
+}
+
+/**
+ * The file's text with the [apps.<key>] table cut out, up to the next line that starts with "[", or null when
+ * there is none. Comment lines right above the next table belong to it and stay.
+ */
+export function cutTable(text: string, key: string): string | null {
+	const lines = text.split("\n");
+	const start = lines.findIndex((l) => l.trim() === `[apps.${key}]`);
+	if (start < 0) return null;
+	let end = start + 1;
+	while (end < lines.length && !(lines[end] ?? "").startsWith("[")) end++;
+	if (end < lines.length) while (end - 1 > start && (lines[end - 1] ?? "").startsWith("#")) end--;
+	const before = lines.slice(0, start);
+	const after = lines.slice(end);
+	// Cutting the last table leaves the file ending in exactly one newline.
+	if (after.every((l) => l === "")) return `${before.join("\n").replace(/\n+$/, "")}\n`;
+	return [...before, ...after].join("\n");
 }

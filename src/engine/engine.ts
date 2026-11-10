@@ -1,4 +1,4 @@
-import { existsSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type {
 	AppSpec,
@@ -10,8 +10,10 @@ import type {
 	RunState,
 	Settings,
 	Snapshot,
+	Suggestion,
 } from "../shared/types";
 import { listBackups, prune, restoreBackup, takeBackup } from "./backup";
+import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { type FetchLike, githubToken, type Rate } from "./github";
 import { checkCommand, installCommand } from "./kinds/command";
 import type { Checked, KindCtx, Outcome, Target } from "./kinds/context";
@@ -27,7 +29,7 @@ import {
 } from "./kinds/legacy";
 import { canRestore, checkRelease, destOf, installedFiles, installRelease, probeInstalled } from "./kinds/release";
 import { checkSource, installSource } from "./kinds/source";
-import { ensureManifest, loadManifest } from "./manifest";
+import { cutTable, ensureManifest, lift, loadManifest, replaceManifest, tomlTable } from "./manifest";
 import { expandHome, type Paths } from "./paths";
 import type { Run, RunOpts } from "./run";
 import { isRunning } from "./running";
@@ -86,7 +88,14 @@ export type Engine = {
 	readyKeys(autoOnly: boolean): string[];
 	/** Resolves when no check or run is in progress. */
 	idle(): Promise<void>;
+	suggest(input: string, asset?: string): Promise<{ suggestions: Suggestion[]; problem?: string }>;
+	scan(): Promise<{ suggestions: Suggestion[] }>;
+	addApps(specs: AppSpec[]): Promise<{ added: string[]; problems: { key: string; detail: string }[] }>;
+	removeApp(key: string): Promise<{ ok: boolean; detail?: string }>;
 };
+
+/** The kinds an owner can add from the window. */
+const ADDABLE = new Set(["appimage", "archive", "file", "deb"]);
 
 export const REASON_CHECKING = "A check is running.";
 export const REASON_BUSY = "A run is already in progress.";
@@ -795,6 +804,41 @@ export function createEngine(deps: EngineDeps): Engine {
 			}
 			return keys;
 		},
+		async suggest(input, asset) {
+			return suggestFor(input, await discoverCtx(), asset);
+		},
+		async scan() {
+			return scanFor(await discoverCtx());
+		},
+		async addApps(list) {
+			const file = ensureManifest(paths, deps.seedManifest);
+			const added: string[] = [];
+			const problems: { key: string; detail: string }[] = [];
+			for (const s of list) {
+				const detail = writeApp(file, s);
+				if (detail) problems.push({ key: s.key, detail });
+				else added.push(s.key);
+			}
+			if (added.length > 0) {
+				loadSpecs();
+				void this.check(added);
+			}
+			return { added, problems };
+		},
+		async removeApp(key) {
+			if (run.phase === "installing") return { ok: false, detail: REASON_BUSY };
+			const file = ensureManifest(paths, deps.seedManifest);
+			const text = readFileSync(file, "utf8");
+			const cut = cutTable(text, key);
+			if (cut === null) return { ok: false, detail: `No app ${key} in the list.` };
+			replaceManifest(file, cut);
+			loadSpecs();
+			apps.delete(key);
+			checked.delete(key);
+			targets.delete(key);
+			emit({ type: "removed", key });
+			return { ok: true };
+		},
 		async idle() {
 			for (;;) {
 				const p = busy;
@@ -804,6 +848,37 @@ export function createEngine(deps: EngineDeps): Engine {
 			}
 		},
 	};
+
+	async function discoverCtx(): Promise<DiscoverCtx> {
+		if (!token) token = await githubToken(deps.run);
+		return { paths, run: deps.run, fetch: deps.fetch, token, specs, log: (text) => say(null, text), api: deps.api };
+	}
+
+	/** Appends one app's table to apps.toml, or says why not. The written table must read back as the same spec. */
+	function writeApp(file: string, s: AppSpec): string | null {
+		if (!ADDABLE.has(s.kind)) return `${s.key}: kind is not one of appimage, archive, file, deb`;
+		const { key, ...fields } = s;
+		const lifted = lift(key, fields as Record<string, unknown>);
+		if (typeof lifted === "string") return lifted;
+		if (specs.some((x) => x.key === key)) return `${key} is already in the list.`;
+		const dest = expandHome(lifted.dest ?? "", paths.home);
+		const owner = specs.find((x) => x.dest && expandHome(x.dest, paths.home) === dest);
+		if (owner) return `${lifted.dest} already belongs to ${owner.name}.`;
+		const before = readFileSync(file, "utf8");
+		const failed = `Could not write ${lifted.name} to apps.toml.`;
+		try {
+			replaceManifest(file, `${before.replace(/\n*$/, "\n")}\n${tomlTable(lifted)}`);
+		} catch {
+			return failed;
+		}
+		const back = loadManifest(file).apps.find((x) => x.key === key);
+		if (JSON.stringify(back) !== JSON.stringify(lifted)) {
+			copyFileSync(`${file}.bak`, file);
+			return failed;
+		}
+		specs = loadManifest(file).apps;
+		return null;
+	}
 
 	/** Re-derives a resting row after a skip or hold change. */
 	/** Rows a run could not update go back to where the last check left them. */
