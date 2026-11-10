@@ -33,16 +33,19 @@
 			>
 		{/key}
 	</h1>
-	{#if model.notice}
-		<span class="checked" data-testid="notice">{model.notice}</span>
-	{:else if restart.length > 0}
-		<span class="checked restart" data-testid="restart-line">{restartLine(restart)}</span>
-	{:else if checked && model.run.phase === "idle"}
-		<span class="checked" data-testid="checked">{checked}</span>
-		{#if manual > 0}<span class="checked" data-testid="by-hand-line"
-				><span aria-hidden="true">· </span>{byHandLine(manual)}</span
-			>{/if}
-	{/if}
+	<!-- One line that wraps out of sight: a note that cannot fit whole is left out, never cut. -->
+	<span class="more">
+		{#if model.notice}
+			<span class="checked" data-testid="notice">{model.notice}</span>
+		{:else if restart.length > 0}
+			<span class="checked restart" data-testid="restart-line">{restartLine(restart)}</span>
+		{:else if checked && model.run.phase === "idle"}
+			<span class="checked" data-testid="checked">{checked}</span>
+			{#if manual > 0}<span class="checked" data-testid="by-hand-line"
+					><span aria-hidden="true">· </span>{byHandLine(manual)}</span
+				>{/if}
+		{/if}
+	</span>
 </div>
 
 <style>
@@ -81,12 +84,23 @@
 	.restart {
 		color: var(--text-2);
 	}
+	.sentence {
+		flex: none;
+		max-width: 100%;
+	}
+	.more {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		column-gap: var(--s3);
+		min-width: 0;
+		height: 1.4em;
+		overflow: hidden;
+	}
 	.checked {
 		font-size: var(--fs-12);
 		color: var(--text-3);
 		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
 		min-width: 0;
 	}
 </style>

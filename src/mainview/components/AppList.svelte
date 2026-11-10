@@ -299,7 +299,8 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		overscroll-behavior: contain;
-		scroll-snap-type: y mandatory;
+		/* No scroll snap: it pulled a row the keyboard had just brought into view back under the edge.
+		   The bottom cover keeps the last visible row whole or absent instead. */
 		scroll-padding-top: 34px;
 		--gap: 10px;
 		--pad-r: 16px;
@@ -398,7 +399,6 @@
 		gap: var(--s2);
 		height: 44px;
 		padding: var(--s5) var(--pad-r) 0 20px;
-		scroll-snap-align: start;
 		/* An automatic scroll never leaves a heading under the sticky column header. */
 		scroll-margin-top: 34px;
 	}

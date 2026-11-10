@@ -70,7 +70,14 @@ const idleRun = (): RunState => ({
 export class Model {
 	apps = $state<AppState[]>([]);
 	run = $state<RunState>(idleRun());
-	settings = $state<Settings>({ keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" });
+	settings = $state<Settings>({
+		keepBackups: 1,
+		notify: true,
+		checkAtLogin: false,
+		frame: "own",
+		buttons: "auto",
+		corners: "rounded",
+	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
 	chrome = $state<WindowChrome | null>(null);
 	rate = $state<Snapshot["rate"]>(null);

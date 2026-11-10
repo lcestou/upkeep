@@ -143,7 +143,6 @@
 		box-shadow: inset 0 -1px 0 var(--line-soft);
 		/* A focused row clears the sticky column header (34 px) and the covered bottom edge. */
 		scroll-margin: 42px 0 8px;
-		scroll-snap-align: start;
 		transition:
 			opacity 240ms ease-out,
 			background-color 100ms ease-out;
@@ -341,6 +340,11 @@
 	}
 	.line:global(.compact) .chip {
 		padding: 0 4px;
+	}
+	/* Last resort, when even glyph chips do not fit: the name takes the browser's ellipsis, the chips stay whole. */
+	.line:global(.compact) .tag-name {
+		flex: 0 1 auto;
+		min-width: 0;
 	}
 	/* The letter is drawn, not text, so the chip's text stays "Auto". */
 	.auto-tile::before {

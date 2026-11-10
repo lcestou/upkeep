@@ -365,6 +365,9 @@ export type FixtureOptions = {
 	fail?: string;
 	buttons?: "left" | "right";
 	frame?: "own" | "system";
+	corners?: "rounded" | "square";
+	/** Start with no recorded runs, as on a first launch. */
+	noHistory?: boolean;
 };
 
 // The owner's desktop puts the window buttons on the left: close, maximize, minimize.
@@ -382,12 +385,14 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		checkAtLogin: false,
 		frame: opts.frame ?? "own",
 		buttons: "auto",
+		corners: opts.corners ?? "rounded",
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",
 		side: opts.buttons ?? "left",
 		order: orderFor(opts.buttons ?? "left"),
 		maximized: false,
+		rounded: settings.frame === "own" && settings.corners === "rounded",
 	};
 	let run: RunState = {
 		id: null,
@@ -401,9 +406,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	};
 	const rate = { limit: 5000, remaining: 4977 };
 	let checkedAt: string | null = iso(Date.now() - 2 * 60_000);
-	const history: HistoryRow[] = pastHistory();
+	const history: HistoryRow[] = opts.noHistory ? [] : pastHistory();
 	const logs = new Map<string, LogLine[]>();
 	let attempts = 0;
+	(globalThis as { upkeepOps?: string[] }).upkeepOps = [];
 	const offered = new Map<string, Suggestion>();
 
 	if (variant === "checking") {
@@ -665,6 +671,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			return { ok: true };
 		},
 		setSettings: (patch) => {
+			// The real main process rebuilds the window for a new frame or corners; the fixture just re-dresses it.
+			if (patch.corners || patch.frame) {
+				const frame = patch.frame ?? settings.frame;
+				const corners = patch.corners ?? settings.corners;
+				chrome = { ...chrome, own: frame === "own", rounded: frame === "own" && corners === "rounded" };
+				emit({ type: "chrome", chrome });
+			}
 			if (patch.buttons && patch.buttons !== "auto") {
 				chrome = { ...chrome, side: patch.buttons, order: orderFor(patch.buttons) };
 				emit({ type: "chrome", chrome });
@@ -731,6 +744,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		chrome: () => clone(chrome),
 		window: ({ op }) => {
+			// Recorded so specs can see which window op a control sent.
+			(globalThis as { upkeepOps?: string[] }).upkeepOps?.push(op);
 			// Close hides to the tray in the real window; the fixture has nowhere to hide, so it only answers.
 			if (op === "maximize") {
 				chrome = { ...chrome, maximized: !chrome.maximized };

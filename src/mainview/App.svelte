@@ -49,8 +49,11 @@
 		const key = model?.openKey ?? null;
 		const wasAdding = model?.adding ?? false;
 		model?.close();
-		if (wasAdding) document.querySelector<HTMLElement>('[data-testid="add-app"]')?.focus();
-		else focusRow(key);
+		// After the list wakes from inert, or focus has nowhere to land.
+		void tick().then(() => {
+			if (wasAdding) document.querySelector<HTMLElement>('[data-testid="add-app"]')?.focus();
+			else focusRow(key);
+		});
 	}
 
 	// Drop a file (or a repo link) anywhere on the window to add it.
@@ -130,6 +133,12 @@
 		}
 	}
 
+	// The page goes see-through only once the main process says the window was built that way.
+	$effect(() => {
+		const on = model?.chrome?.rounded === true && !model.chrome.maximized;
+		document.documentElement.toggleAttribute("data-rounded", on);
+	});
+
 	// First focus lands in the list, on its first row, so the keyboard starts where the work is.
 	let focused = false;
 	$effect(() => {
@@ -147,7 +156,11 @@
 
 {#if model?.loaded}
 	{@const m = model}
-	<div class="shell" class:edged={m.chrome?.own === true && !m.chrome.maximized}>
+	<div
+		class="shell"
+		class:edged={m.chrome?.own === true && !m.chrome.maximized}
+		class:rounded={m.chrome?.rounded === true && !m.chrome.maximized}
+	>
 		<HeaderBar model={m} />
 		<main id="view" role={m.view === "updates" ? undefined : "tabpanel"} aria-labelledby="tab-{m.view}">
 			{#if m.view === "history"}
@@ -208,7 +221,16 @@
 		pointer-events: none;
 		z-index: 7;
 	}
+	/* clip-path, not only overflow, so fixed layers (the log sheet, the drop veil, the edge) stay inside the corners. */
+	.shell.rounded {
+		border-radius: var(--window-radius);
+		clip-path: inset(0 round var(--window-radius));
+	}
+	.shell.rounded::after {
+		border-radius: var(--window-radius);
+	}
 	.shell {
+		background: var(--ground);
 		display: grid;
 		grid-template-rows: 56px minmax(0, 1fr) 64px;
 		/* The window's width, never the widest content's. */
