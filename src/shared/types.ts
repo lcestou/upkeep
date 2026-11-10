@@ -51,6 +51,30 @@ export type AppSpec = {
 	auto?: boolean;
 	/** One line shown in the row's details. */
 	note?: string;
+	/** List the app as ready to install when nothing is at dest yet. Set when the owner adds an app that is not installed. */
+	install_if_missing?: boolean;
+};
+
+/** One app Upkeep proposes to add, with everything needed to add it in one press. */
+export type Suggestion = {
+	/** The table that would be written to apps.toml. */
+	spec: AppSpec;
+	/** The version found on disk, when the app is already installed. */
+	installed: string | null;
+	latest: string | null;
+	/** The release asset the spec's pattern matches today. */
+	asset: { name: string; size: number } | null;
+	/** Other assets of that release that would also run on this machine, by name, for a picker. */
+	alternatives: string[];
+	source: "repo" | "file" | "scan";
+	/** The file found on disk, for file and scan suggestions. */
+	path?: string;
+	/** "sure" when the file or the release names its source; "guess" when the repo came from a name search. */
+	confidence: "sure" | "guess";
+	/** One sentence on how this was worked out. */
+	why: string;
+	/** Set when the suggestion cannot be added as it stands. */
+	problem?: string;
 };
 
 export type Stage = "download" | "backup" | "install" | "verify";
@@ -155,7 +179,8 @@ export type EngineEvent =
 	| { type: "app"; app: AppState }
 	| { type: "run"; run: RunState }
 	| { type: "log"; line: LogLine }
-	| { type: "meta"; rate: Snapshot["rate"]; checkedAt: string | null; settings: Settings };
+	| { type: "meta"; rate: Snapshot["rate"]; checkedAt: string | null; settings: Settings }
+	| { type: "removed"; key: string };
 
 /** What the view can ask of the main process. */
 export type Requests = {
@@ -173,6 +198,11 @@ export type Requests = {
 	runLog: { params: { runId: string }; response: LogLine[] };
 	open: { params: { what: "manifest" | "log" | "release"; key?: string }; response: { ok: boolean } };
 	copy: { params: { text: string }; response: { ok: boolean } };
+	suggest: { params: { input: string; asset?: string }; response: { suggestions: Suggestion[]; problem?: string } };
+	scan: { params: Record<string, never>; response: { suggestions: Suggestion[] } };
+	addApps: { params: { specs: AppSpec[] }; response: { added: string[]; problems: { key: string; detail: string }[] } };
+	removeApp: { params: { key: string }; response: { ok: boolean; detail?: string } };
+	pickFile: { params: Record<string, never>; response: { path: string | null } };
 };
 
 /** The surface the view programs against. The Electrobun bridge and the dev fixture both implement it. */
