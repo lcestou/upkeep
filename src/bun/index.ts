@@ -4,9 +4,11 @@ import { createEngine } from "../engine/engine";
 import { realDeps } from "../engine/real";
 import { loadState, updateState } from "../engine/store";
 import type { EngineEvent, RunPhase } from "../shared/types";
+import { syncAutostart } from "./autostart";
 import { createCoalescer } from "./coalesce";
 import { claimInstance } from "./instance";
 import { defineUpkeepRpc } from "./rpc";
+import { loadWindowSize, saveWindowSize } from "./window-size";
 import {
 	failedNotice,
 	readyFingerprint,
@@ -27,6 +29,8 @@ const deps = { ...realDeps(process.env, join(import.meta.dir, "../manifest/apps.
 let win: BrowserWindow | null = null;
 let quitting = false;
 let quitAfterRun = false;
+const sizeFile = join(deps.paths.state, "window.json");
+let sizeTimer: ReturnType<typeof setTimeout> | null = null;
 
 function openWindow(): void {
 	if (win) {
@@ -38,9 +42,16 @@ function openWindow(): void {
 		title: "Upkeep",
 		url: "views://mainview/index.html",
 		rpc,
-		frame: { width: 980, height: 720, x: 0, y: 0 },
+		frame: { ...loadWindowSize(sizeFile), x: 0, y: 0 },
 	});
 	win.center();
+	// A drag fires many resize events; the size is written once it has been still for half a second.
+	win.on("resize", () => {
+		if (sizeTimer) clearTimeout(sizeTimer);
+		sizeTimer = setTimeout(() => {
+			if (win) saveWindowSize(sizeFile, win.getSize());
+		}, 500);
+	});
 	// The framework destroys the window unless a handler refuses. Hiding keeps the view's state and the tray alive.
 	win.on("will-close", (event) => {
 		if (quitting) return;
@@ -60,7 +71,14 @@ if ((await claimInstance(deps.paths.socket, openWindow)) === "secondary") {
 }
 
 const engine = createEngine(deps);
-const rpc = defineUpkeepRpc(engine, deps, () => undefined);
+// The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
+const launcher = join(import.meta.dir, "../../../bin/launcher");
+const appIcon = join(import.meta.dir, "../../appIcon.png");
+function applyLoginSetting(): void {
+	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, launcher, appIcon);
+}
+
+const rpc = defineUpkeepRpc(engine, deps, applyLoginSetting);
 
 const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", template: false, width: 22, height: 22 });
 let shownIcon = "";
@@ -145,6 +163,8 @@ engine.subscribe((event) => {
 });
 
 refreshTray();
+// Only an entry the owner asked for is kept: off removes a stale file, on repairs a moved install.
+applyLoginSetting();
 
 if (background) {
 	await engine.check();

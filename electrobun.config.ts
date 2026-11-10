@@ -23,7 +23,7 @@ export default {
 		},
 		watchIgnore: ["dist/**"],
 		mac: { bundleCEF: false },
-		linux: { bundleCEF: false },
+		linux: { bundleCEF: false, icon: "assets/icon/upkeep.png" },
 		win: { bundleCEF: false },
 	},
 } satisfies ElectrobunConfig;
