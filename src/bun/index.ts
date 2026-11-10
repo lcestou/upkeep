@@ -3,6 +3,7 @@ import { join } from "node:path";
 import Electrobun, { BrowserWindow, Tray, Utils } from "electrobun/main";
 import pkg from "../../package.json";
 import { createEngine } from "../engine/engine";
+import { createExtras } from "../engine/extras/extras";
 import { realDeps } from "../engine/real";
 import { loadState, updateState } from "../engine/store";
 import type { EngineEvent, RunPhase, WindowButton, WindowChrome } from "../shared/types";
@@ -162,6 +163,8 @@ Electrobun.events.on("before-quit", () => {
 });
 
 const engine = createEngine(deps);
+// The system updates list: same paths and runner, its own state, never awaited by the engine's check.
+const extras = createExtras({ paths: deps.paths, run: deps.run, now: deps.now });
 // The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
 const launcher = join(import.meta.dir, "../../../bin/launcher");
 const appIcon = join(import.meta.dir, "../../appIcon.png");
@@ -178,6 +181,7 @@ const rpc = defineUpkeepRpc(engine, deps, {
 	},
 	chrome,
 	windowOp,
+	extras,
 });
 
 const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", template: false, width: 22, height: 22 });
@@ -192,7 +196,7 @@ function refreshTray(): void {
 		tray.setImage(`views://tray/${icon}.png`);
 		tray.setTitle(trayTitle(snapshot));
 	}
-	const menu = trayMenu(snapshot);
+	const menu = trayMenu(snapshot, extras.snapshot().system);
 	const key = JSON.stringify(menu);
 	if (key !== shownMenu) {
 		shownMenu = key;
@@ -249,6 +253,12 @@ const toView = createCoalescer((event: EngineEvent) => {
 	if (win) rpc.send.event(event);
 });
 let phase: RunPhase = "idle";
+
+// Through the same coalescer as the engine's events: a non-row event flushes pending rows first, so order holds.
+extras.subscribe((event) => {
+	toView.push(event);
+	refreshTray();
+});
 
 engine.subscribe((event) => {
 	toView.push(event);
