@@ -488,7 +488,8 @@ export async function suggest(
 	return "problem" in r ? { suggestions: [], problem: r.problem } : { suggestions: [r.suggestion] };
 }
 
-const SKIP_NAME = /\.backup-|\.upkeep-new$|\.tmp$/;
+// Leftovers: our own temp names, and the owner's backups ("llama-server.bak-20260508", "x.old", "x~").
+const SKIP_NAME = /\.backup-|\.upkeep-new$|\.tmp$|\.(bak|backup|old|orig|save|prev)([-._]|$)|~$/i;
 const MAX_SCAN = 40;
 
 /** Installed AppImages and binaries that are not in the list. Nothing found is ever run. */

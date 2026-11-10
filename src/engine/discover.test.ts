@@ -363,6 +363,17 @@ test("scan skips listed apps, symlinks, scripts and leftovers, and never runs wh
 	elf(join(bin, "fd.backup-1"));
 	elf(join(bin, "x.upkeep-new"));
 	elf(join(bin, "y.tmp"));
+	for (const n of [
+		"llama-server.bak-20260508-1744",
+		"llama-server.bak-build826-2026-05-13",
+		"x.old",
+		"x.orig",
+		"x.save",
+		"x.prev",
+		"x.BAK",
+		"x~",
+	])
+		elf(join(bin, n));
 	symlinkSync(listed, join(bin, "fd-link"));
 	script(join(bin, "helper"), "echo hi");
 	const notExec = elf(join(t.paths.home, "bin/data"));
