@@ -152,7 +152,16 @@ export function createEngine(deps: EngineDeps): Engine {
 	let token: string | null = null;
 	let busy: Promise<void> = Promise.resolve();
 	let log: RunLog | null = null;
-	let run: RunState = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
+	let run: RunState = {
+		id: null,
+		phase: "idle",
+		index: 0,
+		total: 0,
+		currentKey: null,
+		stopping: false,
+		results: [],
+		retry: false,
+	};
 
 	const emit = (e: EngineEvent) => {
 		for (const l of listeners) {
@@ -354,6 +363,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			index: 0,
 			total: list.length,
 			currentKey: null,
+			retry: false,
 		};
 		log = openRunLog(paths, run.id ?? "check");
 		emitRun();
@@ -588,7 +598,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				});
 			}
 		}
-		appendHistory(paths, history);
+		appendHistory(paths, run.retry ? history.map((h) => ({ ...h, retry: true })) : history);
 		say(null, `Run finished: ${run.results.filter((r) => r.result === "updated").length} updated`);
 		log?.close();
 		log = null;
@@ -635,7 +645,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (run.phase === "installing") return { started: false, reason: REASON_BUSY };
 			// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
 			// What the first pass updated stays on screen and in the count, so the summary reads as one run.
-			const carried = run.phase === "summary" ? run.results.filter((r) => r.result === "updated") : [];
+			const retry = run.phase === "summary";
+			const carried = retry ? run.results.filter((r) => r.result === "updated") : [];
 			if (run.phase === "summary") resetFailed();
 			const wanted = new Set(keys);
 			const pick = specs.filter((s) => {
@@ -661,6 +672,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					currentKey: null,
 					stopping: false,
 					results: carried,
+					retry,
 				};
 				for (const s of queue) {
 					const a = apps.get(s.key);
@@ -727,7 +739,16 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			}
 			resetFailed();
-			run = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
+			run = {
+				id: null,
+				phase: "idle",
+				index: 0,
+				total: 0,
+				currentKey: null,
+				stopping: false,
+				results: [],
+				retry: false,
+			};
 			emitRun();
 		},
 		async restore(key, version) {

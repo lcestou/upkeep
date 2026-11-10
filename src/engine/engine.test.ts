@@ -268,9 +268,24 @@ test("retry from the summary runs only the failed app again", async () => {
 	await engine.idle();
 	expect(engine.snapshot().run.phase).toBe("summary");
 	expect(statuses(engine)).toMatchObject({ boom: "failed", fd: "done" });
+	expect(engine.snapshot().run.retry).toBe(false);
+	const runs: boolean[] = [];
+	const off = engine.subscribe((e) => {
+		if (e.type === "run" && e.run.phase === "installing") runs.push(e.run.retry);
+	});
 	const r = await engine.install(["boom"]);
 	expect(r).toEqual({ started: true });
 	await engine.idle();
+	off();
+	// The view can say "Retrying" for the whole second pass.
+	expect(runs.length).toBeGreaterThan(0);
+	expect(runs.every(Boolean)).toBe(true);
+	// History marks the retried rows, and only those.
+	expect(engine.history(10).map((h) => [h.key, h.retry === true])).toEqual([
+		["boom", true],
+		["fd", false],
+		["boom", false],
+	]);
 	const snap = engine.snapshot();
 	// The first pass's update stays in the summary, so the two passes read as one run.
 	expect(snap.run.results.map((x) => [x.key, x.result])).toEqual([
@@ -282,6 +297,7 @@ test("retry from the summary runs only the failed app again", async () => {
 	expect(engine.history(10).filter((h) => h.key === "fd")).toHaveLength(1);
 	engine.dismissSummary();
 	expect(statuses(engine)).toMatchObject({ boom: "ready", fd: "fresh" });
+	expect(engine.snapshot().run.retry).toBe(false);
 });
 
 test("install refuses while checking, with nothing ready, and while the old updater runs", async () => {
