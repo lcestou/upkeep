@@ -18,7 +18,7 @@
 		"test": "bun test src",
 		"e2e": "node node_modules/playwright/cli.js test",
 		"tray-icons": "bun scripts/tray-icons.ts",
-		"validate": "bun run prepare:eb && bun run fmt:check && bun run lint && bun run check && bun run test && bun run build:view"
+		"validate": "bun run prepare:eb && bun run fmt:check && bun run lint && bun run check && bun run test && bun run build:view && bun run e2e"
 	},
 	"devDependencies": {
 		"@fontsource-variable/archivo": "^5.3.0",
