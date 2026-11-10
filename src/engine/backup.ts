@@ -12,7 +12,7 @@ import {
 import { basename, join } from "node:path";
 import type { AppSpec, RestorePoint } from "../shared/types";
 import type { Paths } from "./paths";
-import { asRoot, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
+import { installAside, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
 
 export type BackupMeta = {
 	version: string;
@@ -89,9 +89,7 @@ export async function restoreBackup(
 	if (!meta) return { ok: false, detail: `No restore point ${version}.` };
 	for (const f of meta.files) {
 		// oxlint-disable-next-line no-await-in-loop -- files go back one at a time so a failure stops the rest
-		const r = await run(asRoot(["install", "-m", f.mode, join(dir, f.name), f.dest], meta.sudo), {
-			timeoutMs: 60_000,
-		});
+		const r = await installAside(run, join(dir, f.name), f.dest, f.mode, meta.sudo);
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		if (r.code !== 0) return { ok: false, detail: `Could not restore ${f.name}: ${(r.stderr || r.stdout).trim()}` };
 	}

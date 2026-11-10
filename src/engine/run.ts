@@ -1,4 +1,4 @@
-import { closeSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { expandHome } from "./paths";
 
@@ -170,4 +170,24 @@ export const SUDO_PASSWORD = "sudo needs a password here. Run the update from a 
 /** True when sudo refused because it would have had to ask for a password. */
 export function sudoNeedsPassword(r: RunResult): boolean {
 	return r.code !== 0 && /a password is required|a terminal is required/.test(r.stderr + r.stdout);
+}
+
+/**
+ * Installs src to to through a sibling to.upkeep-new and mv -f, so a full disk or a failed
+ * copy leaves the old file whole. The size is checked on the sibling before the move.
+ */
+export async function installAside(
+	run: Run,
+	src: string,
+	to: string,
+	mode: string,
+	sudo: boolean | undefined,
+): Promise<RunResult> {
+	const next = `${to}.upkeep-new`;
+	let r = await run(asRoot(["install", "-m", mode, src, next], sudo), { timeoutMs: 120_000 });
+	if (r.code === 0 && !(existsSync(next) && statSync(next).size === statSync(src).size))
+		r = { ...r, code: 1, stderr: "size differs after copy" };
+	if (r.code === 0) r = await run(asRoot(["mv", "-f", next, to], sudo), { timeoutMs: 60_000 });
+	if (r.code !== 0 && !sudoNeedsPassword(r)) await run(asRoot(["rm", "-f", next], sudo), { timeoutMs: 60_000 });
+	return r;
 }

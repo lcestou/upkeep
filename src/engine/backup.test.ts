@@ -52,7 +52,7 @@ test("a sudo backup restores through sudo -n install, and a password prompt fail
 		"-m",
 		"755",
 		join(t.paths.data, "backups/starship/1.24.0/starship"),
-		f,
+		`${f}.upkeep-new`,
 	]);
 });
 

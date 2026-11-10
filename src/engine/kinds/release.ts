@@ -1,4 +1,14 @@
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
+import {
+	chmodSync,
+	copyFileSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	realpathSync,
+	renameSync,
+	rmSync,
+	statSync,
+} from "node:fs";
 import { basename, dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import { prune, restoreBackup, takeBackup } from "../backup";
@@ -6,7 +16,7 @@ import { download, verifyAsset } from "../download";
 import { fetchRelease, isFailure, pickAsset } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeVersion, type ProbeResult } from "../probe";
-import { asRoot, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
+import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { isRunning } from "../running";
 import { clearInflight, writeInflight } from "../store";
 import { isNewer } from "../version";
@@ -103,11 +113,20 @@ function findFile(dir: string, name: string): string | null {
 
 class StepError extends Error {}
 
+function resolved(p: string): string {
+	try {
+		return realpathSync(p);
+	} catch {
+		return p;
+	}
+}
+
 /** Downloads, backs up, installs and verifies one appimage, archive, file or deb app. */
 export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const asset = target.asset;
 	if (!asset) throw new Error(`No release asset for ${spec.name}.`);
-	const dest = destOf(spec, ctx);
+	// A symlinked dest is updated through the link, never replaced by a regular file.
+	const dest = resolved(destOf(spec, ctx));
 	const clock = stageClock(ctx);
 	const dl = join(ctx.paths.cache, "dl", `${spec.key}-${asset.name}`);
 	const extract = join(ctx.paths.cache, "dl", `${spec.key}-x`);
@@ -147,7 +166,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		if (spec.kind === "appimage" || spec.kind === "file") {
 			const mode = existsSync(dest) ? statSync(dest).mode & 0o777 : 0o755;
 			if (spec.sudo) {
-				const r = await ctx.run(asRoot(["install", "-m", mode.toString(8), dl, dest], true), { timeoutMs: 120_000 });
+				const r = await installAside(ctx.run, dl, dest, mode.toString(8), true);
 				if (sudoNeedsPassword(r))
 					return finish({ result: "failed", installed: target.from, detail: SUDO_PASSWORD, restartToApply: false });
 				if (r.code !== 0) throw new StepError(`Could not install ${basename(dest)}.`);
@@ -176,34 +195,41 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				let sudoFail = false;
 				if (src) {
 					// oxlint-disable-next-line no-await-in-loop -- bins go in one at a time so a failure stops the rest
-					const r = await ctx.run(asRoot(["install", "-m", "755", src, to], spec.sudo), { timeoutMs: 120_000 });
+					const r = await installAside(ctx.run, src, to, "755", spec.sudo);
 					sudoFail = sudoNeedsPassword(r);
 					failed = r.code !== 0 || !existsSync(to) || statSync(src).size !== statSync(to).size;
 					if (r.code !== 0) ctx.log(`install ${name}: ${(r.stderr || r.stdout).trim()}`);
 				}
 				if (failed) {
 					// oxlint-disable-next-line no-await-in-loop -- the loop ends here
-					if (backupVersion) await restoreBackup(ctx.paths, spec, backupVersion, ctx.run);
-					clearInflight(ctx.paths);
+					const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
 					const detail = sudoFail
 						? SUDO_PASSWORD
-						: `Could not install ${name}. Restored ${backupVersion ?? target.from ?? "nothing"}.`;
+						: back?.ok
+							? `Could not install ${name}. Restored ${backupVersion}.`
+							: back
+								? `Could not install ${name}. Restore failed: ${back.detail ?? ""}`
+								: `Could not install ${name}. No restore point was taken.`;
 					return finish({ result: "failed", installed: target.from, detail, restartToApply: false });
 				}
 				ctx.log(`Installed ${name} to ${to}`);
 			}
 		} else if (spec.kind === "deb") {
 			const r = await ctx.run(asRoot(["dpkg", "-i", dl], true), { timeoutMs: 600_000, onLine: (l) => ctx.log(l) });
-			if (sudoNeedsPassword(r)) {
-				clearInflight(ctx.paths);
+			if (sudoNeedsPassword(r))
 				return finish({ result: "failed", installed: target.from, detail: SUDO_PASSWORD, restartToApply: false });
-			}
 			if (r.code !== 0) throw new StepError(`dpkg could not install ${asset.name}. See the log.`);
 		}
 
 		clock.start("verify");
 		const after = await probeInstalled(spec, ctx);
-		clearInflight(ctx.paths);
+		if ("version" in after && after.version === target.from && target.from !== target.version)
+			return finish({
+				result: "failed",
+				installed: after.version,
+				detail: `Still at ${after.version} after the update.`,
+				restartToApply: false,
+			});
 		if ("version" in after) {
 			prune(ctx.paths, spec.key, ctx.settings.keepBackups);
 			const detail = after.version !== target.version ? `Reports ${after.version}.` : undefined;
@@ -212,11 +238,11 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		ctx.log(`Probe after install: ${after.state}${after.detail ? ` ${after.detail}` : ""}`);
 		return finish(await rollBack(spec, ctx, backupVersion, target));
 	} catch (err) {
-		// A thrown error is not a crash: the marker is only for a run that never got here.
-		clearInflight(ctx.paths);
 		if (!(err instanceof StepError)) throw err;
 		return finish({ result: "failed", installed: target.from, detail: err.message, restartToApply: false });
 	} finally {
+		// A thrown error is not a crash: the marker is only for a run that never got here.
+		clearInflight(ctx.paths);
 		rmSync(dl, { force: true });
 		rmSync(extract, { recursive: true, force: true });
 		rmSync(`${dest}.upkeep-new`, { force: true });
