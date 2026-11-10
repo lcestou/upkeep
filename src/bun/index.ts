@@ -177,6 +177,10 @@ if (background) {
 	const script = process.env.UPKEEP_DEV_SCRIPT;
 	if (script && isDevBuild(import.meta.dir)) {
 		await checked;
-		await playDevScript(script, (js) => win?.webview.executeJavascript(js));
+		await playDevScript(
+			script,
+			(js) => win?.webview.executeJavascript(js),
+			(index) => console.log(`[dev-script] step ${index} settled`),
+		);
 	}
 }

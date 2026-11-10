@@ -16,8 +16,14 @@ test("steps play in order and a file that is not a list is refused", async () =>
 		const file = join(dir, "steps.json");
 		writeFileSync(file, JSON.stringify([{ js: "a()", waitMs: 1 }, { waitMs: 1 }, { js: "b()", waitMs: 1 }]));
 		const ran: string[] = [];
-		await playDevScript(file, (js) => ran.push(js));
+		const settled: number[] = [];
+		await playDevScript(
+			file,
+			(js) => ran.push(js),
+			(i) => settled.push(i),
+		);
 		expect(ran).toEqual(["a()", "b()"]);
+		expect(settled).toEqual([0, 1, 2]);
 		writeFileSync(file, '{"js":"x()"}');
 		expect(playDevScript(file, () => {})).rejects.toThrow("The dev script is not a list of steps.");
 	} finally {
