@@ -34,6 +34,7 @@
 <div
 	class="row ledger-cols s-{app.status}"
 	class:quiet
+	class:said={sentence !== null}
 	class:open
 	class:dim={inRun && !IN_RUN.has(app.status)}
 	data-testid="row-{app.key}"
@@ -133,7 +134,8 @@
 		height: 44px;
 		padding-right: var(--pad-r);
 		background: var(--surface);
-		border-bottom: 1px solid var(--line-soft);
+		/* The hairline is drawn, not laid out, so the row's 44 px centre its text exactly. */
+		box-shadow: inset 0 -1px 0 var(--line-soft);
 		scroll-margin: 40px 0 52px;
 		transition:
 			opacity 240ms ease-out,
@@ -160,8 +162,13 @@
 	.row.open {
 		background: var(--raised);
 	}
+	/* 72 percent, and the faintest text steps up a tone so it still measures 4.5:1 once dimmed. */
 	.row.dim {
 		opacity: 0.72;
+		--text-3: var(--text-2);
+		--rust: oklch(0.8 0.12 44);
+		--bloom: oklch(0.82 0.13 352);
+		--frost: oklch(0.84 0.03 250);
 	}
 	.band {
 		position: absolute;
@@ -247,6 +254,7 @@
 	}
 	.tag-name {
 		flex: none;
+		line-height: 18px;
 		max-width: 100%;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -277,6 +285,13 @@
 	.s-rolled_back .sentence,
 	.s-problem .sentence {
 		color: oklch(0.82 0.09 48);
+	}
+	/* A row with a sentence lends it the Kind column; the pane still names the kind. */
+	.said .name {
+		grid-column: name / ver;
+	}
+	.said .kind {
+		display: none;
 	}
 	.kind {
 		font-size: var(--fs-12);

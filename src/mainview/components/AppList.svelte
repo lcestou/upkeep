@@ -30,11 +30,15 @@
 		}
 	}
 
+	// With nothing else to show, a folded Fresh would leave an empty window: it shows open instead.
+	const onlyFresh = $derived(model.groups.every((g) => g.id === "fresh"));
+	const freshShown = $derived(freshOpen || onlyFresh);
+
 	const items: Item[] = $derived.by(() => {
 		const out: Item[] = [];
 		for (const group of model.groups) {
 			out.push({ id: `g:${group.id}`, group });
-			if (group.id === "fresh" && !freshOpen) continue;
+			if (group.id === "fresh" && !freshShown) continue;
 			for (const app of group.apps) out.push({ id: app.key, group, app });
 		}
 		return out;
@@ -131,11 +135,11 @@
 							<button
 								type="button"
 								class="fold"
-								aria-expanded={freshOpen}
+								aria-expanded={freshShown}
 								data-testid="group-fresh-toggle"
 								onclick={toggleFresh}
 							>
-								<svg class="chev" class:open={freshOpen} viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"
+								<svg class="chev" class:open={freshShown} viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"
 									><path d="M4.5 2.5 8 6l-3.5 3.5" /></svg
 								>
 								<span data-testid="group-fresh">{item.group.label}</span>
@@ -297,6 +301,8 @@
 		color: var(--text-3);
 	}
 	.item.head + .item :global(.row) {
-		border-top: 1px solid var(--line-soft);
+		box-shadow:
+			inset 0 1px 0 var(--line-soft),
+			inset 0 -1px 0 var(--line-soft);
 	}
 </style>

@@ -525,6 +525,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				return s === "ready" || s === "failed" || s === "rolled_back";
 			});
 			if (ok.length === 0) return { started: false, reason: "Nothing to install." };
+			// Installing from the summary closes it first, as the engine does: done rows settle to fresh.
+			if (run.phase === "summary") for (const app of apps) if (app.status === "done") put({ ...app, status: "fresh" });
 			void runQueue(ok);
 			return { started: true };
 		},

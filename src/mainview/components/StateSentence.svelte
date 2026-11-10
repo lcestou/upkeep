@@ -18,8 +18,10 @@
 
 <div class="lead">
 	<h1 class="sentence" data-testid="state-sentence" title={checked ?? undefined} tabindex="-1" aria-live="polite">
-		{#key model.sentence}
-			<span in:fade={{ duration: ms(160) }} out:fade={{ duration: ms(160) }}>{model.sentence}</span>
+		<!-- Fade in only: an outgoing copy would sit in the DOM beside the new one and be read out with it.
+		     Counts while checking update in place instead of fading on every app. -->
+		{#key model.run.phase === "checking" ? "checking" : model.sentence}
+			<span in:fade={{ duration: ms(160) }}>{model.sentence}</span>
 		{/key}
 	</h1>
 	{#if checked && model.run.phase === "idle"}
