@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { isRunning } from "./running";
+import { earliestStart, isRunning } from "./running";
 import { tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -69,4 +69,15 @@ test("our own probes never count: a descendant of this process, or any process w
 	expect(isRunning(spec, proc, 9)).toBe(false);
 	fakeProc(404, 1, "lrcget", [dest]);
 	expect(isRunning(spec, proc, 9)).toBe(true);
+});
+
+test("the earliest start of the app's processes comes from boot time plus clock ticks", () => {
+	writeFileSync(join(proc, "stat"), "cpu  1 2 3\nbtime 1800000000\n");
+	fakeProc(600, 1, "zen", ["/h/zen"]);
+	writeFileSync(join(proc, "600/stat"), "600 (zen) S 1 1 1 0 -1 0 0 0 0 0 0 0 0 0 20 0 1 0 25050 0 0");
+	fakeProc(601, 1, "zen", ["/h/zen"]);
+	writeFileSync(join(proc, "601/stat"), "601 (zen) S 1 1 1 0 -1 0 0 0 0 0 0 0 0 0 20 0 1 0 99900 0 0");
+	// 25050 ticks at 100 per second is 250.5 s after boot.
+	expect(earliestStart({ kind: "file", process: "zen" }, proc, 9)).toBe((1800000000 + 250.5) * 1000);
+	expect(earliestStart({ kind: "file", process: "nope" }, proc, 9)).toBeNull();
 });

@@ -33,6 +33,17 @@ export function isRunning(
 	procRoot = "/proc",
 	selfPid = process.pid,
 ): boolean {
+	return matching(spec, procRoot, selfPid, true).length > 0;
+}
+
+/** The pids isRunning counts; first stops at the first one. */
+function matching(
+	spec: Pick<AppSpec, "kind" | "dest" | "process">,
+	procRoot: string,
+	selfPid: number,
+	first: boolean,
+): number[] {
+	const found: number[] = [];
 	const skip = new Set<number>();
 	for (let p: number | null = selfPid; p !== null && !skip.has(p); p = parentOf(p, procRoot)) skip.add(p);
 	const destReal = spec.dest ? real(spec.dest) : null;
@@ -40,7 +51,7 @@ export function isRunning(
 	try {
 		entries = readdirSync(procRoot);
 	} catch {
-		return false;
+		return found;
 	}
 	const descends = (pid: number): boolean => {
 		const seen = new Set<number>();
@@ -60,18 +71,59 @@ export function isRunning(
 			// gone, or not ours to read
 		}
 		if (args.some((a) => PROBE_FLAGS.has(a))) continue;
+		let hit = false;
 		if (spec.process) {
 			try {
-				if (readFileSync(join(dir, "comm"), "utf8").trim() === spec.process) return true;
+				hit = readFileSync(join(dir, "comm"), "utf8").trim() === spec.process;
 			} catch {
 				// gone, or not ours to read
 			}
 		}
-		if (!spec.dest) continue;
-		if (destReal && real(join(dir, "exe")) === destReal) return true;
-		if (args[0] === spec.dest) return true;
-		// An AppImage re-execs from its mount; only its FUSE daemon still carries the image path.
-		if (spec.kind === "appimage" && args.some((a) => a === spec.dest)) return true;
+		if (!hit && spec.dest) {
+			hit =
+				(destReal !== null && real(join(dir, "exe")) === destReal) ||
+				args[0] === spec.dest ||
+				// An AppImage re-execs from its mount; only its FUSE daemon still carries the image path.
+				(spec.kind === "appimage" && args.some((a) => a === spec.dest));
+		}
+		if (!hit) continue;
+		found.push(Number(e));
+		if (first) break;
 	}
-	return false;
+	return found;
+}
+
+/** Clock ticks per second for /proc/<pid>/stat start times; 100 on Linux. */
+const TICKS = 100;
+
+/**
+ * When the earliest process isRunning would count started, in ms since the epoch, or null when none runs.
+ * Field 22 of /proc/<pid>/stat is ticks since boot; /proc/stat's btime is the boot time in seconds.
+ */
+export function earliestStart(
+	spec: Pick<AppSpec, "kind" | "dest" | "process">,
+	procRoot = "/proc",
+	selfPid = process.pid,
+): number | null {
+	const pids = matching(spec, procRoot, selfPid, false);
+	if (pids.length === 0) return null;
+	let boot = 0;
+	try {
+		boot = Number(/^btime (\d+)$/m.exec(readFileSync(join(procRoot, "stat"), "utf8"))?.[1] ?? 0);
+	} catch {
+		// no boot time: every start reads as very old, which keeps a reminder rather than dropping it
+	}
+	let earliest: number | null = null;
+	for (const pid of pids) {
+		try {
+			const stat = readFileSync(join(procRoot, String(pid), "stat"), "utf8");
+			const ticks = Number(stat.slice(stat.lastIndexOf(")") + 2).split(" ")[19]);
+			if (!Number.isFinite(ticks)) continue;
+			const at = (boot + ticks / TICKS) * 1000;
+			if (earliest === null || at < earliest) earliest = at;
+		} catch {
+			// gone
+		}
+	}
+	return earliest ?? boot * 1000;
 }

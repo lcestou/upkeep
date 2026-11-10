@@ -157,6 +157,8 @@ export type RunState = {
 	currentKey: string | null;
 	stopping: boolean;
 	results: RunResult[];
+	/** This run was started from a summary to try the failed apps again. */
+	retry: boolean;
 };
 
 export type Settings = {
@@ -191,7 +193,12 @@ export type Snapshot = {
 	version: string;
 };
 
-export type HistoryRow = RunResult & { runId: string; at: string; stages: Partial<Record<Stage, number>> };
+export type HistoryRow = RunResult & {
+	runId: string;
+	at: string;
+	stages: Partial<Record<Stage, number>>;
+	retry?: boolean;
+};
 
 export type LogLine = { at: string; key: string | null; text: string };
 

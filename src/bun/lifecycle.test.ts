@@ -47,6 +47,7 @@ test("a run that ends with a rollback shows the failed icon", () => {
 		currentKey: null,
 		stopping: false,
 		results: [{ key: "a", name: "A", from: "1", to: "1", result: "rolled_back" }] as RunState["results"],
+		retry: false,
 	};
 	const snapshot = { apps: [{ key: "a", name: "A", status: "rolled_back" } as AppState], run } as Snapshot;
 	expect(trayIcon(snapshot)).toBe("failed");

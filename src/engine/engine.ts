@@ -32,7 +32,7 @@ import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, lift, loadManifest, replaceManifest, tomlTable } from "./manifest";
 import { expandHome, type Paths } from "./paths";
 import type { Run, RunOpts } from "./run";
-import { isRunning } from "./running";
+import { earliestStart, isRunning } from "./running";
 import {
 	appendHistory,
 	claimLock,
@@ -152,7 +152,16 @@ export function createEngine(deps: EngineDeps): Engine {
 	let token: string | null = null;
 	let busy: Promise<void> = Promise.resolve();
 	let log: RunLog | null = null;
-	let run: RunState = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
+	let run: RunState = {
+		id: null,
+		phase: "idle",
+		index: 0,
+		total: 0,
+		currentKey: null,
+		stopping: false,
+		results: [],
+		retry: false,
+	};
 
 	const emit = (e: EngineEvent) => {
 		for (const l of listeners) {
@@ -240,6 +249,29 @@ export function createEngine(deps: EngineDeps): Engine {
 		};
 	}
 
+	/** Kinds whose running process is watched for a restart; command and legacy only give advice. */
+	const WATCHED = new Set(["appimage", "archive", "file", "deb", "source"]);
+
+	/**
+	 * Whether the app still runs a process from before its install. The entry goes once none does:
+	 * the owner closed or restarted it.
+	 */
+	function restartNeeded(spec: AppSpec): boolean {
+		const at = loadState(paths).restart[spec.key];
+		if (!at) return false;
+		const dest = spec.dest ? expandHome(spec.dest, paths.home) : undefined;
+		const started = earliestStart({ kind: spec.kind, dest, process: spec.process }, deps.procRoot);
+		if (started !== null && started < Date.parse(at)) return true;
+		updateState(paths, (s) => {
+			delete s.restart[spec.key];
+		});
+		return false;
+	}
+
+	function restartFlag(spec: AppSpec): boolean {
+		return WATCHED.has(spec.kind) ? restartNeeded(spec) : (apps.get(spec.key)?.restartToApply ?? false);
+	}
+
 	function runningNow(spec: AppSpec): boolean {
 		if (!spec.dest && !spec.process) return false;
 		const dest = spec.dest ? expandHome(spec.dest, paths.home) : undefined;
@@ -274,7 +306,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			releaseUrl: c.releaseUrl,
 			publishedAt: c.publishedAt,
 			running: runningNow(spec),
-			restartToApply: apps.get(spec.key)?.restartToApply ?? false,
+			restartToApply: restartFlag(spec),
 			restorePoints: restorable ? listBackups(paths, spec.key) : [],
 			canRestore: restorable,
 			auto: state.auto[spec.key] ?? spec.auto ?? false,
@@ -331,6 +363,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			index: 0,
 			total: list.length,
 			currentKey: null,
+			retry: false,
 		};
 		log = openRunLog(paths, run.id ?? "check");
 		emitRun();
@@ -511,6 +544,12 @@ export function createEngine(deps: EngineDeps): Engine {
 				};
 			}
 			finishApp(app, outcome);
+			if (outcome.result === "done" && outcome.restartToApply && WATCHED.has(spec.kind)) {
+				const at = deps.now().toISOString();
+				updateState(paths, (s) => {
+					s.restart[spec.key] = at;
+				});
+			}
 			say(spec.key, outcome.detail ? `${outcome.result}: ${outcome.detail}` : outcome.result);
 			const result: RunResult = {
 				key: spec.key,
@@ -559,7 +598,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				});
 			}
 		}
-		appendHistory(paths, history);
+		appendHistory(paths, run.retry ? history.map((h) => ({ ...h, retry: true })) : history);
 		say(null, `Run finished: ${run.results.filter((r) => r.result === "updated").length} updated`);
 		log?.close();
 		log = null;
@@ -570,6 +609,12 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	const engine: Engine = {
 		snapshot() {
+			const waiting = loadState(paths).restart;
+			for (const a of apps.values()) {
+				const spec = specOf(a.key);
+				if (spec && WATCHED.has(spec.kind) && (waiting[a.key] || a.restartToApply))
+					a.restartToApply = restartNeeded(spec);
+			}
 			const order = new Map(specs.map((s, i) => [s.key, i]));
 			const list = [...apps.values()].toSorted((a, b) => (order.get(a.key) ?? 0) - (order.get(b.key) ?? 0));
 			return {
@@ -600,7 +645,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (run.phase === "installing") return { started: false, reason: REASON_BUSY };
 			// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
 			// What the first pass updated stays on screen and in the count, so the summary reads as one run.
-			const carried = run.phase === "summary" ? run.results.filter((r) => r.result === "updated") : [];
+			const retry = run.phase === "summary";
+			const carried = retry ? run.results.filter((r) => r.result === "updated") : [];
 			if (run.phase === "summary") resetFailed();
 			const wanted = new Set(keys);
 			const pick = specs.filter((s) => {
@@ -626,6 +672,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					currentKey: null,
 					stopping: false,
 					results: carried,
+					retry,
 				};
 				for (const s of queue) {
 					const a = apps.get(s.key);
@@ -692,7 +739,16 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			}
 			resetFailed();
-			run = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
+			run = {
+				id: null,
+				phase: "idle",
+				index: 0,
+				total: 0,
+				currentKey: null,
+				stopping: false,
+				results: [],
+				retry: false,
+			};
 			emitRun();
 		},
 		async restore(key, version) {
@@ -752,6 +808,10 @@ export function createEngine(deps: EngineDeps): Engine {
 					app.restorePoints = listBackups(paths, key);
 					emitApp(app);
 				}
+				// The restored copy is not the one a running process missed.
+				updateState(paths, (st) => {
+					delete st.restart[key];
+				});
 				return { ok: true };
 			} finally {
 				releaseLock(paths);
