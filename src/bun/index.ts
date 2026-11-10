@@ -6,6 +6,7 @@ import { loadState, updateState } from "../engine/store";
 import type { EngineEvent, RunPhase } from "../shared/types";
 import { syncAutostart } from "./autostart";
 import { createCoalescer } from "./coalesce";
+import { isDevBuild, playDevScript } from "./dev-script";
 import { claimInstance } from "./instance";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
@@ -172,5 +173,10 @@ if (background) {
 	if (auto.length > 0) await engine.install(auto);
 } else {
 	openWindow();
-	void engine.check();
+	const checked = engine.check();
+	const script = process.env.UPKEEP_DEV_SCRIPT;
+	if (script && isDevBuild(import.meta.dir)) {
+		await checked;
+		await playDevScript(script, (js) => win?.webview.executeJavascript(js));
+	}
 }
