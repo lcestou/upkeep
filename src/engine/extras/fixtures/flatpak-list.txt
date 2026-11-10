@@ -1,0 +1,46 @@
+com.core447.StreamController/x86_64/stable	1.5.0-beta.16
+com.discordapp.Discord/x86_64/stable	1.0.168
+com.github.dynobo.normcap/x86_64/stable	0.6.0
+com.github.hluk.copyq/x86_64/stable	17.0.0
+com.github.wwmm.easyeffects/x86_64/stable	8.3.2
+com.obsproject.Studio/x86_64/stable	33.0.1
+fr.handbrake.ghb/x86_64/stable	1.11.2
+org.freedesktop.LinuxAudio.Plugins.Calf/x86_64/25.08	0.90.9
+org.freedesktop.LinuxAudio.Plugins.Calf/x86_64/26.08	0.90.9
+org.freedesktop.LinuxAudio.Plugins.LSP/x86_64/25.08	1.2.35
+org.freedesktop.LinuxAudio.Plugins.LSP/x86_64/26.08	1.2.37
+org.freedesktop.LinuxAudio.Plugins.MDA/x86_64/25.08	1.2.12
+org.freedesktop.LinuxAudio.Plugins.MDA/x86_64/26.08	1.2.12
+org.freedesktop.LinuxAudio.Plugins.ZamPlugins/x86_64/25.08	4.5
+org.freedesktop.LinuxAudio.Plugins.ZamPlugins/x86_64/26.08	4.5
+org.freedesktop.LinuxAudio.Plugins.x42Plugins/x86_64/25.08	2026.09.08
+org.freedesktop.LinuxAudio.Plugins.x42Plugins/x86_64/26.08	2026.09.08
+org.freedesktop.Platform/x86_64/25.08	freedesktop-sdk-25.08.19
+org.freedesktop.Platform/x86_64/26.08	freedesktop-sdk-26.08.4
+org.freedesktop.Platform.GL.default/x86_64/25.08	26.2.5
+org.freedesktop.Platform.GL.default/x86_64/25.08-extra	26.2.5
+org.freedesktop.Platform.GL.default/x86_64/26.08	26.2.5
+org.freedesktop.Platform.GL.default/x86_64/26.08-extra	26.2.5
+org.freedesktop.Platform.GL.nvidia-580-159-03/x86_64/1.4
+org.freedesktop.Platform.GL.nvidia-580-173-02/x86_64/1.4
+org.freedesktop.Platform.GL.nvidia-580-178-04/x86_64/1.4
+org.freedesktop.Platform.VAAPI.nvidia/x86_64/25.08
+org.freedesktop.Platform.VAAPI.nvidia/x86_64/26.08
+org.freedesktop.Platform.codecs-extra/x86_64/25.08-extra
+org.freedesktop.Platform.codecs-extra/x86_64/26.08-extra
+org.freedesktop.Platform.openh264/x86_64/2.5.1	2.5.1
+org.gimp.GIMP/x86_64/stable	3.2.8
+org.gnome.Platform/x86_64/49
+org.gnome.Platform/x86_64/50
+org.gnome.Platform/x86_64/51
+org.gtk.Gtk3theme.Mint-Y-Aqua/x86_64/3.22
+org.gtk.Gtk3theme.Mint-Y-Dark-Aqua/x86_64/3.22
+org.kde.KStyle.Adwaita/x86_64/6.10
+org.kde.KStyle.Adwaita/x86_64/6.11
+org.kde.Platform/x86_64/6.10
+org.kde.Platform/x86_64/6.11
+org.openrgb.OpenRGB/x86_64/stable	1.1
+org.openrgb.OpenRGB.Plugin.Effects/x86_64/5	1.1
+org.openrgb.OpenRGB.Plugin.VisualMap/x86_64/5	1.0
+org.vinegarhq.Sober/x86_64/stable	1.8.0
+us.zoom.Zoom/x86_64/stable	7.2.1.5760

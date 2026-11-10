@@ -1,0 +1,5 @@
+us.zoom.Zoom
+us.zoom.Zoom
+com.github.wwmm.easyeffects
+com.github.hluk.copyq
+com.core447.StreamController
