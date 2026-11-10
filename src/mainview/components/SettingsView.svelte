@@ -24,24 +24,24 @@
 
 	/** One tab stop per group, on the checked option; the arrows move and select, Home and End go to the ends. */
 	function onseg(e: KeyboardEvent) {
-		const group = e.currentTarget;
-		if (!(group instanceof HTMLElement)) return;
+		const group = e.currentTarget instanceof HTMLElement ? e.currentTarget.closest('[role="radiogroup"]') : null;
+		if (!group) return;
 		const radios = [...group.querySelectorAll<HTMLButtonElement>('[role="radio"]')];
-		const i = radios.findIndex((r) => r === document.activeElement);
-		if (i < 0) return;
-		const step: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+		const i = radios.findIndex((r) => r === e.currentTarget);
+		const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
 		const to =
 			e.key === "Home"
 				? 0
 				: e.key === "End"
 					? radios.length - 1
-					: step[e.key] === undefined
+					: step === undefined
 						? -1
-						: (i + step[e.key] + radios.length) % radios.length;
-		if (to < 0) return;
+						: (i + step + radios.length) % radios.length;
+		const next = radios[to];
+		if (!next) return;
 		e.preventDefault();
-		radios[to].focus();
-		radios[to].click();
+		next.focus();
+		next.click();
 	}
 
 	async function set(patch: Partial<Settings>) {
@@ -93,11 +93,12 @@
 	<div class="sheet">
 		<div class="row stack">
 			<span class="text" id="frame-label">{WIN.frame}</span>
-			<div class="seg" role="radiogroup" aria-labelledby="frame-label" data-testid="setting-frame" onkeydown={onseg}>
+			<div class="seg" role="radiogroup" aria-labelledby="frame-label" data-testid="setting-frame">
 				{#each frames as f (f.v)}
 					<button
 						type="button"
 						role="radio"
+						onkeydown={onseg}
 						aria-checked={model.settings.frame === f.v}
 						tabindex={model.settings.frame === f.v ? 0 : -1}
 						data-testid="setting-frame-{f.v}"
@@ -110,11 +111,12 @@
 		{#if model.settings.frame === "own"}
 			<div class="row stack">
 				<span class="text" id="buttons-label">{WIN.buttons}</span>
-				<div class="seg" role="radiogroup" aria-labelledby="buttons-label" data-testid="setting-buttons" onkeydown={onseg}>
+				<div class="seg" role="radiogroup" aria-labelledby="buttons-label" data-testid="setting-buttons">
 					{#each sides as b (b.v)}
 						<button
 							type="button"
 							role="radio"
+						onkeydown={onseg}
 							aria-checked={model.settings.buttons === b.v}
 						tabindex={model.settings.buttons === b.v ? 0 : -1}
 							data-testid="setting-buttons-{b.v}"
@@ -125,11 +127,12 @@
 			</div>
 			<div class="row stack">
 				<span class="text" id="corners-label">{WIN.corners}</span>
-				<div class="seg" role="radiogroup" aria-labelledby="corners-label" data-testid="setting-corners" onkeydown={onseg}>
+				<div class="seg" role="radiogroup" aria-labelledby="corners-label" data-testid="setting-corners">
 					{#each cornerChoices as c (c.v)}
 						<button
 							type="button"
 							role="radio"
+						onkeydown={onseg}
 							aria-checked={model.settings.corners === c.v}
 						tabindex={model.settings.corners === c.v ? 0 : -1}
 							data-testid="setting-corners-{c.v}"
