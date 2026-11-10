@@ -115,7 +115,8 @@
 				<span class="status-text" data-testid="status-{app.key}">{statusWord}</span>
 			{/if}
 		</span>
-		{#if open}<svg class="marker" viewBox="0 0 8 14" aria-hidden="true"><path d="M8 0v14L1 7Z" /></svg>{/if}
+		<!-- Always present and absolutely placed, so opening a row never changes the button's set of grid items. -->
+		<svg class="marker" class:shown={open} viewBox="0 0 8 14" aria-hidden="true"><path d="M8 0v14L1 7Z" /></svg>
 	</button>
 </div>
 
@@ -226,7 +227,8 @@
 		position: relative;
 		grid-column: 2 / -1;
 		display: grid;
-		grid-template-columns: subgrid;
+		grid-template-columns: var(--hit-cols);
+		column-gap: var(--gap);
 		align-items: center;
 		align-self: stretch;
 		min-width: 0;
@@ -250,8 +252,36 @@
 		height: 14px;
 		transform: translateY(-50%);
 		fill: var(--text);
+		visibility: hidden;
 	}
+	.marker.shown {
+		visibility: visible;
+	}
+	/* Every cell names its column, so no cell's place depends on which others are shown. */
+	.mark {
+		grid-column: mark;
+	}
+	.name {
+		grid-column: name;
+	}
+	.kind {
+		grid-column: kind;
+	}
+	.ver {
+		grid-column: ver;
+	}
+	.size {
+		grid-column: size;
+	}
+	.restore {
+		grid-column: restore;
+	}
+	.status {
+		grid-column: status;
+	}
+	/* One row: a cell hidden in place may share its column with a widened reason, never a second row. */
 	.cell {
+		grid-row: 1;
 		min-width: 0;
 	}
 	.mark {
@@ -335,9 +365,10 @@
 	.said.wide .name {
 		grid-column: name / size;
 	}
+	/* Hidden in place, not removed, so the row keeps the same grid items in every state. */
 	.said .kind,
 	.said.wide .ver {
-		display: none;
+		visibility: hidden;
 	}
 	.kind {
 		font-size: var(--fs-12);

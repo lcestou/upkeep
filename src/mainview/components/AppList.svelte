@@ -311,13 +311,14 @@
 	.h-kind {
 		grid-column: kind;
 	}
+	/* Each head fills its column, so its box is the column's box; text alignment does the rest. */
 	.h-ver {
 		grid-column: ver;
-		justify-self: center;
+		text-align: center;
 	}
 	.h-size {
 		grid-column: size;
-		justify-self: end;
+		text-align: right;
 	}
 	.h-restore {
 		grid-column: restore;
