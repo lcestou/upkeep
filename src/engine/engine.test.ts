@@ -637,3 +637,62 @@ test("removing an app cuts its table, drops its row live, and keeps its files an
 	]);
 	expect(existsSync(join(bin, "bat"))).toBe(true);
 });
+
+/** A fake process for the restart watch: fd's own binary, started `startSec` seconds after a boot 1000 s ago. */
+function fdProcess(pid: number, startSec: number): void {
+	const boot = Math.floor(Date.now() / 1000) - 1000;
+	writeFileSync(join(proc, "stat"), `cpu  1 2 3\nbtime ${boot}\nprocesses 9\n`);
+	mkdirSync(join(proc, String(pid)), { recursive: true });
+	writeFileSync(
+		join(proc, String(pid), "stat"),
+		`${pid} (fd) S 1 1 1 0 -1 0 0 0 0 0 0 0 0 0 20 0 1 0 ${startSec * 100} 0 0`,
+	);
+	writeFileSync(join(proc, String(pid), "comm"), "fd\n");
+	writeFileSync(join(proc, String(pid), "cmdline"), `${join(bin, "fd")}\0`);
+}
+
+const fdRow = (engine: ReturnType<typeof createEngine>) => engine.snapshot().apps.find((a) => a.key === "fd");
+const restartEntry = () => JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).restart?.fd;
+
+test("a restart reminder outlives Done and a later check while the old process runs, and clears once it is gone", async () => {
+	const engine = createEngine(await deps());
+	fdProcess(500, 1);
+	await engine.check();
+	await engine.install(["fd"]);
+	await engine.idle();
+	expect(fdRow(engine)).toMatchObject({ status: "done", restartToApply: true });
+	expect(typeof restartEntry()).toBe("string");
+	engine.dismissSummary();
+	expect(fdRow(engine)?.restartToApply).toBe(true);
+	await engine.check();
+	expect(fdRow(engine)?.restartToApply).toBe(true);
+	rmSync(join(proc, "500"), { recursive: true });
+	expect(fdRow(engine)?.restartToApply).toBe(false);
+	expect(restartEntry()).toBeUndefined();
+});
+
+test("a restart reminder clears when the only matching process started after the install", async () => {
+	const engine = createEngine(await deps());
+	fdProcess(500, 1);
+	await engine.check();
+	await engine.install(["fd"]);
+	await engine.idle();
+	engine.dismissSummary();
+	// The owner restarted fd: the new process started after the install ended.
+	fdProcess(500, 2000);
+	await engine.check();
+	expect(fdRow(engine)?.restartToApply).toBe(false);
+	expect(restartEntry()).toBeUndefined();
+});
+
+test("a restore clears the restart reminder", async () => {
+	const engine = createEngine(await deps());
+	fdProcess(500, 1);
+	await engine.check();
+	await engine.install(["fd"]);
+	await engine.idle();
+	engine.dismissSummary();
+	expect(await engine.restore("fd", "10.5.1")).toEqual({ ok: true });
+	expect(restartEntry()).toBeUndefined();
+	expect(fdRow(engine)?.restartToApply).toBe(false);
+});
