@@ -10,6 +10,7 @@ const SHA = new Bun.CryptoHasher("sha256").update(PAYLOAD).digest("hex");
 
 let dir = "";
 let server: ReturnType<typeof Bun.serve>;
+let slowSent = 0;
 
 beforeAll(() => {
 	server = Bun.serve({
@@ -22,6 +23,17 @@ beforeAll(() => {
 					new ReadableStream({
 						start(c) {
 							c.enqueue(PAYLOAD.slice(0, 1000));
+						},
+					}),
+				);
+			if (path === "/slow")
+				return new Response(
+					new ReadableStream({
+						async pull(c) {
+							await Bun.sleep(60);
+							c.enqueue(PAYLOAD.slice(0, 1000));
+							slowSent += 1;
+							if (slowSent === 8) c.close();
 						},
 					}),
 				);
@@ -76,6 +88,24 @@ test("a network error before the first byte is retried once", async () => {
 	);
 	await Bun.sleep(30);
 	expect(fails).toBe(2);
+});
+
+test("an HTTP error answer is not retried", async () => {
+	let calls = 0;
+	const counted: FetchLike = async (url, init) => {
+		calls += 1;
+		return fetch(url, init);
+	};
+	await expect(download(`${base()}/gone`, join(dir, "gone.bin"), { fetch: counted, retryMs: 10 })).rejects.toThrow(
+		"Download failed: the server answered 404.",
+	);
+	expect(calls).toBe(1);
+});
+
+test("a slow download that keeps sending is not stalled", async () => {
+	slowSent = 0;
+	const r = await download(`${base()}/slow`, join(dir, "slow.bin"), { fetch, stallMs: 150 });
+	expect(r.bytes).toBe(8000);
 });
 
 test("verifyAsset checks size and digest", () => {

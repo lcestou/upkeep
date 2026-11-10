@@ -4,6 +4,7 @@ import {
 	mkdirSync,
 	readdirSync,
 	readFileSync,
+	renameSync,
 	rmSync,
 	statSync,
 	writeFileSync,
@@ -11,7 +12,7 @@ import {
 import { basename, join } from "node:path";
 import type { AppSpec, RestorePoint } from "../shared/types";
 import type { Paths } from "./paths";
-import { asRoot, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
+import { installAside, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
 
 export type BackupMeta = {
 	version: string;
@@ -33,16 +34,25 @@ export function takeBackup(
 	at = new Date().toISOString(),
 ): RestorePoint {
 	const dir = join(backupDir(paths, spec.key), version);
-	rmSync(dir, { recursive: true, force: true });
-	mkdirSync(dir, { recursive: true });
-	const meta: BackupMeta = { version, at, files: [], sudo: spec.sudo === true };
-	for (const file of files) {
-		const name = basename(file);
-		copyFileSync(file, join(dir, name));
-		// The raw mode carries file-type bits that install -m rejects.
-		meta.files.push({ name, dest: file, mode: (statSync(file).mode & 0o7777).toString(8) });
+	// Built aside and renamed in: a copy that fails (disk full, unreadable file) must not cost the old point.
+	const tmp = `${dir}.upkeep-tmp`;
+	rmSync(tmp, { recursive: true, force: true });
+	mkdirSync(tmp, { recursive: true });
+	try {
+		const meta: BackupMeta = { version, at, files: [], sudo: spec.sudo === true };
+		for (const file of files) {
+			const name = basename(file);
+			copyFileSync(file, join(tmp, name));
+			// The raw mode carries file-type bits that install -m rejects.
+			meta.files.push({ name, dest: file, mode: (statSync(file).mode & 0o7777).toString(8) });
+		}
+		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
+		rmSync(dir, { recursive: true, force: true });
+		renameSync(tmp, dir);
+	} catch (err) {
+		rmSync(tmp, { recursive: true, force: true });
+		throw err;
 	}
-	writeFileSync(join(dir, "meta.json"), JSON.stringify(meta, null, "\t"));
 	return { version, at };
 }
 
@@ -79,9 +89,7 @@ export async function restoreBackup(
 	if (!meta) return { ok: false, detail: `No restore point ${version}.` };
 	for (const f of meta.files) {
 		// oxlint-disable-next-line no-await-in-loop -- files go back one at a time so a failure stops the rest
-		const r = await run(asRoot(["install", "-m", f.mode, join(dir, f.name), f.dest], meta.sudo), {
-			timeoutMs: 60_000,
-		});
+		const r = await installAside(run, join(dir, f.name), f.dest, f.mode, meta.sudo);
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		if (r.code !== 0) return { ok: false, detail: `Could not restore ${f.name}: ${(r.stderr || r.stdout).trim()}` };
 	}

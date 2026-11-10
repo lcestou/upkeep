@@ -47,11 +47,14 @@ export function recordingRun(
 ): { run: Run; calls: Call[] } {
 	const calls: Call[] = [];
 	const real = realRun(p);
-	const run: Run = async (argv, opts = {}) => {
-		calls.push({ argv, opts });
-		const r = await handle(argv, opts);
-		return r ?? real(argv, opts);
-	};
+	const run: Run = Object.assign(
+		async (argv: string[], opts: RunOpts = {}) => {
+			calls.push({ argv, opts });
+			const r = await handle(argv, opts);
+			return r ?? real(argv, opts);
+		},
+		{ start: real.start },
+	);
 	return { run, calls };
 }
 

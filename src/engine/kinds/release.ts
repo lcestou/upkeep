@@ -1,12 +1,22 @@
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
+import {
+	chmodSync,
+	copyFileSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	realpathSync,
+	renameSync,
+	rmSync,
+	statSync,
+} from "node:fs";
 import { basename, dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
-import { listBackups, prune, restoreBackup, takeBackup } from "../backup";
+import { prune, restoreBackup, takeBackup } from "../backup";
 import { download, verifyAsset } from "../download";
 import { fetchRelease, isFailure, pickAsset } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeVersion, type ProbeResult } from "../probe";
-import { asRoot, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
+import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { isRunning } from "../running";
 import { clearInflight, writeInflight } from "../store";
 import { isNewer } from "../version";
@@ -31,8 +41,7 @@ export function destOf(spec: AppSpec, ctx: Pick<KindCtx, "paths">): string {
 
 export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult> {
 	const dest = destOf(spec, ctx);
-	if (spec.meta_path)
-		return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run, tmpDir: join(ctx.paths.cache, "tmp") });
+	if (spec.meta_path) return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run });
 	return probeVersion(dest, spec.version_args ?? ["--version"], { run: ctx.run });
 }
 
@@ -82,7 +91,13 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		if (!pick)
 			return { installed, latest, status: "problem", detail: `No release asset matches ${spec.asset}.`, ...base };
 		if (pick.count > 1)
-			ctx.log(`${pick.count} assets match ${spec.asset}: ${pick.names.join(", ")}. Using ${pick.asset.name}.`);
+			return {
+				installed,
+				latest,
+				status: "problem",
+				detail: `More than one release asset matches ${spec.asset}: ${pick.names.join(", ")}. Narrow the pattern in apps.toml.`,
+				...base,
+			};
 		target = { ...target, asset: pick.asset };
 		size = pick.asset.size;
 	}
@@ -103,11 +118,20 @@ function findFile(dir: string, name: string): string | null {
 
 class StepError extends Error {}
 
+function resolved(p: string): string {
+	try {
+		return realpathSync(p);
+	} catch {
+		return p;
+	}
+}
+
 /** Downloads, backs up, installs and verifies one appimage, archive, file or deb app. */
 export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const asset = target.asset;
 	if (!asset) throw new Error(`No release asset for ${spec.name}.`);
-	const dest = destOf(spec, ctx);
+	// A symlinked dest is updated through the link, never replaced by a regular file.
+	const dest = resolved(destOf(spec, ctx));
 	const clock = stageClock(ctx);
 	const dl = join(ctx.paths.cache, "dl", `${spec.key}-${asset.name}`);
 	const extract = join(ctx.paths.cache, "dl", `${spec.key}-x`);
@@ -141,13 +165,14 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			}
 		}
 
+		const existed = new Set(targets.filter((f) => existsSync(f)));
 		const running = isRunning({ ...spec, dest }, ctx.procRoot);
 		writeInflight(ctx.paths, { key: spec.key, dest, backupVersion });
 		clock.start("install");
 		if (spec.kind === "appimage" || spec.kind === "file") {
 			const mode = existsSync(dest) ? statSync(dest).mode & 0o777 : 0o755;
 			if (spec.sudo) {
-				const r = await ctx.run(asRoot(["install", "-m", mode.toString(8), dl, dest], true), { timeoutMs: 120_000 });
+				const r = await installAside(ctx.run, dl, dest, mode.toString(8), true);
 				if (sudoNeedsPassword(r))
 					return finish({ result: "failed", installed: target.from, detail: SUDO_PASSWORD, restartToApply: false });
 				if (r.code !== 0) throw new StepError(`Could not install ${basename(dest)}.`);
@@ -167,6 +192,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				: ["tar", "xzf", dl, "-C", extract];
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
 			if (x.code !== 0) throw new StepError(`Could not extract ${asset.name}.`);
+			// A bin this run added has no restore point, so a failure takes it out again.
+			const added: string[] = [];
 			for (const bin of bins) {
 				const name = basename(bin);
 				const to = join(dirname(dest), name);
@@ -176,34 +203,44 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				let sudoFail = false;
 				if (src) {
 					// oxlint-disable-next-line no-await-in-loop -- bins go in one at a time so a failure stops the rest
-					const r = await ctx.run(asRoot(["install", "-m", "755", src, to], spec.sudo), { timeoutMs: 120_000 });
+					const r = await installAside(ctx.run, src, to, "755", spec.sudo);
 					sudoFail = sudoNeedsPassword(r);
 					failed = r.code !== 0 || !existsSync(to) || statSync(src).size !== statSync(to).size;
 					if (r.code !== 0) ctx.log(`install ${name}: ${(r.stderr || r.stdout).trim()}`);
 				}
 				if (failed) {
 					// oxlint-disable-next-line no-await-in-loop -- the loop ends here
-					if (backupVersion) await restoreBackup(ctx.paths, spec, backupVersion, ctx.run);
-					clearInflight(ctx.paths);
+					await Promise.all(added.map((f) => ctx.run(asRoot(["rm", "-f", f], spec.sudo), { timeoutMs: 60_000 })));
+					// oxlint-disable-next-line no-await-in-loop -- the loop ends here
+					const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
 					const detail = sudoFail
 						? SUDO_PASSWORD
-						: `Could not install ${name}. Restored ${backupVersion ?? target.from ?? "nothing"}.`;
+						: back?.ok
+							? `Could not install ${name}. Restored ${backupVersion}.`
+							: back
+								? `Could not install ${name}. Restore failed: ${back.detail ?? ""}`
+								: `Could not install ${name}. No restore point was taken.`;
 					return finish({ result: "failed", installed: target.from, detail, restartToApply: false });
 				}
+				if (!existed.has(to)) added.push(to);
 				ctx.log(`Installed ${name} to ${to}`);
 			}
 		} else if (spec.kind === "deb") {
 			const r = await ctx.run(asRoot(["dpkg", "-i", dl], true), { timeoutMs: 600_000, onLine: (l) => ctx.log(l) });
-			if (sudoNeedsPassword(r)) {
-				clearInflight(ctx.paths);
+			if (sudoNeedsPassword(r))
 				return finish({ result: "failed", installed: target.from, detail: SUDO_PASSWORD, restartToApply: false });
-			}
 			if (r.code !== 0) throw new StepError(`dpkg could not install ${asset.name}. See the log.`);
 		}
 
 		clock.start("verify");
 		const after = await probeInstalled(spec, ctx);
-		clearInflight(ctx.paths);
+		if ("version" in after && after.version === target.from && target.from !== target.version)
+			return finish({
+				result: "failed",
+				installed: after.version,
+				detail: `Still at ${after.version} after the update.`,
+				restartToApply: false,
+			});
 		if ("version" in after) {
 			prune(ctx.paths, spec.key, ctx.settings.keepBackups);
 			const detail = after.version !== target.version ? `Reports ${after.version}.` : undefined;
@@ -212,11 +249,11 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		ctx.log(`Probe after install: ${after.state}${after.detail ? ` ${after.detail}` : ""}`);
 		return finish(await rollBack(spec, ctx, backupVersion, target));
 	} catch (err) {
-		// A thrown error is not a crash: the marker is only for a run that never got here.
-		clearInflight(ctx.paths);
 		if (!(err instanceof StepError)) throw err;
 		return finish({ result: "failed", installed: target.from, detail: err.message, restartToApply: false });
 	} finally {
+		// A thrown error is not a crash: the marker is only for a run that never got here.
+		clearInflight(ctx.paths);
 		rmSync(dl, { force: true });
 		rmSync(extract, { recursive: true, force: true });
 		rmSync(`${dest}.upkeep-new`, { force: true });
@@ -230,7 +267,8 @@ async function rollBack(
 	backupVersion: string | null,
 	target: Target,
 ): Promise<Omit<Outcome, "stages">> {
-	const point = backupVersion ?? listBackups(ctx.paths, spec.key)[0]?.version ?? null;
+	// Only the point this run took: an older one may be another version or another dest.
+	const point = backupVersion;
 	if (point && canRestore(spec.kind)) {
 		const r = await restoreBackup(ctx.paths, spec, point, ctx.run);
 		if (r.ok)
@@ -245,7 +283,9 @@ async function rollBack(
 	return {
 		result: "failed",
 		installed: target.from,
-		detail: "Would not start after the update. No restore point for this kind.",
+		detail: canRestore(spec.kind)
+			? "Would not start after the update. No restore point was taken."
+			: "Would not start after the update. No restore point for this kind.",
 		restartToApply: false,
 	};
 }

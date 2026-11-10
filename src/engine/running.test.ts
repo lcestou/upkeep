@@ -43,6 +43,12 @@ test("a cmdline that starts with dest, or for an AppImage contains it, is runnin
 	expect(isRunning({ kind: "archive", dest: "/h/.local/bin/ghostty.appimage" }, proc, 9)).toBe(false);
 });
 
+test("an AppImage's path inside a longer argument does not count", () => {
+	fakeProc(302, 1, "vim", ["vim", "/h/.local/bin/lrcget.bak"]);
+	fakeProc(303, 1, "tail", ["tail", "/h/.local/bin/lrcget-notes"]);
+	expect(isRunning({ kind: "appimage", dest: "/h/.local/bin/lrcget" }, proc, 9)).toBe(false);
+});
+
 test("the current process and its ancestors never count", () => {
 	fakeProc(50, 1, "zsh", ["zsh", "-c", "upkeep /h/.local/bin/fd"]);
 	fakeProc(60, 50, "bun", ["/h/.local/bin/fd"]);
@@ -50,4 +56,17 @@ test("the current process and its ancestors never count", () => {
 	expect(isRunning({ kind: "archive", dest: "/h/.local/bin/fd" }, proc, 70)).toBe(false);
 	fakeProc(80, 1, "fd", ["/h/.local/bin/fd"]);
 	expect(isRunning({ kind: "archive", dest: "/h/.local/bin/fd" }, proc, 70)).toBe(true);
+});
+
+test("our own probes never count: a descendant of this process, or any process with an AppImage probe flag", () => {
+	const dest = "/h/.local/bin/lrcget";
+	const spec = { kind: "appimage" as const, dest };
+	fakeProc(9, 1, "bun", ["bun", "upkeep"]);
+	fakeProc(400, 9, "lrcget", [dest, "--appimage-mount"]);
+	fakeProc(401, 400, "lrcget", [dest]);
+	fakeProc(402, 1, "lrcget", [dest, "--appimage-extract"]);
+	fakeProc(403, 1, "lrcget", [dest, "--appimage-version"]);
+	expect(isRunning(spec, proc, 9)).toBe(false);
+	fakeProc(404, 1, "lrcget", [dest]);
+	expect(isRunning(spec, proc, 9)).toBe(true);
 });

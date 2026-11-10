@@ -1,8 +1,20 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import {
+	chmodSync,
+	existsSync,
+	linkSync,
+	lstatSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	statSync,
+	symlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, Stage } from "../../shared/types";
-import { listBackups } from "../backup";
+import { listBackups, takeBackup } from "../backup";
 import type { FetchLike } from "../github";
 import type { Run } from "../run";
 import { readInflight } from "../store";
@@ -120,10 +132,11 @@ test("check: a missing asset, a rate limit, and several matching assets", async 
 		detail: "No release asset matches x86_64\\.AppImage$.",
 	});
 	publish("1.1.0", { "a-x86_64.AppImage": bash(""), "b-x86_64.AppImage": bash("") });
-	await checkRelease(zen(), ctx());
-	expect(lines.at(-1)).toBe(
-		"2 assets match x86_64\\.AppImage$: a-x86_64.AppImage, b-x86_64.AppImage. Using a-x86_64.AppImage.",
-	);
+	expect(await checkRelease(zen(), ctx())).toMatchObject({
+		status: "problem",
+		detail:
+			"More than one release asset matches x86_64\\.AppImage$: a-x86_64.AppImage, b-x86_64.AppImage. Narrow the pattern in apps.toml.",
+	});
 	const c = { ...ctx(), fetch: limited };
 	expect(await checkRelease(zen(), c)).toMatchObject({ status: "problem", installed: "1.0.0", latest: null });
 });
@@ -281,4 +294,155 @@ test("install: sudo that wants a password fails plainly", async () => {
 		result: "failed",
 		detail: "sudo needs a password here. Run the update from a terminal.",
 	});
+	expect(readInflight(t.paths)).toBeNull();
+});
+
+const BIN_UV = () => join(t.paths.home, ".local/bin");
+const SUDO = { code: 1, stdout: "", stderr: "sudo: a password is required", timedOut: false };
+
+test("install: the AppImage is renamed in, so a process holding the old file keeps it", async () => {
+	const dest = installZen("1.17.9b");
+	const held = join(t.dir, "held");
+	linkSync(dest, held);
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": bash('echo "zen 1.18.0b"') });
+	const c = ctx();
+	expect(await installRelease(zen(), await checkAndTarget(zen(), c), c)).toMatchObject({ result: "done" });
+	expect(readFileSync(held, "utf8")).toContain("zen 1.17.9b");
+	expect(readFileSync(dest, "utf8")).toContain("zen 1.18.0b");
+});
+
+test("install: a symlinked dest is updated through the link and stays a link", async () => {
+	const real = script(join(t.paths.home, "Apps/zen-real.AppImage"), 'echo "zen 1.17.9b"');
+	const dest = join(t.paths.home, ".local/bin/zen-browser.AppImage");
+	mkdirSync(join(t.paths.home, ".local/bin"), { recursive: true });
+	symlinkSync(real, dest);
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": bash('echo "zen 1.18.0b"') });
+	const c = ctx();
+	expect(await installRelease(zen(), await checkAndTarget(zen(), c), c)).toMatchObject({ result: "done" });
+	expect(lstatSync(dest).isSymbolicLink()).toBe(true);
+	expect(readFileSync(real, "utf8")).toContain("zen 1.18.0b");
+	expect(readdirSync(join(t.paths.home, "Apps"))).toEqual(["zen-real.AppImage"]);
+});
+
+test("install: an unwritable bin directory throws, keeps the old copy and its restore point, and clears inflight", async () => {
+	const dest = installZen("1.17.9b");
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": bash('echo "zen 1.18.0b"') });
+	const c = ctx();
+	const target = await checkAndTarget(zen(), c);
+	chmodSync(join(t.paths.home, ".local/bin"), 0o555);
+	try {
+		await expect(installRelease(zen(), target, c)).rejects.toThrow("EACCES");
+	} finally {
+		chmodSync(join(t.paths.home, ".local/bin"), 0o755);
+	}
+	expect(readFileSync(dest, "utf8")).toContain("zen 1.17.9b");
+	expect(listBackups(t.paths, "zen").map((p) => p.version)).toEqual(["1.17.9b"]);
+	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("install: a bin failure whose restore also fails says the restore failed", async () => {
+	script(join(BIN_UV(), "uv"), 'echo "uv 0.9.1"');
+	script(join(BIN_UV(), "uvx"), 'echo "uvx 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ "d/uv": 'echo "uv 0.9.2"' }) });
+	const { run } = recordingRun(t.paths, (argv) =>
+		argv[0] === "install" && argv[3]?.includes("/backups/")
+			? { code: 1, stdout: "", stderr: "install: No space left on device", timedOut: false }
+			: undefined,
+	);
+	const spec = uv(["d/uv", "d/uvx"]);
+	const c = ctx(run);
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		detail: "Could not install uvx. Restore failed: Could not restore uv: install: No space left on device",
+	});
+});
+
+test("install: a copy that comes out short is never moved over the old bin", async () => {
+	script(join(BIN_UV(), "uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ "d/uv": 'echo "uv 0.9.2"' }) });
+	const { run, calls } = recordingRun(t.paths, (argv) => {
+		if (argv[0] !== "install" || argv[3]?.includes("/backups/")) return undefined;
+		writeFileSync(argv[4] ?? "", "short");
+		return ok();
+	});
+	const spec = uv(["d/uv"]);
+	const c = ctx(run);
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({ result: "failed" });
+	const i = calls.findIndex((x) => x.argv[0] === "install");
+	expect(calls[i + 1]?.argv).toEqual(["rm", "-f", join(BIN_UV(), "uv.upkeep-new")]);
+	expect(readFileSync(join(BIN_UV(), "uv"), "utf8")).toContain("uv 0.9.1");
+});
+
+test("install: with no restore point from this run, a broken new copy is not rolled back to an older one", async () => {
+	const dest = installZen("1.0.0");
+	const old = script(join(t.dir, "ancient/zen.AppImage"), 'echo "zen 0.5.0"');
+	takeBackup(t.paths, zen(), "0.5.0", [old], "2026-01-01T00:00:00.000Z");
+	writeFileSync(old, "untouched");
+	publish("1.1.0", {
+		"zen.linux-x86_64.AppImage": bash('echo "x: error while loading shared libraries: libgtk.so" >&2; exit 127'),
+	});
+	const c = ctx();
+	const target = await checkAndTarget(zen(), c);
+	rmSync(dest);
+	expect(await installRelease(zen(), target, c)).toMatchObject({
+		result: "failed",
+		detail: "Would not start after the update. No restore point was taken.",
+	});
+	expect(readFileSync(old, "utf8")).toBe("untouched");
+});
+
+test("install: a sudo AppImage that wants a password fails plainly and leaves no inflight marker", async () => {
+	const dest = installZen("1.0.0");
+	publish("1.1.0", { "zen.linux-x86_64.AppImage": bash('echo "zen 1.1.0"') });
+	const { run } = recordingRun(t.paths, (argv) => (argv[0] === "sudo" ? SUDO : undefined));
+	const spec = { ...zen(), sudo: true };
+	const c = ctx(run);
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		detail: "sudo needs a password here. Run the update from a terminal.",
+	});
+	expect(readInflight(t.paths)).toBeNull();
+	expect(readFileSync(dest, "utf8")).toContain("zen 1.0.0");
+});
+
+test("install: a release whose binary still reports the old version fails", async () => {
+	script(join(BIN_UV(), "uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ uv: 'echo "uv 0.9.1"' }) });
+	const spec = uv(["uv"]);
+	const c = ctx();
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		installed: "0.9.1",
+		detail: "Still at 0.9.1 after the update.",
+	});
+});
+
+test("install: a restore point that cannot be re-taken keeps the old one", async () => {
+	script(join(BIN_UV(), "uv"), 'echo "uv 0.9.1"');
+	script(join(BIN_UV(), "uvx"), 'echo "uvx 0.9.1"');
+	const spec = uv(["uv", "uvx"]);
+	takeBackup(t.paths, spec, "0.9.1", [join(BIN_UV(), "uv"), join(BIN_UV(), "uvx")], "2026-10-01T00:00:00.000Z");
+	publish("0.9.2", {
+		"uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ uv: 'echo "uv 0.9.2"', uvx: 'echo "uvx 0.9.2"' }),
+	});
+	const c = ctx();
+	const target = await checkAndTarget(spec, c);
+	chmodSync(join(BIN_UV(), "uvx"), 0o111);
+	await expect(installRelease(spec, target, c)).rejects.toThrow("EACCES");
+	expect(listBackups(t.paths, "uv")).toEqual([{ version: "0.9.1", at: "2026-10-01T00:00:00.000Z" }]);
+	expect(readdirSync(join(t.paths.data, "backups/uv"))).toEqual(["0.9.1"]);
+	expect(readFileSync(join(BIN_UV(), "uv"), "utf8")).toContain("uv 0.9.1");
+});
+
+test("install: a bin this run added is removed when a later bin fails", async () => {
+	script(join(BIN_UV(), "uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ "d/uvx": 'echo "uvx 0.9.2"' }) });
+	const spec = uv(["d/uvx", "d/uv"]);
+	const c = ctx();
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		detail: "Could not install uv. Restored 0.9.1.",
+	});
+	expect(existsSync(join(BIN_UV(), "uvx"))).toBe(false);
+	expect(readFileSync(join(BIN_UV(), "uv"), "utf8")).toContain("uv 0.9.1");
 });

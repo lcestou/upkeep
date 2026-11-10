@@ -15,6 +15,15 @@ afterEach(() => {
 	rmSync(dir, { recursive: true, force: true });
 });
 
+test("every seeded asset pattern compiles, and rtk and rustdesk are anchored", () => {
+	const { apps } = loadManifest(SEED);
+	for (const a of apps) if (a.asset) expect(() => new RegExp(a.asset ?? "")).not.toThrow();
+	const asset = (key: string) => apps.find((a) => a.key === key)?.asset;
+	expect(asset("rtk")).toBe("^rtk-oss-x86_64-unknown-linux-musl\\.tar\\.gz$");
+	expect(asset("rustdesk")).toBe("^rustdesk-[0-9.]+-x86_64\\.deb$");
+	expect(apps.find((a) => a.key === "lrcget")?.meta_path).toBe("usr/share/metainfo/lrcget.metainfo.xml");
+});
+
 test("the seed manifest loads 32 apps with no errors", () => {
 	const { apps, errors } = loadManifest(SEED);
 	expect(errors).toEqual([]);

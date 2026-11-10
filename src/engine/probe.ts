@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 import type { Run } from "./run";
 import { extractVersion } from "./version";
 
@@ -12,7 +12,8 @@ const BROKEN = /error while loading shared libraries|cannot open shared object f
 // oxlint-disable no-control-regex -- terminal escapes are control characters by definition
 export function stripEscapes(text: string): string {
 	return text
-		.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "")
+		.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "")
+		.replace(/\x1b[()][0-9A-Za-z]/g, "")
 		.replace(/\x1b\][^\x07]*\x07/g, "")
 		.replace(/\x1b\][^\x1b]*/g, "");
 }
@@ -41,36 +42,29 @@ export async function probeCommand(argv: string[], opts: ProbeOpts): Promise<Pro
 	return readProbe(r.code, r.stdout + r.stderr);
 }
 
-export type MetaOpts = ProbeOpts & { tmpDir: string; pollMs?: number; polls?: number };
+export type MetaOpts = ProbeOpts & { pollMs?: number; polls?: number; stopMs?: number };
 
 /** For an AppImage with no version flag: mount it, read the metainfo, unmount that exact path (old lines 394 to 429). */
 export async function probeAppImageMeta(file: string, metaPath: string, opts: MetaOpts): Promise<ProbeResult> {
 	if (!existsSync(file)) return { state: "absent" };
-	mkdirSync(opts.tmpDir, { recursive: true });
-	const out = join(opts.tmpDir, `mount-${process.pid}-${Date.now()}.out`);
-	let proc: ReturnType<typeof Bun.spawn> | null = null;
+	const proc = opts.run.start?.([file, "--appimage-mount"], { stopMs: opts.stopMs });
 	let mountDir = "";
 	try {
-		proc = Bun.spawn([file, "--appimage-mount"], { stdin: "ignore", stdout: Bun.file(out), stderr: "ignore" });
 		const polls = opts.polls ?? 12;
 		for (let i = 0; i < polls; i++) {
 			// The mount point is the first line of the runtime's own stdout, never a glob of /tmp/.mount_*.
-			let first = "";
-			try {
-				first = (readFileSync(out, "utf8").split("\n")[0] ?? "").trim();
-			} catch {
-				// not written yet
-			}
+			const first = (proc?.output().split("\n")[0] ?? "").trim();
 			if (first && existsSync(first) && statSync(first).isDirectory()) {
 				mountDir = first;
 				break;
 			}
+			if (!proc) break;
 			// oxlint-disable-next-line no-await-in-loop -- polling for the mount point
 			await Bun.sleep(opts.pollMs ?? 500);
 		}
-		if (!mountDir) return { state: "unknown", detail: `${file} never reported a mount point.` };
-		const meta = join(mountDir, metaPath);
-		if (!existsSync(meta)) return { state: "unknown", detail: `${metaPath} is missing inside ${file}.` };
+		if (!proc || !mountDir) return { state: "unknown", detail: `${file} never reported a mount point.` };
+		const meta = findCaseless(join(mountDir, metaPath));
+		if (!meta) return { state: "unknown", detail: `${metaPath} is missing inside ${file}.` };
 		const text = readFileSync(meta, "utf8");
 		const match = metaPath.endsWith(".desktop")
 			? /^X-AppImage-Version=(.*)$/m.exec(text)
@@ -80,12 +74,20 @@ export async function probeAppImageMeta(file: string, metaPath: string, opts: Me
 	} catch (err) {
 		return { state: "unknown", detail: err instanceof Error ? err.message : String(err) };
 	} finally {
-		if (proc) {
-			proc.kill();
-			await proc.exited;
-		}
+		await proc?.stop();
 		// Killing the runtime does not reliably tear the mount down.
 		if (mountDir) await opts.run(["fusermount", "-u", mountDir], { timeoutMs: 10_000 });
-		rmSync(out, { force: true });
+	}
+}
+
+/** The exact path, or a file in the same directory whose name differs only in case. */
+function findCaseless(p: string): string | null {
+	if (existsSync(p)) return p;
+	const want = basename(p).toLowerCase();
+	try {
+		const hit = readdirSync(dirname(p)).find((n) => n.toLowerCase() === want);
+		return hit ? join(dirname(p), hit) : null;
+	} catch {
+		return null;
 	}
 }

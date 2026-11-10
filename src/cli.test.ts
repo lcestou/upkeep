@@ -122,3 +122,23 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 	);
 	expect(checkLine({ ...base, status: "fresh", versionless: true })).toBe("  OK:     tmux");
 });
+
+test("check exits 1 when the old updater's check did not finish, and 0 otherwise", async () => {
+	const d = deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		`${MANIFEST}
+[apps.cursor]
+name = "Cursor"
+kind = "legacy"
+legacy_key = "cursor"
+legacy_name = "Cursor"
+`,
+	);
+	d.oldScript = script(join(t.dir, "lutechi-updater"), "exit 2");
+	const out: string[] = [];
+	expect(await main(["check"], d, (l) => out.push(l))).toBe(1);
+	expect(out).toContain("  SKIP:   Cursor The old updater's check did not finish.");
+	script(d.oldScript, 'echo "  OK:     Cursor 2.1.0"');
+	expect(await main(["check"], d, () => {})).toBe(0);
+});
