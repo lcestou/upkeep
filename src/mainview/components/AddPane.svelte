@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppSpec, Suggestion } from "../../shared/types";
-	import { ADD, TEXT, addApps, addedMany, addedOne, foundApps } from "../lib/copy";
+	import { ADD, TEXT, addApps, addedMany, addedOne, foundApps, tomlWriteFailed } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
 	import { tick } from "svelte";
 	import SuggestionCard from "./SuggestionCard.svelte";
@@ -23,6 +23,7 @@
 	let field = $state<HTMLInputElement | null>(null);
 
 	const working = $derived(busy !== null);
+	const TOML_FAIL = tomlWriteFailed("").split(":")[0] ?? "";
 	const tickedSpecs = $derived((scanned ?? []).filter((s) => scanTicks.has(s.spec.key) && !s.problem));
 
 	// A drop hands text over and asks for a Find: once on opening with it, and again for each later drop.
@@ -54,7 +55,14 @@
 
 	async function find(asset?: string) {
 		const text = input.trim();
-		if (!text) return;
+		// An empty Find clears what the last one said, so the hint reads alone again.
+		if (!text) {
+			error = null;
+			problem = null;
+			model.dropProblem = null;
+			found = [];
+			return;
+		}
 		problem = null;
 		model.dropProblem = null;
 		const res = await guard("find", () => model.request("suggest", { input: text, asset }));
@@ -205,6 +213,7 @@
 			failure={failures[s.spec.key] ?? null}
 			onadd={addOne}
 			onasset={(asset) => find(asset)}
+			onmanifest={() => model.send("open", { what: "manifest" })}
 		/>
 	{/each}
 
@@ -229,12 +238,18 @@
 								{/if}
 							</span>
 							<span class="what">
-								<span class="file">{file}</span>
+								<span class="tag-name file" data-testid="scan-name-{s.spec.key}">{file}</span>
 								<span class="mono path" title={s.path}>
 									{#each tilde(s.path ?? "").split("/") as part, i (i)}{i > 0 ? "/" : ""}<wbr />{part}{/each}
 								</span>
 								{#if failures[s.spec.key]}
 									<span class="fail" data-testid="scan-fail-{s.spec.key}">{failures[s.spec.key]}</span>
+									{#if failures[s.spec.key]?.startsWith(TOML_FAIL)}<button
+											type="button"
+											class="btn small toml"
+											data-testid="scan-open-manifest-{s.spec.key}"
+											onclick={() => model.send("open", { what: "manifest" })}>{TEXT.openManifest}</button
+										>{/if}
 								{:else if s.problem}
 									<span class="why">{s.problem}</span>
 								{:else if s.spec.repo}
@@ -474,9 +489,12 @@
 		min-width: 0;
 	}
 	.file {
-		font-weight: 600;
 		color: var(--text);
 		overflow-wrap: anywhere;
+	}
+	.toml {
+		justify-self: start;
+		margin-top: var(--s1);
 	}
 	/* A path breaks only after a slash, never inside a name. */
 	.path {

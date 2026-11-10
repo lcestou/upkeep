@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppSpec, Suggestion } from "../../shared/types";
-	import { ADD, KIND_LABEL } from "../lib/copy";
+	import { ADD, KIND_LABEL, TEXT, tomlWriteFailed } from "../lib/copy";
 
 	let {
 		suggestion,
@@ -8,6 +8,7 @@
 		failure = null,
 		onadd,
 		onasset,
+		onmanifest,
 	}: {
 		suggestion: Suggestion;
 		busy?: boolean;
@@ -15,6 +16,8 @@
 		failure?: string | null;
 		onadd: (spec: AppSpec) => void;
 		onasset: (asset: string) => void;
+		/** Opens apps.toml, offered when writing it failed. */
+		onmanifest?: () => void;
 	} = $props();
 
 	// Editable copies; the card is keyed by its suggestion, so a new suggestion starts fresh.
@@ -88,6 +91,9 @@
 
 	{#if s.problem || failure}
 		<p class="problem" data-testid="sug-problem">{failure ?? s.problem}</p>
+		{#if onmanifest && failure?.startsWith(tomlWriteFailed("").split(":")[0] ?? "")}<div>
+				<button type="button" class="btn small" data-testid="sug-open-manifest" onclick={onmanifest}>{TEXT.openManifest}</button>
+			</div>{/if}
 	{/if}
 	{#if !s.problem}
 		<div>

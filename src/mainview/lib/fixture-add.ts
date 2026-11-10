@@ -104,16 +104,28 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 		.trim()
 		.replace(/^https?:\/\/github\.com\//, "")
 		.replace(/\/+$/, "");
-	if (text === "sharkdp/bat" || has(text.split("/")[1]?.toLowerCase() ?? ""))
+	// A repo already in the list answers with a card of its own name, not another app's assets.
+	const name = text.split("/")[1] ?? "";
+	if (name && has(name.toLowerCase())) {
+		const key = name.toLowerCase();
 		return {
 			suggestions: [
 				{
-					...ripgrep(),
-					spec: { ...ripgrep().spec, key: "bat", name: "bat", repo: text },
-					problem: "bat is already in the list.",
-				},
+					spec: { key, name, kind: "archive", repo: text, dest: `~/.local/bin/${key}` },
+					installed: null,
+					latest: null,
+					asset: null,
+					alternatives: [],
+					source: "repo",
+					confidence: "sure",
+					why: "",
+					problem: `${name} is already in the list.`,
+				} satisfies Suggestion,
 			],
 		};
+	}
+	if (text === "example/mac-only")
+		return { suggestions: [], problem: "No asset of example/mac-only's latest release runs on this machine." };
 	if (/^burntsushi\/ripgrep/i.test(text)) return { suggestions: [ripgrep(asset)] };
 	if (/^obsidianmd\/obsidian-releases/i.test(text)) return { suggestions: [obsidian(asset)] };
 	if (text === "nobody/nothing") return { suggestions: [], problem: "nobody/nothing has no published release." };
@@ -123,7 +135,8 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 }
 
 /** Four files with no source found (the common case on a real box) and two sure ones. */
-export function scanResults(): Suggestion[] {
+export function scanResults(onlyUnknown = false): Suggestion[] {
+	if (onlyUnknown) return [unknown("/home/owner/.local/bin/mytool"), unknown("/home/owner/bin/backup-sync")];
 	const btop: Suggestion = {
 		spec: {
 			key: "btop",

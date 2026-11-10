@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HistoryRow } from "../../shared/types";
-	import { RUN_TEXT, TEXT, installedText, resultCounts } from "../lib/copy";
+	import { RUN_TEXT, TEXT, installedText, runSentence } from "../lib/copy";
 	import { formatDuration, formatRunTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { CARE, glyphColor } from "../lib/state";
@@ -31,12 +31,16 @@
 </script>
 
 <div class="history" data-testid="history">
-	{#if runs.length === 0}
-		<p class="empty" data-testid="history-empty">{model.run.phase === "installing" ? RUN_TEXT.inProgress : TEXT.noRuns}</p>
-	{:else}
+	<!-- A live run is the top line; the past runs stay listed under it. -->
+	{#if model.run.phase === "installing"}
+		<p class="empty live" data-testid="history-empty">{RUN_TEXT.inProgress}</p>
+	{:else if runs.length === 0}
+		<p class="empty" data-testid="history-empty">{TEXT.noRuns}</p>
+	{/if}
+	{#if runs.length > 0}
 		{#each runs as run (run.id)}
 			<section>
-				<h2>{formatRunTime(run.at)} {#if run.rows.some((r) => r.result !== "restored")}<span class="counts">{resultCounts(run.rows)}</span>{/if}
+				<h2>{formatRunTime(run.at)} {#if run.rows.some((r) => r.result !== "restored")}<span class="counts" data-testid="history-counts">{runSentence(run.rows)}</span>{/if}
 					{#if run.rows.some((r) => r.retry)}<span class="tag" data-testid="history-retry">{RUN_TEXT.retry}</span>{/if}</h2>
 				<ul>
 					{#each run.rows as row (row.key)}

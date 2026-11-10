@@ -82,7 +82,7 @@ test("scan, add the two sure ones, the failed one stays with its reason", async 
 	await page.getByTestId("scan-all").click();
 	await page.getByTestId("scan-add").click();
 	await expect(page.getByTestId("scan-note")).toHaveText("Added 1 app.");
-	await expect(page.getByTestId("scan-fail-btop")).toHaveText("Could not write btop to apps.toml.");
+	await expect(page.getByTestId("scan-fail-btop")).toHaveText("Could not write apps.toml: permission denied. Nothing was changed.");
 	await expect(page.getByTestId("row-obsidian")).toHaveCount(1);
 });
 

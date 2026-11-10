@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
-	import { CHIP, KIND_LABEL, NO_RESTORE, TEXT, statusText } from "../lib/copy";
+	import { CHIP, KIND_LABEL, TEXT, statusText } from "../lib/copy";
 	import { fitLine, fitWords } from "../lib/fit";
 	import { formatBytes } from "../lib/format";
 	import { IN_RUN, type Model } from "../lib/model.svelte";
@@ -29,7 +29,7 @@
 	const was = $derived(app.status === "checking" ? model.prior[app.key] : undefined);
 	const look = $derived(was ? { ...app, status: was } : app);
 	// An app that can keep a restore point but has none yet says so; one that cannot stays blank.
-	const canRestore = $derived(!NO_RESTORE[app.kind] && app.kind !== "manual");
+	const canRestore = $derived(app.canRestore);
 	const noVersions = $derived(app.installed === null && app.latest === null && !app.versionless);
 	// During a run only the working row and a failure burn at full colour; the rest of the run steps back.
 	const back = $derived(inRun && (app.status === "queued" || app.status === "done"));

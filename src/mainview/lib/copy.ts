@@ -130,7 +130,7 @@ export const NO_RESTORE: Partial<Record<AppKind, string>> = {
 	deb: "dpkg owns these files, so there is no restore point.",
 	source: "Built from source, so there is no restore point.",
 	command: "It updates itself, so there is no restore point.",
-	legacy: "The updater script keeps no restore point.",
+	legacy: "Upkeep hands this one to lutechi-updater.",
 };
 
 /** A row's version cell when nothing is installed, read in place of "to". */
@@ -203,6 +203,12 @@ export function resultCounts(results: readonly { result: RunResult["result"] }[]
 	const failed = results.filter((r) => r.result === "failed" || r.result === "rolled_back").length;
 	return failed === 0 ? `${ok} updated` : `${ok} updated, ${failed} failed`;
 }
+
+/** A History run's sentence; a retry says so first. */
+export const runSentence = (rows: readonly { result: RunResult["result"]; retry?: boolean }[]) =>
+	`${rows.some((r) => r.retry) ? "Retry: " : ""}${resultCounts(rows)}`;
+
+export const tomlWriteFailed = (reason: string) => `Could not write apps.toml: ${reason}. Nothing was changed.`;
 
 export type SentenceInput = {
 	run: RunState;

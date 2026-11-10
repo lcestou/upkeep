@@ -33,6 +33,7 @@ export async function getBridge(): Promise<Bridge> {
 			corners: query.get("corners") === "square" ? "square" : "rounded",
 			noHistory: query.get("history") === "none",
 			system,
+			scan: query.get("scan") === "unknown" ? "unknown" : undefined,
 		});
 	}
 

@@ -47,7 +47,7 @@ test("a kind with no restore point says why in the pane", async ({ page }) => {
 	await page.getByTestId("open-wrangler").click();
 	await expect(page.getByTestId("no-restore")).toHaveText("It updates itself, so there is no restore point.");
 	await page.getByTestId("open-cursor").click();
-	await expect(page.getByTestId("no-restore")).toHaveText("The updater script keeps no restore point.");
+	await expect(page.getByTestId("no-restore")).toHaveText("Upkeep hands this one to lutechi-updater.");
 });
 
 test("release notes are rendered: headings, lists and code, no markdown marks", async ({ page }) => {

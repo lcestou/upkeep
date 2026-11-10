@@ -66,10 +66,10 @@
 	.pulse {
 		animation: pulse 1.2s ease-in-out infinite;
 	}
-	/* Between 0.8 and 1, so the dot never drops under 3:1. */
+	/* Between 0.85 and 1, so the dot never drops under 3:1, on the ground or under the scroll shade. */
 	@keyframes pulse {
 		50% {
-			opacity: 0.8;
+			opacity: 0.85;
 		}
 	}
 </style>

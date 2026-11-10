@@ -20,7 +20,7 @@ import type {
 	WindowChrome,
 } from "../../shared/types";
 import { PICKED, scanResults, suggestFor } from "./fixture-add";
-import { lastTryFailed } from "./copy";
+import { lastTryFailed, tomlWriteFailed } from "./copy";
 import { type SystemVariant, systemFor } from "./fixture-system";
 
 export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many";
@@ -173,7 +173,7 @@ const SEEDS: Seed[] = [
 		latest: "3.29.15",
 		status: "ready",
 		running: true,
-		note: "The old script closes Cursor to update it.",
+		note: "lutechi-updater closes Cursor to update it.",
 		stages: [
 			["install", 85],
 			["verify", 15],
@@ -185,7 +185,7 @@ const SEEDS: Seed[] = [
 		kind: "manual",
 		installed: "0.1.7",
 		run: "lutechi-updater dsh",
-		note: "Never installed unattended. The old script asks, stops dsh-web, smoke-tests and rolls back.",
+		note: "Never installed unattended. lutechi-updater asks, stops dsh-web, smoke-tests and rolls back.",
 	},
 	{ key: "pr-agent", name: "pr-agent", kind: "legacy", installed: "0.48.2", auto: true },
 	{ key: "headroom", name: "headroom", kind: "legacy", installed: "0.9.1", auto: true },
@@ -372,6 +372,8 @@ export type FixtureOptions = {
 	corners?: "rounded" | "square";
 	/** Start with no recorded runs, as on a first launch. */
 	noHistory?: boolean;
+	/** "unknown" makes a scan find only programs whose source it cannot tell. */
+	scan?: "unknown";
 	/** The System group's starting state; off unless asked. */
 	system?: SystemVariant;
 };
@@ -731,7 +733,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		scan: async () => {
 			await sleep(1500 / speed);
-			const suggestions = scanResults();
+			const suggestions = scanResults(opts.scan === "unknown");
 			for (const s of suggestions) offered.set(s.spec.key, s);
 			return { suggestions };
 		},
@@ -745,7 +747,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 					continue;
 				}
 				if (spec.key === "btop") {
-					problems.push({ key: spec.key, detail: "Could not write btop to apps.toml." });
+					problems.push({ key: spec.key, detail: tomlWriteFailed("permission denied") });
 					continue;
 				}
 				const from = offered.get(spec.key);

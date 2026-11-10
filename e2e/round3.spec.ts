@@ -334,3 +334,146 @@ test("Flatpak system rows read their display names", async ({ page }) => {
 		"GNOME Application Platform",
 	);
 });
+
+// 17. History keeps past runs during a run, with the live run's line on top.
+test("History lists past runs under the live run's line", async ({ page }) => {
+	await load(page, "fixture&speed=0.3");
+	await page.getByTestId("install").click();
+	await page.getByTestId("tab-history").click();
+	await expect(page.getByTestId("history-empty")).toHaveText("A run is in progress.");
+	await expect(page.getByTestId("history").locator("section")).not.toHaveCount(0);
+	const first = await page.getByTestId("history").evaluate((el) => el.firstElementChild?.getAttribute("data-testid"));
+	expect(first).toBe("history-empty");
+});
+
+// 18. A retry run's sentence says so.
+test("a retry run's History sentence starts with Retry:", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("install").click();
+	await expect(sentence(page)).toHaveText("3 updated, 1 failed", { timeout: 20_000 });
+	await page.getByTestId("retry").click();
+	await expect(sentence(page)).toHaveText(/^4 updated|^3 updated, 1 failed/, { timeout: 20_000 });
+	await expect(sentence(page)).not.toHaveText(/^Retrying/, { timeout: 20_000 });
+	await page.getByTestId("tab-history").click();
+	const counts = page.getByTestId("history-counts");
+	await expect(counts.first()).toHaveText(/^Retry: \d+ updated/);
+	await expect(counts.nth(1)).not.toHaveText(/^Retry/);
+});
+
+// 19. An empty Find clears the last error and shows the hint alone.
+test("Find with an empty field clears the previous error", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-input").fill("nobody/nothing");
+	await page.keyboard.press("Enter");
+	await expect(page.getByTestId("add-problem")).toHaveText("nobody/nothing has no published release.");
+	await page.getByTestId("add-input").fill("");
+	await page.getByTestId("add-find").click();
+	await expect(page.getByTestId("add-problem")).toHaveCount(0);
+	await expect(page.getByTestId("add-error")).toHaveCount(0);
+	await expect(page.locator("#add-hint")).toBeVisible();
+	await expect(page.getByTestId("add-input")).not.toHaveAttribute("aria-invalid", "true");
+});
+
+// 20. Names in the scan list wear the tag caps.
+test("scan names are set in the tag caps", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-scan").click();
+	const name = page.getByTestId("scan-name-btop");
+	await expect(name).toHaveClass(/tag-name/);
+	expect(await name.evaluate((el) => getComputedStyle(el).textTransform)).toBe("uppercase");
+});
+
+// 21. A failed apps.toml write says nothing changed and offers the file.
+test("a failed apps.toml write gives the reason, says nothing changed, and offers Open apps.toml", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-scan").click();
+	await page.getByTestId("scan-add").click();
+	await expect(page.getByTestId("scan-fail-btop")).toHaveText(
+		"Could not write apps.toml: permission denied. Nothing was changed.",
+	);
+	await expect(page.getByTestId("scan-open-manifest-btop")).toHaveText("Open apps.toml");
+});
+
+// 22. The fixture's duplicate card is named for itself; no build for this machine; a scan of unknowns only.
+test("a duplicate repo's card carries its own name, and the no-build and unknown-only cases read plainly", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-input").fill("sharkdp/bat");
+	await page.keyboard.press("Enter");
+	const card = page.getByTestId("suggestion-bat");
+	await expect(card.getByTestId("sug-name")).toHaveValue("bat");
+	await expect(card).not.toContainText("rg");
+	await expect(card).not.toContainText("ripgrep");
+	await page.getByTestId("add-input").fill("example/mac-only");
+	await page.keyboard.press("Enter");
+	await expect(page.getByTestId("add-problem")).toHaveText(
+		"No asset of example/mac-only's latest release runs on this machine.",
+	);
+	await expect(page.getByTestId("sug-add")).toHaveCount(0);
+
+	await load(page, "fixture&speed=4&scan=unknown");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-scan").click();
+	const list = page.getByTestId("scan-results");
+	await expect(list.locator("h3")).toHaveText("Found 2 apps not in the list");
+	await expect(list.locator('input[type="checkbox"]')).toHaveCount(0);
+	await expect(page.getByTestId("scan-add")).toHaveCount(0);
+	await expect(page.getByTestId("paste-repo-mytool")).toBeVisible();
+});
+
+// 23. No sentence says "old script"; a legacy app's pane names lutechi-updater.
+test("a legacy app's pane says Upkeep hands it to lutechi-updater, and never old script", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("open-cursor").click();
+	await expect(page.getByTestId("no-restore")).toHaveText("Upkeep hands this one to lutechi-updater.");
+	await expect(page.getByTestId("detail-cursor")).not.toContainText(/old script/i);
+	await expect(page.getByTestId("detail-cursor")).not.toContainText(/updater script/);
+});
+
+// 24. The checking dot measures 3:1 or better at its pulse's low point on the row's ground.
+test("the checking dot's pulse low point measures 3:1 on its row", async ({ page }) => {
+	await load(page, "fixture=checking", { wait: "sentence" });
+	const dot = page.locator(".row.s-checking .mark svg.glyph").first();
+	await expect(dot).toBeVisible();
+	const res = await dot.evaluate((el) => {
+		const low = Math.min(
+			...el.getAnimations().flatMap((a) =>
+				(a.effect as KeyframeEffect).getKeyframes().map((k) => Number(k.opacity ?? 1)),
+			),
+		);
+		const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+		if (!ctx) return { low, ground: 0 };
+		const rgba = (css: string) => {
+			ctx.clearRect(0, 0, 1, 1);
+			ctx.fillStyle = "#000";
+			ctx.fillStyle = css;
+			ctx.fillRect(0, 0, 1, 1);
+			const [r = 0, g = 0, b = 0, a = 255] = ctx.getImageData(0, 0, 1, 1).data;
+			return [r, g, b, a / 255] as const;
+		};
+		const over = (top: readonly number[], a: number, under: readonly number[]) => [0, 1, 2].map((i) => (top[i] ?? 0) * a + (under[i] ?? 0) * (1 - a));
+		const lum = (c: number[]) =>
+			c
+				.map((v) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4))
+				.reduce((s, v, i) => s + v * ([0.2126, 0.7152, 0.0722][i] ?? 0), 0);
+		const ratio = (x: number[], y: number[]) => {
+			const [hi, lo] = [lum(x), lum(y)].toSorted((p, q) => q - p);
+			return ((hi ?? 0) + 0.05) / ((lo ?? 0) + 0.05);
+		};
+		let bg = [0, 0, 0];
+		const chain: Element[] = [];
+		for (let n: Element | null = el; n; n = n.parentElement) chain.unshift(n);
+		for (const n of chain) {
+			const [r, g, b, a] = rgba(getComputedStyle(n).backgroundColor);
+			if (a > 0) bg = over([r, g, b], a, bg);
+		}
+		const [r, g, b] = rgba(getComputedStyle(el).color);
+		const fg = over([r, g, b], low, bg);
+		return { low, ground: ratio(fg, bg) };
+	});
+	expect(res.low).toBeCloseTo(0.85, 2);
+	expect(res.ground).toBeGreaterThanOrEqual(3);
+});
