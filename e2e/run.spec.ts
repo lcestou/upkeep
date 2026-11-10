@@ -24,7 +24,7 @@ test("the pane's Retry reruns only the failed app and keeps the first pass", asy
 	await page.getByTestId("install").click();
 	await expect(sentence(page)).toHaveText("3 updated, 1 failed", { timeout: 20_000 });
 	await page.getByTestId("retry-one").click();
-	await expect(sentence(page)).toHaveText("Installing wrangler, 1 of 1");
+	await expect(sentence(page)).toHaveText("Retrying wrangler, 1 of 1");
 	await expect(page.getByTestId("status-fd")).toHaveCount(0);
 	await expectFocusKept(page);
 	await expect(sentence(page)).toHaveText("4 updated", { timeout: 10_000 });
@@ -59,7 +59,9 @@ test("Stop after this one returns the rest to ready", async ({ page }) => {
 	await expect(page.getByTestId("stop")).toBeFocused();
 	await page.getByTestId("stop").click();
 	await expect(page.getByTestId("stop")).toHaveText("Stopping after Zen Browser");
-	await expect(sentence(page)).toHaveText("1 updated", { timeout: 10_000 });
+	await expect(sentence(page)).toHaveText("1 updated, 3 not started", { timeout: 10_000 });
+	await expect(page.getByTestId("install")).toHaveText("Install 3 updates");
+	await expect(page.getByTestId("done")).not.toHaveClass(/primary/);
 	for (const key of ["fd", "wrangler", "cursor"]) {
 		await expect(page.getByTestId(`status-${key}`)).toHaveText("Ready");
 		await expect(page.getByTestId(`tick-${key}`)).toBeChecked();

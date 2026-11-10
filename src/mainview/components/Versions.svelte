@@ -9,8 +9,8 @@
 	const before = $derived(done ? (from ?? app.installed) : app.installed);
 	const after = $derived(done ? app.installed : app.latest);
 	const pending = $derived(!isQuiet(app) && after !== null && after !== before);
-	// An app whose installed version could not be read shows only where it is going.
-	const arrow = $derived(pending && before !== null);
+	// One axis for every row: an unknown installed version is a "?" in its slot, then the arrow.
+	const arrow = $derived(pending);
 </script>
 
 {#if app.status === "checking" && app.installed === null && app.latest === null}
@@ -19,7 +19,9 @@
 	<span class="versions"><span class="versionless">{TEXT.versionless}</span></span>
 {:else}
 	<span class="versions mono" class:pending>
-		<span class="installed" title={before ?? undefined}>{before ?? ""}</span>
+		<span class="installed" class:unknown={before === null && pending} title={before ?? undefined}
+			>{before ?? (pending ? "?" : "")}</span
+		>
 		{#if pending}
 			{#if arrow}<svg class="arrow" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M1.5 6h8.25M7 3.25 9.75 6 7 8.75" /></svg>
 				<span class="sr-only">to</span>{/if}
@@ -46,6 +48,9 @@
 	}
 	.pending .installed {
 		color: var(--text-3);
+	}
+	.installed.unknown {
+		font-family: var(--sans);
 	}
 	.arrow {
 		grid-column: 2;

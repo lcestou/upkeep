@@ -48,6 +48,7 @@
 >
 	{#if own && chrome}<WindowButtons {model} {chrome} />{/if}
 	<div class="inner">
+		{#if own && chrome?.side === "left"}<span class="divider" aria-hidden="true"></span>{/if}
 		<span class="brand"><Mark /></span>
 		<div class="lead">
 			<StateSentence {model} />
@@ -102,7 +103,8 @@
 		-webkit-user-select: none;
 		/* Over 1280 px the content lines up with the capped ledger; the strip itself spans the window. */
 		--edge: max(0px, (100vw - 1280px) / 2);
-		--clear: 124px;
+		/* Three 28 px buttons 6 px apart, 12 px from the edge, end at 108 px; the mark keeps 20 px clear of them. */
+		--clear: 118px;
 		background: var(--shell);
 		border-bottom: 1px solid oklch(0.12 0.03 160);
 		z-index: 3;
@@ -111,6 +113,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--s4);
+		min-width: 0;
 		width: 100%;
 		max-width: 1280px;
 		height: 100%;
@@ -124,6 +127,13 @@
 	.right .inner {
 		padding-right: max(var(--s4), calc(var(--clear) - var(--edge)));
 	}
+	.divider {
+		flex: none;
+		width: 1px;
+		height: 24px;
+		margin-right: calc(10px - var(--s4));
+		background: var(--line-soft);
+	}
 	.brand {
 		display: flex;
 		color: var(--text);
@@ -133,12 +143,12 @@
 		flex: 1 1 auto;
 		min-width: 0;
 	}
+	/* The tabs and Check again keep their size; the sentence gives way. */
 	.side {
 		display: flex;
 		align-items: center;
 		gap: var(--s2);
-		flex: 0 1 auto;
-		min-width: 0;
+		flex: none;
 	}
 	.tabs {
 		display: flex;

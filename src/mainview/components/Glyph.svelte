@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { LEAF_PATH, SPROUT_PATH } from "../lib/brand";
 	import type { GlyphName } from "../lib/state";
 
 	let { name, color = "currentColor" }: { name: GlyphName; color?: string } = $props();
@@ -10,13 +11,12 @@
 	{:else if name === "wait"}
 		<path d="M4.5 1.75h7M4.5 14.25h7M5.5 1.75c0 3.4 5 3.2 5 6.25s-5 2.85-5 6.25M10.5 1.75c0 3.4-5 3.2-5 6.25s5 2.85 5 6.25" />
 	{:else if name === "bud"}
-		<path d="M8 14.5V10.1M8 12.6c-1.5 0-2.6-.7-3.1-1.9" />
-		<path d="M8 10.1c-2.3 0-3.6-1.7-3.6-4.3V3.6L6.2 5 8 2.4 9.8 5l1.8-1.4v2.2c0 2.6-1.3 4.3-3.6 4.3Z" class="fill" />
+		<!-- Hand-placed pixels: crisp edges, drawn at 16 px only. -->
+		<path d={SPROUT_PATH} class="solid" shape-rendering="crispEdges" />
 	{:else if name === "drop"}
 		<path d="M8 1.9c2.9 3.35 4.45 5.8 4.45 7.7a4.45 4.45 0 0 1-8.9 0c0-1.9 1.55-4.35 4.45-7.7Z" class="fill" />
 	{:else if name === "leaf"}
-		<path d="M2.75 13.25c0-6 3.9-10.5 10.5-10.5 0 6.6-4.5 10.5-10.5 10.5Z" class="fill" />
-		<path d="M2.75 13.25 9 7" class="rib" />
+		<path d={LEAF_PATH} class="solid" />
 	{:else if name === "hand"}
 		<path d="M5 5.25v6a3.5 3.5 0 0 0 7 0V6" />
 		<path d="M7.5 3.5v5M10 4v4.25M5 10.25 3.25 8.5" />
@@ -44,15 +44,17 @@
 		fill: currentColor;
 		fill-opacity: 0.22;
 	}
-	.rib {
-		stroke-width: 1.3;
+	.solid {
+		fill: currentColor;
+		stroke: none;
 	}
 	.pulse {
 		animation: pulse 1.2s ease-in-out infinite;
 	}
+	/* Between 0.8 and 1, so the dot never drops under 3:1. */
 	@keyframes pulse {
 		50% {
-			opacity: 0.6;
+			opacity: 0.8;
 		}
 	}
 </style>

@@ -1,6 +1,8 @@
 /* Upkeep: a nursery bench at night. Tokens first; components hold their own layout. */
 
 :root {
+	/* The owner's Mint-Y theme rounds its windows by 8 px; a rounded Upkeep window matches its neighbours. */
+	--window-radius: 8px;
 	/* Dark only in this version: the system webview reports light on a dark desktop, so the scheme is never read. */
 	color-scheme: dark;
 
@@ -75,6 +77,12 @@ body {
 	overflow: hidden;
 }
 
+/* A rounded window is see-through: the page outside the shell's corners must paint nothing. */
+html[data-rounded],
+html[data-rounded] body {
+	background: transparent;
+}
+
 body {
 	background: var(--ground);
 	color: var(--text);
@@ -102,11 +110,15 @@ body {
 	outline-offset: 2px;
 }
 
+/* Controls take the page's type, word space and tracking instead of the browser's control defaults. */
 button,
 input,
-select {
+select,
+textarea {
 	font: inherit;
 	color: inherit;
+	word-spacing: inherit;
+	letter-spacing: inherit;
 }
 
 /* Scrollbars in the palette, for WebKit and for engines that read scrollbar-color. */
@@ -286,6 +298,13 @@ input[type="checkbox"]:disabled {
 	--hit-cols: [mark] 20px [name] minmax(0, 360px) [kind] 92px [ver] 168px [size] 64px [restore] 96px [status]
 		minmax(248px, 1fr) [end];
 	--cols: [tick] 32px var(--hit-cols);
+}
+/* Between 900 and 1099 the Status column holds at 212 px so the name keeps room for itself and its chips. */
+@container list (max-width: 1099px) {
+	.ledger-cols {
+		--hit-cols: [mark] 20px [name] minmax(0, 360px) [kind] 92px [ver] 168px [size] 64px [restore] 96px [status] 212px
+			[end];
+	}
 }
 @container list (max-width: 899px) {
 	.ledger-cols {

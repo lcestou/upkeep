@@ -1,14 +1,20 @@
 <script lang="ts">
 	import type { Settings } from "../../shared/types";
 	import { TEXT, WIN, rateText, versionText } from "../lib/copy";
-	import Mark from "./Mark.svelte";
+	import { LOCKUP_SVG } from "../lib/brand";
 	import type { Model } from "../lib/model.svelte";
 
 	let { model }: { model: Model } = $props();
 
+	// The span carries the name; the drawing inside is hidden from assistive tech.
+	const lockup = LOCKUP_SVG.replace("<svg ", '<svg aria-hidden="true" focusable="false" ');
 	const frames = [
 		{ v: "own", t: WIN.frameOwn },
 		{ v: "system", t: WIN.frameSystem },
+	] as const;
+	const cornerChoices = [
+		{ v: "rounded", t: WIN.cornersRounded },
+		{ v: "square", t: WIN.cornersSquare },
 	] as const;
 	const sides = [
 		{ v: "auto", t: WIN.buttonsAuto },
@@ -93,17 +99,30 @@
 					{/each}
 				</div>
 			</div>
+			<div class="row stack">
+				<span class="text" id="corners-label">{WIN.corners}</span>
+				<div class="seg" role="radiogroup" aria-labelledby="corners-label" data-testid="setting-corners">
+					{#each cornerChoices as c (c.v)}
+						<button
+							type="button"
+							role="radio"
+							aria-checked={model.settings.corners === c.v}
+							data-testid="setting-corners-{c.v}"
+							onclick={() => set({ corners: c.v })}>{c.t}</button
+						>
+					{/each}
+				</div>
+				<p class="help">{WIN.cornersHelp}</p>
+			</div>
 		{/if}
 	</div>
 
 	<h2 class="group">{WIN.about}</h2>
 	<div class="sheet about" data-testid="about">
-		<span class="tile"><Mark size={40} /></span>
-		<div>
-			<p class="word">{WIN.word}</p>
-			<p class="about-version" data-testid="version">{versionText(model.version)}</p>
-			<p class="about-line">{WIN.tagline}</p>
-		</div>
+		<!-- The horizontal lockup for the dark ground carries the mark and the word. Trusted constant markup. -->
+		<span class="lockup" role="img" aria-label={WIN.word}>{@html lockup}</span>
+		<p class="about-version" data-testid="version">{versionText(model.version)}</p>
+		<p class="about-line">{WIN.tagline}</p>
 	</div>
 
 	<div class="meta">
@@ -204,30 +223,20 @@
 		color: var(--text);
 	}
 	.about {
-		display: flex;
-		align-items: center;
-		gap: var(--s4);
+		display: grid;
+		justify-items: start;
+		gap: var(--s1);
 		padding: var(--s4);
 	}
-	.tile {
-		display: grid;
-		place-items: center;
-		width: 64px;
-		height: 64px;
-		border-radius: 14px;
-		background: var(--sun);
-		color: var(--on-sun);
+	/* The lockup's file keeps 48 units of air around a 256-unit drawing: 40 px tall gives the drawing about 28 px. */
+	.lockup :global(svg) {
+		display: block;
+		height: 40px;
+		width: auto;
+		margin: -6px 0 -6px -7px;
 	}
 	.about p {
 		margin: 0;
-	}
-	.word {
-		font-stretch: var(--tag-stretch);
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		word-spacing: 0.14em;
-		font-size: var(--fs-16);
 	}
 	.about-version {
 		font-size: var(--fs-12);

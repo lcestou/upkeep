@@ -20,3 +20,23 @@ export function fitWords(text: string): Attachment<HTMLElement> {
 		return () => ro.disconnect();
 	};
 }
+
+/** A row's name line: hide the repo when the line overflows, then shrink chips to their glyphs. */
+export const fitLine: Attachment<HTMLElement> = (node) => {
+	const over = () => node.scrollWidth > node.clientWidth + 0.5;
+	const fit = () => {
+		node.classList.remove("no-repo", "compact");
+		if (!over()) return;
+		node.classList.add("no-repo");
+		if (over()) node.classList.add("compact");
+	};
+	const ro = new ResizeObserver(fit);
+	ro.observe(node);
+	const mo = new MutationObserver(fit);
+	mo.observe(node, { childList: true, subtree: true, characterData: true });
+	fit();
+	return () => {
+		ro.disconnect();
+		mo.disconnect();
+	};
+};

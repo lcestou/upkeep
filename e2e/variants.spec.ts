@@ -3,10 +3,12 @@ import { expect, load, sentence, test } from "./helpers";
 test("?fixture=empty shows Everything is fresh", async ({ page }) => {
 	await load(page, "fixture=empty", { wait: "sentence" });
 	await expect(sentence(page)).toHaveText("Everything is fresh");
+	// The block does not repeat the header: no sentence, no Checked line, no second Check again.
 	const block = page.getByTestId("all-fresh");
-	await expect(block).toContainText("Everything is fresh");
-	await expect(page.getByTestId("all-fresh-line")).toHaveText("All 32 apps are up to date. Checked 2 minutes ago.");
-	await expect(page.getByTestId("all-fresh-check")).toHaveText("Check again");
+	await expect(block).not.toContainText("Everything is fresh");
+	await expect(page.getByTestId("all-fresh-line")).toHaveText("All 32 apps are up to date.");
+	await expect(block.getByTestId("add-app")).toHaveText("Add app");
+	await expect(page.getByTestId("all-fresh-check")).toHaveCount(0);
 	for (const gone of ["install", "tick-all", "selection", "select-all", "filter"])
 		await expect(page.getByTestId(gone)).toHaveCount(0);
 	await expect(page.getByTestId("log-toggle")).toHaveText("Show log");

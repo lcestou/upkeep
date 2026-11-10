@@ -53,8 +53,10 @@
 	});
 
 	const idle = $derived(model.run.phase === "idle");
-	const all = $derived(model.ready.length > 0 && model.tickedApps.length === model.ready.length);
-	const some = $derived(model.tickedApps.length > 0 && !all);
+	// The header tick describes, and acts on, the ready rows the filter shows.
+	const shownTicked = $derived(model.shownReady.filter((a) => model.ticked.has(a.key)).length);
+	const all = $derived(model.shownReady.length > 0 && shownTicked === model.shownReady.length);
+	const some = $derived(shownTicked > 0 && !all);
 	const freshCount = $derived(model.apps.filter((a) => a.status === "fresh").length);
 
 	// One tab stop for the whole list: the open row, else the last focused row, else the first.
@@ -71,6 +73,12 @@
 	}
 
 	function onkeydown(e: KeyboardEvent) {
+		// PageUp and PageDown scroll the list by a page from anywhere in it.
+		if ((e.key === "PageDown" || e.key === "PageUp") && root) {
+			e.preventDefault();
+			root.scrollBy({ top: (e.key === "PageDown" ? 1 : -1) * root.clientHeight * 0.9 });
+			return;
+		}
 		const target = e.target;
 		if (!(target instanceof HTMLElement) || !target.dataset.row) return;
 		const key = target.dataset.row;
@@ -109,7 +117,8 @@
 		const next = rows[Math.max(0, Math.min(rows.length - 1, to))];
 		const nextKey = next?.dataset.row;
 		if (!next || !nextKey) return;
-		next.focus();
+		next.focus({ preventScroll: true });
+		next.scrollIntoView({ block: "nearest" });
 		if (model.openKey) model.select(nextKey);
 	}
 
@@ -119,6 +128,18 @@
 	}
 
 	function onfilterkey(e: KeyboardEvent) {
+		const first = rowButtons()[0];
+		if (e.key === "ArrowDown" && first) {
+			e.preventDefault();
+			first.focus({ preventScroll: true });
+			first.scrollIntoView({ block: "nearest" });
+			return;
+		}
+		if (e.key === "Enter" && model.filter.trim() && first?.dataset.row) {
+			e.preventDefault();
+			model.select(first.dataset.row);
+			return;
+		}
 		if (e.key !== "Escape" || !model.filter) return;
 		// Escape in the field clears it and goes no further, so an open pane stays open.
 		e.preventDefault();
@@ -177,7 +198,7 @@
 							aria-label={TEXT.selectAll}
 							data-testid="tick-all"
 							checked={all}
-							disabled={!idle || model.ready.length === 0}
+							disabled={!idle || model.shownReady.length === 0}
 							{@attach (node: HTMLInputElement) => {
 								node.indeterminate = some;
 							}}
@@ -206,7 +227,18 @@
 			{/if}
 
 			{#if filtering && model.shown.length === 0}
-				<p class="nomatch" data-testid="no-match">{noMatch(model.filter.trim())}</p>
+				<div class="nomatch">
+					<p data-testid="no-match">{noMatch(model.filter.trim())}</p>
+					<button
+						type="button"
+						class="btn small"
+						data-testid="clear-filter"
+						onclick={() => {
+							model.filter = "";
+							document.querySelector<HTMLElement>('[data-testid="filter"]')?.focus();
+						}}>{TEXT.clearFilter}</button
+					>
+				</div>
 			{/if}
 
 			{#each items as item (item.id)}
@@ -267,7 +299,8 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		overscroll-behavior: contain;
-		scroll-snap-type: y mandatory;
+		/* No scroll snap: it pulled a row the keyboard had just brought into view back under the edge.
+		   The bottom cover keeps the last visible row whole or absent instead. */
 		scroll-padding-top: 34px;
 		--gap: 10px;
 		--pad-r: 16px;
@@ -366,7 +399,8 @@
 		gap: var(--s2);
 		height: 44px;
 		padding: var(--s5) var(--pad-r) 0 20px;
-		scroll-snap-align: start;
+		/* An automatic scroll never leaves a heading under the sticky column header. */
+		scroll-margin-top: 34px;
 	}
 	.ghead.first {
 		height: 40px;
@@ -438,8 +472,14 @@
 		gap: var(--s2);
 	}
 	.nomatch {
+		display: flex;
+		align-items: center;
+		gap: var(--s3);
 		margin: var(--s5) 20px;
 		color: var(--text-2);
+	}
+	.nomatch p {
+		margin: 0;
 	}
 	/* The all-fresh morning: one composed block instead of an empty table. */
 	.morning {

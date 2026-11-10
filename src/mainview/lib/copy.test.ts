@@ -9,6 +9,7 @@ const run = (patch: Partial<RunState>): RunState => ({
 	total: 0,
 	currentKey: null,
 	stopping: false,
+	retry: false,
 	results: [],
 	...patch,
 });
@@ -60,7 +61,7 @@ test("install and selection labels", () => {
 	expect(selectionText(0, null)).toBe("Nothing selected");
 	expect(selectionText(2, null)).toBe("2 selected");
 	expect(selectionText(4, 110_143_744)).toBe("4 selected · 110 MB");
-	expect(selectionText(4, 110_143_744, true, 1)).toBe("4 selected · 110 MB+ · 1 hidden");
+	expect(selectionText(4, 110_143_744, true, 1)).toBe("4 selected · at least 110 MB · 1 hidden");
 });
 
 test("status text", () => {

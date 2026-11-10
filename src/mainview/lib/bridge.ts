@@ -27,6 +27,8 @@ export async function getBridge(): Promise<Bridge> {
 			fail: query.get("fail") ?? undefined,
 			buttons: buttons === "right" || buttons === "left" ? buttons : undefined,
 			frame: query.get("frame") === "system" ? "system" : "own",
+			corners: query.get("corners") === "square" ? "square" : "rounded",
+			noHistory: query.get("history") === "none",
 		});
 	}
 

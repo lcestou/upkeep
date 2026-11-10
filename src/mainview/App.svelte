@@ -16,6 +16,23 @@
 	import { fly } from "svelte/transition";
 
 	let model = $state<Model | null>(null);
+	// The pane is a sheet over the list below 900 px.
+	const narrow = typeof matchMedia === "function" ? matchMedia("(max-width: 899px)") : null;
+	let sheet = $state(narrow?.matches ?? false);
+	narrow?.addEventListener("change", (e) => (sheet = e.matches));
+	// Opening the sheet moves focus to Back to list.
+	let lastKey: string | null = null;
+	$effect(() => {
+		const key = model?.openKey ?? (model?.adding ? "+add" : null);
+		if (key === lastKey) return;
+		const opened = lastKey === null && key !== null;
+		lastKey = key;
+		if (sheet && opened && key !== "+add")
+			// preventScroll: focusing inside the overflow-hidden bench would otherwise scroll it sideways.
+			void tick().then(() =>
+				document.querySelector<HTMLElement>('[data-testid="inspector-close"]')?.focus({ preventScroll: true }),
+			);
+	});
 	let logOpen = $state(false);
 
 	void getBridge().then((bridge) => {
@@ -32,8 +49,11 @@
 		const key = model?.openKey ?? null;
 		const wasAdding = model?.adding ?? false;
 		model?.close();
-		if (wasAdding) document.querySelector<HTMLElement>('[data-testid="add-app"]')?.focus();
-		else focusRow(key);
+		// After the list wakes from inert, or focus has nowhere to land.
+		void tick().then(() => {
+			if (wasAdding) document.querySelector<HTMLElement>('[data-testid="add-app"]')?.focus();
+			else focusRow(key);
+		});
 	}
 
 	// Drop a file (or a repo link) anywhere on the window to add it.
@@ -86,6 +106,24 @@
 			}
 			return;
 		}
+		// The tab loop never rests on the page: past the last control, Tab goes to the first.
+		if (e.key === "Tab") {
+			const stops = [
+				...document.querySelectorAll<HTMLElement>(
+					'button:not([disabled]):not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]), [tabindex="0"]',
+				),
+			].filter((el) => el.offsetParent !== null && !el.closest("[inert]"));
+			const first = stops[0];
+			const last = stops.at(-1);
+			if (!e.shiftKey && document.activeElement === last && first) {
+				e.preventDefault();
+				first.focus();
+			} else if (e.shiftKey && document.activeElement === first && last) {
+				e.preventDefault();
+				last.focus();
+			}
+			return;
+		}
 		if (e.key !== "Escape") return;
 		if (logOpen) {
 			logOpen = false;
@@ -94,6 +132,12 @@
 			closeInspector();
 		}
 	}
+
+	// The page goes see-through only once the main process says the window was built that way.
+	$effect(() => {
+		const on = model?.chrome?.rounded === true && !model.chrome.maximized;
+		document.documentElement.toggleAttribute("data-rounded", on);
+	});
 
 	// First focus lands in the list, on its first row, so the keyboard starts where the work is.
 	let focused = false;
@@ -112,7 +156,11 @@
 
 {#if model?.loaded}
 	{@const m = model}
-	<div class="shell" class:edged={m.chrome?.own === true && !m.chrome.maximized}>
+	<div
+		class="shell"
+		class:edged={m.chrome?.own === true && !m.chrome.maximized}
+		class:rounded={m.chrome?.rounded === true && !m.chrome.maximized}
+	>
 		<HeaderBar model={m} />
 		<main id="view" role={m.view === "updates" ? undefined : "tabpanel"} aria-labelledby="tab-{m.view}">
 			{#if m.view === "history"}
@@ -121,7 +169,10 @@
 				<SettingsView model={m} />
 			{:else}
 				<div class="bench" class:open={m.openApp !== null || m.adding}>
-					<AppList model={m} />
+					<!-- Under 900 px the pane is a sheet: the list behind it is out of reach until it closes. -->
+					<div class="listbox" inert={sheet && (m.openApp !== null || m.adding)}>
+						<AppList model={m} />
+					</div>
 					{#if m.adding}
 						<aside class="inspector" id="inspector" data-testid="inspector" aria-labelledby="add-title" transition:fly={{ x: 32, duration: ms(200) }}>
 							<div class="scroll" {@attach shade}>
@@ -170,9 +221,20 @@
 		pointer-events: none;
 		z-index: 7;
 	}
+	/* clip-path, not only overflow, so fixed layers (the log sheet, the drop veil, the edge) stay inside the corners. */
+	.shell.rounded {
+		border-radius: var(--window-radius);
+		clip-path: inset(0 round var(--window-radius));
+	}
+	.shell.rounded::after {
+		border-radius: var(--window-radius);
+	}
 	.shell {
+		background: var(--ground);
 		display: grid;
 		grid-template-rows: 56px minmax(0, 1fr) 64px;
+		/* The window's width, never the widest content's. */
+		grid-template-columns: minmax(0, 1fr);
 		height: 100%;
 		min-width: 0;
 	}
@@ -180,7 +242,7 @@
 		position: relative;
 		min-height: 0;
 		min-width: 0;
-		overflow: hidden;
+		overflow: clip;
 	}
 	.bench {
 		position: relative;
@@ -188,7 +250,13 @@
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: minmax(0, 1fr);
 		height: 100%;
-		overflow: hidden;
+		/* clip, not hidden: a hidden box can still be scrolled by focus(), which slid the sheet sideways. */
+		overflow: clip;
+	}
+	.listbox {
+		min-width: 0;
+		min-height: 0;
+		height: 100%;
 	}
 	.inspector {
 		position: relative;

@@ -44,6 +44,9 @@ type Seed = {
 	publishedDaysAgo?: number;
 };
 
+export const ZEN_NOTES =
+	"# Zen Stable Release\n\n\n## Security\n- https://www.mozilla.org/en-US/security/advisories/mfsa2026-123/\n\n## New Features\n- Updated to Firefox 159.0.1\n- New grain options have been added to the theme picker. You can cycle through different grain effects by clicking on the circle inside the dial.\n\n## Fixes\n- Fixed a command prompt window briefly appearing on Windows when Zen restarts to apply an update.\n- Fixed passkey sign-in failing on websites that share passkeys across related sites, such as Facebook and Instagram.\n- Fixed crashes on Windows that could occur with some antivirus or other security software installed, in some cases also leaving WebGL disabled.\n- Fixed red and blue colors appearing swapped on some websites that use WebGL on Linux, including video call background effects.\n- More bug fixes and improvements.\n\n## Changes\n- On macOS, icons on the UI will now start using SF Symbols.\n- The 'About Zen' window has been redesigned.\n- 'My Review Request' option for Pull Requests live folder now searches for 'user-review-requested:@me' instead of 'review-requested:@me'";
+
 const NOTE_SESSIONS = "Open sessions keep the old version until restarted.";
 
 const SEEDS: Seed[] = [
@@ -65,8 +68,8 @@ const SEEDS: Seed[] = [
 			["install", 12],
 			["verify", 8],
 		],
-		notes:
-			"Fixed tab groups losing their colour after a restart.\nWorkspaces now remember their container.\nSecurity fixes from Firefox 146.0.1.",
+		// Zen's real release body, fetched 2026-11-10.
+		notes: ZEN_NOTES,
 		publishedDaysAgo: 2,
 	},
 	{
@@ -362,6 +365,9 @@ export type FixtureOptions = {
 	fail?: string;
 	buttons?: "left" | "right";
 	frame?: "own" | "system";
+	corners?: "rounded" | "square";
+	/** Start with no recorded runs, as on a first launch. */
+	noHistory?: boolean;
 };
 
 // The owner's desktop puts the window buttons on the left: close, maximize, minimize.
@@ -379,19 +385,31 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		checkAtLogin: false,
 		frame: opts.frame ?? "own",
 		buttons: "auto",
+		corners: opts.corners ?? "rounded",
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",
 		side: opts.buttons ?? "left",
 		order: orderFor(opts.buttons ?? "left"),
 		maximized: false,
+		rounded: settings.frame === "own" && settings.corners === "rounded",
 	};
-	let run: RunState = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
+	let run: RunState = {
+		id: null,
+		phase: "idle",
+		index: 0,
+		total: 0,
+		currentKey: null,
+		stopping: false,
+		results: [],
+		retry: false,
+	};
 	const rate = { limit: 5000, remaining: 4977 };
 	let checkedAt: string | null = iso(Date.now() - 2 * 60_000);
-	const history: HistoryRow[] = pastHistory();
+	const history: HistoryRow[] = opts.noHistory ? [] : pastHistory();
 	const logs = new Map<string, LogLine[]>();
 	let attempts = 0;
+	(globalThis as { upkeepOps?: string[] }).upkeepOps = [];
 	const offered = new Map<string, Suggestion>();
 
 	if (variant === "checking") {
@@ -471,7 +489,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	}
 
 	/** keep: results from the pass a retry continues; the engine keeps them in the summary. */
-	async function runQueue(keys: string[], keep: RunResult[] = []) {
+	async function runQueue(keys: string[], keep: RunResult[] = [], retry = false) {
 		attempts++;
 		const runId = `run-${Date.now()}`;
 		const order = keys.toSorted((a, b) => queueRank(a) - queueRank(b));
@@ -487,6 +505,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			currentKey: order[0] ?? null,
 			stopping: false,
 			results: keep,
+			retry,
 		});
 		log(runId, null, `Run started: ${order.length} apps.`);
 		const results: RunResult[] = [...keep];
@@ -511,7 +530,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		}
 		const at = iso(Date.now());
 		// Newest run first, and within a run the apps in the order they ran.
-		history.unshift(...results.map((r) => ({ ...r, runId, at, stages: {} })));
+		// A retry records only what it ran, marked as a retry.
+		const ran = results.filter((r) => !keep.includes(r));
+		history.unshift(...ran.map((r) => Object.assign({}, r, { runId, at, stages: {}, retry: retry || undefined })));
 		log(runId, null, "Run finished.");
 		setRun({ phase: "summary", currentKey: null, results });
 	}
@@ -570,7 +591,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (ok.length === 0) return { started: false, reason: "Nothing to install." };
 			// A retry from the summary keeps the first pass: done rows stay done and their results stay counted.
 			const keep = run.phase === "summary" ? run.results.filter((r) => !ok.includes(r.key)) : [];
-			void runQueue(ok, keep);
+			const retry =
+				run.phase === "summary" && ok.every((k) => ["failed", "rolled_back"].includes(get(k)?.status ?? ""));
+			void runQueue(ok, keep, retry);
 			return { started: true };
 		},
 		stopAfterCurrent: () => {
@@ -580,7 +603,16 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		dismissSummary: () => {
 			for (const app of apps) if (app.status === "done") put({ ...app, status: "fresh" });
-			setRun({ id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] });
+			setRun({
+				id: null,
+				phase: "idle",
+				index: 0,
+				total: 0,
+				currentKey: null,
+				stopping: false,
+				results: [],
+				retry: false,
+			});
 			return { ok: true };
 		},
 		restore: ({ key, version }) => {
@@ -600,6 +632,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				restartToApply: app.running,
 				restorePoints,
 			});
+			log(`restore-${Date.now()}`, key, `Restored ${version}.`);
 			history.unshift({
 				runId: `restore-${Date.now()}`,
 				at: iso(Date.now()),
@@ -638,6 +671,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			return { ok: true };
 		},
 		setSettings: (patch) => {
+			// The real main process rebuilds the window for a new frame or corners; the fixture just re-dresses it.
+			if (patch.corners || patch.frame) {
+				const frame = patch.frame ?? settings.frame;
+				const corners = patch.corners ?? settings.corners;
+				chrome = { ...chrome, own: frame === "own", rounded: frame === "own" && corners === "rounded" };
+				emit({ type: "chrome", chrome });
+			}
 			if (patch.buttons && patch.buttons !== "auto") {
 				chrome = { ...chrome, side: patch.buttons, order: orderFor(patch.buttons) };
 				emit({ type: "chrome", chrome });
@@ -704,6 +744,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		chrome: () => clone(chrome),
 		window: ({ op }) => {
+			// Recorded so specs can see which window op a control sent.
+			(globalThis as { upkeepOps?: string[] }).upkeepOps?.push(op);
 			// Close hides to the tray in the real window; the fixture has nowhere to hide, so it only answers.
 			if (op === "maximize") {
 				chrome = { ...chrome, maximized: !chrome.maximized };

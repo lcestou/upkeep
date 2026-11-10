@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HistoryRow } from "../../shared/types";
-	import { TEXT, resultCounts } from "../lib/copy";
+	import { RUN_TEXT, TEXT, resultCounts } from "../lib/copy";
 	import { formatDuration, formatRunTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { CARE, glyphColor } from "../lib/state";
@@ -11,6 +11,18 @@
 	const STATUS = { updated: "done", failed: "failed", rolled_back: "rolled_back", restored: "held" } as const;
 	const RESULT = { updated: TEXT.updated, failed: TEXT.failed, rolled_back: TEXT.rolledBack, restored: TEXT.restored } as const;
 
+	// The newest update of each app that still waits on a restart carries a Restart pending note.
+	const pending = $derived.by(() => {
+		const waiting = new Set(model.apps.filter((a) => a.restartToApply).map((a) => a.key));
+		const out = new Set<string>();
+		for (const row of model.history) {
+			if (row.result !== "updated" || !waiting.has(row.key)) continue;
+			out.add(`${row.runId}:${row.key}`);
+			waiting.delete(row.key);
+		}
+		return out;
+	});
+
 	const runs = $derived.by(() => {
 		const byRun = new Map<string, HistoryRow[]>();
 		for (const row of model.history) byRun.set(row.runId, [...(byRun.get(row.runId) ?? []), row]);
@@ -20,11 +32,12 @@
 
 <div class="history" data-testid="history">
 	{#if runs.length === 0}
-		<p class="empty">{TEXT.noRuns}</p>
+		<p class="empty" data-testid="history-empty">{model.run.phase === "installing" ? RUN_TEXT.inProgress : TEXT.noRuns}</p>
 	{:else}
 		{#each runs as run (run.id)}
 			<section>
-				<h2>{formatRunTime(run.at)} {#if run.rows.some((r) => r.result !== "restored")}<span class="counts">{resultCounts(run.rows)}</span>{/if}</h2>
+				<h2>{formatRunTime(run.at)} {#if run.rows.some((r) => r.result !== "restored")}<span class="counts">{resultCounts(run.rows)}</span>{/if}
+					{#if run.rows.some((r) => r.retry)}<span class="tag" data-testid="history-retry">{RUN_TEXT.retry}</span>{/if}</h2>
 				<ul>
 					{#each run.rows as row (row.key)}
 						{@const status = STATUS[row.result]}
@@ -39,6 +52,9 @@
 									>
 								</span>
 								{#if row.detail}<span class="detail">{row.detail}</span>{/if}
+								{#if row.result === "updated" && pending.has(`${row.runId}:${row.key}`)}<span class="pending" data-testid="restart-pending"
+										>{RUN_TEXT.restartPending}</span
+									>{/if}
 							</span>
 							<span class="result">{RESULT[row.result]}</span>
 							<span class="mono dur">{formatDuration(row.ms)}</span>
@@ -66,6 +82,19 @@
 		font-weight: 640;
 		color: var(--text);
 		font-variant-numeric: tabular-nums;
+	}
+	.tag {
+		margin-left: var(--s2);
+		padding: 1px 6px;
+		border: 1px solid var(--line);
+		border-radius: 3px;
+		font-size: var(--fs-11);
+		font-weight: 560;
+		color: var(--text-2);
+	}
+	.pending {
+		font-size: var(--fs-12);
+		color: var(--sun);
 	}
 	.counts {
 		margin-left: var(--s2);
