@@ -14,6 +14,8 @@ export type RunOpts = {
 	onLine?: (line: string) => void;
 	/** Without onLine: stderr goes into the same capture file as stdout, in the order written, and stderr comes back empty. */
 	merge?: boolean;
+	/** Put in front of the runner's PATH, for the shim directory. */
+	pathPrefix?: string;
 };
 
 export type RunResult = { code: number; stdout: string; stderr: string; timedOut: boolean };
@@ -60,7 +62,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 	let seq = 0;
 	return async (argv, opts = {}) => {
 		const cmd = argv.map((a) => expandHome(a, home));
-		const env = { ...process.env, PATH: path, ...opts.env };
+		const env = { ...process.env, PATH: opts.pathPrefix ? `${opts.pathPrefix}:${path}` : path, ...opts.env };
 		const stream = opts.onLine !== undefined;
 		let outFile = "";
 		let errFile = "";

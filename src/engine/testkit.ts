@@ -31,8 +31,8 @@ export function script(file: string, body: string): string {
 }
 
 /** A real runner whose PATH holds only the system directories, under a temp home. */
-export function realRun(p: Paths): Run {
-	return createRunner(p.home, join(p.cache, "tmp"), "/usr/bin:/bin");
+export function realRun(p: Paths, basePath = "/usr/bin:/bin"): Run {
+	return createRunner(p.home, join(p.cache, "tmp"), basePath);
 }
 
 export type Call = { argv: string[]; opts: RunOpts };
