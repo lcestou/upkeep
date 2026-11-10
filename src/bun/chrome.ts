@@ -38,5 +38,6 @@ function mirrored(order: WindowButton[]): WindowButton[] {
 export function windowChrome(settings: Settings, system: SystemLayout, maximized: boolean): WindowChrome {
 	const side = settings.buttons === "auto" ? system.side : settings.buttons;
 	const order = side === system.side ? system.order : mirrored(system.order);
-	return { own: settings.frame === "own", side, order, maximized };
+	const own = settings.frame === "own";
+	return { own, side, order, maximized, rounded: own && settings.corners === "rounded" };
 }

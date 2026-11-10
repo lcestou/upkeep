@@ -169,6 +169,8 @@ export type Settings = {
 	frame: "own" | "system";
 	/** Which side the window buttons sit on when the frame is Upkeep's own. "auto" follows the desktop. */
 	buttons: "auto" | "left" | "right";
+	/** The window's corners when the frame is Upkeep's own. A rounded window is see-through outside its corners, and the desktop draws no shadow under it. */
+	corners: "rounded" | "square";
 };
 
 export type WindowButton = "close" | "minimize" | "maximize";
@@ -181,6 +183,8 @@ export type WindowChrome = {
 	/** The buttons to draw on that side, left to right. */
 	order: WindowButton[];
 	maximized: boolean;
+	/** True when the window was built see-through so the view can round its own corners. Never true with the desktop's frame. */
+	rounded: boolean;
 };
 
 export type Snapshot = {

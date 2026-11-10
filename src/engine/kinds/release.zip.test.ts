@@ -47,7 +47,7 @@ const ctx = (): KindCtx => ({
 	run: realRun(t.paths),
 	fetch: fakeFetch,
 	token: null,
-	settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" },
+	settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto", corners: "rounded" },
 	log: () => {},
 	stage: () => {},
 	procRoot: join(t.dir, "proc"),

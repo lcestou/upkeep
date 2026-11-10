@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	checkAtLogin: false,
 	frame: "own",
 	buttons: "auto",
+	corners: "rounded",
 };
 
 function clampSettings(s: Partial<Settings>): Settings {
@@ -42,6 +43,7 @@ function clampSettings(s: Partial<Settings>): Settings {
 		frame: s.frame === "system" || s.frame === "own" ? s.frame : DEFAULT_SETTINGS.frame,
 		buttons:
 			s.buttons === "left" || s.buttons === "right" || s.buttons === "auto" ? s.buttons : DEFAULT_SETTINGS.buttons,
+		corners: s.corners === "square" || s.corners === "rounded" ? s.corners : DEFAULT_SETTINGS.corners,
 	};
 }
 

@@ -359,6 +359,7 @@ test("settings and auto are kept in state", async () => {
 		checkAtLogin: false,
 		frame: "own",
 		buttons: "auto",
+		corners: "rounded",
 	});
 	engine.setAuto("bat", true);
 	expect(engine.snapshot().apps.find((a) => a.key === "bat")?.auto).toBe(true);
