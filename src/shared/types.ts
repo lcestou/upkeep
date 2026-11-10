@@ -118,7 +118,8 @@ export type RunResult = {
 	name: string;
 	from: string | null;
 	to: string | null;
-	result: "updated" | "failed" | "rolled_back";
+	/** "restored" appears only in history: the owner put a restore point back by hand. */
+	result: "updated" | "failed" | "rolled_back" | "restored";
 	detail?: string;
 	ms: number;
 };

@@ -589,8 +589,10 @@ export function createEngine(deps: EngineDeps): Engine {
 		async install(keys) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
 			if (run.phase === "installing") return { started: false, reason: REASON_BUSY };
-			// Retry from the summary: closing it puts each failed app back to ready, which is what gets picked below.
-			if (run.phase === "summary") this.dismissSummary();
+			// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
+			// What the first pass updated stays on screen and in the count, so the summary reads as one run.
+			const carried = run.phase === "summary" ? run.results.filter((r) => r.result === "updated") : [];
+			if (run.phase === "summary") resetFailed();
 			const wanted = new Set(keys);
 			const pick = specs.filter((s) => {
 				const a = apps.get(s.key);
@@ -614,7 +616,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					total: queue.length,
 					currentKey: null,
 					stopping: false,
-					results: [],
+					results: carried,
 				};
 				for (const s of queue) {
 					const a = apps.get(s.key);
@@ -678,16 +680,9 @@ export function createEngine(deps: EngineDeps): Engine {
 					if (c) checked.set(a.key, { ...c, installed: a.installed, status: "fresh", target: undefined });
 					targets.delete(a.key);
 					emitApp(a);
-				} else if (a.status === "failed" || a.status === "rolled_back") {
-					const spec = specOf(a.key);
-					const c = checked.get(a.key);
-					if (spec && c) {
-						Object.assign(a, resting(spec, { ...c, installed: a.installed }));
-						a.detail = c.detail;
-						emitApp(a);
-					}
 				}
 			}
+			resetFailed();
 			run = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
 			emitRun();
 		},
@@ -710,6 +705,25 @@ export function createEngine(deps: EngineDeps): Engine {
 				const installed = "version" in probe ? probe.version : null;
 				const app = apps.get(key);
 				const c = checked.get(key);
+				const at = deps.now();
+				appendHistory(paths, [
+					{
+						key,
+						name: spec.name,
+						from: current,
+						to: installed,
+						result: "restored",
+						ms: 0,
+						runId: `restore-${stamp(at)}`,
+						at: at.toISOString(),
+						stages: {},
+					},
+				]);
+				// He stepped back from the latest on purpose: it is skipped until a newer one comes out, not offered again.
+				if (c?.latest && isNewer(installed, c.latest))
+					updateState(paths, (st) => {
+						st.skip[key] = c.latest ?? "";
+					});
 				if (app && c) {
 					const status = isNewer(installed, c.latest) ? "ready" : "fresh";
 					const next: Checked = {
@@ -787,6 +801,19 @@ export function createEngine(deps: EngineDeps): Engine {
 	};
 
 	/** Re-derives a resting row after a skip or hold change. */
+	/** Rows a run could not update go back to where the last check left them. */
+	function resetFailed(): void {
+		for (const a of apps.values()) {
+			if (a.status !== "failed" && a.status !== "rolled_back") continue;
+			const spec = specOf(a.key);
+			const c = checked.get(a.key);
+			if (!spec || !c) continue;
+			Object.assign(a, resting(spec, { ...c, installed: a.installed }));
+			a.detail = c.detail;
+			emitApp(a);
+		}
+	}
+
 	function refresh(key: string): void {
 		const spec = specOf(key);
 		const a = apps.get(key);

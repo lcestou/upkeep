@@ -98,7 +98,7 @@ async function restore(
 	return r.ok ? 0 : 1;
 }
 
-const RESULT_TEXT = { updated: "Updated", failed: "Failed", rolled_back: "Rolled back" } as const;
+const RESULT_TEXT = { updated: "Updated", failed: "Failed", rolled_back: "Rolled back", restored: "Restored" } as const;
 
 function history(engine: Engine, out: Out): number {
 	const rows = engine.history(200);

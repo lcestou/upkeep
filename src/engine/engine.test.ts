@@ -271,9 +271,16 @@ test("retry from the summary runs only the failed app again", async () => {
 	expect(r).toEqual({ started: true });
 	await engine.idle();
 	const snap = engine.snapshot();
-	expect(snap.run.results.map((x) => [x.key, x.result])).toEqual([["boom", "failed"]]);
-	// The app that succeeded in the first run is not touched again and reads as up to date.
-	expect(statuses(engine)).toMatchObject({ boom: "failed", fd: "fresh" });
+	// The first pass's update stays in the summary, so the two passes read as one run.
+	expect(snap.run.results.map((x) => [x.key, x.result])).toEqual([
+		["fd", "updated"],
+		["boom", "failed"],
+	]);
+	// The app that succeeded in the first pass is not installed again and still shows as done.
+	expect(statuses(engine)).toMatchObject({ boom: "failed", fd: "done" });
+	expect(engine.history(10).filter((h) => h.key === "fd")).toHaveLength(1);
+	engine.dismissSummary();
+	expect(statuses(engine)).toMatchObject({ boom: "ready", fd: "fresh" });
 });
 
 test("install refuses while checking, with nothing ready, and while the old updater runs", async () => {
@@ -349,8 +356,14 @@ test("restore puts a restore point back and the row reads ready again", async ()
 	await engine.idle();
 	engine.dismissSummary();
 	expect(await engine.restore("fd", "10.5.1")).toEqual({ ok: true });
-	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({ installed: "10.5.1", status: "ready" });
+	// The version he stepped back from is skipped, not offered and ticked again.
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({
+		installed: "10.5.1",
+		status: "held",
+		skipped: "10.5.2",
+	});
 	expect(readFileSync(join(bin, "fd"), "utf8")).toContain("fd 10.5.1");
+	expect(engine.history(1)[0]).toMatchObject({ key: "fd", from: "10.5.2", to: "10.5.1", result: "restored" });
 });
 
 test("a restore is a swap: the version it replaced becomes the restore point, so it can be undone", async () => {
