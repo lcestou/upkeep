@@ -102,11 +102,15 @@ body {
 	outline-offset: 2px;
 }
 
+/* Controls take the page's type, word space and tracking instead of the browser's control defaults. */
 button,
 input,
-select {
+select,
+textarea {
 	font: inherit;
 	color: inherit;
+	word-spacing: inherit;
+	letter-spacing: inherit;
 }
 
 /* Scrollbars in the palette, for WebKit and for engines that read scrollbar-color. */

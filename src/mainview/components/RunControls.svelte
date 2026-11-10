@@ -49,7 +49,19 @@
 						>{retryLabel(model.failedKeys.length)}</button
 					>
 				{/if}
-				<button type="button" class="btn primary" data-testid="done" onclick={() => model.dismiss()}>{TEXT.done}</button>
+				{#if model.notStarted > 0}
+					<!-- A stopped run: the not-started apps are back, ticked, and installing them is the primary step. -->
+					<button
+						type="button"
+						class="btn primary"
+						data-testid="install"
+						disabled={model.tickedApps.length === 0 || model.starting}
+						onclick={() => model.install()}>{installLabel(model.tickedApps.length)}</button
+					>
+				{/if}
+				<button type="button" class="btn" class:primary={model.notStarted === 0} data-testid="done" onclick={() => model.dismiss()}
+					>{TEXT.done}</button
+				>
 			{:else}
 				<button
 					type="button"

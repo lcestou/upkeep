@@ -156,6 +156,7 @@
 					class="btn"
 					data-testid="retry-one"
 					disabled={inRun}
+					title={inRun ? ADD.waitRun : undefined}
 					onclick={retryOne}>{TEXT.retry}</button
 				>
 			</div>
@@ -180,6 +181,7 @@
 				type="button"
 				class="btn small"
 				aria-disabled={model.run.phase !== "idle"}
+				title={model.run.phase !== "idle" ? ADD.waitRun : undefined}
 				data-testid="run-now-{app.key}"
 				onclick={() => model.run.phase === "idle" && model.install([app.key])}>{TEXT.runNow}</button
 			>
@@ -201,6 +203,7 @@
 								type="button"
 								class="btn small"
 								disabled={inRun || busy}
+								title={inRun ? ADD.waitRun : undefined}
 								data-testid="restore-{app.key}-{point.version}"
 								onclick={() => restore(point.version)}>{restoreLabel(point.version)}</button
 							>
@@ -221,6 +224,7 @@
 					type="button"
 					class="btn small"
 					disabled={inRun}
+					title={inRun ? ADD.waitRun : undefined}
 					data-testid="skip-{app.key}"
 					onclick={() => model.send("setSkip", { key: app.key, version: app.skipped ? null : app.latest })}
 					>{app.skipped ? stopSkipLabel(app.skipped) : skipLabel(app.latest ?? "")}</button
@@ -230,6 +234,7 @@
 				type="button"
 				class="btn small"
 				disabled={inRun}
+					title={inRun ? ADD.waitRun : undefined}
 				data-testid="hold-{app.key}"
 				onclick={() => model.send("setHold", { key: app.key, held: !app.held })}
 				>{app.held ? TEXT.releaseHold : TEXT.holdUpdates}</button

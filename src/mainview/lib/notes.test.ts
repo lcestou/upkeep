@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { ZEN_NOTES } from "./fixture";
 import { inline, parseNotes } from "./notes";
 
 // The shape of a real Zen and fd release body, headings, bullets, links, code and a raw tag included.
@@ -45,4 +46,28 @@ test("a bare URL drops trailing punctuation", () => {
 		{ t: "url", s: "https://example.org/a" },
 		{ t: "text", s: "." },
 	]);
+});
+
+test("Zen's real body keeps its sections apart", () => {
+	const blocks = parseNotes(ZEN_NOTES);
+	expect(blocks.map((b) => b.t)).toEqual([
+		"heading",
+		"heading",
+		"list",
+		"heading",
+		"list",
+		"heading",
+		"list",
+		"heading",
+		"list",
+	]);
+	const fixes = blocks[6];
+	if (fixes?.t !== "list") throw new Error("list expected");
+	expect(fixes.items.length).toBe(5);
+});
+
+test("a single newline joins a paragraph; a blank line starts the next", () => {
+	expect(parseNotes("one\ntwo\n\nthree").map((b) => (b.t === "para" ? b.inline.map((i) => i.s).join("") : ""))).toEqual(
+		["one two", "three"],
+	);
 });

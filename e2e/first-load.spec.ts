@@ -6,7 +6,7 @@ test("first load shows Install 4 updates with the four ready apps ticked", async
 	await expect(sentence(page)).toHaveText("4 updates ready");
 	for (const key of ["zen", "fd", "wrangler", "cursor"]) await expect(page.getByTestId(`tick-${key}`)).toBeChecked();
 	await expect(page.locator('input[data-testid^="tick-"]:not([data-testid="tick-all"]):checked')).toHaveCount(4);
-	await expect(page.getByTestId("selection")).toHaveText("4 selected · 110 MB+");
+	await expect(page.getByTestId("selection")).toHaveText("4 selected · at least 110 MB");
 	await expect(page.getByTestId("selection")).toHaveAttribute("title", "Some sizes are not known until they download.");
 	await expect(page.getByTestId("checked")).toHaveText("Checked 2 minutes ago");
 });

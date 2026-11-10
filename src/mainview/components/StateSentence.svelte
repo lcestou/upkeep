@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { checkedTitle, restartLine } from "../lib/copy";
+	import { byHandLine, checkedTitle, restartLine } from "../lib/copy";
 	import { relativeTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
@@ -15,15 +15,10 @@
 	});
 	const checked = $derived(model.checkedAt ? checkedTitle(relativeTime(model.checkedAt, now)) : null);
 	// "3 updated, 1 failed": the failed part carries the failure colour.
-	const split = $derived.by(() => {
-		const i = model.run.phase === "summary" ? model.sentence.indexOf(", ") : -1;
-		return i < 0 ? null : [model.sentence.slice(0, i + 2), model.sentence.slice(i + 2)];
-	});
-	const restart = $derived(
-		model.run.phase === "summary"
-			? model.apps.filter((a) => a.status === "done" && a.restartToApply).map((a) => a.name)
-			: [],
-	);
+	// "3 updated, 1 failed, 2 not started": only the failed part carries the failure colour.
+	const parts = $derived(model.run.phase === "summary" ? model.sentence.split(", ") : null);
+	const restart = $derived(model.restarts.map((a) => a.name));
+	const manual = $derived(model.apps.filter((a) => a.status === "manual").length);
 </script>
 
 <div class="lead">
@@ -32,7 +27,9 @@
 		     Counts while checking update in place instead of fading on every app. -->
 		{#key model.run.phase === "checking" ? "checking" : model.sentence}
 			<span in:fade={{ duration: ms(160) }}
-				>{#if split}{split[0]}<em class="failed">{split[1]}</em>{:else}{model.sentence}{/if}</span
+				>{#if parts}{#each parts as part, i (i)}{i > 0 ? ", " : ""}{#if part.endsWith(" failed")}<em class="failed"
+								>{part}</em
+							>{:else}{part}{/if}{/each}{:else}{model.sentence}{/if}</span
 			>
 		{/key}
 	</h1>
@@ -42,6 +39,9 @@
 		<span class="checked restart" data-testid="restart-line">{restartLine(restart)}</span>
 	{:else if checked && model.run.phase === "idle"}
 		<span class="checked" data-testid="checked">{checked}</span>
+		{#if manual > 0}<span class="checked" data-testid="by-hand-line"
+				><span aria-hidden="true">· </span>{byHandLine(manual)}</span
+			>{/if}
 	{/if}
 </div>
 
@@ -51,6 +51,7 @@
 		align-items: baseline;
 		gap: var(--s3);
 		min-width: 0;
+		overflow: hidden;
 	}
 	.sentence {
 		display: grid;

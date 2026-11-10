@@ -15,7 +15,7 @@ import { GROUP_LABEL, type GroupId, stateSentence } from "./copy";
 
 export type View = "updates" | "history" | "settings";
 
-export const GROUP_ORDER: GroupId[] = ["run", "ready", "manual", "problem", "held", "checking", "fresh"];
+export const GROUP_ORDER: GroupId[] = ["run", "ready", "manual", "problem", "held", "checking", "restart", "fresh"];
 
 /**
  * Apps in a run form their own group until the summary is dismissed, so rows do not jump mid-run.
@@ -23,6 +23,8 @@ export const GROUP_ORDER: GroupId[] = ["run", "ready", "manual", "problem", "hel
  */
 export function groupOf(app: AppState, prior?: AppStatus): GroupId {
 	const status = app.status === "checking" && prior ? prior : app.status;
+	// An update that waits on a restart keeps its own group, open above Fresh, until the app restarts.
+	if (status === "fresh" && app.restartToApply) return "restart";
 	switch (status) {
 		case "manual":
 		case "problem":
@@ -62,6 +64,7 @@ const idleRun = (): RunState => ({
 	currentKey: null,
 	stopping: false,
 	results: [],
+	retry: false,
 });
 
 export class Model {
@@ -120,7 +123,22 @@ export class Model {
 			this.apps.length > 0 &&
 			this.apps.every((a) => a.status === "fresh" || a.status === "held"),
 	);
-	tickedApps: AppState[] = $derived(this.ready.filter((a) => this.ticked.has(a.key)));
+	/** Ticked apps that can go into a run; during a re-check, the ones that were ready before it began still count. */
+	tickedApps: AppState[] = $derived(
+		this.apps.filter(
+			(a) =>
+				this.ticked.has(a.key) && (a.status === "ready" || (a.status === "checking" && this.prior[a.key] === "ready")),
+		),
+	);
+	/** Every app queued in the current run; the ones back at ready in the summary were never started. */
+	runKeys = $state.raw<ReadonlySet<string>>(new Set());
+	notStarted: number = $derived(
+		this.run.phase === "summary" ? this.apps.filter((a) => this.runKeys.has(a.key) && a.status === "ready").length : 0,
+	);
+	/** Fresh apps whose running copy predates their update. */
+	restarts: AppState[] = $derived(
+		this.apps.filter((a) => a.restartToApply && (a.status === "fresh" || a.status === "done")),
+	);
 	/** Ticked apps the filter hides; Install still counts them. */
 	hiddenTicked: number = $derived(this.#needle ? this.tickedApps.filter((a) => !matches(a, this.#needle)).length : 0);
 
@@ -137,6 +155,7 @@ export class Model {
 			ready: this.ready.length,
 			problems: this.problems,
 			currentName: this.current?.name ?? null,
+			notStarted: this.notStarted,
 		}),
 	);
 	failedKeys: string[] = $derived(this.run.results.filter((r) => r.result !== "updated").map((r) => r.key));
@@ -189,6 +208,7 @@ export class Model {
 				const before = i === -1 ? undefined : this.apps[i];
 				if (i === -1) this.apps.push(e.app);
 				else this.apps[i] = e.app;
+				if (e.app.status === "queued" && !this.runKeys.has(key)) this.runKeys = new Set([...this.runKeys, key]);
 				if (e.app.status === "checking") {
 					// A re-check leaves the tick alone and remembers where the row was.
 					if (before && before.status !== "checking" && !(key in this.prior)) this.prior[key] = before.status;
@@ -202,6 +222,7 @@ export class Model {
 			}
 			case "run": {
 				const before = this.run.phase;
+				if (e.run.phase === "idle") this.runKeys = new Set();
 				this.run = e.run;
 				if (e.run.phase === "installing") {
 					if (this.openKey && !this.pinned && e.run.currentKey) this.openKey = e.run.currentKey;
@@ -247,12 +268,16 @@ export class Model {
 		this.#tick(key, !this.ticked.has(key));
 	}
 
+	/** Ready apps the filter shows; Select all, Select none and the header tick act on these. */
+	shownReady: AppState[] = $derived(this.ready.filter((a) => this.shown.includes(a)));
+
 	selectAll(): void {
-		this.ticked = new Set(this.ready.map((a) => a.key));
+		this.ticked = new Set([...this.ticked, ...this.shownReady.map((a) => a.key)]);
 	}
 
 	selectNone(): void {
-		this.ticked = new Set();
+		const hide = new Set(this.shownReady.map((a) => a.key));
+		this.ticked = new Set([...this.ticked].filter((k) => !hide.has(k)));
 	}
 
 	select(key: string): void {

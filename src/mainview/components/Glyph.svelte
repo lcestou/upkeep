@@ -50,9 +50,10 @@
 	.pulse {
 		animation: pulse 1.2s ease-in-out infinite;
 	}
+	/* Between 0.8 and 1, so the dot never drops under 3:1. */
 	@keyframes pulse {
 		50% {
-			opacity: 0.6;
+			opacity: 0.8;
 		}
 	}
 </style>

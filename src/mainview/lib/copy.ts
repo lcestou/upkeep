@@ -20,12 +20,13 @@ export const STAGE_NAME: Record<Stage, string> = {
 	verify: "Verify",
 };
 
-export type GroupId = "run" | "ready" | "manual" | "problem" | "held" | "checking" | "fresh";
+export type GroupId = "run" | "restart" | "ready" | "manual" | "problem" | "held" | "checking" | "fresh";
 
 export const GROUP_LABEL: Record<Exclude<GroupId, "run"> | "installing" | "thisRun", string> = {
 	ready: "Ready to install",
 	installing: "Installing",
 	thisRun: "This run",
+	restart: "Restart to finish",
 	manual: "By hand",
 	problem: "Needs a look",
 	held: "Held back",
@@ -80,6 +81,7 @@ export const TEXT = {
 	backToList: "Back to list",
 	retry: "Retry",
 	filter: "Filter apps",
+	clearFilter: "Clear filter",
 	sizesUnknown: "Some sizes are not known until they download.",
 	whyTick: "Tick an update to install.",
 	whyChecking: "Wait for the check to finish.",
@@ -118,7 +120,7 @@ export function installLabel(n: number): string {
 /** partial: some ticked app has no known size, so the total is a floor. hidden: ticked apps the filter hides. */
 export function selectionText(n: number, bytes: number | null, partial = false, hidden = 0): string {
 	if (n === 0) return TEXT.nothingSelected;
-	const size = bytes === null ? "" : ` · ${formatBytes(bytes)}${partial ? "+" : ""}`;
+	const size = bytes === null ? "" : ` · ${partial ? "at least " : ""}${formatBytes(bytes)}`;
 	return `${n} selected${size}${hidden > 0 ? ` · ${hidden} hidden` : ""}`;
 }
 
@@ -131,6 +133,12 @@ export const NO_RESTORE: Partial<Record<AppKind, string>> = {
 };
 
 export const restartLine = (names: string[]) => `Restart ${names.join(", ")} to finish.`;
+export const byHandLine = (n: number) => `${n} more by hand`;
+export const RUN_TEXT = {
+	inProgress: "A run is in progress.",
+	retry: "Retry",
+	restartPending: "Restart pending",
+} as const;
 export const allFreshLine = (n: number) => `All ${n} apps are up to date.`;
 export const noMatch = (text: string) => `No app matches "${text}".`;
 
@@ -196,12 +204,14 @@ export type SentenceInput = {
 	ready: number;
 	problems: number;
 	currentName: string | null;
+	notStarted?: number;
 };
 
-export function stateSentence({ run, ready, problems, currentName }: SentenceInput): string {
+export function stateSentence({ run, ready, problems, currentName, notStarted = 0 }: SentenceInput): string {
 	if (run.phase === "checking") return `Checking ${run.index} of ${run.total}`;
-	if (run.phase === "installing") return `Installing ${currentName ?? ""}, ${run.index} of ${run.total}`;
-	if (run.phase === "summary") return resultCounts(run.results);
+	if (run.phase === "installing")
+		return `${run.retry ? "Retrying" : "Installing"} ${currentName ?? ""}, ${run.index} of ${run.total}`;
+	if (run.phase === "summary") return resultCounts(run.results) + (notStarted > 0 ? `, ${notStarted} not started` : "");
 	if (ready > 0) return plural(ready, "1 update ready", `${ready} updates ready`);
 	if (problems > 0) return plural(problems, "1 needs a look", `${problems} need a look`);
 	return "Everything is fresh";

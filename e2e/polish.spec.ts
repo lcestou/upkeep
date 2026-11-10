@@ -37,7 +37,7 @@ test("the filter narrows, keeps hidden ticks counted, says when nothing matches,
 	await page.keyboard.type("zen");
 	await expect(page.locator('[data-testid^="row-"]')).toHaveCount(1);
 	await expect(page.getByTestId("install")).toHaveText("Install 4 updates");
-	await expect(page.getByTestId("selection")).toHaveText("4 selected · 110 MB+ · 3 hidden");
+	await expect(page.getByTestId("selection")).toHaveText("4 selected · at least 110 MB · 3 hidden");
 	await page.getByTestId("filter").fill("sharkdp");
 	await expect(page.getByTestId("row-fd")).toBeVisible();
 	await expect(page.getByTestId("row-bat")).toBeVisible();

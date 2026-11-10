@@ -114,6 +114,9 @@
 		model.reveal++;
 	}
 
+	// shortcut: assumes the Linux /home/<user> layout for "~"; upgrade when the bridge reports the home dir.
+	const tilde = (path: string) => path.replace(/^\/home\/[^/]+(?=\/)/, "~");
+
 	function toggleTick(key: string) {
 		const next = new Set(scanTicks);
 		if (next.has(key)) next.delete(key);
@@ -217,7 +220,9 @@
 							</span>
 							<span class="what">
 								<span class="file">{file}</span>
-								<span class="mono path">{s.path ?? ""}</span>
+								<span class="mono path" title={s.path}>
+									{#each tilde(s.path ?? "").split("/") as part, i (i)}{i > 0 ? "/" : ""}<wbr />{part}{/each}
+								</span>
 								{#if failures[s.spec.key]}
 									<span class="fail" data-testid="scan-fail-{s.spec.key}">{failures[s.spec.key]}</span>
 								{:else if s.problem}
@@ -463,10 +468,12 @@
 		color: var(--text);
 		overflow-wrap: anywhere;
 	}
+	/* A path breaks only after a slash, never inside a name. */
 	.path {
 		font-size: var(--fs-11);
 		color: var(--text-3);
-		overflow-wrap: anywhere;
+		overflow-wrap: normal;
+		word-break: keep-all;
 	}
 	.why {
 		font-size: var(--fs-12);

@@ -111,6 +111,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--s4);
+		min-width: 0;
 		width: 100%;
 		max-width: 1280px;
 		height: 100%;
@@ -133,12 +134,12 @@
 		flex: 1 1 auto;
 		min-width: 0;
 	}
+	/* The tabs and Check again keep their size; the sentence gives way. */
 	.side {
 		display: flex;
 		align-items: center;
 		gap: var(--s2);
-		flex: 0 1 auto;
-		min-width: 0;
+		flex: none;
 	}
 	.tabs {
 		display: flex;

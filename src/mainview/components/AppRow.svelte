@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
 	import { CHIP, KIND_LABEL, TEXT, statusText } from "../lib/copy";
-	import { fitWords } from "../lib/fit";
+	import { fitLine, fitWords } from "../lib/fit";
 	import { formatBytes } from "../lib/format";
 	import { IN_RUN, type Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
@@ -53,7 +53,7 @@
 					type="checkbox"
 					tabindex="-1"
 					checked={model.ticked.has(app.key)}
-					disabled={model.run.phase !== "idle"}
+					disabled={model.run.phase === "installing" || model.run.phase === "checking"}
 					aria-labelledby="name-{app.key}"
 					data-testid="tick-{app.key}"
 					onchange={() => model.toggle(app.key)}
@@ -74,16 +74,24 @@
 	>
 		<span class="cell mark"><Glyph name={care.glyph} color={glyphColor(app.status)} /></span>
 		<span class="cell name">
-			<!-- One clipped wrapping line: a chip or repo that cannot fit whole wraps out of sight, never cut. -->
-			<span class="line">
+			<!-- One line: the repo gives way first, then each chip shrinks to its glyph; nothing wraps or is cut. -->
+			<span class="line" {@attach fitLine}>
 				<span class="tag-name" id="name-{app.key}">{app.name}</span>
-				{#if app.running}<span class="chip-use" title={chip.title} data-testid="chip-running"
-						><span class="dot" aria-hidden="true"></span>{chip.text}</span
-					>{/if}
-				{#if app.sudo && !fresh}<span class="chip" title={CHIP.root.title} data-testid="chip-root">{CHIP.root.text}</span
-					>{/if}
-				{#if app.auto && !fresh}<span class="chip" title={CHIP.auto.title} data-testid="chip-auto">{CHIP.auto.text}</span
-					>{/if}
+				{#if app.running || (!fresh && (app.sudo || app.auto))}
+					<span class="chips">
+						{#if app.running}<span class="chip-use" title={chip.title} data-testid="chip-running"
+								><span class="dot" aria-hidden="true"></span><span class="ct">{chip.text}</span></span
+							>{/if}
+						{#if app.sudo && !fresh}<span class="chip" title={CHIP.root.title} data-testid="chip-root"
+								><svg class="cg lock" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"
+									><path d="M3.5 5.5V4a2.5 2.5 0 0 1 5 0v1.5M2.75 5.5h6.5v4.25h-6.5Z" /></svg
+								><span class="ct">{CHIP.root.text}</span></span
+							>{/if}
+						{#if app.auto && !fresh}<span class="chip" title={CHIP.auto.title} data-testid="chip-auto"
+								><span class="cg auto-tile" aria-hidden="true"></span><span class="ct">{CHIP.auto.text}</span></span
+							>{/if}
+					</span>
+				{/if}
 				{#if app.repo}<span class="latin">{app.repo}</span>{/if}
 			</span>
 			{#if sentence}<span class="sentence" title={sentence} data-testid="sentence-{app.key}">{sentence}</span>{/if}
@@ -133,7 +141,8 @@
 		background: var(--surface);
 		/* The hairline is drawn, not laid out, so the row's height centres its text exactly. */
 		box-shadow: inset 0 -1px 0 var(--line-soft);
-		scroll-margin: 40px 0 52px;
+		/* A focused row clears the sticky column header (34 px) and the covered bottom edge. */
+		scroll-margin: 42px 0 8px;
 		scroll-snap-align: start;
 		transition:
 			opacity 240ms ease-out,
@@ -150,8 +159,18 @@
 			display: none;
 		}
 	}
+	/* A reason at rest may take two lines; a failed row in a run keeps 44 px and one line (the pane has it whole). */
 	.row.said {
 		height: 56px;
+	}
+	.row.said.s-failed,
+	.row.said.s-rolled_back {
+		height: 44px;
+	}
+	.s-failed .sentence,
+	.s-rolled_back .sentence {
+		-webkit-line-clamp: 1;
+		line-clamp: 1;
 	}
 	.row.fresh {
 		height: 36px;
@@ -295,12 +314,44 @@
 	}
 	.line {
 		display: flex;
-		flex-wrap: wrap;
+		flex-wrap: nowrap;
 		align-items: center;
 		column-gap: var(--s2);
 		height: 18px;
 		overflow: hidden;
 		min-width: 0;
+	}
+	.chips {
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		gap: var(--s1);
+	}
+	.line:global(.no-repo) .latin {
+		display: none;
+	}
+	.cg {
+		display: none;
+	}
+	.line:global(.compact) .ct {
+		display: none;
+	}
+	.line:global(.compact) .cg {
+		display: inline-block;
+	}
+	.line:global(.compact) .chip {
+		padding: 0 4px;
+	}
+	/* The letter is drawn, not text, so the chip's text stays "Auto". */
+	.auto-tile::before {
+		content: "A";
+		font-weight: 700;
+	}
+	.lock {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.4;
+		stroke-linejoin: round;
 	}
 	.tag-name {
 		flex: none;
