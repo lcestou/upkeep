@@ -7,14 +7,17 @@ import {
 	BAD_INPUT,
 	bareName,
 	type DiscoverCtx,
+	appName,
 	displayName,
 	keyOf,
 	kindOf,
 	machineAssets,
 	readInput,
 	scan,
+	stem,
 	suggest,
 } from "./discover";
+import { tomlTable } from "./manifest";
 import fdRelease from "./fixtures/sharkdp_fd.json";
 import rustdeskRelease from "./fixtures/rustdesk_rustdesk.json";
 import zenRelease from "./fixtures/zen-browser_desktop.json";
@@ -278,8 +281,8 @@ test("from a file: an AppImage that names its own release source", async () => {
 	const r = await suggest(`file://${img}`, ctx().c);
 	expect(r.suggestions[0]).toMatchObject({
 		spec: {
-			key: "desktop",
-			name: "desktop",
+			key: "zen",
+			name: "Zen Browser",
 			kind: "appimage",
 			repo: "zen-browser/desktop",
 			dest: "~/Downloads/zen.AppImage",
@@ -366,4 +369,96 @@ test("a rate-limited search stops the scan with what it has", async () => {
 	const r = await scan(ctx().c);
 	expect(r.suggestions.map((s) => s.path)).toEqual([join(bin, "aaa"), join(bin, "limited")]);
 	expect(lines).toContain("GitHub's request limit is used up. Try again after it resets.");
+});
+
+const rel = (tag: string, version: string) => ({ tag, version });
+
+test("an app is named after what it ships", () => {
+	expect(stem("fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz", rel("v10.5.2", "10.5.2"))).toBe("fd");
+	expect(stem("zen-x86_64.AppImage", rel("1.24.1b", "1.24.1"))).toBe("zen");
+	expect(stem("rustdesk-1.5.1-x86_64.deb", rel("1.5.1", "1.5.1"))).toBe("rustdesk");
+	expect(stem("Obsidian-1.9.4.AppImage", rel("v1.9.4", "1.9.4"))).toBe("Obsidian");
+	expect(stem("lrcget_2.2.2_amd64.AppImage", rel("2.2.2", "2.2.2"))).toBe("lrcget");
+	expect(stem("bun-linux-x64.zip", rel("bun-v1.3.2", "1.3.2"))).toBe("bun");
+	expect(stem("x86_64.AppImage", rel("1.0", "1.0"))).toBe("");
+	expect(appName("Obsidian", "obsidianmd/obsidian-releases")).toBe("Obsidian");
+	expect(appName("zen", "zen-browser/desktop")).toBe("Zen Browser");
+	expect(appName("fd", "sharkdp/fd")).toBe("fd");
+	expect(appName("", "o/my_tool")).toBe("My Tool");
+});
+
+test("a generic repo name finds the owner's AppImage by what the release ships", async () => {
+	elf(join(t.paths.home, ".local/bin/zen-browser.AppImage"), { image: true });
+	const r = await suggest("zen-browser/desktop", ctx().c);
+	expect(r.suggestions[0]?.spec).toMatchObject({
+		key: "zen",
+		name: "Zen Browser",
+		dest: "~/.local/bin/zen-browser.AppImage",
+	});
+	expect(r.suggestions[0]?.spec.install_if_missing).toBeUndefined();
+});
+
+test("a repo whose stems are all too short falls back to the repo name", async () => {
+	releases["o/tool"] = { tag_name: "v1.0", assets: [{ name: "x86_64.AppImage", size: 1 }] };
+	expect((await suggest("o/tool", ctx().c)).suggestions[0]?.spec).toMatchObject({ key: "tool", name: "tool" });
+});
+
+const none = { code: 1, stdout: "", stderr: "", timedOut: false };
+
+test("examples: what the owner gets for four repos", async () => {
+	releases["obsidianmd/obsidian-releases"] = {
+		tag_name: "v1.9.4",
+		assets: [
+			{ name: "Obsidian-1.9.4.AppImage", size: 1 },
+			{ name: "obsidian_1.9.4_amd64.deb", size: 1 },
+			{ name: "Obsidian-1.9.4-arm64.AppImage", size: 1 },
+			{ name: "obsidian-1.9.4.tar.gz", size: 1 },
+		],
+	};
+	// rustdesk is the owner's dpkg install; nothing else is on disk. The fake runner answers its probe and runs nothing.
+	const rec = recordingRun(t.paths, (argv) => {
+		if (argv[0] === "which") return argv[1] === "rustdesk" ? ok("/usr/bin/rustdesk\n") : none;
+		return argv[0] === "/usr/bin/rustdesk" ? ok("1.5.1\n") : none;
+	});
+	const c: DiscoverCtx = { ...ctx().c, run: rec.run };
+	const out: string[] = [];
+	for (const repo of ["sharkdp/fd", "zen-browser/desktop", "rustdesk/rustdesk", "obsidianmd/obsidian-releases"]) {
+		// oxlint-disable-next-line no-await-in-loop -- in order, for a stable listing
+		const spec = (await suggest(repo, c)).suggestions[0]?.spec;
+		if (spec) out.push(tomlTable(spec));
+	}
+	expect(out.join("\n")).toBe(`[apps.fd]
+name = "fd"
+kind = "archive"
+repo = "sharkdp/fd"
+asset = '^fd-.*-x86_64-unknown-linux-gnu\\.tar\\.gz$'
+dest = "~/.local/bin/fd"
+bins = ["fd"]
+install_if_missing = true
+
+[apps.zen]
+name = "Zen Browser"
+kind = "appimage"
+repo = "zen-browser/desktop"
+asset = '^zen-x86_64\\.AppImage$'
+dest = "~/.local/bin/zen.AppImage"
+install_if_missing = true
+
+[apps.rustdesk]
+name = "rustdesk"
+kind = "deb"
+repo = "rustdesk/rustdesk"
+asset = '^rustdesk-[0-9][0-9A-Za-z.]*-x86_64\\.deb$'
+dest = "/usr/bin/rustdesk"
+sudo = true
+
+[apps.obsidian]
+name = "Obsidian"
+kind = "appimage"
+repo = "obsidianmd/obsidian-releases"
+asset = '^Obsidian-[0-9][0-9A-Za-z.]*\\.AppImage$'
+dest = "~/.local/bin/obsidian.AppImage"
+install_if_missing = true
+`);
+	expect(rec.calls.filter((x) => x.argv[0] !== "which").map((x) => x.argv[0])).toEqual(["/usr/bin/rustdesk"]);
 });

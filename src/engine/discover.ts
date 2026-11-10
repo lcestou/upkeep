@@ -126,6 +126,50 @@ export function displayName(repoName: string): string {
 
 export const keyOf = (repoName: string) => repoName.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
+const EXTENSION = /\.(tar\.gz|tgz|zip|appimage|deb|tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
+const NOISE = new Set(["linux", "gnu", "musl", "unknown", "pc", "appimage", "setup", "installer", "portable", "bin"]);
+
+/**
+ * What an asset ships, in its own casing: the name without extension, version, architecture and system
+ * words. "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz" is "fd", "Obsidian-1.9.4.AppImage" is "Obsidian".
+ */
+export function stem(asset: string, release: Pick<Release, "tag" | "version">): string {
+	let s = asset.replace(EXTENSION, "");
+	const versions = [release.tag, release.version, release.version ? `v${release.version}` : null]
+		.filter((v): v is string => Boolean(v))
+		.toSorted((a, b) => b.length - a.length);
+	for (const v of versions) s = s.split(v).join("-");
+	s = s.replace(/x86[_-]64|amd64|x64/gi, "-");
+	return s
+		.split(/[-_.\s]+/)
+		.filter((t) => t && !NOISE.has(t.toLowerCase()) && !/^v?\d+$/i.test(t))
+		.join("-");
+}
+
+// Repo names that say nothing about the app: the owner names it instead.
+const GENERIC_REPO = new Set([
+	"desktop",
+	"app",
+	"releases",
+	"release",
+	"linux",
+	"client",
+	"core",
+	"cli",
+	"main",
+	"bin",
+	"dist",
+	"builds",
+]);
+
+/** The name a person reads: the asset's own capitals, else the owner for a generic repo name, else the repo. */
+export function appName(shipped: string, repo: string): string {
+	const [owner = repo, repoName = repo] = repo.split("/");
+	if (shipped.length >= 2 && shipped !== shipped.toLowerCase()) return shipped;
+	if (GENERIC_REPO.has(repoName.toLowerCase())) return displayName(owner);
+	return displayName(repoName);
+}
+
 /** The first 64 kB of a file, or null when it cannot be read. */
 export function head(file: string, bytes = 65_536, at = 0): Buffer | null {
 	let fd: number | null = null;
@@ -209,8 +253,15 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	}
 	if (!release.version) return { problem: `The latest tag ${release.tag} is not a version Upkeep can compare.` };
 	const repoName = repo.split("/")[1] ?? repo;
-	const bin = repoName.toLowerCase();
 	const home = ctx.paths.home;
+	// An app is named after what it ships: the shortest stem of its builds, since variants add words
+	// ("rustdesk-unsigned"). A stem too short to mean anything falls back to the repo.
+	const shippedBy = (c: Candidate | undefined) => (c ? stem(c.asset.name, release) : "");
+	const stems = machineAssets(release.assets)
+		.candidates.map((c) => shippedBy(c).toLowerCase())
+		.filter((x) => x.length >= 2)
+		.toSorted((x, y) => x.length - y.length);
+	const bin = stems[0] ?? repoName.toLowerCase();
 
 	// What is on disk decides which kinds lead, and where the app goes.
 	const image = opts.file ? null : findAppImage(ctx, bin);
@@ -237,8 +288,8 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	else if (kind === "appimage") dest = image ?? join(home, ".local/bin", `${bin}.AppImage`);
 	else if (kind === "deb") dest = onPath ?? `/usr/bin/${bin}`;
 	else dest = onPath ?? join(home, ".local/bin", bin);
-	const name = displayName(repoName);
-	const key = keyOf(repoName);
+	const name = appName(shippedBy(picked), repo);
+	const key = keyOf(bin);
 	const { pattern, widen } = assetPattern(picked.asset.name, release);
 	const spec: AppSpec = { key, name, kind, repo, asset: pattern, dest: tilde(dest, home) };
 	if (kind === "archive") spec.bins = [opts.file ? (dest.split("/").at(-1) ?? bin) : bin];
