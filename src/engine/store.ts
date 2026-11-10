@@ -315,3 +315,52 @@ export function stageWeights(history: HistoryRow[], key: string, kind: AppKind):
 	weights[widest] = (weights[widest] ?? 0) + 100 - weights.reduce((a, b) => a + b, 0);
 	return defaults.map(([id], i) => ({ id, weight: weights[i] ?? 0 }));
 }
+
+/** What the last check learned about one app, kept so the next start shows the list at once. */
+export type KnownRow = {
+	installed: string | null;
+	latest: string | null;
+	status: "fresh" | "ready" | "problem";
+	detail?: string;
+	size?: number;
+	notes?: string;
+	releaseUrl?: string;
+	publishedAt?: string;
+	checkedAt: string;
+};
+
+const str = (x: unknown) => (typeof x === "string" ? x : undefined);
+
+const rowsFile = (paths: Paths) => join(paths.cache, "rows.json");
+
+export function saveRows(paths: Paths, rows: Record<string, KnownRow>): void {
+	mkdirSync(paths.cache, { recursive: true });
+	writeAtomic(rowsFile(paths), JSON.stringify(rows));
+}
+
+/** The rows of the last check. A missing or unreadable file is no rows. */
+export function loadRows(paths: Paths): Record<string, KnownRow> {
+	try {
+		const raw = obj<unknown>(JSON.parse(readFileSync(rowsFile(paths), "utf8")));
+		const out: Record<string, KnownRow> = {};
+		for (const [key, v] of Object.entries(raw)) {
+			const r = obj<unknown>(v);
+			const status = r.status;
+			if (status !== "fresh" && status !== "ready" && status !== "problem") continue;
+			out[key] = {
+				installed: str(r.installed) ?? null,
+				latest: str(r.latest) ?? null,
+				status,
+				detail: str(r.detail),
+				size: typeof r.size === "number" ? r.size : undefined,
+				notes: str(r.notes),
+				releaseUrl: str(r.releaseUrl),
+				publishedAt: str(r.publishedAt),
+				checkedAt: str(r.checkedAt) ?? "",
+			};
+		}
+		return out;
+	} catch {
+		return {};
+	}
+}
