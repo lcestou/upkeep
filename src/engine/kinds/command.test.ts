@@ -81,3 +81,12 @@ test("a version that did not move is a failure", async () => {
 		detail: "Still at 2.1.322 after the update command.",
 	});
 });
+
+test("an update of a current version that leaves it unchanged is still a failure", async () => {
+	fakeClaude("2.1.400");
+	const target = { from: "2.1.400", version: "2.1.400", tag: "2.1.400" };
+	expect(await installCommand(claude(["bash", "-c", "true"]), target, ctx())).toMatchObject({
+		result: "failed",
+		detail: "Still at 2.1.400 after the update command.",
+	});
+});

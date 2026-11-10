@@ -165,6 +165,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			}
 		}
 
+		const existed = new Set(targets.filter((f) => existsSync(f)));
 		const running = isRunning({ ...spec, dest }, ctx.procRoot);
 		writeInflight(ctx.paths, { key: spec.key, dest, backupVersion });
 		clock.start("install");
@@ -191,6 +192,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				: ["tar", "xzf", dl, "-C", extract];
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
 			if (x.code !== 0) throw new StepError(`Could not extract ${asset.name}.`);
+			// A bin this run added has no restore point, so a failure takes it out again.
+			const added: string[] = [];
 			for (const bin of bins) {
 				const name = basename(bin);
 				const to = join(dirname(dest), name);
@@ -207,6 +210,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				}
 				if (failed) {
 					// oxlint-disable-next-line no-await-in-loop -- the loop ends here
+					await Promise.all(added.map((f) => ctx.run(asRoot(["rm", "-f", f], spec.sudo), { timeoutMs: 60_000 })));
+					// oxlint-disable-next-line no-await-in-loop -- the loop ends here
 					const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
 					const detail = sudoFail
 						? SUDO_PASSWORD
@@ -217,6 +222,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 								: `Could not install ${name}. No restore point was taken.`;
 					return finish({ result: "failed", installed: target.from, detail, restartToApply: false });
 				}
+				if (!existed.has(to)) added.push(to);
 				ctx.log(`Installed ${name} to ${to}`);
 			}
 		} else if (spec.kind === "deb") {

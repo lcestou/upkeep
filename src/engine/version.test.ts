@@ -27,3 +27,8 @@ test("tagVersion drops tags whose version has no dot", () => {
 	expect(tagVersion("release-2026")).toBeNull();
 	expect(tagVersion("1.12.3")).toBe("1.12.3");
 });
+
+test("a -V tie between different strings falls back to byte order, as sort does", () => {
+	expect(isNewer("1.01", "1.1")).toBe(true);
+	expect(isNewer("1.1", "1.01")).toBe(false);
+});

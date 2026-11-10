@@ -117,3 +117,14 @@ test("the meta probe starts the mount through the runner, and a runner that cann
 		detail: `${img} never reported a mount point.`,
 	});
 });
+
+test("a probe given no limit is stopped at 10 s", async () => {
+	const limits: (number | undefined)[] = [];
+	const run = async (_argv: string[], opts?: { timeoutMs?: number }) => {
+		limits.push(opts?.timeoutMs);
+		return ok("x 1.0.0");
+	};
+	await probeVersion(script(join(t.dir, "x"), "exit 0"), [], { run });
+	await probeCommand(["x"], { run });
+	expect(limits).toEqual([10_000, 10_000]);
+});

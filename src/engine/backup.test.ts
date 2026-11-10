@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { chmodSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { listBackups, prune, restoreBackup, takeBackup } from "./backup";
 import { realRun, recordingRun, tempHome } from "./testkit";
@@ -75,4 +75,30 @@ test("restoring a version with no restore point says so", async () => {
 		ok: false,
 		detail: "No restore point 1.0.",
 	});
+});
+
+test("a restore whose install fails says so and stops", async () => {
+	const f = join(t.dir, "uv");
+	writeFileSync(f, "u");
+	takeBackup(t.paths, { key: "uv" }, "0.9.1", [f]);
+	const { run } = recordingRun(t.paths, (argv) =>
+		argv[0] === "install"
+			? { code: 1, stdout: "", stderr: "install: No space left on device\n", timedOut: false }
+			: undefined,
+	);
+	expect(await restoreBackup(t.paths, { key: "uv" }, "0.9.1", run)).toEqual({
+		ok: false,
+		detail: "Could not restore uv: install: No space left on device",
+	});
+});
+
+test("re-taking a restore point replaces its files rather than adding to them", () => {
+	const a = join(t.dir, "uv");
+	const b = join(t.dir, "uvx");
+	writeFileSync(a, "u");
+	writeFileSync(b, "x");
+	takeBackup(t.paths, { key: "uv" }, "0.9.1", [a, b]);
+	takeBackup(t.paths, { key: "uv" }, "0.9.1", [a]);
+	expect(readdirSync(join(t.paths.data, "backups/uv/0.9.1")).toSorted()).toEqual(["meta.json", "uv"]);
+	expect(readdirSync(join(t.paths.data, "backups/uv"))).toEqual(["0.9.1"]);
 });

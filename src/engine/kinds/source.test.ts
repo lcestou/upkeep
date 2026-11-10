@@ -126,3 +126,21 @@ test("nonInteractive adds -n to every sudo", () => {
 	expect(nonInteractive("sudo -n true")).toBe("sudo -n true");
 	expect(nonInteractive("./configure")).toBe("./configure");
 });
+
+test("a build step that runs past its limit is reported as timed out", async () => {
+	const dest = script(join(t.dir, "tmux"), 'echo "tmux 3.6"');
+	const { run, calls } = recordingRun(t.paths, (argv) => {
+		if (argv[0] === "git") {
+			mkdirSync(argv.at(-1) ?? "", { recursive: true });
+			return ok();
+		}
+		if (argv[0] === "bash") return { code: 137, stdout: "", stderr: "", timedOut: true };
+		return undefined;
+	});
+	const target = { from: "3.6", version: "3.6a", tag: "3.6a" };
+	expect(await installSource(tmux(dest, ["make -j"]), target, ctx(run))).toMatchObject({
+		result: "failed",
+		detail: "Build step timed out: make -j",
+	});
+	expect(calls.find((x) => x.argv[0] === "bash")?.opts.timeoutMs).toBe(30 * 60_000);
+});
