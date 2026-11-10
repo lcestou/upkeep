@@ -1,0 +1,64 @@
+const UNITS = ["B", "kB", "MB", "GB", "TB"] as const;
+
+/** Decimal units, as file managers on this desktop show them. */
+export function formatBytes(bytes: number): string {
+	let value = bytes;
+	let unit = 0;
+	while (unit < UNITS.length - 1 && Math.round(value * 10) / 10 >= 1000) {
+		value /= 1000;
+		unit++;
+	}
+	const text = unit === 0 || value >= 10 ? String(Math.round(value)) : value.toFixed(1);
+	return `${text} ${UNITS[unit]}`;
+}
+
+const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
+	["second", 60],
+	["minute", 60],
+	["hour", 24],
+	["day", 30],
+	["month", 12],
+	["year", Number.POSITIVE_INFINITY],
+];
+
+const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+export function relativeTime(iso: string, now: number = Date.now()): string {
+	const then = Date.parse(iso);
+	if (Number.isNaN(then)) return iso;
+	let value = (then - now) / 1000;
+	if (Math.abs(value) < 45) return rtf.format(0, "second");
+	for (const [unit, size] of STEPS) {
+		if (Math.abs(value) < size) return rtf.format(Math.round(value), unit);
+		value /= size;
+	}
+	return rtf.format(Math.round(value), "year");
+}
+
+export function plural(n: number, one: string, many: string): string {
+	return n === 1 ? one : many;
+}
+
+export function formatDuration(ms: number): string {
+	const s = ms / 1000;
+	if (s < 10) return `${s.toFixed(1)} s`;
+	if (s < 60) return `${Math.round(s)} s`;
+	const m = Math.floor(s / 60);
+	const rest = Math.round(s - m * 60);
+	return rest === 0 ? `${m} min` : `${m} min ${rest} s`;
+}
+
+/** "Mon 10 Nov, 09:41", the heading of one run in History. */
+export function formatRunTime(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return iso;
+	const day = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+	const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+	return `${day}, ${time}`;
+}
+
+export function clockTime(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return iso;
+	return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
