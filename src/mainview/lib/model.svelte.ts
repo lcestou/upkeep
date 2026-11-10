@@ -168,8 +168,9 @@ export class Model {
 		this.ticked = new Set();
 	}
 
-	toggleRow(key: string): void {
-		this.open = this.open === key ? null : key;
+	/** A and C open a row in place and close it again; B keeps one row selected in its tag pane. */
+	toggleRow(key: string, select = false): void {
+		this.open = select || this.open !== key ? key : null;
 	}
 
 	async #ask<T extends { started?: boolean; reason?: string }>(p: Promise<T>): Promise<T> {

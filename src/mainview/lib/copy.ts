@@ -96,8 +96,6 @@ export const retryLabel = (n: number) => `Retry ${n} failed`;
 export const rateText = (remaining: number, limit: number) =>
 	`GitHub requests left this hour: ${remaining} of ${limit}`;
 export const versionText = (v: string) => `Version ${v}`;
-export const historyRowText = (name: string, from: string | null, to: string | null) =>
-	`${name} ${from ?? "?"} to ${to ?? "?"}`;
 
 export function installLabel(n: number): string {
 	return n === 1 ? "Install 1 update" : `Install ${n} updates`;

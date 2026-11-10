@@ -423,7 +423,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			stage: undefined,
 			stagePct: undefined,
 			detail: undefined,
-			restartToApply: after.running,
+			restartToApply: after.running && app.kind !== "legacy",
 			restorePoints,
 		});
 		return { key, name: app.name, from, to, result: "updated", ms };
