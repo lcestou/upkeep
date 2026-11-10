@@ -53,6 +53,7 @@
 		font-weight: 640;
 		text-transform: uppercase;
 		letter-spacing: 0.035em;
+		word-spacing: 0.14em;
 		font-size: var(--fs-12);
 		color: var(--text-2);
 		white-space: nowrap;

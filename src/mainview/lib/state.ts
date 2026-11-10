@@ -13,13 +13,13 @@ export const CARE: Record<AppStatus, { band: string; glyph: GlyphName }> = {
 	manual: { band: "var(--bloom)", glyph: "hand" },
 	held: { band: "var(--frost)", glyph: "pause" },
 	problem: { band: "var(--rust)", glyph: "bang" },
-	failed: { band: "var(--rust)", glyph: "cross" },
-	rolled_back: { band: "var(--rust)", glyph: "cross" },
+	failed: { band: "var(--fail)", glyph: "cross" },
+	rolled_back: { band: "var(--fail)", glyph: "cross" },
 };
 
 /** The glyph's colour. Checking draws its dot in text-3 because the --line band is too faint for a glyph. */
 export function glyphColor(status: AppStatus): string {
-	return status === "checking" ? "var(--text-3)" : CARE[status].band;
+	return status === "checking" ? "var(--dot)" : CARE[status].band;
 }
 
 /** A pending row carries the full apparatus; a fresh one is a quiet line. */

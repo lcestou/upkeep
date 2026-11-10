@@ -87,9 +87,11 @@ describe("events", () => {
 		expect(m.ticked.has("bat")).toBe(false);
 	});
 
-	test("rows in a run stay in Ready to install", () => {
+	test("rows in a run form their own group, and a re-checked row keeps its group", () => {
+		expect(groupOf({ ...baseApp("x"), status: "checking" }, "ready")).toBe("ready");
+		expect(groupOf({ ...baseApp("x"), status: "checking" })).toBe("checking");
 		for (const status of ["queued", "working", "done", "failed", "rolled_back"] as const) {
-			expect(groupOf({ ...baseApp("x"), status })).toBe("ready");
+			expect(groupOf({ ...baseApp("x"), status })).toBe("run");
 		}
 	});
 
@@ -171,6 +173,24 @@ describe("the inspector", () => {
 		await until(() => m.run.phase === "summary");
 		expect(m.openKey).toBeNull();
 		expect(m.groups[0]?.label).toBe("This run");
+	});
+});
+
+describe("a re-check", () => {
+	test("keeps the owner's ticks and each row's group", async () => {
+		const m = await started();
+		m.toggle("fd");
+		let sawFdInReady = false;
+		const off = setInterval(() => {
+			if (m.apps.find((a) => a.key === "fd")?.status === "checking")
+				sawFdInReady ||= m.groups.find((g) => g.id === "ready")?.apps.some((a) => a.key === "fd") ?? false;
+		}, 2);
+		await m.check();
+		await until(() => m.run.phase === "checking");
+		await until(() => m.run.phase === "idle");
+		clearInterval(off);
+		expect(sawFdInReady).toBe(true);
+		expect([...m.ticked].toSorted()).toEqual(["cursor", "wrangler", "zen"]);
 	});
 });
 

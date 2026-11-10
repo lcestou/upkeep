@@ -52,7 +52,7 @@
 	}
 	@keyframes pulse {
 		50% {
-			opacity: 0.3;
+			opacity: 0.6;
 		}
 	}
 </style>

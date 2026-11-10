@@ -10,6 +10,8 @@
 	let { model, logOpen, ontogglelog }: { model: Model; logOpen: boolean; ontogglelog: () => void } = $props();
 
 	const running = $derived(model.run.phase === "installing" || model.run.phase === "summary");
+	// Selection controls only where something can be ticked.
+	const selectable = $derived(model.view === "updates" && model.ready.length > 0);
 </script>
 
 <footer class="bar">
@@ -18,7 +20,7 @@
 			<div class="slot" in:fade={{ duration: ms(240) }} out:fade={{ duration: ms(120) }}>
 				{#if running}
 					<RunBar {model} />
-				{:else}
+				{:else if selectable}
 					<Selection {model} />
 				{/if}
 			</div>
@@ -26,7 +28,9 @@
 	</div>
 	<div class="end">
 		<LogToggle open={logOpen} ontoggle={ontogglelog} />
-		<RunControls {model} />
+		{#if !model.allFresh || running}
+			<RunControls {model} />
+		{/if}
 	</div>
 </footer>
 
@@ -55,7 +59,7 @@
 	.end {
 		display: flex;
 		align-items: center;
-		gap: var(--s2);
+		gap: var(--s6);
 		flex: none;
 	}
 </style>

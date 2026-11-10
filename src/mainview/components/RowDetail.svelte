@@ -4,6 +4,7 @@
 		CHIP,
 		COLUMN,
 		KIND_LABEL,
+		NO_RESTORE,
 		TEXT,
 		releasedLabel,
 		restoreLabel,
@@ -14,6 +15,7 @@
 	} from "../lib/copy";
 	import { clockTime, formatBytes, relativeTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
+	import { type Inline, parseNotes } from "../lib/notes";
 	import { CARE, glyphColor } from "../lib/state";
 	import Glyph from "./Glyph.svelte";
 	import Stem from "./Stem.svelte";
@@ -33,6 +35,8 @@
 	const care = $derived(CARE[app.status]);
 	const failed = $derived(app.status === "failed" || app.status === "rolled_back");
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
+	const chip = $derived(app.kind === "legacy" ? CHIP.runningLegacy : CHIP.running);
+	const notes = $derived(app.notes ? parseNotes(app.notes) : []);
 
 	async function retryOne() {
 		await model.install([app.key]);
@@ -55,23 +59,41 @@
 		// The Restore button for the now-installed version goes away; keep focus on the result it produced.
 		await tick();
 		resultEl?.focus();
+		// The row moves to Held back; bring it into view so the open row stays in sight.
+		document.querySelector(`[data-row="${CSS.escape(app.key)}"]`)?.scrollIntoView({ block: "nearest" });
 	}
 </script>
 
+{#snippet runs(parts: Inline[])}
+	{#each parts as part, i (i)}
+		{#if part.t === "code"}<code class="mono inl">{part.s}</code>{:else if part.t === "bold"}<strong>{part.s}</strong
+			>{:else if part.t === "url"}
+			{#if part.s === app.releaseUrl}
+				<button type="button" class="url linkish" onclick={() => model.request("open", { what: "release", key: app.key })}
+					>{part.s}</button
+				>
+			{:else}<span class="url">{part.s}</span>{/if}
+		{:else}{part.s}{/if}
+	{/each}
+{/snippet}
+
 <section class="detail" id="detail-{app.key}" data-testid="detail-{app.key}" aria-labelledby="pane-name-{app.key}">
-	<header class="head" style:--band={care.band}>
-		<span class="band" aria-hidden="true"></span>
+	<header class="head">
 		<div class="name-line">
 			<Glyph name={care.glyph} color={glyphColor(app.status)} />
 			<h2 class="tag-name" id="pane-name-{app.key}">{app.name}</h2>
-			<button type="button" class="close btn small quiet" data-testid="inspector-close" aria-label="Close" onclick={onclose}>
-				<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
+			<!-- Docked: a close cross. As a sheet under 900 px: Back to list, first in the header. -->
+			<button type="button" class="close btn small" data-testid="inspector-close" onclick={onclose}>
+				<svg class="x" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
+				<svg class="back" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5" /></svg>
+				<span class="backtext">{TEXT.backToList}</span>
 			</button>
 		</div>
 		<div class="sub">
 			{#if app.repo}<span class="latin">{app.repo}</span>{/if}
 			<span class="kind">{KIND_LABEL[app.kind]}</span>
-			{#if app.running}<span class="chip running" title={CHIP.running.title}>{CHIP.running.text}</span>{/if}
+			{#if app.running}<span class="chip-use" title={chip.title}><span class="dot" aria-hidden="true"></span>{chip.text}</span
+				>{/if}
 			{#if app.sudo}<span class="chip" title={CHIP.root.title}>{CHIP.root.text}</span>{/if}
 			{#if app.auto}<span class="chip" title={CHIP.auto.title}>{CHIP.auto.text}</span>{/if}
 		</div>
@@ -90,7 +112,7 @@
 					class="btn"
 					data-testid="retry-one"
 					disabled={inRun}
-					onclick={retryOne}>Retry</button
+					onclick={retryOne}>{TEXT.retry}</button
 				>
 			</div>
 		{/if}
@@ -123,7 +145,7 @@
 	<div class="block">
 		<h3>{TEXT.restorePoints}</h3>
 		{#if app.restorePoints.length === 0}
-			<p class="none">{TEXT.none}</p>
+			<p class="none" data-testid="no-restore">{(!app.canRestore && NO_RESTORE[app.kind]) || TEXT.none}</p>
 		{:else}
 			<ul class="points">
 				{#each app.restorePoints as point (point.version)}
@@ -197,8 +219,22 @@
 		<div class="block">
 			<h3>{TEXT.whatChanged}</h3>
 			{#if app.publishedAt}<span class="released">{releasedLabel(relativeTime(app.publishedAt))}</span>{/if}
-			{#if app.notes}
-				<p class="notes">{app.notes}</p>
+			{#if notes.length > 0}
+				<div class="notes" data-testid="notes">
+					{#each notes as block, b (b)}
+						{#if block.t === "list"}
+							<ul>
+								{#each block.items as item, i (i)}
+									<li>{@render runs(item)}</li>
+								{/each}
+							</ul>
+						{:else if block.t === "heading"}
+							<p class="nh">{@render runs(block.inline)}</p>
+						{:else}
+							<p>{@render runs(block.inline)}</p>
+						{/if}
+					{/each}
+				</div>
 			{:else}
 				<p class="none">{TEXT.noNotes}</p>
 			{/if}
@@ -223,7 +259,7 @@
 	</dl>
 
 	<div class="block">
-		<h3>{TEXT.log}</h3>
+		<h3>{TEXT.logTitle}</h3>
 		{#if lines.length === 0}
 			<p class="none">{TEXT.noLog}</p>
 		{:else}
@@ -247,16 +283,8 @@
 		position: relative;
 		display: grid;
 		gap: var(--s2);
-		padding: var(--s4) 0 var(--s4) var(--s3);
+		padding: var(--s4) 0;
 		border-bottom: 1px solid var(--line-soft);
-	}
-	.head .band {
-		position: absolute;
-		left: 0;
-		top: var(--s4);
-		bottom: var(--s4);
-		width: 4px;
-		background: var(--band);
 	}
 	.name-line {
 		display: flex;
@@ -274,10 +302,90 @@
 	}
 	.close {
 		flex: none;
-		width: 28px;
+		min-width: 28px;
 		height: 28px;
+		padding: 0 6px;
+	}
+	.back,
+	.backtext {
+		display: none;
+	}
+	@media (max-width: 899px) {
+		.close {
+			order: -1;
+			margin-right: var(--s2);
+			padding: 0 var(--s3) 0 var(--s2);
+		}
+		.x {
+			display: none;
+		}
+		.back,
+		.backtext {
+			display: inline;
+		}
+	}
+	@media (min-width: 900px) {
+		/* The words stay as the button's name when only the cross shows. */
+		.backtext {
+			display: inline;
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+		}
+	}
+	.chip-use {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-size: var(--fs-11);
+		font-weight: 540;
+		color: var(--text-2);
+		cursor: help;
+	}
+	.dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--text-2);
+	}
+	.notes {
+		display: grid;
+		gap: var(--s2);
+		max-width: 68ch;
+		line-height: 1.5;
+		color: var(--text);
+		overflow-wrap: anywhere;
+	}
+	.notes ul {
+		margin: 0;
+		padding-left: 1.2em;
+	}
+	.notes .nh {
+		font-weight: 640;
+		margin-top: var(--s1);
+	}
+	.inl {
+		font-size: 0.92em;
+		padding: 0 3px;
+		border-radius: 3px;
+		background: var(--ground);
+	}
+	.url {
+		color: var(--water);
+		overflow-wrap: anywhere;
+	}
+	.linkish {
 		padding: 0;
-		border-color: var(--line);
+		border: 0;
+		background: none;
+		font: inherit;
+		text-align: left;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		cursor: pointer;
 	}
 	.close svg,
 	.ext {
@@ -290,7 +398,8 @@
 	.sub,
 	.state,
 	.stem,
-	.sentence {
+	.sentence,
+	.head > div:last-child:has(.btn) {
 		padding-left: 24px;
 	}
 	.sub {
@@ -335,10 +444,12 @@
 	.pane-status.s-manual {
 		color: var(--bloom);
 	}
-	.pane-status.s-problem,
+	.pane-status.s-problem {
+		color: var(--rust);
+	}
 	.pane-status.s-failed,
 	.pane-status.s-rolled_back {
-		color: var(--rust);
+		color: var(--fail);
 	}
 	.sentence {
 		margin: 0;
@@ -363,12 +474,6 @@
 	.released {
 		font-size: var(--fs-12);
 		color: var(--text-3);
-	}
-	.notes {
-		white-space: pre-line;
-		color: var(--text);
-		max-width: 68ch;
-		line-height: 1.5;
 	}
 	.note {
 		color: var(--text-2);
@@ -470,6 +575,8 @@
 		font-size: var(--fs-11);
 		line-height: 1.6;
 		color: var(--text-2);
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
 	}
 	time {
 		color: var(--text-3);

@@ -6,6 +6,7 @@
 	let { model }: { model: Model } = $props();
 
 	const idle = $derived(model.run.phase === "idle");
+	const partial = $derived(model.tickedApps.some((a) => typeof a.size !== "number") && model.tickedBytes !== null);
 
 	let allBtn = $state<HTMLButtonElement | null>(null);
 	let noneBtn = $state<HTMLButtonElement | null>(null);
@@ -20,7 +21,12 @@
 </script>
 
 <div class="selection">
-	<span class="count" data-testid="selection" aria-live="polite">{selectionText(model.tickedApps.length, model.tickedBytes)}</span>
+	<span class="count" data-testid="selection" aria-live="polite" title={partial ? TEXT.sizesUnknown : undefined}>{selectionText(
+		model.tickedApps.length,
+		model.tickedBytes,
+		partial,
+		model.hiddenTicked,
+	)}</span>
 	<span class="links">
 		<button
 			type="button"

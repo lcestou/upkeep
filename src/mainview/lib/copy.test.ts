@@ -60,14 +60,18 @@ test("install and selection labels", () => {
 	expect(selectionText(0, null)).toBe("Nothing selected");
 	expect(selectionText(2, null)).toBe("2 selected");
 	expect(selectionText(4, 110_143_744)).toBe("4 selected · 110 MB");
+	expect(selectionText(4, 110_143_744, true, 1)).toBe("4 selected · 110 MB+ · 1 hidden");
 });
 
 test("status text", () => {
 	expect(statusText(app({ status: "working", stage: "download", stagePct: 41.6 }))).toBe("Downloading 42%");
+	expect(statusText(app({ status: "working", stage: "download", stagePct: 40, size: 30_000_000 }))).toBe(
+		"Downloading 12.0 of 30 MB",
+	);
 	expect(statusText(app({ status: "working", stage: "backup" }))).toBe("Backing up");
 	expect(statusText(app({ status: "working", stage: "verify" }))).toBe("Verifying");
 	expect(statusText(app({ status: "done", installed: "10.5.2" }))).toBe("Updated to 10.5.2");
-	expect(statusText(app({ status: "done", restartToApply: true }))).toBe("Restart to apply");
+	expect(statusText(app({ status: "done", restartToApply: true }))).toBe("Restart fd to finish");
 	expect(statusText(app({ status: "rolled_back", installed: "10.5.1" }))).toBe("Rolled back to 10.5.1");
 	expect(statusText(app({ status: "held", skipped: "10.5.2" }))).toBe("Skipping 10.5.2");
 	expect(statusText(app({ status: "held" }))).toBe("Held");

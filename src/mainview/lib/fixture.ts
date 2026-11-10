@@ -482,7 +482,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			await sleep(200 / speed);
 		}
 		const at = iso(Date.now());
-		for (const r of results) history.unshift({ ...r, runId, at, stages: {} });
+		// Newest run first, and within a run the apps in the order they ran.
+		history.unshift(...results.map((r) => ({ ...r, runId, at, stages: {} })));
 		log(runId, null, "Run finished.");
 		setRun({ phase: "summary", currentKey: null, results });
 	}

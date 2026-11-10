@@ -14,7 +14,7 @@
 	onclick={ontoggle}
 >
 	<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 4.5h10M3 8h10M3 11.5h6" /></svg>
-	{TEXT.log}
+	{open ? TEXT.hideLog : TEXT.log}
 </button>
 
 <style>
