@@ -43,6 +43,12 @@ test("a cmdline that starts with dest, or for an AppImage contains it, is runnin
 	expect(isRunning({ kind: "archive", dest: "/h/.local/bin/ghostty.appimage" }, proc, 9)).toBe(false);
 });
 
+test("an AppImage's path inside a longer argument does not count", () => {
+	fakeProc(302, 1, "vim", ["vim", "/h/.local/bin/lrcget.bak"]);
+	fakeProc(303, 1, "tail", ["tail", "/h/.local/bin/lrcget-notes"]);
+	expect(isRunning({ kind: "appimage", dest: "/h/.local/bin/lrcget" }, proc, 9)).toBe(false);
+});
+
 test("the current process and its ancestors never count", () => {
 	fakeProc(50, 1, "zsh", ["zsh", "-c", "upkeep /h/.local/bin/fd"]);
 	fakeProc(60, 50, "bun", ["/h/.local/bin/fd"]);

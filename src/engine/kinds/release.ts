@@ -41,8 +41,7 @@ export function destOf(spec: AppSpec, ctx: Pick<KindCtx, "paths">): string {
 
 export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult> {
 	const dest = destOf(spec, ctx);
-	if (spec.meta_path)
-		return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run, tmpDir: join(ctx.paths.cache, "tmp") });
+	if (spec.meta_path) return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run });
 	return probeVersion(dest, spec.version_args ?? ["--version"], { run: ctx.run });
 }
 
@@ -92,7 +91,13 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		if (!pick)
 			return { installed, latest, status: "problem", detail: `No release asset matches ${spec.asset}.`, ...base };
 		if (pick.count > 1)
-			ctx.log(`${pick.count} assets match ${spec.asset}: ${pick.names.join(", ")}. Using ${pick.asset.name}.`);
+			return {
+				installed,
+				latest,
+				status: "problem",
+				detail: `More than one release asset matches ${spec.asset}: ${pick.names.join(", ")}. Narrow the pattern in apps.toml.`,
+				...base,
+			};
 		target = { ...target, asset: pick.asset };
 		size = pick.asset.size;
 	}

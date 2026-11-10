@@ -40,8 +40,9 @@ async function attempt(
 	const fh = await open(file, "w");
 	try {
 		const res = await opts.fetch(url, { signal: ctl.signal, redirect: "follow" });
-		if (!res.ok || !res.body) throw new Error(`Download failed: the server answered ${res.status}.`);
+		// An answer of any status is not a network error, so it is not retried.
 		started.any = true;
+		if (!res.ok || !res.body) throw new Error(`Download failed: the server answered ${res.status}.`);
 		const length = Number(res.headers.get("content-length"));
 		const total = length > 0 ? length : null;
 		const hasher = new Bun.CryptoHasher("sha256");

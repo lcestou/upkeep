@@ -69,3 +69,17 @@ test("root steps go through sudo -n and a password prompt is recognised", () => 
 	);
 	expect(sudoNeedsPassword({ code: 1, stdout: "", stderr: "install: cannot stat", timedOut: false })).toBe(false);
 });
+
+test("start reads a process's output while it runs, and stop kills one that ignores SIGTERM", async () => {
+	const s = script(join(t.dir, "stubborn.sh"), "trap '' TERM; echo /mnt/here; while :; do sleep 0.05; done");
+	const run = realRun(t.paths);
+	const p = run.start?.([s], { stopMs: 200 });
+	if (!p) throw new Error("no start");
+	// oxlint-disable-next-line no-await-in-loop -- polling for the first line
+	for (let i = 0; i < 40 && !p.output(); i++) await Bun.sleep(25);
+	expect(p.output()).toBe("/mnt/here\n");
+	const t0 = Date.now();
+	await p.stop();
+	expect(Date.now() - t0).toBeLessThan(1500);
+	expect(readdirSync(join(t.paths.cache, "tmp"))).toEqual([]);
+});

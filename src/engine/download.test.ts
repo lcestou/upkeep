@@ -78,6 +78,18 @@ test("a network error before the first byte is retried once", async () => {
 	expect(fails).toBe(2);
 });
 
+test("an HTTP error answer is not retried", async () => {
+	let calls = 0;
+	const counted: FetchLike = async (url, init) => {
+		calls += 1;
+		return fetch(url, init);
+	};
+	await expect(download(`${base()}/gone`, join(dir, "gone.bin"), { fetch: counted, retryMs: 10 })).rejects.toThrow(
+		"Download failed: the server answered 404.",
+	);
+	expect(calls).toBe(1);
+});
+
 test("verifyAsset checks size and digest", () => {
 	const r = { bytes: 10, sha256: "ab" };
 	expect(() => verifyAsset(r, { size: 10, digest: "sha256:ab" })).not.toThrow();

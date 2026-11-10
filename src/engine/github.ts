@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Run } from "./run";
 import { tagVersion } from "./version";
@@ -102,11 +102,19 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 	if (hasRate) opts.onRate?.({ limit, remaining });
 	const reset = Number(res.headers.get("x-ratelimit-reset"));
 	const resetAt = reset > 0 ? new Date(reset * 1000).toISOString() : undefined;
-	if (res.status === 304 && cached) return toRelease(cached.body, repo);
+	if (res.status === 304 && cached) {
+		const r = toRelease(cached.body, repo);
+		// A corrupt cache would otherwise stick until upstream's etag changes.
+		if (isFailure(r)) rmSync(cacheFile, { force: true });
+		return r;
+	}
 	const text = await res.text();
+	// Only an error answer can be a rate limit: release notes may quote the phrase.
 	if (
-		text.includes("API rate limit exceeded") ||
-		((res.status === 403 || res.status === 429) && hasRate && remaining === 0)
+		!res.ok &&
+		(text.includes("API rate limit exceeded") ||
+			text.includes("secondary rate limit") ||
+			((res.status === 403 || res.status === 429) && hasRate && remaining === 0))
 	)
 		return { failure: "rate", detail: "GitHub's request limit is used up. Try again after it resets.", resetAt };
 	if (!res.ok) return { failure: "http", detail: `GitHub answered ${res.status} for ${repo}.` };

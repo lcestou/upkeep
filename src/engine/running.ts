@@ -58,7 +58,7 @@ export function isRunning(
 		}
 		if (args[0] === spec.dest) return true;
 		// An AppImage re-execs from its mount; only its FUSE daemon still carries the image path.
-		if (spec.kind === "appimage" && args.some((a) => a.includes(spec.dest ?? ""))) return true;
+		if (spec.kind === "appimage" && args.some((a) => a === spec.dest)) return true;
 	}
 	return false;
 }

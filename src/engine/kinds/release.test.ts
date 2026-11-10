@@ -120,10 +120,11 @@ test("check: a missing asset, a rate limit, and several matching assets", async 
 		detail: "No release asset matches x86_64\\.AppImage$.",
 	});
 	publish("1.1.0", { "a-x86_64.AppImage": bash(""), "b-x86_64.AppImage": bash("") });
-	await checkRelease(zen(), ctx());
-	expect(lines.at(-1)).toBe(
-		"2 assets match x86_64\\.AppImage$: a-x86_64.AppImage, b-x86_64.AppImage. Using a-x86_64.AppImage.",
-	);
+	expect(await checkRelease(zen(), ctx())).toMatchObject({
+		status: "problem",
+		detail:
+			"More than one release asset matches x86_64\\.AppImage$: a-x86_64.AppImage, b-x86_64.AppImage. Narrow the pattern in apps.toml.",
+	});
 	const c = { ...ctx(), fetch: limited };
 	expect(await checkRelease(zen(), c)).toMatchObject({ status: "problem", installed: "1.0.0", latest: null });
 });

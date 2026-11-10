@@ -27,7 +27,7 @@ import { canRestore, checkRelease, installRelease, probeInstalled } from "./kind
 import { checkSource, installSource } from "./kinds/source";
 import { ensureManifest, loadManifest } from "./manifest";
 import { expandHome, type Paths } from "./paths";
-import type { Run } from "./run";
+import type { Run, RunOpts } from "./run";
 import { isRunning } from "./running";
 import {
 	appendHistory,
@@ -320,7 +320,9 @@ export function createEngine(deps: EngineDeps): Engine {
 		const fetchSlot = limiter(8);
 		const probeSlot = limiter(4);
 		const limitedFetch: FetchLike = (url, init) => fetchSlot(() => deps.fetch(url, init));
-		const limitedRun: Run = (argv, opts) => probeSlot(() => deps.run(argv, opts));
+		const limitedRun: Run = Object.assign((argv: string[], opts?: RunOpts) => probeSlot(() => deps.run(argv, opts)), {
+			start: deps.run.start,
+		});
 		const done = () => {
 			run.index += 1;
 			emitRun();

@@ -20,8 +20,23 @@ export type RunOpts = {
 
 export type RunResult = { code: number; stdout: string; stderr: string; timedOut: boolean };
 
-/** Every process the engine starts goes through one of these, so tests can pass a recording fake. */
-export type Run = (argv: string[], opts?: RunOpts) => Promise<RunResult>;
+/** A process left running in the background, for one that never ends on its own (an AppImage mount). */
+export type Started = {
+	/** Everything it has written to stdout so far. */
+	output(): string;
+	/** SIGTERM, then SIGKILL after stopMs. Never waits without a limit. */
+	stop(): Promise<void>;
+};
+
+export type StartOpts = { pathPrefix?: string; stopMs?: number };
+
+/**
+ * Every process the engine starts goes through one of these, so tests can pass a recording fake.
+ * start is for a process the caller reads and then stops; a runner without it cannot start one.
+ */
+export type Run = ((argv: string[], opts?: RunOpts) => Promise<RunResult>) & {
+	start?: (argv: string[], opts?: StartOpts) => Started;
+};
 
 /** Child pids of every process under procRoot whose parent is pid. */
 function children(pid: number, procRoot: string): number[] {
@@ -60,9 +75,53 @@ export function killTree(pid: number, procRoot = "/proc"): void {
 export function createRunner(home: string, tmpDir: string, basePath: string): Run {
 	const path = [join(home, ".local/bin"), join(home, ".bun/bin"), basePath].filter(Boolean).join(":");
 	let seq = 0;
-	return async (argv, opts = {}) => {
+	const envFor = (prefix?: string, extra?: Record<string, string>) => ({
+		...process.env,
+		PATH: prefix ? `${prefix}:${path}` : path,
+		...extra,
+	});
+	const start = (argv: string[], opts: StartOpts = {}): Started => {
+		mkdirSync(tmpDir, { recursive: true });
+		seq += 1;
+		const outFile = join(tmpDir, `start-${process.pid}-${seq}.out`);
+		const fd = openSync(outFile, "w", 0o600);
+		let proc: ReturnType<typeof Bun.spawn> | null = null;
+		try {
+			proc = Bun.spawn(
+				argv.map((a) => expandHome(a, home)),
+				{ env: envFor(opts.pathPrefix), stdin: "ignore", stdout: fd, stderr: "ignore" },
+			);
+		} catch {
+			// output() stays empty, so the caller sees a process that said nothing
+		} finally {
+			closeSync(fd);
+		}
+		const p = proc;
+		const exited = (ms: number) =>
+			p ? Promise.race([p.exited.then(() => true), Bun.sleep(ms).then(() => false)]) : Promise.resolve(true);
+		return {
+			output: () => {
+				try {
+					return readFileSync(outFile, "utf8");
+				} catch {
+					return "";
+				}
+			},
+			stop: async () => {
+				const ms = opts.stopMs ?? 3000;
+				p?.kill("SIGTERM");
+				if (!(await exited(ms))) {
+					p?.kill("SIGKILL");
+					// A process stuck in the kernel (FUSE in D state) may never exit: stop waiting anyway.
+					await exited(ms);
+				}
+				rmSync(outFile, { force: true });
+			},
+		};
+	};
+	const run = async (argv: string[], opts: RunOpts = {}): Promise<RunResult> => {
 		const cmd = argv.map((a) => expandHome(a, home));
-		const env = { ...process.env, PATH: opts.pathPrefix ? `${opts.pathPrefix}:${path}` : path, ...opts.env };
+		const env = envFor(opts.pathPrefix, opts.env);
 		const stream = opts.onLine !== undefined;
 		let outFile = "";
 		let errFile = "";
@@ -126,6 +185,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		}
 		return { code: timedOut ? 137 : code, stdout, stderr, timedOut };
 	};
+	return Object.assign(run, { start });
 }
 
 async function readAndRemove(file: string): Promise<string> {

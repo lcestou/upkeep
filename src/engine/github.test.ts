@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -34,7 +34,7 @@ const down: FetchLike = async () => {
 let dir = "";
 let server: ReturnType<typeof Bun.serve>;
 let hits: { url: string; headers: Headers }[] = [];
-let mode: "ok" | "rate" | "rate-body" | "missing" = "ok";
+let mode: "ok" | "rate" | "rate-body" | "notes" | "missing" = "ok";
 
 beforeAll(() => {
 	server = Bun.serve({
@@ -48,7 +48,11 @@ beforeAll(() => {
 					headers: { ...rate, "x-ratelimit-reset": "1800000000" },
 				});
 			if (mode === "rate-body")
-				return new Response('{"message":"API rate limit exceeded for 1.2.3.4."}', { status: 200, headers: rate });
+				return new Response('{"message":"API rate limit exceeded for 1.2.3.4."}', { status: 403, headers: rate });
+			if (mode === "notes")
+				return new Response(JSON.stringify({ ...RELEASE, body: "Handles API rate limit exceeded answers." }), {
+					headers: { ...rate, etag: '"e2"' },
+				});
 			if (mode === "missing") return new Response('{"message":"Not Found"}', { status: 404, headers: rate });
 			if (req.headers.get("if-none-match") === '"e1"') return new Response(null, { status: 304, headers: rate });
 			return new Response(JSON.stringify(RELEASE), { headers: { ...rate, etag: '"e1"' } });
@@ -99,6 +103,20 @@ test("a body that says the rate limit was exceeded is a rate failure", async () 
 	mode = "rate-body";
 	const r = await fetchRelease("sharkdp/fd", { cacheDir: dir, fetch, api: api() });
 	expect(isFailure(r) && r.failure).toBe("rate");
+});
+
+test("a release whose notes quote the rate limit phrase is a release, and its cache is written", async () => {
+	mode = "notes";
+	const r = await fetchRelease("sharkdp/fd", { cacheDir: dir, fetch, api: api() });
+	expect(isFailure(r)).toBe(false);
+	expect(readdirSync(dir)).toEqual(["sharkdp__fd.json"]);
+});
+
+test("a corrupt cached body answered by a 304 is dropped so the next check starts clean", async () => {
+	writeFileSync(join(dir, "sharkdp__fd.json"), JSON.stringify({ etag: '"e1"', body: "not json" }));
+	const r = await fetchRelease("sharkdp/fd", { cacheDir: dir, fetch, api: api() });
+	expect(isFailure(r) && r.failure).toBe("http");
+	expect(readdirSync(dir)).toEqual([]);
 });
 
 test("a 404 is a failure with the status", async () => {
