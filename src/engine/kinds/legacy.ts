@@ -34,6 +34,7 @@ export type LegacyCtx = KindCtx & {
 export const NO_SCRIPT = "The old updater script is not installed.";
 export const OLD_RUNNING = "The old updater is already running.";
 export const NOT_FINISHED = "The old script did not finish this update. See the log.";
+export const CHECK_INCOMPLETE = "The old updater's check did not finish.";
 
 const LINE = /^\s+(OK|UPDATE|SKIP|BROKEN):\s+(.+)$/;
 
@@ -126,6 +127,7 @@ export function readLine(tag: string, rest: string): Checked {
 /**
  * Runs the old script's --check once and maps its lines onto the legacy and manual specs.
  * onApp fires as each line arrives. A spec with no line is left out (null), except versionless ones.
+ * A check that times out, exits non-zero or prints no line at all makes every spec a problem (CHECK_INCOMPLETE).
  */
 export async function checkLegacy(
 	specs: AppSpec[],
@@ -143,28 +145,41 @@ export async function checkLegacy(
 	}
 	for (const s of specs) if (s.versionless) set(s.key, { installed: null, latest: null, status: "fresh" });
 	const shims = prepareShims(ctx);
+	let incomplete = true;
+	let matched = false;
 	try {
-		await ctx.run([ctx.oldScript, "--check"], {
+		const r = await ctx.run([ctx.oldScript, "--check"], {
 			pathPrefix: shims.dir,
 			env: shims.env,
 			timeoutMs: 5 * 60_000,
 			killTree: true,
 			onLine: (line) => {
 				const hit = matchLine(specs, line);
-				if (hit && !hit.spec.versionless) set(hit.spec.key, readLine(hit.tag, hit.rest));
+				if (hit && !hit.spec.versionless) {
+					set(hit.spec.key, readLine(hit.tag, hit.rest));
+					matched = true;
+				}
 			},
 		});
+		// Every old path exits 0 (line 2276): a timeout, a crash or a check that matched nothing is not "absent".
+		incomplete = r.timedOut || r.code !== 0 || !matched;
 	} finally {
 		shims.cleanup();
+	}
+	if (incomplete) {
+		ctx.log(CHECK_INCOMPLETE);
+		for (const s of specs) set(s.key, { installed: null, latest: null, status: "problem", detail: CHECK_INCOMPLETE });
+		return out;
 	}
 	for (const s of specs) if (!out.has(s.key)) out.set(s.key, null);
 	return out;
 }
 
+/** The lock is live only while its pid is the old script: a pid reused by another process does not block. */
 function liveLock(file: string, procRoot: string): boolean {
 	try {
 		const pid = readFileSync(file, "utf8").trim();
-		return /^\d+$/.test(pid) && existsSync(join(procRoot, pid));
+		return /^\d+$/.test(pid) && readFileSync(join(procRoot, pid, "cmdline"), "utf8").includes("lutechi-updater");
 	} catch {
 		return false;
 	}

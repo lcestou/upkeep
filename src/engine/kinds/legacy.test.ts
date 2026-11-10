@@ -7,6 +7,7 @@ import notifyShim from "../shim/notify-send.sh" with { type: "text" };
 import zenityShim from "../shim/zenity.sh" with { type: "text" };
 import { realRun, tempHome } from "../testkit";
 import {
+	CHECK_INCOMPLETE,
 	checkLegacy,
 	installLegacy,
 	legacyVerdict,
@@ -228,9 +229,15 @@ test("verdicts: a version that did not move, and versionless apps judged by the 
 
 test("the old script's live lock is waited on, then refused", async () => {
 	mkdirSync(join(proc, "555"));
+	writeFileSync(join(proc, "555/cmdline"), "/bin/bash\0/home/u/.local/bin/lutechi-updater\0");
 	writeFileSync(join(t.dir, "lutechi-updater.lock"), "555\n");
 	expect(await installLegacy(spec("cursor"), ctx({ lockWaitMs: 50 }))).toEqual({ failed: OLD_RUNNING, oldLines: [] });
 	writeFileSync(join(t.dir, "lutechi-updater.lock"), "556\n");
+	expect((await installLegacy(spec("cursor"), ctx({ lockWaitMs: 50 }))).failed).toBeUndefined();
+	// A pid that now belongs to another process is a stale lock.
+	mkdirSync(join(proc, "557"));
+	writeFileSync(join(proc, "557/cmdline"), "/usr/bin/vim\0notes.txt\0");
+	writeFileSync(join(t.dir, "lutechi-updater.lock"), "557\n");
 	expect((await installLegacy(spec("cursor"), ctx({ lockWaitMs: 50 }))).failed).toBeUndefined();
 });
 
@@ -354,4 +361,20 @@ test("an old log that shrank during the run is read from its start", async () =>
 	const run = await installLegacy(spec("omp-plugins"), ctx());
 	expect(run.oldLines).toEqual(["[t] omp plugin a update failed"]);
 	expect(legacyVerdict(spec("omp-plugins"), null, undefined, run)).toMatchObject({ result: "failed" });
+});
+
+test("a --check that exits non-zero, times out or prints no line makes every legacy and manual app a problem", async () => {
+	const incomplete = { installed: null, latest: null, status: "problem" as const, detail: CHECK_INCOMPLETE };
+	writeFileSync(oldScript, '#!/bin/bash\necho "  OK:     Cursor 2.0.1"\nexit 2\n', { mode: 0o755 });
+	const crashed = await checkLegacy(SPECS, ctx());
+	expect([...crashed.values()].every((c) => JSON.stringify(c) === JSON.stringify(incomplete))).toBe(true);
+	expect(crashed.size).toBe(SPECS.length);
+	expect(lines).toContain(CHECK_INCOMPLETE);
+	writeFileSync(oldScript, "#!/bin/bash\necho banner only\nexit 0\n", { mode: 0o755 });
+	expect((await checkLegacy(SPECS, ctx())).get("cursor")).toEqual(incomplete);
+	const timedOut = await checkLegacy(
+		SPECS,
+		ctx({ run: async () => ({ code: 137, stdout: "", stderr: "", timedOut: true }) }),
+	);
+	expect(timedOut.get("claude-plugins")).toEqual(incomplete);
 });

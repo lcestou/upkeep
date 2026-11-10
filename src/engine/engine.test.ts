@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD } from "./engine";
 import type { FetchLike } from "./github";
-import { readInflight, writeInflight } from "./store";
+import { claimLock, readInflight, readRunLog, writeInflight } from "./store";
 import { realRun, recordingRun, script, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -283,6 +283,7 @@ test("install refuses while checking, with nothing ready, and while the old upda
 	await checking;
 	expect(await engine.install(["bat", "strata"])).toEqual({ started: false, reason: REASON_NOTHING });
 	mkdirSync(join(proc, "4321"));
+	writeFileSync(join(proc, "4321/cmdline"), "/bin/bash\0/home/u/.local/bin/lutechi-updater\0");
 	writeFileSync(join(t.dir, "lutechi-updater.lock"), "4321");
 	expect(await engine.install(["fd"])).toEqual({ started: false, reason: REASON_OLD });
 	expect(statuses(engine).fd).toBe("ready");
@@ -437,4 +438,62 @@ test("a legacy app whose install throws is in the results as failed", async () =
 	await engine.idle();
 	expect(engine.snapshot().run.results.map((r) => [r.key, r.result])).toEqual([["cursor", "failed"]]);
 	expect(statuses(engine).cursor).toBe("failed");
+	const log = readRunLog(t.paths, engine.snapshot().run.id ?? "").map((l) => l.text);
+	expect(log.some((l) => l.startsWith("failed: "))).toBe(true);
+});
+
+test("a second engine leaves another process's install in progress alone", async () => {
+	const d = await deps();
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	writeFileSync(join(bin, "fd.upkeep-new"), "half");
+	mkdirSync(join(proc, "4242"));
+	writeFileSync(join(proc, "4242/stat"), "4242 (bun) S 1 1 1 0 -1 0 0 0 0 0 0 0 0 0 20 0 1 0 5555 0 0");
+	expect(claimLock(t.paths, 4242, proc)).toBe(true);
+	createEngine(d);
+	expect(readInflight(t.paths)).toEqual({ key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	expect(existsSync(join(bin, "fd.upkeep-new"))).toBe(true);
+	expect(readFileSync(join(t.paths.state, "run.lock"), "utf8")).toBe("4242 5555");
+});
+
+test("a check whose old updater did not finish keeps the legacy rows' last versions", async () => {
+	const d = await deps();
+	const engine = createEngine(d);
+	await engine.check();
+	expect(engine.snapshot().apps.find((a) => a.key === "cursor")).toMatchObject({ installed: "2.0.1", status: "ready" });
+	script(d.oldScript, "exit 2");
+	await engine.check();
+	expect(engine.snapshot().apps.find((a) => a.key === "cursor")).toMatchObject({
+		installed: "2.0.1",
+		latest: "2.1.0",
+		status: "problem",
+		detail: "The old updater's check did not finish.",
+	});
+});
+
+test("a legacy app whose script has ended waits for the verdict check in stage verify", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	const seen: [string | undefined, number | null | undefined][] = [];
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "cursor" && e.app.status === "working")
+			seen.push([e.app.stage, e.app.stagePct]);
+	});
+	await engine.install(["cursor"]);
+	await engine.idle();
+	expect(seen.at(-1)).toEqual(["verify", null]);
+	expect(seen.some(([, p]) => p === 100)).toBe(false);
+	expect(statuses(engine).cursor).toBe("done");
+});
+
+test("every legacy failure writes its reason to the run log", async () => {
+	const d = await deps();
+	const engine = createEngine(d);
+	await engine.check();
+	script(d.oldScript, 'case "$1" in --check) echo "  UPDATE: Cursor 2.0.1 -> 2.1.0";; esac');
+	await engine.install(["cursor"]);
+	await engine.idle();
+	const id = engine.snapshot().run.id ?? "";
+	expect(readRunLog(t.paths, id).map((l) => l.text)).toContain(
+		"failed: The old script did not finish this update. See the log.",
+	);
 });

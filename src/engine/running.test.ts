@@ -57,3 +57,16 @@ test("the current process and its ancestors never count", () => {
 	fakeProc(80, 1, "fd", ["/h/.local/bin/fd"]);
 	expect(isRunning({ kind: "archive", dest: "/h/.local/bin/fd" }, proc, 70)).toBe(true);
 });
+
+test("our own probes never count: a descendant of this process, or any process with an AppImage probe flag", () => {
+	const dest = "/h/.local/bin/lrcget";
+	const spec = { kind: "appimage" as const, dest };
+	fakeProc(9, 1, "bun", ["bun", "upkeep"]);
+	fakeProc(400, 9, "lrcget", [dest, "--appimage-mount"]);
+	fakeProc(401, 400, "lrcget", [dest]);
+	fakeProc(402, 1, "lrcget", [dest, "--appimage-extract"]);
+	fakeProc(403, 1, "lrcget", [dest, "--appimage-version"]);
+	expect(isRunning(spec, proc, 9)).toBe(false);
+	fakeProc(404, 1, "lrcget", [dest]);
+	expect(isRunning(spec, proc, 9)).toBe(true);
+});

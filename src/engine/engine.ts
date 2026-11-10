@@ -19,6 +19,7 @@ import {
 	checkLegacy,
 	installLegacy,
 	legacyVerdict,
+	CHECK_INCOMPLETE,
 	type LegacyCtx,
 	type LegacyRun,
 	oldUpdaterRunning,
@@ -180,8 +181,9 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	// An install that never reached its verify: say so on that row once it is checked.
 	const interrupted = new Map<string, string>();
+	// Only when this process can claim run.lock: another process's install in progress is not a leftover.
 	const leftover = readInflight(paths);
-	if (leftover) {
+	if (leftover && claimLock(paths, process.pid, deps.procRoot)) {
 		const name = specs.find((s) => s.key === leftover.key)?.name ?? leftover.key;
 		interrupted.set(
 			leftover.key,
@@ -191,6 +193,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		);
 		rmSync(`${leftover.dest}.upkeep-new`, { force: true });
 		clearInflight(paths);
+		releaseLock(paths);
 	}
 
 	const specOf = (key: string) => specs.find((s) => s.key === key);
@@ -303,6 +306,13 @@ export function createEngine(deps: EngineDeps): Engine {
 		emitApp(app);
 	}
 
+	/** A check that did not finish keeps the row's last known versions. */
+	function keepVersions(key: string, c: Checked): Checked {
+		if (c.detail !== CHECK_INCOMPLETE) return c;
+		const prev = apps.get(key);
+		return { ...c, installed: prev?.installed ?? null, latest: prev?.latest ?? null };
+	}
+
 	async function doCheck(keys?: string[]): Promise<void> {
 		const list = loadSpecs().filter((s) => !keys || keys.includes(s.key));
 		run = {
@@ -357,7 +367,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				: checkLegacy(old, kindCtx(""), (key, c) => {
 						const spec = specOf(key);
 						if (spec && c) {
-							accept(spec, c, history);
+							accept(spec, keepVersions(key, c), history);
 							done();
 						}
 					}).then((all) => {
@@ -366,6 +376,12 @@ export function createEngine(deps: EngineDeps): Engine {
 							if (spec && !c) {
 								accept(spec, null, history);
 								done();
+							}
+							// Read once the old script and its probes have ended, so they never count as the app.
+							const a = apps.get(key);
+							if (spec && a && c) {
+								a.running = runningNow(spec);
+								emitApp(a);
 							}
 						}
 					});
@@ -419,7 +435,7 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	async function doRun(queue: AppSpec[]): Promise<void> {
 		const history: HistoryRow[] = [];
-		const legacyRuns = new Map<string, { run: LegacyRun; before: string | null; started: number }>();
+		const legacyRuns = new Map<string, { run: LegacyRun; before: string | null; started: number; ended: number }>();
 		for (const [i, spec] of queue.entries()) {
 			if (run.stopping) {
 				backToReady(queue.slice(i));
@@ -449,6 +465,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				}));
 				if (lr.failed) {
 					finishApp(app, { result: "failed", installed: from, detail: lr.failed, restartToApply: false });
+					say(spec.key, `failed: ${lr.failed}`);
 					const ms = Date.now() - started;
 					const result: RunResult = {
 						key: spec.key,
@@ -463,9 +480,11 @@ export function createEngine(deps: EngineDeps): Engine {
 					history.push({ ...result, runId: run.id ?? "", at: deps.now().toISOString(), stages: { install: ms } });
 					emitRun();
 				} else {
-					app.stagePct = 100;
+					// The script has ended: the row waits for the run's one verdict check.
+					app.stage = "verify";
+					app.stagePct = null;
 					emitApp(app);
-					legacyRuns.set(spec.key, { run: lr, before: from, started });
+					legacyRuns.set(spec.key, { run: lr, before: from, started, ended: Date.now() });
 				}
 				continue;
 			}
@@ -499,6 +518,9 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 		if (legacyRuns.size > 0) {
 			say(null, "Checking the old script's apps once more");
+			run = { ...run, currentKey: null };
+			emitRun();
+			const checkStart = Date.now();
 			const legacySpecs = specs.filter((s) => s.kind === "legacy" || s.kind === "manual");
 			const after = await checkLegacy(legacySpecs, kindCtx("")).catch(() => new Map<string, Checked | null>());
 			for (const [key, lr] of legacyRuns) {
@@ -507,6 +529,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				if (!spec || !app) continue;
 				const v = legacyVerdict(spec, lr.before, after.get(key), lr.run);
 				finishApp(app, v);
+				if (v.result !== "done") say(key, `${v.result}: ${v.detail ?? ""}`);
 				const c = after.get(key);
 				if (c) checked.set(key, c);
 				const result: RunResult = {
@@ -519,7 +542,12 @@ export function createEngine(deps: EngineDeps): Engine {
 					ms: Date.now() - lr.started,
 				};
 				run.results.push(result);
-				history.push({ ...result, runId: run.id ?? "", at: deps.now().toISOString(), stages: { install: result.ms } });
+				history.push({
+					...result,
+					runId: run.id ?? "",
+					at: deps.now().toISOString(),
+					stages: { install: lr.ended - lr.started, verify: Date.now() - checkStart },
+				});
 			}
 		}
 		appendHistory(paths, history);

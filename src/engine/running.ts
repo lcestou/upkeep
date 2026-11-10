@@ -20,9 +20,13 @@ function real(path: string): string | null {
 	}
 }
 
+// Our own AppImage probes run the image with one of these; they are never the app.
+const PROBE_FLAGS = new Set(["--appimage-mount", "--appimage-extract", "--appimage-version"]);
+
 /**
  * True when the app has a live process. dest must already be expanded.
- * The current process and its ancestors never count: our own command line can name dest.
+ * The current process, its ancestors and its descendants never count: our own command line,
+ * and the probes we start, can name dest.
  */
 export function isRunning(
 	spec: Pick<AppSpec, "kind" | "dest" | "process">,
@@ -38,9 +42,24 @@ export function isRunning(
 	} catch {
 		return false;
 	}
+	const descends = (pid: number): boolean => {
+		const seen = new Set<number>();
+		for (let p = parentOf(pid, procRoot); p !== null && !seen.has(p); p = parentOf(p, procRoot)) {
+			if (p === selfPid) return true;
+			seen.add(p);
+		}
+		return false;
+	};
 	for (const e of entries) {
-		if (!/^\d+$/.test(e) || skip.has(Number(e))) continue;
+		if (!/^\d+$/.test(e) || skip.has(Number(e)) || descends(Number(e))) continue;
 		const dir = join(procRoot, e);
+		let args: string[] = [];
+		try {
+			args = readFileSync(join(dir, "cmdline"), "utf8").split("\0");
+		} catch {
+			// gone, or not ours to read
+		}
+		if (args.some((a) => PROBE_FLAGS.has(a))) continue;
 		if (spec.process) {
 			try {
 				if (readFileSync(join(dir, "comm"), "utf8").trim() === spec.process) return true;
@@ -50,12 +69,6 @@ export function isRunning(
 		}
 		if (!spec.dest) continue;
 		if (destReal && real(join(dir, "exe")) === destReal) return true;
-		let args: string[] = [];
-		try {
-			args = readFileSync(join(dir, "cmdline"), "utf8").split("\0");
-		} catch {
-			continue;
-		}
 		if (args[0] === spec.dest) return true;
 		// An AppImage re-execs from its mount; only its FUSE daemon still carries the image path.
 		if (spec.kind === "appimage" && args.some((a) => a === spec.dest)) return true;

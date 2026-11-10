@@ -2,6 +2,7 @@ import { join } from "node:path";
 import type { AppState, EngineEvent } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
+import { CHECK_INCOMPLETE } from "./engine/kinds/legacy";
 import { realDeps } from "./engine/real";
 import { formatLogLine } from "./engine/store";
 
@@ -49,7 +50,8 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	await engine.check();
 	await engine.idle();
 	off();
-	return 0;
+	// The old updater's check not finishing is a failed check, not a list of problems.
+	return engine.snapshot().apps.some((a) => a.status === "problem" && a.detail === CHECK_INCOMPLETE) ? 1 : 0;
 }
 
 async function install(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
