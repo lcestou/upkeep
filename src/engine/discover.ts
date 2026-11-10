@@ -44,7 +44,7 @@ export function readInput(input: string): { repo: string } | { file: string } | 
 
 const OTHER_SYSTEM =
 	/darwin|macos|osx|apple|windows|win32|win64|\.exe$|\.msi$|\.dmg$|\.pkg$|android|freebsd|netbsd|openbsd/i;
-const OTHER_ARCH = /arm64|aarch64|armv[0-9]|arm-|i686|i386|x86(?!_64)|ppc64|riscv|s390x/i;
+const OTHER_ARCH = /arm64|aarch64|armv[0-9]|arm-|armhf|armel|i686|i386|x86(?!_64)|ppc64|riscv|s390x/i;
 const SIDE_FILE = /\.(sha256|sha512|sig|asc|zsync|sbom|json|txt|pem|minisig)$/i;
 const OTHER_PACKAGE = /\.(rpm|apk|pacman|flatpak|snap)$/i;
 const UNOPENED = /\.(tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
@@ -83,7 +83,11 @@ export function machineAssets(assets: Asset[], prefer: AppKind[] = []): { candid
 		else if (kind) candidates.push({ asset, kind });
 	}
 	const preferred = (c: Candidate) => (prefer.includes(c.kind) ? 0 : 1);
-	return { candidates: candidates.toSorted((a, b) => preferred(a) - preferred(b) || rank(a) - rank(b)), unopened };
+	// Within a rank the shortest name is the plain build; variants add words (sciter, unattended, musl).
+	const sorted = candidates.toSorted(
+		(a, b) => preferred(a) - preferred(b) || rank(a) - rank(b) || a.asset.name.length - b.asset.name.length,
+	);
+	return { candidates: sorted, unopened };
 }
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -99,11 +103,14 @@ export function assetPattern(
 	const versions = [release.tag, release.version, release.version ? `v${release.version}` : null]
 		.filter((v): v is string => Boolean(v))
 		.toSorted((a, b) => b.length - a.length);
-	let body = escape(name);
-	for (const v of versions) body = body.split(escape(v)).join(".*");
-	const pattern = `^${body}$`;
-	const re = new RegExp(pattern);
-	if (release.assets.filter((a) => re.test(a.name)).length === 1) return { pattern, widen: false };
+	// ".*" first; when that also catches a variant, a wildcard that only spans a version.
+	for (const wild of [".*", "[0-9][0-9A-Za-z.]*"]) {
+		let body = escape(name);
+		for (const v of versions) body = body.split(escape(v)).join(v.startsWith("v") && wild !== ".*" ? `v${wild}` : wild);
+		const pattern = `^${body}$`;
+		const re = new RegExp(pattern);
+		if (release.assets.filter((a) => re.test(a.name)).length === 1) return { pattern, widen: false };
+	}
 	return { pattern: `^${escape(name)}$`, widen: versions.some((v) => name.includes(v)) };
 }
 
@@ -206,17 +213,15 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	const home = ctx.paths.home;
 
 	// What is on disk decides which kinds lead, and where the app goes.
-	let onDisk: { kinds: AppKind[]; path: string } | null = null;
-	if (opts.file) {
-		onDisk = { kinds: opts.file.appimage ? ["appimage"] : ["archive", "file"], path: opts.file.path };
-	} else {
-		const image = findAppImage(ctx, bin);
-		const onPath = image ? null : await which(ctx, bin);
-		if (image) onDisk = { kinds: ["appimage"], path: image };
-		else if (onPath) onDisk = { kinds: onPath.startsWith("/usr/") ? ["deb"] : ["archive", "file"], path: onPath };
-	}
-	const { candidates, unopened } = machineAssets(release.assets, onDisk?.kinds);
-	const usable = opts.file ? candidates.filter((c) => onDisk?.kinds.includes(c.kind)) : candidates;
+	const image = opts.file ? null : findAppImage(ctx, bin);
+	const onPath = opts.file ? null : await which(ctx, bin);
+	let prefer: AppKind[] = [];
+	if (opts.file) prefer = opts.file.appimage ? ["appimage"] : ["archive", "file"];
+	else if (image) prefer = ["appimage"];
+	// A program outside the home directory came from a package.
+	else if (onPath) prefer = onPath.startsWith(`${home}/`) ? ["archive", "file"] : ["deb"];
+	const { candidates, unopened } = machineAssets(release.assets, prefer);
+	const usable = opts.file ? candidates.filter((c) => prefer.includes(c.kind)) : candidates;
 	const picked = (opts.asset ? usable.find((c) => c.asset.name === opts.asset) : undefined) ?? usable[0];
 	if (!picked) {
 		const problem = `No asset of ${repo}'s latest release runs on this machine.`;
@@ -227,14 +232,11 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		};
 	}
 	const kind = picked.kind;
-	const sameKindDisk = onDisk && onDisk.kinds.includes(kind) ? onDisk.path : null;
-	const dest =
-		sameKindDisk ??
-		(kind === "appimage"
-			? join(home, ".local/bin", `${bin}.AppImage`)
-			: kind === "deb"
-				? `/usr/bin/${bin}`
-				: join(home, ".local/bin", bin));
+	let dest: string;
+	if (opts.file) dest = opts.file.path;
+	else if (kind === "appimage") dest = image ?? join(home, ".local/bin", `${bin}.AppImage`);
+	else if (kind === "deb") dest = onPath ?? `/usr/bin/${bin}`;
+	else dest = onPath ?? join(home, ".local/bin", bin);
 	const name = displayName(repoName);
 	const key = keyOf(repoName);
 	const { pattern, widen } = assetPattern(picked.asset.name, release);
@@ -295,7 +297,7 @@ export function bareName(file: string): string {
 	let n = (file.split("/").at(-1) ?? file).replace(/\.appimage$/i, "");
 	for (let prev = ""; prev !== n;) {
 		prev = n;
-		n = n.replace(/[-_.](x86_64|amd64|linux)$/i, "").replace(/[-_.]?v?\d+(\.\d+)+[a-z0-9.-]*$/i, "");
+		n = n.replace(/[-_.](x86_64|amd64|linux)$/i, "").replace(/[-_.]?v?\d+(\.\d+)+[a-z0-9._-]*$/i, "");
 	}
 	return n;
 }

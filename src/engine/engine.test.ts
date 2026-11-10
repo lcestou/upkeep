@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { EngineEvent } from "../shared/types";
+import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD } from "./engine";
 import type { FetchLike } from "./github";
+import { loadManifest } from "./manifest";
 import { claimLock, readInflight, readRunLog, writeInflight } from "./store";
 import { realRun, recordingRun, script, tempHome } from "./testkit";
 
@@ -526,4 +527,111 @@ test("every legacy failure writes its reason to the run log", async () => {
 	expect(readRunLog(t.paths, id).map((l) => l.text)).toContain(
 		"failed: The old script did not finish this update. See the log.",
 	);
+});
+
+const rg = (extra: Partial<AppSpec> = {}): AppSpec => ({
+	key: "rg",
+	name: "ripgrep",
+	kind: "archive",
+	repo: "BurntSushi/ripgrep",
+	asset: "^ripgrep-.*-x86_64-unknown-linux-musl\\.tar\\.gz$",
+	dest: "~/.local/bin/rg",
+	bins: ["rg"],
+	install_if_missing: true,
+	...extra,
+});
+
+test("an added app is written to apps.toml, reads back the same, and is checked and installable when absent", async () => {
+	const d = await deps();
+	releases["BurntSushi/ripgrep"] = {
+		tag: "15.1.0",
+		assets: { "ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz": await tarball("rg", 'echo "ripgrep 15.1.0"') },
+	};
+	const engine = createEngine(d);
+	await engine.check();
+	const file = join(t.paths.config, "apps.toml");
+	const before = readFileSync(file, "utf8");
+	expect(await engine.addApps([rg({ name: 'Rip "grep" \\ tool' })])).toEqual({ added: ["rg"], problems: [] });
+	await engine.idle();
+	const text = readFileSync(file, "utf8");
+	expect(text.startsWith(before.replace(/\n*$/, "\n"))).toBe(true);
+	expect(text.slice(before.replace(/\n*$/, "\n").length)).toBe(`
+[apps.rg]
+name = "Rip \\"grep\\" \\\\ tool"
+kind = "archive"
+repo = "BurntSushi/ripgrep"
+asset = '^ripgrep-.*-x86_64-unknown-linux-musl\\.tar\\.gz$'
+dest = "~/.local/bin/rg"
+bins = ["rg"]
+install_if_missing = true
+`);
+	expect(readFileSync(`${file}.bak`, "utf8")).toBe(before);
+	expect(loadManifest(file).apps.find((a) => a.key === "rg")).toEqual(rg({ name: 'Rip "grep" \\ tool' }));
+	expect(engine.snapshot().apps.find((a) => a.key === "rg")).toMatchObject({
+		status: "ready",
+		installed: null,
+		latest: "15.1.0",
+	});
+	expect(await engine.install(["rg"])).toEqual({ started: true });
+	await engine.idle();
+	expect(engine.snapshot().apps.find((a) => a.key === "rg")).toMatchObject({ status: "done", installed: "15.1.0" });
+	expect(readFileSync(join(bin, "rg"), "utf8")).toContain("ripgrep 15.1.0");
+});
+
+test("adding refuses a taken key, a taken dest, a kind it cannot add, and an invalid table", async () => {
+	const engine = createEngine(await deps());
+	const file = join(t.paths.config, "apps.toml");
+	const before = readFileSync(file, "utf8");
+	const r = await engine.addApps([
+		rg({ key: "fd" }),
+		rg({ dest: "~/.local/bin/bat" }),
+		rg({ kind: "source" }),
+		rg({ asset: "(" }),
+	]);
+	expect(r).toEqual({
+		added: [],
+		problems: [
+			{ key: "fd", detail: "fd is already in the list." },
+			{ key: "rg", detail: "~/.local/bin/bat already belongs to bat." },
+			{ key: "rg", detail: "rg: kind is not one of appimage, archive, file, deb" },
+			{ key: "rg", detail: "rg: asset is not a valid regular expression" },
+		],
+	});
+	expect(readFileSync(file, "utf8")).toBe(before);
+});
+
+test("a table that does not read back the same puts apps.toml back from its backup", async () => {
+	const engine = createEngine(await deps());
+	const file = join(t.paths.config, "apps.toml");
+	const before = readFileSync(file, "utf8");
+	// A control character survives as a raw byte that TOML refuses, so the whole file stops parsing.
+	expect(await engine.addApps([rg({ name: "Bad\u0001Name" })])).toEqual({
+		added: [],
+		problems: [{ key: "rg", detail: "Could not write Bad\u0001Name to apps.toml." }],
+	});
+	expect(readFileSync(file, "utf8")).toBe(before);
+	expect(loadManifest(file).errors).toEqual([]);
+});
+
+test("removing an app cuts its table, drops its row live, and keeps its files and restore points", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	const events: EngineEvent[] = [];
+	engine.subscribe((e) => events.push(e));
+	expect(await engine.removeApp("nope")).toEqual({ ok: false, detail: "No app nope in the list." });
+	expect(await engine.removeApp("bat")).toEqual({ ok: true });
+	expect(events).toContainEqual({ type: "removed", key: "bat" });
+	expect(engine.snapshot().apps.some((a) => a.key === "bat")).toBe(false);
+	const file = join(t.paths.config, "apps.toml");
+	expect(readFileSync(file, "utf8")).not.toContain("[apps.bat]");
+	expect(loadManifest(file).apps.map((a) => a.key)).toEqual([
+		"boom",
+		"fd",
+		"gone",
+		"claude",
+		"cursor",
+		"plugins",
+		"strata",
+	]);
+	expect(existsSync(join(bin, "bat"))).toBe(true);
 });

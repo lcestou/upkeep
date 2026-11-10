@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { ensureManifest, loadManifest } from "./manifest";
+import { cutTable, ensureManifest, loadManifest, tomlTable } from "./manifest";
 import { paths } from "./paths";
 
 const SEED = join(import.meta.dir, "../../manifest/apps.toml");
@@ -112,4 +112,86 @@ test("ensureManifest copies the seed once and never overwrites", () => {
 	writeFileSync(target, "# mine\n");
 	ensureManifest(p, SEED);
 	expect(readFileSync(target, "utf8")).toBe("# mine\n");
+});
+
+test("cutting a table removes exactly that table from a file with comments and three tables", () => {
+	const text = `# My apps
+# keep this header
+
+[apps.a]
+name = "A" # inline
+kind = "file"
+
+# b is the one going
+[apps.b]
+name = "B"
+kind = "file"
+# b's own note
+
+[apps.c]
+name = "C"
+kind = "file"
+`;
+	expect(cutTable(text, "b")).toBe(`# My apps
+# keep this header
+
+[apps.a]
+name = "A" # inline
+kind = "file"
+
+# b is the one going
+[apps.c]
+name = "C"
+kind = "file"
+`);
+	expect(cutTable(text, "c")).toBe(`# My apps
+# keep this header
+
+[apps.a]
+name = "A" # inline
+kind = "file"
+
+# b is the one going
+[apps.b]
+name = "B"
+kind = "file"
+# b's own note
+`);
+	expect(cutTable(text, "a")).toBe(`# My apps
+# keep this header
+
+# b is the one going
+[apps.b]
+name = "B"
+kind = "file"
+# b's own note
+
+[apps.c]
+name = "C"
+kind = "file"
+`);
+	expect(cutTable(text, "zz")).toBeNull();
+	// The last table, with no blank line before it, still leaves a file that ends in one newline.
+	expect(cutTable('[apps.a]\nname = "A"\n[apps.b]\nname = "B"\n\n', "b")).toBe('[apps.a]\nname = "A"\n');
+});
+
+test("a written table holds only the spec's fields and parses back to the same spec", () => {
+	const spec = {
+		key: "x",
+		name: 'Tab\t"q" \\',
+		kind: "archive" as const,
+		repo: "o/x",
+		asset: "^x-.*\\.tar\\.gz$",
+		dest: "~/.local/bin/x",
+		bins: ["x", 'a"b'],
+		sudo: false,
+		install_if_missing: true,
+	};
+	writeFileSync(join(dir, "m.toml"), tomlTable(spec));
+	expect(loadManifest(join(dir, "m.toml")).apps).toEqual([spec]);
+	expect(tomlTable({ key: "y", name: "Y", kind: "file", asset: "it's" })).toBe(`[apps.y]
+name = "Y"
+kind = "file"
+asset = "it's"
+`);
 });

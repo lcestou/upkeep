@@ -1,0 +1,20 @@
+{
+	"assets": [
+		{ "name": "linux-aarch64.mar", "size": 103424716 },
+		{ "name": "linux.mar", "size": 116804576 },
+		{ "name": "macos.mar", "size": 171096880 },
+		{ "name": "windows-arm64.mar", "size": 114265268 },
+		{ "name": "windows.mar", "size": 128866796 },
+		{ "name": "zen-aarch64.AppImage", "size": 136652960 },
+		{ "name": "zen-aarch64.AppImage.zsync", "size": 233753 },
+		{ "name": "zen-x86_64.AppImage", "size": 148493792 },
+		{ "name": "zen-x86_64.AppImage.zsync", "size": 253988 },
+		{ "name": "zen.installer-arm64.exe", "size": 113413136 },
+		{ "name": "zen.installer.exe", "size": 118933392 },
+		{ "name": "zen.linux-aarch64.tar.xz", "size": 103302240 },
+		{ "name": "zen.linux-x86_64.tar.xz", "size": 113754680 },
+		{ "name": "zen.macos-universal.dmg", "size": 239350232 },
+		{ "name": "zen.source.tar.zst", "size": 1083589364 }
+	],
+	"tag_name": "1.24.1b"
+}

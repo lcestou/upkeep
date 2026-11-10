@@ -446,3 +446,18 @@ test("install: a bin this run added is removed when a later bin fails", async ()
 	expect(existsSync(join(BIN_UV(), "uvx"))).toBe(false);
 	expect(readFileSync(join(BIN_UV(), "uv"), "utf8")).toContain("uv 0.9.1");
 });
+
+test("an absent app the owner added is listed ready and installs with no restore point", async () => {
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": bash('echo "zen 1.18.0b"') });
+	const spec = { ...zen(), install_if_missing: true };
+	const c = ctx();
+	const checked = await checkRelease(spec, c);
+	expect(checked).toMatchObject({ installed: null, latest: "1.18.0b", status: "ready" });
+	if (!checked?.target) throw new Error("no target");
+	expect(checked.target.from).toBeNull();
+	expect(await installRelease(spec, checked.target, c)).toMatchObject({ result: "done", installed: "1.18.0b" });
+	expect(readFileSync(join(t.paths.home, ".local/bin/zen-browser.AppImage"), "utf8")).toContain("zen 1.18.0b");
+	expect(listBackups(t.paths, "zen")).toEqual([]);
+	// Once it is there the flag stops mattering.
+	expect((await checkRelease(spec, c))?.status).toBe("fresh");
+});

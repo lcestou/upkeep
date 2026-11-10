@@ -150,14 +150,20 @@ export function replaceManifest(file: string, text: string): void {
 	renameSync(tmp, file);
 }
 
-/** The file's text with the [apps.<key>] table cut out, up to the next line that starts with "[", or null when there is none. */
+/**
+ * The file's text with the [apps.<key>] table cut out, up to the next line that starts with "[", or null when
+ * there is none. Comment lines right above the next table belong to it and stay.
+ */
 export function cutTable(text: string, key: string): string | null {
 	const lines = text.split("\n");
 	const start = lines.findIndex((l) => l.trim() === `[apps.${key}]`);
 	if (start < 0) return null;
 	let end = start + 1;
 	while (end < lines.length && !(lines[end] ?? "").startsWith("[")) end++;
-	const out = [...lines.slice(0, start), ...lines.slice(end)].join("\n");
-	// The cut leaves the blank lines from both sides of the table; one is enough.
-	return out.replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
+	if (end < lines.length) while (end - 1 > start && (lines[end - 1] ?? "").startsWith("#")) end--;
+	const before = lines.slice(0, start);
+	const after = lines.slice(end);
+	// Cutting the last table leaves the file ending in exactly one newline.
+	if (after.every((l) => l === "")) return `${before.join("\n").replace(/\n+$/, "")}\n`;
+	return [...before, ...after].join("\n");
 }
