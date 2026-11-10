@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { expandHome } from "./paths";
 
@@ -12,6 +12,8 @@ export type RunOpts = {
 	killTree?: boolean;
 	/** Streams stdout and stderr lines here as they arrive. Without it output is captured through a temp file. */
 	onLine?: (line: string) => void;
+	/** Without onLine: stderr goes into the same capture file as stdout, in the order written, and stderr comes back empty. */
+	merge?: boolean;
 };
 
 export type RunResult = { code: number; stdout: string; stderr: string; timedOut: boolean };
@@ -62,11 +64,16 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		const stream = opts.onLine !== undefined;
 		let outFile = "";
 		let errFile = "";
+		const fds: number[] = [];
 		if (!stream) {
 			mkdirSync(tmpDir, { recursive: true });
 			seq += 1;
 			outFile = join(tmpDir, `run-${process.pid}-${seq}.out`);
-			errFile = join(tmpDir, `run-${process.pid}-${seq}.err`);
+			fds.push(openSync(outFile, "w", 0o600));
+			if (!opts.merge) {
+				errFile = join(tmpDir, `run-${process.pid}-${seq}.err`);
+				fds.push(openSync(errFile, "w", 0o600));
+			}
 		}
 		let proc: ReturnType<typeof Bun.spawn>;
 		try {
@@ -74,11 +81,16 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 				cwd: opts.cwd,
 				env,
 				stdin: "ignore",
-				stdout: stream ? "pipe" : Bun.file(outFile),
-				stderr: stream ? "pipe" : Bun.file(errFile),
+				stdout: stream ? "pipe" : (fds[0] ?? "ignore"),
+				stderr: stream ? "pipe" : (fds[1] ?? fds[0] ?? "ignore"),
 			});
 		} catch (err) {
+			if (outFile) rmSync(outFile, { force: true });
+			if (errFile) rmSync(errFile, { force: true });
 			return { code: 127, stdout: "", stderr: err instanceof Error ? err.message : String(err), timedOut: false };
+		} finally {
+			// The child holds its own copies; ours would only keep the files open.
+			for (const fd of fds) closeSync(fd);
 		}
 		let timedOut = false;
 		const timer =
@@ -108,7 +120,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			stderr = sinks[1]?.text ?? "";
 		} else {
 			stdout = await readAndRemove(outFile);
-			stderr = await readAndRemove(errFile);
+			stderr = errFile ? await readAndRemove(errFile) : "";
 		}
 		return { code: timedOut ? 137 : code, stdout, stderr, timedOut };
 	};
@@ -144,4 +156,16 @@ async function readLines(
 		for (const l of lines) onLine(l);
 	}
 	if (rest) onLine(rest);
+}
+
+/** Prefixes sudo -n when the step needs root, so a password prompt can never wait. */
+export function asRoot(argv: string[], sudo: boolean | undefined): string[] {
+	return sudo ? ["sudo", "-n", ...argv] : argv;
+}
+
+export const SUDO_PASSWORD = "sudo needs a password here. Run the update from a terminal.";
+
+/** True when sudo refused because it would have had to ask for a password. */
+export function sudoNeedsPassword(r: RunResult): boolean {
+	return r.code !== 0 && /a password is required|a terminal is required/.test(r.stderr + r.stdout);
 }
