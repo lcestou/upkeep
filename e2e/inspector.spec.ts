@@ -11,8 +11,12 @@ test("a row click opens the pane and the list does not move under the pointer", 
 	expect(Math.abs((after?.y ?? 0) - (before?.y ?? 0))).toBeLessThanOrEqual(1);
 	expect(await page.getByTestId("app-list").evaluate((el) => el.scrollTop)).toBe(scroll);
 	await expect(page.getByTestId("open-fd")).toHaveAttribute("aria-current", "true");
+	await expect(page.getByTestId("open-fd")).toHaveAttribute("aria-expanded", "true");
+	// Clicking the open row again, or double clicking it, leaves it open.
 	await page.getByTestId("open-fd").click();
-	await expect(page.getByTestId("inspector")).toHaveCount(0);
+	await expect(page.getByTestId("detail-fd")).toBeVisible();
+	await page.getByTestId("open-wrangler").dblclick();
+	await expect(page.getByTestId("detail-wrangler")).toBeVisible();
 });
 
 test("Enter opens, Down moves the selection and the pane follows, Escape closes onto the row", async ({ page }) => {
@@ -29,7 +33,7 @@ test("Enter opens, Down moves the selection and the pane follows, Escape closes 
 	await page.keyboard.press("Escape");
 	await expect(page.getByTestId("inspector")).toHaveCount(0);
 	await expect(page.getByTestId("open-llama")).toBeFocused();
-	await page.keyboard.press(" ");
+	await page.keyboard.press("Enter");
 	await expect(page.getByTestId("detail-llama")).toBeVisible();
 	await page.getByTestId("inspector-close").click();
 	await expect(page.getByTestId("inspector")).toHaveCount(0);
@@ -58,9 +62,10 @@ test("at 760 by 520 the pane is a sheet with a close button and nothing in it is
 	await expect(pane).toBeVisible();
 	await page.waitForTimeout(300);
 	const box = await pane.boundingBox();
-	expect(box?.x).toBe(56);
-	expect(box?.width).toBe(760 - 56);
+	expect(box?.x).toBe(0);
+	expect(box?.width).toBe(760);
 	await expect(page.getByTestId("inspector-close")).toBeVisible();
+	await expect(page.getByTestId("inspector-close")).toHaveText("Back to list");
 	for (const button of await pane.locator("button, label").all()) {
 		await button.scrollIntoViewIfNeeded();
 		const b = await button.boundingBox();

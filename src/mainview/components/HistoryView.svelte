@@ -8,8 +8,8 @@
 
 	let { model }: { model: Model } = $props();
 
-	const STATUS = { updated: "done", failed: "failed", rolled_back: "rolled_back" } as const;
-	const RESULT = { updated: TEXT.updated, failed: TEXT.failed, rolled_back: TEXT.rolledBack } as const;
+	const STATUS = { updated: "done", failed: "failed", rolled_back: "rolled_back", restored: "held" } as const;
+	const RESULT = { updated: TEXT.updated, failed: TEXT.failed, rolled_back: TEXT.rolledBack, restored: TEXT.restored } as const;
 
 	const runs = $derived.by(() => {
 		const byRun = new Map<string, HistoryRow[]>();
@@ -24,7 +24,7 @@
 	{:else}
 		{#each runs as run (run.id)}
 			<section>
-				<h2>{formatRunTime(run.at)} <span class="counts">{resultCounts(run.rows)}</span></h2>
+				<h2>{formatRunTime(run.at)} {#if run.rows.some((r) => r.result !== "restored")}<span class="counts">{resultCounts(run.rows)}</span>{/if}</h2>
 				<ul>
 					{#each run.rows as row (row.key)}
 						{@const status = STATUS[row.result]}

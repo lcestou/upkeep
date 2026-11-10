@@ -8,8 +8,8 @@ export const KIND_LABEL: Record<AppKind, string> = {
 	file: "Binary",
 	deb: ".deb",
 	source: "Source build",
-	command: "Self-update",
-	legacy: "Old script",
+	command: "Updates itself",
+	legacy: "Updater script",
 	manual: "By hand",
 };
 
@@ -20,9 +20,9 @@ export const STAGE_NAME: Record<Stage, string> = {
 	verify: "Verify",
 };
 
-export type GroupId = "ready" | "manual" | "problem" | "held" | "checking" | "fresh";
+export type GroupId = "run" | "ready" | "manual" | "problem" | "held" | "checking" | "fresh";
 
-export const GROUP_LABEL: Record<GroupId | "installing" | "thisRun", string> = {
+export const GROUP_LABEL: Record<Exclude<GroupId, "run"> | "installing" | "thisRun", string> = {
 	ready: "Ready to install",
 	installing: "Installing",
 	thisRun: "This run",
@@ -43,7 +43,8 @@ export const COLUMN = {
 } as const;
 
 export const CHIP = {
-	running: { text: "Open", title: "Open now. The update applies when you restart it." },
+	running: { text: "In use", title: "In use now. The update applies when you restart it." },
+	runningLegacy: { text: "In use", title: "In use now. Updating closes it and opens it again." },
 	root: { text: "Root", title: "Installs with sudo." },
 	auto: { text: "Auto", title: "Installed without asking when Upkeep checks in the background." },
 } as const;
@@ -73,13 +74,23 @@ export const TEXT = {
 	runItYourself: "Run it yourself:",
 	copy: "Copy",
 	copied: "Copied",
-	log: "Log",
+	log: "Show log",
+	logTitle: "Log",
+	hideLog: "Hide log",
+	backToList: "Back to list",
+	retry: "Retry",
+	filter: "Filter apps",
+	sizesUnknown: "Some sizes are not known until they download.",
+	whyTick: "Tick an update to install.",
+	whyChecking: "Wait for the check to finish.",
+	whyNothing: "Nothing to install.",
 	openLog: "Open log file",
 	noLog: "No log lines yet.",
 	noRuns: "No runs yet.",
 	updated: "Updated",
 	failed: "Failed",
 	rolledBack: "Rolled back",
+	restored: "Restored",
 	notify: "Notify when updates are ready",
 	checkAtLogin: "Check at login",
 	keepBackups: "Restore points to keep",
@@ -104,10 +115,24 @@ export function installLabel(n: number): string {
 	return n === 1 ? "Install 1 update" : `Install ${n} updates`;
 }
 
-export function selectionText(n: number, bytes: number | null): string {
+/** partial: some ticked app has no known size, so the total is a floor. hidden: ticked apps the filter hides. */
+export function selectionText(n: number, bytes: number | null, partial = false, hidden = 0): string {
 	if (n === 0) return TEXT.nothingSelected;
-	return bytes === null ? `${n} selected` : `${n} selected · ${formatBytes(bytes)}`;
+	const size = bytes === null ? "" : ` · ${formatBytes(bytes)}${partial ? "+" : ""}`;
+	return `${n} selected${size}${hidden > 0 ? ` · ${hidden} hidden` : ""}`;
 }
+
+/** Why a kind keeps no restore point, said in the pane only. */
+export const NO_RESTORE: Partial<Record<AppKind, string>> = {
+	deb: "dpkg owns these files, so there is no restore point.",
+	source: "Built from source, so there is no restore point.",
+	command: "It updates itself, so there is no restore point.",
+	legacy: "The updater script keeps no restore point.",
+};
+
+export const restartLine = (names: string[]) => `Restart ${names.join(", ")} to finish.`;
+export const allFreshLine = (n: number, relative: string) => `All ${n} apps are up to date. Checked ${relative}.`;
+export const noMatch = (text: string) => `No app matches "${text}".`;
 
 /** The text in a row's status cell. While working, the stem shows it beside the stem. */
 export function statusText(app: AppState): string {
@@ -117,7 +142,7 @@ export function statusText(app: AppState): string {
 		case "ready":
 			return "Ready";
 		case "fresh":
-			return app.restartToApply ? "Restart to apply" : "Fresh";
+			return app.restartToApply ? `Restart ${app.name} to finish` : "Fresh";
 		case "manual":
 			return "By hand";
 		case "held":
@@ -127,9 +152,9 @@ export function statusText(app: AppState): string {
 		case "queued":
 			return "Queued";
 		case "working":
-			return workingText(app.stage, app.stagePct);
+			return workingText(app.stage, app.stagePct, app.size);
 		case "done":
-			return app.restartToApply ? "Restart to apply" : `Updated to ${app.installed ?? app.latest ?? ""}`;
+			return app.restartToApply ? `Restart ${app.name} to finish` : `Updated to ${app.installed ?? app.latest ?? ""}`;
 		case "failed":
 			return "Failed";
 		case "rolled_back":
@@ -137,7 +162,15 @@ export function statusText(app: AppState): string {
 	}
 }
 
-export function workingText(stage: Stage | undefined, pct: number | null | undefined): string {
+/** "12.1 of 30 MB": the received part in the total's own unit, derived from the percent. */
+function partOf(pct: number, total: number): string {
+	const whole = formatBytes(total);
+	const unit = whole.split(" ")[1] ?? "B";
+	const scale = 1000 ** Math.max(0, ["B", "kB", "MB", "GB", "TB"].indexOf(unit));
+	return `${((total * pct) / 100 / scale).toFixed(1)} of ${whole}`;
+}
+
+export function workingText(stage: Stage | undefined, pct: number | null | undefined, size?: number): string {
 	switch (stage) {
 		case "backup":
 			return "Backing up";
@@ -146,14 +179,15 @@ export function workingText(stage: Stage | undefined, pct: number | null | undef
 		case "verify":
 			return "Verifying";
 		default:
-			return typeof pct === "number" ? `Downloading ${Math.round(pct)}%` : "Downloading";
+			if (typeof pct !== "number") return "Downloading";
+			return typeof size === "number" ? `Downloading ${partOf(pct, size)}` : `Downloading ${Math.round(pct)}%`;
 	}
 }
 
 /** "3 updated, 1 failed": the summary sentence, also the heading count of a run in History. */
 export function resultCounts(results: readonly { result: RunResult["result"] }[]): string {
 	const ok = results.filter((r) => r.result === "updated").length;
-	const failed = results.length - ok;
+	const failed = results.filter((r) => r.result === "failed" || r.result === "rolled_back").length;
 	return failed === 0 ? `${ok} updated` : `${ok} updated, ${failed} failed`;
 }
 

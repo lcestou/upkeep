@@ -10,6 +10,7 @@
 	import { Model } from "./lib/model.svelte";
 	import { ms } from "./lib/motion";
 	import { shade } from "./lib/shade";
+	import { tick } from "svelte";
 	import { fly } from "svelte/transition";
 
 	let model = $state<Model | null>(null);
@@ -32,6 +33,15 @@
 	}
 
 	function onkeydown(e: KeyboardEvent) {
+		const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement;
+		if ((e.key === "/" && !typing) || (e.key === "f" && (e.ctrlKey || e.metaKey))) {
+			const field = document.querySelector<HTMLElement>('[data-testid="filter"]');
+			if (field) {
+				e.preventDefault();
+				field.focus();
+			}
+			return;
+		}
 		if (e.key !== "Escape") return;
 		if (logOpen) {
 			logOpen = false;
@@ -40,6 +50,14 @@
 			closeInspector();
 		}
 	}
+
+	// First focus lands in the list, on its first row, so the keyboard starts where the work is.
+	let focused = false;
+	$effect(() => {
+		if (focused || !model?.loaded) return;
+		focused = true;
+		void tick().then(() => document.querySelector<HTMLElement>("[data-row]")?.focus({ preventScroll: true, focusVisible: false } as FocusOptions));
+	});
 
 	$effect(() => {
 		if (model?.view === "history" && model.run.phase !== "installing") void model.loadHistory();
@@ -118,6 +136,7 @@
 	.scroll {
 		height: 100%;
 		overflow-y: auto;
+		overflow-x: hidden;
 		overscroll-behavior: contain;
 	}
 	/* Scroll shadows: an edge with more content behind it carries a soft shade. */
@@ -156,10 +175,10 @@
 		}
 	}
 	@media (max-width: 899px) {
-		/* A sheet over the list from the right edge; a 56 px strip of list stays in view. */
+		/* Under 900 px the pane is a full-width sheet over the list, with Back to list in its header. */
 		.inspector {
 			position: absolute;
-			inset: 0 0 0 56px;
+			inset: 0;
 			z-index: 3;
 			border-left: 1px solid var(--line);
 			box-shadow: var(--shadow-pop);

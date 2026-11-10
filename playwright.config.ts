@@ -17,7 +17,7 @@ export default defineConfig({
 		colorScheme: "dark",
 	},
 	webServer: {
-		command: "bunx vite --port 5182 --strictPort",
+		command: "node node_modules/vite/bin/vite.js --port 5182 --strictPort",
 		url: "http://127.0.0.1:5182/",
 		reuseExistingServer: false,
 		timeout: 30_000,

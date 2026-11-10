@@ -7,25 +7,29 @@ test("a full run walks every stage to 3 updated, 1 failed and opens the pane on 
 	await expect(sentence(page)).toHaveText(/^Installing Zen Browser, 1 of 4$/);
 	await expect(sentence(page)).toHaveText("3 updated, 1 failed", { timeout: 20_000 });
 	const texts = await seen();
-	for (const word of ["Queued", "Backing up", "Installing", "Verifying", "Restart to apply", "Updated to 10.5.2", "Failed"])
+	for (const word of ["Queued", "Backing up", "Installing", "Verifying", "Restart Zen Browser to finish", "Updated to 10.5.2", "Failed"])
 		expect(texts, word).toContain(word);
-	expect(texts.some((t) => /^Downloading \d+%$/.test(t))).toBe(true);
-	await expect(page.getByTestId("group-ready")).toHaveText("This run");
+	expect(texts.some((t) => /^Downloading [\d.]+ of [\d.]+ (kB|MB)$/.test(t))).toBe(true);
+	await expect(page.getByTestId("group-run")).toHaveText("This run");
+	await expect(page.getByTestId("restart-line")).toHaveText("Restart Zen Browser to finish.");
+	await expect(sentence(page).locator(".failed")).toHaveText("1 failed");
 	await expect(page.getByTestId("inspector")).toBeVisible();
 	await expect(page.getByTestId("detail-wrangler")).toBeVisible();
-	await expect(page.getByTestId("pane-detail")).toHaveText("Still at 4.157.0 after the update command.");
+	await expect(page.getByTestId("pane-detail")).toHaveText("Still at 4.157.0 after the update.");
 	await expect(page.getByTestId("row-wrangler").locator(".latest")).toHaveCSS("text-decoration-line", "line-through");
 });
 
-test("the pane's Retry reruns only the failed app", async ({ page }) => {
+test("the pane's Retry reruns only the failed app and keeps the first pass", async ({ page }) => {
 	await load(page, "fixture&speed=4");
 	await page.getByTestId("install").click();
 	await expect(sentence(page)).toHaveText("3 updated, 1 failed", { timeout: 20_000 });
 	await page.getByTestId("retry-one").click();
 	await expect(sentence(page)).toHaveText("Installing wrangler, 1 of 1");
+	await expect(page.getByTestId("status-fd")).toHaveCount(0);
 	await expectFocusKept(page);
-	await expect(sentence(page)).toHaveText("1 updated", { timeout: 10_000 });
-	await expect(page.getByTestId("runbar").locator("li")).toHaveCount(1);
+	await expect(sentence(page)).toHaveText("4 updated", { timeout: 10_000 });
+	await expect(page.getByTestId("runbar").locator("li")).toHaveCount(4);
+	await expect(page.getByTestId("count-run")).toHaveText("4");
 });
 
 test("footer Retry 1 failed reruns only the failed app, Done returns to the list", async ({ page }) => {
@@ -33,10 +37,10 @@ test("footer Retry 1 failed reruns only the failed app, Done returns to the list
 	await page.getByTestId("install").click();
 	await expect(page.getByTestId("retry")).toHaveText("Retry 1 failed", { timeout: 20_000 });
 	await page.getByTestId("retry").click();
-	await expect(sentence(page)).toHaveText("1 updated", { timeout: 10_000 });
+	await expect(sentence(page)).toHaveText("4 updated", { timeout: 10_000 });
 	await page.getByTestId("done").click();
 	await expect(sentence(page)).toHaveText("1 needs a look");
-	await expect(page.getByTestId("group-ready")).toHaveCount(0);
+	await expect(page.getByTestId("group-run")).toHaveCount(0);
 	await expectFocusKept(page);
 });
 
@@ -68,5 +72,5 @@ test("queued rows show their place and the rows outside the run step back", asyn
 	await expect(page.getByTestId("place-cursor")).toHaveText("4");
 	await expect(page.getByTestId("place-wrangler")).toHaveText("3");
 	await expect(page.getByTestId("row-strata")).toHaveCSS("opacity", "0.72");
-	await expect(page.getByTestId("group-ready")).toHaveText("Installing");
+	await expect(page.getByTestId("group-run")).toHaveText("Installing");
 });

@@ -9,6 +9,9 @@
 
 	const phase = $derived(model.run.phase);
 	const n = $derived(model.tickedApps.length);
+	const why = $derived(
+		phase === "checking" ? TEXT.whyChecking : model.ready.length === 0 ? TEXT.whyNothing : n === 0 ? TEXT.whyTick : null,
+	);
 
 	let root = $state<HTMLElement | null>(null);
 	let first = true;
@@ -53,8 +56,11 @@
 					class="btn primary"
 					data-testid="install"
 					disabled={n === 0 || phase === "checking" || model.starting}
+					title={why ?? undefined}
+					aria-describedby={why ? "install-why" : undefined}
 					onclick={() => model.install()}>{installLabel(n)}</button
 				>
+				{#if why}<span class="sr-only" id="install-why" data-testid="install-why">{why}</span>{/if}
 			{/if}
 		</div>
 	{/key}

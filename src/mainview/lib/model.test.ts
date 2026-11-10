@@ -87,9 +87,11 @@ describe("events", () => {
 		expect(m.ticked.has("bat")).toBe(false);
 	});
 
-	test("rows in a run stay in Ready to install", () => {
+	test("rows in a run form their own group, and a re-checked row keeps its group", () => {
+		expect(groupOf({ ...baseApp("x"), status: "checking" }, "ready")).toBe("ready");
+		expect(groupOf({ ...baseApp("x"), status: "checking" })).toBe("checking");
 		for (const status of ["queued", "working", "done", "failed", "rolled_back"] as const) {
-			expect(groupOf({ ...baseApp("x"), status })).toBe("ready");
+			expect(groupOf({ ...baseApp("x"), status })).toBe("run");
 		}
 	});
 
@@ -114,12 +116,13 @@ describe("a scripted run", () => {
 		expect([...seen].some((s) => s.startsWith("Installing Zen Browser, 1 of 4"))).toBe(true);
 		expect(m.failedKeys).toEqual(["wrangler"]);
 		expect(m.apps.find((a) => a.key === "zen")?.restartToApply).toBe(true);
-		expect(m.apps.find((a) => a.key === "wrangler")?.detail).toBe("Still at 4.157.0 after the update command.");
+		expect(m.apps.find((a) => a.key === "wrangler")?.detail).toBe("Still at 4.157.0 after the update.");
 		expect(m.log.length).toBeGreaterThan(4);
 		await m.retry();
-		await until(() => m.run.phase === "summary" && m.run.results.length === 1);
-		expect(m.run.results.map((r) => r.key)).toEqual(["wrangler"]);
-		expect(m.sentence).toBe("1 updated");
+		// A retry keeps the first pass: the summary now counts all four.
+		await until(() => m.run.phase === "summary" && m.run.results.length === 4 && m.failedKeys.length === 0);
+		expect(m.run.results.filter((r) => r.key === "wrangler").map((r) => r.result)).toEqual(["updated"]);
+		expect(m.sentence).toBe("4 updated");
 		await m.dismiss();
 		await until(() => m.run.phase === "idle");
 		expect(m.groups.find((g) => g.id === "ready")).toBeUndefined();
@@ -170,6 +173,24 @@ describe("the inspector", () => {
 		await until(() => m.run.phase === "summary");
 		expect(m.openKey).toBeNull();
 		expect(m.groups[0]?.label).toBe("This run");
+	});
+});
+
+describe("a re-check", () => {
+	test("keeps the owner's ticks and each row's group", async () => {
+		const m = await started();
+		m.toggle("fd");
+		let sawFdInReady = false;
+		const off = setInterval(() => {
+			if (m.apps.find((a) => a.key === "fd")?.status === "checking")
+				sawFdInReady ||= m.groups.find((g) => g.id === "ready")?.apps.some((a) => a.key === "fd") ?? false;
+		}, 2);
+		await m.check();
+		await until(() => m.run.phase === "checking");
+		await until(() => m.run.phase === "idle");
+		clearInterval(off);
+		expect(sawFdInReady).toBe(true);
+		expect([...m.ticked].toSorted()).toEqual(["cursor", "wrangler", "zen"]);
 	});
 });
 

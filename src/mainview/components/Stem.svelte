@@ -77,7 +77,8 @@
 		display: flex;
 		align-items: center;
 		flex-basis: 0;
-		min-width: 14px;
+		/* Four leaves stay countable: no stage is drawn narrower than 28 px, the measured weights apply above that. */
+		min-width: 28px;
 	}
 	.rail {
 		flex: 1;

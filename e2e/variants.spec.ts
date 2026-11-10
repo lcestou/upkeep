@@ -1,11 +1,16 @@
 import { expect, load, sentence, test } from "./helpers";
 
 test("?fixture=empty shows Everything is fresh", async ({ page }) => {
-	await load(page, "fixture=empty");
+	await load(page, "fixture=empty", { wait: "sentence" });
 	await expect(sentence(page)).toHaveText("Everything is fresh");
-	await expect(page.getByTestId("install")).toBeDisabled();
-	await expect(page.getByTestId("group-fresh-toggle")).toHaveAttribute("aria-expanded", "true");
-	await expect(page.getByTestId("row-bat")).toBeVisible();
+	const block = page.getByTestId("all-fresh");
+	await expect(block).toContainText("Everything is fresh");
+	await expect(page.getByTestId("all-fresh-line")).toHaveText("All 32 apps are up to date. Checked 2 minutes ago.");
+	await expect(page.getByTestId("all-fresh-check")).toHaveText("Check again");
+	for (const gone of ["install", "tick-all", "selection", "select-all", "filter"])
+		await expect(page.getByTestId(gone)).toHaveCount(0);
+	await expect(page.getByTestId("log-toggle")).toHaveText("Show log");
+	await expect(page.getByTestId("group-fresh-toggle")).toHaveAttribute("aria-expanded", "false");
 });
 
 test("?fixture=checking shows Checking 20 of 32", async ({ page }) => {

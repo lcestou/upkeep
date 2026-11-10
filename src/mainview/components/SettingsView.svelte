@@ -6,7 +6,8 @@
 	let { model }: { model: Model } = $props();
 
 	async function set(patch: Partial<Settings>) {
-		model.settings = await model.request("setSettings", patch);
+		const next = await model.send("setSettings", patch);
+		if (next) model.settings = next;
 	}
 </script>
 
@@ -44,7 +45,7 @@
 		</label>
 		<div class="row">
 			<span class="text">{TEXT.appList}</span>
-			<button type="button" class="btn small" data-testid="open-manifest" onclick={() => model.request("open", { what: "manifest" })}
+			<button type="button" class="btn small" data-testid="open-manifest" onclick={() => model.send("open", { what: "manifest" })}
 				>{TEXT.openManifest}</button
 			>
 		</div>

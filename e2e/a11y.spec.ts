@@ -51,8 +51,11 @@ test("names, hidden glyphs and no positive tabindex in every main state", async 
 
 test("tab order follows reading order across the header, list and footer", async ({ page }) => {
 	await load(page);
+	// Start before the header, so the walk covers header, list and footer in turn.
+	await page.getByTestId("tab-updates").focus();
+	await page.keyboard.press("Shift+Tab");
 	const tops: { id: string; y: number; region: number }[] = [];
-	for (let i = 0; i < 12; i++) {
+	for (let i = 0; i < 8; i++) {
 		await page.keyboard.press("Tab");
 		const info = await page.evaluate(() => {
 			const el = document.activeElement;

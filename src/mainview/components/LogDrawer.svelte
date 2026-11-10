@@ -23,13 +23,13 @@
 	class="drawer"
 	id="log-drawer"
 	data-testid="log-drawer"
-	aria-label={TEXT.log}
+	aria-label={TEXT.logTitle}
 	style:bottom="{bottom}px"
 	transition:fly={{ y: 24, duration: ms(220) }}
 >
 	<header>
-		<h2>{TEXT.log}</h2>
-		<button type="button" class="btn small" data-testid="open-log" onclick={() => model.request("open", { what: "log" })}
+		<h2>{TEXT.logTitle}</h2>
+		<button type="button" class="btn small" data-testid="open-log" onclick={() => model.send("open", { what: "log" })}
 			>{TEXT.openLog}</button
 		>
 	</header>
@@ -53,14 +53,13 @@
 <style>
 	.drawer {
 		position: fixed;
-		left: var(--s3);
-		right: var(--s3);
-		height: min(44vh, 300px);
+		left: 0;
+		right: 0;
+		/* A bottom sheet attached to the footer, covering what is behind it: about 45 percent of the list area. */
+		height: calc((100vh - 120px) * 0.45);
 		display: flex;
 		flex-direction: column;
-		border: 1px solid var(--line);
-		border-bottom: 0;
-		border-radius: 10px 10px 0 0;
+		border-top: 1px solid var(--line);
 		background: oklch(0.165 0.02 165);
 		box-shadow: var(--shadow-pop);
 		z-index: 4;

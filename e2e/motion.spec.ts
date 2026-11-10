@@ -17,7 +17,7 @@ test("with reduced motion every state is still reached", async ({ page }) => {
 	await page.getByTestId("install").click();
 	await expect(sentence(page)).toHaveText("3 updated, 1 failed", { timeout: 20_000 });
 	await page.getByTestId("retry").click();
-	await expect(sentence(page)).toHaveText("1 updated", { timeout: 10_000 });
+	await expect(sentence(page)).toHaveText("4 updated", { timeout: 10_000 });
 	await page.getByTestId("done").click();
 	await expect(sentence(page)).toHaveText("1 needs a look");
 });

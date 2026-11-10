@@ -25,6 +25,10 @@
 	--water: oklch(0.76 0.11 232);
 	--leaf: oklch(0.8 0.17 148);
 	--rust: oklch(0.7 0.16 42);
+	/* Failure is its own red, apart from the rust amber of Needs a look: 6.3:1 on the ground, 5.8:1 on surface. */
+	--fail: oklch(0.7 0.19 25);
+	/* The checking dot: 3.8:1 on the ground at rest, never below 0.6 opacity in its pulse. */
+	--dot: oklch(0.55 0.02 160);
 	--frost: oklch(0.74 0.03 250);
 	--bloom: oklch(0.72 0.17 352);
 
@@ -78,6 +82,8 @@ body {
 	font-size: var(--fs-13);
 	line-height: 1.4;
 	font-optical-sizing: auto;
+	/* Archivo's word space is tight at interface sizes. */
+	word-spacing: 0.08em;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 }
@@ -133,6 +139,7 @@ select {
 	font-weight: 680;
 	text-transform: uppercase;
 	letter-spacing: 0.035em;
+	word-spacing: 0.14em;
 	font-size: var(--fs-14);
 	line-height: 1.15;
 }
@@ -267,17 +274,12 @@ input[type="checkbox"]:disabled {
 	white-space: nowrap;
 	cursor: help;
 }
-/* Open: a squared outline in neutral text, so it never reads as the blue of a working row. */
-.chip.running {
-	border-radius: 3px;
-	border-color: var(--text-3);
-	color: var(--text-2);
-}
 
 /* The ledger's column sets, keyed to the list's own width (the list narrows beside a docked inspector). */
+/* The name column stops at 360 px and Status takes the rest, so on a wide window the stem grows, not the gap. */
 .ledger-cols {
-	--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [kind] 84px [ver] 168px [size] 64px [restore] 96px [status]
-		248px [end];
+	--cols: [tick] 32px [mark] 20px [name] minmax(0, 360px) [kind] 92px [ver] 168px [size] 64px [restore] 96px [status]
+		minmax(248px, 1fr) [end];
 }
 @container list (max-width: 899px) {
 	.ledger-cols {

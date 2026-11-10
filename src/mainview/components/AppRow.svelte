@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
 	import { CHIP, KIND_LABEL, TEXT, statusText } from "../lib/copy";
-	import { formatBytes } from "../lib/format";
 	import { fitWords } from "../lib/fit";
+	import { formatBytes } from "../lib/format";
 	import { IN_RUN, type Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
+	import { CARE, glyphColor, restoreText } from "../lib/state";
 	import { fade } from "svelte/transition";
-	import { CARE, glyphColor, isQuiet, restoreText } from "../lib/state";
 	import Glyph from "./Glyph.svelte";
 	import Stem from "./Stem.svelte";
 	import Versions from "./Versions.svelte";
@@ -15,7 +15,7 @@
 
 	const care = $derived(CARE[app.status]);
 	const open = $derived(model.openKey === app.key);
-	const quiet = $derived(isQuiet(app));
+	const fresh = $derived(app.status === "fresh");
 	const inRun = $derived(model.run.phase === "installing");
 	const place = $derived(model.queue.findIndex((a) => a.key === app.key) + 1);
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
@@ -24,18 +24,20 @@
 	const sentence = $derived(
 		app.detail && ["problem", "failed", "rolled_back", "done"].includes(app.status) ? app.detail : null,
 	);
-
-	function onclick() {
-		if (open) model.close();
-		else model.select(app.key);
-	}
+	const noVersions = $derived(app.installed === null && app.latest === null && !app.versionless);
+	// During a run only the working row and a failure burn at full colour; the rest of the run steps back.
+	const back = $derived(inRun && (app.status === "queued" || app.status === "done"));
+	const chip = $derived(app.kind === "legacy" ? CHIP.runningLegacy : CHIP.running);
+	const statusWord = $derived(fresh && !app.restartToApply ? "" : statusText(app));
 </script>
 
 <div
 	class="row ledger-cols s-{app.status}"
-	class:quiet
+	class:fresh
 	class:said={sentence !== null}
+	class:wide={sentence !== null && noVersions}
 	class:open
+	class:back
 	class:dim={inRun && !IN_RUN.has(app.status)}
 	data-testid="row-{app.key}"
 	style:--band={care.band}
@@ -45,10 +47,11 @@
 		{#if app.status === "queued" && place > 0}
 			<span class="place mono" data-testid="place-{app.key}">{place}</span>
 		{:else if app.status === "ready"}
-			<!-- The label widens the hit area past the 16 px box to 28 px. -->
+			<!-- The label widens the hit area past the 16 px box to 28 px; Space on the row ticks it from the keyboard. -->
 			<label class="tickhit">
 				<input
 					type="checkbox"
+					tabindex="-1"
 					checked={model.ticked.has(app.key)}
 					disabled={model.run.phase !== "idle"}
 					aria-labelledby="name-{app.key}"
@@ -64,49 +67,42 @@
 		data-row={app.key}
 		tabindex={tabbable ? 0 : -1}
 		aria-current={open ? "true" : undefined}
+		aria-expanded={open}
 		aria-controls="inspector"
 		data-testid="open-{app.key}"
-		{onclick}
+		onclick={() => model.select(app.key)}
 	>
 		<span class="cell mark"><Glyph name={care.glyph} color={glyphColor(app.status)} /></span>
 		<span class="cell name">
+			<!-- One clipped wrapping line: a chip or repo that cannot fit whole wraps out of sight, never cut. -->
 			<span class="line">
 				<span class="tag-name" id="name-{app.key}">{app.name}</span>
-				{#if !quiet || app.running}
-					<span class="chips">
-						{#if app.running}<span class="chip running" title={CHIP.running.title} data-testid="chip-running"
-								>{CHIP.running.text}</span
-							>{/if}
-						{#if app.sudo && !quiet}<span class="chip" title={CHIP.root.title} data-testid="chip-root"
-								>{CHIP.root.text}</span
-							>{/if}
-						{#if app.auto && !quiet}<span class="chip" title={CHIP.auto.title} data-testid="chip-auto"
-								>{CHIP.auto.text}</span
-							>{/if}
-					</span>
-				{/if}
-				<!-- Last in a one-line wrapping box: a repo that does not fit whole wraps out of sight, never cut. -->
+				{#if app.running}<span class="chip-use" title={chip.title} data-testid="chip-running"
+						><span class="dot" aria-hidden="true"></span>{chip.text}</span
+					>{/if}
+				{#if app.sudo && !fresh}<span class="chip" title={CHIP.root.title} data-testid="chip-root">{CHIP.root.text}</span
+					>{/if}
+				{#if app.auto && !fresh}<span class="chip" title={CHIP.auto.title} data-testid="chip-auto">{CHIP.auto.text}</span
+					>{/if}
 				{#if app.repo}<span class="latin">{app.repo}</span>{/if}
 			</span>
-			{#if sentence}<span class="sentence" title={sentence}>{sentence}</span>{/if}
+			{#if sentence}<span class="sentence" title={sentence} data-testid="sentence-{app.key}">{sentence}</span>{/if}
 		</span>
 		<span class="cell kind">{KIND_LABEL[app.kind]}</span>
 		<span class="cell ver"><Versions {app} {from} /></span>
-		<span class="cell size mono">{!quiet && typeof app.size === "number" ? formatBytes(app.size) : ""}</span>
+		<span class="cell size mono">{!fresh && typeof app.size === "number" ? formatBytes(app.size) : ""}</span>
 		<span class="cell restore">
-			{#if app.status !== "checking"}
-				{#key restore}
-					<span class="restore-in" in:fade={{ duration: ms(240) }}>
-						{#if restore}
-							<svg class="saved" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"
-								><path d="M2.25 6.25 4.75 8.75 9.75 3.5" /></svg
-							><span class="mono">{restore}</span>
-						{:else}
-							<span class="sr-only">{TEXT.none}</span>
-						{/if}
-					</span>
-				{/key}
-			{/if}
+			{#key restore}
+				<span class="restore-in" in:fade={{ duration: ms(240) }}>
+					{#if restore}
+						<svg class="saved" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"
+							><path d="M2.25 6.25 4.75 8.75 9.75 3.5" /></svg
+						><span class="mono">{restore}</span>
+					{:else}
+						<span class="sr-only">{TEXT.none}</span>
+					{/if}
+				</span>
+			{/key}
 		</span>
 		<span class="cell status">
 			{#if stemmed}
@@ -116,7 +112,7 @@
 				<span class="command mono" aria-hidden="true" title={app.run} data-testid="status-{app.key}" {@attach fitWords(app.run)}
 				></span>
 			{:else}
-				<span class="status-text" data-testid="status-{app.key}">{statusText(app)}</span>
+				<span class="status-text" data-testid="status-{app.key}">{statusWord}</span>
 			{/if}
 		</span>
 		{#if open}<svg class="marker" viewBox="0 0 8 14" aria-hidden="true"><path d="M8 0v14L1 7Z" /></svg>{/if}
@@ -134,9 +130,10 @@
 		height: 44px;
 		padding-right: var(--pad-r);
 		background: var(--surface);
-		/* The hairline is drawn, not laid out, so the row's 44 px centre its text exactly. */
+		/* The hairline is drawn, not laid out, so the row's height centres its text exactly. */
 		box-shadow: inset 0 -1px 0 var(--line-soft);
 		scroll-margin: 40px 0 52px;
+		scroll-snap-align: start;
 		transition:
 			opacity 240ms ease-out,
 			background-color 100ms ease-out;
@@ -152,7 +149,10 @@
 			display: none;
 		}
 	}
-	.row.quiet {
+	.row.said {
+		height: 56px;
+	}
+	.row.fresh {
 		height: 36px;
 		background: transparent;
 	}
@@ -178,8 +178,28 @@
 		width: 4px;
 		background: var(--band);
 	}
-	.quiet .band {
-		opacity: 0.55;
+	.fresh .band {
+		opacity: 0.3;
+	}
+	.back .band {
+		opacity: 0.4;
+	}
+	.fresh .mark,
+	.back .mark,
+	.back .place {
+		--glyph: var(--text-3);
+		color: var(--text-3);
+	}
+	.fresh .mark :global(.glyph),
+	.back .mark :global(.glyph) {
+		color: var(--text-3) !important;
+	}
+	.back .tag-name {
+		color: var(--text-2);
+	}
+	.back .status-text,
+	.back :global(.caption) {
+		color: var(--text-3) !important;
 	}
 	.tick {
 		display: flex;
@@ -246,7 +266,7 @@
 	.line {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: baseline;
+		align-items: center;
 		column-gap: var(--s2);
 		height: 18px;
 		overflow: hidden;
@@ -260,37 +280,63 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	.quiet .tag-name {
+	.fresh .tag-name {
 		font-weight: 560;
 		color: var(--text-2);
 	}
 	.latin {
 		white-space: nowrap;
+		line-height: 18px;
 	}
-	.chips {
-		display: inline-flex;
-		gap: var(--s1);
-		align-self: center;
+	.chip,
+	.chip-use {
 		flex: none;
 	}
+	/* In use is a status mark, not a control: a dot and two words. */
+	.chip-use {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		height: 18px;
+		font-size: var(--fs-11);
+		font-weight: 540;
+		color: var(--text-2);
+		white-space: nowrap;
+		cursor: help;
+	}
+	.dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--text-2);
+	}
+	/* Reasons wrap to two lines at most, with the browser's own ellipsis. */
 	.sentence {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
 		font-size: var(--fs-12);
 		line-height: 15px;
 		color: var(--text-2);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+	}
+	.s-problem .sentence {
+		color: oklch(0.84 0.08 48);
 	}
 	.s-failed .sentence,
-	.s-rolled_back .sentence,
-	.s-problem .sentence {
-		color: oklch(0.82 0.09 48);
+	.s-rolled_back .sentence {
+		color: oklch(0.84 0.09 25);
 	}
-	/* A row with a sentence lends it the Kind column; the pane still names the kind. */
+	/* A row with a sentence lends it the Kind column, and the Version column when it has no versions. */
 	.said .name {
 		grid-column: name / ver;
 	}
-	.said .kind {
+	.said.wide .name {
+		grid-column: name / size;
+	}
+	.said .kind,
+	.said.wide .ver {
 		display: none;
 	}
 	.kind {
@@ -326,10 +372,6 @@
 		white-space: nowrap;
 		overflow: hidden;
 	}
-	.none {
-		color: var(--text-3);
-		font-size: var(--fs-12);
-	}
 	.status {
 		display: flex;
 		flex-direction: column;
@@ -351,15 +393,18 @@
 	.s-manual .status-text {
 		color: var(--bloom);
 	}
-	.s-problem .status-text,
+	.s-problem .status-text {
+		color: var(--rust);
+	}
 	.s-failed .status-text,
 	.s-rolled_back .status-text {
-		color: var(--rust);
+		color: var(--fail);
 	}
 	.s-held .status-text {
 		color: var(--frost);
 	}
-	.quiet .status-text {
+	.s-checking .status-text,
+	.fresh .status-text {
 		font-weight: 440;
 		color: var(--text-3);
 	}

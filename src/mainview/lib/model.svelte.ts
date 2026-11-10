@@ -5,6 +5,7 @@ import type {
 	EngineEvent,
 	HistoryRow,
 	LogLine,
+	Requests,
 	RunState,
 	Settings,
 	Snapshot,
@@ -13,31 +14,37 @@ import { GROUP_LABEL, type GroupId, stateSentence } from "./copy";
 
 export type View = "updates" | "history" | "settings";
 
-export const GROUP_ORDER: GroupId[] = ["ready", "manual", "problem", "held", "checking", "fresh"];
+export const GROUP_ORDER: GroupId[] = ["run", "ready", "manual", "problem", "held", "checking", "fresh"];
 
-/** Apps in a run stay in Ready to install until the summary is dismissed, so rows do not jump mid-run. */
-export function groupOf(app: AppState): GroupId {
-	switch (app.status) {
+/**
+ * Apps in a run form their own group until the summary is dismissed, so rows do not jump mid-run.
+ * A row being checked again stays in the group of what it was before the check (prior).
+ */
+export function groupOf(app: AppState, prior?: AppStatus): GroupId {
+	const status = app.status === "checking" && prior ? prior : app.status;
+	switch (status) {
 		case "manual":
 		case "problem":
 		case "held":
 		case "checking":
 		case "fresh":
-			return app.status;
+		case "ready":
+			return status;
 		default:
-			return "ready";
+			return "run";
 	}
 }
 
-/** A newly ready app is ticked; one that was already ready keeps the owner's choice. */
-export function newlyReady(before: AppState | undefined, after: AppState): boolean {
-	return after.status === "ready" && before?.status !== "ready";
+/** A newly ready app is ticked; one that was ready before (before the check began, for a re-check) keeps the owner's choice. */
+export function newlyReady(was: AppStatus | undefined, after: AppState): boolean {
+	return after.status === "ready" && was !== "ready";
 }
 
-export function readyLabel(phase: RunState["phase"]): string {
-	if (phase === "installing") return GROUP_LABEL.installing;
-	if (phase === "summary") return GROUP_LABEL.thisRun;
-	return GROUP_LABEL.ready;
+const matches = (app: AppState, text: string) =>
+	app.name.toLowerCase().includes(text) || (app.repo ?? "").toLowerCase().includes(text);
+
+export function runLabel(phase: RunState["phase"]): string {
+	return phase === "installing" ? GROUP_LABEL.installing : GROUP_LABEL.thisRun;
 }
 
 export type Group = { id: GroupId; label: string; apps: AppState[] };
@@ -74,18 +81,33 @@ export class Model {
 	log = $state<LogLine[]>([]);
 	history = $state<HistoryRow[]>([]);
 	loaded = $state(false);
+	/** The status each app had when a re-check began, so its row and its tick survive the check. */
+	prior = $state<Record<string, AppStatus>>({});
+	/** The text in the filter field. */
+	filter = $state("");
 	/** The engine's reason when it refused a request, shown until the next request. */
 	refusal = $state<string | null>(null);
 
 	groups: Group[] = $derived(
 		GROUP_ORDER.map((id) => ({
 			id,
-			label: id === "ready" ? readyLabel(this.run.phase) : GROUP_LABEL[id],
-			apps: this.apps.filter((a) => groupOf(a) === id),
+			label: id === "run" ? runLabel(this.run.phase) : GROUP_LABEL[id],
+			apps: this.shown.filter((a) => groupOf(a, this.prior[a.key]) === id),
 		})).filter((g) => g.apps.length > 0),
 	);
+	#needle = $derived(this.filter.trim().toLowerCase());
+	shown: AppState[] = $derived(this.#needle ? this.apps.filter((a) => matches(a, this.#needle)) : this.apps);
 	ready: AppState[] = $derived(this.apps.filter((a) => a.status === "ready"));
+	/** Nothing to decide: no run, nothing ready, by hand or needing a look, and no check under way. */
+	allFresh: boolean = $derived(
+		this.run.phase === "idle" &&
+			this.apps.length > 0 &&
+			this.apps.every((a) => a.status === "fresh" || a.status === "held"),
+	);
 	tickedApps: AppState[] = $derived(this.ready.filter((a) => this.ticked.has(a.key)));
+	/** Ticked apps the filter hides; Install still counts them. */
+	hiddenTicked: number = $derived(this.#needle ? this.tickedApps.filter((a) => !matches(a, this.#needle)).length : 0);
+
 	tickedBytes: number | null = $derived.by(() => {
 		const sizes = this.tickedApps.flatMap((a) => (typeof a.size === "number" ? [a.size] : []));
 		return sizes.length === 0 ? null : sizes.reduce((s, n) => s + n, 0);
@@ -144,12 +166,20 @@ export class Model {
 	apply(e: EngineEvent): void {
 		switch (e.type) {
 			case "app": {
-				const i = this.apps.findIndex((a) => a.key === e.app.key);
+				const key = e.app.key;
+				const i = this.apps.findIndex((a) => a.key === key);
 				const before = i === -1 ? undefined : this.apps[i];
 				if (i === -1) this.apps.push(e.app);
 				else this.apps[i] = e.app;
-				if (newlyReady(before, e.app)) this.#tick(e.app.key, true);
-				else if (e.app.status !== "ready" && this.ticked.has(e.app.key)) this.#tick(e.app.key, false);
+				if (e.app.status === "checking") {
+					// A re-check leaves the tick alone and remembers where the row was.
+					if (before && before.status !== "checking" && !(key in this.prior)) this.prior[key] = before.status;
+					return;
+				}
+				const was = key in this.prior ? this.prior[key] : before?.status;
+				delete this.prior[key];
+				if (newlyReady(was, e.app)) this.#tick(key, true);
+				else if (e.app.status !== "ready" && this.ticked.has(key)) this.#tick(key, false);
 				return;
 			}
 			case "run": {
@@ -218,6 +248,8 @@ export class Model {
 		this.starting = true;
 		try {
 			await this.#ask(bridge.request("install", { keys }));
+		} catch {
+			// A run that did start reports itself through events; one that did not leaves the list as it was.
 		} finally {
 			this.starting = false;
 		}
@@ -228,19 +260,35 @@ export class Model {
 	}
 
 	async check(): Promise<void> {
-		if (this.#bridge) await this.#ask(this.#bridge.request("check", {}));
+		if (await this.send("check", {})) this.refusal = null;
 	}
 
 	async stopAfterCurrent(): Promise<void> {
-		await this.#bridge?.request("stopAfterCurrent", {});
+		await this.send("stopAfterCurrent", {});
 	}
 
 	async dismiss(): Promise<void> {
-		await this.#bridge?.request("dismissSummary", {});
+		await this.send("dismissSummary", {});
 	}
 
 	async loadHistory(): Promise<void> {
-		if (this.#bridge) this.history = await this.#bridge.request("history", { limit: 200 });
+		const rows = await this.send("history", { limit: 200 });
+		if (rows) this.history = rows;
+	}
+
+	/**
+	 * A request whose failure the view does not report: a rejection (a timeout, a lost window) resolves to null,
+	 * and the row catches up through the engine's events.
+	 */
+	async send<K extends keyof Requests>(
+		name: K,
+		params: Requests[K]["params"],
+	): Promise<Requests[K]["response"] | null> {
+		try {
+			return await this.request(name, params);
+		} catch {
+			return null;
+		}
 	}
 
 	request: Bridge["request"] = (name, params) => {

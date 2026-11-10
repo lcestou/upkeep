@@ -13,7 +13,7 @@
 	const arrow = $derived(pending && before !== null);
 </script>
 
-{#if app.status === "checking"}
+{#if app.status === "checking" && app.installed === null && app.latest === null}
 	<span class="versions"><span class="skeleton" aria-hidden="true"></span></span>
 {:else if app.versionless}
 	<span class="versions"><span class="versionless">{TEXT.versionless}</span></span>
@@ -23,7 +23,7 @@
 		{#if pending}
 			{#if arrow}<svg class="arrow" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M1.5 6h8.25M7 3.25 9.75 6 7 8.75" /></svg>
 				<span class="sr-only">to</span>{/if}
-			<span class="latest" class:done class:struck={isStruck(app)} title={after ?? undefined}>{after}</span>
+			<span class="latest" class:done class:struck={isStruck(app)} class:lost={app.status === "failed" || app.status === "rolled_back"} title={after ?? undefined}>{after}</span>
 		{/if}
 	</span>
 {/if}
@@ -74,8 +74,12 @@
 	.latest.struck {
 		color: var(--text-3);
 		text-decoration: line-through;
-		text-decoration-color: var(--rust);
+		text-decoration-color: var(--frost);
 		text-decoration-thickness: 1.5px;
+	}
+	.latest.lost {
+		color: var(--fail);
+		text-decoration-color: var(--fail);
 	}
 	.versionless {
 		grid-column: 1 / -1;
