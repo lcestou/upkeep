@@ -39,6 +39,7 @@ The Linux Mint Update Manager, for everything it cannot see. One list covers App
 - Kinds of app: AppImage, binary from a release archive, single-file binary, .deb, source build, self-updating tool, plugin set, notify-only.
 - The old script stays installed and is the engine for the kinds not yet ported.
 - The owner's commands `lutechi-updater --check`, `--list` and `lutechi-updater <app>` must keep working until he retires them.
+- Apps are added in the window: paste a GitHub repo or link, choose or drop a file, or scan the computer. A scan never runs what it finds. Removing an app takes it off the list and uninstalls nothing.
 - No prompt may appear after Install is pressed.
 - This is a production machine. An update that cannot be verified is rolled back.
 - Undecided: the product name (Upkeep is a working name), whether it is published, other operating systems.
