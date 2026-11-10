@@ -71,7 +71,7 @@ describe("events", () => {
 				{ ...baseApp("fd"), status: "ready" },
 			],
 			run: { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] },
-			settings: { keepBackups: 1, notify: true, checkAtLogin: false },
+			settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" },
 			rate: null,
 			checkedAt: null,
 			version: "0",

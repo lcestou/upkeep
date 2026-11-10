@@ -20,7 +20,14 @@ export async function getBridge(): Promise<Bridge> {
 		const { createFixture } = await import("./fixture");
 		const asked = query.get("fixture") ?? "";
 		const variant = VARIANTS.find((v) => v === asked) ?? "default";
-		return createFixture({ variant, speed: Number(query.get("speed")) || 1, fail: query.get("fail") ?? undefined });
+		const buttons = query.get("buttons");
+		return createFixture({
+			variant,
+			speed: Number(query.get("speed")) || 1,
+			fail: query.get("fail") ?? undefined,
+			buttons: buttons === "right" || buttons === "left" ? buttons : undefined,
+			frame: query.get("frame") === "system" ? "system" : "own",
+		});
 	}
 
 	// Loaded only in the real window: a plain browser has no host socket to connect to.

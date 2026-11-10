@@ -131,7 +131,7 @@ export const NO_RESTORE: Partial<Record<AppKind, string>> = {
 };
 
 export const restartLine = (names: string[]) => `Restart ${names.join(", ")} to finish.`;
-export const allFreshLine = (n: number, relative: string) => `All ${n} apps are up to date. Checked ${relative}.`;
+export const allFreshLine = (n: number) => `All ${n} apps are up to date.`;
 export const noMatch = (text: string) => `No app matches "${text}".`;
 
 /** The text in a row's status cell. While working, the stem shows it beside the stem. */
@@ -243,3 +243,23 @@ export const foundApps = (n: number) => (n === 1 ? "Found 1 app not in the list"
 export const addApps = (n: number) => (n === 1 ? "Add 1 app" : `Add ${n} apps`);
 export const removeAsk = (name: string) => `Remove ${name} from the list? The app itself stays installed.`;
 export const removedNote = (name: string) => `Removed ${name}.`;
+
+/** The built-in window frame and About. */
+export const WIN = {
+	close: "Close",
+	minimize: "Minimize",
+	maximize: "Maximize",
+	restore: "Restore",
+	group: "Window",
+	frame: "Window frame",
+	frameOwn: "Built in",
+	frameSystem: "System",
+	frameHelp: "Built in puts the title bar inside Upkeep's own header. System uses the desktop's.",
+	buttons: "Window buttons",
+	buttonsAuto: "Follow the desktop",
+	buttonsLeft: "Left",
+	buttonsRight: "Right",
+	about: "About",
+	word: "UPKEEP",
+	tagline: "Keeps the apps your package manager misses up to date.",
+} as const;

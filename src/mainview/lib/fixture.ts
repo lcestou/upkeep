@@ -14,6 +14,8 @@ import type {
 	Snapshot,
 	Stage,
 	Suggestion,
+	WindowButton,
+	WindowChrome,
 } from "../../shared/types";
 import { PICKED, scanResults, suggestFor } from "./fixture-add";
 
@@ -354,14 +356,36 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const clone = <T>(v: T): T => structuredClone(v);
 
 /** fail names one request that rejects, as a request that ran past its time limit does. */
-export type FixtureOptions = { variant?: FixtureVariant; speed?: number; fail?: string };
+export type FixtureOptions = {
+	variant?: FixtureVariant;
+	speed?: number;
+	fail?: string;
+	buttons?: "left" | "right";
+	frame?: "own" | "system";
+};
+
+// The owner's desktop puts the window buttons on the left: close, maximize, minimize.
+const orderFor = (side: "left" | "right"): WindowButton[] =>
+	side === "left" ? ["close", "maximize", "minimize"] : ["minimize", "maximize", "close"];
 
 export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const variant = opts.variant ?? "default";
 	const speed = opts.speed && opts.speed > 0 ? opts.speed : 1;
 	const listeners = new Set<(e: EngineEvent) => void>();
 	let apps = seedsFor(variant);
-	let settings: Settings = { keepBackups: 1, notify: true, checkAtLogin: false };
+	let settings: Settings = {
+		keepBackups: 1,
+		notify: true,
+		checkAtLogin: false,
+		frame: opts.frame ?? "own",
+		buttons: "auto",
+	};
+	let chrome: WindowChrome = {
+		own: settings.frame === "own",
+		side: opts.buttons ?? "left",
+		order: orderFor(opts.buttons ?? "left"),
+		maximized: false,
+	};
 	let run: RunState = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
 	const rate = { limit: 5000, remaining: 4977 };
 	let checkedAt: string | null = iso(Date.now() - 2 * 60_000);
@@ -614,6 +638,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			return { ok: true };
 		},
 		setSettings: (patch) => {
+			if (patch.buttons && patch.buttons !== "auto") {
+				chrome = { ...chrome, side: patch.buttons, order: orderFor(patch.buttons) };
+				emit({ type: "chrome", chrome });
+			}
 			settings = {
 				...settings,
 				...patch,
@@ -672,6 +700,15 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (!get(key)) return { ok: false, detail: `No app ${key} in the list.` };
 			apps = apps.filter((a) => a.key !== key);
 			emit({ type: "removed", key });
+			return { ok: true };
+		},
+		chrome: () => clone(chrome),
+		window: ({ op }) => {
+			// Close hides to the tray in the real window; the fixture has nowhere to hide, so it only answers.
+			if (op === "maximize") {
+				chrome = { ...chrome, maximized: !chrome.maximized };
+				emit({ type: "chrome", chrome });
+			}
 			return { ok: true };
 		},
 		pickFile: async () => {

@@ -9,6 +9,7 @@ import type {
 	RunState,
 	Settings,
 	Snapshot,
+	WindowChrome,
 } from "../../shared/types";
 import { GROUP_LABEL, type GroupId, stateSentence } from "./copy";
 
@@ -66,7 +67,9 @@ const idleRun = (): RunState => ({
 export class Model {
 	apps = $state<AppState[]>([]);
 	run = $state<RunState>(idleRun());
-	settings = $state<Settings>({ keepBackups: 1, notify: true, checkAtLogin: false });
+	settings = $state<Settings>({ keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" });
+	/** How the window is dressed; null until the main process answers (a system frame then). */
+	chrome = $state<WindowChrome | null>(null);
 	rate = $state<Snapshot["rate"]>(null);
 	checkedAt = $state<string | null>(null);
 	version = $state("");
@@ -157,7 +160,9 @@ export class Model {
 		const bridge = this.#bridge;
 		if (!bridge) return;
 		this.#off = bridge.onEvent((e) => this.apply(e));
-		this.load(await bridge.request("snapshot", {}));
+		const [snap, chrome] = await Promise.all([bridge.request("snapshot", {}), this.send("chrome", {})]);
+		this.chrome = chrome;
+		this.load(snap);
 	}
 
 	stop(): void {
@@ -211,6 +216,9 @@ export class Model {
 			case "log":
 				this.log.push(e.line);
 				if (this.log.length > LOG_CAP) this.log.splice(0, this.log.length - LOG_CAP);
+				return;
+			case "chrome":
+				this.chrome = e.chrome;
 				return;
 			case "removed": {
 				this.apps = this.apps.filter((a) => a.key !== e.key);

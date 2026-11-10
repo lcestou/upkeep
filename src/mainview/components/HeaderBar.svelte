@@ -3,7 +3,9 @@
 	import type { Model, View } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
 	import { fade } from "svelte/transition";
+	import Mark from "./Mark.svelte";
 	import StateSentence from "./StateSentence.svelte";
+	import WindowButtons from "./WindowButtons.svelte";
 
 	let { model }: { model: Model } = $props();
 
@@ -13,6 +15,14 @@
 		{ id: "settings", text: TEXT.settings },
 	];
 	const checking = $derived(model.run.phase === "checking");
+	const chrome = $derived(model.chrome);
+	const own = $derived(chrome?.own === true);
+
+	// Double-click on the strip's empty area maximizes, as a desktop title bar does; never on a control.
+	function ondblclick(e: MouseEvent) {
+		if (!own || (e.target instanceof Element && e.target.closest("button, input, select, a, [role=tab]"))) return;
+		void model.send("window", { op: "maximize" });
+	}
 
 	function onTabKey(e: KeyboardEvent, i: number) {
 		const to: Record<string, number> = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
@@ -26,33 +36,54 @@
 	}
 </script>
 
-<header class="bar">
-	<div class="lead">
-		<StateSentence {model} />
-	</div>
-	<div class="side">
-		<div class="tabs" role="tablist">
-						{#each tabs as tab, i (tab.id)}
-							<button
-								type="button"
-								role="tab"
-								class="tab"
-								id="tab-{tab.id}"
-								aria-selected={model.view === tab.id}
-								aria-controls="view"
-								tabindex={model.view === tab.id ? 0 : -1}
-								data-testid="tab-{tab.id}"
-								onclick={() => (model.view = tab.id)}
-								onkeydown={(e) => onTabKey(e, i)}>{tab.text}</button
-							>
-						{/each}
-					</div>
-					<button type="button" class="btn small" data-testid="check" aria-disabled={model.run.phase !== "idle"} onclick={() => model.run.phase === "idle" && model.check()}>
-						<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"
-							><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.75V5.5h-2.75" /></svg
-						>
-						{TEXT.check}
-					</button>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<header
+	class="bar"
+	class:own
+	class:left={own && chrome?.side === "left"}
+	class:right={own && chrome?.side === "right"}
+	class:electrobun-webkit-app-region-drag={own}
+	data-testid="header"
+	{ondblclick}
+>
+	{#if own && chrome}<WindowButtons {model} {chrome} />{/if}
+	<div class="inner">
+		<span class="brand"><Mark /></span>
+		<div class="lead">
+			<StateSentence {model} />
+		</div>
+		<div class="side">
+			<div class="tabs" role="tablist">
+				{#each tabs as tab, i (tab.id)}
+					<button
+						type="button"
+						role="tab"
+						class="tab"
+						class:electrobun-webkit-app-region-no-drag={own}
+						id="tab-{tab.id}"
+						aria-selected={model.view === tab.id}
+						aria-controls="view"
+						tabindex={model.view === tab.id ? 0 : -1}
+						data-testid="tab-{tab.id}"
+						onclick={() => (model.view = tab.id)}
+						onkeydown={(e) => onTabKey(e, i)}>{tab.text}</button
+					>
+				{/each}
+			</div>
+			<button
+				type="button"
+				class="btn small"
+				class:electrobun-webkit-app-region-no-drag={own}
+				data-testid="check"
+				aria-disabled={model.run.phase !== "idle"}
+				onclick={() => model.run.phase === "idle" && model.check()}
+			>
+				<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"
+					><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.75V5.5h-2.75" /></svg
+				>
+				{TEXT.check}
+			</button>
+		</div>
 	</div>
 	{#if checking}
 		<span class="checkbar" aria-hidden="true" transition:fade={{ duration: ms(200) }}>
@@ -66,12 +97,37 @@
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: var(--s4);
 		height: 56px;
-		padding: 0 var(--s3) 0 var(--s5);
+		user-select: none;
+		-webkit-user-select: none;
+		/* Over 1280 px the content lines up with the capped ledger; the strip itself spans the window. */
+		--edge: max(0px, (100vw - 1280px) / 2);
+		--clear: 124px;
 		background: var(--shell);
 		border-bottom: 1px solid oklch(0.12 0.03 160);
 		z-index: 3;
+	}
+	.inner {
+		display: flex;
+		align-items: center;
+		gap: var(--s4);
+		width: 100%;
+		max-width: 1280px;
+		height: 100%;
+		margin: 0 auto;
+		padding: 0 var(--s4) 0 var(--s5);
+	}
+	/* Window buttons sit at the window's edge; the content clears them by 16 px. */
+	.left .inner {
+		padding-left: max(var(--s5), calc(var(--clear) - var(--edge)));
+	}
+	.right .inner {
+		padding-right: max(var(--s4), calc(var(--clear) - var(--edge)));
+	}
+	.brand {
+		display: flex;
+		color: var(--text);
+		margin-right: calc(-1 * var(--s1));
 	}
 	.lead {
 		flex: 1 1 auto;
