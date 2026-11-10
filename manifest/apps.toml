@@ -179,7 +179,7 @@ kind = "legacy"
 legacy_key = "cursor"
 legacy_name = "Cursor"
 process = "cursor"
-note = "The old script closes Cursor to update it."
+note = "Updating closes Cursor and opens it again."
 
 [apps.dsh]
 name = "dsh"
