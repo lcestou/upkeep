@@ -35,6 +35,9 @@ import type { Run, RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
 	appendHistory,
+	type KnownRow,
+	loadRows,
+	saveRows,
 	claimLock,
 	clearInflight,
 	loadState,
@@ -429,6 +432,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					});
 		await Promise.all([...nativeWork, legacyWork]);
 		checkedAt = deps.now().toISOString();
+		rememberRows(list, checkedAt);
 		log?.close();
 		log = null;
 		run = { ...run, id: null, phase: "idle", index: run.total, currentKey: null };
@@ -758,9 +762,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!claimLock(paths, process.pid, deps.procRoot)) return { ok: false, detail: REASON_BUSY };
 			try {
 				// A restore is a swap: what is installed now becomes a restore point first, so it can be undone.
-				// From the command line no check has run, so what is installed has to be read first.
+				// What is installed is read from disk: a row can be from the last start's cache, or from before an install.
 				let current = apps.get(key)?.installed ?? null;
-				if (!current && canRestore(spec.kind)) {
+				if (canRestore(spec.kind)) {
 					const now = await probeInstalled(spec, kindCtx(key));
 					current = "version" in now ? now.version : null;
 				}
@@ -963,6 +967,42 @@ export function createEngine(deps: EngineDeps): Engine {
 		Object.assign(a, { skipped: undefined }, resting(spec, c));
 		emitApp(a);
 	}
+
+	/** Writes what this check learned, on top of what earlier checks knew about the other apps. */
+	function rememberRows(list: AppSpec[], at: string): void {
+		const rows = loadRows(paths);
+		const listed = new Set(specs.map((s) => s.key));
+		for (const key of Object.keys(rows)) if (!listed.has(key)) delete rows[key];
+		for (const s of list) {
+			const c = checked.get(s.key);
+			if (!c) {
+				delete rows[s.key];
+				continue;
+			}
+			const { target: _target, ...known } = c;
+			rows[s.key] = { ...known, checkedAt: at };
+		}
+		try {
+			saveRows(paths, rows);
+		} catch {
+			// A cache that cannot be written only costs the next start its head start.
+		}
+	}
+
+	// The last check's rows, so the list is there before the first check ends. No target: an install waits for a check.
+	const known = loadRows(paths);
+	for (const spec of specs) {
+		const row: KnownRow | undefined = known[spec.key];
+		if (!row) continue;
+		const { checkedAt: _at, ...c } = row;
+		checked.set(spec.key, c);
+		apps.set(spec.key, buildApp(spec, c, []));
+	}
+	checkedAt =
+		Object.values(known)
+			.map((r) => r.checkedAt)
+			.toSorted()
+			.at(-1) || null;
 
 	return engine;
 }

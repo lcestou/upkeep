@@ -712,3 +712,31 @@ test("a restore clears the restart reminder", async () => {
 	expect(restartEntry()).toBeUndefined();
 	expect(fdRow(engine)?.restartToApply).toBe(false);
 });
+
+test("a second engine on the same home shows the first one's rows before any check", async () => {
+	const d = await deps();
+	const first = createEngine(d);
+	await first.check();
+	const before = first.snapshot().apps.map((a) => [a.key, a.installed, a.latest, a.status]);
+	const second = createEngine(d);
+	expect(second.snapshot().apps.map((a) => [a.key, a.installed, a.latest, a.status])).toEqual(before);
+	expect(second.snapshot().checkedAt).toBe(first.snapshot().checkedAt);
+	// A check then runs as today and replaces them.
+	await second.check();
+	expect(second.snapshot().apps.map((a) => [a.key, a.status])).toEqual(
+		first.snapshot().apps.map((a) => [a.key, a.status]),
+	);
+});
+
+test("a corrupt rows file starts empty, and an app gone from the manifest is not brought back", async () => {
+	const d = await deps();
+	const first = createEngine(d);
+	await first.check();
+	writeFileSync(join(t.paths.cache, "rows.json"), "{not json");
+	expect(createEngine(d).snapshot().apps).toEqual([]);
+	await first.check();
+	expect(await first.removeApp("bat")).toEqual({ ok: true });
+	const again = createEngine(d);
+	expect(again.snapshot().apps.some((a) => a.key === "bat")).toBe(false);
+	expect(again.snapshot().apps.some((a) => a.key === "fd")).toBe(true);
+});
