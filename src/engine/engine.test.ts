@@ -353,6 +353,23 @@ test("restore puts a restore point back and the row reads ready again", async ()
 	expect(readFileSync(join(bin, "fd"), "utf8")).toContain("fd 10.5.1");
 });
 
+test("a restore is a swap: the version it replaced becomes the restore point, so it can be undone", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	await engine.install(["fd"]);
+	await engine.idle();
+	engine.dismissSummary();
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	expect(fd()?.restorePoints.map((p) => p.version)).toEqual(["10.5.1"]);
+	expect(await engine.restore("fd", "10.5.1")).toEqual({ ok: true });
+	// keepBackups is 1: the point just used is gone and the version just replaced took its place.
+	expect(fd()?.restorePoints.map((p) => p.version)).toEqual(["10.5.2"]);
+	expect(await engine.restore("fd", "10.5.2")).toEqual({ ok: true });
+	expect(fd()).toMatchObject({ installed: "10.5.2", status: "fresh" });
+	expect(readFileSync(join(bin, "fd"), "utf8")).toContain("fd 10.5.2");
+	expect(fd()?.restorePoints.map((p) => p.version)).toEqual(["10.5.1"]);
+});
+
 test("an interrupted install shows on its row at the next check", async () => {
 	const d = await deps();
 	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });

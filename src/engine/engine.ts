@@ -1,4 +1,4 @@
-import { rmSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type {
 	AppSpec,
@@ -11,7 +11,7 @@ import type {
 	Settings,
 	Snapshot,
 } from "../shared/types";
-import { listBackups, restoreBackup } from "./backup";
+import { listBackups, prune, restoreBackup, takeBackup } from "./backup";
 import { type FetchLike, githubToken, type Rate } from "./github";
 import { checkCommand, installCommand } from "./kinds/command";
 import type { Checked, KindCtx, Outcome, Target } from "./kinds/context";
@@ -25,7 +25,7 @@ import {
 	oldUpdaterRunning,
 	sweepShims,
 } from "./kinds/legacy";
-import { canRestore, checkRelease, installRelease, probeInstalled } from "./kinds/release";
+import { canRestore, checkRelease, destOf, installedFiles, installRelease, probeInstalled } from "./kinds/release";
 import { checkSource, installSource } from "./kinds/source";
 import { ensureManifest, loadManifest } from "./manifest";
 import { expandHome, type Paths } from "./paths";
@@ -697,8 +697,15 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!spec) return { ok: false, detail: `No app ${key}.` };
 			if (!claimLock(paths, process.pid, deps.procRoot)) return { ok: false, detail: REASON_BUSY };
 			try {
+				// A restore is a swap: what is installed now becomes a restore point first, so it can be undone.
+				const current = apps.get(key)?.installed ?? null;
+				if (canRestore(spec.kind) && current && current !== version) {
+					const files = installedFiles(spec, destOf(spec, { paths })).filter((f) => existsSync(f));
+					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString());
+				}
 				const r = await restoreBackup(paths, spec, version, deps.run);
 				if (!r.ok) return r;
+				prune(paths, key, loadState(paths).settings.keepBackups);
 				const probe = await probeInstalled(spec, kindCtx(key));
 				const installed = "version" in probe ? probe.version : null;
 				const app = apps.get(key);

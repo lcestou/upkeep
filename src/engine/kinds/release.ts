@@ -39,6 +39,12 @@ export function destOf(spec: AppSpec, ctx: Pick<KindCtx, "paths">): string {
 	return expandHome(spec.dest ?? "", ctx.paths.home);
 }
 
+/** Every file an install of this app writes: the dest itself, or each of an archive's bins beside it. */
+export function installedFiles(spec: AppSpec, dest: string): string[] {
+	if (spec.kind !== "archive") return [dest];
+	return (spec.bins ?? []).map((b) => join(dirname(dest), basename(b)));
+}
+
 export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult> {
 	const dest = destOf(spec, ctx);
 	if (spec.meta_path) return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run });
@@ -137,7 +143,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 	const extract = join(ctx.paths.cache, "dl", `${spec.key}-x`);
 	const restorable = canRestore(spec.kind);
 	const bins = spec.kind === "archive" ? (spec.bins ?? []) : [];
-	const targets = spec.kind === "archive" ? bins.map((b) => join(dirname(dest), basename(b))) : [dest];
+	const targets = installedFiles(spec, dest);
 	let backupVersion: string | null = null;
 	const finish = (o: Omit<Outcome, "stages">): Outcome => ({ ...o, stages: clock.stop() });
 	try {
