@@ -114,12 +114,13 @@ describe("a scripted run", () => {
 		expect([...seen].some((s) => s.startsWith("Installing Zen Browser, 1 of 4"))).toBe(true);
 		expect(m.failedKeys).toEqual(["wrangler"]);
 		expect(m.apps.find((a) => a.key === "zen")?.restartToApply).toBe(true);
-		expect(m.apps.find((a) => a.key === "wrangler")?.detail).toBe("Still at 4.157.0 after the update command.");
+		expect(m.apps.find((a) => a.key === "wrangler")?.detail).toBe("Still at 4.157.0 after the update.");
 		expect(m.log.length).toBeGreaterThan(4);
 		await m.retry();
-		await until(() => m.run.phase === "summary" && m.run.results.length === 1);
-		expect(m.run.results.map((r) => r.key)).toEqual(["wrangler"]);
-		expect(m.sentence).toBe("1 updated");
+		// A retry keeps the first pass: the summary now counts all four.
+		await until(() => m.run.phase === "summary" && m.run.results.length === 4 && m.failedKeys.length === 0);
+		expect(m.run.results.filter((r) => r.key === "wrangler").map((r) => r.result)).toEqual(["updated"]);
+		expect(m.sentence).toBe("4 updated");
 		await m.dismiss();
 		await until(() => m.run.phase === "idle");
 		expect(m.groups.find((g) => g.id === "ready")).toBeUndefined();

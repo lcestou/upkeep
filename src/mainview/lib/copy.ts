@@ -80,6 +80,7 @@ export const TEXT = {
 	updated: "Updated",
 	failed: "Failed",
 	rolledBack: "Rolled back",
+	restored: "Restored",
 	notify: "Notify when updates are ready",
 	checkAtLogin: "Check at login",
 	keepBackups: "Restore points to keep",
@@ -153,7 +154,7 @@ export function workingText(stage: Stage | undefined, pct: number | null | undef
 /** "3 updated, 1 failed": the summary sentence, also the heading count of a run in History. */
 export function resultCounts(results: readonly { result: RunResult["result"] }[]): string {
 	const ok = results.filter((r) => r.result === "updated").length;
-	const failed = results.length - ok;
+	const failed = results.filter((r) => r.result === "failed" || r.result === "rolled_back").length;
 	return failed === 0 ? `${ok} updated` : `${ok} updated, ${failed} failed`;
 }
 

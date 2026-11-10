@@ -382,7 +382,11 @@ async function main() {
 	for (const f of readdirSync(OUT)) if (f.endsWith(".png")) rmSync(join(OUT, f));
 	rmSync(join(OUT, "layouts"), { recursive: true, force: true });
 
-	const vite = spawn("bunx", ["vite", "--port", String(PORT), "--strictPort"], { cwd: ROOT, stdio: "ignore" });
+	const vite = spawn(
+		process.execPath,
+		[join(ROOT, "node_modules/vite/bin/vite.js"), "--port", String(PORT), "--strictPort"],
+		{ cwd: ROOT, stdio: "ignore" },
+	);
 	try {
 		await waitFor(portOpen, 30000, "vite on port 5182");
 		const browser = await chromium.launch();

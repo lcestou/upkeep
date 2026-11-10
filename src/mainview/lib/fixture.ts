@@ -124,7 +124,14 @@ const SEEDS: Seed[] = [
 	{ key: "rtk", name: "rtk", kind: "archive", repo: "rtk-ai/rtk", installed: "0.31.2", restore: ["0.31.0"] },
 	{ key: "uv", name: "uv", kind: "archive", repo: "astral-sh/uv", installed: "0.10.4", restore: ["0.10.2"] },
 	{ key: "bun", name: "Bun", kind: "archive", repo: "oven-sh/bun", installed: "1.4.4", restore: ["1.4.3"] },
-	{ key: "borg", name: "BorgBackup", kind: "file", repo: "borgbackup/borg", installed: "1.4.3" },
+	{
+		key: "borg",
+		name: "BorgBackup",
+		kind: "file",
+		repo: "borgbackup/borg",
+		installed: "1.4.3",
+		dest: "~/.local/bin/borg",
+	},
 	{ key: "rustdesk", name: "RustDesk", kind: "deb", repo: "rustdesk/rustdesk", installed: "1.4.4", sudo: true },
 	{ key: "lutris", name: "Lutris", kind: "deb", repo: "lutris/lutris", installed: "0.5.21", sudo: true },
 	{ key: "tmux", name: "tmux", kind: "source", repo: "tmux/tmux", installed: "3.6a", sudo: true },
@@ -156,7 +163,10 @@ const SEEDS: Seed[] = [
 		status: "ready",
 		running: true,
 		note: "The old script closes Cursor to update it.",
-		stages: [["install", 100]],
+		stages: [
+			["install", 85],
+			["verify", 15],
+		],
 	},
 	{
 		key: "dsh",
@@ -247,7 +257,10 @@ const DEFAULT_STAGES: Record<AppKind, [Stage, number][]> = {
 		["install", 85],
 		["verify", 15],
 	],
-	legacy: [["install", 100]],
+	legacy: [
+		["install", 85],
+		["verify", 15],
+	],
 	manual: [],
 };
 
@@ -313,7 +326,7 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 				return {
 					...a,
 					status: "problem",
-					detail: "Will not start: error while loading shared libraries: libcrypt.so.1.",
+					detail: "BorgBackup will not start (~/.local/bin/borg).",
 				};
 			if (a.key === "pr-agent")
 				return {
@@ -406,7 +419,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		if (!after) throw new Error(`No app ${key}`);
 		const ms = Date.now() - start;
 		if (key === "wrangler" && attempts === 1) {
-			const detail = "Still at 4.157.0 after the update command.";
+			const detail = "Still at 4.157.0 after the update.";
 			log(runId, key, `wrangler --version printed 4.157.0. ${detail}`);
 			put({ ...after, status: "failed", stage: undefined, stagePct: undefined, detail });
 			return { key, name: app.name, from, to, result: "failed", detail, ms };
@@ -429,7 +442,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		return { key, name: app.name, from, to, result: "updated", ms };
 	}
 
-	async function runQueue(keys: string[]) {
+	/** keep: results from the pass a retry continues; the engine keeps them in the summary. */
+	async function runQueue(keys: string[], keep: RunResult[] = []) {
 		attempts++;
 		const runId = `run-${Date.now()}`;
 		const order = keys.toSorted((a, b) => queueRank(a) - queueRank(b));
@@ -444,10 +458,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			total: order.length,
 			currentKey: order[0] ?? null,
 			stopping: false,
-			results: [],
+			results: keep,
 		});
 		log(runId, null, `Run started: ${order.length} apps.`);
-		const results: RunResult[] = [];
+		const results: RunResult[] = [...keep];
 		for (let i = 0; i < order.length; i++) {
 			const key = order[i];
 			if (key === undefined) break;
@@ -525,9 +539,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				return s === "ready" || s === "failed" || s === "rolled_back";
 			});
 			if (ok.length === 0) return { started: false, reason: "Nothing to install." };
-			// Installing from the summary closes it first, as the engine does: done rows settle to fresh.
-			if (run.phase === "summary") for (const app of apps) if (app.status === "done") put({ ...app, status: "fresh" });
-			void runQueue(ok);
+			// A retry from the summary keeps the first pass: done rows stay done and their results stay counted.
+			const keep = run.phase === "summary" ? run.results.filter((r) => !ok.includes(r.key)) : [];
+			void runQueue(ok, keep);
 			return { started: true };
 		},
 		stopAfterCurrent: () => {
@@ -543,8 +557,31 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		restore: ({ key, version }) => {
 			const app = get(key);
 			if (!app || run.phase === "installing") return { ok: false, detail: "Restore is not possible during a run." };
-			const status: AppStatus = app.latest && app.latest !== version ? "ready" : "fresh";
-			put({ ...app, installed: version, status, detail: undefined, restartToApply: app.running });
+			// A swap, as the engine does it: the replaced version becomes the restore point, and latest is skipped.
+			const replaced = app.installed;
+			const points = app.restorePoints.filter((p) => p.version !== version);
+			const restorePoints = replaced ? [{ version: replaced, at: iso(Date.now()) }, ...points] : points;
+			const skip = app.latest && app.latest !== version ? app.latest : undefined;
+			put({
+				...app,
+				installed: version,
+				status: skip ? "held" : "fresh",
+				skipped: skip,
+				detail: undefined,
+				restartToApply: app.running,
+				restorePoints,
+			});
+			history.unshift({
+				runId: `restore-${Date.now()}`,
+				at: iso(Date.now()),
+				key,
+				name: app.name,
+				from: replaced,
+				to: version,
+				result: "restored",
+				ms: 400,
+				stages: {},
+			});
 			return { ok: true };
 		},
 		setSkip: ({ key, version }) => {
