@@ -105,7 +105,7 @@ test("a file that is not TOML is one error and no apps", () => {
 });
 
 test("ensureManifest copies the seed once and never overwrites", () => {
-	const p = paths({ HOME: dir, XDG_CONFIG_HOME: join(dir, "c") }, 1000);
+	const p = paths({ HOME: dir, XDG_CONFIG_HOME: join(dir, "c") });
 	const target = ensureManifest(p, SEED);
 	expect(target).toBe(join(dir, "c/upkeep/apps.toml"));
 	expect(readFileSync(target, "utf8")).toBe(readFileSync(SEED, "utf8"));

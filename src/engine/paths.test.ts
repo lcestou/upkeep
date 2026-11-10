@@ -2,28 +2,25 @@ import { expect, test } from "bun:test";
 import { expandHome, paths } from "./paths";
 
 test("defaults follow the XDG layout under HOME", () => {
-	expect(paths({ HOME: "/h" }, 1000)).toEqual({
+	expect(paths({ HOME: "/h" })).toEqual({
 		config: "/h/.config/upkeep",
 		state: "/h/.local/state/upkeep",
 		data: "/h/.local/share/upkeep",
 		cache: "/h/.cache/upkeep",
-		socket: "/tmp/upkeep-1000.sock",
+		socket: "/h/.local/state/upkeep/upkeep.sock",
 		home: "/h",
 	});
 });
 
 test("XDG variables win over the defaults", () => {
-	const p = paths(
-		{
-			HOME: "/h",
-			XDG_CONFIG_HOME: "/c",
-			XDG_STATE_HOME: "/s",
-			XDG_DATA_HOME: "/d",
-			XDG_CACHE_HOME: "/k",
-			XDG_RUNTIME_DIR: "/r",
-		},
-		1000,
-	);
+	const p = paths({
+		HOME: "/h",
+		XDG_CONFIG_HOME: "/c",
+		XDG_STATE_HOME: "/s",
+		XDG_DATA_HOME: "/d",
+		XDG_CACHE_HOME: "/k",
+		XDG_RUNTIME_DIR: "/r",
+	});
 	expect(p).toEqual({
 		config: "/c/upkeep",
 		state: "/s/upkeep",

@@ -6,6 +6,12 @@ export function autostartFile(configDir: string): string {
 	return join(dirname(configDir), "autostart", "upkeep.desktop");
 }
 
+// Marks a file as Upkeep's own. A login entry without it was written by the owner and is left alone.
+const MARK = "X-Upkeep-Managed=true";
+
+/** Desktop Entry spec: escape for a quoted Exec argument, then for a string value; % starts a field code. */
+const execArg = (s: string) => `"${s.replace(/[\\"`$]/g, "\\$&")}"`.replaceAll("\\", "\\\\").replaceAll("%", "%%");
+
 /**
  * The login entry. Background mode travels as an environment variable because the framework's
  * launcher drops command-line arguments on Linux.
@@ -16,13 +22,14 @@ export function autostartEntry(launcher: string, icon: string): string {
 		"Type=Application",
 		"Name=Upkeep",
 		"Comment=Check app updates at login and stay in the tray",
-		`Exec=env UPKEEP_BACKGROUND=1 "${launcher}"`,
+		`Exec=env UPKEEP_BACKGROUND=1 ${execArg(launcher)}`,
 		`Icon=${icon}`,
 		"Terminal=false",
 		"StartupWMClass=Upkeep",
 		"X-GNOME-Autostart-enabled=true",
 		// Mint's own login entries wait 20 to 40 s; the network and the tray host should be up first.
 		"X-GNOME-Autostart-Delay=45",
+		MARK,
 		"",
 	].join("\n");
 }
@@ -30,13 +37,16 @@ export function autostartEntry(launcher: string, icon: string): string {
 /** Makes the login entry match the setting. Returns true when the file was written or removed. */
 export function syncAutostart(configDir: string, on: boolean, launcher: string, icon: string): boolean {
 	const file = autostartFile(configDir);
+	const current = existsSync(file) ? readFileSync(file, "utf8") : null;
+	// A file Upkeep did not write is the owner's: it is never rewritten or removed.
+	if (current !== null && !current.includes(MARK)) return false;
 	if (!on) {
-		if (!existsSync(file)) return false;
+		if (current === null) return false;
 		rmSync(file);
 		return true;
 	}
 	const wanted = autostartEntry(launcher, icon);
-	if (existsSync(file) && readFileSync(file, "utf8") === wanted) return false;
+	if (current === wanted) return false;
 	mkdirSync(dirname(file), { recursive: true });
 	writeFileSync(file, wanted);
 	return true;

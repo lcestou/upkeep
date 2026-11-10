@@ -1,4 +1,5 @@
-import { closeSync, openSync, statSync, unlinkSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, statSync, unlinkSync } from "node:fs";
+import { dirname } from "node:path";
 
 /**
  * One Upkeep per desktop session. The first process listens on a socket; a later one asks it to
@@ -6,6 +7,7 @@ import { closeSync, openSync, statSync, unlinkSync } from "node:fs";
  * Returns "primary" when this process now owns the socket, "secondary" when another answered.
  */
 export async function claimInstance(socketPath: string, onShow: () => void): Promise<"primary" | "secondary"> {
+	mkdirSync(dirname(socketPath), { recursive: true });
 	// Binding is the claim: the kernel lets one process own the path, so two starts cannot both win here.
 	if (listen(socketPath, onShow)) return "primary";
 	if (await askToShow(socketPath)) return "secondary";
@@ -34,9 +36,19 @@ export async function claimInstance(socketPath: string, onShow: () => void): Pro
 	return "primary";
 }
 
+let server: { stop(closeActiveConnections?: boolean): void } | null = null;
+
+/** Stops answering later launches and removes the socket, so a launch during shutdown starts a fresh Upkeep. */
+export function releaseInstance(socketPath: string): void {
+	if (!server) return;
+	server.stop(true);
+	server = null;
+	remove(socketPath);
+}
+
 function listen(socketPath: string, onShow: () => void): boolean {
 	try {
-		Bun.listen({
+		server = Bun.listen({
 			unix: socketPath,
 			socket: {
 				data(_socket, data) {
