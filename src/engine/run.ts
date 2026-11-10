@@ -61,13 +61,28 @@ function children(pid: number, procRoot: string): number[] {
 	return out;
 }
 
-/** Kills pid's descendants depth first, then pid. Never a process group: under autostart that is the whole session. */
+/**
+ * Stops pid and every descendant first, so no parent can spawn again, then kills them deepest first.
+ * Never a process group: under autostart that is the whole session.
+ */
 export function killTree(pid: number, procRoot = "/proc"): void {
-	for (const child of children(pid, procRoot)) killTree(child, procRoot);
-	try {
-		process.kill(pid, "SIGKILL");
-	} catch {
-		// already gone
+	const all: number[] = [];
+	const walk = (p: number) => {
+		try {
+			process.kill(p, "SIGSTOP");
+		} catch {
+			return;
+		}
+		all.push(p);
+		for (const c of children(p, procRoot)) walk(c);
+	};
+	walk(pid);
+	for (const p of all.toReversed()) {
+		try {
+			process.kill(p, "SIGKILL");
+		} catch {
+			// already gone
+		}
 	}
 }
 
@@ -164,10 +179,15 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 					}, opts.timeoutMs);
 		const sinks = [{ text: "" }, { text: "" }];
 		const readers: Promise<void>[] = [];
+		// Once the run has returned, a grandchild's late line must not reach the caller.
+		let open = true;
+		const onLine = (l: string) => {
+			if (open) opts.onLine?.(l);
+		};
 		if (stream) {
 			[proc.stdout, proc.stderr].forEach((s, i) => {
 				const sink = sinks[i];
-				if (s instanceof ReadableStream && sink) readers.push(readLines(s, sink, opts.onLine ?? (() => {})));
+				if (s instanceof ReadableStream && sink) readers.push(readLines(s, sink, onLine));
 			});
 		}
 		const code = await proc.exited;
@@ -177,6 +197,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		if (stream) {
 			// A grandchild that kept the pipe open must not hold the run: give it two seconds.
 			await Promise.race([Promise.all(readers), new Promise((r) => setTimeout(r, 2000))]);
+			open = false;
 			stdout = sinks[0]?.text ?? "";
 			stderr = sinks[1]?.text ?? "";
 		} else {

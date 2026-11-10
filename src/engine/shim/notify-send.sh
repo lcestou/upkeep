@@ -13,13 +13,21 @@ json() {
 	s=${s//$'\n'/\\n}
 	s=${s//$'\r'/\\r}
 	s=${s//$'\t'/\\t}
+	# Any other control character is invalid inside a JSON string: \u-escape it.
+	local i h c u
+	for i in {1..31} 127; do
+		printf -v h '%02x' "$i"
+		printf -v c "\\x$h"
+		printf -v u '\\u%04x' "$i"
+		s=${s//"$c"/$u}
+	done
 	printf '"%s"' "$s"
 }
 
 pos=()
 while [ $# -gt 0 ]; do
 	case "$1" in
-	-u | -i | -a | -t | -c | -h | -r | --urgency | --icon | --app-name | --expire-time | --category | --hint | --replace-id) shift ;;
+	-u | -i | -a | -t | -c | -h | -r | -A | --urgency | --icon | --app-name | --expire-time | --category | --hint | --replace-id | --action) shift ;;
 	-*) ;;
 	*) pos+=("$1") ;;
 	esac

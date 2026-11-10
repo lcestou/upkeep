@@ -303,7 +303,8 @@ export function legacyVerdict(
 		const bad = (run.code ?? 0) !== 0 || run.oldLines.length === 0 || run.oldLines.some((l) => OLD_FAILURE.test(l));
 		return bad ? failed(NOT_FINISHED) : { result: "done", installed: null, restartToApply: false };
 	}
-	if (after?.status === "fresh" && after.installed && after.installed !== before)
+	// The version moved; upstream may have released again during the run, which leaves it ready.
+	if ((after?.status === "fresh" || after?.status === "ready") && after.installed && after.installed !== before)
 		return { result: "done", installed: after.installed, restartToApply: false };
 	return failed(NOT_FINISHED);
 }

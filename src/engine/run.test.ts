@@ -83,3 +83,28 @@ test("start reads a process's output while it runs, and stop kills one that igno
 	expect(Date.now() - t0).toBeLessThan(1500);
 	expect(readdirSync(join(t.paths.cache, "tmp"))).toEqual([]);
 });
+
+test("a timeout with killTree also kills the grandchild", async () => {
+	const pidFile = join(t.dir, "gc.pid");
+	const r = await realRun(t.paths)(["bash", "-c", `sleep 30 & echo $! > "${pidFile}"; wait`], {
+		timeoutMs: 300,
+		killTree: true,
+	});
+	expect(r.timedOut).toBe(true);
+	await Bun.sleep(100);
+	const pid = Number(await Bun.file(pidFile).text());
+	expect(existsSync(`/proc/${pid}`)).toBe(false);
+});
+
+test("a grandchild that keeps the pipe open does not hold the run, and its late lines are dropped", async () => {
+	const started = Date.now();
+	const got: string[] = [];
+	const r = await realRun(t.paths)(["bash", "-c", "(sleep 2.5; echo late) & echo done"], {
+		onLine: (l) => got.push(l),
+		timeoutMs: 20_000,
+	});
+	expect(r.code).toBe(0);
+	expect(Date.now() - started).toBeLessThan(5000);
+	await Bun.sleep(1000);
+	expect(got).toEqual(["done"]);
+}, 15_000);

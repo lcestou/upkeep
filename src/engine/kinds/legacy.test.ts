@@ -276,6 +276,25 @@ test("the zenity shim writes escaped events and reads progress to the end", asyn
 	]);
 });
 
+test("without jq the shims escape every control character, and notify-send skips an action's value", async () => {
+	const n = writeShim("notify-send", notifyShim);
+	const z = writeShim("zenity", zenityShim);
+	const events = join(t.dir, "ev.ndjson");
+	const env = { UPKEEP_SHIM_EVENTS: events };
+	const run = realRun(t.paths, "");
+	await run([n, "-A", "ok=OK", "a\x1bb\x01c", "body"], { env });
+	await run([z, "--error", "--title=t\x7fu", "--text=x"], { env });
+	expect(
+		readFileSync(events, "utf8")
+			.trim()
+			.split("\n")
+			.map((l) => JSON.parse(l)),
+	).toEqual([
+		{ dialog: "notify", title: "a\x1bb\x01c", text: "body" },
+		{ dialog: "error", title: "t\x7fu", text: "x" },
+	]);
+});
+
 test("the notify-send shim records the title and body, never a notification", async () => {
 	const n = writeShim("notify-send", notifyShim);
 	const events = join(t.dir, "ev.ndjson");
@@ -377,4 +396,13 @@ test("a --check that exits non-zero, times out or prints no line makes every leg
 		ctx({ run: async () => ({ code: 137, stdout: "", stderr: "", timedOut: true }) }),
 	);
 	expect(timedOut.get("claude-plugins")).toEqual(incomplete);
+});
+
+test("a version that moved still counts when upstream released again during the run", () => {
+	const again = { installed: "2.1.0", latest: "2.2.0", status: "ready" as const };
+	expect(legacyVerdict(spec("cursor"), "2.0.1", again, { oldLines: [], code: 0 })).toEqual({
+		result: "done",
+		installed: "2.1.0",
+		restartToApply: false,
+	});
 });
