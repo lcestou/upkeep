@@ -693,7 +693,12 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!claimLock(paths, process.pid, deps.procRoot)) return { ok: false, detail: REASON_BUSY };
 			try {
 				// A restore is a swap: what is installed now becomes a restore point first, so it can be undone.
-				const current = apps.get(key)?.installed ?? null;
+				// From the command line no check has run, so what is installed has to be read first.
+				let current = apps.get(key)?.installed ?? null;
+				if (!current && canRestore(spec.kind)) {
+					const now = await probeInstalled(spec, kindCtx(key));
+					current = "version" in now ? now.version : null;
+				}
 				if (canRestore(spec.kind) && current && current !== version) {
 					const files = installedFiles(spec, destOf(spec, { paths })).filter((f) => existsSync(f));
 					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString());

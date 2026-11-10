@@ -91,7 +91,8 @@ test("install updates, exits 0, then restore and history work", async () => {
 	expect(r).toEqual(["Restored 1.4.1."]);
 	const h: string[] = [];
 	expect(await main(["history"], d, (l) => h.push(l))).toBe(0);
-	expect(h[0]).toMatch(/ BorgBackup 1\.4\.1 to 1\.4\.2 Updated$/);
+	expect(h[0]).toMatch(/ BorgBackup 1\.4\.2 to 1\.4\.1 Restored$/);
+	expect(h[1]).toMatch(/ BorgBackup 1\.4\.1 to 1\.4\.2 Updated$/);
 });
 
 test("install exits 1 when nothing could be installed, and a bad command line is a usage error", async () => {
