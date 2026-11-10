@@ -18,6 +18,7 @@
 	import Glyph from "./Glyph.svelte";
 	import Stem from "./Stem.svelte";
 	import Versions from "./Versions.svelte";
+	import { tick } from "svelte";
 
 	let { app, model, onclose }: { app: AppState; model: Model; onclose: () => void } = $props();
 
@@ -52,6 +53,7 @@
 		busy = false;
 		restoreNote = res.ok ? restoredText(version) : (res.detail ?? null);
 		// The Restore button for the now-installed version goes away; keep focus on the result it produced.
+		await tick();
 		resultEl?.focus();
 	}
 </script>

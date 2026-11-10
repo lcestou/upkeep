@@ -34,6 +34,7 @@
 <div
 	class="row ledger-cols s-{app.status}"
 	class:quiet
+	class:said={sentence !== null}
 	class:open
 	class:dim={inRun && !IN_RUN.has(app.status)}
 	data-testid="row-{app.key}"
@@ -277,6 +278,13 @@
 	.s-rolled_back .sentence,
 	.s-problem .sentence {
 		color: oklch(0.82 0.09 48);
+	}
+	/* A row with a sentence lends it the Kind column; the pane still names the kind. */
+	.said .name {
+		grid-column: name / ver;
+	}
+	.said .kind {
+		display: none;
 	}
 	.kind {
 		font-size: var(--fs-12);

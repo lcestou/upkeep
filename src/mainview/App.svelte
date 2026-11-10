@@ -100,12 +100,15 @@
 		position: relative;
 		min-height: 0;
 		min-width: 0;
+		overflow: hidden;
 	}
 	.bench {
 		position: relative;
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr);
 		height: 100%;
+		overflow: hidden;
 	}
 	.inspector {
 		position: relative;
