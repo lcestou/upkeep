@@ -975,8 +975,10 @@ export function createEngine(deps: EngineDeps): Engine {
 			const spec = specOf(a.key);
 			const c = checked.get(a.key);
 			if (!spec || !c) continue;
+			// The row goes back to where it can be tried again, and says why the last try ended. The next check clears it.
+			const why = a.detail;
 			Object.assign(a, resting(spec, { ...c, installed: a.installed }));
-			a.detail = c.detail;
+			a.detail = why ? `Last try failed. ${why}` : c.detail;
 			emitApp(a);
 		}
 	}

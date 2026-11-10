@@ -261,6 +261,22 @@ test("one app's exception fails that app and the run continues", async () => {
 	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.installed).toBe("10.5.2");
 });
 
+test("after Done a failed app is ready again and says why the last try ended, until the next check", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	await engine.install(["boom", "fd"]);
+	await engine.idle();
+	engine.dismissSummary();
+	const boom = () => engine.snapshot().apps.find((a) => a.key === "boom");
+	expect(boom()).toMatchObject({
+		status: "ready",
+		detail: "Last try failed. Download failed: the server answered 404.",
+	});
+	await engine.check();
+	expect(boom()?.status).toBe("ready");
+	expect(boom()?.detail ?? "").not.toContain("Last try failed");
+});
+
 test("retry from the summary runs only the failed app again", async () => {
 	const engine = createEngine(await deps());
 	await engine.check();
