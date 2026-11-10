@@ -19,12 +19,13 @@ function render(svg: string, png: string, px: number): void {
 	if (done.exitCode !== 0) throw new Error(`render failed for ${svg}: ${done.stderr.toString()}`);
 }
 
-// The light drawings, for a dark panel. shortcut: a light panel would need assets/brand/tray-dark; pick by the desktop theme when someone runs one.
-const traySrc = join(brand, "tray-light");
+// The light drawings, for a dark panel, from the masters fitted by hand at 44 px: 22 at the 2x scale of the owner's
+// displays, which the panel scales down on a 1x screen. assets/brand also holds 22 px masters and dark drawings.
+// shortcut: one picture set, light at 44 px; pick by panel theme and scale when someone runs a light or 1x panel.
+const traySrc = join(brand, "tray-light-44");
 mkdirSync(trayOut, { recursive: true });
 const names = readdirSync(traySrc).filter((f) => f.endsWith(".svg"));
 for (const f of names) {
-	// 44 px is 22 at the 2x scale of the owner's displays; the panel scales it down on a 1x screen.
 	render(join(traySrc, f), join(trayOut, f.replace(/\.svg$/, ".png")), 44);
 }
 render(join(brand, "app-icon-512.svg"), join(import.meta.dir, "../assets/icon/upkeep.png"), 512);
