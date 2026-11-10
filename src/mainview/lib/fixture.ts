@@ -1,0 +1,663 @@
+// The dev bridge: the 32 seeded apps with the real pending list of 2026-11-10, and a scripted run.
+import type {
+	AppKind,
+	AppState,
+	AppStatus,
+	Bridge,
+	EngineEvent,
+	HistoryRow,
+	LogLine,
+	Requests,
+	RunResult,
+	RunState,
+	Settings,
+	Snapshot,
+	Stage,
+} from "../../shared/types";
+
+export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many";
+
+type Seed = {
+	key: string;
+	name: string;
+	kind: AppKind;
+	repo?: string;
+	installed: string | null;
+	latest?: string | null;
+	status?: AppStatus;
+	size?: number;
+	detail?: string;
+	running?: boolean;
+	sudo?: boolean;
+	auto?: boolean;
+	versionless?: boolean;
+	run?: string;
+	note?: string;
+	dest?: string;
+	restore?: string[];
+	stages?: [Stage, number][];
+	notes?: string;
+	publishedDaysAgo?: number;
+};
+
+const NOTE_SESSIONS = "Open sessions keep the old version until restarted.";
+
+const SEEDS: Seed[] = [
+	{
+		key: "zen",
+		name: "Zen Browser",
+		kind: "appimage",
+		repo: "zen-browser/desktop",
+		installed: "1.24b",
+		latest: "1.24.1b",
+		status: "ready",
+		size: 108_940_288,
+		running: true,
+		dest: "~/.local/bin/zen-browser.AppImage",
+		restore: ["1.23.4b"],
+		stages: [
+			["download", 72],
+			["backup", 8],
+			["install", 12],
+			["verify", 8],
+		],
+		notes:
+			"Fixed tab groups losing their colour after a restart.\nWorkspaces now remember their container.\nSecurity fixes from Firefox 146.0.1.",
+		publishedDaysAgo: 2,
+	},
+	{
+		key: "ghostty",
+		name: "Ghostty Terminal",
+		kind: "appimage",
+		repo: "pkgforge-dev/ghostty-appimage",
+		installed: "1.3.1",
+		running: true,
+		dest: "~/.local/bin/ghostty.appimage",
+		restore: ["1.3.0"],
+	},
+	{
+		key: "lrcget",
+		name: "LRCGET",
+		kind: "appimage",
+		repo: "tranxuanthang/lrcget",
+		installed: null,
+		latest: "1.0.2",
+		status: "problem",
+		detail: "Could not read the version from the AppImage's metainfo.",
+		dest: "~/.local/bin/lrcget",
+	},
+	{
+		key: "starship",
+		name: "Starship",
+		kind: "archive",
+		repo: "starship/starship",
+		installed: "1.24.1",
+		sudo: true,
+		dest: "/usr/local/bin/starship",
+		restore: ["1.24.0"],
+	},
+	{ key: "yazi", name: "Yazi", kind: "archive", repo: "sxyazi/yazi", installed: "26.1.22", restore: ["25.5.31"] },
+	{ key: "zoxide", name: "Zoxide", kind: "archive", repo: "ajeetdsouza/zoxide", installed: "0.9.9" },
+	{ key: "bat", name: "bat", kind: "archive", repo: "sharkdp/bat", installed: "0.26.1", restore: ["0.26.0"] },
+	{
+		key: "fd",
+		name: "fd",
+		kind: "archive",
+		repo: "sharkdp/fd",
+		installed: "10.5.1",
+		latest: "10.5.2",
+		status: "ready",
+		size: 1_203_456,
+		dest: "~/.local/bin/fd",
+		restore: ["10.5.0"],
+		stages: [
+			["download", 44],
+			["backup", 12],
+			["install", 26],
+			["verify", 18],
+		],
+		notes:
+			"Bugfixes\n- Fix --exec-batch when combined with --max-results.\n- Respect .ignore files in parent directories again.\n\nChanges\n- Colorize symlinks to directories like ls does.",
+		publishedDaysAgo: 3,
+	},
+	{ key: "fzf", name: "fzf", kind: "archive", repo: "junegunn/fzf", installed: "0.68.0", restore: ["0.67.0"] },
+	{ key: "rtk", name: "rtk", kind: "archive", repo: "rtk-ai/rtk", installed: "0.31.2", restore: ["0.31.0"] },
+	{ key: "uv", name: "uv", kind: "archive", repo: "astral-sh/uv", installed: "0.10.4", restore: ["0.10.2"] },
+	{ key: "bun", name: "Bun", kind: "archive", repo: "oven-sh/bun", installed: "1.4.4", restore: ["1.4.3"] },
+	{ key: "borg", name: "BorgBackup", kind: "file", repo: "borgbackup/borg", installed: "1.4.3" },
+	{ key: "rustdesk", name: "RustDesk", kind: "deb", repo: "rustdesk/rustdesk", installed: "1.4.4", sudo: true },
+	{ key: "lutris", name: "Lutris", kind: "deb", repo: "lutris/lutris", installed: "0.5.21", sudo: true },
+	{ key: "tmux", name: "tmux", kind: "source", repo: "tmux/tmux", installed: "3.6a", sudo: true },
+	{ key: "cava", name: "CAVA", kind: "source", repo: "karlstav/cava", installed: "0.10.6", sudo: true },
+	{ key: "claude", name: "Claude Code", kind: "command", installed: "2.4.12", auto: true, note: NOTE_SESSIONS },
+	{ key: "omp", name: "omp", kind: "command", installed: "14.2.0", auto: true, note: NOTE_SESSIONS },
+	{ key: "opencode", name: "opencode", kind: "command", installed: "1.3.8", auto: true, note: NOTE_SESSIONS },
+	{
+		key: "wrangler",
+		name: "wrangler",
+		kind: "command",
+		installed: "4.157.0",
+		latest: "4.160.0",
+		status: "ready",
+		auto: true,
+		stages: [
+			["install", 82],
+			["verify", 18],
+		],
+		notes: "Minor Changes\n- Add `wrangler deploy --strict` to refuse a deploy that would delete bindings.",
+		publishedDaysAgo: 1,
+	},
+	{
+		key: "cursor",
+		name: "Cursor",
+		kind: "legacy",
+		installed: "3.29.9",
+		latest: "3.29.15",
+		status: "ready",
+		running: true,
+		note: "The old script closes Cursor to update it.",
+		stages: [["install", 100]],
+	},
+	{
+		key: "dsh",
+		name: "dsh",
+		kind: "manual",
+		installed: "0.1.7",
+		run: "lutechi-updater dsh",
+		note: "Never installed unattended. The old script asks, stops dsh-web, smoke-tests and rolls back.",
+	},
+	{ key: "pr-agent", name: "pr-agent", kind: "legacy", installed: "0.48.2", auto: true },
+	{ key: "headroom", name: "headroom", kind: "legacy", installed: "0.9.1", auto: true },
+	{
+		key: "claude-code-telegram",
+		name: "claude-code-telegram",
+		kind: "manual",
+		installed: "1.6.0",
+		run: "lutechi-updater claude-code-telegram",
+	},
+	{
+		key: "claude-plugins",
+		name: "Claude Code plugins",
+		kind: "legacy",
+		installed: null,
+		versionless: true,
+		auto: true,
+	},
+	{ key: "omp-plugins", name: "omp plugins", kind: "legacy", installed: null, versionless: true, auto: true },
+	{ key: "whisper", name: "whisper.cpp", kind: "manual", installed: "1.8.2", run: "lutechi-updater whisper" },
+	{
+		key: "llama",
+		name: "llama.cpp",
+		kind: "manual",
+		installed: "b7712",
+		latest: "b7790",
+		status: "manual",
+		run: "/llama in a Claude session",
+	},
+	{
+		key: "strata",
+		name: "Strata",
+		kind: "manual",
+		installed: "0.2.10",
+		latest: "0.2.13",
+		status: "manual",
+		run: "strata-update",
+	},
+	{
+		key: "comfyui",
+		name: "ComfyUI",
+		kind: "manual",
+		installed: "0.43.0",
+		latest: "0.44.0",
+		status: "manual",
+		run: "comfyui-update",
+	},
+];
+
+const DEFAULT_STAGES: Record<AppKind, [Stage, number][]> = {
+	appimage: [
+		["download", 60],
+		["backup", 10],
+		["install", 20],
+		["verify", 10],
+	],
+	archive: [
+		["download", 60],
+		["backup", 10],
+		["install", 20],
+		["verify", 10],
+	],
+	file: [
+		["download", 60],
+		["backup", 10],
+		["install", 20],
+		["verify", 10],
+	],
+	deb: [
+		["download", 50],
+		["install", 40],
+		["verify", 10],
+	],
+	source: [
+		["download", 10],
+		["install", 80],
+		["verify", 10],
+	],
+	command: [
+		["install", 85],
+		["verify", 15],
+	],
+	legacy: [["install", 100]],
+	manual: [],
+};
+
+const CAN_RESTORE: Record<AppKind, boolean> = {
+	appimage: true,
+	archive: true,
+	file: true,
+	deb: false,
+	source: false,
+	command: false,
+	legacy: false,
+	manual: false,
+};
+
+const NOW = Date.parse("2026-11-10T09:41:00Z");
+const DAY = 86_400_000;
+const iso = (ms: number) => new Date(ms).toISOString();
+
+function toApp(seed: Seed): AppState {
+	const restore = seed.restore ?? [];
+	return {
+		key: seed.key,
+		name: seed.name,
+		kind: seed.kind,
+		repo: seed.repo,
+		installed: seed.installed,
+		latest: seed.versionless ? null : (seed.latest ?? seed.installed),
+		status: seed.status ?? "fresh",
+		detail: seed.detail,
+		size: seed.size,
+		notes: seed.notes,
+		releaseUrl: seed.repo ? `https://github.com/${seed.repo}/releases/latest` : undefined,
+		publishedAt: seed.publishedDaysAgo === undefined ? undefined : iso(NOW - seed.publishedDaysAgo * DAY),
+		running: seed.running ?? false,
+		restartToApply: false,
+		restorePoints: restore.map((version, i) => ({ version, at: iso(NOW - (12 + i * 20) * DAY) })),
+		canRestore: CAN_RESTORE[seed.kind],
+		auto: seed.auto ?? false,
+		sudo: seed.sudo ?? false,
+		versionless: seed.versionless ?? false,
+		run: seed.run,
+		note: seed.note,
+		dest: seed.dest,
+		stages: (seed.stages ?? DEFAULT_STAGES[seed.kind]).map(([id, weight]) => ({ id, weight })),
+		held: false,
+	};
+}
+
+function seedsFor(variant: FixtureVariant): AppState[] {
+	const apps = SEEDS.map(toApp);
+	if (variant === "empty") {
+		return apps.map((a) => ({
+			...a,
+			status: "fresh",
+			installed: a.versionless ? null : (a.latest ?? a.installed),
+			detail: undefined,
+		}));
+	}
+	if (variant === "problems") {
+		return apps.map((a) => {
+			if (a.key === "lrcget") return a;
+			if (a.key === "borg")
+				return {
+					...a,
+					status: "problem",
+					detail: "Will not start: error while loading shared libraries: libcrypt.so.1.",
+				};
+			if (a.key === "pr-agent")
+				return {
+					...a,
+					status: "problem",
+					detail: "Could not look: GitHub API rate limit exceeded. Try again after 10:12.",
+				};
+			if (a.key === "zen") return { ...a, status: "held", skipped: "1.24.1b" };
+			if (a.status === "ready" || a.status === "manual") return { ...a, status: "fresh", installed: a.latest };
+			return a;
+		});
+	}
+	if (variant === "many") {
+		const extra = SEEDS.slice(3, 31).map((s) =>
+			toApp({ ...s, key: `${s.key}-2`, name: `${s.name} nightly`, status: s.status === "ready" ? "fresh" : s.status }),
+		);
+		return [...apps, ...extra];
+	}
+	return apps;
+}
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+const clone = <T>(v: T): T => structuredClone(v);
+
+export type FixtureOptions = { variant?: FixtureVariant; speed?: number };
+
+export function createFixture(opts: FixtureOptions = {}): Bridge {
+	const variant = opts.variant ?? "default";
+	const speed = opts.speed && opts.speed > 0 ? opts.speed : 1;
+	const listeners = new Set<(e: EngineEvent) => void>();
+	let apps = seedsFor(variant);
+	let settings: Settings = { keepBackups: 1, notify: true, checkAtLogin: false };
+	let run: RunState = { id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] };
+	const rate = { limit: 5000, remaining: 4977 };
+	let checkedAt: string | null = iso(Date.now() - 2 * 60_000);
+	const history: HistoryRow[] = pastHistory();
+	const logs = new Map<string, LogLine[]>();
+	let attempts = 0;
+
+	if (variant === "checking") {
+		const tail = new Set(apps.slice(-12).map((a) => a.key));
+		apps = apps.map((a) => (tail.has(a.key) ? { ...a, status: "checking", installed: null, latest: null } : a));
+		run = { ...run, id: null, phase: "checking", index: 20, total: apps.length };
+		checkedAt = null;
+	}
+
+	const emit = (e: EngineEvent) => {
+		const copy = clone(e);
+		queueMicrotask(() => listeners.forEach((l) => l(copy)));
+	};
+	const put = (app: AppState) => {
+		apps = apps.map((a) => (a.key === app.key ? app : a));
+		emit({ type: "app", app });
+	};
+	const get = (key: string) => apps.find((a) => a.key === key);
+	const setRun = (patch: Partial<RunState>) => {
+		run = { ...run, ...patch };
+		emit({ type: "run", run });
+	};
+	const log = (runId: string, key: string | null, text: string) => {
+		const line: LogLine = { at: iso(Date.now()), key, text };
+		const lines = logs.get(runId) ?? [];
+		lines.push(line);
+		logs.set(runId, lines);
+		emit({ type: "log", line });
+	};
+
+	async function installOne(runId: string, key: string): Promise<RunResult> {
+		const start = Date.now();
+		const app = get(key);
+		if (!app) throw new Error(`No app ${key}`);
+		const from = app.installed;
+		const to = app.latest;
+		const total = 3000 / speed;
+		put({ ...app, status: "working", stage: app.stages[0]?.id, stagePct: 0 });
+		for (const { id, weight } of app.stages) {
+			const ms = (total * weight) / 100;
+			const steps = Math.max(2, Math.round(ms / 80));
+			const measured = id === "download" || app.kind === "legacy";
+			log(runId, key, stageLog(app, id));
+			for (let i = 0; i <= steps; i++) {
+				const current = get(key);
+				if (!current) break;
+				put({ ...current, stage: id, stagePct: measured ? Math.round((i / steps) * 100) : null });
+				// oxlint-disable-next-line no-await-in-loop -- the scripted run is sequential on purpose
+				await sleep(ms / steps);
+			}
+		}
+		const after = get(key);
+		if (!after) throw new Error(`No app ${key}`);
+		const ms = Date.now() - start;
+		if (key === "wrangler" && attempts === 1) {
+			const detail = "Still at 4.157.0 after the update command.";
+			log(runId, key, `wrangler --version printed 4.157.0. ${detail}`);
+			put({ ...after, status: "failed", stage: undefined, stagePct: undefined, detail });
+			return { key, name: app.name, from, to, result: "failed", detail, ms };
+		}
+		const restorePoints =
+			app.canRestore && from
+				? [{ version: from, at: iso(Date.now()) }, ...after.restorePoints].slice(0, settings.keepBackups)
+				: after.restorePoints;
+		log(runId, key, `${app.name} reports ${to}.`);
+		put({
+			...after,
+			status: "done",
+			installed: to,
+			stage: undefined,
+			stagePct: undefined,
+			detail: undefined,
+			restartToApply: after.running,
+			restorePoints,
+		});
+		return { key, name: app.name, from, to, result: "updated", ms };
+	}
+
+	async function runQueue(keys: string[]) {
+		attempts++;
+		const runId = `run-${Date.now()}`;
+		const order = keys.toSorted((a, b) => queueRank(a) - queueRank(b));
+		for (const key of order) {
+			const app = get(key);
+			if (app) put({ ...app, status: "queued", detail: undefined });
+		}
+		setRun({
+			id: runId,
+			phase: "installing",
+			index: 1,
+			total: order.length,
+			currentKey: order[0] ?? null,
+			stopping: false,
+			results: [],
+		});
+		log(runId, null, `Run started: ${order.length} apps.`);
+		const results: RunResult[] = [];
+		for (let i = 0; i < order.length; i++) {
+			const key = order[i];
+			if (key === undefined) break;
+			if (run.stopping && i > 0) {
+				for (const rest of order.slice(i)) {
+					const app = get(rest);
+					if (app) put({ ...app, status: "ready" });
+				}
+				log(runId, null, "Stopped after the current app.");
+				break;
+			}
+			setRun({ index: i + 1, currentKey: key });
+			// oxlint-disable-next-line no-await-in-loop -- the scripted run is sequential on purpose
+			const result = await installOne(runId, key);
+			results.push(result);
+			setRun({ results: [...results] });
+			// oxlint-disable-next-line no-await-in-loop -- the scripted run is sequential on purpose
+			await sleep(200 / speed);
+		}
+		const at = iso(Date.now());
+		for (const r of results) history.unshift({ ...r, runId, at, stages: {} });
+		log(runId, null, "Run finished.");
+		setRun({ phase: "summary", currentKey: null, results });
+	}
+
+	function queueRank(key: string): number {
+		const i = apps.findIndex((a) => a.key === key);
+		const app = apps[i];
+		return (app?.kind === "legacy" ? 1000 : 0) + i;
+	}
+
+	async function runCheck(keys?: string[]) {
+		const targets = apps.filter((a) => !keys || keys.includes(a.key)).map((a) => a.key);
+		const before = new Map(apps.map((a) => [a.key, clone(a)]));
+		for (const key of targets) {
+			const app = get(key);
+			if (app) put({ ...app, status: "checking" });
+		}
+		setRun({ id: null, phase: "checking", index: 0, total: targets.length, currentKey: null, results: [] });
+		for (let i = 0; i < targets.length; i++) {
+			// oxlint-disable-next-line no-await-in-loop -- the scripted run is sequential on purpose
+			await sleep(45 / speed);
+			const key = targets[i];
+			const prev = key === undefined ? undefined : before.get(key);
+			if (prev) put(resolveCheck(prev));
+			setRun({ index: i + 1 });
+		}
+		checkedAt = iso(Date.now());
+		setRun({ phase: "idle", index: 0, total: 0 });
+		emit({ type: "meta", rate, checkedAt, settings });
+	}
+
+	const handlers: {
+		[K in keyof Requests]: (p: Requests[K]["params"]) => Requests[K]["response"] | Promise<Requests[K]["response"]>;
+	} = {
+		snapshot: () =>
+			({
+				apps: clone(apps),
+				run: clone(run),
+				settings: clone(settings),
+				rate,
+				checkedAt,
+				version: "0.1.0",
+			}) satisfies Snapshot,
+		check: ({ keys }) => {
+			if (run.phase !== "idle") return { started: false };
+			void runCheck(keys);
+			return { started: true };
+		},
+		install: ({ keys }) => {
+			if (run.phase === "checking") return { started: false, reason: "A check is running." };
+			if (run.phase === "installing") return { started: false, reason: "A run is already in progress." };
+			const ok = keys.filter((k) => {
+				const s = get(k)?.status;
+				return s === "ready" || s === "failed" || s === "rolled_back";
+			});
+			if (ok.length === 0) return { started: false, reason: "Nothing to install." };
+			void runQueue(ok);
+			return { started: true };
+		},
+		stopAfterCurrent: () => {
+			if (run.phase !== "installing") return { stopping: false };
+			setRun({ stopping: true });
+			return { stopping: true };
+		},
+		dismissSummary: () => {
+			for (const app of apps) if (app.status === "done") put({ ...app, status: "fresh" });
+			setRun({ id: null, phase: "idle", index: 0, total: 0, currentKey: null, stopping: false, results: [] });
+			return { ok: true };
+		},
+		restore: ({ key, version }) => {
+			const app = get(key);
+			if (!app || run.phase === "installing") return { ok: false, detail: "Restore is not possible during a run." };
+			const status: AppStatus = app.latest && app.latest !== version ? "ready" : "fresh";
+			put({ ...app, installed: version, status, detail: undefined, restartToApply: app.running });
+			return { ok: true };
+		},
+		setSkip: ({ key, version }) => {
+			const app = get(key);
+			if (!app) return { ok: false };
+			put(
+				version
+					? { ...app, status: "held", skipped: version }
+					: { ...app, status: app.held ? "held" : "ready", skipped: undefined },
+			);
+			return { ok: true };
+		},
+		setHold: ({ key, held }) => {
+			const app = get(key);
+			if (!app) return { ok: false };
+			const pending = app.latest !== null && app.latest !== app.installed;
+			const status: AppStatus = held ? "held" : app.skipped ? "held" : pending ? "ready" : "fresh";
+			put({ ...app, held, status });
+			return { ok: true };
+		},
+		setAuto: ({ key, auto }) => {
+			const app = get(key);
+			if (!app) return { ok: false };
+			put({ ...app, auto });
+			return { ok: true };
+		},
+		setSettings: (patch) => {
+			settings = {
+				...settings,
+				...patch,
+				keepBackups: Math.min(5, Math.max(1, patch.keepBackups ?? settings.keepBackups)),
+			};
+			emit({ type: "meta", rate, checkedAt, settings });
+			return clone(settings);
+		},
+		history: ({ limit }) => clone(history.slice(0, limit)),
+		runLog: ({ runId }) => clone(logs.get(runId) ?? []),
+		open: () => ({ ok: true }),
+		copy: () => ({ ok: true }),
+	};
+
+	return {
+		async request(name, params) {
+			await sleep(0);
+			return handlers[name](params);
+		},
+		onEvent(listener) {
+			listeners.add(listener);
+			return () => {
+				listeners.delete(listener);
+			};
+		},
+	};
+}
+
+function resolveCheck(app: AppState): AppState {
+	if (app.status === "done") return { ...app, status: "fresh" };
+	if (app.status === "queued" || app.status === "working") return { ...app, status: "ready" };
+	return app;
+}
+
+function stageLog(app: AppState, stage: Stage): string {
+	switch (stage) {
+		case "download":
+			return `Downloading ${app.name} ${app.latest ?? ""}.`;
+		case "backup":
+			return `Copied ${app.installed ?? ""} to restore point.`;
+		case "install":
+			return app.kind === "legacy" ? `Running lutechi-updater ${app.key}.` : `Installing ${app.latest ?? ""}.`;
+		case "verify":
+			return "Probing the new version.";
+	}
+}
+
+const row = (
+	runId: string,
+	daysAgo: number,
+	key: string,
+	name: string,
+	from: string,
+	to: string,
+	ms: number,
+	result: RunResult["result"] = "updated",
+	detail?: string,
+): HistoryRow => ({
+	runId,
+	at: iso(NOW - daysAgo * DAY),
+	key,
+	name,
+	from,
+	to,
+	result,
+	detail,
+	ms,
+	stages: {},
+});
+
+function pastHistory(): HistoryRow[] {
+	return [
+		row("run-3", 2, "bat", "bat", "0.26.0", "0.26.1", 2400),
+		row("run-3", 2, "claude", "Claude Code", "2.4.10", "2.4.12", 21_800),
+		row("run-2", 6, "yazi", "Yazi", "25.5.31", "26.1.22", 5100),
+		row("run-2", 6, "uv", "uv", "0.10.2", "0.10.4", 3900),
+		row("run-2", 6, "ghostty", "Ghostty Terminal", "1.3.0", "1.3.1", 13_600),
+		row(
+			"run-1",
+			9,
+			"ghostty",
+			"Ghostty Terminal",
+			"1.3.0",
+			"1.3.1",
+			14_200,
+			"rolled_back",
+			"Would not start after the update. Restored 1.3.0.",
+		),
+		row("run-1", 9, "fzf", "fzf", "0.67.0", "0.68.0", 2100),
+	];
+}
