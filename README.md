@@ -37,9 +37,23 @@ bun run cli history
 
 `check` exits 0 unless the old updater's own check did not finish. `install` exits 0 when every app it ran ended updated.
 
+## Adding an app
+
+Press **Add app** in the window. There are four ways in:
+
+- **Paste** a GitHub `owner/repo` or any github.com link to the project. Upkeep reads the latest release, picks the asset that runs on this machine, works out the kind, and for an archive opens it to see which programs it holds (ripgrep ships `rg`, not `ripgrep`). If the app is already installed it finds it and reads its version.
+- **Choose a file** or **drop a file** on the window. An AppImage that names its own release source is matched for certain. Otherwise Upkeep searches by name and marks the result as a guess to check.
+- **Scan this computer.** It looks through `~/.local/bin`, `~/Applications` and `~/bin` for compiled programs and AppImages that are not in the list. It never runs what it finds. A guess is only offered when a well-known project has exactly that name and a release for this machine. Everything else is listed with "Could not tell where it comes from", and you paste the repo.
+
+Each suggestion shows the name, the asset, where it will be installed, and one sentence on how it was worked out. You can change the name and the path before adding. An app that is not installed yet lands in Ready to install.
+
+A program that the system's package manager owns (say `/usr/bin/rg` from apt) is left alone. Upkeep keeps its own copy in `~/.local/bin`, which comes first on the PATH.
+
+**Remove from Upkeep** in an app's pane takes it off the list. It never uninstalls anything.
+
 ## The app list
 
-`~/.config/upkeep/apps.toml`, copied from `manifest/apps.toml` on first run and never rewritten after that. One table per app:
+`~/.config/upkeep/apps.toml`, copied from `manifest/apps.toml` on first run. Adding and removing in the window edits this file, one table at a time, and keeps the previous version as `apps.toml.bak`. You can also edit it by hand. One table per app:
 
 ```toml
 [apps.fd]

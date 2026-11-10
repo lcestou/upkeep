@@ -9,6 +9,8 @@ First version.
 - A new version that will not start is replaced by the copy taken before it.
 - Downloads are checked against the size and SHA-256 that GitHub lists.
 - A running app is not closed. Its file is replaced and the row says "Restart to apply".
+- Add an app by pasting its GitHub repo, choosing or dropping a file, or scanning the computer. Remove one from its pane.
+- Filter the list by name.
 - Skip one version of an app, hold an app, or mark it to install without asking.
 - A tray icon shows how many updates are ready. One notification per new set of updates.
 - History of every install, and a log per run.
