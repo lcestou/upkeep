@@ -127,6 +127,7 @@ function ctx(specs: AppSpec[] = []) {
 		specs,
 		log: (l) => lines.push(l),
 		searchGapMs: 0,
+		usrLocal: join(t.dir, "usr/local"),
 	};
 	return { c, calls: rec.calls };
 }
@@ -504,6 +505,30 @@ test("an archive's programs are read from inside it: ripgrep ships rg", async ()
 	});
 	// Nothing is kept.
 	expect(readdirSync(join(t.paths.cache, "dl"))).toEqual([]);
+});
+
+test("a program the system's packages own is never the dest: Upkeep keeps its own in ~/.local/bin", async () => {
+	await ripgrep();
+	onPath.rg = script(join(t.dir, "usr/bin/rg"), 'echo "ripgrep 14.1.0"');
+	const { c, calls } = ctx();
+	const r = await suggest("BurntSushi/ripgrep", c);
+	expect(r.suggestions[0]).toMatchObject({
+		spec: { dest: "~/.local/bin/rg", bins: [`${RG}/rg`], install_if_missing: true },
+		installed: null,
+		why: `Matched ${RG}.tar.gz for this machine. It installs rg. A copy at ${onPath.rg} comes from the system's packages, so Upkeep will keep its own at ~/.local/bin/rg, which comes first on your PATH.`,
+	});
+	expect(r.suggestions[0]?.spec.sudo).toBeUndefined();
+	// The system's copy is never run.
+	expect(calls.some((x) => x.argv[0] === onPath.rg)).toBe(false);
+});
+
+test("a program in /usr/local stays where it is and is installed with sudo", async () => {
+	await ripgrep();
+	onPath.rg = script(join(t.dir, "usr/local/bin/rg"), 'echo "ripgrep 14.1.0"');
+	const r = await suggest("BurntSushi/ripgrep", ctx().c);
+	expect(r.suggestions[0]).toMatchObject({ spec: { dest: onPath.rg, sudo: true }, installed: "14.1.0" });
+	expect(r.suggestions[0]?.spec.install_if_missing).toBeUndefined();
+	expect(r.suggestions[0]?.why).toEndWith(`Found it installed at ${onPath.rg}.`);
 });
 
 test("a zip's programs are read too, the stem's program leads, and more than six are cut to the top or bin/", async () => {

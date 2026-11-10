@@ -27,6 +27,8 @@ export type DiscoverCtx = {
 	log: (text: string) => void;
 	/** Tests point this at a local server. The token is only ever sent to the real one. */
 	api?: string;
+	/** Where the owner's own system-wide installs live. Default /usr/local; tests point it at a temp dir. */
+	usrLocal?: string;
 	/** The pause between two name searches during a scan. Default 300 ms. */
 	searchGapMs?: number;
 };
@@ -307,6 +309,22 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	else if (kind === "appimage") dest = image ?? join(home, ".local/bin", `${bin}.AppImage`);
 	else if (kind === "deb") dest = onPath ?? `/usr/bin/${bin}`;
 	else dest = onPath ?? join(home, ".local/bin", bin);
+	// A program on PATH outside home and /usr/local belongs to the package manager: never install over it.
+	let systemCopy: string | null = null;
+	let rootDest = false;
+	const place = (found: string | null, program: string) => {
+		const usrLocal = ctx.usrLocal ?? "/usr/local";
+		systemCopy = null;
+		rootDest = false;
+		if (!found || found.startsWith(`${home}/`)) return found ?? join(home, ".local/bin", program);
+		if (found.startsWith(`${usrLocal}/`)) {
+			rootDest = true;
+			return found;
+		}
+		systemCopy = found;
+		return join(home, ".local/bin", program);
+	};
+	if (!opts.file && (kind === "archive" || kind === "file")) dest = place(onPath, bin);
 	const name = appName(shippedBy(picked), repo);
 	const key = keyOf(bin);
 	const { pattern, widen } = assetPattern(picked.asset.name, release);
@@ -319,18 +337,26 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		const want = opts.file ? (dest.split("/").at(-1) ?? bin) : bin;
 		const lead = found.programs.find((p) => baseOf(p) === want) ?? found.programs[0] ?? want;
 		bins = [lead, ...found.programs.filter((p) => p !== lead)];
-		if (!opts.file) dest = (await which(ctx, baseOf(lead))) ?? join(home, ".local/bin", baseOf(lead));
+		if (!opts.file) dest = place(await which(ctx, baseOf(lead)), baseOf(lead));
 		installs = `It installs ${bins.map(baseOf).join(", ")}.`;
 		if (found.more) installs += ` The archive holds ${found.more} programs; only the first ${MAX_BINS} are listed.`;
 	}
 	const spec: AppSpec = { key, name, kind, repo, asset: pattern, dest: tilde(dest, home) };
 	if (bins) spec.bins = bins;
-	if (kind === "deb") spec.sudo = true;
+	if (kind === "deb" || rootDest) spec.sudo = true;
 	const exists = existsSync(dest);
 	if (!exists) spec.install_if_missing = true;
 
-	const why = [opts.found, `Matched ${picked.asset.name} for this machine.`, installs];
-	if (!opts.file)
+	const why = [
+		opts.found,
+		`Matched ${picked.asset.name} for this machine.`,
+		installs ?? (systemCopy ? `It installs ${bin}.` : null),
+	];
+	if (systemCopy)
+		why.push(
+			`A copy at ${systemCopy} comes from the system's packages, so Upkeep will keep its own at ${spec.dest}, which comes first on your PATH.`,
+		);
+	else if (!opts.file)
 		why.push(
 			exists
 				? `Found it installed at ${spec.dest}.`
@@ -338,7 +364,8 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		);
 	if (widen) why.push("The pattern is this release's exact asset name and will need widening.");
 	let installed: string | null = null;
-	if (exists && opts.probe !== false) {
+	// The system's copy is not the one Upkeep keeps, so its version is not "installed".
+	if (exists && opts.probe !== false && !systemCopy) {
 		const p = await probeVersion(dest, ["--version"], { run: ctx.run });
 		if ("version" in p) installed = p.version;
 		else why.push("Could not read the installed version with --version.");
