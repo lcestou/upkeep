@@ -186,3 +186,151 @@ test("PageDown and PageUp move row focus by the rows that fit in the list", asyn
 	await expect(page.getByTestId(`open-${rows[fit]}`)).toBeFocused();
 	await expect(page.getByTestId(`open-${rows[fit]}`)).toBeInViewport({ ratio: 1 });
 });
+
+// 10. Problem rows use the same cells as every row.
+test("problem rows show their kind and keep the version column", async ({ page }) => {
+	await load(page, "fixture=problems", { wait: "sentence" });
+	const borg = page.getByTestId("row-borg");
+	await expect(borg.locator(".cell.kind")).toBeVisible();
+	await expect(borg.locator(".cell.kind")).toHaveText("Binary");
+	const ver = async (key: string) => page.getByTestId(`row-${key}`).locator(".cell.ver").boundingBox();
+	const [b, z] = [await ver("borg"), await ver("zen")];
+	expect(b?.x).toBe(z?.x);
+	expect(b?.width).toBe(z?.width);
+	const name = await borg.locator(".cell.name").boundingBox();
+	const kind = await borg.locator(".cell.kind").boundingBox();
+	expect((name?.x ?? 0) + (name?.width ?? 0)).toBeLessThanOrEqual((kind?.x ?? 0) + 0.5);
+});
+
+// 11. Nothing installed reads "→ 15.2.0" with a sentence for assistive tech, and History says Installed.
+test("a row with nothing installed reads an arrow and the latest, and History says Installed", async ({ page }) => {
+	await page.setViewportSize({ width: 1200, height: 800 });
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-input").fill("BurntSushi/ripgrep");
+	await page.keyboard.press("Enter");
+	await page.getByTestId("suggestion-ripgrep").getByTestId("sug-add").click();
+	const ver = page.getByTestId("row-ripgrep").locator(".cell.ver");
+	await expect(ver.locator(".installed")).toHaveText("");
+	await expect(ver.locator(".arrow")).toHaveCount(1);
+	await expect(ver.locator(".latest")).toHaveText("15.2.0");
+	await expect(ver.locator(".sr-only")).toHaveText("Not installed. 15.2.0 is the latest.");
+	await expect(ver).not.toContainText("?");
+	await page.keyboard.press("Escape");
+	await page.getByTestId("select-none").click();
+	await page.getByTestId("tick-ripgrep").check();
+	await page.getByTestId("install").click();
+	await expect(sentence(page)).toHaveText("1 updated", { timeout: 20_000 });
+	await page.getByTestId("tab-history").click();
+	const row = page.getByTestId("history").locator("li", { hasText: "ripgrep" }).first();
+	await expect(row.getByTestId("history-vers")).toHaveText("Installed 15.2.0");
+});
+
+// 12. A re-checked row keeps its versions and its tick, disabled, until its answer arrives.
+test("rows being re-checked keep their versions and their ticks", async ({ page }) => {
+	await load(page, "fixture&speed=0.05");
+	await expect(page.getByTestId("tick-cursor")).toBeChecked();
+	await page.getByTestId("check").click();
+	// Cursor is answered last of the four ready rows, so it is still being checked here.
+	await expect(page.getByTestId("status-cursor")).toHaveText("Checking");
+	await expect(page.getByTestId("tick-cursor")).toBeChecked({ timeout: 1000 });
+	await expect(page.getByTestId("tick-cursor")).toBeDisabled({ timeout: 1000 });
+	await expect(page.getByTestId("row-cursor").locator(".arrow")).toHaveCount(1, { timeout: 1000 });
+	await expect(page.getByTestId("status-cursor")).toHaveText("Checking");
+});
+
+// 13. After Done a failed app is ready again, ticked, and says why its last try ended.
+test("after Done a failed app is back in Ready to install with its last try's reason", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("install").click();
+	await expect(sentence(page)).toHaveText("3 updated, 1 failed", { timeout: 20_000 });
+	await page.getByTestId("done").click();
+	const row = page.getByTestId("row-wrangler");
+	await expect(page.getByTestId("tick-wrangler")).toBeChecked();
+	await expect(page.getByTestId("sentence-wrangler")).toHaveText(/^Last try failed\. .+/);
+	await expect(sentence(page)).toHaveText("1 update ready");
+	await expect.poll(async () => (await row.boundingBox())?.height).toBe(56);
+	const group = await row.evaluate((el) => {
+		let n: Element | null = el.closest(".item");
+		while (n && !n.classList.contains("head")) n = n.previousElementSibling;
+		return n?.textContent?.trim() ?? "";
+	});
+	// Ready to install, not Needs a look, which means it could not be checked.
+	expect(group).toMatch(/^Ready to install/);
+});
+
+// 14. A restore point not made yet says so; a kind that cannot have one stays blank.
+test("an app that can have a restore point but has none reads none yet", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("group-fresh-toggle").click();
+	await expect(page.getByTestId("none-yet-zoxide")).toHaveText("none yet");
+	await expect(page.getByTestId("none-yet-cursor")).toHaveCount(0);
+	await expect(page.getByTestId("none-yet-wrangler")).toHaveCount(0);
+	await expect(page.getByTestId("row-wrangler").locator(".restore")).toHaveText("None");
+	await expect(page.getByTestId("row-wrangler").locator(".restore .sr-only")).toHaveCount(1);
+});
+
+// 15. In use keeps its name when only its dot shows.
+test("a narrowed In use chip keeps its dot, its title and its words for assistive tech", async ({ page }) => {
+	await page.setViewportSize({ width: 920, height: 720 });
+	await load(page);
+	await page.getByTestId("open-fd").click();
+	await expect(page.getByTestId("row-zen").locator(".line")).toHaveClass(/compact/);
+	const chip = page.getByTestId("row-zen").getByTestId("chip-running");
+	await expect(chip).toHaveAttribute("title", "In use");
+	await expect(chip.locator(".dot")).toBeVisible();
+	const ct = await chip.locator(".ct").evaluate((el) => ({ display: getComputedStyle(el).display, text: el.textContent }));
+	expect(ct.text).toBe("In use");
+	expect(ct.display).not.toBe("none");
+});
+
+// 16. Working and done differ by shape: the working glyph is three rising dashes.
+test("the working glyph is three dashes, not the leaf", async ({ page }) => {
+	await load(page, "fixture&speed=0.3");
+	await page.getByTestId("install").click();
+	const working = page.locator(".row.s-working .mark svg path");
+	await expect(working).toHaveAttribute("d", "M4.5 13h7M5.75 8.5h4.5M7 4h2");
+});
+
+// 25. A system row's new version is never cut, at 980 and 760.
+for (const width of [980, 760]) {
+	test(`system rows never cut the new version at ${width}`, async ({ page }) => {
+		await page.setViewportSize({ width, height: 900 });
+		await load(page, "fixture&system=show");
+		const toggle = page.getByTestId("group-system-toggle");
+		if ((await toggle.getAttribute("aria-expanded")) === "false") await toggle.click();
+		const news = page.locator('[data-testid="sys-new"]');
+		await expect(news.first()).toBeVisible();
+		// Whole inside its own cell, and its cell inside the row: nothing clips it.
+		const cut = await news.evaluateAll((els) =>
+			els.flatMap((el) => {
+				const r = el.getBoundingClientRect();
+				const cell = el.closest(".cell")?.getBoundingClientRect();
+				const row = el.closest(".row")?.getBoundingClientRect();
+				const whole = el.scrollWidth <= el.clientWidth && r.width > 0;
+				const inside = !!cell && !!row && r.right <= cell.right + 0.5 && r.right <= row.right + 0.5;
+				return whole && inside ? [] : [el.textContent];
+			}),
+		);
+		expect(cut).toEqual([]);
+		await expect(page.getByTestId("sys-row-apt:openjdk-21").getByTestId("sys-new")).toHaveText("21.0.13.0.3+1-1~24.04.1");
+		// The kernel note starts after the new version with a gap, or sits under it.
+		const kernel = page.getByTestId("sys-row-apt:linux-generic");
+		const n = await kernel.getByTestId("sys-new").boundingBox();
+		const note = await kernel.getByTestId("sys-note").boundingBox();
+		const after = (note?.x ?? 0) >= (n?.x ?? 0) + (n?.width ?? 0) + 8;
+		const under = (note?.y ?? 0) >= (n?.y ?? 0) + (n?.height ?? 0) - 0.5;
+		expect(after || under).toBe(true);
+	});
+}
+
+// 26. Flatpak rows carry display names, not ids.
+test("Flatpak system rows read their display names", async ({ page }) => {
+	await load(page, "fixture&system=show");
+	const toggle = page.getByTestId("group-system-toggle");
+	if ((await toggle.getAttribute("aria-expanded")) === "false") await toggle.click();
+	await expect(page.getByTestId("sys-row-flatpak:com.discordapp.Discord").getByTestId("sys-name")).toHaveText("Discord");
+	await expect(page.getByTestId("sys-row-flatpak:org.gnome.Platform").getByTestId("sys-name")).toHaveText(
+		"GNOME Application Platform",
+	);
+});

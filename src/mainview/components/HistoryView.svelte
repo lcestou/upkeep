@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HistoryRow } from "../../shared/types";
-	import { RUN_TEXT, TEXT, resultCounts } from "../lib/copy";
+	import { RUN_TEXT, TEXT, installedText, resultCounts } from "../lib/copy";
 	import { formatDuration, formatRunTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { CARE, glyphColor } from "../lib/state";
@@ -47,9 +47,11 @@
 							<span class="what">
 								<span class="line">
 									<span class="tag-name">{row.name}</span>
-									<span class="mono vers"
-										>{row.from ?? "?"} <span class="to">to</span> <span class:struck={row.result !== "updated"}>{row.to ?? "?"}</span></span
-									>
+									{#if row.from === null && row.to}<span class="mono vers" data-testid="history-vers"
+											>{installedText(row.to)}</span
+										>{:else}<span class="mono vers" data-testid="history-vers"
+											>{row.from ?? ""} <span class="to">to</span> <span class:struck={row.result !== "updated"}>{row.to ?? ""}</span></span
+										>{/if}
 								</span>
 								{#if row.detail}<span class="detail">{row.detail}</span>{/if}
 								{#if row.result === "updated" && pending.has(`${row.runId}:${row.key}`)}<span class="pending" data-testid="restart-pending"

@@ -20,6 +20,7 @@ import type {
 	WindowChrome,
 } from "../../shared/types";
 import { PICKED, scanResults, suggestFor } from "./fixture-add";
+import { lastTryFailed } from "./copy";
 import { type SystemVariant, systemFor } from "./fixture-system";
 
 export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many";
@@ -626,6 +627,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		dismissSummary: () => {
 			for (const app of apps) if (app.status === "done") put({ ...app, status: "fresh" });
+			// As the engine does: a failed app is ready to try again and says why its last try ended, until the next check.
+			for (const app of apps)
+				if (app.status === "failed" || app.status === "rolled_back")
+					put({ ...app, status: "ready", detail: app.detail ? lastTryFailed(app.detail) : undefined });
 			setRun({
 				id: null,
 				phase: "idle",
@@ -821,6 +826,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 
 function resolveCheck(app: AppState): AppState {
 	if (app.status === "done") return { ...app, status: "fresh" };
+	if (app.status === "ready" && app.detail?.startsWith(lastTryFailed(""))) return { ...app, detail: undefined };
 	if (app.status === "queued" || app.status === "working") return { ...app, status: "ready" };
 	return app;
 }

@@ -61,6 +61,7 @@ export const TEXT = {
 	stop: "Stop after this one",
 	done: "Done",
 	none: "None",
+	noneYet: "none yet",
 	versionless: "checks itself when run",
 	runNow: "Run now",
 	whatChanged: "What changed",
@@ -132,6 +133,10 @@ export const NO_RESTORE: Partial<Record<AppKind, string>> = {
 	legacy: "The updater script keeps no restore point.",
 };
 
+/** A row's version cell when nothing is installed, read in place of "to". */
+export const notInstalledLine = (latest: string) => `Not installed. ${latest} is the latest.`;
+export const installedText = (v: string) => `Installed ${v}`;
+export const lastTryFailed = (why: string) => `Last try failed. ${why}`;
 export const restartLine = (names: string[]) => `Restart ${names.join(", ")} to finish.`;
 export const byHandLine = (n: number) => `${n} more by hand`;
 export const RUN_TEXT = {

@@ -1,19 +1,19 @@
 <script lang="ts">
 	import type { SystemRow } from "../../shared/types";
-	import { CHIP, SYS } from "../lib/copy";
+	import { CHIP, SYS, notInstalledLine } from "../lib/copy";
 	import Glyph from "./Glyph.svelte";
-	import Versions from "./Versions.svelte";
 
 	let { row }: { row: SystemRow } = $props();
 
-	// Versions reads an app's shape; a system row is always a pending update, so it is drawn as one.
-	const shape = $derived({
-		status: "ready" as const,
-		installed: row.installed,
-		latest: row.latest,
-		versionless: false,
-	});
 	const sameBuild = $derived(row.installed !== null && row.installed === row.latest);
+	// The whole change, as the cell's title and its accessible name; the drawn parts are hidden from assistive tech.
+	const said = $derived(
+		row.installed === null
+			? notInstalledLine(row.latest)
+			: sameBuild
+				? `${row.latest} ${SYS.newBuild}`
+				: `${row.installed} → ${row.latest}`,
+	);
 </script>
 
 <!-- Read-only: not a button, no tab stop, no tick. The cells sit on the ledger's own columns. -->
@@ -30,15 +30,19 @@
 			</span>
 		</span>
 		<span class="cell kind" class:security={row.type === "security"} data-testid="sys-type">{SYS.type[row.type]}</span>
-		<span class="cell ver" data-testid="sys-ver">
-			<Versions app={shape} unknown="" note={sameBuild ? SYS.newBuild : null} />
-		</span>
-		<span class="cell size"></span>
-		<span class="cell restore"></span>
-		<span class="cell status">
-			{#if row.note === "update-manager-only"}<span class="status-text" title={SYS.restartNote} data-testid="sys-note"
-					>{SYS.restartNote}</span
+		<!-- A system row has no size, restore point or status of its own, so the change runs on across those columns:
+		     the arrow stays on the version column's arrow line, only the old version may be cut, the new one never is. -->
+		<span class="cell ver" title={said} data-testid="sys-ver">
+			<span class="sr-only">{said}</span>
+			<span class="old mono" class:same={sameBuild} aria-hidden="true" data-testid="sys-old">{sameBuild ? row.latest : (row.installed ?? "")}</span>
+			{#if !sameBuild}<svg class="arrow" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"
+					><path d="M1.5 6h8.25M7 3.25 9.75 6 7 8.75" /></svg
 				>{/if}
+			<span class="after">
+				{#if sameBuild}<span class="quiet" aria-hidden="true" data-testid="sys-newbuild">{SYS.newBuild}</span>
+				{:else}<span class="new mono" aria-hidden="true" data-testid="sys-new">{row.latest}</span>{/if}
+				{#if row.note === "update-manager-only"}<span class="note" data-testid="sys-note">{SYS.restartNote}</span>{/if}
+			</span>
 		</span>
 	</div>
 </div>
@@ -50,9 +54,16 @@
 		grid-template-columns: var(--cols);
 		column-gap: var(--gap);
 		align-items: center;
-		height: 36px;
+		min-height: 36px;
 		padding-right: var(--pad-r);
 		box-shadow: inset 0 -1px 0 var(--line-soft);
+		/* The version column's width in the ledger's column sets (app.css), so the arrow lands on its line. */
+		--ver-w: 168px;
+	}
+	@container list (max-width: 639px) {
+		.row {
+			--ver-w: 150px;
+		}
 	}
 	.hit {
 		grid-column: 2 / -1;
@@ -64,13 +75,7 @@
 		min-width: 0;
 	}
 	@container list (max-width: 899px) {
-		.kind,
-		.size {
-			display: none;
-		}
-	}
-	@container list (max-width: 639px) {
-		.restore {
+		.kind {
 			display: none;
 		}
 	}
@@ -100,21 +105,58 @@
 		font-weight: 600;
 	}
 	.ver {
-		grid-column: ver;
+		grid-column: ver / end;
+		display: grid;
+		grid-template-columns: calc(var(--ver-w) / 2 - 10px) 20px minmax(0, 1fr);
+		align-items: center;
+		padding: 4px 0;
 	}
-	.size {
-		grid-column: size;
+	.old {
+		grid-column: 1;
+		justify-self: end;
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		color: var(--text-3);
 	}
-	/* The same inset as an app row's restore cell, so the column's content edge is shared. */
-	.restore {
-		grid-column: restore;
-		padding-left: var(--s3);
+	.old.same {
+		color: var(--text-2);
 	}
-	.status {
-		grid-column: status;
+	.arrow {
+		grid-column: 2;
+		justify-self: center;
+		fill: none;
+		stroke: var(--text-3);
+		stroke-width: 1.4;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	/* The new version, then the note after the normal gap; the note wraps under it when both do not fit. */
+	.after {
+		grid-column: 3;
 		display: flex;
-		flex-direction: column;
-		justify-content: center;
+		flex-wrap: wrap;
+		align-items: baseline;
+		column-gap: var(--s4);
+		row-gap: 2px;
+		min-width: 0;
+	}
+	.new {
+		flex: none;
+		white-space: nowrap;
+		color: var(--text);
+		font-variation-settings: "wght" 380;
+	}
+	.quiet {
+		padding-left: 6px;
+		font-size: var(--fs-12);
+		color: var(--text-3);
+		white-space: nowrap;
+	}
+	.note {
+		font-size: var(--fs-12);
+		color: var(--text-2);
 	}
 	.line {
 		display: flex;
@@ -151,12 +193,5 @@
 		height: 6px;
 		border-radius: 50%;
 		background: var(--text-2);
-	}
-	.status-text {
-		font-size: var(--fs-12);
-		color: var(--text-2);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 </style>

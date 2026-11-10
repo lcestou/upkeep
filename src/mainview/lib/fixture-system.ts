@@ -12,12 +12,13 @@ const apt = (
 ): SystemRow => ({ id: `apt:${name}`, source: "apt", name, type, installed, latest, running: false, note });
 
 const flatpak = (
+	ref: string,
 	name: string,
 	type: "app" | "runtime",
 	installed: string | null,
 	latest: string,
 	running = false,
-): SystemRow => ({ id: `flatpak:${name}`, source: "flatpak", name, type, installed, latest, running });
+): SystemRow => ({ id: `flatpak:${ref}`, source: "flatpak", name, type, installed, latest, running });
 
 export const APT_ROWS: SystemRow[] = [
 	apt("google-chrome-stable", "package", "157.0.8103.38-1", "157.0.8103.50-1"),
@@ -30,9 +31,10 @@ export const APT_ROWS: SystemRow[] = [
 ];
 
 export const FLATPAK_ROWS: SystemRow[] = [
-	flatpak("com.discordapp.Discord", "app", "1.0.168", "1.0.169", true),
-	flatpak("org.gimp.GIMP", "app", "3.2.8", "3.2.8"),
-	flatpak("org.gnome.Platform", "runtime", null, "51"),
+	// Display names, as the engine now sends them; the full ref stays in the id.
+	flatpak("com.discordapp.Discord", "Discord", "app", "1.0.168", "1.0.169", true),
+	flatpak("org.gimp.GIMP", "GIMP", "app", "3.2.8", "3.2.8"),
+	flatpak("org.gnome.Platform", "GNOME Application Platform", "runtime", null, "51"),
 ];
 
 export function systemFor(variant: SystemVariant, checkedAt: string): SystemState {
