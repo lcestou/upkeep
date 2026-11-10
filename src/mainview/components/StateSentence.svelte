@@ -36,7 +36,9 @@
 			>
 		{/key}
 	</h1>
-	{#if restart.length > 0}
+	{#if model.notice}
+		<span class="checked" data-testid="notice">{model.notice}</span>
+	{:else if restart.length > 0}
 		<span class="checked restart" data-testid="restart-line">{restartLine(restart)}</span>
 	{:else if checked && model.run.phase === "idle"}
 		<span class="checked" data-testid="checked">{checked}</span>

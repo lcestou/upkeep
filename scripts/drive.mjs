@@ -422,6 +422,19 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
 		await shoot(page, `${variant}-${width}`);
 	}
+	// Add app: a found card, then the scan list.
+	await go("fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-input").fill("BurntSushi/ripgrep");
+	await page.keyboard.press("Enter");
+	await page.getByTestId("suggestion-ripgrep").waitFor();
+	await shoot(page, `add-${width}`);
+	await measured("add");
+	await page.getByTestId("add-scan").click();
+	await page.getByTestId("scan-results").waitFor();
+	await shoot(page, `scan-${width}`);
+	await measured("scan");
+
 	await go("fixture=many");
 	await page.getByTestId("group-fresh-toggle").click();
 	await page.getByTestId("app-list").evaluate((el) => {
@@ -429,7 +442,7 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 	});
 	await shoot(page, `many-${width}`);
 	await ctx.close();
-	return 12;
+	return 14;
 }
 
 async function main() {

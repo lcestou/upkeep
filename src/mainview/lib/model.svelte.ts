@@ -83,6 +83,19 @@ export class Model {
 	loaded = $state(false);
 	/** The status each app had when a re-check began, so its row and its tick survive the check. */
 	prior = $state<Record<string, AppStatus>>({});
+	/** The inspector shows the add pane instead of an app. */
+	adding = $state(false);
+	/** Text handed to the add pane from outside it (a drop); findSeq asks the pane to find it. */
+	addInput = $state("");
+	findSeq = $state(0);
+	/** Bumped after an add, so the list opens Fresh when an added app landed there. */
+	reveal = $state(0);
+	/** Said in the add pane when a drop carried no path the window can read. */
+	dropProblem = $state<string | null>(null);
+	/** A short line the header shows for five seconds (Removed fd.). */
+	notice = $state<string | null>(null);
+	/** Added {name}. at the top of an app's pane for five seconds after it was added. */
+	addedNote = $state<{ key: string; text: string } | null>(null);
 	/** The text in the filter field. */
 	filter = $state("");
 	/** The engine's reason when it refused a request, shown until the next request. */
@@ -199,6 +212,13 @@ export class Model {
 				this.log.push(e.line);
 				if (this.log.length > LOG_CAP) this.log.splice(0, this.log.length - LOG_CAP);
 				return;
+			case "removed": {
+				this.apps = this.apps.filter((a) => a.key !== e.key);
+				if (this.ticked.has(e.key)) this.#tick(e.key, false);
+				if (this.openKey === e.key) this.openKey = null;
+				delete this.prior[e.key];
+				return;
+			}
 			case "meta":
 				this.rate = e.rate;
 				this.checkedAt = e.checkedAt;
@@ -228,12 +248,38 @@ export class Model {
 	}
 
 	select(key: string): void {
+		this.adding = false;
 		this.openKey = key;
 		if (this.run.phase === "installing") this.pinned = true;
 	}
 
 	close(): void {
 		this.openKey = null;
+		this.adding = false;
+	}
+
+	openAdd(input?: string): void {
+		this.openKey = null;
+		this.adding = true;
+		if (input !== undefined) {
+			this.addInput = input;
+			this.findSeq++;
+		}
+	}
+
+	#timers = new Map<string, ReturnType<typeof setTimeout>>();
+	/** Sets a field now and clears it after ms, restarting the clock when set again. */
+	flash(which: "notice" | "added", value: string, key = ""): void {
+		clearTimeout(this.#timers.get(which));
+		if (which === "notice") this.notice = value;
+		else this.addedNote = { key, text: value };
+		this.#timers.set(
+			which,
+			setTimeout(() => {
+				if (which === "notice") this.notice = null;
+				else this.addedNote = null;
+			}, 5000),
+		);
 	}
 
 	async #ask<T extends { started?: boolean; reason?: string }>(p: Promise<T>): Promise<T> {

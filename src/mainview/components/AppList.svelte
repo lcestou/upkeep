@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
-	import { COLUMN, TEXT, allFreshLine, noMatch } from "../lib/copy";
+	import { ADD, COLUMN, TEXT, allFreshLine, noMatch } from "../lib/copy";
 	import { relativeTime } from "../lib/format";
 	import type { Group, Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
@@ -32,6 +32,14 @@
 			// Storage can be blocked; the fold still works for this page.
 		}
 	}
+	// An add that lands an app in Fresh opens it, so the new row is there to see.
+	// svelte-ignore state_referenced_locally
+	let revealed = model.reveal;
+	$effect(() => {
+		if (model.reveal === revealed) return;
+		revealed = model.reveal;
+		if (model.apps.some((a) => a.status === "fresh")) freshOpen = true;
+	});
 	const filtering = $derived(model.filter.trim() !== "");
 	const freshShown = $derived(freshOpen || filtering);
 
@@ -81,6 +89,11 @@
 		if (e.key === "ArrowLeft" && model.openKey) {
 			e.preventDefault();
 			model.close();
+			return;
+		}
+		if (e.key === "a" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+			e.preventDefault();
+			model.openAdd();
 			return;
 		}
 		if (e.key === "a" && (e.ctrlKey || e.metaKey) && idle) {
@@ -151,7 +164,13 @@
 					<p data-testid="all-fresh-line">
 						{allFreshLine(freshCount, model.checkedAt ? relativeTime(model.checkedAt) : "")}
 					</p>
-					<button type="button" class="btn" data-testid="all-fresh-check" onclick={() => model.check()}>{TEXT.check}</button>
+					<div class="morning-actions">
+						<button type="button" class="btn" data-testid="all-fresh-check" onclick={() => model.check()}>{TEXT.check}</button>
+						<button type="button" class="btn" data-testid="add-app" onclick={() => model.openAdd()}>
+							<svg class="plus" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg>
+							{ADD.button}
+						</button>
+					</div>
 				</section>
 			{:else}
 				<div class="heads ledger-cols">
@@ -183,6 +202,10 @@
 					<span class="h-size" aria-hidden="true">{COLUMN.size}</span>
 					<span class="h-restore" aria-hidden="true">{COLUMN.restore}</span>
 					<span class="h-status" aria-hidden="true">{COLUMN.status}</span>
+					<button type="button" class="btn small quiet add" data-testid="add-app" onclick={() => model.openAdd()}>
+						<svg class="plus" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg>
+						{ADD.button}
+					</button>
 				</div>
 			{/if}
 
@@ -395,6 +418,28 @@
 		box-shadow:
 			inset 0 1px 0 var(--line-soft),
 			inset 0 -1px 0 var(--line-soft);
+	}
+	/* Add app sits at the right end of the head row, in the Status column. */
+	.add {
+		grid-column: status;
+		grid-row: 1;
+		justify-self: end;
+		height: 26px;
+		letter-spacing: 0;
+		font-size: var(--fs-12);
+	}
+	.h-status {
+		grid-row: 1;
+	}
+	.plus {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.6;
+		stroke-linecap: round;
+	}
+	.morning-actions {
+		display: flex;
+		gap: var(--s2);
 	}
 	.nomatch {
 		margin: var(--s5) 20px;

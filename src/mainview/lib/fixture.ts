@@ -13,7 +13,9 @@ import type {
 	Settings,
 	Snapshot,
 	Stage,
+	Suggestion,
 } from "../../shared/types";
+import { PICKED, scanResults, suggestFor } from "./fixture-add";
 
 export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many";
 
@@ -366,6 +368,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const history: HistoryRow[] = pastHistory();
 	const logs = new Map<string, LogLine[]>();
 	let attempts = 0;
+	const offered = new Map<string, Suggestion>();
 
 	if (variant === "checking") {
 		const tail = new Set(apps.slice(-12).map((a) => a.key));
@@ -623,6 +626,58 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		runLog: ({ runId }) => clone(logs.get(runId) ?? []),
 		open: () => ({ ok: true }),
 		copy: () => ({ ok: true }),
+		suggest: async ({ input, asset }) => {
+			// An archive is opened to find its programs, so it answers slower than an AppImage.
+			await sleep((/ripgrep/i.test(input) ? 1500 : 600) / speed);
+			const res = suggestFor(input, asset, (key) => apps.some((a) => a.key === key));
+			for (const s of res.suggestions) offered.set(s.spec.key, s);
+			return res;
+		},
+		scan: async () => {
+			await sleep(1500 / speed);
+			const suggestions = scanResults();
+			for (const s of suggestions) offered.set(s.spec.key, s);
+			return { suggestions };
+		},
+		addApps: async ({ specs }) => {
+			await sleep(400 / speed);
+			const added: string[] = [];
+			const problems: { key: string; detail: string }[] = [];
+			for (const spec of specs) {
+				if (apps.some((a) => a.key === spec.key)) {
+					problems.push({ key: spec.key, detail: `${spec.key} is already in the list.` });
+					continue;
+				}
+				if (spec.key === "btop") {
+					problems.push({ key: spec.key, detail: "Could not write btop to apps.toml." });
+					continue;
+				}
+				const from = offered.get(spec.key);
+				const installed = from?.installed ?? null;
+				const latest = from?.latest ?? null;
+				const app: AppState = {
+					...toApp({ key: spec.key, name: spec.name, kind: spec.kind, repo: spec.repo, installed, dest: spec.dest }),
+					latest,
+					status: installed === null || installed !== latest ? "ready" : "fresh",
+					size: from?.asset?.size,
+				};
+				apps = [...apps, app];
+				emit({ type: "app", app });
+				added.push(spec.key);
+			}
+			return { added, problems };
+		},
+		removeApp: ({ key }) => {
+			if (run.phase === "installing") return { ok: false, detail: "Wait for the run to finish." };
+			if (!get(key)) return { ok: false, detail: `No app ${key} in the list.` };
+			apps = apps.filter((a) => a.key !== key);
+			emit({ type: "removed", key });
+			return { ok: true };
+		},
+		pickFile: async () => {
+			await sleep(200 / speed);
+			return { path: PICKED };
+		},
 	};
 
 	return {

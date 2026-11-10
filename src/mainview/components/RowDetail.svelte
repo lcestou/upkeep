@@ -6,7 +6,10 @@
 		KIND_LABEL,
 		NO_RESTORE,
 		TEXT,
+		ADD,
 		releasedLabel,
+		removeAsk,
+		removedNote,
 		restoreLabel,
 		restoredText,
 		skipLabel,
@@ -37,6 +40,40 @@
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
 	const chip = $derived(app.kind === "legacy" ? CHIP.runningLegacy : CHIP.running);
 	const notes = $derived(app.notes ? parseNotes(app.notes) : []);
+	let asking = $state(false);
+	let keepBtn = $state<HTMLButtonElement | null>(null);
+	let removeBtn = $state<HTMLButtonElement | null>(null);
+
+	async function ask() {
+		asking = true;
+		await tick();
+		keepBtn?.focus();
+	}
+
+	async function keep() {
+		asking = false;
+		await tick();
+		removeBtn?.focus();
+	}
+
+	// Escape in the question is Keep, and goes no further, so the pane stays open.
+	function escKeep(e: KeyboardEvent) {
+		if (e.key !== "Escape") return;
+		e.preventDefault();
+		e.stopPropagation();
+		void keep();
+	}
+
+	async function remove() {
+		const name = app.name;
+		const res = await model.send("removeApp", { key: app.key });
+		if (!res?.ok) {
+			asking = false;
+			return;
+		}
+		model.flash("notice", removedNote(name));
+		document.querySelector<HTMLElement>("[data-row]")?.focus();
+	}
 
 	async function retryOne() {
 		await model.install([app.key]);
@@ -82,6 +119,9 @@
 {/snippet}
 
 <section class="detail" id="detail-{app.key}" data-testid="detail-{app.key}" aria-labelledby="pane-name-{app.key}">
+	{#if model.addedNote?.key === app.key}
+		<p class="added" role="status" data-testid="added-note">{model.addedNote.text}</p>
+	{/if}
 	<header class="head">
 		<div class="name-line">
 			<Glyph name={care.glyph} color={glyphColor(app.status)} />
@@ -219,6 +259,30 @@
 		</div>
 	{/if}
 
+	<div class="remove">
+		{#if asking}
+			<div class="confirm" role="group" aria-labelledby="remove-ask-{app.key}">
+				<p id="remove-ask-{app.key}" data-testid="remove-ask">{removeAsk(app.name)}</p>
+				<div class="confirm-buttons">
+					<button type="button" class="btn small danger" data-testid="remove-confirm" onkeydown={escKeep} onclick={remove}>{ADD.removeYes}</button>
+					<button type="button" class="btn small" data-testid="remove-cancel" bind:this={keepBtn} onkeydown={escKeep} onclick={keep}
+						>{ADD.keep}</button
+					>
+				</div>
+			</div>
+		{:else}
+			<button
+				type="button"
+				class="btn small quiet"
+				data-testid="remove-app"
+				bind:this={removeBtn}
+				aria-disabled={inRun}
+				title={inRun ? ADD.waitRun : undefined}
+				onclick={() => !inRun && ask()}>{ADD.remove}</button
+			>
+		{/if}
+	</div>
+
 	{#if pending || app.notes}
 		<div class="block">
 			<h3>{TEXT.whatChanged}</h3>
@@ -339,6 +403,35 @@
 			clip: rect(0, 0, 0, 0);
 			white-space: nowrap;
 		}
+	}
+	.added {
+		margin: var(--s3) 0 0;
+		padding: var(--s2) var(--s3);
+		border-radius: var(--radius);
+		background: oklch(0.8 0.17 148 / 0.1);
+		color: var(--leaf);
+		font-size: var(--fs-12);
+	}
+	.remove {
+		display: flex;
+	}
+	.confirm {
+		display: grid;
+		gap: var(--s2);
+		padding: var(--s3);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+	.confirm p {
+		color: var(--text);
+	}
+	.confirm-buttons {
+		display: flex;
+		gap: var(--s2);
+	}
+	.danger {
+		border-color: var(--fail);
+		color: var(--fail);
 	}
 	.chip-use {
 		display: inline-flex;
