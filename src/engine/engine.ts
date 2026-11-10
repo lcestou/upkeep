@@ -130,11 +130,22 @@ function stamp(d: Date): string {
 	return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${rand}`;
 }
 
+/**
+ * True when the app's version is looked up by Upkeep itself. An old-script app joins once its table
+ * carries `check` and `latest`; it is still installed through the old script.
+ */
+export function checksNatively(spec: AppSpec): boolean {
+	if (NATIVE.has(spec.kind)) return true;
+	return (spec.kind === "legacy" || spec.kind === "manual") && (spec.check?.length ?? 0) > 0 && Boolean(spec.latest);
+}
+
 function checkOne(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 	switch (spec.kind) {
 		case "source":
 			return checkSource(spec, ctx);
 		case "command":
+		case "legacy":
+		case "manual":
 			return checkCommand(spec, ctx);
 		default:
 			return checkRelease(spec, ctx);
@@ -389,8 +400,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.index += 1;
 			emitRun();
 		};
-		const native = list.filter((s) => NATIVE.has(s.kind));
-		const old = list.filter((s) => !NATIVE.has(s.kind));
+		const native = list.filter(checksNatively);
+		const old = list.filter((s) => !checksNatively(s));
 		const nativeWork = native.map(async (spec) => {
 			let c: Checked | null;
 			try {
@@ -573,8 +584,20 @@ export function createEngine(deps: EngineDeps): Engine {
 			run = { ...run, currentKey: null };
 			emitRun();
 			const checkStart = Date.now();
-			const legacySpecs = specs.filter((s) => s.kind === "legacy" || s.kind === "manual");
-			const after = await checkLegacy(legacySpecs, kindCtx("")).catch(() => new Map<string, Checked | null>());
+			const legacySpecs = specs.filter((s) => (s.kind === "legacy" || s.kind === "manual") && !checksNatively(s));
+			const ran = [...legacyRuns.keys()].map(specOf).filter((s): s is AppSpec => s !== undefined);
+			// The old script's --check only for what it alone can answer; the rest is looked up here, side by side.
+			const [old, mine] = await Promise.all([
+				ran.some((s) => !checksNatively(s) && !s.versionless)
+					? checkLegacy(legacySpecs, kindCtx("")).catch(() => new Map<string, Checked | null>())
+					: Promise.resolve(new Map<string, Checked | null>()),
+				Promise.all(
+					ran
+						.filter(checksNatively)
+						.map(async (s) => [s.key, await checkOne(s, kindCtx(s.key)).catch(() => null)] as const),
+				),
+			]);
+			const after = new Map<string, Checked | null>([...old, ...mine]);
 			for (const [key, lr] of legacyRuns) {
 				const spec = specOf(key);
 				const app = apps.get(key);

@@ -144,6 +144,8 @@ export async function checkLegacy(
 		return out;
 	}
 	for (const s of specs) if (s.versionless) set(s.key, { installed: null, latest: null, status: "fresh" });
+	// Versionless apps print no --check line: with nothing else to wait for, the old script is not run at all.
+	if (specs.every((s) => s.versionless)) return out;
 	const shims = prepareShims(ctx);
 	let incomplete = true;
 	let matched = false;

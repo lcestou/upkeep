@@ -740,3 +740,119 @@ test("a corrupt rows file starts empty, and an app gone from the manifest is not
 	expect(again.snapshot().apps.some((a) => a.key === "bat")).toBe(false);
 	expect(again.snapshot().apps.some((a) => a.key === "fd")).toBe(true);
 });
+
+/** A seed list of old-script apps; `pra` and `tg` carry check and latest, `curs` does not. */
+async function portedDeps(withOld: boolean): Promise<EngineDeps & { marks: string }> {
+	const d = await deps();
+	const marks = join(t.dir, "old-runs");
+	const ver = join(t.dir, "pra-ver");
+	writeFileSync(ver, "2.1.322");
+	script(join(bin, "pra-version"), `cat "${ver}"`);
+	script(join(bin, "tg-version"), "exit 127");
+	const seed = join(t.dir, "ported.toml");
+	writeFileSync(
+		seed,
+		`[apps.pra]
+name = "pr-agent"
+kind = "legacy"
+legacy_key = "pr-agent"
+legacy_name = "pr-agent"
+check = ["~/.local/bin/pra-version"]
+latest = "npm:@anthropic-ai/claude-code"
+
+[apps.tg]
+name = "claude-code-telegram"
+kind = "manual"
+legacy_name = "claude-code-telegram"
+run = "uv tool install"
+check = ["~/.local/bin/tg-version"]
+latest = "npm:@anthropic-ai/claude-code"
+
+[apps.strata]
+name = "Strata"
+kind = "manual"
+legacy_name = "strata"
+run = "strata-update"
+check = ["~/.local/bin/strata-version"]
+latest = "npm:@anthropic-ai/claude-code"
+
+[apps.plugins]
+name = "Claude Code plugins"
+kind = "legacy"
+legacy_key = "claude-plugins"
+versionless = true
+${
+	withOld
+		? `
+[apps.cursor]
+name = "Cursor"
+kind = "legacy"
+legacy_key = "cursor"
+legacy_name = "Cursor"
+`
+		: ""
+}`,
+	);
+	script(join(bin, "strata-version"), 'echo "strata 0.2.10"');
+	// The old script records every call; its --check also prints a pr-agent line the engine must ignore.
+	const old = script(
+		join(t.dir, "lutechi-updater-ported"),
+		`echo "$1" >> "${marks}"
+case "$1" in
+--check) echo "  OK:     pr-agent 9.9.9"; echo "  UPDATE: Cursor 2.0.1 -> 2.1.0" ;;
+pr-agent) printf 2.1.400 > "${ver}"; echo "[x] pr-agent updated" >> "${join(t.dir, "old.log")}" ;;
+esac
+exit 0`,
+	);
+	return { ...d, seedManifest: seed, oldScript: old, marks };
+}
+
+const runsOf = (marks: string) => (existsSync(marks) ? readFileSync(marks, "utf8").trim().split("\n") : []);
+
+test("old-script apps with check and latest are looked up natively, and the old --check is not run for them", async () => {
+	const d = await portedDeps(false);
+	const engine = createEngine(d);
+	await engine.check();
+	expect(runsOf(d.marks)).toEqual([]);
+	const row = (k: string) => engine.snapshot().apps.find((a) => a.key === k);
+	expect(row("pra")).toMatchObject({ kind: "legacy", installed: "2.1.322", latest: "2.1.400", status: "ready" });
+	// A manual app with an update stays manual, and one whose check is not there is left out.
+	expect(row("strata")).toMatchObject({ kind: "manual", installed: "0.2.10", status: "manual" });
+	expect(row("tg")).toBeUndefined();
+	expect(row("plugins")).toMatchObject({ status: "fresh" });
+	// Install still goes through the old script, and the verdict comes from the native lookup.
+	await engine.install(["pra"]);
+	await engine.idle();
+	expect(runsOf(d.marks)).toEqual(["pr-agent"]);
+	expect(row("pra")).toMatchObject({ status: "done", installed: "2.1.400" });
+});
+
+test("a mixed list runs both paths: the old --check only answers for the apps it alone checks", async () => {
+	const d = await portedDeps(true);
+	const engine = createEngine(d);
+	await engine.check();
+	expect(runsOf(d.marks)).toEqual(["--check"]);
+	const row = (k: string) => engine.snapshot().apps.find((a) => a.key === k);
+	expect(row("cursor")).toMatchObject({ installed: "2.0.1", latest: "2.1.0", status: "ready" });
+	expect(row("pra")).toMatchObject({ installed: "2.1.322", latest: "2.1.400" });
+	// Installing only the ported app needs no second --check, even with Cursor still on the old script.
+	await engine.install(["pra"]);
+	await engine.idle();
+	expect(runsOf(d.marks)).toEqual(["--check", "pr-agent"]);
+	expect(row("pra")).toMatchObject({ status: "done", installed: "2.1.400" });
+});
+
+test("a native check of an old-script app that fails is a problem with a sentence, not a hang", async () => {
+	const d = await portedDeps(false);
+	script(join(bin, "pra-version"), "echo nothing here");
+	const slow = script(join(bin, "strata-version"), "sleep 30");
+	const engine = createEngine({ ...d, fetch: async () => new Response("", { status: 503 }) });
+	const t0 = Date.now();
+	await engine.check();
+	expect(Date.now() - t0).toBeLessThan(20_000);
+	const row = (k: string) => engine.snapshot().apps.find((a) => a.key === k);
+	expect(row("pra")).toMatchObject({ status: "problem" });
+	expect(row("pra")?.detail).toMatch(/\.$/);
+	expect(row("strata")).toMatchObject({ status: "problem" });
+	expect(slow).toBeDefined();
+}, 30_000);
