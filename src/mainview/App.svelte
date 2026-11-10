@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AddPane from "./components/AddPane.svelte";
 	import AppList from "./components/AppList.svelte";
 	import FooterBar from "./components/FooterBar.svelte";
 	import HeaderBar from "./components/HeaderBar.svelte";
@@ -8,6 +9,7 @@
 	import SettingsView from "./components/SettingsView.svelte";
 	import { getBridge } from "./lib/bridge";
 	import { Model } from "./lib/model.svelte";
+	import { ADD } from "./lib/copy";
 	import { ms } from "./lib/motion";
 	import { shade } from "./lib/shade";
 	import { tick } from "svelte";
@@ -28,8 +30,45 @@
 
 	function closeInspector() {
 		const key = model?.openKey ?? null;
+		const wasAdding = model?.adding ?? false;
 		model?.close();
-		focusRow(key);
+		if (wasAdding) document.querySelector<HTMLElement>('[data-testid="add-app"]')?.focus();
+		else focusRow(key);
+	}
+
+	// Drop a file (or a repo link) anywhere on the window to add it.
+	let veil = $state(false);
+	let depth = 0;
+	const carries = (e: DragEvent) =>
+		[...(e.dataTransfer?.types ?? [])].some((t) => t === "Files" || t === "text/uri-list" || t === "text/plain");
+	function ondragenter(e: DragEvent) {
+		if (!carries(e)) return;
+		e.preventDefault();
+		depth++;
+		veil = true;
+	}
+	function ondragover(e: DragEvent) {
+		if (carries(e)) e.preventDefault();
+	}
+	function ondragleave() {
+		depth = Math.max(0, depth - 1);
+		if (depth === 0) veil = false;
+	}
+	function ondrop(e: DragEvent) {
+		if (!carries(e)) return;
+		e.preventDefault();
+		depth = 0;
+		veil = false;
+		const data = e.dataTransfer;
+		const uri = data?.getData("text/uri-list").split(/\r?\n/).find((l) => l && !l.startsWith("#"));
+		const text = uri ?? data?.getData("text/plain").trim();
+		if (text) {
+			const path = text.startsWith("file://") ? decodeURIComponent(text.replace(/^file:\/\//, "")) : text;
+			model?.openAdd(path);
+		} else if (data?.files[0]?.name) {
+			model?.openAdd();
+			if (model) model.dropProblem = ADD.unreadable;
+		}
 	}
 
 	function onkeydown(e: KeyboardEvent) {
@@ -46,7 +85,7 @@
 		if (logOpen) {
 			logOpen = false;
 			document.querySelector<HTMLElement>('[data-testid="log-toggle"]')?.focus();
-		} else if (model?.openKey) {
+		} else if (model?.openKey || model?.adding) {
 			closeInspector();
 		}
 	}
@@ -64,7 +103,7 @@
 	});
 </script>
 
-<svelte:window {onkeydown} />
+<svelte:window {onkeydown} {ondragenter} {ondragover} {ondragleave} {ondrop} />
 
 {#if model?.loaded}
 	{@const m = model}
@@ -76,9 +115,15 @@
 			{:else if m.view === "settings"}
 				<SettingsView model={m} />
 			{:else}
-				<div class="bench" class:open={m.openApp !== null}>
+				<div class="bench" class:open={m.openApp !== null || m.adding}>
 					<AppList model={m} />
-					{#if m.openApp}
+					{#if m.adding}
+						<aside class="inspector" id="inspector" data-testid="inspector" aria-labelledby="add-title" transition:fly={{ x: 32, duration: ms(200) }}>
+							<div class="scroll" {@attach shade}>
+								<AddPane model={m} onclose={closeInspector} />
+							</div>
+						</aside>
+					{:else if m.openApp}
 						<aside
 							class="inspector"
 							id="inspector"
@@ -100,6 +145,9 @@
 		<FooterBar model={m} {logOpen} ontogglelog={() => (logOpen = !logOpen)} />
 		{#if logOpen}
 			<LogDrawer model={m} bottom={64} />
+		{/if}
+		{#if veil}
+			<div class="veil" data-testid="drop-veil" aria-hidden="true"><span>{ADD.drop}</span></div>
 		{/if}
 		{#if m.refusal}
 			<p class="refusal" role="alert">{m.refusal}</p>
@@ -183,6 +231,22 @@
 			border-left: 1px solid var(--line);
 			box-shadow: var(--shadow-pop);
 		}
+	}
+	.veil {
+		position: fixed;
+		inset: 12px;
+		z-index: 6;
+		display: grid;
+		place-items: center;
+		border: 2px dashed var(--leaf);
+		border-radius: 12px;
+		background: oklch(0.19 0.022 165 / 0.85);
+		pointer-events: none;
+	}
+	.veil span {
+		font-size: var(--fs-19);
+		font-weight: 640;
+		color: var(--text);
 	}
 	.refusal {
 		position: fixed;

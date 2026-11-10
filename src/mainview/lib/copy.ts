@@ -206,3 +206,40 @@ export function stateSentence({ run, ready, problems, currentName }: SentenceInp
 	if (problems > 0) return plural(problems, "1 needs a look", `${problems} need a look`);
 	return "Everything is fresh";
 }
+
+/** Add app and Remove from Upkeep, as the add-app view spec writes them. */
+export const ADD = {
+	button: "Add app",
+	title: "Add an app",
+	label: "GitHub repo, link or file",
+	placeholder: "owner/repo",
+	find: "Find",
+	finding: "Finding",
+	hint: "Paste a repo such as sharkdp/fd, a github.com link, or drop a file anywhere on this window.",
+	pick: "Choose a file",
+	scan: "Scan this computer",
+	scanning: "Scanning",
+	lookingRelease: "Looking at the latest release",
+	lookingDisk: "Looking through ~/.local/bin, ~/Applications and ~/bin",
+	asset: "Asset",
+	installedAt: "Installed at",
+	notInstalled: "Not installed",
+	add: "Add to Upkeep",
+	nothingNew: "Nothing new found.",
+	tickToAdd: "Tick an app to add it.",
+	pasteRepo: "Paste its repo",
+	drop: "Drop to add it to Upkeep",
+	unreadable: "Could not read where that file is. Use Choose a file.",
+	slow: "That took too long. Try again.",
+	remove: "Remove from Upkeep",
+	removeYes: "Remove",
+	keep: "Keep",
+	waitRun: "Wait for the run to finish.",
+} as const;
+
+export const addedOne = (name: string) => `Added ${name}.`;
+export const addedMany = (n: number) => (n === 1 ? "Added 1 app." : `Added ${n} apps.`);
+export const foundApps = (n: number) => (n === 1 ? "Found 1 app not in the list" : `Found ${n} apps not in the list`);
+export const addApps = (n: number) => (n === 1 ? "Add 1 app" : `Add ${n} apps`);
+export const removeAsk = (name: string) => `Remove ${name} from the list? The app itself stays installed.`;
+export const removedNote = (name: string) => `Removed ${name}.`;
