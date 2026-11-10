@@ -4,6 +4,8 @@ test("?fixture=empty shows Everything is fresh", async ({ page }) => {
 	await load(page, "fixture=empty");
 	await expect(sentence(page)).toHaveText("Everything is fresh");
 	await expect(page.getByTestId("install")).toBeDisabled();
+	await expect(page.getByTestId("group-fresh-toggle")).toHaveAttribute("aria-expanded", "true");
+	await expect(page.getByTestId("row-bat")).toBeVisible();
 });
 
 test("?fixture=checking shows Checking 20 of 32", async ({ page }) => {
