@@ -21,7 +21,7 @@ colors:
   fail: "oklch(0.7 0.19 25)"
   frost: "oklch(0.74 0.03 250)"
   bloom: "oklch(0.72 0.17 352)"
-  dot: "oklch(0.55 0.02 160)"
+  dot: "oklch(0.6 0.02 160)"
 typography:
   headline:
     fontFamily: "Archivo Variable, Archivo, system-ui, sans-serif"
@@ -179,7 +179,7 @@ The palette is a night bench: tinted green-black grounds, a tag-white text ramp,
 - **Water** (`water`): working. The working band, stem fill, live caption, check progress bar, link text in release notes and the Add pane's busy line. It is also the focus ring.
 - **Leaf** (`leaf`): fresh and done. Fresh and done bands, completed stem nodes and leaves, the restore point tick, the "Updated to" result, the drop veil's dashed border, the all-fresh mark.
 - **Rust** (`rust`): Needs a look. The problem band and status word. It is not the failure colour.
-- **Fail** (`fail`): failed and rolled back. Its own red, apart from rust; `e2e/polish.spec.ts` asserts the two computed colours differ. Also the close button's hover and the Remove confirm button.
+- **Fail** (`fail`): failed and rolled back. Its own red, apart from rust; `e2e/polish.spec.ts` asserts the two computed colours differ. Also the Remove confirm button. The close button's hover ground is a deeper red, `oklch(0.54 0.19 25)`, so its cross holds 4.5:1.
 - **Frost** (`frost`): held. The held band, the strike colour on a skipped version, and the band on an add-pane suggestion card.
 - **Bloom** (`bloom`): by hand. The manual band and status word.
 
@@ -192,7 +192,7 @@ The palette is a night bench: tinted green-black grounds, a tag-white text ramp,
 - **Text** (`text`), **Text 2** (`text-2`), **Text 3** (`text-3`): primary copy, secondary copy, and captions, column heads, Latin names.
 - **Dot** (`dot`): only the checking glyph, because the `line` band is too faint to draw a glyph in.
 
-A few literal values sit outside the tokens: the 1 px rule under the header and over the footer is `oklch(0.12 0.03 160)`, the log drawer ground is `oklch(0.165 0.02 165)`, and the reason sentence under a problem row is `oklch(0.84 0.08 48)` (failed: `oklch(0.84 0.09 25)`). `--sun-wash`, `--water-wash` and `--rust-wash` are defined in `app.css` but nothing uses them.
+A few literal values sit outside the tokens: the 1 px rule under the header and over the footer is `oklch(0.12 0.03 160)`, the log drawer ground is `oklch(0.165 0.02 165)`, and the reason sentence under a problem row is `oklch(0.84 0.08 48)` (failed: `oklch(0.84 0.09 25)`, also History's failure detail). The System group's warning notes use the problem tint.
 
 ### Named Rules
 **The Three Signals Rule.** A state is always a band colour, a glyph and a word. A new row state adds an entry to `CARE` in `lib/state.ts` (band token and glyph), a word in `statusText` in `lib/copy.ts`, and a status-text colour in `AppRow.svelte`.
@@ -208,7 +208,7 @@ No network fonts: both ship in the bundle (`src/mainview/main.ts`). Body text ge
 
 ### Hierarchy
 - **Headline** (640, 19 px, 1.2, width 92%, tabular figures): the state sentence in the header ("7 updates ready"), the pane and Add pane titles, the drop veil line.
-- **Tag name** (680, 14 px, 1.15, width 74%, uppercase, tracking 0.035em, word space 0.14em): app names in rows. The pane title uses the same class at 19 px. The footer run bar uses the tag caps at 12 px, weight 640. Fresh rows set the name at 560 in `text-2`.
+- **Tag name** (680, 14 px, 1.15, width 74%, uppercase, tracking 0.035em, word space 0.14em): app names in rows. The pane title uses the same class at 19 px. The footer run bar uses the tag caps at 12 px, weight 640; the Add pane's scan results set file names in them too. Fresh and system rows set the name at 560 in `text-2`.
 - **Title** (640, 13 px): group headings in the ledger, Settings group names, History run headings, Log drawer title. Pane sub-headings ("Restore points", "What changed", "Log") are 12 px at 620 in `text-2`.
 - **Body** (400, 13 px, 1.4): default text, status words (540), buttons (560), tabs (560). Settings row labels are 14 px. Release notes use 1.5 line height and a 68ch measure.
 - **Latin** (italic 400, 12 px, `text-3`): the source repo beside the name.
@@ -224,7 +224,9 @@ Sources: `App.svelte`, `HeaderBar.svelte`, `FooterBar.svelte`, `AppList.svelte`,
 
 The window opens at 980 by 720 and is designed down to 760 by 520, its minimum. The shell is a three-row grid: header 56 px, the view, footer 64 px. Header and footer content is capped at 1280 px and centred; the bar colours span the window. Spacing is a 4 px step, `--s1` to `--s6`.
 
-The header holds, left to right: the window buttons when Upkeep draws its own frame, the 20 px mark, the state sentence with its one-line note ("Checked 2 minutes ago"), then the Updates, History, Settings tabs and Check again. Padding is 20 px left and 16 px right, and the content clears the window buttons by 16 px (a 118 px clearance from the window edge). The sentence gives way first; the tabs and Check again keep their size.
+The header holds, left to right: the window buttons when Upkeep draws its own frame, the 20 px mark, the state sentence with its one-line note ("Checked 2 minutes ago · 3 more by hand"), then the Updates, History, Settings tabs and Check again. Padding is 20 px left and 16 px right, and the content clears the window buttons by 16 px (a 118 px clearance from the window edge). The sentence sits on the tabs' centre within 1 px in every state, idle, checking, running and summary (`e2e/round3.spec.ts`); a zero-width lead-in keeps the note line's baseline when no note shows, so the title never hops.
+
+The sentence gives way first; the tabs and Check again keep their size. Only the sentence's own text takes an ellipsis, and during a run only the app's name in it may be cut: "Installing " and ", 1 of 4" stay whole, and the full sentence is its title. Notes sit 6 px apart and never shrink: each fits whole or wraps out of sight, and the note line's whole text is its title. Below 860 px the by-hand count leaves first and Check again drops its word, keeping its icon and its accessible name. At 760 px the check time stays whole on the title's line.
 
 The footer holds the selection ("4 selected · 112 MB" with Select all and Select none) or, during a run, the run bar at left, and Show log plus the run controls at right, 24 px apart.
 
@@ -238,14 +240,14 @@ The list is a size container named `list`, so the columns follow the list's own 
 | 640 to 899 | mark 20, name the rest, version 168, restore 96, status 212 (kind and size hidden) |
 | under 640 | mark 20, name the rest, version 150, status 168 (restore hidden too) |
 
-The sticky column header is 34 px on the ground, with the filter field spanning mark to kind and Add app at the end of the status column. Group headings are 44 px (40 px for the first), 20 px from the left. Groups appear in this order when they have members: the current run, Ready to install, By hand, Needs a look, Held back, Checking, Restart to finish, Fresh (`GROUP_ORDER` in `lib/model.svelte.ts`). Fresh starts folded.
+The sticky column header is 34 px on the ground, with the filter field spanning mark to kind and Add app at the end of the status column. Group headings are 44 px (40 px for the first), 20 px from the left. Groups appear in this order when they have members: the current run, Ready to install, By hand, Needs a look, Held back, Checking, Restart to finish, Fresh (`GROUP_ORDER` in `lib/model.svelte.ts`), then System when its setting is on. Fresh and System start folded; the fold lasts for the session, and an active filter opens both. The column header and the title bar set `user-select: none`, so a double-click there selects nothing.
 
 ### The inspector
 Opening a row or Add app docks a pane at the right at `max(380px, 42%)` of the bench, on `surface`, with a `line-soft` rule on its left. Pane padding is 20 px sides and 24 px bottom, sections 20 px apart, and its contents indent 24 px to sit under the name past the glyph. Below 900 px the pane is a full-width sheet over the list with Back to list first in its header, the list behind it is `inert`, and focus moves into the sheet.
 
 Other views: History centres at 820 px, Settings at 560 px. The log drawer spans the window above the footer at 45% of the height left after header and footer.
 
-Contract difference: the contract names five groups; the code adds the run group, Restart to finish and Checking.
+Contract difference: the contract names five groups; the code adds the run group, Restart to finish, Checking and System.
 
 ## Elevation & Depth
 
@@ -279,19 +281,19 @@ Defined once in `app.css` as `.btn` and its modifiers. All are inline-flex with 
 - **Danger**: a small button with `fail` border and text, used only for the Remove confirm.
 
 ### Tabs and segmented controls
-Sources: `HeaderBar.svelte`, `SettingsView.svelte`. Header tabs sit in a `shell-lo` track with 3 px padding and 2 px gaps; each tab is 28 px high, 12 px padding, `text-2`, and the selected one is `shell-hi` with `text` and the selected-tab shadow. Arrow keys, Home and End move between them, and only the selected tab is a Tab stop. Settings segmented controls (`role="radiogroup"` with `role="radio"` buttons) use the same shape on a `ground` track with a `line-soft` border, at 26 px and 12 px text.
+Sources: `HeaderBar.svelte`, `SettingsView.svelte`. Header tabs sit in a `shell-lo` track with 3 px padding and 2 px gaps; each tab is 28 px high, 12 px padding, `text-2`, and the selected one is `shell-hi` with `text` and the selected-tab shadow. Arrow keys, Home and End move between them, and only the selected tab is a Tab stop. Settings segmented controls use the same shape on a `ground` track with a `line-soft` border, at 26 px and 12 px text. Each is a real radio group (`role="radiogroup"` with `role="radio"` buttons): one Tab stop on the checked option, the arrow keys move and select, Home and End go to the ends.
 
 ### Checkbox
 Sources: `app.css`, `AppRow.svelte`. A real `input type="checkbox"` drawn in the palette: 16 px box, 1.5 px `text-3` border, 4 px radius; hover border `text`; checked fills sun with a dark tick; transitions 120 ms. In rows it sits inside a 28 px label so the hit area is 28 by 28. The header tick goes indeterminate when some shown rows are ticked.
 
 ### Fields and selects
 Sources: `AddPane.svelte`, `AppList.svelte`, `SettingsView.svelte`, `SuggestionCard.svelte`.
-- **Text field** (Add pane): 32 px, 12 px padding, `line` border, 6 px radius, on `ground`, mono at 12 px; placeholder `text-3`; read-only at 0.7 opacity.
+- **Text field** (Add pane): 32 px, 12 px padding, `line` border, 6 px radius, on `ground`, mono at 12 px; placeholder `text-3`; read-only at 0.7 opacity. An error is a 12 px `fail` line with `role="alert"`; while it shows the field is `aria-invalid` and the error joins its `aria-describedby` ahead of the hint. An empty Find clears the last error. A failed apps.toml write says why, says nothing changed, and offers Open apps.toml.
 - **Filter field** (column header): 26 px, 8 px padding, on `surface`, up to 260 px wide, focus ring offset 0.
 - **Select** (Settings): 30 px, at least 64 px wide, on `ground`, mono 12 px. Selects in suggestion cards are 28 px on `surface` with a 4 px radius.
 
 ### Settings rows
-Each sheet is a 560 px card on `surface` with a `line-soft` border and 10 px radius. A row is at least 52 px, 16 px padding, label at 14 px left and control right, hairline between rows. A row whose control is a segmented group stacks, with 12 px vertical padding and a 12 px `text-3` help line under it. A new Settings control is a row in a sheet: label left, control right, help text under only when the choice needs explaining.
+Each sheet is a 560 px card on `surface` with a `line-soft` border and 10 px radius. A row is at least 52 px, 16 px padding, label at 14 px left and control right, hairline between rows. A row whose control is a segmented group stacks, with 12 px vertical padding and a 12 px `text-3` help line under it. Sheets come in this order: general, Window, Extras (one checkbox, Show system updates, with its help line), About. A new Settings control is a row in a sheet: label left, control right, help text under only when the choice needs explaining.
 
 ### Ledger row
 The signature component, `AppRow.svelte`. A grid on the ledger columns, 44 px high on `surface`, a `line-soft` hairline under it, `raised` on hover and when open. The open row also shows a small `text` triangle at its right edge pointing at the pane. Left to right:
@@ -301,16 +303,16 @@ The signature component, `AppRow.svelte`. A grid on the ledger columns, 44 px hi
 3. One button covering every cell after the tick, so the whole row opens the pane.
 4. Mark: the state glyph, 16 px.
 5. Name: the tag name, then chips (In use, Root, Auto), then the repo in italic, on one 18 px line. When space runs out the repo goes first, then each chip shrinks to its glyph, then the name ellipsises. Nothing wraps.
-6. Kind, version pair, size, restore point (a leaf tick and the version), status.
+6. Kind, version pair, size, restore point, status. The restore point is a leaf tick and the version; an app that can keep one but has none yet reads "none yet" in 12 px `text-3`; a kind that cannot keep one stays blank (the pane says why).
 
-A row with a reason sentence is 56 px and lends the reason the Kind column (and the Version column when it has no versions); the reason clamps to two lines. Failed and rolled-back rows keep 44 px and one line. Fresh rows are 36 px on a transparent ground, band at 0.3 opacity, glyph and name in quieter tones, no size and no status word unless a restart is due. Rows outside the run during a run use the Dim Step Rule; queued and done rows in the run step back to band 0.4 and `text-3` captions.
+Every row has the same set of cells in every state. A row with a reason sentence is 56 px and sets the reason under the name, inside the name column; Kind and Version stay in place and visible. The reason clamps to two lines. A ready row carries a reason when its last try failed (`lastTryFailed`: "Last try failed." and then the reason). A row being checked again keeps its last versions and its tick, disabled, until the answer arrives. Failed and rolled-back rows keep 44 px and one line. Fresh rows are 36 px on a transparent ground, band at 0.3 opacity, glyph and name in quieter tones, no size and no status word unless a restart is due. Rows outside the run during a run use the Dim Step Rule; queued and done rows in the run step back to band 0.4 and `text-3` captions.
 
 | State | Band | Glyph | Status cell |
 |---|---|---|---|
 | checking | `line` | pulsing dot in `dot` | "Checking", 440 weight, `text-3`; versions show a breathing skeleton |
-| ready | `sun` | pixel sprout | "Ready" in sun |
+| ready | `sun` | the mark (pixel sprout below 1.5 dppx) | "Ready" in sun |
 | queued | `sun` | hourglass | "Queued" in sun, place number in the tick column |
-| working | `water` | drop, 22% fill | the stem with "Downloading 12.1 of 30 MB", "Backing up", "Installing", "Verifying" |
+| working | `water` | three rising dashes, as the tray's working picture, never the leaf | the stem with "Downloading 12.1 of 30 MB", "Backing up", "Installing", "Verifying" |
 | done | `leaf` | leaf | the full stem, "Updated to 10.5.2" or "Restart Zen Browser to finish" |
 | fresh | `leaf` at 0.3 | leaf in `text-3` | empty, or "Restart Zen Browser to finish" |
 | manual | `bloom` | hand | the command to run, in mono, fitted to the cell |
@@ -319,7 +321,16 @@ A row with a reason sentence is 56 px and lends the reason the Kind column (and 
 | failed | `fail` | cross | "Failed" in fail, version struck in fail |
 | rolled_back | `fail` | cross | "Rolled back to 3.29.9" in fail |
 
-The version pair is a three-track grid (installed, 20 px arrow, latest) so every row shares one axis; an unknown installed version is a "?" before the arrow. Screen readers hear "to" between the two.
+The version pair is a three-track grid (installed, 20 px arrow, latest) so every row shares one axis. With nothing installed the installed slot stays empty and the cell reads "→ 15.2.0"; screen readers hear "Not installed. 15.2.0 is the latest." instead. Otherwise they hear "to" between the two.
+
+### System row
+`SystemGroup.svelte`, `SystemRow.svelte`, the `SYS` strings in `lib/copy.ts`, `e2e/system.spec.ts`. A read-only group, last in the list, shown only while Settings, Extras, "Show system updates" is on. It lists what Update Manager would install: Mint and Ubuntu packages, Flatpak apps and runtimes.
+
+The group heading is the folding heading Fresh uses (chevron, "System", the count in mono), then "From Update Manager, checked 2 minutes ago" ("From Update Manager, checking" during a check) in 12 px `text-3`, then a quiet small "Open Update Manager" at the right. Folded with a problem, the heading carries a rust warning glyph whose label is the warning. Open, the body says one of: "Checking system updates" with the checking dot, "No system updates.", a rust-glyph note in the problem tint for a missing tool (the command's name, then "is not installed, so this part of the list is empty.") or an unreadable list ("Could not read Update Manager's list."), and the NVIDIA GL line when Flatpak's GL runtime is missing.
+
+A system row sits on the ledger's columns but is a plain `div`: no tick, no button, no tab stop, no pane, and nothing in it the keyboard walks or Select all ticks. It is at least 36 px with a hairline, no band and no ground of its own, the leaf glyph in `text-3`, and the name in tag caps at 560 in `text-2`, with the In use chip when the app is running. The Kind column says Security, Package, Kernel, Driver, Flatpak app or Flatpak runtime in 12 px `text-2`; Security is set in `text` at 600, weight not colour. The version cell runs from the Version column to the row's end, across the empty Size, Restore point and Status cells: the old version right-aligned in the first half of the version column, the arrow on the version column's arrow line, then the new version at `wght` 380. Only the old version may be cut; the new one never is, at 980 or 760 (`e2e/round3.spec.ts`). When the build changes and the version does not, the cell reads the version, then "new build" in `text-3`. A kernel or driver row adds "Needs a restart after it installs." 16 px after the new version, or under it when both do not fit. The whole change is the cell's title and its accessible name.
+
+System rows never enter the header sentence, the footer's Install count or selection, or the tray icon's count; the tray menu lists them on their own line ("System updates: 12").
 
 ### The stem
 `Stem.svelte`. One span per stage of the app's kind (Download, Back up, Install, Verify), each span's flex-grow set to that stage's weight. Weights come from the app's last successful update, each floored at 8 and summing to 100, or from the kind's default (`src/engine/store.ts`): AppImage and binaries 60/10/20/10; .deb 50/40/10 and source 10/80/10 with no Back up; self-updating and updater-script apps 85/15 for Install and Verify. No span is drawn narrower than 28 px, so the leaves stay countable.
@@ -329,7 +340,7 @@ Each span is a 2 px `line` rail with a `water` fill, then an 8 px node with a 1.
 The footer run bar repeats the run in miniature: one stop per queued app, each with its glyph, the name in tag caps at 12 px, and a 4 px rail filled in the state's colour.
 
 ### Pane
-`RowDetail.svelte`. Header: glyph, the name in tag caps at 19 px, the close button (a cross when docked, Back to list under 900 px). Under it the repo, kind and In use chip; the version pair at 14 px with the status word in the state's colour; the stem when working; the reason sentence. Retry sits in the header when the app failed. Then blocks in this order: the by-hand command with Copy, or Run now for an app that checks itself; Restore points; actions (Skip or Stop skipping, Hold updates or Release hold, Install automatically, Open release page); Remove from Upkeep; What changed; facts (96 px term column); Log (last 40 lines). A disabled action during a run says why in its title ("Wait for the run to finish."). Remove asks in place with Remove and Keep; Keep takes focus and Escape keeps. A new pane block is a grid with an 8 px gap and a 12 px `text-2` heading.
+`RowDetail.svelte`. Header: glyph, the name in tag caps at 19 px, the close button (a cross when docked, Back to list under 900 px). Under it the repo, kind and In use chip; the version pair at 14 px with the status word in the state's colour; the stem when working; the reason sentence. Retry sits in the header when the app failed. Then blocks in this order: the by-hand command with Copy, or Run now for an app that checks itself; Restore points; actions (Skip or Stop skipping, Hold updates or Release hold, Install automatically, Open release page); Remove from Upkeep; What changed; facts (96 px term column); Log (last 40 lines). A disabled action during a run says why in its title ("Wait for the run to finish."). Remove asks in place with Remove and Keep; Keep takes focus and Escape keeps. A legacy app's restore line reads "Upkeep hands this one to lutechi-updater." A new pane block is a grid with an 8 px gap and a 12 px `text-2` heading.
 
 ### Identity in the interface
 Sources: `lib/brand.ts`, `components/Mark.svelte`, `components/Glyph.svelte`, `assets/brand/`.
@@ -344,33 +355,36 @@ Sources: `lib/brand.ts`, `components/Mark.svelte`, `components/Glyph.svelte`, `a
 Sources: `App.svelte`, `AppList.svelte`, `HeaderBar.svelte`, `e2e/keyboard.spec.ts`, `e2e/a11y.spec.ts`.
 - Focus ring: 2 px solid `water`, 2 px offset. Row buttons draw it inset (offset -2 px) with a 4 px radius; the primary button's ring is `text`.
 - First focus lands on the first row. Install is at most six Tab presses away.
-- The list is one Tab stop (the open row, else the last focused, else the first). Up and Down move, Home and End jump, Space ticks, Enter or Right opens, Left closes, PageUp and PageDown scroll a page, `a` opens Add app, Ctrl+A selects all.
+- The list is one Tab stop (the open row, else the last focused, else the first). Up and Down move, Home and End jump, Space ticks, Enter or Right opens, Left closes, `a` opens Add app, Ctrl+A selects all. PageUp and PageDown on a row move focus by as many 44 px rows as fit under the 34 px column header (and the open pane follows); elsewhere in the list they scroll 90% of a page.
 - `/` or Ctrl+F focuses the filter; in it, Down goes to the first row, Enter opens the first match, Escape clears it and goes no further.
 - Escape closes the log, then the pane, and returns focus to the row (or to Add app).
+- After Add, focus goes to the new app's row (the first added row after a scan); under 900 px the sheet keeps it, since the list is inert. After Remove, focus goes to the next row, or the one before when the removed row was last, or the filter when no row is left.
+- System rows and Settings' segmented groups follow their own rules above: no stop at all, and one stop per group.
 - Tab past the last control wraps to the first; inert regions and hidden controls are skipped. Ctrl+W closes the window when Upkeep draws its frame.
 - When buttons swap (Install for Stop, Stop for Done) or a pressed button disables itself, focus moves to its partner, never to the page. No positive tabindex anywhere.
 
 ### Motion
 Sources: `app.css`, `lib/motion.ts`, component styles. One custom easing, `--ease-out: cubic-bezier(0.16, 1, 0.3, 1)`, for the leaf and the version weight; everything else uses `ease-out` or `linear`.
 - 100 ms: button and window-button hover. 120 ms: checkbox, tabs. 150 ms: chevrons, scroll shades. 160 ms linear: stem fill; 160 ms fade: the state sentence. 200 ms: pane fly-in (32 px from the right), check bar, run bar fill. 240 ms: row dimming, restore point fade, footer slot swap; footer buttons fly 8 px. 280 ms: the leaf. 320 ms: rows reordering between groups (flip). 400 ms: the version weight.
-- Loops: the checking dot pulses between 1 and 0.8 opacity over 1.2 s, the version skeleton breathes over 1.4 s, the sweep runs 1.1 s, the Add pane spinner 800 ms.
+- Loops: the checking dot pulses between 1 and 0.85 opacity over 1.2 s, the version skeleton breathes over 1.4 s, the sweep runs 1.1 s, the Add pane spinner 800 ms.
 - Reduced motion: CSS cuts every animation and transition to 0.001 ms and one iteration, and `ms()` returns 0 for every Svelte transition. The sweep parks at 75% and the spinner stops. `e2e/motion.spec.ts` checks every state is still reached.
 
 ### Window frame
-Sources: `HeaderBar.svelte`, `WindowButtons.svelte`, `src/bun/index.ts`, `src/bun/chrome.ts`, `e2e/frame.spec.ts`. By default Upkeep draws its own title bar inside the 56 px header (`titleBarStyle: "hiddenInset"`, the resize edges kept). The header is a drag region and every control in it is not; double-clicking empty header space maximises. Window buttons are 28 px circles, 6 px apart, 12 px from the window edge, in the desktop's order and on its side (left or right, or set in Settings). They are `text-2`, `shell-hi` on hover, and close turns `fail`. On the left, a 1 px by 24 px divider separates them from the mark, which keeps at least 20 px clear. Settings can hand the frame back to the desktop, which removes the buttons, the drag region and the edge.
+Sources: `HeaderBar.svelte`, `WindowButtons.svelte`, `src/bun/index.ts`, `src/bun/chrome.ts`, `e2e/frame.spec.ts`. By default Upkeep draws its own title bar inside the 56 px header (`titleBarStyle: "hiddenInset"`, the resize edges kept). The header is a drag region and every control in it is not; double-clicking empty header space maximises. Window buttons are 28 px circles, 6 px apart, 12 px from the window edge, in the desktop's order and on its side (left or right, or set in Settings). They are `text-2`, `shell-hi` on hover, and close turns `oklch(0.54 0.19 25)` with a `text` cross, measured at 4.5:1 or better in `e2e/round3.spec.ts`. On the left, a 1 px by 24 px divider separates them from the mark, which keeps at least 20 px clear. Settings can hand the frame back to the desktop, which removes the buttons, the drag region and the edge.
 
 ### Voice
 Every string is in `src/mainview/lib/copy.ts`, and each has a `data-testid` the specs assert on.
 - Name the app, the version and the step: "Installing Zen Browser, 2 of 4", "Updated to 10.5.2", "Rolled back to 3.29.9", "Downloading 12.1 of 30 MB".
 - Counts are plain sentences: "7 updates ready", "3 updated, 1 failed", "All 32 apps are up to date.", "Everything is fresh".
 - Buttons are verbs with their object: "Install 7 updates", "Retry 1 failed", "Stop after this one", "Restore 1.24b", "Remove from Upkeep".
-- Explain a refusal or a missing thing in one sentence: "Tick an update to install.", "dpkg owns these files, so there is no restore point.", "Remove fd from the list? The app itself stays installed."
+- Explain a refusal or a missing thing in one sentence: "Tick an update to install.", "dpkg owns these files, so there is no restore point.", "Remove fd from the list? The app itself stays installed.", "Could not write apps.toml:" with the reason, then "Nothing was changed."
+- History names what a run was: a retry's sentence starts with "Retry: " ("Retry: 1 updated"), an app installed fresh reads "Installed 15.2.0" instead of a pair, and during a run "A run is in progress." heads the page with past runs listed under it.
 - Sentence case, no exclamation marks, no hand-typed three-dot ellipsis (`e2e/polish.spec.ts` checks the whole window). A long label is truncated by the browser's ellipsis or fitted, never cut by hand.
 
 ### Accessibility, as measured
 - `scripts/drive.mjs` (run against the dev build, not part of `bun run validate`) measures the contrast of every visible text node and glyph, blended through opacity onto the real background: text needs 4.5:1, or 3:1 at 24 px and up or 18.66 px bold; glyphs need 3:1.
-- The figures written in `app.css`: each care colour is at least 4.6:1 on the shell and 5.9:1 on the ground; `text-3` is tuned to hold 4.5:1 on the shell; `fail` is 6.3:1 on the ground and 5.8:1 on surface; the checking dot is 3.8:1 at rest.
-- `e2e/round2.spec.ts` pins the checking dot's lowest opacity at 0.8 and a failed row's height at 44 px.
+- The figures written in `app.css`: each care colour is at least 4.6:1 on the shell and 5.9:1 on the ground; `text-3` is tuned to hold 4.5:1 on the shell; `fail` is 6.3:1 on the ground and 5.8:1 on surface; the checking dot still measures 3:1 on its row at its 0.85 pulse floor.
+- `e2e/round2.spec.ts` pins the pulse keyframe at 0.85 and a failed row's height at 44 px. `e2e/round3.spec.ts` blends the dot at its low point over the row's real background and requires 3:1, and requires 4.5:1 for the close button's hover cross.
 - Targets: the row tick 28 by 28, window buttons 28, tabs 28 high, close and back 28, buttons 26 to 36.
 - `e2e/small.spec.ts`: at 760 by 520 no horizontal scroll and no clipped button label in any state. `e2e/a11y.spec.ts`: every control has a name, every SVG is hidden or labelled, no duplicate ids, tab order follows reading order.
 - Live regions: the state sentence and selection count are polite; the run announces once per stage, not per percent.
@@ -385,7 +399,8 @@ Code differences from the contract:
 ### Do:
 - **Do** give every new state a band token, a glyph and a word, through `CARE` in `lib/state.ts` and `statusText` in `lib/copy.ts`.
 - **Do** take ledger columns from `.ledger-cols` in `app.css` and name each cell's grid column, so a hidden cell never moves another.
-- **Do** keep row heights fixed per state (44, 56 with a reason, 36 fresh) and hide cells in place with `visibility` rather than removing them.
+- **Do** keep row heights fixed per state (44, 56 with a reason, 36 fresh) and give every row the same set of cells in every state.
+- **Do** keep anything outside Upkeep's own apps, such as system rows, out of the header, footer and tray counts.
 - **Do** route every Svelte transition duration through `ms()` and put any new loop under the reduced-motion rule.
 - **Do** keep one primary button on screen; step others down to secondary.
 - **Do** put every new string in `copy.ts` with a `data-testid`, and change the spec with the string.

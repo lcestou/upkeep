@@ -17,7 +17,7 @@ export const CARE: Record<AppStatus, { band: string; glyph: GlyphName }> = {
 	rolled_back: { band: "var(--fail)", glyph: "cross" },
 };
 
-/** The glyph's colour. Checking draws its dot in text-3 because the --line band is too faint for a glyph. */
+/** The glyph's colour. Checking draws its dot in --dot because the --line band is too faint for a glyph. */
 export function glyphColor(status: AppStatus): string {
 	return status === "checking" ? "var(--dot)" : CARE[status].band;
 }

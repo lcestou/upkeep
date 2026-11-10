@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-10T19:57:53+00:00",
+  "generatedAt": "2026-11-10T22:17:18+00:00",
   "title": "Design System: Upkeep",
   "extensions": {
     "colorMeta": {
@@ -292,7 +292,7 @@
       "dot": {
         "role": "neutral",
         "displayName": "Checking Dot",
-        "canonical": "oklch(0.55 0.02 160)",
+        "canonical": "oklch(0.6 0.02 160)",
         "tonalRamp": [
           "oklch(0.15 0.02 160)",
           "oklch(0.26 0.02 160)",
@@ -400,7 +400,7 @@
       },
       {
         "name": "pulse",
-        "value": "1.2s ease-in-out infinite, opacity 1 to 0.8",
+        "value": "1.2s ease-in-out infinite, opacity 1 to 0.85",
         "purpose": "The checking dot."
       },
       {
@@ -512,6 +512,13 @@
       "description": "A working row's progress: stages sized by measured weight, a leaf at each finished node.",
       "html": "<div class=\"ds-stem\"><span class=\"ds-span ds-done\" style=\"flex-grow:60\"><span class=\"ds-rail\"><span class=\"ds-fill\" style=\"transform:scaleX(1)\"></span></span><span class=\"ds-node\"></span><svg class=\"ds-leaf\" viewBox=\"0 0 10 10\" aria-hidden=\"true\"><path d=\"M.8 9.2C.8 4.4 4.4.8 9.2.8c0 4.8-3.6 8.4-8.4 8.4Z\"/></svg></span><span class=\"ds-span ds-active\" style=\"flex-grow:10\"><span class=\"ds-rail\"><span class=\"ds-fill\" style=\"transform:scaleX(.5)\"></span></span><span class=\"ds-node\"></span></span><span class=\"ds-span\" style=\"flex-grow:20\"><span class=\"ds-rail\"></span><span class=\"ds-node\"></span></span><span class=\"ds-span\" style=\"flex-grow:10\"><span class=\"ds-rail\"></span><span class=\"ds-node\"></span></span></div><span class=\"ds-cap\">Backing up</span>",
       "css": ".ds-stem{display:flex;align-items:center;height:18px;padding-top:6px;width:248px}.ds-span{position:relative;display:flex;align-items:center;flex-basis:0;min-width:28px}.ds-rail{flex:1;height:2px;margin-right:2px;overflow:hidden;border-radius:1px;background:var(--line)}.ds-fill{display:block;height:100%;background:var(--water);transform-origin:left center;transition:transform 160ms linear}.ds-done .ds-fill{background:var(--leaf)}.ds-node{flex:none;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--line);background:var(--ground);transition:background-color 200ms ease-out,border-color 200ms ease-out}.ds-active .ds-node{border-color:var(--water)}.ds-done .ds-node{border-color:var(--leaf);background:var(--leaf)}.ds-leaf{position:absolute;left:calc(100% - 4px);bottom:calc(50% + 1px);width:9px;height:9px;fill:var(--leaf);transform-origin:0 100%;transition:transform 280ms var(--ease-out)}.ds-cap{display:block;font-size:var(--fs-12);line-height:14px;color:var(--water);font-weight:560}"
+    },
+    {
+      "name": "System Row",
+      "kind": "card",
+      "description": "Read-only Update Manager row: leaf in text-3, no tick, Security by weight, the new version never cut.",
+      "html": "<div class=\"ds-sys\"><svg class=\"ds-sysleaf\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 15.2C12.67 12.32 12.29 5.7 8 0.8C3.71 5.7 3.33 12.32 8 15.2Z\"/></svg><span class=\"ds-sysname\">openjdk-21</span><span class=\"ds-systype\">Security</span><span class=\"ds-sysold\">21.0.12</span> &#8594; <span class=\"ds-sysnew\">21.0.13.0.3+1-1~24.04.1</span></div>",
+      "css": ".ds-sys{display:flex;align-items:center;gap:10px;min-height:36px;padding:0 16px 0 44px;box-shadow:inset 0 -1px 0 var(--line-soft)}.ds-sysleaf{color:var(--text-3);flex:none}.ds-sysname{font-family:var(--sans);font-stretch:74%;font-weight:560;text-transform:uppercase;letter-spacing:0.035em;font-size:var(--fs-14);color:var(--text-2);width:200px}.ds-systype{font-size:var(--fs-12);color:var(--text);font-weight:600;width:92px}.ds-sysold{font-family:var(--mono);font-stretch:87.5%;font-size:var(--fs-12);color:var(--text-3);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-sysnew{font-family:var(--mono);font-stretch:87.5%;font-size:var(--fs-12);color:var(--text);font-variation-settings:'wght' 380;white-space:nowrap}"
     }
   ],
   "narrative": {
@@ -549,7 +556,8 @@
     "dos": [
       "Do give every new state a band token, a glyph and a word, through `CARE` in `lib/state.ts` and `statusText` in `lib/copy.ts`.",
       "Do take ledger columns from `.ledger-cols` in `app.css` and name each cell's grid column, so a hidden cell never moves another.",
-      "Do keep row heights fixed per state (44, 56 with a reason, 36 fresh) and hide cells in place with `visibility` rather than removing them.",
+      "Do keep row heights fixed per state (44, 56 with a reason, 36 fresh) and give every row the same set of cells in every state.",
+      "Do keep anything outside Upkeep's own apps, such as system rows, out of the header, footer and tray counts.",
       "Do route every Svelte transition duration through `ms()` and put any new loop under the reduced-motion rule.",
       "Do keep one primary button on screen; step others down to secondary.",
       "Do put every new string in `copy.ts` with a `data-testid`, and change the spec with the string."

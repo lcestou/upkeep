@@ -305,7 +305,7 @@
 	.status {
 		grid-column: status;
 	}
-	/* One row: a cell hidden in place may share its column with a widened reason, never a second row. */
+	/* One row: every cell keeps its column, and a reason sits in the name column under the name, never a second row. */
 	.cell {
 		grid-row: 1;
 		min-width: 0;
