@@ -1,8 +1,8 @@
-import { existsSync, lstatSync, openSync, readdirSync, readSync, closeSync } from "node:fs";
+import { closeSync, existsSync, lstatSync, openSync, readdirSync, readSync, statSync } from "node:fs";
 import { join } from "node:path";
 import type { AppKind, AppSpec, Suggestion } from "../shared/types";
 import { type Asset, type FetchLike, fetchRelease, isFailure, type Release } from "./github";
-import type { Paths } from "./paths";
+import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
 import type { Run } from "./run";
 
@@ -271,4 +271,211 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	if (opts.file) suggestion.path = opts.file.path;
 	if (ctx.specs.some((s) => s.key === key)) suggestion.problem = `${name} is already in the list.`;
 	return { suggestion };
+}
+
+const MB2 = 2 * 1024 * 1024;
+
+/** The gh-releases-zsync repo an AppImage carries in its update information, or null. */
+export function embeddedRepo(file: string): string | null {
+	let size = 0;
+	try {
+		size = statSync(file).size;
+	} catch {
+		return null;
+	}
+	for (const part of [head(file, MB2, 0), size > MB2 ? head(file, MB2, size - MB2) : null]) {
+		const m = part ? /gh-releases-zsync\|([A-Za-z0-9_.-]+)\|([A-Za-z0-9_.-]+)\|/.exec(part.toString("latin1")) : null;
+		if (m) return `${m[1]}/${m[2]}`;
+	}
+	return null;
+}
+
+/** A file's base name as a project name: no .AppImage, no -x86_64 or -linux, no version. */
+export function bareName(file: string): string {
+	let n = (file.split("/").at(-1) ?? file).replace(/\.appimage$/i, "");
+	for (let prev = ""; prev !== n;) {
+		prev = n;
+		n = n.replace(/[-_.](x86_64|amd64|linux)$/i, "").replace(/[-_.]?v?\d+(\.\d+)+[a-z0-9.-]*$/i, "");
+	}
+	return n;
+}
+
+type Search = { repo: string } | { none: true } | { problem: string; rate: boolean };
+
+/** GitHub's repository search for a project named name; only an exact name match counts. */
+async function searchRepo(name: string, ctx: DiscoverCtx): Promise<Search> {
+	const api = ctx.api ?? "https://api.github.com";
+	const headers: Record<string, string> = { Accept: "application/vnd.github+json", "User-Agent": "upkeep" };
+	if (ctx.token && api === "https://api.github.com") headers.Authorization = `Bearer ${ctx.token}`;
+	let res: Response;
+	try {
+		res = await ctx.fetch(
+			`${api}/search/repositories?q=${encodeURIComponent(name)}+in:name&sort=stars&order=desc&per_page=5`,
+			{ headers },
+		);
+	} catch (err) {
+		return { problem: `Could not reach GitHub: ${err instanceof Error ? err.message : String(err)}`, rate: false };
+	}
+	if (res.status === 403 || res.status === 429)
+		return { problem: "GitHub's request limit is used up. Try again after it resets.", rate: true };
+	if (!res.ok) return { problem: `GitHub answered ${res.status} for ${name}.`, rate: false };
+	let items: { name?: unknown; full_name?: unknown }[] = [];
+	try {
+		const body = (await res.json()) as { items?: unknown };
+		if (Array.isArray(body.items)) items = body.items as typeof items;
+	} catch {
+		// not JSON: no match
+	}
+	const hit = items.find(
+		(i) => typeof i.name === "string" && i.name.toLowerCase() === name.toLowerCase() && typeof i.full_name === "string",
+	);
+	return hit ? { repo: String(hit.full_name) } : { none: true };
+}
+
+function fileProblem(path: string, home: string, problem: string, source: Suggestion["source"]): Suggestion {
+	const base = path.split("/").at(-1) ?? path;
+	return {
+		spec: { key: keyOf(bareName(base)), name: base, kind: "file", dest: tilde(path, home) },
+		installed: null,
+		latest: null,
+		asset: null,
+		alternatives: [],
+		source,
+		path,
+		confidence: "guess",
+		why: problem,
+		problem,
+	};
+}
+
+/** A suggestion for a file on disk. Never runs it; probe allows the version probe once a repo is known. */
+export async function fromFile(
+	input: string,
+	ctx: DiscoverCtx,
+	opts: { asset?: string; scan?: boolean } = {},
+): Promise<{ suggestion: Suggestion; rate?: boolean; searched: boolean } | { problem: string }> {
+	const home = ctx.paths.home;
+	let path = input.trim();
+	if (path.startsWith("file://")) {
+		try {
+			path = decodeURIComponent(new URL(path).pathname);
+		} catch {
+			return { problem: `There is no file at ${input}.` };
+		}
+	}
+	path = expandHome(path, home);
+	let regular = false;
+	try {
+		regular = statSync(path).isFile();
+	} catch {
+		// absent
+	}
+	if (!regular) return { problem: `There is no file at ${path}.` };
+	const base = path.split("/").at(-1) ?? path;
+	const start = head(path);
+	if (!isElf(start))
+		return { problem: `${base} is not a program Upkeep can track (it is not a compiled binary or an AppImage).` };
+	const appimage = isAppImage(start);
+	const source = opts.scan ? "scan" : "file";
+	const file = { path, appimage };
+	const embedded = appimage ? embeddedRepo(path) : null;
+	let repo = embedded;
+	let searched = false;
+	if (!repo) {
+		searched = true;
+		const s = await searchRepo(bareName(base), ctx);
+		if ("problem" in s) return { suggestion: fileProblem(path, home, s.problem, source), rate: s.rate, searched };
+		if ("none" in s)
+			return {
+				suggestion: fileProblem(
+					path,
+					home,
+					`Could not tell where ${base} comes from. Paste its GitHub repo to add it.`,
+					source,
+				),
+				searched,
+			};
+		repo = s.repo;
+	}
+	const r = await fromRepo(repo, ctx, {
+		asset: opts.asset,
+		file,
+		source,
+		confidence: embedded ? "sure" : "guess",
+		found: embedded
+			? "The AppImage names its own release source."
+			: `Guessed from the file name. Check that ${repo} is the right project.`,
+		probe: !opts.scan,
+	});
+	if ("problem" in r) return { suggestion: fileProblem(path, home, r.problem, source), rate: r.rate, searched };
+	return { suggestion: r.suggestion, searched };
+}
+
+/** Answers the owner's paste: a repo, a link to one, or a file. */
+export async function suggest(
+	input: string,
+	ctx: DiscoverCtx,
+	asset?: string,
+): Promise<{ suggestions: Suggestion[]; problem?: string }> {
+	const what = readInput(input);
+	if (!what) return { suggestions: [], problem: BAD_INPUT };
+	if ("repo" in what) {
+		const r = await fromRepo(what.repo, ctx, { asset });
+		return "problem" in r ? { suggestions: [], problem: r.problem } : { suggestions: [r.suggestion] };
+	}
+	const r = await fromFile(what.file, ctx, { asset });
+	return "problem" in r ? { suggestions: [], problem: r.problem } : { suggestions: [r.suggestion] };
+}
+
+const SKIP_NAME = /\.backup-|\.upkeep-new$|\.tmp$/;
+const MAX_SCAN = 40;
+
+/** Installed AppImages and binaries that are not in the list. Nothing found is ever run. */
+export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[] }> {
+	const home = ctx.paths.home;
+	const listed = new Set<string>();
+	for (const s of ctx.specs) {
+		if (!s.dest) continue;
+		const dest = expandHome(s.dest, home);
+		listed.add(dest);
+		for (const b of s.bins ?? []) listed.add(join(dest.slice(0, dest.lastIndexOf("/")), b.split("/").at(-1) ?? b));
+	}
+	const files: string[] = [];
+	for (const dir of [".local/bin", "Applications", "bin"]) {
+		const root = join(home, dir);
+		let names: string[];
+		try {
+			names = readdirSync(root).toSorted();
+		} catch {
+			continue;
+		}
+		for (const n of names) {
+			const p = join(root, n);
+			if (SKIP_NAME.test(n) || listed.has(p)) continue;
+			try {
+				const st = lstatSync(p);
+				if (!st.isFile() || (st.mode & 0o111) === 0) continue;
+			} catch {
+				continue;
+			}
+			if (isElf(head(p, 16))) files.push(p);
+		}
+	}
+	if (files.length > MAX_SCAN) ctx.log(`Found ${files.length} programs; looking at the first ${MAX_SCAN}.`);
+	const suggestions: Suggestion[] = [];
+	let searchedLast = false;
+	for (const f of files.slice(0, MAX_SCAN)) {
+		// oxlint-disable-next-line no-await-in-loop -- name searches run one at a time, with a pause between
+		if (searchedLast) await Bun.sleep(ctx.searchGapMs ?? 300);
+		// oxlint-disable-next-line no-await-in-loop -- see above
+		const r = await fromFile(f, ctx, { scan: true });
+		if ("problem" in r) continue;
+		suggestions.push(r.suggestion);
+		searchedLast = r.searched;
+		if (r.rate) {
+			ctx.log(r.suggestion.problem ?? "");
+			break;
+		}
+	}
+	return { suggestions };
 }
