@@ -28,3 +28,13 @@ test("a socket file left by a crash does not block the next start", async () => 
 	writeFileSync(path, "");
 	expect(await claimInstance(path, () => {})).toBe("primary");
 });
+
+test("two starts at the same moment over a stale socket: exactly one becomes primary", async () => {
+	const path = socketPath();
+	writeFileSync(path, "");
+	let shown = 0;
+	const roles = await Promise.all([claimInstance(path, () => shown++), claimInstance(path, () => shown++)]);
+	expect(roles.toSorted()).toEqual(["primary", "secondary"]);
+	await Bun.sleep(50);
+	expect(shown).toBe(1);
+});
