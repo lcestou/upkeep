@@ -2,8 +2,7 @@ import { join } from "node:path";
 import type { AppState, EngineEvent } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
-import { paths } from "./engine/paths";
-import { createRunner } from "./engine/run";
+import { realDeps } from "./engine/real";
 import { formatLogLine } from "./engine/store";
 
 export const USAGE = "Usage: upkeep check|install|restore|history";
@@ -123,19 +122,7 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 	return 2;
 }
 
-/** The real box: XDG directories, the owner's PATH, the old script where it lives. */
-export function realDeps(env: Record<string, string | undefined>): EngineDeps {
-	const p = paths(env);
-	return {
-		paths: p,
-		seedManifest: join(import.meta.dir, "../manifest/apps.toml"),
-		fetch: (url, init) => fetch(url, init),
-		run: createRunner(p.home, join(p.cache, "tmp"), env.PATH ?? "/usr/local/bin:/usr/bin:/bin"),
-		now: () => new Date(),
-		oldScript: join(p.home, ".local/bin/lutechi-updater"),
-		oldLock: "/tmp/lutechi-updater.lock",
-		oldLog: join(p.home, ".local/share/lutechi-updater.log"),
-	};
-}
-
-if (import.meta.main) process.exit(await main(process.argv.slice(2), realDeps(process.env)));
+if (import.meta.main)
+	process.exit(
+		await main(process.argv.slice(2), realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml"))),
+	);
