@@ -35,6 +35,9 @@ import type { Run, RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
 	appendHistory,
+	type KnownRow,
+	loadRows,
+	saveRows,
 	claimLock,
 	clearInflight,
 	loadState,
@@ -127,11 +130,22 @@ function stamp(d: Date): string {
 	return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${rand}`;
 }
 
+/**
+ * True when the app's version is looked up by Upkeep itself. An old-script app joins once its table
+ * carries `check` and `latest`; it is still installed through the old script.
+ */
+export function checksNatively(spec: AppSpec): boolean {
+	if (NATIVE.has(spec.kind)) return true;
+	return (spec.kind === "legacy" || spec.kind === "manual") && (spec.check?.length ?? 0) > 0 && Boolean(spec.latest);
+}
+
 function checkOne(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 	switch (spec.kind) {
 		case "source":
 			return checkSource(spec, ctx);
 		case "command":
+		case "legacy":
+		case "manual":
 			return checkCommand(spec, ctx);
 		default:
 			return checkRelease(spec, ctx);
@@ -386,8 +400,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.index += 1;
 			emitRun();
 		};
-		const native = list.filter((s) => NATIVE.has(s.kind));
-		const old = list.filter((s) => !NATIVE.has(s.kind));
+		const native = list.filter(checksNatively);
+		const old = list.filter((s) => !checksNatively(s));
 		const nativeWork = native.map(async (spec) => {
 			let c: Checked | null;
 			try {
@@ -429,6 +443,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					});
 		await Promise.all([...nativeWork, legacyWork]);
 		checkedAt = deps.now().toISOString();
+		rememberRows(list, checkedAt);
 		log?.close();
 		log = null;
 		run = { ...run, id: null, phase: "idle", index: run.total, currentKey: null };
@@ -569,8 +584,20 @@ export function createEngine(deps: EngineDeps): Engine {
 			run = { ...run, currentKey: null };
 			emitRun();
 			const checkStart = Date.now();
-			const legacySpecs = specs.filter((s) => s.kind === "legacy" || s.kind === "manual");
-			const after = await checkLegacy(legacySpecs, kindCtx("")).catch(() => new Map<string, Checked | null>());
+			const legacySpecs = specs.filter((s) => (s.kind === "legacy" || s.kind === "manual") && !checksNatively(s));
+			const ran = [...legacyRuns.keys()].map(specOf).filter((s): s is AppSpec => s !== undefined);
+			// The old script's --check only for what it alone can answer; the rest is looked up here, side by side.
+			const [old, mine] = await Promise.all([
+				ran.some((s) => !checksNatively(s) && !s.versionless)
+					? checkLegacy(legacySpecs, kindCtx("")).catch(() => new Map<string, Checked | null>())
+					: Promise.resolve(new Map<string, Checked | null>()),
+				Promise.all(
+					ran
+						.filter(checksNatively)
+						.map(async (s) => [s.key, await checkOne(s, kindCtx(s.key)).catch(() => null)] as const),
+				),
+			]);
+			const after = new Map<string, Checked | null>([...old, ...mine]);
 			for (const [key, lr] of legacyRuns) {
 				const spec = specOf(key);
 				const app = apps.get(key);
@@ -758,9 +785,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!claimLock(paths, process.pid, deps.procRoot)) return { ok: false, detail: REASON_BUSY };
 			try {
 				// A restore is a swap: what is installed now becomes a restore point first, so it can be undone.
-				// From the command line no check has run, so what is installed has to be read first.
+				// What is installed is read from disk: a row can be from the last start's cache, or from before an install.
 				let current = apps.get(key)?.installed ?? null;
-				if (!current && canRestore(spec.kind)) {
+				if (canRestore(spec.kind)) {
 					const now = await probeInstalled(spec, kindCtx(key));
 					current = "version" in now ? now.version : null;
 				}
@@ -963,6 +990,42 @@ export function createEngine(deps: EngineDeps): Engine {
 		Object.assign(a, { skipped: undefined }, resting(spec, c));
 		emitApp(a);
 	}
+
+	/** Writes what this check learned, on top of what earlier checks knew about the other apps. */
+	function rememberRows(list: AppSpec[], at: string): void {
+		const rows = loadRows(paths);
+		const listed = new Set(specs.map((s) => s.key));
+		for (const key of Object.keys(rows)) if (!listed.has(key)) delete rows[key];
+		for (const s of list) {
+			const c = checked.get(s.key);
+			if (!c) {
+				delete rows[s.key];
+				continue;
+			}
+			const { target: _target, ...known } = c;
+			rows[s.key] = { ...known, checkedAt: at };
+		}
+		try {
+			saveRows(paths, rows);
+		} catch {
+			// A cache that cannot be written only costs the next start its head start.
+		}
+	}
+
+	// The last check's rows, so the list is there before the first check ends. No target: an install waits for a check.
+	const known = loadRows(paths);
+	for (const spec of specs) {
+		const row: KnownRow | undefined = known[spec.key];
+		if (!row) continue;
+		const { checkedAt: _at, ...c } = row;
+		checked.set(spec.key, c);
+		apps.set(spec.key, buildApp(spec, c, []));
+	}
+	checkedAt =
+		Object.values(known)
+			.map((r) => r.checkedAt)
+			.toSorted()
+			.at(-1) || null;
 
 	return engine;
 }
