@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { chmodSync, mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../shared/types";
 import {
@@ -23,7 +23,7 @@ import lazygitRelease from "./fixtures/jesseduffield_lazygit.json";
 import rustdeskRelease from "./fixtures/rustdesk_rustdesk.json";
 import zenRelease from "./fixtures/zen-browser_desktop.json";
 import type { Asset, FetchLike } from "./github";
-import { ok, recordingRun, script, tempHome } from "./testkit";
+import { ok, realRun, recordingRun, script, tempHome } from "./testkit";
 
 type Fixture = { tag_name: string; assets: { name: string; size: number }[] };
 
@@ -33,9 +33,44 @@ let searches: Record<string, { name: string; full_name: string; stargazers_count
 let fetched: string[] = [];
 let onPath: Record<string, string> = {};
 let lines: string[] = [];
+/** Asset bodies the fake download server serves; the release then lists their real size and digest. */
+let bodies: Record<string, Uint8Array<ArrayBuffer>> = {};
 
-beforeEach(() => {
+const sha = (b: Uint8Array) => `sha256:${new Bun.CryptoHasher("sha256").update(b).digest("hex")}`;
+
+/** A real .tar.gz or .zip built from files: "elf" is a tiny executable with ELF magic, "#!…" an executable script, anything else plain text. */
+async function archive(files: Record<string, string>, zip = false): Promise<Uint8Array<ArrayBuffer>> {
+	const src = mkdtempSync(join(t.dir, "arc-"));
+	for (const [name, body] of Object.entries(files)) {
+		mkdirSync(join(src, name, ".."), { recursive: true });
+		if (body === "elf") {
+			writeFileSync(join(src, name), Buffer.from("\x7fELF\x02\x01\x01", "latin1"));
+			chmodSync(join(src, name), 0o755);
+		} else {
+			writeFileSync(join(src, name), body);
+			// A script is executable but not a program Upkeep installs.
+			if (body.startsWith("#!")) chmodSync(join(src, name), 0o755);
+		}
+	}
+	const out = join(src, zip ? "../out.zip" : "../out.tar.gz");
+	const argv = zip ? ["zip", "-qr", out, "."] : ["tar", "czf", out, "-C", src, "."];
+	const r = await realRun(t.paths)(argv, { cwd: src });
+	if (r.code !== 0) throw new Error(r.stderr || r.stdout);
+	return new Uint8Array(readFileSync(out));
+}
+
+beforeEach(async () => {
 	t = tempHome("discover");
+	bodies = {};
+	for (const libc of ["gnu", "musl"]) {
+		const top = `fd-v10.5.2-x86_64-unknown-linux-${libc}`;
+		// oxlint-disable-next-line no-await-in-loop -- both archives share one temp tree
+		bodies[`${top}.tar.gz`] = await archive({
+			[`${top}/fd`]: "elf",
+			[`${top}/README.md`]: "fd",
+			[`${top}/autocomplete/fd.bash`]: "x",
+		});
+	}
 	releases = {
 		"sharkdp/fd": fdRelease,
 		"zen-browser/desktop": zenRelease,
@@ -57,12 +92,15 @@ const fakeFetch: FetchLike = async (url) => {
 		return Response.json({
 			tag_name: r.tag_name,
 			html_url: "",
-			assets: r.assets.map((a) => ({
-				name: a.name,
-				size: a.size,
-				browser_download_url: `https://dl.test/${a.name}`,
-				digest: null,
-			})),
+			assets: r.assets.map((a) => {
+				const body = bodies[a.name];
+				return {
+					name: a.name,
+					size: body ? body.length : a.size,
+					browser_download_url: `https://dl.test/${a.name}`,
+					digest: body ? sha(body) : null,
+				};
+			}),
 		});
 	}
 	const q = /^https:\/\/api\.github\.com\/search\/repositories\?q=([^+]+)\+in:name/.exec(url);
@@ -70,7 +108,8 @@ const fakeFetch: FetchLike = async (url) => {
 		if (q[1] === "limited") return new Response('{"message":"API rate limit exceeded"}', { status: 403 });
 		return Response.json({ items: searches[decodeURIComponent(q[1] ?? "")] ?? [] });
 	}
-	return new Response("", { status: 404 });
+	const body = bodies[url.replace("https://dl.test/", "")];
+	return body ? new Response(body) : new Response("", { status: 404 });
 };
 
 function ctx(specs: AppSpec[] = []) {
@@ -227,14 +266,14 @@ test("from a repo: an archive installed on PATH is found there and probed for it
 			repo: "sharkdp/fd",
 			asset: "^fd-.*-x86_64-unknown-linux-gnu\\.tar\\.gz$",
 			dest: "~/.cargo/bin/fd",
-			bins: ["fd"],
+			bins: ["fd-v10.5.2-x86_64-unknown-linux-gnu/fd"],
 		},
 		installed: "10.4.0",
 		latest: "10.5.2",
 		asset: { name: "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz" },
 		source: "repo",
 		confidence: "sure",
-		why: "Matched fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz for this machine. Found it installed at ~/.cargo/bin/fd.",
+		why: "Matched fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz for this machine. It installs fd. Found it installed at ~/.cargo/bin/fd.",
 	});
 	expect(r.suggestions[0]?.spec.install_if_missing).toBeUndefined();
 	expect(r.suggestions[0]?.alternatives).toEqual([
@@ -249,7 +288,7 @@ test("from a repo: nothing installed goes to ~/.local/bin and is listed to insta
 	expect(r.suggestions[0]).toMatchObject({
 		spec: { asset: "^fd-.*-x86_64-unknown-linux-musl\\.tar\\.gz$", dest: "~/.local/bin/fd", install_if_missing: true },
 		installed: null,
-		why: "Matched fd-v10.5.2-x86_64-unknown-linux-musl.tar.gz for this machine. Nothing is installed at ~/.local/bin/fd yet, so Install will put it there.",
+		why: "Matched fd-v10.5.2-x86_64-unknown-linux-musl.tar.gz for this machine. It installs fd. Nothing is installed at ~/.local/bin/fd yet, so Install will put it there.",
 	});
 });
 
@@ -327,16 +366,16 @@ test("from a file: the source in the last 2 MB of a big AppImage is found too", 
 });
 
 test("from a file: a name search hit is a guess, a miss keeps the path", async () => {
-	const fd = elf(join(t.dir, "bin/fd-v10.5.2-x86_64-unknown-linux-gnu"));
+	const fd = elf(join(t.dir, "bin/fd"));
 	searches.fd = [
 		{ name: "fd-find", full_name: "x/fd-find" },
 		{ name: "FD", full_name: "sharkdp/fd", stargazers_count: 41000 },
 	];
 	const hit = await suggest(fd, ctx().c);
 	expect(hit.suggestions[0]).toMatchObject({
-		spec: { repo: "sharkdp/fd", kind: "archive", dest: fd, bins: ["fd-v10.5.2-x86_64-unknown-linux-gnu"] },
+		spec: { repo: "sharkdp/fd", kind: "archive", dest: fd, bins: ["fd-v10.5.2-x86_64-unknown-linux-gnu/fd"] },
 		confidence: "guess",
-		why: "Guessed from the file name. Check that sharkdp/fd is the right project. Matched fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz for this machine. Could not read the installed version with --version.",
+		why: "Guessed from the file name. Check that sharkdp/fd is the right project. Matched fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz for this machine. It installs fd. Could not read the installed version with --version.",
 	});
 	const odd = elf(join(t.dir, "bin/oddtool"));
 	const miss = await suggest(odd, ctx().c);
@@ -437,7 +476,74 @@ test("a repo whose stems are all too short falls back to the repo name", async (
 
 const none = { code: 1, stdout: "", stderr: "", timedOut: false };
 
-test("examples: what the owner gets for four repos", async () => {
+const RG = "ripgrep-15.2.0-x86_64-unknown-linux-musl";
+const ripgrep = async () => {
+	bodies[`${RG}.tar.gz`] = await archive({
+		[`${RG}/rg`]: "elf",
+		[`${RG}/doc/rg.1`]: "man",
+		[`${RG}/complete/_rg`]: "zsh",
+	});
+	releases["BurntSushi/ripgrep"] = {
+		tag_name: "15.2.0",
+		assets: [
+			{ name: `${RG}.tar.gz`, size: 0 },
+			{ name: "ripgrep-15.2.0-aarch64-unknown-linux-gnu.tar.gz", size: 1 },
+			{ name: "ripgrep_15.2.0-1_amd64.deb", size: 1 },
+		],
+	};
+};
+
+test("an archive's programs are read from inside it: ripgrep ships rg", async () => {
+	await ripgrep();
+	onPath.rg = script(join(t.paths.home, ".cargo/bin/rg"), 'echo "ripgrep 15.1.0"');
+	const r = await suggest("BurntSushi/ripgrep", ctx().c);
+	expect(r.suggestions[0]).toMatchObject({
+		spec: { key: "ripgrep", name: "ripgrep", kind: "archive", dest: "~/.cargo/bin/rg", bins: [`${RG}/rg`] },
+		installed: "15.1.0",
+		why: `Matched ${RG}.tar.gz for this machine. It installs rg. Found it installed at ~/.cargo/bin/rg.`,
+	});
+	// Nothing is kept.
+	expect(readdirSync(join(t.paths.cache, "dl"))).toEqual([]);
+});
+
+test("a zip's programs are read too, the stem's program leads, and more than six are cut to the top or bin/", async () => {
+	const files: Record<string, string> = { "tool/bin/tool": "elf", "tool/bin/helper": "elf", "tool/README": "x" };
+	for (let i = 1; i <= 6; i++) files[`tool/libexec/extra${i}`] = "elf";
+	bodies["tool-1.0-linux-x86_64.zip"] = await archive(files, true);
+	releases["o/tool"] = { tag_name: "v1.0", assets: [{ name: "tool-1.0-linux-x86_64.zip", size: 0 }] };
+	const r = await suggest("o/tool", ctx().c);
+	expect(r.suggestions[0]?.spec).toMatchObject({
+		dest: "~/.local/bin/tool",
+		bins: ["tool/bin/tool", "tool/bin/helper"],
+	});
+	expect(r.suggestions[0]?.why).toContain(
+		"It installs tool, helper. The archive holds 8 programs; only the first 6 are listed.",
+	);
+	expect(readdirSync(join(t.paths.cache, "dl"))).toEqual([]);
+});
+
+test("an archive with no program in it is refused, and a scan never opens one", async () => {
+	bodies["docs-1.0-x86_64.tar.gz"] = await archive({ "docs/README": "x", "docs/run.sh": "#!/bin/sh" });
+	releases["o/docs"] = { tag_name: "v1.0", assets: [{ name: "docs-1.0-x86_64.tar.gz", size: 0 }] };
+	expect((await suggest("o/docs", ctx().c)).problem).toBe(
+		"docs-1.0-x86_64.tar.gz holds no program Upkeep can install.",
+	);
+	await ripgrep();
+	const bin = join(t.paths.home, ".local/bin");
+	elf(join(bin, "ripgrep"));
+	searches.ripgrep = [{ name: "ripgrep", full_name: "BurntSushi/ripgrep", stargazers_count: 50000 }];
+	fetched = [];
+	const { c, calls } = ctx();
+	const r = await scan(c);
+	expect(r.suggestions[0]?.spec.bins).toEqual(["ripgrep"]);
+	expect(fetched.some((u) => u.startsWith("https://dl.test/"))).toBe(false);
+	expect(calls).toEqual([]);
+});
+
+test("examples: what the owner gets for six repos", async () => {
+	await ripgrep();
+	releases["jesseduffield/lazygit"] = lazygitRelease;
+	bodies["lazygit_0.66.3_linux_x86_64.tar.gz"] = await archive({ lazygit: "elf", LICENSE: "MIT", "README.md": "x" });
 	releases["obsidianmd/obsidian-releases"] = {
 		tag_name: "v1.9.4",
 		assets: [
@@ -447,14 +553,22 @@ test("examples: what the owner gets for four repos", async () => {
 			{ name: "obsidian-1.9.4.tar.gz", size: 1 },
 		],
 	};
-	// rustdesk is the owner's dpkg install; nothing else is on disk. The fake runner answers its probe and runs nothing.
+	// rustdesk is the owner's dpkg install; nothing else is on disk. Only tar runs for real, on the test's own archives.
 	const rec = recordingRun(t.paths, (argv) => {
+		if (argv[0] === "tar" || argv[0] === "unzip") return undefined;
 		if (argv[0] === "which") return argv[1] === "rustdesk" ? ok("/usr/bin/rustdesk\n") : none;
 		return argv[0] === "/usr/bin/rustdesk" ? ok("1.5.1\n") : none;
 	});
 	const c: DiscoverCtx = { ...ctx().c, run: rec.run };
 	const out: string[] = [];
-	for (const repo of ["sharkdp/fd", "zen-browser/desktop", "rustdesk/rustdesk", "obsidianmd/obsidian-releases"]) {
+	for (const repo of [
+		"sharkdp/fd",
+		"zen-browser/desktop",
+		"rustdesk/rustdesk",
+		"obsidianmd/obsidian-releases",
+		"jesseduffield/lazygit",
+		"BurntSushi/ripgrep",
+	]) {
 		// oxlint-disable-next-line no-await-in-loop -- in order, for a stable listing
 		const spec = (await suggest(repo, c)).suggestions[0]?.spec;
 		if (spec) out.push(tomlTable(spec));
@@ -465,7 +579,7 @@ kind = "archive"
 repo = "sharkdp/fd"
 asset = '^fd-.*-x86_64-unknown-linux-gnu\\.tar\\.gz$'
 dest = "~/.local/bin/fd"
-bins = ["fd"]
+bins = ["fd-v10.5.2-x86_64-unknown-linux-gnu/fd"]
 install_if_missing = true
 
 [apps.zen]
@@ -491,30 +605,26 @@ repo = "obsidianmd/obsidian-releases"
 asset = '^Obsidian-[0-9][0-9A-Za-z.]*\\.AppImage$'
 dest = "~/.local/bin/obsidian.AppImage"
 install_if_missing = true
+
+[apps.lazygit]
+name = "lazygit"
+kind = "archive"
+repo = "jesseduffield/lazygit"
+asset = '^lazygit_.*_linux_x86_64\\.tar\\.gz$'
+dest = "~/.local/bin/lazygit"
+bins = ["lazygit"]
+install_if_missing = true
+
+[apps.ripgrep]
+name = "ripgrep"
+kind = "archive"
+repo = "BurntSushi/ripgrep"
+asset = '^ripgrep-.*-x86_64-unknown-linux-musl\\.tar\\.gz$'
+dest = "~/.local/bin/rg"
+bins = ["${RG}/rg"]
+install_if_missing = true
 `);
-	expect(rec.calls.filter((x) => x.argv[0] !== "which").map((x) => x.argv[0])).toEqual(["/usr/bin/rustdesk"]);
-});
-
-const plain = (n: string) => `Could not tell where ${n} comes from. Paste its GitHub repo to add it.`;
-
-test("a name search keeps only an exact name with 300 stars whose release runs here; anything else is not a guess", async () => {
-	const server = elf(join(t.dir, "bin/llama-server"));
-	searches["llama-server"] = [{ name: "llama-server", full_name: "nuance1979/llama-server", stargazers_count: 12 }];
-	// Its release would install fine: only the stars keep it out.
-	releases["nuance1979/llama-server"] = {
-		tag_name: "v1.0",
-		assets: [{ name: "llama-server-1.0-x86_64-linux.tar.gz", size: 1 }],
-	};
-	const few = (await suggest(server, ctx().c)).suggestions[0];
-	expect(few).toMatchObject({ problem: plain("llama-server"), spec: { key: "llama-server", kind: "file" } });
-	expect(few?.spec.repo).toBeUndefined();
-	const omp = elf(join(t.dir, "bin/omp"));
-	searches.omp = [{ name: "omp", full_name: "nini22P/omp", stargazers_count: 900 }];
-	releases["nini22P/omp"] = { tag_name: "v1.0", assets: [{ name: "omp-1.0-windows.zip", size: 1 }] };
-	expect((await suggest(omp, ctx().c)).suggestions[0]).toMatchObject({ problem: plain("omp") });
-	const cursor = elf(join(t.dir, "bin/cursor"));
-	searches.cursor = [{ name: "cursor", full_name: "cursor/cursor", stargazers_count: 30000 }];
-	const cur = (await suggest(cursor, ctx().c)).suggestions[0];
-	expect(cur).toMatchObject({ problem: plain("cursor") });
-	expect(cur?.spec.repo).toBeUndefined();
+	expect(rec.calls.filter((x) => !["which", "tar", "unzip"].includes(x.argv[0] ?? "")).map((x) => x.argv[0])).toEqual([
+		"/usr/bin/rustdesk",
+	]);
 });

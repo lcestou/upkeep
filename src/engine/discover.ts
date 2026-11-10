@@ -1,6 +1,17 @@
-import { closeSync, existsSync, lstatSync, openSync, readdirSync, readSync, statSync } from "node:fs";
+import {
+	closeSync,
+	existsSync,
+	lstatSync,
+	mkdtempSync,
+	openSync,
+	readdirSync,
+	readSync,
+	rmSync,
+	statSync,
+} from "node:fs";
 import { join } from "node:path";
 import type { AppKind, AppSpec, Suggestion } from "../shared/types";
+import { download, verifyAsset } from "./download";
 import { type Asset, type FetchLike, fetchRelease, isFailure, type Release } from "./github";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
@@ -299,13 +310,26 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	const name = appName(shippedBy(picked), repo);
 	const key = keyOf(bin);
 	const { pattern, widen } = assetPattern(picked.asset.name, release);
+	let bins = kind === "archive" ? [opts.file ? (dest.split("/").at(-1) ?? bin) : bin] : undefined;
+	let installs: string | null = null;
+	// A program's name cannot be guessed from the repo (ripgrep ships rg): look inside, but never during a scan.
+	if (kind === "archive" && opts.probe !== false && picked.asset.size <= LOOK_INSIDE_MAX) {
+		const found = await programsIn(picked.asset, ctx, key);
+		if ("problem" in found) return { problem: found.problem };
+		const want = opts.file ? (dest.split("/").at(-1) ?? bin) : bin;
+		const lead = found.programs.find((p) => baseOf(p) === want) ?? found.programs[0] ?? want;
+		bins = [lead, ...found.programs.filter((p) => p !== lead)];
+		if (!opts.file) dest = (await which(ctx, baseOf(lead))) ?? join(home, ".local/bin", baseOf(lead));
+		installs = `It installs ${bins.map(baseOf).join(", ")}.`;
+		if (found.more) installs += ` The archive holds ${found.more} programs; only the first ${MAX_BINS} are listed.`;
+	}
 	const spec: AppSpec = { key, name, kind, repo, asset: pattern, dest: tilde(dest, home) };
-	if (kind === "archive") spec.bins = [opts.file ? (dest.split("/").at(-1) ?? bin) : bin];
+	if (bins) spec.bins = bins;
 	if (kind === "deb") spec.sudo = true;
 	const exists = existsSync(dest);
 	if (!exists) spec.install_if_missing = true;
 
-	const why = [opts.found, `Matched ${picked.asset.name} for this machine.`];
+	const why = [opts.found, `Matched ${picked.asset.name} for this machine.`, installs];
 	if (!opts.file)
 		why.push(
 			exists
@@ -332,6 +356,67 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	if (opts.file) suggestion.path = opts.file.path;
 	if (ctx.specs.some((s) => s.key === key)) suggestion.problem = `${name} is already in the list.`;
 	return { suggestion };
+}
+
+const LOOK_INSIDE_MAX = 150 * 1024 * 1024;
+const MAX_BINS = 6;
+const baseOf = (p: string) => p.split("/").at(-1) ?? p;
+
+/**
+ * The programs an archive holds, as archive paths: regular files with ELF magic and an execute bit. The
+ * asset is downloaded and checked, listed, unpacked under cache/dl, read, and deleted again.
+ */
+export async function programsIn(
+	asset: Asset,
+	ctx: DiscoverCtx,
+	key: string,
+): Promise<{ programs: string[]; more: number } | { problem: string }> {
+	const dl = join(ctx.paths.cache, "dl");
+	const file = join(dl, `discover-${key}-${asset.name}`);
+	let dir = "";
+	try {
+		verifyAsset(await download(asset.url, file, { fetch: ctx.fetch }), asset);
+		const zip = asset.name.toLowerCase().endsWith(".zip");
+		const list = await ctx.run(zip ? ["unzip", "-Z1", file] : ["tar", "tzf", file], { timeoutMs: 60_000 });
+		if (list.code !== 0) return { problem: `${asset.name} holds no program Upkeep can install.` };
+		const listed = new Set(
+			list.stdout
+				.split("\n")
+				.map((l) => l.trim().replace(/^\.\//, ""))
+				.filter((l) => l && !l.endsWith("/")),
+		);
+		dir = mkdtempSync(join(dl, `discover-${key}-x-`));
+		const x = await ctx.run(zip ? ["unzip", "-q", file, "-d", dir] : ["tar", "xzf", file, "-C", dir], {
+			timeoutMs: 300_000,
+		});
+		if (x.code !== 0) return { problem: `${asset.name} holds no program Upkeep can install.` };
+		let programs = [...listed].filter((p) => {
+			const full = join(dir, p);
+			try {
+				const st = lstatSync(full);
+				return st.isFile() && (st.mode & 0o111) !== 0 && isElf(head(full, 4));
+			} catch {
+				return false;
+			}
+		});
+		programs.sort((a, b) => a.split("/").length - b.split("/").length || a.localeCompare(b));
+		if (programs.length === 0) return { problem: `${asset.name} holds no program Upkeep can install.` };
+		let more = 0;
+		if (programs.length > MAX_BINS) {
+			more = programs.length;
+			// Keep what sits at the top of the archive (under its one top directory, if it has one) or in a bin/ directory.
+			const top = new Set(programs.map((p) => p.split("/")[0]));
+			const rootDepth = top.size === 1 && programs.every((p) => p.includes("/")) ? 2 : 1;
+			const kept = programs.filter((p) => p.split("/").length <= rootDepth || p.split("/").at(-2) === "bin");
+			programs = (kept.length > 0 ? kept : programs).slice(0, MAX_BINS);
+		}
+		return { programs, more };
+	} catch (err) {
+		return { problem: err instanceof Error ? err.message : String(err) };
+	} finally {
+		rmSync(file, { force: true });
+		if (dir) rmSync(dir, { recursive: true, force: true });
+	}
 }
 
 const MB2 = 2 * 1024 * 1024;
