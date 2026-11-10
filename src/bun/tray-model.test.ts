@@ -22,7 +22,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 	return {
 		apps,
 		run,
-		settings: { keepBackups: 1, notify: true, checkAtLogin: false },
+		settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" },
 		rate: null,
 		checkedAt: null,
 		version: "0.1.0",

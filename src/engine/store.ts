@@ -23,7 +23,13 @@ export type State = {
 	notified: string;
 };
 
-export const DEFAULT_SETTINGS: Settings = { keepBackups: 1, notify: true, checkAtLogin: false };
+export const DEFAULT_SETTINGS: Settings = {
+	keepBackups: 1,
+	notify: true,
+	checkAtLogin: false,
+	frame: "own",
+	buttons: "auto",
+};
 
 function clampSettings(s: Partial<Settings>): Settings {
 	const keep = Number(s.keepBackups ?? DEFAULT_SETTINGS.keepBackups);
@@ -31,6 +37,9 @@ function clampSettings(s: Partial<Settings>): Settings {
 		keepBackups: Math.min(5, Math.max(1, Number.isFinite(keep) ? Math.round(keep) : 1)),
 		notify: typeof s.notify === "boolean" ? s.notify : DEFAULT_SETTINGS.notify,
 		checkAtLogin: typeof s.checkAtLogin === "boolean" ? s.checkAtLogin : DEFAULT_SETTINGS.checkAtLogin,
+		frame: s.frame === "system" || s.frame === "own" ? s.frame : DEFAULT_SETTINGS.frame,
+		buttons:
+			s.buttons === "left" || s.buttons === "right" || s.buttons === "auto" ? s.buttons : DEFAULT_SETTINGS.buttons,
 	};
 }
 

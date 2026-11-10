@@ -5,8 +5,9 @@ import pkg from "../../package.json";
 import { createEngine } from "../engine/engine";
 import { realDeps } from "../engine/real";
 import { loadState, updateState } from "../engine/store";
-import type { EngineEvent, RunPhase } from "../shared/types";
+import type { EngineEvent, RunPhase, WindowButton, WindowChrome } from "../shared/types";
 import { syncAutostart } from "./autostart";
+import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
 import { isDevBuild, playDevScript } from "./dev-script";
 import { claimInstance, releaseInstance } from "./instance";
@@ -33,6 +34,8 @@ const deps = { ...realDeps(process.env, join(import.meta.dir, "../manifest/apps.
 let win: BrowserWindow | null = null;
 let quitting = false;
 let quitAfterRun = false;
+let rebuilding = false;
+let builtFrame: "own" | "system" = "own";
 const sizeFile = join(deps.paths.state, "window.json");
 let sizeTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -42,15 +45,19 @@ function openWindow(): void {
 		win.activate();
 		return;
 	}
+	builtFrame = engine.snapshot().settings.frame;
 	win = new BrowserWindow({
 		title: "Upkeep",
 		url: "views://mainview/index.html",
 		rpc,
+		// "hiddenInset" drops the desktop's title bar and keeps the resize edges; the view then draws the bar itself.
+		titleBarStyle: builtFrame === "own" ? "hiddenInset" : "default",
 		// No x or y: the framework then centres the window itself, with no jump from the corner.
 		frame: loadWindowSize(sizeFile) as { x: number; y: number; width: number; height: number },
 	});
 	// A drag fires many resize events; the size is written once it has been still for half a second.
 	win.on("resize", () => {
+		tellChrome();
 		if (sizeTimer) clearTimeout(sizeTimer);
 		sizeTimer = setTimeout(() => {
 			// An exception in a timer ends the process, mid-run included; a size is not worth that.
@@ -63,12 +70,68 @@ function openWindow(): void {
 	});
 	// The framework destroys the window unless a handler refuses. Hiding keeps the view's state and the tray alive.
 	win.on("will-close", (event) => {
-		if (quitting) return;
+		if (quitting || rebuilding) return;
 		// With no tray a hidden window is unreachable: close quits instead, except during a run.
 		if (!tray.visible && engine.snapshot().run.phase !== "installing") return quit();
 		(event as { response?: { allow: boolean } }).response = { allow: false };
 		if (tray.visible) win?.hide();
 	});
+}
+
+/** The desktop's own button layout, read once: the built-in frame puts its buttons where the owner expects them. */
+function readSystemLayout(): SystemLayout {
+	for (const schema of ["org.cinnamon.desktop.wm.preferences", "org.gnome.desktop.wm.preferences"]) {
+		try {
+			const out = Bun.spawnSync(["gsettings", "get", schema, "button-layout"], { stdin: "ignore", stderr: "ignore" });
+			if (out.exitCode === 0 && out.stdout.toString().includes(":")) return parseButtonLayout(out.stdout.toString());
+		} catch {
+			// No gsettings on this desktop: fall through to the default.
+		}
+	}
+	return parseButtonLayout("");
+}
+const systemLayout = readSystemLayout();
+
+function chrome(): WindowChrome {
+	return windowChrome(engine.snapshot().settings, systemLayout, win?.isMaximized() ?? false);
+}
+
+let toldChrome = "";
+/** Tells the view when the frame, the button side or the maximised state changed. */
+function tellChrome(): void {
+	const now = chrome();
+	const key = JSON.stringify(now);
+	if (key === toldChrome) return;
+	toldChrome = key;
+	if (win) rpc.send.event({ type: "chrome", chrome: now });
+}
+
+/** The frame is fixed when a window is created, so a change of frame closes the window and opens a new one. */
+function followFrameSetting(): void {
+	if (win && engine.snapshot().settings.frame !== builtFrame) {
+		const old = win;
+		win = null;
+		rebuilding = true;
+		try {
+			old.close();
+		} finally {
+			rebuilding = false;
+		}
+		openWindow();
+	}
+	tellChrome();
+}
+
+function windowOp(op: WindowButton): void {
+	if (!win) return;
+	if (op === "minimize") win.minimize();
+	else if (op === "maximize") {
+		if (win.isMaximized()) win.unmaximize();
+		else win.maximize();
+		tellChrome();
+	} else if (!tray.visible && engine.snapshot().run.phase !== "installing") quit();
+	// Close hides, exactly as the desktop's own close button does.
+	else if (tray.visible) win.hide();
 }
 
 function quit(): void {
@@ -100,7 +163,14 @@ function applyLoginSetting(): void {
 	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, launcher, appIcon);
 }
 
-const rpc = defineUpkeepRpc(engine, deps, applyLoginSetting);
+const rpc = defineUpkeepRpc(engine, deps, {
+	onSettings: () => {
+		applyLoginSetting();
+		followFrameSetting();
+	},
+	chrome,
+	windowOp,
+});
 
 const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", template: false, width: 22, height: 22 });
 let shownIcon = "";

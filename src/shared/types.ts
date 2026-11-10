@@ -159,7 +159,27 @@ export type RunState = {
 	results: RunResult[];
 };
 
-export type Settings = { keepBackups: number; notify: boolean; checkAtLogin: boolean };
+export type Settings = {
+	keepBackups: number;
+	notify: boolean;
+	checkAtLogin: boolean;
+	/** "own": Upkeep draws its title bar inside its header. "system": the desktop's window frame. */
+	frame: "own" | "system";
+	/** Which side the window buttons sit on when the frame is Upkeep's own. "auto" follows the desktop. */
+	buttons: "auto" | "left" | "right";
+};
+
+export type WindowButton = "close" | "minimize" | "maximize";
+
+/** How the window is dressed right now. Answered by the main process, not the engine. */
+export type WindowChrome = {
+	/** True when Upkeep draws its own title bar and window buttons. */
+	own: boolean;
+	side: "left" | "right";
+	/** The buttons to draw on that side, left to right. */
+	order: WindowButton[];
+	maximized: boolean;
+};
 
 export type Snapshot = {
 	apps: AppState[];
@@ -180,7 +200,8 @@ export type EngineEvent =
 	| { type: "run"; run: RunState }
 	| { type: "log"; line: LogLine }
 	| { type: "meta"; rate: Snapshot["rate"]; checkedAt: string | null; settings: Settings }
-	| { type: "removed"; key: string };
+	| { type: "removed"; key: string }
+	| { type: "chrome"; chrome: WindowChrome };
 
 /** What the view can ask of the main process. */
 export type Requests = {
@@ -198,6 +219,8 @@ export type Requests = {
 	runLog: { params: { runId: string }; response: LogLine[] };
 	open: { params: { what: "manifest" | "log" | "release"; key?: string }; response: { ok: boolean } };
 	copy: { params: { text: string }; response: { ok: boolean } };
+	chrome: { params: Record<string, never>; response: WindowChrome };
+	window: { params: { op: WindowButton }; response: { ok: boolean } };
 	suggest: { params: { input: string; asset?: string }; response: { suggestions: Suggestion[]; problem?: string } };
 	scan: { params: Record<string, never>; response: { suggestions: Suggestion[] } };
 	addApps: { params: { specs: AppSpec[] }; response: { added: string[]; problems: { key: string; detail: string }[] } };

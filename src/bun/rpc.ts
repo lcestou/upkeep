@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { BrowserView, Utils } from "electrobun/main";
 import type { Engine, EngineDeps } from "../engine/engine";
 import type { UpkeepRPC } from "../mainview/lib/bridge";
+import type { WindowButton, WindowChrome } from "../shared/types";
 
 /** The newest run log, for "Open log file" when no run is in progress. */
 function newestLog(logDir: string): string | null {
@@ -16,7 +17,14 @@ function newestLog(logDir: string): string | null {
 }
 
 /** Every request the view can make, answered by the engine. */
-export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, onSettings: () => void) {
+export type WindowHooks = {
+	/** Runs after any setting changed, so the login entry and the window frame can follow. */
+	onSettings: () => void;
+	chrome: () => WindowChrome;
+	windowOp: (op: WindowButton) => void;
+};
+
+export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, hooks: WindowHooks) {
 	const logDir = join(deps.paths.state, "logs");
 	return BrowserView.defineRPC<UpkeepRPC>({
 		// Limits requests from this process to the view, of which there are none. The view's own limit is in bridge.ts.
@@ -53,7 +61,7 @@ export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, onSettings: ()
 				setSettings: (patch) => {
 					const settings = engine.setSettings(patch);
 					try {
-						onSettings();
+						hooks.onSettings();
 					} catch (err) {
 						// The setting is saved; a login entry that cannot be written is reported, not fatal.
 						console.error("login entry:", err);
@@ -75,6 +83,11 @@ export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, onSettings: ()
 				},
 				copy: ({ text }) => {
 					Utils.clipboardWriteText(text);
+					return { ok: true };
+				},
+				chrome: () => hooks.chrome(),
+				window: ({ op }) => {
+					hooks.windowOp(op);
 					return { ok: true };
 				},
 				suggest: ({ input, asset }) => engine.suggest(input, asset),

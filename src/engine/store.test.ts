@@ -62,7 +62,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		skip: {},
 		hold: {},
 		auto: {},
-		settings: { keepBackups: 1, notify: true, checkAtLogin: false },
+		settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" },
 		notified: "",
 	});
 	updateState(t.paths, (s) => {
