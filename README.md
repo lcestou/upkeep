@@ -126,6 +126,12 @@ Upkeep draws its own title bar: the header is the drag area, a double click on i
 
 Changing the frame or the corners rebuilds the window, which takes a moment.
 
+### System updates
+
+The app list can also show the computer's own pending updates, the ones Linux Mint's Update Manager handles: Mint and Ubuntu packages (security, kernel and driver updates marked as such) and Flatpak apps and runtimes. They sit in a folded `System` group at the end of the list, with a button that opens Update Manager.
+
+The group is off until you turn on **Show system updates** in Settings, under Extras. Upkeep only reads these lists. It installs none of them, because system packages need root and Update Manager already installs them with its own checks. For the same reason the tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
+
 ## Develop
 
 ```sh
