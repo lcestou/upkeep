@@ -1,4 +1,5 @@
 import { mkdirSync } from "node:fs";
+import { open } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { Asset, FetchLike } from "./github";
 
@@ -36,7 +37,7 @@ async function attempt(
 		}, stallMs);
 	};
 	arm();
-	const writer = Bun.file(file).writer();
+	const fh = await open(file, "w");
 	try {
 		const res = await opts.fetch(url, { signal: ctl.signal, redirect: "follow" });
 		if (!res.ok || !res.body) throw new Error(`Download failed: the server answered ${res.status}.`);
@@ -53,17 +54,21 @@ async function attempt(
 			if (done) break;
 			arm();
 			hasher.update(chunk);
-			writer.write(chunk);
+			// Awaited: a full disk must fail the download, not leave a short file behind a good hash.
+			for (let off = 0; off < chunk.byteLength;) {
+				// oxlint-disable-next-line no-await-in-loop -- a short write is finished before the next chunk
+				off += (await fh.write(chunk, off)).bytesWritten;
+			}
 			bytes += chunk.byteLength;
 			opts.onProgress?.(bytes, total);
 		}
-		await writer.end();
+		await fh.sync();
 		return { bytes, sha256: hasher.digest("hex") };
 	} catch (err) {
-		await Promise.resolve(writer.end()).catch(() => {});
 		if (stalled) throw new Stalled("Download stalled.");
 		throw err;
 	} finally {
+		await fh.close();
 		if (timer) clearTimeout(timer);
 		opts.signal?.removeEventListener("abort", onOuterAbort);
 	}

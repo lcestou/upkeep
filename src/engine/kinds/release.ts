@@ -1,7 +1,7 @@
 import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
-import { listBackups, prune, restoreBackup, takeBackup } from "../backup";
+import { prune, restoreBackup, takeBackup } from "../backup";
 import { download, verifyAsset } from "../download";
 import { fetchRelease, isFailure, pickAsset } from "../github";
 import { expandHome } from "../paths";
@@ -230,7 +230,8 @@ async function rollBack(
 	backupVersion: string | null,
 	target: Target,
 ): Promise<Omit<Outcome, "stages">> {
-	const point = backupVersion ?? listBackups(ctx.paths, spec.key)[0]?.version ?? null;
+	// Only the point this run took: an older one may be another version or another dest.
+	const point = backupVersion;
 	if (point && canRestore(spec.kind)) {
 		const r = await restoreBackup(ctx.paths, spec, point, ctx.run);
 		if (r.ok)
@@ -245,7 +246,9 @@ async function rollBack(
 	return {
 		result: "failed",
 		installed: target.from,
-		detail: "Would not start after the update. No restore point for this kind.",
+		detail: canRestore(spec.kind)
+			? "Would not start after the update. No restore point was taken."
+			: "Would not start after the update. No restore point for this kind.",
 		restartToApply: false,
 	};
 }

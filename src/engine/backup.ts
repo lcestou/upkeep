@@ -4,6 +4,7 @@ import {
 	mkdirSync,
 	readdirSync,
 	readFileSync,
+	renameSync,
 	rmSync,
 	statSync,
 	writeFileSync,
@@ -33,16 +34,25 @@ export function takeBackup(
 	at = new Date().toISOString(),
 ): RestorePoint {
 	const dir = join(backupDir(paths, spec.key), version);
-	rmSync(dir, { recursive: true, force: true });
-	mkdirSync(dir, { recursive: true });
-	const meta: BackupMeta = { version, at, files: [], sudo: spec.sudo === true };
-	for (const file of files) {
-		const name = basename(file);
-		copyFileSync(file, join(dir, name));
-		// The raw mode carries file-type bits that install -m rejects.
-		meta.files.push({ name, dest: file, mode: (statSync(file).mode & 0o7777).toString(8) });
+	// Built aside and renamed in: a copy that fails (disk full, unreadable file) must not cost the old point.
+	const tmp = `${dir}.upkeep-tmp`;
+	rmSync(tmp, { recursive: true, force: true });
+	mkdirSync(tmp, { recursive: true });
+	try {
+		const meta: BackupMeta = { version, at, files: [], sudo: spec.sudo === true };
+		for (const file of files) {
+			const name = basename(file);
+			copyFileSync(file, join(tmp, name));
+			// The raw mode carries file-type bits that install -m rejects.
+			meta.files.push({ name, dest: file, mode: (statSync(file).mode & 0o7777).toString(8) });
+		}
+		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
+		rmSync(dir, { recursive: true, force: true });
+		renameSync(tmp, dir);
+	} catch (err) {
+		rmSync(tmp, { recursive: true, force: true });
+		throw err;
 	}
-	writeFileSync(join(dir, "meta.json"), JSON.stringify(meta, null, "\t"));
 	return { version, at };
 }
 
