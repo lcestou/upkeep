@@ -8,7 +8,8 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const PORT = 5182;
+// The main checkout and a worktree can run side by side on different ports.
+const PORT = Number(process.env.UPKEEP_E2E_PORT) || 5182;
 const BASE = `http://127.0.0.1:${PORT}/`;
 const OUT = join(ROOT, ".impeccable/review");
 const SIZES = [
@@ -443,7 +444,7 @@ async function main() {
 		{ cwd: ROOT, stdio: "ignore" },
 	);
 	try {
-		await waitFor(portOpen, 30000, "vite on port 5182");
+		await waitFor(portOpen, 30000, `vite on port ${PORT}`);
 		const browser = await chromium.launch();
 		const errors = [];
 		const table = [];

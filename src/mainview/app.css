@@ -277,18 +277,24 @@ input[type="checkbox"]:disabled {
 
 /* The ledger's column sets, keyed to the list's own width (the list narrows beside a docked inspector). */
 /* The name column stops at 360 px and Status takes the rest, so on a wide window the stem grows, not the gap. */
+/*
+ * --hit-cols are the row button's own tracks (everything after the tick); --cols adds the tick in front.
+ * Both come from this one place, so the row, its button and the column heads cannot disagree.
+ * No subgrid: WebKitGTK 2.52 does not re-resolve a subgrid's tracks when the row's content changes.
+ */
 .ledger-cols {
-	--cols: [tick] 32px [mark] 20px [name] minmax(0, 360px) [kind] 92px [ver] 168px [size] 64px [restore] 96px [status]
+	--hit-cols: [mark] 20px [name] minmax(0, 360px) [kind] 92px [ver] 168px [size] 64px [restore] 96px [status]
 		minmax(248px, 1fr) [end];
+	--cols: [tick] 32px var(--hit-cols);
 }
 @container list (max-width: 899px) {
 	.ledger-cols {
-		--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [ver] 168px [restore] 96px [status] 212px [end];
+		--hit-cols: [mark] 20px [name] minmax(0, 1fr) [ver] 168px [restore] 96px [status] 212px [end];
 	}
 }
 @container list (max-width: 639px) {
 	.ledger-cols {
-		--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [ver] 150px [status] 168px [end];
+		--hit-cols: [mark] 20px [name] minmax(0, 1fr) [ver] 150px [status] 168px [end];
 	}
 }
 
