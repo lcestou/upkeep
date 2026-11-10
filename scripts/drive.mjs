@@ -19,6 +19,7 @@ const SIZES = [
 const BIG = [1400, 900];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const blank = () => ({ a: 0, b: 0, c: 0, d: 0, e: 99, f: 0, g: 999, h: 0, i: 0 });
 const fig = (v, w) => (v === 999 ? "-" : v.toFixed(v >= 100 ? 0 : 2)).padStart(w);
 
 function portOpen() {
@@ -421,7 +422,60 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 		await go(`fixture=${variant}`);
 		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
 		await shoot(page, `${variant}-${width}`);
+		// The version axis must hold over the problems list too.
+		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
+		if (variant === "problems") await measured("problems");
 	}
+
+	// Window buttons on the right.
+	await go("fixture&buttons=right");
+	await shoot(page, `ready-right-${width}`);
+
+	// Rows keep their heights through a failure and a retry, and the list does not move.
+	await go("fixture&speed=4");
+	await page.getByTestId("install").click();
+	await sentenceIs(page, "3 updated, 1 failed");
+	const heights = () =>
+		page.evaluate(() => ({
+			rows: [...document.querySelectorAll(".row")].map((r) => [r.dataset.testid, r.getBoundingClientRect().height]),
+			first: document.querySelector(".row")?.getBoundingClientRect().top ?? 0,
+			scroll: document.querySelector('[data-testid="app-list"]')?.scrollTop ?? 0,
+		}));
+	const before = await heights();
+	await page.getByTestId("retry").click();
+	await page.waitForFunction(() =>
+		(document.querySelector('[data-testid="state-sentence"]')?.textContent ?? "").trim().startsWith("Retrying"),
+	);
+	const after = await heights();
+	const shifted = before.rows
+		.filter(([id, h]) => after.rows.find(([j]) => j === id)?.[1] !== h)
+		.map(([id]) => `row height changed on retry: ${id}`);
+	if (after.first !== before.first) shifted.push(`first row moved ${after.first - before.first} px on retry`);
+	if (after.scroll !== before.scroll) shifted.push(`list scrolled ${after.scroll - before.scroll} px on retry`);
+	table.push({ state: `retry-${width}`, misses: shifted, worst: blank(), rows: before.rows.length });
+
+	// ArrowDown keeps the focused row whole and clear of the column header, through 60 apps.
+	await go("fixture=many");
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-zen").focus();
+	const hidden = [];
+	for (let i = 0; i < 59; i++) {
+		// oxlint-disable-next-line no-await-in-loop -- each step depends on the last
+		await page.keyboard.press("ArrowDown");
+		// oxlint-disable-next-line no-await-in-loop -- each step depends on the last
+		const off = await page.evaluate(() => {
+			const list = document.querySelector('[data-testid="app-list"]');
+			const row = document.activeElement?.closest(".row");
+			if (!list || !row) return "no focused row";
+			const l = list.getBoundingClientRect();
+			const r = row.getBoundingClientRect();
+			return r.top >= l.top + 33.5 && r.bottom <= l.bottom + 0.5
+				? null
+				: `${row.dataset.testid} at ${r.top}-${r.bottom}`;
+		});
+		if (off) hidden.push(`step ${i}: ${off}`);
+	}
+	table.push({ state: `arrows-${width}`, misses: hidden, worst: blank(), rows: 60 });
 	// Add app: a found card, then the scan list.
 	await go("fixture&speed=4");
 	await page.getByTestId("add-app").click();
@@ -442,7 +496,99 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 	});
 	await shoot(page, `many-${width}`);
 	await ctx.close();
-	return 14;
+	return 15;
+}
+
+/** Chips never leave their row and never vanish, for every list width from 560 to 1400, with and without the pane. */
+async function sweepChips(browser, table) {
+	const ctx = await browser.newContext({
+		viewport: { width: 980, height: 720 },
+		deviceScaleFactor: 1,
+		colorScheme: "dark",
+	});
+	const page = await ctx.newPage();
+	await page.goto(`${BASE}?fixture`);
+	await page.getByTestId("install").waitFor();
+	await page.getByTestId("group-fresh-toggle").click();
+	const misses = [];
+	for (const pane of [false, true]) {
+		for (let width = 560; width <= 1400; width += 20) {
+			// oxlint-disable-next-line no-await-in-loop -- one width at a time
+			await page.setViewportSize({ width, height: 720 });
+			// The pane docks only at 900 and wider; below that it is a sheet over the list, which has no list to sweep.
+			const docked = pane && width >= 900;
+			if (pane && !docked) continue;
+			// oxlint-disable-next-line no-await-in-loop -- one width at a time
+			if (docked && (await page.getByTestId("inspector").count()) === 0) await page.getByTestId("open-fd").click();
+			// oxlint-disable-next-line no-await-in-loop -- one width at a time
+			if (!pane && (await page.getByTestId("inspector").count()) > 0) await page.keyboard.press("Escape");
+			// oxlint-disable-next-line no-await-in-loop -- one width at a time
+			await sleep(120);
+			// oxlint-disable-next-line no-await-in-loop -- one width at a time
+			const bad = await page.evaluate(() => {
+				const out = [];
+				for (const chip of document.querySelectorAll(
+					'[data-testid="app-list"] .row .chip, [data-testid="app-list"] .row .chip-use',
+				)) {
+					const row = chip.closest(".row");
+					const c = chip.getBoundingClientRect();
+					const r = row?.getBoundingClientRect();
+					const id = `${row?.dataset.testid} ${chip.dataset.testid}`;
+					if (c.width < 4) out.push(`${id} vanished`);
+					else if (
+						r &&
+						(c.left < r.left - 0.5 || c.right > r.right + 0.5 || c.top < r.top - 0.5 || c.bottom > r.bottom + 0.5)
+					)
+						out.push(`${id} leaves its row`);
+					// A chip must also not be clipped by its line.
+					const line = chip.closest(".line")?.getBoundingClientRect();
+					if (line && c.right > line.right + 0.5) out.push(`${id} cut by the line`);
+				}
+				return out;
+			});
+			for (const b of bad) misses.push(`${width}${docked ? " with pane" : ""}: ${b}`);
+		}
+	}
+	await ctx.close();
+	table.push({ state: "chip-sweep", misses, worst: blank(), rows: 0 });
+}
+
+/** At 1400 the header's and the footer's content line up with the capped ledger's edges. */
+async function edges(browser, table) {
+	const ctx = await browser.newContext({
+		viewport: { width: 1400, height: 900 },
+		deviceScaleFactor: 1,
+		colorScheme: "dark",
+	});
+	const page = await ctx.newPage();
+	const misses = [];
+	for (const q of ["fixture&buttons=right", "fixture&frame=system"]) {
+		// oxlint-disable-next-line no-await-in-loop -- one state at a time
+		await page.goto(`${BASE}?${q}`);
+		// oxlint-disable-next-line no-await-in-loop -- one state at a time
+		await page.getByTestId("install").waitFor();
+		// oxlint-disable-next-line no-await-in-loop -- one state at a time
+		const m = await page.evaluate(() => {
+			// oxlint-disable-next-line unicorn/consistent-function-scoping -- runs inside the page
+			const box = (sel) => document.querySelector(sel)?.getBoundingClientRect();
+			const ledger = box(".ledger");
+			const head = box("header .inner");
+			const foot = box("footer .inner");
+			if (!ledger || !head || !foot) return ["missing boxes"];
+			const out = [];
+			for (const [name, b] of [
+				["header", head],
+				["footer", foot],
+			]) {
+				if (Math.abs(b.left - ledger.left) > 1) out.push(`${name} left ${b.left} vs ledger ${ledger.left}`);
+				if (Math.abs(b.right - ledger.right) > 1) out.push(`${name} right ${b.right} vs ledger ${ledger.right}`);
+			}
+			return out;
+		});
+		for (const x of m) misses.push(`${q}: ${x}`);
+	}
+	await ctx.close();
+	table.push({ state: "edges-1400", misses, worst: blank(), rows: 0 });
 }
 
 async function main() {
@@ -468,6 +614,8 @@ async function main() {
 				count += await captureSize(browser, size, errors, table, { full: true });
 			}
 			count += await captureSize(browser, BIG, errors, table, { full: false });
+			await sweepChips(browser, table);
+			await edges(browser, table);
 		} finally {
 			await browser.close();
 		}
