@@ -29,7 +29,7 @@
 	--rust: oklch(0.7 0.16 42);
 	/* Failure is its own red, apart from the rust amber of Needs a look: 6.3:1 on the ground, 5.8:1 on surface. */
 	--fail: oklch(0.7 0.19 25);
-	/* The checking dot: its pulse never goes below 0.85 opacity, and there it still measures 3:1 under the pane's shade. */
+	/* The checking dot: its pulse never goes below 0.85 opacity, and there it still measures 3:1 on its row. */
 	--dot: oklch(0.6 0.02 160);
 	--frost: oklch(0.74 0.03 250);
 	--bloom: oklch(0.72 0.17 352);

@@ -85,7 +85,7 @@
 				<span class="tag-name" id="name-{app.key}">{app.name}</span>
 				{#if app.running || (!fresh && (app.sudo || app.auto))}
 					<span class="chips">
-						{#if app.running}<span class="chip-use" title={chip.text} data-testid="chip-running"
+						{#if app.running}<span class="chip-use" title={chip.title} data-testid="chip-running"
 								><span class="dot" aria-hidden="true"></span><span class="ct">{chip.text}</span></span
 							>{/if}
 						{#if app.sudo && !fresh}<span class="chip" title={CHIP.root.title} data-testid="chip-root"

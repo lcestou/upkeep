@@ -1,9 +1,10 @@
 import { expect, load, sentence, test } from "./helpers";
 
-test("one version axis: an unknown installed version is a ? before the arrow", async ({ page }) => {
+test("one version axis: with nothing installed the installed slot is empty before the arrow", async ({ page }) => {
 	await load(page, "fixture=problems", { wait: "sentence" });
 	const lrc = page.getByTestId("row-lrcget");
-	await expect(lrc.locator(".installed")).toHaveText("?");
+	// Round three: "→ latest" with no left side, not "?".
+	await expect(lrc.locator(".installed")).toHaveText("");
 	await expect(lrc.locator(".arrow")).toHaveCount(1);
 	await expect(page.getByTestId("row-borg").locator(".arrow")).toHaveCount(0);
 });
@@ -137,7 +138,8 @@ test("the filter: Clear filter, ArrowDown to the first row, Enter opens the firs
 	const list = page.getByTestId("app-list");
 	const top = await list.evaluate((el) => el.scrollTop);
 	await page.keyboard.press("PageDown");
-	expect(await list.evaluate((el) => el.scrollTop)).toBeGreaterThan(top + 200);
+	// Round three: PageDown on a row moves focus a page of rows, and the list follows it.
+	expect(await list.evaluate((el) => el.scrollTop)).toBeGreaterThan(top + 100);
 });
 
 test("disabled pane actions during a run say why", async ({ page }) => {
@@ -147,7 +149,7 @@ test("disabled pane actions during a run say why", async ({ page }) => {
 	await expect(page.getByTestId("hold-fd")).toHaveAttribute("title", "Wait for the run to finish.");
 });
 
-test("the checking dot pulses no lower than 0.8", async ({ page }) => {
+test("the checking dot pulses no lower than 0.85", async ({ page }) => {
 	await load(page, "fixture=checking", { wait: "sentence" });
 	const low = await page.evaluate(() => {
 		for (const sheet of document.styleSheets)
@@ -156,7 +158,7 @@ test("the checking dot pulses no lower than 0.8", async ({ page }) => {
 					for (const k of rule.cssRules) if (k instanceof CSSKeyframeRule && k.style.opacity) return Number(k.style.opacity);
 		return null;
 	});
-	expect(low).toBe(0.8);
+	expect(low).toBe(0.85);
 });
 
 test("Zen's release notes keep their sections", async ({ page }) => {

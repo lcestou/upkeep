@@ -277,7 +277,8 @@ test("a narrowed In use chip keeps its dot, its title and its words for assistiv
 	await page.getByTestId("open-fd").click();
 	await expect(page.getByTestId("row-zen").locator(".line")).toHaveClass(/compact/);
 	const chip = page.getByTestId("row-zen").getByTestId("chip-running");
-	await expect(chip).toHaveAttribute("title", "In use");
+	// The title keeps the chip's explanation, which starts with its words.
+	await expect(chip).toHaveAttribute("title", /^In use/);
 	await expect(chip.locator(".dot")).toBeVisible();
 	const ct = await chip.locator(".ct").evaluate((el) => ({ display: getComputedStyle(el).display, text: el.textContent }));
 	expect(ct.text).toBe("In use");
