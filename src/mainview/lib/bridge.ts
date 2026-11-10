@@ -1,5 +1,6 @@
 import type { Bridge, EngineEvent, Requests } from "../../shared/types";
 import type { FixtureVariant } from "./fixture";
+import type { SystemVariant } from "./fixture-system";
 
 // The main process declares the same schema in src/bun/rpc.ts.
 export type UpkeepRPC = {
@@ -8,6 +9,7 @@ export type UpkeepRPC = {
 };
 
 const VARIANTS: FixtureVariant[] = ["default", "empty", "checking", "problems", "many"];
+const SYSTEM_VARIANTS: SystemVariant[] = ["off", "show", "checking", "empty", "missing", "failed", "gl"];
 
 // Requests that wait on real work (a download, a restore, a scan) get five minutes; the engine has its own step limits.
 const LONG: ReadonlySet<string> = new Set(["restore", "install", "suggest", "scan", "addApps"]);
@@ -21,6 +23,7 @@ export async function getBridge(): Promise<Bridge> {
 		const asked = query.get("fixture") ?? "";
 		const variant = VARIANTS.find((v) => v === asked) ?? "default";
 		const buttons = query.get("buttons");
+		const system = SYSTEM_VARIANTS.find((v) => v === query.get("system"));
 		return createFixture({
 			variant,
 			speed: Number(query.get("speed")) || 1,
@@ -29,6 +32,7 @@ export async function getBridge(): Promise<Bridge> {
 			frame: query.get("frame") === "system" ? "system" : "own",
 			corners: query.get("corners") === "square" ? "square" : "rounded",
 			noHistory: query.get("history") === "none",
+			system,
 		});
 	}
 

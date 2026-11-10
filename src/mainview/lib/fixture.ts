@@ -5,6 +5,7 @@ import type {
 	AppStatus,
 	Bridge,
 	EngineEvent,
+	ExtrasSnapshot,
 	HistoryRow,
 	LogLine,
 	Requests,
@@ -14,10 +15,12 @@ import type {
 	Snapshot,
 	Stage,
 	Suggestion,
+	SystemState,
 	WindowButton,
 	WindowChrome,
 } from "../../shared/types";
 import { PICKED, scanResults, suggestFor } from "./fixture-add";
+import { type SystemVariant, systemFor } from "./fixture-system";
 
 export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many";
 
@@ -368,6 +371,8 @@ export type FixtureOptions = {
 	corners?: "rounded" | "square";
 	/** Start with no recorded runs, as on a first launch. */
 	noHistory?: boolean;
+	/** The System group's starting state; off unless asked. */
+	system?: SystemVariant;
 };
 
 // The owner's desktop puts the window buttons on the left: close, maximize, minimize.
@@ -411,6 +416,24 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	let attempts = 0;
 	(globalThis as { upkeepOps?: string[] }).upkeepOps = [];
 	const offered = new Map<string, Suggestion>();
+	const sysOps: string[] = [];
+	(globalThis as { upkeepSysOps?: string[] }).upkeepSysOps = sysOps;
+	let extras: ExtrasSnapshot = {
+		settings: { system: opts.system && opts.system !== "off" ? "show" : "off" },
+		system: systemFor(opts.system ?? "off", iso(Date.now() - 5 * 60_000)),
+	};
+	const setExtras = (system: SystemState) => {
+		extras = { ...extras, system };
+		emit({ type: "extras", extras });
+	};
+	/** A check that ends with the full list after a short wait; the checking variant never ends, so specs can read it. */
+	async function runSystemCheck() {
+		setExtras({ ...extras.system, phase: "checking" });
+		if (opts.system === "checking") return;
+		await sleep(900 / speed);
+		if (extras.settings.system !== "show") return;
+		setExtras(systemFor(opts.system && opts.system !== "off" ? opts.system : "show", iso(Date.now())));
+	}
 
 	if (variant === "checking") {
 		const tail = new Set(apps.slice(-12).map((a) => a.key));
@@ -751,6 +774,25 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				chrome = { ...chrome, maximized: !chrome.maximized };
 				emit({ type: "chrome", chrome });
 			}
+			return { ok: true };
+		},
+		extras: () => clone(extras),
+		setExtras: (patch) => {
+			const next = { ...extras.settings, ...patch };
+			const turnedOn = next.system === "show" && extras.settings.system !== "show";
+			extras = { ...extras, settings: next };
+			if (next.system === "off") setExtras(systemFor("off", ""));
+			else if (turnedOn) void runSystemCheck();
+			return clone(next);
+		},
+		systemCheck: () => {
+			sysOps.push("systemCheck");
+			if (extras.settings.system !== "show" || extras.system.phase === "checking") return { started: false };
+			void runSystemCheck();
+			return { started: true };
+		},
+		openTool: ({ what }) => {
+			sysOps.push(`openTool:${what}`);
 			return { ok: true };
 		},
 		pickFile: async () => {

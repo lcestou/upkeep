@@ -3,12 +3,15 @@ import type {
 	AppStatus,
 	Bridge,
 	EngineEvent,
+	ExtrasSettings,
+	ExtrasSnapshot,
 	HistoryRow,
 	LogLine,
 	Requests,
 	RunState,
 	Settings,
 	Snapshot,
+	SystemRow,
 	WindowChrome,
 } from "../../shared/types";
 import { GROUP_LABEL, type GroupId, stateSentence } from "./copy";
@@ -111,6 +114,8 @@ export class Model {
 	addedNote = $state<{ key: string; text: string } | null>(null);
 	/** The text in the filter field. */
 	filter = $state("");
+	/** The read-only System group; null until the main process answers. */
+	extras = $state<ExtrasSnapshot | null>(null);
 	/** The engine's reason when it refused a request, shown until the next request. */
 	refusal = $state<string | null>(null);
 
@@ -123,6 +128,12 @@ export class Model {
 	);
 	#needle = $derived(this.filter.trim().toLowerCase());
 	shown: AppState[] = $derived(this.#needle ? this.apps.filter((a) => matches(a, this.#needle)) : this.apps);
+	/** System rows the filter shows; shown only while the setting is on. */
+	systemShown: SystemRow[] = $derived(
+		this.extras?.settings.system === "show"
+			? (this.extras.system.rows ?? []).filter((r) => !this.#needle || r.name.toLowerCase().includes(this.#needle))
+			: [],
+	);
 	ready: AppState[] = $derived(this.apps.filter((a) => a.status === "ready"));
 	/** Nothing to decide: no run, nothing ready, by hand or needing a look, and no check under way. */
 	allFresh: boolean = $derived(
@@ -186,8 +197,13 @@ export class Model {
 		const bridge = this.#bridge;
 		if (!bridge) return;
 		this.#off = bridge.onEvent((e) => this.apply(e));
-		const [snap, chrome] = await Promise.all([bridge.request("snapshot", {}), this.send("chrome", {})]);
+		const [snap, chrome, extras] = await Promise.all([
+			bridge.request("snapshot", {}),
+			this.send("chrome", {}),
+			this.send("extras", {}),
+		]);
 		this.chrome = chrome;
+		if (extras) this.extras = extras;
 		this.load(snap);
 	}
 
@@ -247,6 +263,9 @@ export class Model {
 				return;
 			case "chrome":
 				this.chrome = e.chrome;
+				return;
+			case "extras":
+				this.extras = e.extras;
 				return;
 			case "removed": {
 				this.apps = this.apps.filter((a) => a.key !== e.key);
@@ -346,7 +365,28 @@ export class Model {
 	}
 
 	async check(): Promise<void> {
+		// The system list checks beside the apps; nothing waits on it.
+		if (this.extras?.settings.system === "show") void this.send("systemCheck", {});
 		if (await this.send("check", {})) this.refusal = null;
+	}
+
+	/** Turning the group on shows it at once in its checking state; turning it off removes it. */
+	async setExtras(patch: Partial<ExtrasSettings>): Promise<void> {
+		const settings = await this.send("setExtras", patch);
+		if (!settings) return;
+		const system = this.extras?.system;
+		const on = settings.system === "show";
+		this.extras = {
+			settings,
+			system: {
+				mode: settings.system,
+				phase: on ? (system?.phase === "idle" && system.mode === "show" ? "idle" : "checking") : "off",
+				rows: on ? (system?.rows ?? []) : [],
+				checkedAt: on ? (system?.checkedAt ?? null) : null,
+				problem: on ? (system?.problem ?? null) : null,
+				glMissing: on ? (system?.glMissing ?? null) : null,
+			},
+		};
 	}
 
 	async stopAfterCurrent(): Promise<void> {

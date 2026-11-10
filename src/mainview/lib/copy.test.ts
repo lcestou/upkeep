@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
-import { installLabel, selectionText, stateSentence, statusText } from "./copy";
+import { installLabel, selectionText, stateSentence, statusText, systemChecked, systemProblem } from "./copy";
 
 const run = (patch: Partial<RunState>): RunState => ({
 	id: null,
@@ -76,4 +76,19 @@ test("status text", () => {
 	expect(statusText(app({ status: "rolled_back", installed: "10.5.1" }))).toBe("Rolled back to 10.5.1");
 	expect(statusText(app({ status: "held", skipped: "10.5.2" }))).toBe("Skipping 10.5.2");
 	expect(statusText(app({ status: "held" }))).toBe("Held");
+});
+
+test("the System group's problem lines name the source and end cleanly without a detail", () => {
+	expect(systemProblem({ code: "missing", command: "mintupdate-cli list" })).toBe(
+		"mintupdate-cli list is not installed, so this part of the list is empty.",
+	);
+	expect(systemProblem({ code: "failed", command: "mintupdate-cli list", detail: "E: lock" })).toBe(
+		"Could not read Update Manager's list: E: lock",
+	);
+	expect(systemProblem({ code: "failed", command: "flatpak remote-ls --updates", detail: "" })).toBe(
+		"Could not read Flatpak's list.",
+	);
+	expect(systemChecked("2 minutes ago", false)).toBe("From Update Manager, checked 2 minutes ago");
+	expect(systemChecked(null, true)).toBe("From Update Manager, checking");
+	expect(systemChecked(null, false)).toBe("From Update Manager");
 });
