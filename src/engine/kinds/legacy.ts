@@ -1,6 +1,17 @@
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+	chmodSync,
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	statSync,
+	writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../../shared/types";
+import type { Paths } from "../paths";
 import curlShim from "../shim/curl.sh" with { type: "text" };
 import notifyShim from "../shim/notify-send.sh" with { type: "text" };
 import zenityShim from "../shim/zenity.sh" with { type: "text" };
@@ -26,10 +37,44 @@ export const NOT_FINISHED = "The old script did not finish this update. See the 
 
 const LINE = /^\s+(OK|UPDATE|SKIP|BROKEN):\s+(.+)$/;
 
-/** Writes the shims into cache/shim/ and, with a token, the curl header file. */
+/** A run that was killed leaves its shim directory, and maybe a token file, behind: remove the ones whose process is gone. */
+export function sweepShims(paths: Paths, procRoot = "/proc"): void {
+	const root = join(paths.cache, "shim");
+	let entries: string[];
+	try {
+		entries = readdirSync(root);
+	} catch {
+		return;
+	}
+	for (const e of entries) {
+		const pid = /^run-(\d+)-/.exec(e)?.[1];
+		if (pid && !existsSync(join(procRoot, pid))) rmSync(join(root, e), { recursive: true, force: true });
+	}
+}
+
+/**
+ * Writes the shims and, with a token, the curl header file into a directory of this run's own.
+ * It is deleted after: an app the old script relaunches inherits this PATH and must find the real
+ * zenity once the run is over, and two processes never share the events or token file.
+ */
 function prepareShims(ctx: LegacyCtx): { dir: string; events: string; env: Record<string, string>; cleanup(): void } {
-	const dir = join(ctx.paths.cache, "shim");
-	mkdirSync(dir, { recursive: true });
+	const root = join(ctx.paths.cache, "shim");
+	mkdirSync(root, { recursive: true });
+	const dir = mkdtempSync(join(root, `run-${process.pid}-`));
+	const cleanup = () => rmSync(dir, { recursive: true, force: true });
+	try {
+		return writeShims(dir, ctx.token, cleanup);
+	} catch (err) {
+		cleanup();
+		throw err;
+	}
+}
+
+function writeShims(
+	dir: string,
+	token: string | null,
+	cleanup: () => void,
+): { dir: string; events: string; env: Record<string, string>; cleanup(): void } {
 	for (const [name, text] of [
 		["zenity", zenityShim],
 		["notify-send", notifyShim],
@@ -42,12 +87,12 @@ function prepareShims(ctx: LegacyCtx): { dir: string; events: string; env: Recor
 	writeFileSync(events, "");
 	const env: Record<string, string> = { UPKEEP_SHIM_EVENTS: events };
 	const auth = join(dir, "curl-auth");
-	if (ctx.token) {
-		writeFileSync(auth, `Authorization: Bearer ${ctx.token}\n`, { mode: 0o600 });
+	if (token) {
+		writeFileSync(auth, `Authorization: Bearer ${token}\n`, { mode: 0o600 });
 		chmodSync(auth, 0o600);
 		env.UPKEEP_CURL_AUTH = auth;
 	}
-	return { dir, events, env, cleanup: () => rmSync(auth, { force: true }) };
+	return { dir, events, env, cleanup };
 }
 
 /** Which spec a --check line belongs to: the longest legacy_name followed by a space that starts the text. */
@@ -140,11 +185,14 @@ function sizeOf(file: string): number {
 
 type ShimEvent = { pct?: number | null; text?: string; dialog?: string; title?: string; answer?: boolean };
 
-export type LegacyRun = { failed?: string; oldLines: string[] };
+export type LegacyRun = { failed?: string; oldLines: string[]; code?: number };
+
+// Old-log lines that mean a versionless app was not updated (old lines 1687, 1696, 1723, 1728).
+const OLD_FAILURE = /update failed|FAILED|lookup failed|refresh failed/;
 
 /**
  * Runs `lutechi-updater <legacy_key>` with the shims first in PATH, so no dialog waits.
- * Whether the app updated is decided afterwards by one --check (legacyVerdict); the exit code is never read.
+ * Whether the app updated is decided afterwards by one --check (legacyVerdict), and for a versionless app by its exit code and the old log.
  */
 export async function installLegacy(spec: AppSpec, ctx: LegacyCtx): Promise<LegacyRun> {
 	const procRoot = ctx.procRoot ?? "/proc";
@@ -188,6 +236,7 @@ export async function installLegacy(spec: AppSpec, ctx: LegacyCtx): Promise<Lega
 	ctx.stage("install", 0);
 	ctx.log(`$ ${ctx.oldScript} ${spec.legacy_key ?? ""}`);
 	let timedOut = false;
+	let code = 0;
 	try {
 		const r = await ctx.run([ctx.oldScript, spec.legacy_key ?? ""], {
 			pathPrefix: shims.dir,
@@ -197,6 +246,7 @@ export async function installLegacy(spec: AppSpec, ctx: LegacyCtx): Promise<Lega
 			onLine: (l) => ctx.log(l),
 		});
 		timedOut = r.timedOut;
+		code = r.code;
 		ctx.log(`The old script exited ${r.code}.`);
 	} finally {
 		clearInterval(timer);
@@ -207,7 +257,11 @@ export async function installLegacy(spec: AppSpec, ctx: LegacyCtx): Promise<Lega
 	const oldLines: string[] = [];
 	try {
 		const buf = readFileSync(ctx.oldLog);
-		for (const line of buf.subarray(logStart).toString("utf8").split("\n")) {
+		// A log that shrank was truncated or rotated during the run: everything in it is new.
+		for (const line of buf
+			.subarray(buf.length < logStart ? 0 : logStart)
+			.toString("utf8")
+			.split("\n")) {
 			if (!line) continue;
 			oldLines.push(line);
 			ctx.log(`old: ${line}`);
@@ -215,7 +269,9 @@ export async function installLegacy(spec: AppSpec, ctx: LegacyCtx): Promise<Lega
 	} catch {
 		// no log
 	}
-	return timedOut ? { failed: "The old script ran past 35 minutes and was stopped.", oldLines } : { oldLines };
+	return timedOut
+		? { failed: "The old script ran past 35 minutes and was stopped.", oldLines, code }
+		: { oldLines, code };
 }
 
 /** After the run's one --check: done only when the version moved, or for a versionless app when the old log shows no failure. */
@@ -228,7 +284,8 @@ export function legacyVerdict(
 	const failed = (detail: string) => ({ result: "failed" as const, installed: before, detail, restartToApply: false });
 	if (run.failed) return failed(run.failed);
 	if (spec.versionless) {
-		const bad = run.oldLines.some((l) => l.includes("update failed") || l.includes("FAILED"));
+		// No new old-log line means nothing ran: the old script lost its own lock (line 86), or claude/omp is missing.
+		const bad = (run.code ?? 0) !== 0 || run.oldLines.length === 0 || run.oldLines.some((l) => OLD_FAILURE.test(l));
 		return bad ? failed(NOT_FINISHED) : { result: "done", installed: null, restartToApply: false };
 	}
 	if (after?.status === "fresh" && after.installed && after.installed !== before)

@@ -22,6 +22,7 @@ import {
 	type LegacyCtx,
 	type LegacyRun,
 	oldUpdaterRunning,
+	sweepShims,
 } from "./kinds/legacy";
 import { canRestore, checkRelease, installRelease, probeInstalled } from "./kinds/release";
 import { checkSource, installSource } from "./kinds/source";
@@ -158,7 +159,11 @@ export function createEngine(deps: EngineDeps): Engine {
 	const emitMeta = () => emit({ type: "meta", rate, checkedAt, settings: loadState(paths).settings });
 	const say = (key: string | null, text: string) => {
 		const line: LogLine = { at: deps.now().toISOString(), key, text };
-		log?.write(line);
+		try {
+			log?.write(line);
+		} catch {
+			// A full disk or a read-only log must not stop the run: the line still goes out as an event.
+		}
 		emit({ type: "log", line });
 	};
 
@@ -170,6 +175,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		return list;
 	}
 	loadSpecs();
+
+	sweepShims(paths, deps.procRoot);
 
 	// An install that never reached its verify: say so on that row once it is checked.
 	const interrupted = new Map<string, string>();
@@ -520,7 +527,6 @@ export function createEngine(deps: EngineDeps): Engine {
 		log?.close();
 		log = null;
 		pruneLogs(paths, 50);
-		releaseLock(paths);
 		run = { ...run, phase: "summary", currentKey: null, stopping: false };
 		emitRun();
 	}
@@ -569,26 +575,63 @@ export function createEngine(deps: EngineDeps): Engine {
 				releaseLock(paths);
 				return { started: false, reason: REASON_OLD };
 			}
-			rmSync(join(paths.cache, "dl"), { recursive: true, force: true });
-			const id = stamp(deps.now());
-			log = openRunLog(paths, id);
-			run = { id, phase: "installing", index: 0, total: queue.length, currentKey: null, stopping: false, results: [] };
-			for (const s of queue) {
-				const a = apps.get(s.key);
-				if (a) {
-					a.status = "queued";
-					a.restartToApply = false;
-					emitApp(a);
+			try {
+				rmSync(join(paths.cache, "dl"), { recursive: true, force: true });
+				const id = stamp(deps.now());
+				log = openRunLog(paths, id);
+				run = {
+					id,
+					phase: "installing",
+					index: 0,
+					total: queue.length,
+					currentKey: null,
+					stopping: false,
+					results: [],
+				};
+				for (const s of queue) {
+					const a = apps.get(s.key);
+					if (a) {
+						a.status = "queued";
+						a.restartToApply = false;
+						emitApp(a);
+					}
 				}
-			}
-			emitRun();
-			if (!token) token = await githubToken(deps.run);
-			const p = doRun(queue).catch((err: unknown) => {
-				say(null, `Run failed: ${err instanceof Error ? err.message : String(err)}`);
-				releaseLock(paths);
-				run = { ...run, phase: "summary", currentKey: null, stopping: false };
 				emitRun();
-			});
+				if (!token) token = await githubToken(deps.run);
+			} catch (err) {
+				// Nothing ran yet: put the rows back and give the lock up.
+				log?.close();
+				log = null;
+				backToReady(queue);
+				releaseLock(paths);
+				run = { ...run, phase: "idle", currentKey: null, stopping: false };
+				emitRun();
+				return { started: false, reason: err instanceof Error ? err.message : String(err) };
+			}
+			const p = doRun(queue)
+				.catch((err: unknown) => {
+					const reason = err instanceof Error ? err.message : String(err);
+					say(null, `Run failed: ${reason}`);
+					try {
+						log?.close();
+					} catch {
+						// the log is already broken
+					}
+					log = null;
+					for (const s of queue) {
+						const a = apps.get(s.key);
+						if (a && (a.status === "queued" || a.status === "working"))
+							finishApp(a, {
+								result: "failed",
+								installed: a.installed,
+								detail: `The run stopped: ${reason}`,
+								restartToApply: false,
+							});
+					}
+					run = { ...run, phase: "summary", currentKey: null, stopping: false };
+					emitRun();
+				})
+				.finally(() => releaseLock(paths));
 			busy = p;
 			return { started: true };
 		},

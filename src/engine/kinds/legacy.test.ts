@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, Stage } from "../../shared/types";
 import curlShim from "../shim/curl.sh" with { type: "text" };
@@ -15,6 +15,7 @@ import {
 	NOT_FINISHED,
 	OLD_RUNNING,
 	type LegacyCtx,
+	sweepShims,
 } from "./legacy";
 
 let t: ReturnType<typeof tempHome>;
@@ -176,7 +177,7 @@ test("the longest legacy_name followed by a space wins", () => {
 test("installLegacy turns progress into stages, answers dialogs, and copies the old log's new lines", async () => {
 	const c = ctx();
 	const run = await installLegacy(spec("cursor"), c);
-	expect(run).toEqual({ oldLines: ["[2026-11-10 10:00:00] Successfully updated Cursor to 2.1.0"] });
+	expect(run).toEqual({ oldLines: ["[2026-11-10 10:00:00] Successfully updated Cursor to 2.1.0"], code: 0 });
 	expect(stages.filter(([, p]) => p !== 0).map(([, p]) => p)).toEqual([45, 100]);
 	expect(lines).toContain("dialog question: Installation Complete! answered no");
 	expect(lines).toContain("old: [2026-11-10 10:00:00] Successfully updated Cursor to 2.1.0");
@@ -298,4 +299,59 @@ test("the curl shim adds the token header for api.github.com only", async () => 
 	expect((await run([c, "https://api.github.com/x"], { env: { UPKEEP_REAL_CURL: fake } })).stdout).toBe(
 		"https://api.github.com/x|",
 	);
+});
+
+test("installLegacy removes its shim directory, token file and all, when the old script ends", async () => {
+	await installLegacy(spec("omp-plugins"), ctx({ token: "tok" }));
+	expect(readdirSync(join(t.paths.cache, "shim"))).toEqual([]);
+});
+
+test("the sweep removes a dead process's shim directory and leaves a live one's alone", () => {
+	const root = join(t.paths.cache, "shim");
+	mkdirSync(join(root, "run-4242-abcdef"), { recursive: true });
+	writeFileSync(join(root, "run-4242-abcdef/curl-auth"), "Authorization: Bearer old\n");
+	mkdirSync(join(root, "run-777-ghijkl"), { recursive: true });
+	mkdirSync(join(proc, "777"));
+	sweepShims(t.paths, proc);
+	expect(readdirSync(root)).toEqual(["run-777-ghijkl"]);
+});
+
+test("an old script stopped at its time limit fails the app", async () => {
+	const run = await installLegacy(
+		spec("cursor"),
+		ctx({ run: async () => ({ code: 137, stdout: "", stderr: "", timedOut: true }) }),
+	);
+	expect(run.failed).toBe("The old script ran past 35 minutes and was stopped.");
+	expect(legacyVerdict(spec("cursor"), "2.0.1", undefined, run)).toMatchObject({ result: "failed" });
+});
+
+test("a versionless app whose old log says FAILED is failed", () => {
+	expect(
+		legacyVerdict(spec("omp-plugins"), null, undefined, { oldLines: ["[t] omp plugin x FAILED to build"], code: 0 }),
+	).toMatchObject({ result: "failed", detail: NOT_FINISHED });
+});
+
+const v = (run: { oldLines: string[]; code?: number }) => legacyVerdict(spec("omp-plugins"), null, undefined, run);
+
+test("a versionless app fails on a non-zero exit, on no new old-log line, and on a lookup or refresh failure", () => {
+	expect(v({ oldLines: ["[t] omp plugins refreshed"], code: 3 })).toMatchObject({
+		result: "failed",
+		detail: NOT_FINISHED,
+	});
+	expect(v({ oldLines: [], code: 0 })).toMatchObject({ result: "failed", detail: NOT_FINISHED });
+	expect(v({ oldLines: ["[t] omp plugin p: version lookup failed"], code: 0 })).toMatchObject({ result: "failed" });
+	expect(v({ oldLines: ["[t] claude plugins: marketplace refresh failed"], code: 0 })).toMatchObject({
+		result: "failed",
+	});
+	expect(v({ oldLines: ["[t] omp plugins refreshed"], code: 0 })).toMatchObject({ result: "done" });
+});
+
+test("an old log that shrank during the run is read from its start", async () => {
+	writeFileSync(oldScript, `#!/bin/bash\nprintf '%s\\n' "[t] omp plugin a update failed" > "${oldLog}"\nexit 0\n`, {
+		mode: 0o755,
+	});
+	writeFileSync(oldLog, `${"[old] a much longer line that was here before the run\n".repeat(5)}`);
+	const run = await installLegacy(spec("omp-plugins"), ctx());
+	expect(run.oldLines).toEqual(["[t] omp plugin a update failed"]);
+	expect(legacyVerdict(spec("omp-plugins"), null, undefined, run)).toMatchObject({ result: "failed" });
 });

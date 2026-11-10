@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD } from "./engine";
@@ -124,6 +124,9 @@ function oldScript(): string {
 cursor)
 	echo 2.1.0 > "${state}"
 	echo "[x] Successfully updated Cursor to 2.1.0" >> "${join(t.dir, "old.log")}"
+	;;
+claude-plugins)
+	echo "[x] claude plugin a@b is up to date" >> "${join(t.dir, "old.log")}"
 	;;
 esac
 exit 0`,
@@ -361,4 +364,77 @@ test("an interrupted install shows on its row at the next check", async () => {
 		detail: "An update was interrupted. Restore 10.5.1 from this row.",
 	});
 	expect(Bun.file(join(bin, "fd.upkeep-new")).size).toBe(0);
+});
+
+const lockHeld = () => existsSync(join(t.paths.state, "run.lock"));
+
+test("a run log that cannot be written does not stop the run, and the lock is released", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	expect(await engine.install(["fd"])).toEqual({ started: true });
+	const logs = join(t.paths.state, "logs");
+	for (const f of readdirSync(logs)) chmodSync(join(logs, f), 0o444);
+	await engine.idle();
+	expect(engine.snapshot().run.phase).toBe("summary");
+	expect(statuses(engine).fd).toBe("done");
+	expect(lockHeld()).toBe(false);
+	expect(await engine.install(["claude"])).toEqual({ started: true });
+	await engine.idle();
+});
+
+test("a run that throws outside an app fails its open rows with the reason and releases run.lock", async () => {
+	const d = await deps();
+	let armed = false;
+	let calls = 0;
+	d.now = () => {
+		// The install's own stamp is call 1; the first log line of the run is call 2.
+		if (armed && ++calls === 2) throw new Error("clock gone");
+		return new Date();
+	};
+	const engine = createEngine(d);
+	await engine.check();
+	armed = true;
+	expect(await engine.install(["fd", "claude"])).toEqual({ started: true });
+	await engine.idle();
+	const snap = engine.snapshot();
+	expect(snap.run.phase).toBe("summary");
+	expect(snap.apps.filter((a) => a.key === "fd" || a.key === "claude").map((a) => [a.status, a.detail])).toEqual([
+		["failed", "The run stopped: clock gone"],
+		["failed", "The run stopped: clock gone"],
+	]);
+	expect(lockHeld()).toBe(false);
+});
+
+test("a run that throws after its apps still releases run.lock", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	mkdirSync(join(t.paths.data, "history.jsonl"), { recursive: true }); // appendHistory throws EISDIR
+	await engine.install(["fd"]);
+	await engine.idle();
+	expect(engine.snapshot().run.phase).toBe("summary");
+	expect(lockHeld()).toBe(false);
+});
+
+test("an install whose setup throws is refused, puts its rows back, and releases run.lock", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	mkdirSync(t.paths.state, { recursive: true });
+	rmSync(join(t.paths.state, "logs"), { recursive: true, force: true });
+	writeFileSync(join(t.paths.state, "logs"), ""); // openRunLog cannot make its directory
+	const r = await engine.install(["fd"]);
+	expect(r.started).toBe(false);
+	expect(statuses(engine).fd).toBe("ready");
+	expect(engine.snapshot().run.phase).toBe("idle");
+	expect(lockHeld()).toBe(false);
+});
+
+test("a legacy app whose install throws is in the results as failed", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	rmSync(join(t.paths.cache, "shim"), { recursive: true, force: true });
+	writeFileSync(join(t.paths.cache, "shim"), ""); // prepareShims cannot make its directory
+	await engine.install(["cursor"]);
+	await engine.idle();
+	expect(engine.snapshot().run.results.map((r) => [r.key, r.result])).toEqual([["cursor", "failed"]]);
+	expect(statuses(engine).cursor).toBe("failed");
 });
