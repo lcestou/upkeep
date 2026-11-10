@@ -16,6 +16,8 @@
 		"lint": "oxlint src scripts --deny-warnings",
 		"check": "svelte-check --tsconfig ./tsconfig.json --threshold warning && tsc --noEmit -p tsconfig.json",
 		"test": "bun test src",
+		"e2e": "node node_modules/playwright/cli.js test",
+		"tray-icons": "bun scripts/tray-icons.ts",
 		"validate": "bun run prepare:eb && bun run fmt:check && bun run lint && bun run check && bun run test && bun run build:view"
 	},
 	"devDependencies": {
