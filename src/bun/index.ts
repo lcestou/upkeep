@@ -35,7 +35,7 @@ let win: BrowserWindow | null = null;
 let quitting = false;
 let quitAfterRun = false;
 let rebuilding = false;
-let builtFrame: "own" | "system" = "own";
+let builtFrame = "";
 const sizeFile = join(deps.paths.state, "window.json");
 let sizeTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -45,13 +45,16 @@ function openWindow(): void {
 		win.activate();
 		return;
 	}
-	builtFrame = engine.snapshot().settings.frame;
+	const now = chrome();
+	builtFrame = frameKey(now);
 	win = new BrowserWindow({
 		title: "Upkeep",
 		url: "views://mainview/index.html",
 		rpc,
 		// "hiddenInset" drops the desktop's title bar and keeps the resize edges; the view then draws the bar itself.
-		titleBarStyle: builtFrame === "own" ? "hiddenInset" : "default",
+		titleBarStyle: now.own ? "hiddenInset" : "default",
+		// Rounded corners need a see-through window: the view paints everything but the four corner cut-offs.
+		transparent: now.rounded,
 		// No x or y: the framework then centres the window itself, with no jump from the corner.
 		frame: loadWindowSize(sizeFile) as { x: number; y: number; width: number; height: number },
 	});
@@ -106,9 +109,14 @@ function tellChrome(): void {
 	if (win) rpc.send.event({ type: "chrome", chrome: now });
 }
 
-/** The frame is fixed when a window is created, so a change of frame closes the window and opens a new one. */
+/** What a window is built with and cannot change afterwards. */
+function frameKey(c: WindowChrome): string {
+	return `${c.own}/${c.rounded}`;
+}
+
+/** The frame and the corners are fixed when a window is created, so a change of either closes the window and opens a new one. */
 function followFrameSetting(): void {
-	if (win && engine.snapshot().settings.frame !== builtFrame) {
+	if (win && frameKey(chrome()) !== builtFrame) {
 		const old = win;
 		win = null;
 		rebuilding = true;

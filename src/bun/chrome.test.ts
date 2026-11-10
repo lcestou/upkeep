@@ -2,7 +2,14 @@ import { expect, test } from "bun:test";
 import type { Settings } from "../shared/types";
 import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 
-const settings: Settings = { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" };
+const settings: Settings = {
+	keepBackups: 1,
+	notify: true,
+	checkAtLogin: false,
+	frame: "own",
+	buttons: "auto",
+	corners: "rounded",
+};
 
 test("button layouts as the desktop writes them", () => {
 	expect(parseButtonLayout("'close,maximize,minimize:'")).toEqual({
@@ -32,12 +39,20 @@ test("auto follows the desktop; a forced side mirrors the order so close stays a
 		side: "left",
 		order: ["close", "maximize", "minimize"],
 		maximized: false,
+		rounded: true,
 	});
 	expect(windowChrome({ ...settings, buttons: "right" }, system, true)).toEqual({
 		own: true,
 		side: "right",
 		order: ["minimize", "maximize", "close"],
 		maximized: true,
+		rounded: true,
 	});
 	expect(windowChrome({ ...settings, frame: "system" }, system, false).own).toBe(false);
+});
+
+test("only Upkeep's own frame can be rounded", () => {
+	const system = parseButtonLayout("");
+	expect(windowChrome({ ...settings, corners: "square" }, system, false).rounded).toBe(false);
+	expect(windowChrome({ ...settings, frame: "system" }, system, false).rounded).toBe(false);
 });

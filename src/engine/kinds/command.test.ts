@@ -26,7 +26,7 @@ function ctx(): KindCtx {
 		run: realRun(t.paths),
 		fetch: npm,
 		token: null,
-		settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto" },
+		settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto", corners: "rounded" },
 		log: (l) => lines.push(l),
 		stage: () => {},
 	};
