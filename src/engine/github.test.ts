@@ -131,6 +131,7 @@ test("pickAsset skips checksum and signature files and counts matches", () => {
 	expect(pickAsset(release, "x86_64-unknown-linux-gnu\\.tar\\.gz")).toEqual({
 		asset: { name: "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz", url: "u1", size: 1000, digest: "sha256:ab" },
 		count: 1,
+		names: ["fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz"],
 	});
 	expect(pickAsset(release, "linux")?.count).toBe(2);
 	expect(pickAsset(release, "\\.zsync$")).toBeNull();

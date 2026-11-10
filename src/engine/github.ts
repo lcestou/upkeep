@@ -133,11 +133,11 @@ function toRelease(text: string, repo: string): Release | Failure {
 const SIDE_FILES = /\.(sha256|sig|asc|zsync)$/;
 
 /** The first asset matching pattern, skipping checksum and signature files, with the number of matches. */
-export function pickAsset(release: Release, pattern: string): { asset: Asset; count: number } | null {
+export function pickAsset(release: Release, pattern: string): { asset: Asset; count: number; names: string[] } | null {
 	const re = new RegExp(pattern);
 	const matches = release.assets.filter((a) => re.test(a.name) && !SIDE_FILES.test(a.name));
 	const first = matches[0];
-	return first ? { asset: first, count: matches.length } : null;
+	return first ? { asset: first, count: matches.length, names: matches.map((m) => m.name) } : null;
 }
 
 /** The owner's GitHub token from the gh CLI, or null when gh is missing or logged out. */
