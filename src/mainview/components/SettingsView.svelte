@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Settings } from "../../shared/types";
-	import { TEXT, WIN, rateText, versionText } from "../lib/copy";
+	import { SYS, TEXT, WIN, rateText, versionText } from "../lib/copy";
 	import { LOCKUP_SVG } from "../lib/brand";
 	import type { Model } from "../lib/model.svelte";
 
@@ -115,6 +115,21 @@
 				<p class="help">{WIN.cornersHelp}</p>
 			</div>
 		{/if}
+	</div>
+
+	<h2 class="group" data-testid="extras-group">{SYS.extras}</h2>
+	<div class="sheet">
+		<label class="row stack">
+			<span class="text">{SYS.setting}</span>
+			<input
+				type="checkbox"
+				checked={model.extras?.settings.system === "show"}
+				disabled={model.extras === null}
+				data-testid="setting-system"
+				onchange={(e) => model.setExtras({ system: e.currentTarget.checked ? "show" : "off" })}
+			/>
+			<span class="help" data-testid="setting-system-help">{SYS.settingHelp}</span>
+		</label>
 	</div>
 
 	<h2 class="group">{WIN.about}</h2>

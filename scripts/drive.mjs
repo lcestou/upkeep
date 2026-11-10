@@ -489,6 +489,22 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 	await shoot(page, `scan-${width}`);
 	await measured("scan");
 
+	// The System group, open beside Fresh, scrolled so its rows and the app rows above share the screen.
+	for (const variant of ["gl", "failed"]) {
+		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
+		await go(`fixture&system=${variant}`);
+		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
+		await openFold(page, "group-fresh-toggle");
+		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
+		await openFold(page, "group-system-toggle");
+		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
+		await page.getByTestId("group-system-section").evaluate((el) => el.scrollIntoView({ block: "center" }));
+		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
+		await shoot(page, `system-${variant}-${width}`);
+		// oxlint-disable-next-line no-await-in-loop -- one page, one state at a time
+		await measured(`system-${variant}`);
+	}
+
 	await go("fixture=many");
 	await page.getByTestId("group-fresh-toggle").click();
 	await page.getByTestId("app-list").evaluate((el) => {
@@ -496,7 +512,13 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 	});
 	await shoot(page, `many-${width}`);
 	await ctx.close();
-	return 15;
+	return 17;
+}
+
+/** Opens a fold the session may already have opened. */
+async function openFold(page, testid) {
+	const toggle = page.getByTestId(testid);
+	if ((await toggle.getAttribute("aria-expanded")) === "false") await toggle.click();
 }
 
 /** Chips never leave their row and never vanish, for every list width from 560 to 1400, with and without the pane. */

@@ -1,4 +1,4 @@
-import type { Snapshot } from "../shared/types";
+import type { Snapshot, SystemState } from "../shared/types";
 
 export type TrayAction = "open" | "check" | "install" | "quit";
 export type TrayItem = { type: "normal"; label: string; action: TrayAction } | { type: "divider" };
@@ -9,7 +9,7 @@ export function readyNames(snapshot: Snapshot): string[] {
 }
 
 /** The tray menu, top to bottom. Install appears only when something is ready. */
-export function trayMenu(snapshot: Snapshot): TrayItem[] {
+export function trayMenu(snapshot: Snapshot, system?: SystemState): TrayItem[] {
 	const ready = readyNames(snapshot).length;
 	const installing = snapshot.run.phase === "installing";
 	// During a check the engine would refuse an install, and the ready count is in flux.
@@ -19,6 +19,9 @@ export function trayMenu(snapshot: Snapshot): TrayItem[] {
 		{ type: "normal", label: "Check now", action: "check" },
 	];
 	if (ready > 0 && !busy) items.push({ type: "normal", label: `Install ${ready} ready`, action: "install" });
+	// System updates are listed, never counted in the icon: they arrive almost daily and would drown the app count.
+	if (system && system.mode === "show" && system.rows.length > 0)
+		items.push({ type: "normal", label: `System updates: ${system.rows.length}`, action: "open" });
 	items.push({ type: "divider" });
 	items.push({ type: "normal", label: installing ? "Quit after this run" : "Quit", action: "quit" });
 	return items;

@@ -8,6 +8,7 @@
 	import { flip } from "svelte/animate";
 	import AppRow from "./AppRow.svelte";
 	import Mark from "./Mark.svelte";
+	import SystemGroup from "./SystemGroup.svelte";
 
 	let { model }: { model: Model } = $props();
 
@@ -226,7 +227,7 @@
 				</div>
 			{/if}
 
-			{#if filtering && model.shown.length === 0}
+			{#if filtering && model.shown.length === 0 && model.systemShown.length === 0}
 				<div class="nomatch">
 					<p data-testid="no-match">{noMatch(model.filter.trim())}</p>
 					<button
@@ -271,6 +272,8 @@
 					{/if}
 				</div>
 			{/each}
+			<!-- Read-only, last, and outside the rows the keyboard walks and Select all ticks. -->
+			{#if model.extras?.settings.system === "show"}<SystemGroup {model} />{/if}
 		</div>
 	</div>
 </div>

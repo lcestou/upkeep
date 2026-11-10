@@ -1,5 +1,5 @@
 // Every string a person reads, pasted from the plan's copy table (F5).
-import type { AppKind, AppState, RunResult, RunState, Stage } from "../../shared/types";
+import type { AppKind, AppState, RunResult, RunState, Stage, SystemRow, SystemState } from "../../shared/types";
 import { formatBytes, plural } from "./format";
 
 export const KIND_LABEL: Record<AppKind, string> = {
@@ -277,3 +277,40 @@ export const WIN = {
 	word: "UPKEEP",
 	tagline: "Keeps the apps your package manager misses up to date.",
 } as const;
+
+/** The System group: Update Manager's own list, shown read-only. */
+export const SYS = {
+	extras: "Extras",
+	setting: "Show system updates",
+	settingHelp:
+		"Lists what Update Manager would install: Mint and Ubuntu packages, and Flatpak apps and runtimes. Not counted in the tray number.",
+	group: "System",
+	open: "Open Update Manager",
+	checking: "Checking system updates",
+	none: "No system updates.",
+	newBuild: "new build",
+	restartNote: "Needs a restart after it installs.",
+	type: {
+		security: "Security",
+		package: "Package",
+		kernel: "Kernel",
+		driver: "Driver",
+		app: "Flatpak app",
+		runtime: "Flatpak runtime",
+	} satisfies Record<SystemRow["type"], string>,
+} as const;
+
+/** The group's subline: when it was checked, or that a check is under way. */
+export function systemChecked(relative: string | null, checking: boolean): string {
+	if (checking) return "From Update Manager, checking";
+	return relative ? `From Update Manager, checked ${relative}` : "From Update Manager";
+}
+
+export function systemProblem(problem: NonNullable<SystemState["problem"]>): string {
+	if (problem.code === "missing") return `${problem.command} is not installed, so this part of the list is empty.`;
+	const source = problem.command.startsWith("flatpak") ? "Flatpak's" : "Update Manager's";
+	return problem.detail ? `Could not read ${source} list: ${problem.detail}` : `Could not read ${source} list.`;
+}
+
+export const glLine = (version: string) =>
+	`Flatpak apps cannot use the GPU until the NVIDIA ${version} runtime is installed. Update Manager's Flatpak update installs it.`;

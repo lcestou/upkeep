@@ -70,7 +70,7 @@ export function loadState(paths: Paths): State {
 	};
 }
 
-function writeAtomic(file: string, text: string): void {
+export function writeAtomic(file: string, text: string): void {
 	const tmp = `${file}.${process.pid}.tmp`;
 	writeFileSync(tmp, text);
 	renameSync(tmp, file);

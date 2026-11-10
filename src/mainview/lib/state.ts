@@ -23,11 +23,11 @@ export function glyphColor(status: AppStatus): string {
 }
 
 /** A pending row carries the full apparatus; a fresh one is a quiet line. */
-export function isQuiet(app: AppState): boolean {
+export function isQuiet(app: Pick<AppState, "status">): boolean {
 	return app.status === "fresh" || app.status === "checking";
 }
 
-export function isStruck(app: AppState): boolean {
+export function isStruck(app: Pick<AppState, "status" | "skipped">): boolean {
 	return (
 		app.status === "failed" || app.status === "rolled_back" || (app.status === "held" && app.skipped !== undefined)
 	);
