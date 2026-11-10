@@ -24,7 +24,9 @@ src/bun/             the Electrobun main process: window, tray, RPC
 src/mainview/        the Svelte view
 src/cli.ts           upkeep check | install | restore | history
 e2e/                 Playwright specs over the fixture
-assets/tray/         tray pictures, rendered by scripts/tray-icons.ts
+assets/brand/        the identity as drawn: app icon masters, mark, wordmark, lockups, tray drawings
+assets/tray/         tray pictures, rendered from assets/brand by scripts/tray-icons.ts
+assets/icon/         the launcher icon, rendered by the same script
 notes/               private working notes, gitignored
 ```
 
