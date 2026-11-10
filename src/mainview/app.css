@@ -192,9 +192,9 @@ select {
 	white-space: nowrap;
 	cursor: pointer;
 	transition:
-		background-color 120ms ease-out,
-		border-color 120ms ease-out,
-		opacity 120ms ease-out;
+		background-color 100ms ease-out,
+		border-color 100ms ease-out,
+		opacity 100ms ease-out;
 }
 .btn:hover:not(:disabled) {
 	background: oklch(0.955 0.012 110 / 0.07);
@@ -203,7 +203,8 @@ select {
 .btn:active:not(:disabled) {
 	background: oklch(0.955 0.012 110 / 0.12);
 }
-.btn:disabled {
+.btn:disabled,
+.btn[aria-disabled="true"] {
 	cursor: not-allowed;
 	opacity: 0.5;
 }
@@ -290,9 +291,27 @@ input[type="checkbox"]:disabled {
 	white-space: nowrap;
 	cursor: help;
 }
+/* Open: a squared outline in neutral text, so it never reads as the blue of a working row. */
 .chip.running {
-	border-color: oklch(0.76 0.11 232 / 0.55);
-	color: var(--water);
+	border-radius: 3px;
+	border-color: var(--text-3);
+	color: var(--text-2);
+}
+
+/* The ledger's column sets, keyed to the list's own width (the list narrows beside a docked inspector). */
+.ledger-cols {
+	--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [kind] 84px [ver] 168px [size] 64px [restore] 96px [status]
+		248px [end];
+}
+@container list (max-width: 899px) {
+	.ledger-cols {
+		--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [ver] 168px [restore] 96px [status] 212px [end];
+	}
+}
+@container list (max-width: 639px) {
+	.ledger-cols {
+		--cols: [tick] 32px [mark] 20px [name] minmax(0, 1fr) [ver] 150px [status] 168px [end];
+	}
 }
 
 .sr-only {

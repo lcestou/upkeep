@@ -1,5 +1,6 @@
 import type {
 	AppState,
+	AppStatus,
 	Bridge,
 	EngineEvent,
 	HistoryRow,
@@ -33,9 +34,17 @@ export function newlyReady(before: AppState | undefined, after: AppState): boole
 	return after.status === "ready" && before?.status !== "ready";
 }
 
+export function readyLabel(phase: RunState["phase"]): string {
+	if (phase === "installing") return GROUP_LABEL.installing;
+	if (phase === "summary") return GROUP_LABEL.thisRun;
+	return GROUP_LABEL.ready;
+}
+
 export type Group = { id: GroupId; label: string; apps: AppState[] };
 
 const LOG_CAP = 2000;
+
+export const IN_RUN: ReadonlySet<AppStatus> = new Set(["queued", "working", "done", "failed", "rolled_back"]);
 
 const idleRun = (): RunState => ({
 	id: null,
@@ -55,7 +64,12 @@ export class Model {
 	checkedAt = $state<string | null>(null);
 	version = $state("");
 	ticked = $state.raw<ReadonlySet<string>>(new Set());
-	open = $state<string | null>(null);
+	/** The app shown in the inspector; null means the inspector is closed. */
+	openKey = $state<string | null>(null);
+	/** Set when the owner picks a row during a run, so the inspector stops following the queue until it ends. */
+	pinned = $state(false);
+	/** True from a click on Install or Retry until the engine answers, so a second click cannot start a second run. */
+	starting = $state(false);
 	view = $state<View>("updates");
 	log = $state<LogLine[]>([]);
 	history = $state<HistoryRow[]>([]);
@@ -64,9 +78,11 @@ export class Model {
 	refusal = $state<string | null>(null);
 
 	groups: Group[] = $derived(
-		GROUP_ORDER.map((id) => ({ id, label: GROUP_LABEL[id], apps: this.apps.filter((a) => groupOf(a) === id) })).filter(
-			(g) => g.apps.length > 0,
-		),
+		GROUP_ORDER.map((id) => ({
+			id,
+			label: id === "ready" ? readyLabel(this.run.phase) : GROUP_LABEL[id],
+			apps: this.apps.filter((a) => groupOf(a) === id),
+		})).filter((g) => g.apps.length > 0),
 	);
 	ready: AppState[] = $derived(this.apps.filter((a) => a.status === "ready"));
 	tickedApps: AppState[] = $derived(this.ready.filter((a) => this.ticked.has(a.key)));
@@ -76,7 +92,7 @@ export class Model {
 	});
 	problems: number = $derived(this.apps.filter((a) => a.status === "problem").length);
 	current: AppState | null = $derived(this.apps.find((a) => a.key === this.run.currentKey) ?? null);
-	openApp: AppState | null = $derived(this.apps.find((a) => a.key === this.open) ?? null);
+	openApp: AppState | null = $derived(this.apps.find((a) => a.key === this.openKey) ?? null);
 	sentence: string = $derived(
 		stateSentence({
 			run: this.run,
@@ -86,9 +102,12 @@ export class Model {
 		}),
 	);
 	failedKeys: string[] = $derived(this.run.results.filter((r) => r.result !== "updated").map((r) => r.key));
+	/** The apps in this run in the engine's order: native kinds in list order, then the old script's. */
 	queue: AppState[] = $derived(
 		this.run.phase === "installing" || this.run.phase === "summary"
-			? this.apps.filter((a) => ["queued", "working", "done", "failed", "rolled_back"].includes(a.status))
+			? this.apps
+					.filter((a) => IN_RUN.has(a.status))
+					.toSorted((a, b) => Number(a.kind === "legacy") - Number(b.kind === "legacy"))
 			: [],
 	);
 
@@ -133,9 +152,19 @@ export class Model {
 				else if (e.app.status !== "ready" && this.ticked.has(e.app.key)) this.#tick(e.app.key, false);
 				return;
 			}
-			case "run":
+			case "run": {
+				const before = this.run.phase;
 				this.run = e.run;
+				if (e.run.phase === "installing") {
+					if (this.openKey && !this.pinned && e.run.currentKey) this.openKey = e.run.currentKey;
+					return;
+				}
+				this.pinned = false;
+				// A run that ends with failures opens the inspector on the first one; a clean run leaves it alone.
+				const failed = e.run.results.find((r) => r.result !== "updated");
+				if (before === "installing" && e.run.phase === "summary" && failed) this.openKey = failed.key;
 				return;
+			}
 			case "log":
 				this.log.push(e.line);
 				if (this.log.length > LOG_CAP) this.log.splice(0, this.log.length - LOG_CAP);
@@ -168,8 +197,13 @@ export class Model {
 		this.ticked = new Set();
 	}
 
-	toggleRow(key: string): void {
-		this.open = this.open === key ? null : key;
+	select(key: string): void {
+		this.openKey = key;
+		if (this.run.phase === "installing") this.pinned = true;
+	}
+
+	close(): void {
+		this.openKey = null;
 	}
 
 	async #ask<T extends { started?: boolean; reason?: string }>(p: Promise<T>): Promise<T> {
@@ -180,9 +214,13 @@ export class Model {
 
 	async install(keys: string[] = this.tickedApps.map((a) => a.key)): Promise<void> {
 		const bridge = this.#bridge;
-		if (!bridge || keys.length === 0) return;
-		this.open = null;
-		await this.#ask(bridge.request("install", { keys }));
+		if (!bridge || keys.length === 0 || this.starting) return;
+		this.starting = true;
+		try {
+			await this.#ask(bridge.request("install", { keys }));
+		} finally {
+			this.starting = false;
+		}
 	}
 
 	retry(): Promise<void> {

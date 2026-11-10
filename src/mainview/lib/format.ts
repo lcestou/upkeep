@@ -43,9 +43,7 @@ export function formatDuration(ms: number): string {
 	const s = ms / 1000;
 	if (s < 10) return `${s.toFixed(1)} s`;
 	if (s < 60) return `${Math.round(s)} s`;
-	const m = Math.floor(s / 60);
-	const rest = Math.round(s - m * 60);
-	return rest === 0 ? `${m} min` : `${m} min ${rest} s`;
+	return `${Math.round(s / 60)} min`;
 }
 
 /** "Mon 10 Nov, 09:41", the heading of one run in History. */

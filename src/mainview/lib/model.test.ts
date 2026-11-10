@@ -124,7 +124,7 @@ describe("a scripted run", () => {
 		await until(() => m.run.phase === "idle");
 		expect(m.groups.find((g) => g.id === "ready")).toBeUndefined();
 		// LRCGET is the one problem left in the default list.
-		expect(m.sentence).toBe("1 need a look");
+		expect(m.sentence).toBe("1 needs a look");
 	});
 
 	test("Stop after this one returns the rest to ready and ticks them again", async () => {
@@ -135,6 +135,41 @@ describe("a scripted run", () => {
 		await until(() => m.run.phase === "summary");
 		expect(m.run.results.map((r) => r.key)).toEqual(["zen"]);
 		expect([...m.ticked].toSorted()).toEqual(["cursor", "fd", "wrangler"]);
+	});
+});
+
+describe("the inspector", () => {
+	test("follows the run while open and lands on the failure", async () => {
+		const m = await started();
+		m.select("bat");
+		await m.install();
+		await until(() => m.run.phase === "installing" && m.run.currentKey === "zen");
+		expect(m.openKey).toBe("zen");
+		await until(() => m.run.phase === "summary");
+		expect(m.openKey).toBe("wrangler");
+	});
+
+	test("opens on the failure even when it was closed, and a pick during the run pins it", async () => {
+		const m = await started();
+		await m.install();
+		await until(() => m.run.currentKey === "fd");
+		expect(m.openKey).toBeNull();
+		m.select("llama");
+		await until(() => m.run.currentKey === "wrangler");
+		expect(m.openKey).toBe("llama");
+		await until(() => m.run.phase === "summary");
+		expect(m.openKey).toBe("wrangler");
+		expect(m.pinned).toBe(false);
+	});
+
+	test("a clean run does not open it", async () => {
+		const m = await started();
+		m.selectNone();
+		m.toggle("fd");
+		await m.install();
+		await until(() => m.run.phase === "summary");
+		expect(m.openKey).toBeNull();
+		expect(m.groups[0]?.label).toBe("This run");
 	});
 });
 

@@ -1,5 +1,5 @@
 // Every string a person reads, pasted from the plan's copy table (F5).
-import type { AppKind, AppState, RunState, Stage } from "../../shared/types";
+import type { AppKind, AppState, RunResult, RunState, Stage } from "../../shared/types";
 import { formatBytes, plural } from "./format";
 
 export const KIND_LABEL: Record<AppKind, string> = {
@@ -22,8 +22,10 @@ export const STAGE_NAME: Record<Stage, string> = {
 
 export type GroupId = "ready" | "manual" | "problem" | "held" | "checking" | "fresh";
 
-export const GROUP_LABEL: Record<GroupId, string> = {
+export const GROUP_LABEL: Record<GroupId | "installing" | "thisRun", string> = {
 	ready: "Ready to install",
+	installing: "Installing",
+	thisRun: "This run",
 	manual: "By hand",
 	problem: "Needs a look",
 	held: "Held back",
@@ -41,7 +43,7 @@ export const COLUMN = {
 } as const;
 
 export const CHIP = {
-	running: { text: "Running", title: "Open now. The update applies when you restart it." },
+	running: { text: "Open", title: "Open now. The update applies when you restart it." },
 	root: { text: "Root", title: "Installs with sudo." },
 	auto: { text: "Auto", title: "Installed without asking when Upkeep checks in the background." },
 } as const;
@@ -96,10 +98,9 @@ export const retryLabel = (n: number) => `Retry ${n} failed`;
 export const rateText = (remaining: number, limit: number) =>
 	`GitHub requests left this hour: ${remaining} of ${limit}`;
 export const versionText = (v: string) => `Version ${v}`;
-export const historyRowText = (name: string, from: string | null, to: string | null) =>
-	`${name} ${from ?? "?"} to ${to ?? "?"}`;
 
 export function installLabel(n: number): string {
+	if (n === 0) return "Install updates";
 	return n === 1 ? "Install 1 update" : `Install ${n} updates`;
 }
 
@@ -149,6 +150,13 @@ export function workingText(stage: Stage | undefined, pct: number | null | undef
 	}
 }
 
+/** "3 updated, 1 failed": the summary sentence, also the heading count of a run in History. */
+export function resultCounts(results: readonly { result: RunResult["result"] }[]): string {
+	const ok = results.filter((r) => r.result === "updated").length;
+	const failed = results.length - ok;
+	return failed === 0 ? `${ok} updated` : `${ok} updated, ${failed} failed`;
+}
+
 export type SentenceInput = {
 	run: RunState;
 	ready: number;
@@ -159,12 +167,8 @@ export type SentenceInput = {
 export function stateSentence({ run, ready, problems, currentName }: SentenceInput): string {
 	if (run.phase === "checking") return `Checking ${run.index} of ${run.total}`;
 	if (run.phase === "installing") return `Installing ${currentName ?? ""}, ${run.index} of ${run.total}`;
-	if (run.phase === "summary") {
-		const ok = run.results.filter((r) => r.result === "updated").length;
-		const failed = run.results.length - ok;
-		return failed === 0 ? `${ok} updated` : `${ok} updated, ${failed} failed`;
-	}
+	if (run.phase === "summary") return resultCounts(run.results);
 	if (ready > 0) return plural(ready, "1 update ready", `${ready} updates ready`);
-	if (problems > 0) return `${problems} need a look`;
+	if (problems > 0) return plural(problems, "1 needs a look", `${problems} need a look`);
 	return "Everything is fresh";
 }
