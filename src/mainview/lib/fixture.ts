@@ -351,7 +351,8 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const clone = <T>(v: T): T => structuredClone(v);
 
-export type FixtureOptions = { variant?: FixtureVariant; speed?: number };
+/** fail names one request that rejects, as a request that ran past its time limit does. */
+export type FixtureOptions = { variant?: FixtureVariant; speed?: number; fail?: string };
 
 export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const variant = opts.variant ?? "default";
@@ -627,6 +628,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	return {
 		async request(name, params) {
 			await sleep(0);
+			if (opts.fail === name) {
+				await sleep(300 / speed);
+				throw new Error(`${name} timed out`);
+			}
 			return handlers[name](params);
 		},
 		onEvent(listener) {

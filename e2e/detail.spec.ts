@@ -24,12 +24,39 @@ test("Hold updates and Release hold", async ({ page }) => {
 	await expect(page.getByTestId("status-zen")).toHaveText("Ready");
 });
 
-test("Restore shows Restored and keeps focus", async ({ page }) => {
+test("Restore swaps the point, lands in Held back unticked, and the pane stays open", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("open-fd").click();
 	await page.getByTestId("restore-fd-10.5.0").click();
 	await expect(page.getByTestId("restore-result")).toHaveText("Restored 10.5.0.");
 	await expect(page.getByTestId("restore-result")).toBeFocused();
+	await expect(page.getByTestId("detail-fd")).toBeVisible();
+	await expect(page.getByTestId("group-held")).toHaveText("Held back");
+	await expect(page.getByTestId("status-fd")).toHaveText("Skipping 10.5.2");
+	await expect(page.getByTestId("tick-fd")).toHaveCount(0);
+	await expect(page.getByTestId("install")).toHaveText("Install 3 updates");
+	await expect(page.getByTestId("row-fd")).toBeInViewport();
+	// The replaced version is now the restore point, and the same button undoes the restore.
+	await expect(page.getByTestId("restore-fd-10.5.1")).toHaveText("Restore 10.5.1");
+	await page.getByTestId("tab-history").click();
+	await expect(page.getByTestId("history").locator("section").first()).toContainText("Restored");
+});
+
+test("a kind with no restore point says why in the pane", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("open-wrangler").click();
+	await expect(page.getByTestId("no-restore")).toHaveText("It updates itself, so there is no restore point.");
+	await page.getByTestId("open-cursor").click();
+	await expect(page.getByTestId("no-restore")).toHaveText("The updater script keeps no restore point.");
+});
+
+test("release notes are rendered: headings, lists and code, no markdown marks", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("open-fd").click();
+	const notes = page.getByTestId("notes");
+	await expect(notes.locator("li")).toHaveCount(3);
+	await expect(notes.locator(".nh, p").first()).toHaveText("Bugfixes");
+	expect(await notes.textContent()).not.toContain("- ");
 });
 
 test("the By hand row copies its command", async ({ page }) => {
@@ -48,4 +75,15 @@ test("Install automatically adds the Auto chip", async ({ page }) => {
 	await expect(page.getByTestId("row-fd").getByTestId("chip-auto")).toHaveText("Auto");
 	await page.getByTestId("auto-fd").uncheck();
 	await expect(page.getByTestId("row-fd").getByTestId("chip-auto")).toHaveCount(0);
+});
+
+test("a restore that runs out of time leaves the buttons usable and says nothing false", async ({ page }) => {
+	await load(page, "fixture&fail=restore");
+	await page.getByTestId("open-fd").click();
+	const button = page.getByTestId("restore-fd-10.5.0");
+	await button.click();
+	await expect(button).toBeDisabled();
+	await expect(button).toBeEnabled();
+	await expect(page.getByTestId("restore-result")).toHaveText("");
+	await expect(page.getByTestId("status-fd")).toHaveText("Ready");
 });

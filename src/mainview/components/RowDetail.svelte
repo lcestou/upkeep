@@ -45,17 +45,21 @@
 	}
 
 	async function copyCommand(text: string) {
-		const res = await model.request("copy", { text });
-		if (!res.ok) return;
+		const res = await model.send("copy", { text });
+		if (!res?.ok) return;
 		copied = true;
 		setTimeout(() => (copied = false), 2000);
 	}
 
 	async function restore(version: string) {
 		busy = true;
-		const res = await model.request("restore", { key: app.key, version });
-		busy = false;
-		restoreNote = res.ok ? restoredText(version) : (res.detail ?? null);
+		try {
+			const res = await model.send("restore", { key: app.key, version });
+			// A request that ran out of time says nothing false; the row catches up through events.
+			restoreNote = res === null ? null : res.ok ? restoredText(version) : (res.detail ?? null);
+		} finally {
+			busy = false;
+		}
 		// The Restore button for the now-installed version goes away; keep focus on the result it produced.
 		await tick();
 		resultEl?.focus();
@@ -69,7 +73,7 @@
 		{#if part.t === "code"}<code class="mono inl">{part.s}</code>{:else if part.t === "bold"}<strong>{part.s}</strong
 			>{:else if part.t === "url"}
 			{#if part.s === app.releaseUrl}
-				<button type="button" class="url linkish" onclick={() => model.request("open", { what: "release", key: app.key })}
+				<button type="button" class="url linkish" onclick={() => model.send("open", { what: "release", key: app.key })}
 					>{part.s}</button
 				>
 			{:else}<span class="url">{part.s}</span>{/if}
@@ -178,7 +182,7 @@
 					class="btn small"
 					disabled={inRun}
 					data-testid="skip-{app.key}"
-					onclick={() => model.request("setSkip", { key: app.key, version: app.skipped ? null : app.latest })}
+					onclick={() => model.send("setSkip", { key: app.key, version: app.skipped ? null : app.latest })}
 					>{app.skipped ? stopSkipLabel(app.skipped) : skipLabel(app.latest ?? "")}</button
 				>
 			{/if}
@@ -187,7 +191,7 @@
 				class="btn small"
 				disabled={inRun}
 				data-testid="hold-{app.key}"
-				onclick={() => model.request("setHold", { key: app.key, held: !app.held })}
+				onclick={() => model.send("setHold", { key: app.key, held: !app.held })}
 				>{app.held ? TEXT.releaseHold : TEXT.holdUpdates}</button
 			>
 			<label class="auto">
@@ -195,7 +199,7 @@
 					type="checkbox"
 					checked={app.auto}
 					data-testid="auto-{app.key}"
-					onchange={(e) => model.request("setAuto", { key: app.key, auto: e.currentTarget.checked })}
+					onchange={(e) => model.send("setAuto", { key: app.key, auto: e.currentTarget.checked })}
 				/>
 				{TEXT.installAuto}
 			</label>
@@ -204,7 +208,7 @@
 					type="button"
 					class="btn small"
 					data-testid="release-{app.key}"
-					onclick={() => model.request("open", { what: "release", key: app.key })}
+					onclick={() => model.send("open", { what: "release", key: app.key })}
 				>
 					{TEXT.openRelease}
 					<svg class="ext" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"

@@ -5,6 +5,7 @@ import type {
 	EngineEvent,
 	HistoryRow,
 	LogLine,
+	Requests,
 	RunState,
 	Settings,
 	Snapshot,
@@ -247,6 +248,8 @@ export class Model {
 		this.starting = true;
 		try {
 			await this.#ask(bridge.request("install", { keys }));
+		} catch {
+			// A run that did start reports itself through events; one that did not leaves the list as it was.
 		} finally {
 			this.starting = false;
 		}
@@ -257,19 +260,35 @@ export class Model {
 	}
 
 	async check(): Promise<void> {
-		if (this.#bridge) await this.#ask(this.#bridge.request("check", {}));
+		if (await this.send("check", {})) this.refusal = null;
 	}
 
 	async stopAfterCurrent(): Promise<void> {
-		await this.#bridge?.request("stopAfterCurrent", {});
+		await this.send("stopAfterCurrent", {});
 	}
 
 	async dismiss(): Promise<void> {
-		await this.#bridge?.request("dismissSummary", {});
+		await this.send("dismissSummary", {});
 	}
 
 	async loadHistory(): Promise<void> {
-		if (this.#bridge) this.history = await this.#bridge.request("history", { limit: 200 });
+		const rows = await this.send("history", { limit: 200 });
+		if (rows) this.history = rows;
+	}
+
+	/**
+	 * A request whose failure the view does not report: a rejection (a timeout, a lost window) resolves to null,
+	 * and the row catches up through the engine's events.
+	 */
+	async send<K extends keyof Requests>(
+		name: K,
+		params: Requests[K]["params"],
+	): Promise<Requests[K]["response"] | null> {
+		try {
+			return await this.request(name, params);
+		} catch {
+			return null;
+		}
 	}
 
 	request: Bridge["request"] = (name, params) => {

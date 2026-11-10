@@ -29,7 +29,7 @@
 >
 	<header>
 		<h2>{TEXT.logTitle}</h2>
-		<button type="button" class="btn small" data-testid="open-log" onclick={() => model.request("open", { what: "log" })}
+		<button type="button" class="btn small" data-testid="open-log" onclick={() => model.send("open", { what: "log" })}
 			>{TEXT.openLog}</button
 		>
 	</header>

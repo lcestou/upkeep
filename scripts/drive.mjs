@@ -18,6 +18,7 @@ const SIZES = [
 const BIG = [1400, 900];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const fig = (v, w) => (v === 999 ? "-" : v.toFixed(v >= 100 ? 0 : 2)).padStart(w);
 
 function portOpen() {
 	return new Promise((resolve) => {
@@ -92,7 +93,7 @@ const midRun = (page) =>
  */
 function measure() {
 	const misses = [];
-	const worst = { a: 0, b: 0, c: 0, d: 0, e: 99 };
+	const worst = { a: 0, b: 0, c: 0, d: 0, e: 99, f: 0, g: 999, h: 0, i: 0 };
 	const list = document.querySelector('[data-testid="app-list"]');
 	if (!list) return { misses: ["no list"], worst, rows: 0 };
 	const view = list.getBoundingClientRect();
@@ -149,6 +150,46 @@ function measure() {
 		}
 	}
 
+	// f: one version axis: every installed version ends, and every latest version starts, on the same x.
+	for (const [sel, side] of [
+		[".ver .installed", "right"],
+		[".ver .latest", "left"],
+	]) {
+		// Every row of every group, on screen or not: the axis must hold down the whole list.
+		const xs = [...list.querySelectorAll(".row")].flatMap((row) => {
+			const el = row.querySelector(sel);
+			return el && el.textContent.trim() ? [el.getBoundingClientRect()[side]] : [];
+		});
+		if (xs.length < 2) continue;
+		const spread = Math.max(...xs) - Math.min(...xs);
+		worst.f = Math.max(worst.f, spread);
+		if (spread > 1) misses.push(`f ${sel}: ${side} edges spread ${spread.toFixed(2)} px across ${xs.length} rows`);
+	}
+
+	// g: no stem stage is drawn narrower than 28 px. h: the gap from the name column to the version column.
+	for (const row of rows) {
+		for (const span of row.querySelectorAll(".stem .span")) {
+			const w = span.getBoundingClientRect().width;
+			worst.g = Math.min(worst.g, w);
+			if (w < 27.5) misses.push(`g ${row.dataset.testid}: a stem stage is ${w.toFixed(1)} px wide`);
+		}
+		const name = row.querySelector(".name");
+		const ver = row.querySelector(".ver");
+		if (name && ver && ver.getBoundingClientRect().width > 0) {
+			const gap = ver.getBoundingClientRect().left - name.getBoundingClientRect().right;
+			worst.h = Math.max(worst.h, gap);
+			if (gap > 260) misses.push(`h ${row.dataset.testid}: ${gap.toFixed(0)} px between the name and version columns`);
+		}
+	}
+
+	// i: the inspector never scrolls sideways.
+	const paneScroll = document.querySelector('[data-testid="inspector"] .scroll');
+	if (paneScroll) {
+		const over = paneScroll.scrollWidth - paneScroll.clientWidth;
+		worst.i = Math.max(worst.i, over);
+		if (over > 0) misses.push(`i inspector: scrolls ${over} px sideways`);
+	}
+
 	// b: the stem and the status text start at the status cell's left edge.
 	for (const row of rows) {
 		const cell = row.querySelector(".status");
@@ -166,7 +207,9 @@ function measure() {
 		// The name block is the tag name plus its sentence; a repo wrapped out of sight is not part of it.
 		const name = row.querySelector(".tag-name");
 		const said = row.querySelector(".sentence");
-		const blocks = [name && { sel: "name", top: textBox(name).top, bottom: textBox(said ?? name).bottom }];
+		// A clamped reason shows only its first lines: measure the box it draws, not the full text.
+		const saidBottom = said ? Math.min(textBox(said).bottom, said.getBoundingClientRect().bottom) : null;
+		const blocks = [name && { sel: "name", top: textBox(name).top, bottom: saidBottom ?? textBox(name).bottom }];
 		for (const sel of [".ver .installed", ".ver .versionless", ".status .status-text", ".status .command", ".kind"]) {
 			const el = row.querySelector(sel);
 			if (!el || el.getBoundingClientRect().width === 0 || !el.textContent.trim()) continue;
@@ -206,7 +249,8 @@ function measure() {
 				if (t.width === 0) continue;
 				const clip = clipOf(el);
 				if (clip && (t.top >= clip.bottom - 0.5 || t.left >= clip.right - 0.5)) continue;
-				if (getComputedStyle(el).textOverflow === "ellipsis") continue;
+				const style = getComputedStyle(el);
+				if (style.textOverflow === "ellipsis" || style.webkitLineClamp !== "none") continue;
 				const over = Math.max(c.left - t.left, t.right - c.right, c.top - t.top, t.bottom - c.bottom);
 				worst.d = Math.max(worst.d, over);
 				if (over > 0.5)
@@ -324,10 +368,19 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 	await shoot(page, `ready-${width}`);
 	await measured("ready");
 
+	// Every group open, so the version axis is measured across all of them.
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-wrangler").hover();
+	await sleep(400);
+	await measured("ready+fresh+hover");
+	await page.getByTestId("group-fresh-toggle").click();
+
 	await page.getByTestId("open-fd").focus();
 	await page.keyboard.press("Enter");
 	await page.getByTestId("detail-fd").waitFor();
 	if (full) await shoot(page, `pane-${width}`);
+	await sleep(200);
+	await measured("pane");
 	await page.keyboard.press("Escape");
 
 	await page.getByTestId("install").click();
@@ -344,9 +397,11 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 	await page.getByTestId("install").click();
 	await midRun(page);
 	await shoot(page, `run-pane-${width}`);
+	await measured("run+pane");
 	await sentenceIs(page, "3 updated, 1 failed");
 	await page.getByTestId("detail-wrangler").waitFor();
 	await shoot(page, `summary-failed-${width}`);
+	await measured("summary+pane");
 
 	await go("fixture&speed=3");
 	await page.getByTestId("tick-wrangler").click();
@@ -402,10 +457,11 @@ async function main() {
 		} finally {
 			await browser.close();
 		}
-		console.log("state            rows  a col spread  b status off  c centring  d overflow  e contrast/need");
+		console.log("state               rows  a cols  b stat  c centre  d over  e contr  f axis  g stem  h gap  i pane-x");
 		for (const t of table) {
+			const w = t.worst;
 			console.log(
-				`${t.state.padEnd(16)} ${String(t.rows).padStart(4)}  ${t.worst.a.toFixed(2).padStart(12)}  ${t.worst.b.toFixed(2).padStart(12)}  ${t.worst.c.toFixed(2).padStart(10)}  ${t.worst.d.toFixed(2).padStart(10)}  ${t.worst.e.toFixed(2).padStart(15)}`,
+				`${t.state.padEnd(19)} ${String(t.rows).padStart(4)}  ${fig(w.a, 6)}  ${fig(w.b, 6)}  ${fig(w.c, 8)}  ${fig(w.d, 6)}  ${fig(w.e, 7)}  ${fig(w.f, 6)}  ${fig(w.g, 6)}  ${fig(w.h, 5)}  ${fig(w.i, 7)}`,
 			);
 		}
 		const misses = table.flatMap((t) => t.misses.map((m) => `${t.state}: ${m}`));

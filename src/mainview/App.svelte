@@ -56,7 +56,7 @@
 	$effect(() => {
 		if (focused || !model?.loaded) return;
 		focused = true;
-		void tick().then(() => document.querySelector<HTMLElement>("[data-row]")?.focus({ preventScroll: true }));
+		void tick().then(() => document.querySelector<HTMLElement>("[data-row]")?.focus({ preventScroll: true, focusVisible: false } as FocusOptions));
 	});
 
 	$effect(() => {
