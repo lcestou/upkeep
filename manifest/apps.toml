@@ -1,0 +1,246 @@
+# Upkeep app list. One table per app. Copied to ~/.config/upkeep/apps.toml on first run.
+
+[apps.zen]
+name = "Zen Browser"
+kind = "appimage"
+repo = "zen-browser/desktop"
+asset = 'x86_64\.AppImage$'
+dest = "~/.local/bin/zen-browser.AppImage"
+process = "zen"
+
+[apps.ghostty]
+name = "Ghostty Terminal"
+kind = "appimage"
+repo = "pkgforge-dev/ghostty-appimage"
+asset = 'x86_64\.AppImage$'
+dest = "~/.local/bin/ghostty.appimage"
+
+[apps.lrcget]
+name = "LRCGET"
+kind = "appimage"
+repo = "tranxuanthang/lrcget"
+asset = 'amd64\.AppImage$'
+dest = "~/.local/bin/lrcget"
+meta_path = "usr/share/metainfo/LRCGET.metainfo.xml"
+
+[apps.starship]
+name = "Starship"
+kind = "archive"
+repo = "starship/starship"
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "/usr/local/bin/starship"
+bins = ["starship"]
+sudo = true
+
+[apps.yazi]
+name = "Yazi"
+kind = "archive"
+repo = "sxyazi/yazi"
+asset = 'x86_64-unknown-linux-gnu\.zip$'
+dest = "~/.local/bin/yazi"
+bins = ["yazi-x86_64-unknown-linux-gnu/yazi", "yazi-x86_64-unknown-linux-gnu/ya"]
+
+[apps.zoxide]
+name = "Zoxide"
+kind = "archive"
+repo = "ajeetdsouza/zoxide"
+asset = 'x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/zoxide"
+bins = ["zoxide"]
+
+[apps.bat]
+name = "bat"
+kind = "archive"
+repo = "sharkdp/bat"
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/bat"
+bins = ["bat"]
+
+[apps.fd]
+name = "fd"
+kind = "archive"
+repo = "sharkdp/fd"
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/fd"
+bins = ["fd"]
+
+[apps.fzf]
+name = "fzf"
+kind = "archive"
+repo = "junegunn/fzf"
+asset = 'linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/fzf"
+bins = ["fzf"]
+
+[apps.rtk]
+name = "rtk"
+kind = "archive"
+repo = "rtk-ai/rtk"
+asset = 'x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/rtk"
+bins = ["rtk"]
+
+[apps.uv]
+name = "uv"
+kind = "archive"
+repo = "astral-sh/uv"
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/uv"
+bins = ["uv-x86_64-unknown-linux-gnu/uv", "uv-x86_64-unknown-linux-gnu/uvx"]
+
+[apps.bun]
+name = "Bun"
+kind = "archive"
+repo = "oven-sh/bun"
+asset = 'bun-linux-x64\.zip$'
+dest = "~/.bun/bin/bun"
+bins = ["bun-linux-x64/bun"]
+
+[apps.borg]
+name = "BorgBackup"
+kind = "file"
+repo = "borgbackup/borg"
+asset = 'borg-linux-glibc235-x86_64-gh$'
+dest = "~/.local/bin/borg"
+
+[apps.rustdesk]
+name = "RustDesk"
+kind = "deb"
+repo = "rustdesk/rustdesk"
+asset = 'x86_64\.deb$'
+dest = "/usr/bin/rustdesk"
+sudo = true
+
+[apps.lutris]
+name = "Lutris"
+kind = "deb"
+repo = "lutris/lutris"
+asset = 'lutris_.*_all\.deb$'
+dest = "/usr/games/lutris"
+sudo = true
+
+[apps.tmux]
+name = "tmux"
+kind = "source"
+repo = "tmux/tmux"
+dest = "/usr/local/bin/tmux"
+version_args = ["-V"]
+build = ["sh autogen.sh", "./configure", "make -j$(nproc)", "sudo make install"]
+sudo = true
+
+[apps.cava]
+name = "CAVA"
+kind = "source"
+repo = "karlstav/cava"
+dest = "/usr/local/bin/cava"
+version_args = ["-v"]
+build = ["./autogen.sh", "./configure", "make -j$(nproc)", "sudo make install"]
+sudo = true
+
+[apps.claude]
+name = "Claude Code"
+kind = "command"
+check = ["claude", "--version"]
+latest = "npm:@anthropic-ai/claude-code"
+update = ["claude", "update"]
+auto = true
+note = "Open sessions keep the old version until restarted."
+
+[apps.omp]
+name = "omp"
+kind = "command"
+check = ["omp", "--version"]
+latest = "npm:@oh-my-pi/pi-coding-agent"
+update = ["omp", "update"]
+auto = true
+note = "Open sessions keep the old version until restarted."
+
+[apps.opencode]
+name = "opencode"
+kind = "command"
+check = ["opencode", "--version"]
+latest = "npm:opencode-ai"
+update = ["opencode", "upgrade"]
+auto = true
+note = "Open sessions keep the old version until restarted."
+
+[apps.wrangler]
+name = "wrangler"
+kind = "command"
+check = ["wrangler", "--version"]
+latest = "npm:wrangler"
+update = ["~/.bun/bin/bun", "add", "-g", "wrangler@latest"]
+auto = true
+
+[apps.cursor]
+name = "Cursor"
+kind = "legacy"
+legacy_key = "cursor"
+legacy_name = "Cursor"
+process = "cursor"
+note = "The old script closes Cursor to update it."
+
+[apps.dsh]
+name = "dsh"
+kind = "manual"
+legacy_name = "dsh"
+run = "lutechi-updater dsh"
+note = "Never installed unattended. The old script asks, stops dsh-web, smoke-tests and rolls back."
+
+[apps.pr-agent]
+name = "pr-agent"
+kind = "legacy"
+legacy_key = "pr-agent"
+legacy_name = "pr-agent"
+auto = true
+
+[apps.headroom]
+name = "headroom"
+kind = "legacy"
+legacy_key = "headroom"
+legacy_name = "headroom"
+auto = true
+
+[apps.claude-code-telegram]
+name = "claude-code-telegram"
+kind = "manual"
+legacy_name = "claude-code-telegram"
+run = "lutechi-updater claude-code-telegram"
+
+[apps.claude-plugins]
+name = "Claude Code plugins"
+kind = "legacy"
+legacy_key = "claude-plugins"
+versionless = true
+auto = true
+
+[apps.omp-plugins]
+name = "omp plugins"
+kind = "legacy"
+legacy_key = "omp-plugins"
+versionless = true
+auto = true
+
+[apps.whisper]
+name = "whisper.cpp"
+kind = "manual"
+legacy_name = "whisper.cpp"
+run = "lutechi-updater whisper"
+
+[apps.llama]
+name = "llama.cpp"
+kind = "manual"
+legacy_name = "llama.cpp"
+run = "/llama in a Claude session"
+
+[apps.strata]
+name = "Strata"
+kind = "manual"
+legacy_name = "strata"
+run = "strata-update"
+
+[apps.comfyui]
+name = "ComfyUI"
+kind = "manual"
+legacy_name = "comfyui"
+run = "comfyui-update"

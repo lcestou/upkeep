@@ -1,0 +1,35 @@
+{
+	"name": "upkeep",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"description": "One window for the apps the package manager misses.",
+	"scripts": {
+		"prepare:eb": "electrobun prepare",
+		"dev": "electrobun prepare && vite build && electrobun dev",
+		"dev:view": "vite --port 5182 --strictPort",
+		"build:view": "vite build",
+		"build": "electrobun prepare && vite build && electrobun build --env=stable",
+		"cli": "bun src/cli.ts",
+		"fmt": "oxfmt src scripts",
+		"fmt:check": "oxfmt --check src scripts",
+		"lint": "oxlint src scripts --deny-warnings",
+		"check": "svelte-check --tsconfig ./tsconfig.json --threshold warning && tsc --noEmit -p tsconfig.json",
+		"test": "bun test src",
+		"validate": "bun run prepare:eb && bun run fmt:check && bun run lint && bun run check && bun run test && bun run build:view"
+	},
+	"devDependencies": {
+		"@fontsource-variable/archivo": "^5.3.0",
+		"@fontsource-variable/martian-mono": "^5.3.0",
+		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"@types/bun": "latest",
+		"electrobun": "2.0.6",
+		"oxfmt": "^0.78.0",
+		"oxlint": "^1.93.0",
+		"playwright": "1.62.1",
+		"svelte": "^5.57.2",
+		"svelte-check": "^4.7.8",
+		"typescript": "~5.9.3",
+		"vite": "^7.3.7"
+	}
+}
