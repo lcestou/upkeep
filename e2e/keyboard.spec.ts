@@ -35,7 +35,8 @@ test("keyboard only, from first focus to the summary and back", async ({ page })
 	await page.keyboard.press("Tab");
 	await expect(page.getByTestId("done")).toBeFocused();
 	await page.keyboard.press("Enter");
-	await expect(sentence(page)).toHaveText("1 needs a look");
+	// Round three: the failed app is ready again after Done.
+	await expect(sentence(page)).toHaveText("1 update ready");
 	await expectFocusKept(page);
 });
 
