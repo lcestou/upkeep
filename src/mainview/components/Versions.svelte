@@ -3,7 +3,19 @@
 	import { TEXT } from "../lib/copy";
 	import { isQuiet, isStruck } from "../lib/state";
 
-	let { app, from = null }: { app: AppState; from?: string | null } = $props();
+	let {
+		app,
+		from = null,
+		unknown = "?",
+		note = null,
+	}: {
+		app: Pick<AppState, "status" | "installed" | "latest" | "versionless" | "skipped">;
+		from?: string | null;
+		/** What stands in the installed slot when it is not known. */
+		unknown?: string;
+		/** A quiet word after a single version, such as "new build". */
+		note?: string | null;
+	} = $props();
 
 	const done = $derived(app.status === "done");
 	const before = $derived(done ? (from ?? app.installed) : app.installed);
@@ -20,13 +32,14 @@
 {:else}
 	<span class="versions mono" class:pending>
 		<span class="installed" class:unknown={before === null && pending} title={before ?? undefined}
-			>{before ?? (pending ? "?" : "")}</span
+			>{before ?? (pending ? unknown : "")}</span
 		>
 		{#if pending}
 			{#if arrow}<svg class="arrow" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M1.5 6h8.25M7 3.25 9.75 6 7 8.75" /></svg>
 				<span class="sr-only">to</span>{/if}
 			<span class="latest" class:done class:struck={isStruck(app)} class:lost={app.status === "failed" || app.status === "rolled_back"} title={after ?? undefined}>{after}</span>
 		{/if}
+		{#if note && !pending}<span class="note" data-testid="ver-note">{note}</span>{/if}
 	</span>
 {/if}
 
@@ -85,6 +98,15 @@
 	.latest.lost {
 		color: var(--fail);
 		text-decoration-color: var(--fail);
+	}
+	.note {
+		grid-column: 3;
+		justify-self: start;
+		padding-left: 6px;
+		font-family: var(--sans);
+		font-size: var(--fs-12);
+		color: var(--text-3);
+		white-space: nowrap;
 	}
 	.versionless {
 		grid-column: 1 / -1;
