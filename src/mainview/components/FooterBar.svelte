@@ -15,6 +15,7 @@
 </script>
 
 <footer class="bar">
+	<div class="inner">
 	<div class="start">
 		{#key running}
 			<div class="slot" in:fade={{ duration: ms(240) }} out:fade={{ duration: ms(120) }}>
@@ -28,23 +29,31 @@
 	</div>
 	<div class="end">
 		<LogToggle open={logOpen} ontoggle={ontogglelog} />
-		{#if !model.allFresh || running}
+		<!-- The primary button belongs to the Updates view; History and Settings show Show log alone. -->
+		{#if (!model.allFresh || running) && model.view === "updates"}
 			<RunControls {model} />
 		{/if}
+	</div>
 	</div>
 </footer>
 
 <style>
 	.bar {
 		position: relative;
-		display: flex;
-		align-items: center;
-		gap: var(--s6);
 		height: 64px;
-		padding: 0 var(--s4) 0 var(--s5);
 		background: var(--shell);
 		border-top: 1px solid oklch(0.12 0.03 160);
 		z-index: 3;
+	}
+	/* Over 1280 px the content lines up with the capped ledger; the bar's colour spans the window. */
+	.inner {
+		display: flex;
+		align-items: center;
+		gap: var(--s6);
+		max-width: 1280px;
+		height: 100%;
+		margin: 0 auto;
+		padding: 0 var(--s4) 0 var(--s5);
 	}
 	.start {
 		display: grid;

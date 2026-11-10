@@ -73,6 +73,11 @@
 
 	function onkeydown(e: KeyboardEvent) {
 		const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement;
+		if (e.key === "w" && e.ctrlKey && model?.chrome?.own) {
+			e.preventDefault();
+			void model.send("window", { op: "close" });
+			return;
+		}
 		if ((e.key === "/" && !typing) || (e.key === "f" && (e.ctrlKey || e.metaKey))) {
 			const field = document.querySelector<HTMLElement>('[data-testid="filter"]');
 			if (field) {
@@ -107,7 +112,7 @@
 
 {#if model?.loaded}
 	{@const m = model}
-	<div class="shell">
+	<div class="shell" class:edged={m.chrome?.own === true && !m.chrome.maximized}>
 		<HeaderBar model={m} />
 		<main id="view" role={m.view === "updates" ? undefined : "tabpanel"} aria-labelledby="tab-{m.view}">
 			{#if m.view === "history"}
@@ -156,6 +161,15 @@
 {/if}
 
 <style>
+	/* With Upkeep's own frame the desktop draws no border: the page draws a 1 px inside edge, except maximised. */
+	.shell.edged::after {
+		content: "";
+		position: fixed;
+		inset: 0;
+		border: 1px solid var(--line);
+		pointer-events: none;
+		z-index: 7;
+	}
 	.shell {
 		display: grid;
 		grid-template-rows: 56px minmax(0, 1fr) 64px;

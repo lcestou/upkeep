@@ -53,7 +53,8 @@
 			{:else}
 				<button
 					type="button"
-					class="btn primary"
+					class="btn"
+					class:primary={!model.adding}
 					data-testid="install"
 					disabled={n === 0 || phase === "checking" || model.starting}
 					title={why ?? undefined}

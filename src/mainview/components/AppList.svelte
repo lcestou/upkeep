@@ -1,14 +1,13 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
 	import { ADD, COLUMN, TEXT, allFreshLine, noMatch } from "../lib/copy";
-	import { relativeTime } from "../lib/format";
 	import type { Group, Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
 	import { shade } from "../lib/shade";
 	import type { Attachment } from "svelte/attachments";
 	import { flip } from "svelte/animate";
 	import AppRow from "./AppRow.svelte";
-	import Glyph from "./Glyph.svelte";
+	import Mark from "./Mark.svelte";
 
 	let { model }: { model: Model } = $props();
 
@@ -158,14 +157,11 @@
 	<div class="list" bind:this={root} {onkeydown} {onfocusin} data-testid="app-list" {@attach shade} {@attach cutoff}>
 		<div class="ledger">
 			{#if model.allFresh}
+				<!-- The header already says Everything is fresh, when it was checked, and Check again. -->
 				<section class="morning" data-testid="all-fresh">
-					<Glyph name="leaf" color="var(--leaf)" />
-					<h2>{model.sentence}</h2>
-					<p data-testid="all-fresh-line">
-						{allFreshLine(freshCount, model.checkedAt ? relativeTime(model.checkedAt) : "")}
-					</p>
+					<span class="morning-mark"><Mark size={32} /></span>
+					<p data-testid="all-fresh-line">{allFreshLine(freshCount)}</p>
 					<div class="morning-actions">
-						<button type="button" class="btn" data-testid="all-fresh-check" onclick={() => model.check()}>{TEXT.check}</button>
 						<button type="button" class="btn" data-testid="add-app" onclick={() => model.openAdd()}>
 							<svg class="plus" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg>
 							{ADD.button}
@@ -452,10 +448,8 @@
 		gap: var(--s2);
 		padding: var(--s6) 20px var(--s4);
 	}
-	.morning h2 {
-		margin: var(--s1) 0 0;
-		font-size: var(--fs-19);
-		font-weight: 640;
+	.morning-mark {
+		color: var(--leaf);
 	}
 	.morning p {
 		margin: 0 0 var(--s2);
