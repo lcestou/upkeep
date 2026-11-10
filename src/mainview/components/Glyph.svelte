@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LEAF_PATH, SPROUT_PATH } from "../lib/brand";
+	import { LEAF_PATH, MARK_PATH, MARK_TRANSFORM, MARK_VIEWBOX, SPROUT_PATH } from "../lib/brand";
 	import type { GlyphName } from "../lib/state";
 
 	let { name, color = "currentColor" }: { name: GlyphName; color?: string } = $props();
@@ -11,8 +11,11 @@
 	{:else if name === "wait"}
 		<path d="M4.5 1.75h7M4.5 14.25h7M5.5 1.75c0 3.4 5 3.2 5 6.25s-5 2.85-5 6.25M10.5 1.75c0 3.4-5 3.2-5 6.25s5 2.85 5 6.25" />
 	{:else if name === "bud"}
-		<!-- Hand-placed pixels: crisp edges, drawn at 16 px only. -->
-		<path d={SPROUT_PATH} class="solid" shape-rendering="crispEdges" />
+		<!-- At 1.5 dppx and above the vector mark, matched to the hand glyph; below it the 16 px pixel cut, crisp. -->
+		<svg class="hi" x="-1.6" y="-0.9" width="19.2" height="19.2" viewBox={MARK_VIEWBOX}
+			><g transform={MARK_TRANSFORM}><path d={MARK_PATH} class="solid" fill-rule="evenodd" /></g></svg
+		>
+		<path class="lo solid" d={SPROUT_PATH} shape-rendering="crispEdges" />
 	{:else if name === "drop"}
 		<path d="M8 1.9c2.9 3.35 4.45 5.8 4.45 7.7a4.45 4.45 0 0 1-8.9 0c0-1.9 1.55-4.35 4.45-7.7Z" class="fill" />
 	{:else if name === "leaf"}
@@ -43,6 +46,21 @@
 	.fill {
 		fill: currentColor;
 		fill-opacity: 0.22;
+	}
+	/* Switched in CSS by the screen's density, so there is no script and no flash. */
+	.lo {
+		display: none;
+	}
+	@media (max-resolution: 1.49dppx) {
+		.hi {
+			display: none;
+		}
+		.lo {
+			display: inline;
+		}
+	}
+	.glyph :global(svg) {
+		overflow: visible;
 	}
 	.solid {
 		fill: currentColor;
