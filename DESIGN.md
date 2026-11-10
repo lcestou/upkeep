@@ -334,7 +334,7 @@ The footer run bar repeats the run in miniature: one stop per queued app, each w
 ### Identity in the interface
 Sources: `lib/brand.ts`, `components/Mark.svelte`, `components/Glyph.svelte`, `assets/brand/`.
 - The mark (`mark-mono.svg`, a sprouting stem in one path) draws in `text` at 20 px in the header beside the state sentence and at 32 px in leaf on the all-fresh screen.
-- The pixel sprout (`ui-sprout.svg`, 16 px grid) is the ready glyph. It is drawn crisp at 16 px only; `e2e/frame.spec.ts` checks its width is 16. The 20 px pixel sprout (`ui-sprout-20.svg`) is an asset and is not used in the view.
+- The ready glyph is the mark itself, drawn as a vector and matched in height and weight to the hand glyph of By hand. Below 1.5 dppx it switches, by a `resolution` media query in `Glyph.svelte`, to the pixel sprout (`ui-sprout.svg`, fitted by hand on a 16 px grid), because a vector that small turns to mush on a 1x screen.
 - The leaf (`ui-leaf.svg`, the mark's own leaf, upright) is the fresh and done glyph.
 - About in Settings shows the horizontal dark lockup at 40 px tall: the mark on its sun tile (`#f4d340`, mark `#0a1711`) beside the UPKEEP wordmark in `#f0f1e8`.
 - App icons: a sun tile with the dark drawing. 16, 22, 24 and 32 px use the hand-placed pixel sprout; 48 and 64 px a refitted mark on the 256 grid; 256 and 512 px the mark on a 224 px tile with a 48 px radius and a 1 px `#debb32` edge.
@@ -375,11 +375,10 @@ Every string is in `src/mainview/lib/copy.ts`, and each has a `data-testid` the 
 - `e2e/small.spec.ts`: at 760 by 520 no horizontal scroll and no clipped button label in any state. `e2e/a11y.spec.ts`: every control has a name, every SVG is hidden or labelled, no duplicate ids, tab order follows reading order.
 - Live regions: the state sentence and selection count are polite; the run announces once per stage, not per percent.
 
-Code differences from the contract and from itself:
+Code differences from the contract:
 - Contract: rows are 44 px. Code: 44 px pending, 56 px with a reason, 36 px fresh.
 - Contract: rust for failed. Code: failed has its own red, `fail`, and rust is Needs a look.
 - Contract: a light theme is tokenised. Code: dark only, no light tokens.
-- Inside the code: History strikes and colours failed results in `rust`, where the list uses `fail`. A comment in `app.css` says the checking dot never drops below 0.6 in its pulse; the keyframes and the spec say 0.8.
 
 ## Do's and Don'ts
 
