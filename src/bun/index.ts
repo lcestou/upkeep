@@ -165,6 +165,8 @@ Electrobun.events.on("before-quit", () => {
 });
 
 const engine = createEngine(deps);
+// An update cut off by a crash or a power cut is finished or undone before the first check.
+void engine.recover();
 // The system updates list: same paths and runner, its own state, never awaited by the engine's check.
 const extras = createExtras({ paths: deps.paths, run: deps.run, now: deps.now });
 // The launcher and icon of this very install, so a login entry always points at the copy that wrote it.

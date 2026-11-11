@@ -595,3 +595,125 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		restartToApply: false,
 	});
 }
+
+export type RecoverCtx = KindCtx & {
+	/** Ends a process tree. The engine passes killTree; tests pass a recorder, never a real signal. */
+	kill: (pid: number, procRoot: string) => void;
+	/** The pause after a kill before files are touched. Default 2 s. */
+	waitMs?: number;
+};
+
+/** The units of a spec named in a marker list, in table order. */
+const named = <T extends Service>(list: T[] | undefined, names: string[]) =>
+	(list ?? []).filter((s) => names.includes(s.name));
+
+/**
+ * Finishes or undoes one interrupted built update from its marker, by the step it names: a kill of the recorded
+ * step first (only when the pid still has the same start time, so a reused pid is never signalled), then the
+ * put-back that step needs, then every unit that was active or paused is started. Returns false when anything
+ * failed; the marker is kept then, so the next recovery tries again. Every step is safe to run twice.
+ */
+export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): Promise<boolean> {
+	const tree = m.tree;
+	if (!tree) return true;
+	const procRoot = ctx.procRoot ?? "/proc";
+	if (tree.build && Number(startTime(tree.build.pid, procRoot) ?? Number.NaN) === tree.build.started) {
+		ctx.kill(tree.build.pid, procRoot);
+		await Bun.sleep(ctx.waitMs ?? 2000);
+	}
+	const point = m.backupVersion ? pointOf(ctx.paths, spec.key, m.backupVersion) : null;
+	const treeCtx: TreeCtx = { paths: ctx.paths, run: ctx.run, log: ctx.log };
+	let ok = true;
+	const active = named(spec.serve, tree.active);
+	if (tree.step === "pause") {
+		// Nothing was changed yet; a point being written when it stopped is half a point.
+		if (point) rmSync(`${point}.upkeep-tmp`, { recursive: true, force: true });
+	} else {
+		for (const s of active)
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			if (await isActive(ctx.run, s)) await stopService(ctx.run, s);
+		try {
+			if (!point) throw new Error("the marker names no restore point");
+			if (tree.step === "build") await revertFiles(point, treeCtx);
+			else await restoreTree(point, treeCtx);
+		} catch (err) {
+			ctx.log(`Putting the files back failed: ${err instanceof Error ? err.message : String(err)}`);
+			ok = false;
+		}
+		for (const s of active) {
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			const up = (await startService(ctx.run, s)) && (await healthy(s, ctx));
+			if (!up) {
+				ctx.log(`${s.name} did not answer after the recovery.`);
+				ok = false;
+			}
+		}
+	}
+	for (const p of named(spec.pause, tree.paused).toReversed())
+		// oxlint-disable-next-line no-await-in-loop -- in reverse order of the stops
+		if (p.start && !(await startService(ctx.run, { ...p, start: p.start }))) {
+			ctx.log(`Could not start ${p.name} again.`);
+			ok = false;
+		}
+	if (ok) clearInflight(ctx.paths);
+	return ok;
+}
+
+/**
+ * Puts a built app's restore point back by hand: busy, pause, stop what runs, restoreTree, start, prove it,
+ * start the paused units. It takes no point of the version it replaces, so this restore cannot itself be undone;
+ * the next update takes a fresh point.
+ */
+export async function restoreBuilt(
+	spec: AppSpec,
+	version: string,
+	ctx: KindCtx,
+): Promise<{ ok: boolean; detail?: string }> {
+	const point = pointOf(ctx.paths, spec.key, version);
+	if (!readMeta(point)?.tree) return { ok: false, detail: `No restore point ${version}.` };
+	const busy = await busyNow(spec, ctx, false);
+	if (busy) return { ok: false, detail: `${busy} Nothing was changed.` };
+	const paused: Service[] = [];
+	const startPaused = async () => {
+		for (const p of paused.toReversed())
+			// oxlint-disable-next-line no-await-in-loop -- in reverse order of the stops
+			if (p.start && !(await startService(ctx.run, { ...p, start: p.start })))
+				ctx.log(`Could not start ${p.name} again.`);
+	};
+	for (const p of spec.pause ?? []) {
+		// oxlint-disable-next-line no-await-in-loop -- in table order
+		if (!(await isActive(ctx.run, p))) continue;
+		// oxlint-disable-next-line no-await-in-loop -- in table order
+		if (!(await stopService(ctx.run, p))) {
+			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
+			await startPaused();
+			return { ok: false, detail: `Could not stop ${p.name}. Nothing was changed.` };
+		}
+		paused.push(p);
+	}
+	const running: Serve[] = [];
+	for (const s of spec.serve ?? [])
+		// oxlint-disable-next-line no-await-in-loop -- in table order
+		if (await isActive(ctx.run, s)) running.push(s);
+	for (const s of running)
+		// oxlint-disable-next-line no-await-in-loop -- in table order
+		if (!(await stopService(ctx.run, s))) {
+			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
+			for (const r of running) await startService(ctx.run, r);
+			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
+			await startPaused();
+			return { ok: false, detail: `Could not stop ${s.name}. Nothing was changed.` };
+		}
+	let detail: string | undefined;
+	try {
+		await restoreTree(point, { paths: ctx.paths, run: ctx.run, log: ctx.log });
+	} catch (err) {
+		detail = `Could not restore ${version}: ${err instanceof Error ? err.message : String(err)}`;
+	}
+	for (const s of running)
+		// oxlint-disable-next-line no-await-in-loop -- in table order
+		if (!((await startService(ctx.run, s)) && (await healthy(s, ctx))))
+			detail ??= `${s.name} did not answer after the restore. See the log.`;
+	await startPaused();
+	return detail ? { ok: false, detail } : { ok: true };
+}

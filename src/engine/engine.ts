@@ -13,7 +13,7 @@ import type {
 	Stage,
 	Suggestion,
 } from "../shared/types";
-import { listBackups, prune, restoreBackup, takeBackup } from "./backup";
+import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup } from "./backup";
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { type FetchLike, githubToken, type Rate } from "./github";
 import { checkCommand, installCommand } from "./kinds/command";
@@ -29,10 +29,11 @@ import {
 	sweepShims,
 } from "./kinds/legacy";
 import { canRestore, checkRelease, destOf, installedFiles, installRelease, probeInstalled } from "./kinds/release";
-import { checkSource, installSource } from "./kinds/source";
+import { recoverTree, restoreBuilt } from "./kinds/built";
+import { checkSource, installSource, readInstalled } from "./kinds/source";
 import { cutTable, ensureManifest, lift, loadManifest, replaceManifest, tomlTable } from "./manifest";
 import { expandHome, type Paths } from "./paths";
-import type { Run, RunOpts } from "./run";
+import { killTree, type Run, type RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
 	appendHistory,
@@ -55,6 +56,10 @@ import {
 import { isNewer } from "./version";
 
 export type EngineDeps = {
+	/** Ends a process tree during recovery. Default killTree; tests pass a recorder so no real pid is signalled. */
+	kill?: (pid: number, procRoot: string) => void;
+	/** The pause after that kill. Default 2 s. */
+	recoverWaitMs?: number;
 	paths: Paths;
 	seedManifest: string;
 	fetch: FetchLike;
@@ -96,6 +101,8 @@ export type Engine = {
 	scan(): Promise<{ suggestions: Suggestion[] }>;
 	addApps(specs: AppSpec[]): Promise<{ added: string[]; problems: { key: string; detail: string }[] }>;
 	removeApp(key: string): Promise<{ ok: boolean; detail?: string }>;
+	/** Finishes or undoes a built update that was interrupted. Install and restore call it first; check never does. */
+	recover(): Promise<{ key: string; ok: boolean }[]>;
 };
 
 /** The kinds an owner can add from the window. */
@@ -225,7 +232,10 @@ export function createEngine(deps: EngineDeps): Engine {
 	const interrupted = new Map<string, string>();
 	// Only when this process can claim run.lock: another process's install in progress is not a leftover.
 	const leftover = readInflight(paths);
-	if (leftover && claimLock(paths, process.pid, deps.procRoot)) {
+	// A built update's marker is only reported here, so check and history stay read-only; recover() acts on it.
+	if (leftover?.tree)
+		interrupted.set(leftover.key, `An update was interrupted. Restore ${leftover.backupVersion ?? ""} from this row.`);
+	else if (leftover && claimLock(paths, process.pid, deps.procRoot)) {
 		const name = specs.find((s) => s.key === leftover.key)?.name ?? leftover.key;
 		interrupted.set(
 			leftover.key,
@@ -687,6 +697,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		async install(keys) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
 			if (run.phase === "installing") return { started: false, reason: REASON_BUSY };
+			await this.recover();
 			// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
 			// What the first pass updated stays on screen and in the count, so the summary reads as one run.
 			const retry = run.phase === "summary";
@@ -799,8 +810,10 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (run.phase === "installing" || run.phase === "checking") return { ok: false, detail: REASON_BUSY };
 			const spec = specOf(key);
 			if (!spec) return { ok: false, detail: `No app ${key}.` };
+			await this.recover();
 			if (!claimLock(paths, process.pid, deps.procRoot)) return { ok: false, detail: REASON_BUSY };
 			try {
+				if (canRestore(spec) && spec.kind === "source") return await restoreBuiltApp(spec, version);
 				// A restore is a swap: what is installed now becomes a restore point first, so it can be undone.
 				// What is installed is read from disk: a row can be from the last start's cache, or from before an install.
 				let current = apps.get(key)?.installed ?? null;
@@ -943,6 +956,37 @@ export function createEngine(deps: EngineDeps): Engine {
 			emit({ type: "removed", key });
 			return { ok: true };
 		},
+		async recover() {
+			const m = readInflight(paths);
+			if (!m?.tree) return [];
+			// Another process's run in progress is not ours to undo.
+			if (!claimLock(paths, process.pid, deps.procRoot)) return [];
+			try {
+				const point = m.backupVersion ? readMeta(join(backupDir(paths, m.key), m.backupVersion)) : null;
+				// The table as it was at the run, so a later edit of apps.toml never changes what is put back.
+				const spec = point?.tree?.spec ?? specOf(m.key);
+				if (!spec) return [{ key: m.key, ok: false }];
+				const ok = await recoverTree(m, spec, {
+					...kindCtx(m.key),
+					kill: deps.kill ?? killTree,
+					waitMs: deps.recoverWaitMs,
+				});
+				const version = m.backupVersion ?? "";
+				const sentence = ok
+					? `An update was interrupted. ${spec.name} ${version} was put back.`
+					: `An update was interrupted. Restore ${version} from this row.`;
+				interrupted.set(m.key, sentence);
+				const app = apps.get(m.key);
+				if (app) {
+					app.status = "problem";
+					app.detail = sentence;
+					emitApp(app);
+				}
+				return [{ key: m.key, ok }];
+			} finally {
+				releaseLock(paths);
+			}
+		},
 		async idle() {
 			for (;;) {
 				const p = busy;
@@ -982,6 +1026,41 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 		specs = loadManifest(file).apps;
 		return null;
+	}
+
+	/**
+	 * Restore of a built app: no point of the current version is taken first, so it cannot itself be undone.
+	 * The history row and the row's state follow the same rules as a file restore.
+	 */
+	async function restoreBuiltApp(spec: AppSpec, version: string): Promise<{ ok: boolean; detail?: string }> {
+		const current = apps.get(spec.key)?.installed ?? null;
+		const r = await restoreBuilt(spec, version, kindCtx(spec.key));
+		if (!r.ok) return r;
+		const installed = (await readInstalled(spec, kindCtx(spec.key)))?.installed ?? null;
+		const at = deps.now();
+		appendHistory(paths, [
+			{
+				key: spec.key,
+				name: spec.name,
+				from: current,
+				to: installed,
+				result: "restored",
+				ms: 0,
+				runId: `restore-${stamp(at)}`,
+				at: at.toISOString(),
+				stages: {},
+			},
+		]);
+		const app = apps.get(spec.key);
+		const c = checked.get(spec.key);
+		if (app && c) {
+			const next: Checked = { ...c, installed, status: isNewer(installed, c.latest) ? "ready" : "fresh" };
+			checked.set(spec.key, next);
+			Object.assign(app, resting(spec, next), { installed, detail: undefined, restartToApply: false });
+			app.restorePoints = listBackups(paths, spec.key);
+			emitApp(app);
+		}
+		return { ok: true };
 	}
 
 	/** Re-derives a resting row after a skip or hold change. */
