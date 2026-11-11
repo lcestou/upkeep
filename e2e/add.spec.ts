@@ -39,6 +39,23 @@ test("the asset select swaps the card", async ({ page }) => {
 	await expect(page.getByTestId("sug-asset")).toHaveValue("obsidian_1.9.4_amd64.deb");
 });
 
+test("the asset select on a scanned program swaps its row, and the tick stays", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-scan").click();
+	await page.getByTestId("scan-open-btop").click();
+	const select = page.getByTestId("suggestion-btop").getByTestId("sug-asset");
+	await expect(select).toHaveValue("btop-x86_64-linux-musl.tar.gz");
+	await select.selectOption("btop-x86_64-linux-gnu.tar.gz");
+	await expect(page.getByTestId("suggestion-btop").getByTestId("sug-why")).toContainText(
+		"btop-x86_64-linux-gnu.tar.gz",
+	);
+	await expect(page.getByTestId("suggestion-btop").getByTestId("sug-asset")).toHaveValue(
+		"btop-x86_64-linux-gnu.tar.gz",
+	);
+	await expect(page.getByTestId("scan-tick-btop")).toBeChecked();
+});
+
 test("a problem card has no add button, and a bad input says why", async ({ page }) => {
 	await load(page, "fixture&speed=4");
 	await page.getByTestId("add-app").click();

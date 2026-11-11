@@ -373,7 +373,8 @@ export class Model {
 	async check(): Promise<void> {
 		// The system list checks beside the apps; nothing waits on it.
 		if (this.extras?.settings.system === "show") void this.send("systemCheck", {});
-		if (await this.send("check", {})) this.refusal = null;
+		// A check that did not start (a run or a check already going) leaves what the last refusal said.
+		if ((await this.send("check", {}))?.started) this.refusal = null;
 	}
 
 	/** Turning the group on shows it at once in its checking state; turning it off removes it. */

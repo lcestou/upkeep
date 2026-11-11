@@ -53,13 +53,26 @@
 		}
 	}
 
-	/** Another asset for a scanned program: ask again for that file with the asset named, and swap its row. */
+	const picks = new Map<string, number>();
+	/**
+	 * Another asset for a scanned program: ask again for that file with the asset named, and swap its row.
+	 * Only the latest pick for a row lands, and only in the list it was made in: an older answer that arrives late,
+	 * or one for a list a new Scan replaced, is dropped. Other rows stay usable while it waits.
+	 */
 	async function pickScanAsset(s: Suggestion, asset: string) {
 		const from = s.path ?? s.spec.repo;
 		if (!from) return;
-		const res = await guard("find", () => model.request("suggest", { input: from, asset }));
+		const key = s.spec.key;
+		const list = scanned;
+		const seq = (picks.get(key) ?? 0) + 1;
+		picks.set(key, seq);
+		error = null;
+		const res = await model.send("suggest", { input: from, asset });
+		if (picks.get(key) !== seq || scanned !== list || !list) return;
 		const next = res?.suggestions[0];
-		if (next && scanned) scanned = scanned.map((x) => (x.spec.key === s.spec.key ? next : x));
+		// The card would otherwise show the picked asset over a row that still holds the old one.
+		if (!next) error = res?.problem ?? ADD.slow;
+		else scanned = list.map((x) => (x.spec.key === key ? next : x));
 	}
 
 	async function find(asset?: string) {
