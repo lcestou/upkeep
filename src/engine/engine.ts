@@ -17,7 +17,14 @@ import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup } fr
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { type FetchLike, githubToken, type Rate } from "./github";
 import { checkCommand, installCommand } from "./kinds/command";
-import { type Checked, type KindCtx, type Outcome, readInstalled, type Target } from "./kinds/context";
+import {
+	type Checked,
+	type KindCtx,
+	type Outcome,
+	REASON_UNRECOVERED,
+	readInstalled,
+	type Target,
+} from "./kinds/context";
 import {
 	checkLegacy,
 	installLegacy,
@@ -112,8 +119,6 @@ export const REASON_CHECKING = "A check is running.";
 export const REASON_BUSY = "A run is already in progress.";
 export const REASON_NOTHING = "Nothing to install.";
 export const REASON_OLD = "The old updater is running. Finish or close its dialogs first.";
-/** Install and every other restore wait until the interrupted update is put back: its marker is the only record of it. */
-export const REASON_UNRECOVERED = "An update was interrupted and could not be put back. Restore it from its row first.";
 
 const NATIVE = new Set(["appimage", "archive", "file", "deb", "source", "command"]);
 
@@ -615,6 +620,13 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.results.push(result);
 			history.push({ ...result, runId: run.id ?? "", at: deps.now().toISOString(), stages: outcome.stages });
 			emitRun();
+			// A marker this app kept is the only record of a tree that could not be put back; the next app would erase it.
+			const left = readInflight(paths);
+			if (left?.tree && left.key === spec.key) {
+				if (i + 1 < queue.length) say(null, REASON_UNRECOVERED);
+				backToReady(queue.slice(i + 1));
+				break;
+			}
 		}
 		if (legacyRuns.size > 0) {
 			say(null, "Checking the old script's apps once more");
@@ -956,6 +968,9 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		async removeApp(key) {
 			if (run.phase === "installing") return { ok: false, detail: REASON_BUSY };
+			// Its table is what recovery reads to put the interrupted update back; without it Install stays blocked.
+			const left = readInflight(paths);
+			if (left?.tree && left.key === key) return { ok: false, detail: REASON_UNRECOVERED };
 			const file = ensureManifest(paths, deps.seedManifest);
 			const text = readFileSync(file, "utf8");
 			const cut = cutTable(text, key);

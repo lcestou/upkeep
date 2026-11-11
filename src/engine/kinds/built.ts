@@ -1,12 +1,20 @@
 import { existsSync, lstatSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { AppSpec, Serve, Service, Test } from "../../shared/types";
 import { listBackups, prune, readMeta } from "../backup";
 import { isRecord } from "../manifest";
 import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
 import { argsRunning } from "../running";
-import { clearInflight, type Inflight, startTime, writeInflight } from "../store";
-import { type KindCtx, nonInteractive, type Outcome, readInstalled, stageClock, type Target } from "./context";
+import { clearInflight, type Inflight, readInflight, startTime, writeInflight } from "../store";
+import {
+	type KindCtx,
+	nonInteractive,
+	type Outcome,
+	REASON_UNRECOVERED,
+	readInstalled,
+	stageClock,
+	type Target,
+} from "./context";
 import {
 	expandGlob,
 	fill,
@@ -33,12 +41,24 @@ const firstLine = (s: string) => s.trim().split("\n")[0] ?? "";
 
 type Step = Inflight["tree"] extends infer T ? (T extends { step: infer S } ? S : never) : never;
 
-/** The in-flight marker of one built update. Every pid a step reports lands in it at once. */
+/**
+ * The in-flight marker of one built update. Every pid a step reports lands in it at once. Its first write throws
+ * REASON_UNRECOVERED when another app's kept marker is there, so one app never erases another's only record.
+ */
 export function markerOf(spec: AppSpec, ctx: KindCtx, dest: string) {
 	const procRoot = ctx.procRoot ?? "/proc";
 	const state: NonNullable<Inflight["tree"]> = { step: "pause", build: null, active: [], paused: [] };
 	let backupVersion: string | null = null;
-	const write = () => writeInflight(ctx.paths, { key: spec.key, dest, backupVersion, tree: { ...state } });
+	let first = true;
+	const write = () => {
+		if (first) {
+			// Another app's kept marker is the only record of its half-put-back tree: never write over it.
+			const prior = readInflight(ctx.paths);
+			if (prior?.tree && prior.key !== spec.key) throw new Error(REASON_UNRECOVERED);
+			first = false;
+		}
+		writeInflight(ctx.paths, { key: spec.key, dest, backupVersion, tree: { ...state } });
+	};
 	return {
 		state,
 		step(step: Step) {
@@ -185,7 +205,10 @@ function placePaths(spec: AppSpec, ctx: KindCtx, dir: string | null, vars: Vars)
 	return stage;
 }
 
-/** One place entry's from (inside the stage or dir) and to, resolved and checked; throws the refusal. */
+/**
+ * One place entry's from (inside the stage or dir) and to, resolved and checked; throws the refusal. A to may not be
+ * a folder directly in home, nor Upkeep's own config, data, state or cache directory or anything above one.
+ */
 function placeFromTo(
 	pl: { from: string; to: string },
 	ctx: KindCtx,
@@ -195,7 +218,12 @@ function placeFromTo(
 ) {
 	const at = (p: string) => resolvePath(fill(p, vars), ctx.paths, dir);
 	const roots = [stage, dir].filter((r): r is string => r !== null);
-	return { src: safePath(at(pl.from), ctx.paths, { dir, under: roots }), to: safePath(at(pl.to), ctx.paths, { dir }) };
+	const { config, data, state, cache, home } = ctx.paths;
+	const to = safePath(at(pl.to), ctx.paths, { dir, not: [config, data, state, cache] });
+	// A place target is moved whole into the restore point and pruned with it later: never a folder of home itself.
+	if (dirname(to) === home)
+		throw new Error(`Refused ${to}: a place target cannot be a folder directly in the home directory`);
+	return { src: safePath(at(pl.from), ctx.paths, { dir, under: roots }), to };
 }
 
 /** What a build that passed every check hands to the install stage. */
@@ -805,8 +833,10 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
 /**
  * Puts a built app's restore point back by hand: sudo preflight, busy, pause, stop what runs, restoreTree, start,
  * prove it, start the paused units. Each step is on the in-flight marker first, so a kill at any point is finished
- * by recover(); a failed restore keeps the marker for the same reason. It takes no point of the version it
- * replaces, so this restore cannot itself be undone; the next update takes a fresh point.
+ * by recover(); a failed restore keeps the marker for the same reason. Over a failed recovery's marker for this app,
+ * a restore that goes through also starts the units that marker had down; an exit before anything moved writes that
+ * marker back and leaves those units to the next recover(). It takes
+ * no point of the version it replaces, so this restore cannot itself be undone; the next update takes a fresh point.
  */
 export async function restoreBuilt(
 	spec: AppSpec,
@@ -819,10 +849,16 @@ export async function restoreBuilt(
 	const busy = await busyNow(spec, ctx, false);
 	if (busy) return { ok: false, detail: `${busy} Nothing was changed.` };
 	const dir = spec.dir ? resolvePath(spec.dir, ctx.paths, null) : null;
+	// A failed recovery's marker for this app: its units are down now, so this restore starts them, and an early exit
+	// writes it back instead of clearing it.
+	const kept = readInflight(ctx.paths);
+	const prior = kept?.tree && kept.key === spec.key ? kept : null;
+	const giveBack = () => (prior ? writeInflight(ctx.paths, prior) : clearInflight(ctx.paths));
 	const marker = markerOf(spec, ctx, dir ?? "");
+	const paused: Service[] = (spec.pause ?? []).filter((p) => prior?.tree?.paused.includes(p.name));
+	marker.state.paused.push(...paused.map((p) => p.name));
 	marker.point(version);
 	marker.step("pause");
-	const paused: Service[] = [];
 	const startPaused = async () => {
 		for (const p of paused.toReversed())
 			// oxlint-disable-next-line no-await-in-loop -- in reverse order of the stops
@@ -831,13 +867,13 @@ export async function restoreBuilt(
 	};
 	for (const p of spec.pause ?? []) {
 		// oxlint-disable-next-line no-await-in-loop -- in table order
-		if (!(await isActive(ctx.run, p))) continue;
+		if (paused.includes(p) || !(await isActive(ctx.run, p))) continue;
 		marker.paused(p.name);
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (!(await stopService(ctx.run, p))) {
 			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
 			await startPaused();
-			marker.clear();
+			giveBack();
 			return { ok: false, detail: `Could not stop ${p.name}. Nothing was changed.` };
 		}
 		paused.push(p);
@@ -846,7 +882,8 @@ export async function restoreBuilt(
 	for (const s of spec.serve ?? [])
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (await isActive(ctx.run, s)) running.push(s);
-	marker.active(running.map((s) => s.name));
+	const toStart = (spec.serve ?? []).filter((s) => running.includes(s) || prior?.tree?.active.includes(s.name));
+	marker.active(toStart.map((s) => s.name));
 	marker.step("stopping");
 	for (const s of running)
 		// oxlint-disable-next-line no-await-in-loop -- in table order
@@ -855,7 +892,7 @@ export async function restoreBuilt(
 			for (const r of running) await startService(ctx.run, r);
 			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
 			await startPaused();
-			marker.clear();
+			giveBack();
 			return { ok: false, detail: `Could not stop ${s.name}. Nothing was changed.` };
 		}
 	marker.step("placing");
@@ -866,7 +903,7 @@ export async function restoreBuilt(
 		detail = `Could not restore ${version}: ${err instanceof Error ? err.message : String(err)}`;
 	}
 	marker.step("starting");
-	for (const s of running)
+	for (const s of toStart)
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (!((await startService(ctx.run, s)) && (await healthy(s, ctx))))
 			detail ??= `${s.name} did not answer after the restore. See the log.`;

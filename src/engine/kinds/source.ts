@@ -104,11 +104,25 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 	return { ...found, status: "fresh" };
 }
 
+/** A release tag or version Upkeep will put into a step: a letter or digit first, then only these characters. */
+const PLAIN_REF = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
+
 /**
  * Clones the release tag and runs the manifest's build steps. There is no restore point: make install writes many files.
- * A checkout or stage row goes to installBuilt, which keeps one.
+ * A checkout or stage row goes to installBuilt, which keeps one. A tag or version that is not a plain version name is
+ * refused before any command runs, on both paths.
  */
 export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
+	// A tag goes into shell steps and git argv as written: refuse shell syntax, and a leading - git would read as an option.
+	for (const name of [target.tag, target.version])
+		if (!PLAIN_REF.test(name))
+			return {
+				result: "failed",
+				installed: target.from,
+				detail: `Refused ${name}: not a plain version name. Nothing was changed.`,
+				restartToApply: false,
+				stages: {},
+			};
 	if (spec.dir || spec.stage) return installBuilt(spec, target, ctx);
 	const dir = join(ctx.paths.cache, "build", spec.key);
 	const clock = stageClock(ctx);

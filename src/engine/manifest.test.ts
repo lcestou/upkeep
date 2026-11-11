@@ -30,7 +30,7 @@ test("the seed manifest loads 32 apps with no errors", () => {
 	expect(apps.length).toBe(32);
 	const counts: Record<string, number> = {};
 	for (const a of apps) counts[a.kind] = (counts[a.kind] ?? 0) + 1;
-	expect(counts).toEqual({ appimage: 3, archive: 9, file: 1, deb: 2, source: 2, command: 4, legacy: 5, manual: 6 });
+	expect(counts).toEqual({ appimage: 3, archive: 9, file: 1, deb: 2, source: 7, command: 5, legacy: 5 });
 	const fd = apps.find((a) => a.key === "fd");
 	expect(fd).toEqual({
 		key: "fd",
@@ -193,5 +193,36 @@ test("a written table holds only the spec's fields and parses back to the same s
 name = "Y"
 kind = "file"
 asset = "it's"
+`);
+});
+
+test("cutting an app takes its own sub-tables with it and leaves the next app whole", () => {
+	const text = `[apps.a]
+name = "A"
+kind = "source"
+
+[[apps.a.serve]]
+name = "a-web"
+
+[[apps.a.serve.test]]
+name = "answers"
+
+[apps.b]
+name = "B"
+kind = "file"
+`;
+	expect(cutTable(text, "a")).toBe(`[apps.b]
+name = "B"
+kind = "file"
+`);
+	expect(cutTable(text, "b")).toBe(`[apps.a]
+name = "A"
+kind = "source"
+
+[[apps.a.serve]]
+name = "a-web"
+
+[[apps.a.serve.test]]
+name = "answers"
 `);
 });

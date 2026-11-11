@@ -293,6 +293,8 @@ test("a stage of the home directory, dir or a live place target refuses before a
 		{ stage: "~/share", place: [{ from: "{stage}", to: "~/share/pkg" }] },
 		{ stage: "~/st", place: [{ from: "{stage}", to: "~" }] },
 		{ stage: "~/st", place: [{ from: "~/elsewhere", to: "~/share/pkg" }] },
+		{ stage: "~/st", place: [{ from: "{stage}", to: "~/Documents" }] },
+		{ stage: "~/st", place: [{ from: "{stage}", to: t.paths.data }] },
 	]) {
 		const box = fakeBox();
 		// oxlint-disable-next-line no-await-in-loop -- one table at a time

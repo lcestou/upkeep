@@ -464,9 +464,31 @@ const BUILT_SEEDS: Seed[] = [
 		canRestore: true,
 		stages: BUILT_STAGES,
 	},
+	{
+		key: "btop",
+		name: "btop",
+		kind: "source",
+		repo: "aristocratos/btop",
+		installed: "1.4.3",
+		latest: "1.4.4",
+		status: "ready",
+		canRestore: true,
+		restore: ["1.4.2"],
+		stages: BUILT_STAGES,
+	},
+	{
+		key: "neovim",
+		name: "Neovim",
+		kind: "source",
+		repo: "neovim/neovim",
+		installed: "0.11.4",
+		latest: "0.11.5",
+		status: "ready",
+		canRestore: true,
+		stages: BUILT_STAGES,
+	},
 ];
 
-/** How each built row's scripted run ends in the built variant: the starred sentences of plan 5 E. */
 /** The recorded window and System operations the specs read back from the page. */
 declare global {
 	var upkeepOps: string[] | undefined;
@@ -478,6 +500,7 @@ type Handlers = {
 	[K in keyof Requests]: (p: Requests[K]["params"]) => Requests[K]["response"] | Promise<Requests[K]["response"]>;
 };
 
+/** How each built row's scripted run ends in the built variant: the starred sentences of plan 5 E. */
 type BuiltEnd = { result: "failed" | "rolled_back"; detail: (from: string | null) => string };
 const BUILT_ENDS = {
 	strata: { result: "failed", detail: () => "sudo needs a password here, so nothing was stopped or changed." },
@@ -493,19 +516,37 @@ const BUILT_ENDS = {
 		detail: (from) =>
 			`Would not start after the update, and putting ${from ?? ""} back failed: tmux did not answer. See the log.`,
 	},
+	btop: { result: "failed", detail: (from) => `Could not stop btop to put ${from ?? ""} back. See the log.` },
+	neovim: {
+		result: "failed",
+		detail: () =>
+			"Refused /home/you/src/neovim/runtime/link/doc: a link inside it leads outside what this table may change. Nothing was changed.",
+	},
 } satisfies Record<string, BuiltEnd>;
+
+/** The rows whose scripted end keeps the in-flight marker, as a put-back that failed does; Install waits on them. */
+const KEPT_MARKER = new Set(["btop"]);
+const REASON_UNRECOVERED = "An update was interrupted and could not be put back. Restore it from its row first.";
 
 /** The scripted end for a built row's key, or undefined for a row whose run succeeds. */
 const builtEnd = (key: string): BuiltEnd | undefined => Object.entries(BUILT_ENDS).find(([k]) => k === key)?.[1];
 
-/** Builds the app list for a fixture variant; built swaps in the source rows and rests every other pending row. */
+/**
+ * Builds the app list for a fixture variant; built swaps in the source rows, adds the ones the default list lacks at
+ * the end, and rests every other pending row.
+ */
 function seedsFor(variant: FixtureVariant): AppState[] {
 	const apps = SEEDS.map(toApp);
 	if (variant === "built") {
 		const built = new Map(BUILT_SEEDS.map((s) => [s.key, toApp(s)]));
-		return apps.map(
-			(a) => built.get(a.key) ?? (a.status === "ready" ? { ...a, status: "fresh", installed: a.latest } : a),
-		);
+		const added = BUILT_SEEDS.filter((s) => !SEEDS.some((d) => d.key === s.key)).map(toApp);
+		return [
+			...apps.map(
+				(a): AppState =>
+					built.get(a.key) ?? (a.status === "ready" ? { ...a, status: "fresh", installed: a.latest } : a),
+			),
+			...added,
+		];
 	}
 	if (variant === "empty") {
 		return apps.map((a) => ({
@@ -606,6 +647,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const history: HistoryRow[] = opts.noHistory ? [] : pastHistory();
 	const logs = new Map<string, LogLine[]>();
 	let attempts = 0;
+	// A built row whose put-back failed: as the engine's recover() refuses Install until it is restored by hand.
+	let kept = false;
 	globalThis.upkeepOps = [];
 	const offered = new Map<string, Suggestion>();
 	const sysOps: string[] = [];
@@ -681,6 +724,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const ms = Date.now() - start;
 		const end = variant === "built" ? builtEnd(key) : undefined;
 		if (end) {
+			if (KEPT_MARKER.has(key)) kept = true;
 			const detail = end.detail(from);
 			log(runId, key, detail);
 			put({ ...after, status: end.result, stage: undefined, stagePct: undefined, detail });
@@ -747,6 +791,15 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			const result = await installOne(runId, key);
 			results.push(result);
 			setRun({ results: [...results] });
+			// As the engine does: a kept marker stops the run, so the next app cannot erase it.
+			if (kept && KEPT_MARKER.has(key)) {
+				for (const rest of order.slice(i + 1)) {
+					const app = get(rest);
+					if (app) put({ ...app, status: "ready" });
+				}
+				log(runId, null, REASON_UNRECOVERED);
+				break;
+			}
 			// oxlint-disable-next-line no-await-in-loop -- the scripted run is sequential on purpose
 			await sleep(200 / speed);
 		}
@@ -804,6 +857,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		install: ({ keys }) => {
 			if (run.phase === "checking") return { started: false, reason: "A check is running." };
 			if (run.phase === "installing") return { started: false, reason: "A run is already in progress." };
+			if (kept) return { started: false, reason: REASON_UNRECOVERED };
 			const ok = keys.filter((k) => {
 				const s = get(k)?.status;
 				return s === "ready" || s === "failed" || s === "rolled_back";
@@ -842,6 +896,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		restore: ({ key, version }) => {
 			const app = get(key);
 			if (!app || run.phase === "installing") return { ok: false, detail: "Restore is not possible during a run." };
+			// The kept marker is put back by restoring its own app; every other restore waits, as Install does.
+			if (kept && !KEPT_MARKER.has(key)) return { ok: false, detail: REASON_UNRECOVERED };
+			kept = false;
 			// A swap, as the engine does it: the replaced version becomes the restore point, and latest is skipped.
 			const replaced = app.installed;
 			const points = app.restorePoints.filter((p) => p.version !== version);

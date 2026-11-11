@@ -202,6 +202,10 @@ test("keep, hold and prune outside dir, and a stage that is home, dir or a live 
 	for (const stage of [".", "~/x", "~/x/", "~"])
 		expect(withField({ ...inDir, stage })).toBe("x: stage cannot be the home directory or the live copy");
 	expect(withField({ ...inDir, stage: "." })).toBe("x: stage cannot be the home directory or the live copy");
+	for (const to of ["~/Documents", "~/.local", "~/.config/"])
+		expect(withField({ stage: "~/st", place: [{ from: "{stage}", to }] })).toBe(
+			"x: place to cannot be a folder directly in the home directory",
+		);
 	expect(withField({ stage: "~/share", place: [{ from: "{stage}", to: "~/share/pkg" }] })).toBe(
 		"x: stage cannot be the home directory or the live copy",
 	);

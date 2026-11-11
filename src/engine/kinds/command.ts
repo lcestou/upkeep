@@ -3,6 +3,7 @@ import type { AppSpec } from "../../shared/types";
 import { isFailure, latestFromSource } from "../github";
 import { probeCommand } from "../probe";
 import { isNewer } from "../version";
+import { fill } from "./tree";
 import {
 	type Checked,
 	fromRelease,
@@ -48,11 +49,14 @@ export async function checkCommand(spec: AppSpec, ctx: KindCtx): Promise<Checked
 	};
 }
 
-/** Runs the tool's own update command, then checks the version moved. */
+/**
+ * Runs the tool's own update command, then checks the version moved. {tag} and {version} in its argv are filled in;
+ * it runs without a shell, so a tag can only ever be one argument.
+ */
 export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const clock = stageClock(ctx);
 	clock.start("install");
-	const update = spec.update ?? [];
+	const update = (spec.update ?? []).map((a) => fill(a, { tag: target.tag, version: target.version }));
 	ctx.log(`$ ${update.join(" ")}`);
 	const r = await ctx.run(update, { timeoutMs: 600_000, onLine: (l) => ctx.log(l) });
 	ctx.log(r.timedOut ? "The update command ran past 600 s and was stopped." : `The update command exited ${r.code}.`);

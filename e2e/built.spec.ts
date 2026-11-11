@@ -69,7 +69,8 @@ test("a built row's stem has five stages summing to 100, and shows Build while i
 test("each starred failure of the plan reads its decided sentence on its row", async ({ page }) => {
 	await load(page, "fixture=built&speed=4");
 	await page.getByTestId("install").click();
-	await expect(sentence(page)).toHaveText("1 updated, 6 failed", { timeout: 30_000 });
+	// btop's put-back could not stop its unit, so the run stops there and Neovim, queued after it, never starts.
+	await expect(sentence(page)).toHaveText("1 updated, 7 failed, 1 not started", { timeout: 30_000 });
 	await page.keyboard.press("Escape");
 	const said = {
 		strata: "sudo needs a password here, so nothing was stopped or changed.",
@@ -78,6 +79,42 @@ test("each starred failure of the plan reads its decided sentence on its row", a
 		dsh: "Would not start after the update. Restored 0.2.2-alpha.3.",
 		whisper: "Failed its test after the update: whisper-cli starts. Restored v1.8.2.",
 		tmux: "Would not start after the update, and putting 3.6a back failed: tmux did not answer. See the log.",
+		btop: "Could not stop btop to put 1.4.3 back. See the log.",
 	};
 	for (const [key, text] of Object.entries(said)) await expect(page.getByTestId(`sentence-${key}`)).toHaveText(text);
+});
+
+test("a put-back that failed stops the run there, and Install waits until that app is restored by hand", async ({
+	page,
+}) => {
+	await load(page, "fixture=built&speed=4");
+	await page.getByTestId("select-none").click();
+	await page.getByTestId("tick-neovim").check();
+	await page.getByTestId("install").click();
+	await expect(sentence(page)).toHaveText("0 updated, 1 failed", { timeout: 20_000 });
+	await expect(page.getByTestId("sentence-neovim")).toHaveText(
+		"Refused /home/you/src/neovim/runtime/link/doc: a link inside it leads outside what this table may change. Nothing was changed.",
+	);
+	await page.getByTestId("done").click();
+	await page.getByTestId("select-none").click();
+	await page.getByTestId("tick-btop").check();
+	await page.getByTestId("tick-neovim").check();
+	await page.getByTestId("install").click();
+	await expect(sentence(page)).toHaveText("0 updated, 1 failed, 1 not started", { timeout: 20_000 });
+	await expect(page.getByTestId("sentence-btop")).toHaveText("Could not stop btop to put 1.4.3 back. See the log.");
+	await expect(page.getByTestId("row-neovim")).not.toContainText("Refused");
+	await page.getByTestId("done").click();
+	await expect(page.getByTestId("install")).toHaveCount(1);
+	await page.getByTestId("install").click();
+	const unrecovered = "An update was interrupted and could not be put back. Restore it from its row first.";
+	await expect(page.getByTestId("refusal")).toHaveText(unrecovered);
+	await page.getByTestId("row-btop").click();
+	await page.getByTestId("restore-btop-1.4.2").click();
+	await expect(page.getByTestId("restore-result")).toHaveText("Restored 1.4.2.");
+	await page.keyboard.press("Escape");
+	// The old button animates out for a moment after the pane closes.
+	await expect(page.getByTestId("install")).toHaveCount(1);
+	await page.getByTestId("install").click();
+	await expect(page.getByTestId("refusal")).toHaveCount(0);
+	await expect(sentence(page)).toHaveText(/updated|failed/, { timeout: 20_000 });
 });

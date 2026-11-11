@@ -73,6 +73,14 @@ test("install runs the update and passes when the version moved, marking restart
 	expect(Object.keys(outcome.stages)).toEqual(["install", "verify"]);
 });
 
+test("{tag} and {version} in the update argv are filled with the target's", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `echo "got $1 $2"; printf 2.1.400 > ${state}`);
+	const target = { from: "2.1.322", version: "2.1.400", tag: "v2.1.400" };
+	await installCommand(claude(["~/.local/bin/claude-up", "rev={tag}", "{version}"]), target, ctx());
+	expect(lines).toContain("got rev=v2.1.400 2.1.400");
+});
+
 test("a version that did not move is a failure", async () => {
 	fakeClaude("2.1.322");
 	const target = { from: "2.1.322", version: "2.1.400", tag: "2.1.400" };

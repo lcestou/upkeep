@@ -178,13 +178,34 @@ legacy_name = "Cursor"
 process = "cursor"
 note = "Updating closes Cursor and opens it again."
 
-# Checked by the old script: its latest is picked from npm dist-tags with Python's packaging order and compared with !=, which no latest source reproduces.
 [apps.dsh]
 name = "dsh"
-kind = "manual"
-legacy_name = "dsh"
-run = "lutechi-updater dsh"
-note = "Never installed unattended. The old script asks, stops dsh-web, smoke-tests and rolls back."
+kind = "source"
+latest = "npm-tags:@deepseek-ai/dsh"
+check = ["sh", "-c", '''grep -oP '"version": *"\K[^"]+' "$HOME/.local/share/dsh/lib/node_modules/@deepseek-ai/dsh/package.json" | head -1''']
+stage = "~/.local/share/dsh.upkeep-next"
+build = ["npm install -g --prefix {stage} @deepseek-ai/dsh@{version}"]
+check_built = [
+	"/usr/bin/node {stage}/lib/node_modules/@deepseek-ai/dsh/lib/bin.js --profile headless --dump-config >/dev/null",
+	'''echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{"fs":{"readTextFile":false,"writeTextFile":false}}}}' | timeout 60 /usr/bin/node {stage}/lib/node_modules/@deepseek-ai/dsh/lib/bin.js --profile acp 2>/dev/null | grep -q '"result"' ''',
+]
+busy = [{ process = "share/dsh/lib/node_modules", say = "dsh is running outside dsh web.", when = "stopped" }]
+place = [{ from = "{stage}", to = "~/.local/share/dsh" }]
+test = [
+	{ name = "headless profile", run = ["sh", "-c", "~/.local/bin/dsh --profile headless --dump-config >/dev/null"], timeout_s = 60 },
+	{ name = "ACP initialize", run = ["sh", "-c", '''echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{"fs":{"readTextFile":false,"writeTextFile":false}}}}' | timeout 60 ~/.local/bin/dsh-alpha --profile acp 2>/dev/null | grep -q '"result"' '''], timeout_s = 70 },
+]
+note = "Updating restarts dsh web, which ends every session running in it."
+
+[[apps.dsh.serve]]
+name = "dsh-web.service"
+active = ["systemctl", "--user", "is-active", "--quiet", "dsh-web.service"]
+stop = ["systemctl", "--user", "stop", "dsh-web.service"]
+start = ["systemctl", "--user", "start", "dsh-web.service"]
+since = ["systemctl", "--user", "show", "-p", "ActiveEnterTimestampMonotonic", "--value", "dsh-web.service"]
+health = "http://127.0.0.1:3080/"
+status = 401
+wait_s = 60
 
 [apps.pr-agent]
 name = "pr-agent"
@@ -205,11 +226,10 @@ latest = "pypi:headroom-ai"
 
 [apps.claude-code-telegram]
 name = "claude-code-telegram"
-kind = "manual"
-legacy_name = "claude-code-telegram"
-run = "lutechi-updater claude-code-telegram"
+kind = "command"
 check = ["sh", "-c", '''command -v uv >/dev/null || exit 127; v=$(uv tool list 2>/dev/null | awk '/^claude-code-telegram /{print $2}' | sed 's/^v//'); [ -n "$v" ] || exit 127; echo "$v"''']
 latest = "github:RichardAtCT/claude-code-telegram"
+update = ["uv", "tool", "install", "--reinstall", "git+https://github.com/RichardAtCT/claude-code-telegram?rev={tag}"]
 
 [apps.claude-plugins]
 name = "Claude Code plugins"
@@ -225,30 +245,163 @@ versionless = true
 
 [apps.whisper]
 name = "whisper.cpp"
-kind = "manual"
-legacy_name = "whisper.cpp"
-run = "lutechi-updater whisper"
-check = ["sh", "-c", '''[ -d "$HOME/whisper.cpp/.git" ] || exit 127; git -C "$HOME/whisper.cpp" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//'''']
-latest = "github:ggml-org/whisper.cpp"
+kind = "source"
+repo = "ggml-org/whisper.cpp"
+dir = "~/whisper.cpp"
+move = "detach"
+check = ["sh", "-c", '''[ -d "$HOME/whisper.cpp/.git" ] || exit 127; git -C "$HOME/whisper.cpp" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' ''']
+keep = ["build"]
+build = ["cmake --build build -j 6"]
+test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"], timeout_s = 30 }]
 
-# Checked by the old script: it compares the checkout's HEAD commit date with the release date and shows a commit hash, not a version.
 [apps.llama]
 name = "llama.cpp"
-kind = "manual"
-legacy_name = "llama.cpp"
-run = "/llama in a Claude session"
+kind = "source"
+repo = "ggml-org/llama.cpp"
+dir = "~/llama.cpp"
+move = "ff"
+check = ["sh", "-c", '''"$HOME/.local/bin/llama-server" --version 2>&1 | grep -oP 'commit \K[0-9a-f]+' ''']
+commit = ["sh", "-c", '''"$HOME/.local/bin/llama-server" --version 2>&1 | grep -oP 'commit \K[0-9a-f]+' ''']
+stage = "~/llama.cpp/build-upkeep-{tag}"
+needs = ["sh", "-c", '''ldd "$HOME/.local/bin/llama-server" | awk '/libggml-cuda/ {print $3}' | xargs dirname | xargs dirname''']
+prune = ["~/llama.cpp/build-86real-new*", "~/llama.cpp/build-upkeep-*"]
+build = [
+	'''arch=$(grep '^CMAKE_CUDA_ARCHITECTURES:' "{needs}/CMakeCache.txt" | cut -d= -f2); test -n "$arch" || { echo "no CUDA arch in {needs}/CMakeCache.txt"; exit 1; }; cmake -S . -B {stage} -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="$arch" -DGGML_CUDA_F16=ON -DGGML_CUDA_FA_ALL_QUANTS=ON -DGGML_NATIVE=ON -DGGML_CUDA_NO_VMM=ON''',
+	"cmake --build {stage} -j 6 --target llama-server",
+]
+check_built = ['''{stage}/bin/llama-server --version 2>&1 | grep -q '^version:' ''']
+place = [{ from = "{stage}/bin/llama-server", to = "~/.local/bin/llama-server" }]
+busy = [
+	{ process = "ComfyUI/main.py", say = "ComfyUI is running a job." },
+	{ run = ["sh", "-c", '''grep -lqsE '"status": *"(queued|processing)"' "$HOME"/.local/share/sd-api/queue/*.json'''], say = "The image queue has a job waiting." },
+]
+pause = [
+	{ name = "sd-api.service", active = ["systemctl", "--user", "is-active", "--quiet", "sd-api.service"], stop = ["systemctl", "--user", "stop", "sd-api.service"], start = ["systemctl", "--user", "start", "sd-api.service"] },
+	{ name = "strata-watchdog.timer", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.timer"], stop = ["systemctl", "--user", "stop", "strata-watchdog.timer"], start = ["systemctl", "--user", "start", "strata-watchdog.timer"] },
+	{ name = "strata-watchdog.service", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.service"], stop = ["systemctl", "--user", "stop", "strata-watchdog.service"] },
+]
+note = "Updating restarts the llama-server services that are running. To judge whether these commits matter for this setup, run /llama in a Claude session."
 
-# Checked by the old script: it fetches tags and calls the checkout current when it already contains the release's tag, which a version compare cannot see.
+[[apps.llama.serve]]
+name = "llama-server"
+active = ["systemctl", "is-active", "--quiet", "llama-server"]
+stop = ["sudo", "systemctl", "stop", "llama-server"]
+start = ["sudo", "systemctl", "start", "llama-server"]
+since = ["systemctl", "show", "-p", "ActiveEnterTimestampMonotonic", "--value", "llama-server"]
+health = "http://127.0.0.1:8080/health"
+wait_s = 120
+
+[[apps.llama.serve.test]]
+name = "a short generation"
+url = "http://127.0.0.1:8080/completion"
+body = '{"model":"lutechi-llm","prompt":"Write a Python function that reverses a linked list.","n_predict":200,"cache_prompt":false}'
+expect = '"predicted_n"'
+timeout_s = 120
+
+[[apps.llama.serve]]
+name = "strata-embed"
+active = ["systemctl", "is-active", "--quiet", "strata-embed"]
+stop = ["sudo", "systemctl", "stop", "strata-embed"]
+start = ["sudo", "systemctl", "start", "strata-embed"]
+since = ["systemctl", "show", "-p", "ActiveEnterTimestampMonotonic", "--value", "strata-embed"]
+health = "http://127.0.0.1:8181/health"
+wait_s = 60
+
+[[apps.llama.serve.test]]
+name = "an embedding"
+url = "http://127.0.0.1:8181/v1/embeddings"
+body = '{"model":"bge-m3","input":"hi"}'
+expect = '"embedding"'
+timeout_s = 30
+
 [apps.strata]
 name = "Strata"
-kind = "manual"
-legacy_name = "strata"
-run = "strata-update"
+kind = "source"
+repo = "Niko1221/Strata"
+dir = "~/Projects/Strata"
+move = "ff"
+check = ["sh", "-c", '''git -C "$HOME/Projects/Strata" describe --tags --abbrev=0 HEAD 2>/dev/null | sed 's/^v//; s/-.*//' ''']
+commit = ["git", "-C", "~/Projects/Strata", "rev-parse", "HEAD"]
+keep = ["engine", ".venv", "strata-*.json"]
+hold = ["engine"]
+build = ['''t=$(readlink strata-active.json) || exit 1; rm -f strata-active.json; sh ./setup.sh --update; rc=$?; ln -sfn "$t" strata-active.json; exit $rc''']
+check_built = ['''test "$(python3 -c 'import json; print(json.load(open("engine/BUILD.json"))["version"])')" = "$(grep -oP 'project\(strata VERSION \K[0-9.]+' CMakeLists.txt)"''']
+config = [
+	{ file = "strata-*.json", key = "host", value = "127.0.0.1" },
+	{ file = "strata-*.json", key = "port", value = 8092 },
+	{ file = "strata-*.json", array = "args", flag = "--max-context", value = "262144" },
+	{ file = "strata-*.json", array = "args", flag = "--vram-reserve-mib", value = "1800" },
+]
+busy = [
+	{ process = "ComfyUI/main.py", say = "ComfyUI is running a job." },
+	{ run = ["sh", "-c", '''grep -lqsE '"status": *"(queued|processing)"' "$HOME"/.local/share/sd-api/queue/*.json'''], say = "The image queue has a job waiting." },
+]
+pause = [
+	{ name = "sd-api.service", active = ["systemctl", "--user", "is-active", "--quiet", "sd-api.service"], stop = ["systemctl", "--user", "stop", "sd-api.service"], start = ["systemctl", "--user", "start", "sd-api.service"] },
+	{ name = "strata-watchdog.timer", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.timer"], stop = ["systemctl", "--user", "stop", "strata-watchdog.timer"], start = ["systemctl", "--user", "start", "strata-watchdog.timer"] },
+	{ name = "strata-watchdog.service", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.service"], stop = ["systemctl", "--user", "stop", "strata-watchdog.service"] },
+]
+note = "Updating restarts Strata, which takes a minute or two to load the model."
+
+[[apps.strata.serve]]
+name = "strata"
+active = ["systemctl", "is-active", "--quiet", "strata"]
+stop = ["sudo", "systemctl", "stop", "strata"]
+start = ["sudo", "systemctl", "start", "strata"]
+since = ["systemctl", "show", "-p", "ActiveEnterTimestampMonotonic", "--value", "strata"]
+health = "http://127.0.0.1:8080/health"
+expect = '"loaded": true'
+wait_s = 300
+
+[[apps.strata.serve.test]]
+name = "a cold generation"
+url = "http://127.0.0.1:8080/v1/chat/completions"
+body = '{"model":"lutechi-llm","messages":[{"role":"user","content":"Write a Python function that reverses a linked list."}],"max_tokens":300,"reasoning_effort":"none"}'
+expect = '"completion_tokens"'
+timeout_s = 120
+
+[[apps.strata.serve.test]]
+name = "a warm generation"
+url = "http://127.0.0.1:8080/v1/chat/completions"
+body = '{"model":"lutechi-llm","messages":[{"role":"user","content":"Write a Python function that reverses a linked list."}],"max_tokens":300,"reasoning_effort":"none"}'
+expect = '"completion_tokens"'
+timeout_s = 120
+
+[[apps.strata.serve.test]]
+name = "embeddings"
+url = "http://127.0.0.1:8080/v1/embeddings"
+body = '{"model":"bge-m3","input":"hi"}'
+expect = '"embedding"'
+timeout_s = 30
+required = false
 
 [apps.comfyui]
 name = "ComfyUI"
-kind = "manual"
-legacy_name = "comfyui"
-run = "comfyui-update"
+kind = "source"
+repo = "comfyanonymous/ComfyUI"
+dir = "~/repos/ComfyUI"
+move = "reset"
 check = ["sh", "-c", '''[ -d "$HOME/repos/ComfyUI/.git" ] || exit 127; grep -oP '__version__ = "\K[^"]+' "$HOME/repos/ComfyUI/comfyui_version.py" 2>/dev/null''']
-latest = "github:comfyanonymous/ComfyUI"
+busy = [
+	{ process = "ComfyUI/main.py", say = "ComfyUI is running a job." },
+	{ run = ["sh", "-c", '''grep -lqsE '"status": *"(queued|processing)"' "$HOME"/.local/share/sd-api/queue/*.json'''], say = "The image queue has a job waiting." },
+]
+pause = [{ name = "sd-api.service", active = ["systemctl", "--user", "is-active", "--quiet", "sd-api.service"], stop = ["systemctl", "--user", "stop", "sd-api.service"], start = ["systemctl", "--user", "start", "sd-api.service"] }]
+record = [
+	{ file = "pip-freeze.txt", run = ["venv/bin/pip", "freeze"] },
+	{ file = "custom-nodes.txt", run = ["sh", "-c", '''for d in custom_nodes/*/; do if [ -d "$d/.git" ]; then echo "$d $(git -C "$d" rev-parse HEAD)"; fi; done'''] },
+	{ file = "wheels.log", run = ["sh", "-c", '''set -e; p="{point}"; git show {tag}:requirements.txt > "$p/requirements.new.txt"; venv/bin/pip install -q --dry-run --report "$p/plan.json" -r "$p/requirements.new.txt" --extra-index-url https://download.pytorch.org/whl/cu130; venv/bin/python -c 'import json,sys; p=sys.argv[1]; plan={i["metadata"]["name"].lower() for i in json.load(open(p+"/plan.json"))["install"]}; old={l.split("==")[0].lower():l.strip() for l in open(p+"/pip-freeze.txt") if "==" in l}; open(p+"/old-pins.txt","w").write("".join(old[n]+"\n" for n in plan if n in old)); open(p+"/added.txt","w").write("".join(n+"\n" for n in plan if n not in old))' "$p"; if [ -s "$p/old-pins.txt" ]; then venv/bin/pip download -q --no-deps -d "$p/wheels" -r "$p/old-pins.txt" --extra-index-url https://download.pytorch.org/whl/cu130; fi'''] },
+]
+build = [
+	"venv/bin/pip install -q -r requirements.txt",
+	'''for d in custom_nodes/*/; do [ -d "$d/.git" ] || continue; git -C "$d" pull -q --ff-only 2>/dev/null || echo "$d: pull skipped"; if [ -f "$d/requirements.txt" ]; then venv/bin/pip install -q -r "$d/requirements.txt" || exit 1; fi; done''',
+]
+undo = [
+	'''while read -r d h; do git -C "$d" checkout -q "$h"; done < "{point}/custom-nodes.txt"''',
+	'''if [ -s "{point}/added.txt" ]; then venv/bin/pip uninstall -q -y -r "{point}/added.txt"; fi; if [ -s "{point}/old-pins.txt" ]; then venv/bin/pip install -q --no-index --find-links "{point}/wheels" -r "{point}/old-pins.txt"; fi''',
+]
+test = [
+	{ name = "every node pack loads", run = ["timeout", "600", "venv/bin/python", "main.py", "--quick-test-for-ci", "--cpu"], fail_on = "IMPORT FAILED|Traceback", timeout_s = 660 },
+	{ name = "torch still sees CUDA", run = ["venv/bin/python", "-c", "import torch; assert torch.cuda.is_available()"], timeout_s = 120 },
+]
+note = "Updating pauses the image queue (sd-api) for a few minutes."
