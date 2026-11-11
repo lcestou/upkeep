@@ -187,14 +187,16 @@ function unknownPlaceholder(table: Record<string, unknown>): { name: string; fie
 
 /** A table path as written, with no trailing slash and no leading ./, so two can be compared before ~ is known. */
 const tidy = (p: string) => p.replace(/\/+$/, "").replace(/^(\.\/)+/, "") || ".";
+/** A table path that names its own root (absolute or under ~); any other is taken inside dir. */
 const rooted = (p: string) => p.startsWith("/") || p === "~" || p.startsWith("~/");
+/** Strictly inside root, as written: root itself is not within root. */
 const within = (p: string, root: string) => p.startsWith(`${root}/`);
 
 /**
  * The load-time half of the path checks built.ts and tree.ts repeat where each path is used: keep, hold and prune
  * stay strictly inside dir (inside the stage's parent for a table with no dir), and the stage is never the home
- * directory, dir or a live place target, or above one. Compared as written, so dir = "/home/me/x" with keep =
- * "~/x/y" is refused although it is inside; write both the same way.
+ * directory, dir or a live place target, or above one. Compared as written, so an absolute dir with a keep under ~
+ * is refused even when it is inside; write both the same way.
  */
 function unsafeSourcePath(key: string, spec: AppSpec): string | null {
 	const dir = spec.dir === undefined ? null : tidy(spec.dir);
