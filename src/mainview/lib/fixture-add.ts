@@ -97,6 +97,33 @@ const unknown = (path: string): Suggestion => {
 	};
 };
 
+const BTOP_PATH = "/home/owner/.local/bin/btop";
+
+/** The scanned program with a second asset to pick: the card's select asks for it again by its path. */
+function btop(asset?: string): Suggestion {
+	const gnu = asset?.includes("gnu") ?? false;
+	const name = gnu ? "btop-x86_64-linux-gnu.tar.gz" : "btop-x86_64-linux-musl.tar.gz";
+	return {
+		spec: {
+			key: "btop",
+			name: "btop",
+			kind: "archive",
+			repo: "aristocratic/btop",
+			asset: gnu ? "^btop-x86_64-linux-gnu\\.tar\\.gz$" : "^btop-x86_64-linux-musl\\.tar\\.gz$",
+			dest: "~/.local/bin/btop",
+			bins: ["btop"],
+		},
+		installed: null,
+		latest: "1.4.5",
+		asset: { name, size: gnu ? 1_511_904 : 1_402_210 },
+		alternatives: [gnu ? "btop-x86_64-linux-musl.tar.gz" : "btop-x86_64-linux-gnu.tar.gz"],
+		source: "scan",
+		path: BTOP_PATH,
+		confidence: "sure",
+		why: `The release names this file. Matched ${name} for this machine. Found it installed at ~/.local/bin/btop.`,
+	};
+}
+
 export const PICKED = "/home/owner/Downloads/Obsidian-1.9.4.AppImage";
 
 export function suggestFor(input: string, asset: string | undefined, has: (key: string) => boolean) {
@@ -128,6 +155,7 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 		return { suggestions: [], problem: "No asset of example/mac-only's latest release runs on this machine." };
 	if (/^burntsushi\/ripgrep/i.test(text)) return { suggestions: [ripgrep(asset)] };
 	if (/^obsidianmd\/obsidian-releases/i.test(text)) return { suggestions: [obsidian(asset)] };
+	if (text === BTOP_PATH) return { suggestions: [btop(asset)] };
 	if (text === "nobody/nothing") return { suggestions: [], problem: "nobody/nothing has no published release." };
 	if (/\.AppImage$/i.test(text) && (text.startsWith("/") || text.startsWith("~/") || text.startsWith("file://")))
 		return { suggestions: [fromFile(text.replace(/^file:\/\//, ""))] };
@@ -137,28 +165,9 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 /** Four files with no source found (the common case on a real box) and two sure ones. */
 export function scanResults(onlyUnknown = false): Suggestion[] {
 	if (onlyUnknown) return [unknown("/home/owner/.local/bin/mytool"), unknown("/home/owner/bin/backup-sync")];
-	const btop: Suggestion = {
-		spec: {
-			key: "btop",
-			name: "btop",
-			kind: "archive",
-			repo: "aristocratic/btop",
-			asset: "^btop-x86_64-linux-musl\\.tar\\.gz$",
-			dest: "~/.local/bin/btop",
-			bins: ["btop"],
-		},
-		installed: null,
-		latest: "1.4.5",
-		asset: { name: "btop-x86_64-linux-musl.tar.gz", size: 1_402_210 },
-		alternatives: [],
-		source: "scan",
-		path: "/home/owner/.local/bin/btop",
-		confidence: "sure",
-		why: "The release names this file. Matched btop-x86_64-linux-musl.tar.gz for this machine. Found it installed at ~/.local/bin/btop.",
-	};
 	return [
 		{ ...fromFile("/home/owner/Applications/Obsidian-1.9.4.AppImage"), source: "scan" },
-		btop,
+		btop(),
 		unknown("/home/owner/.local/bin/mytool"),
 		unknown("/home/owner/.local/bin/ytdl"),
 		unknown("/home/owner/bin/backup-sync"),

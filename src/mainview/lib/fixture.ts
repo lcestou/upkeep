@@ -603,7 +603,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				version: "0.1.0",
 			}) satisfies Snapshot,
 		check: ({ keys }) => {
-			if (run.phase !== "idle") return { started: false };
+			if (run.phase === "checking" || run.phase === "installing") return { started: false };
 			void runCheck(keys);
 			return { started: true };
 		},
