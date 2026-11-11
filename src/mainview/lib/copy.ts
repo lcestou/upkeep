@@ -16,6 +16,7 @@ export const KIND_LABEL: Record<AppKind, string> = {
 export const STAGE_NAME: Record<Stage, string> = {
 	download: "Download",
 	backup: "Back up",
+	build: "Build",
 	install: "Install",
 	verify: "Verify",
 };
@@ -187,6 +188,8 @@ export function workingText(stage: Stage | undefined, pct: number | null | undef
 	switch (stage) {
 		case "backup":
 			return "Backing up";
+		case "build":
+			return "Building";
 		case "install":
 			return "Installing";
 		case "verify":

@@ -1,6 +1,6 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { AppKind, AppSpec } from "../shared/types";
+import type { AppKind, AppSpec, Serve, Service, Test } from "../shared/types";
 import type { Paths } from "./paths";
 
 const KINDS: readonly AppKind[] = ["appimage", "archive", "file", "deb", "source", "command", "legacy", "manual"];
@@ -20,6 +20,10 @@ const STRING_FIELDS = [
 ] as const;
 const LIST_FIELDS = ["bins", "version_args", "build", "check", "update"] as const;
 const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing"] as const;
+// Read only for kind source.
+const SOURCE_STRINGS = ["dir", "stage"] as const;
+const SOURCE_LISTS = ["commit", "prune", "needs", "keep", "hold", "undo", "check_built"] as const;
+const MOVES = ["ff", "reset", "detach"] as const;
 
 type Field = keyof AppSpec;
 
@@ -32,7 +36,8 @@ function required(kind: AppKind, versionless: boolean): Field[] {
 		case "archive":
 			return ["repo", "asset", "dest", "bins"];
 		case "source":
-			return ["repo", "dest", "build"];
+			// A checkout row reads its version with check; a clone row probes dest, as tmux and cava do.
+			return ["build"];
 		case "command":
 			return ["check", "latest", "update"];
 		case "legacy":
@@ -82,7 +87,153 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 			return `${key}: asset is not a valid regular expression`;
 		}
 	}
+	if (spec.kind === "source") {
+		const refused = liftSource(key, table, spec);
+		if (refused) return refused;
+	}
 	return spec;
+}
+
+const str = (v: unknown): v is string => typeof v === "string" && v !== "";
+const strs = (v: unknown): v is string[] => Array.isArray(v) && v.length > 0 && v.every((x) => typeof x === "string");
+const validPattern = (p: unknown) => {
+	if (p === undefined) return true;
+	if (typeof p !== "string") return false;
+	try {
+		RegExp(p);
+		return true;
+	} catch {
+		return false;
+	}
+};
+
+type Entry = Record<string, unknown>;
+/** One list-of-tables entry: the lifted value, the key it misses, or "pattern" for a bad expect or fail_on. */
+type Lifted<T> = T | { missing: string } | "pattern";
+
+function liftTest(e: Entry): Lifted<Test> {
+	if (!strs(e.run) && !str(e.url)) return { missing: "run or url" };
+	if (!validPattern(e.expect) || !validPattern(e.fail_on)) return "pattern";
+	const t: Test = {};
+	if (str(e.name)) t.name = e.name;
+	if (strs(e.run)) t.run = e.run;
+	if (str(e.url)) t.url = e.url;
+	if (typeof e.body === "string") t.body = e.body;
+	if (typeof e.expect === "string") t.expect = e.expect;
+	if (typeof e.fail_on === "string") t.fail_on = e.fail_on;
+	if (typeof e.timeout_s === "number") t.timeout_s = e.timeout_s;
+	if (typeof e.required === "boolean") t.required = e.required;
+	return t;
+}
+
+function liftService(e: Entry, needStart: boolean): Lifted<Service> {
+	for (const k of ["name", "active", "stop", ...(needStart ? ["start"] : [])])
+		if (k === "name" ? !str(e[k]) : !strs(e[k])) return { missing: k };
+	const s: Service = { name: e.name as string, active: e.active as string[], stop: e.stop as string[] };
+	if (strs(e.start)) s.start = e.start;
+	if (strs(e.since)) s.since = e.since;
+	return s;
+}
+
+/** The source kind's own fields and rules. Returns the refusal, or null with spec filled in. */
+function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec): string | null {
+	for (const f of SOURCE_STRINGS) {
+		const v = table[f];
+		if (v === undefined) continue;
+		if (typeof v !== "string") return `${key}: ${f} must be a string`;
+		spec[f] = v;
+	}
+	for (const f of SOURCE_LISTS) {
+		const v = table[f];
+		if (v === undefined) continue;
+		if (!Array.isArray(v) || !v.every((x) => typeof x === "string")) return `${key}: ${f} must be a list of strings`;
+		spec[f] = v as string[];
+	}
+	if (!spec.check && !spec.dest) return `${key}: check or dest is required for kind source`;
+	if (!spec.repo && !spec.latest) return `${key}: repo or latest is required for kind source`;
+	if (table.move !== undefined) {
+		if (!MOVES.includes(table.move as (typeof MOVES)[number])) return `${key}: move must be ff, reset or detach`;
+		if (spec.dir === undefined) return `${key}: move needs dir`;
+		spec.move = table.move as AppSpec["move"];
+	}
+	if (spec.commit && !spec.repo) return `${key}: commit needs a GitHub repo`;
+
+	// Lists of tables: each entry is checked, then lifted with only the keys it may carry.
+	const each = <T>(field: string, lift1: (e: Entry) => Lifted<T>): T[] | string | undefined => {
+		const v = table[field];
+		if (v === undefined) return undefined;
+		if (!Array.isArray(v)) return `${key}: ${field} entry 1 needs to be a table`;
+		const out: T[] = [];
+		for (const [i, e] of v.entries()) {
+			const r = isRecord(e) ? lift1(e) : { missing: "to be a table" };
+			if (r === "pattern") return `${key}: ${field} entry ${i + 1} has an invalid pattern`;
+			if (typeof r === "object" && r !== null && "missing" in r)
+				return `${key}: ${field} entry ${i + 1} needs ${r.missing}`;
+			out.push(r as T);
+		}
+		return out;
+	};
+	const record = each("record", (e) =>
+		!str(e.file) ? { missing: "file" } : !strs(e.run) ? { missing: "run" } : { file: e.file, run: e.run },
+	);
+	const config = each("config", (e) => {
+		if (!str(e.file)) return { missing: "file" };
+		if (!["string", "number", "boolean"].includes(typeof e.value)) return { missing: "value" };
+		if (!str(e.key) && !(str(e.array) && str(e.flag))) return { missing: "key or array and flag" };
+		const c: NonNullable<AppSpec["config"]>[number] = { file: e.file, value: e.value as string | number | boolean };
+		if (str(e.key)) c.key = e.key;
+		if (str(e.array)) c.array = e.array;
+		if (str(e.flag)) c.flag = e.flag;
+		return c;
+	});
+	const place = each("place", (e) =>
+		!str(e.from) ? { missing: "from" } : !str(e.to) ? { missing: "to" } : { from: e.from, to: e.to },
+	);
+	const busy = each("busy", (e) => {
+		if (!str(e.say)) return { missing: "say" };
+		if (!str(e.process) && !strs(e.run)) return { missing: "process or run" };
+		const b: NonNullable<AppSpec["busy"]>[number] = { say: e.say };
+		if (str(e.process)) b.process = e.process;
+		if (strs(e.run)) b.run = e.run;
+		if (e.when === "stopped") b.when = "stopped";
+		return b;
+	});
+	if (Array.isArray(table.busy)) {
+		const i = table.busy.findIndex((e) => isRecord(e) && e.when !== undefined && e.when !== "stopped");
+		if (i >= 0 && typeof busy !== "string") return `${key}: busy entry ${i + 1} when must be stopped`;
+	}
+	const pause = each("pause", (e) => liftService(e, false));
+	const test = each("test", liftTest);
+	const serve = each("serve", (e): Lifted<Serve> => {
+		const svc = liftService(e, true);
+		if (typeof svc === "string" || "missing" in svc) return svc;
+		if (!validPattern(e.expect)) return "pattern";
+		const sv: Serve = { ...svc, start: svc.start as string[] };
+		if (str(e.health)) sv.health = e.health;
+		if (typeof e.status === "number") sv.status = e.status;
+		if (typeof e.expect === "string") sv.expect = e.expect;
+		if (typeof e.wait_s === "number") sv.wait_s = e.wait_s;
+		if (e.test !== undefined) {
+			if (!Array.isArray(e.test)) return { missing: "test as a list of tables" };
+			const tests: Test[] = [];
+			for (const t of e.test) {
+				const r = isRecord(t) ? liftTest(t) : { missing: "test as a list of tables" };
+				if (r === "pattern" || "missing" in r) return r;
+				tests.push(r);
+			}
+			sv.test = tests;
+		}
+		return sv;
+	});
+	for (const r of [record, config, place, busy, pause, test, serve]) if (typeof r === "string") return r;
+	if (record) spec.record = record as AppSpec["record"];
+	if (config) spec.config = config as AppSpec["config"];
+	if (place) spec.place = place as AppSpec["place"];
+	if (busy) spec.busy = busy as AppSpec["busy"];
+	if (pause) spec.pause = pause as AppSpec["pause"];
+	if (test) spec.test = test as AppSpec["test"];
+	if (serve) spec.serve = serve as AppSpec["serve"];
+	return null;
 }
 
 /** Reads apps.toml. A bad table is left out and named in errors; the rest still load. */
@@ -134,7 +285,8 @@ export function tomlTable(spec: AppSpec): string {
 		if (v === undefined) continue;
 		let text: string;
 		if (typeof v === "boolean") text = String(v);
-		else if (Array.isArray(v)) text = `[${v.map(basic).join(", ")}]`;
+		// ORDER holds only string, list-of-string and boolean fields.
+		else if (Array.isArray(v)) text = `[${(v as string[]).map(basic).join(", ")}]`;
 		else if (f === "asset" && !v.includes("'") && !v.includes("\n")) text = `'${v}'`;
 		else text = basic(String(v));
 		lines.push(`${f} = ${text}`);

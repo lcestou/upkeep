@@ -839,6 +839,8 @@ function stageLog(app: AppState, stage: Stage): string {
 			return `Downloading ${app.name} ${app.latest ?? ""}.`;
 		case "backup":
 			return `Copied ${app.installed ?? ""} to restore point.`;
+		case "build":
+			return "Running the build steps.";
 		case "install":
 			return app.kind === "legacy" ? `Running lutechi-updater ${app.key}.` : `Installing ${app.latest ?? ""}.`;
 		case "verify":

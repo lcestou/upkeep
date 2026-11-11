@@ -29,6 +29,8 @@ export type ReleaseOpts = {
 	onRate?: (rate: Rate) => void;
 	/** Tests point this at a local server. The token is only ever sent to the real one. */
 	api?: string;
+	/** npm-tags: the installed version, so the pick is never older than it. */
+	installed?: string;
 };
 
 const GITHUB_API = "https://api.github.com";
@@ -79,6 +81,107 @@ function readCache(file: string): Cached | null {
 	}
 }
 
+type RateRead = { hasRate: boolean; remaining: number; resetAt?: string };
+
+function readRate(res: Response, opts: ReleaseOpts): RateRead {
+	const limit = Number(res.headers.get("x-ratelimit-limit"));
+	const remaining = Number(res.headers.get("x-ratelimit-remaining"));
+	const hasRate = res.headers.has("x-ratelimit-remaining") && Number.isFinite(limit) && Number.isFinite(remaining);
+	if (hasRate) opts.onRate?.({ limit, remaining });
+	const reset = Number(res.headers.get("x-ratelimit-reset"));
+	return { hasRate, remaining, resetAt: reset > 0 ? new Date(reset * 1000).toISOString() : undefined };
+}
+
+/** Only an error answer can be a rate limit: release notes may quote the phrase. */
+function rateFailure(res: Response, text: string, rate: RateRead): Failure | null {
+	if (
+		!res.ok &&
+		(text.includes("API rate limit exceeded") ||
+			text.includes("secondary rate limit") ||
+			((res.status === 403 || res.status === 429) && rate.hasRate && rate.remaining === 0))
+	)
+		return {
+			failure: "rate",
+			detail: "GitHub's request limit is used up. Try again after it resets.",
+			resetAt: rate.resetAt,
+		};
+	return null;
+}
+
+/** A GitHub API GET with the token, the budget headers and the rate rules of fetchRelease. */
+async function githubJson(path: string, opts: ReleaseOpts): Promise<{ status: number; body: unknown } | Failure> {
+	const api = opts.api ?? GITHUB_API;
+	const headers: Record<string, string> = { Accept: "application/vnd.github+json", "User-Agent": "upkeep" };
+	if (opts.token && api === GITHUB_API) headers.Authorization = `Bearer ${opts.token}`;
+	let res: Response;
+	try {
+		res = await opts.fetch(`${api}${path}`, { headers });
+	} catch (err) {
+		return {
+			failure: "network",
+			detail: `Could not reach GitHub: ${err instanceof Error ? err.message : String(err)}`,
+		};
+	}
+	const text = await res.text();
+	const limited = rateFailure(res, text, readRate(res, opts));
+	if (limited) return limited;
+	try {
+		return { status: res.status, body: res.ok ? JSON.parse(text) : null };
+	} catch {
+		return { failure: "http", detail: `GitHub sent an answer for ${path} that is not JSON.` };
+	}
+}
+
+export type Comparison = {
+	status: "ahead" | "behind" | "identical" | "diverged";
+	ahead: number;
+	commits: { sha: string; title: string }[];
+};
+
+/** How far head is ahead of base on GitHub, with up to 30 of the newest commits up to head. base is a sha or a tag. */
+export async function compareRefs(
+	repo: string,
+	base: string,
+	head: string,
+	opts: ReleaseOpts,
+): Promise<Comparison | Failure> {
+	const cmp = await githubJson(`/repos/${repo}/compare/${base}...${head}?per_page=1`, opts);
+	if (isFailure(cmp)) return cmp;
+	if (cmp.status === 404) return { failure: "http", detail: `GitHub does not know ${base} in ${repo}.` };
+	if (cmp.status !== 200) return { failure: "http", detail: `GitHub answered ${cmp.status} for ${repo}.` };
+	const c = (typeof cmp.body === "object" && cmp.body !== null ? cmp.body : {}) as Record<string, unknown>;
+	const status = c.status;
+	if (status !== "ahead" && status !== "behind" && status !== "identical" && status !== "diverged")
+		return { failure: "http", detail: `GitHub sent no comparison for ${repo}.` };
+	const ahead = typeof c.ahead_by === "number" ? c.ahead_by : 0;
+	if (ahead === 0) return { status, ahead, commits: [] };
+	// Compare lists oldest first and stops at 250; the commits endpoint is newest first.
+	const list = await githubJson(`/repos/${repo}/commits?sha=${head}&per_page=30`, opts);
+	if (isFailure(list)) return list;
+	if (list.status !== 200 || !Array.isArray(list.body))
+		return { failure: "http", detail: `GitHub answered ${list.status} for ${repo}.` };
+	const commits = (list.body as Record<string, unknown>[]).slice(0, Math.min(30, ahead)).map((x) => {
+		const commit = (typeof x.commit === "object" && x.commit !== null ? x.commit : {}) as Record<string, unknown>;
+		return { sha: str(x.sha), title: str(commit.message).split("\n")[0] ?? "" };
+	});
+	return { status, ahead, commits };
+}
+
+const highest = (vs: string[]) => vs.toSorted((a, b) => Bun.semver.order(b, a))[0] ?? null;
+
+/** The dist-tags pick: the highest stable version at or above installed, else the highest prerelease at or above it. */
+export function pickDistTag(tags: Record<string, unknown>, installed?: string): string | null {
+	const ok = (v: string) => {
+		try {
+			return installed === undefined || Bun.semver.order(v, installed) >= 0;
+		} catch {
+			return false;
+		}
+	};
+	const versions = [...new Set(Object.values(tags).filter((v): v is string => typeof v === "string"))].filter(ok);
+	return highest(versions.filter((v) => !v.includes("-"))) ?? highest(versions);
+}
+
 /** releases/latest for owner/repo, revalidated with the cached etag so an unchanged release costs no budget. */
 export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Release | Failure> {
 	const api = opts.api ?? GITHUB_API;
@@ -96,12 +199,7 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 			detail: `Could not reach GitHub: ${err instanceof Error ? err.message : String(err)}`,
 		};
 	}
-	const limit = Number(res.headers.get("x-ratelimit-limit"));
-	const remaining = Number(res.headers.get("x-ratelimit-remaining"));
-	const hasRate = res.headers.has("x-ratelimit-remaining") && Number.isFinite(limit) && Number.isFinite(remaining);
-	if (hasRate) opts.onRate?.({ limit, remaining });
-	const reset = Number(res.headers.get("x-ratelimit-reset"));
-	const resetAt = reset > 0 ? new Date(reset * 1000).toISOString() : undefined;
+	const rate = readRate(res, opts);
 	if (res.status === 304 && cached) {
 		const r = toRelease(cached.body, repo);
 		// A corrupt cache would otherwise stick until upstream's etag changes.
@@ -109,14 +207,8 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 		return r;
 	}
 	const text = await res.text();
-	// Only an error answer can be a rate limit: release notes may quote the phrase.
-	if (
-		!res.ok &&
-		(text.includes("API rate limit exceeded") ||
-			text.includes("secondary rate limit") ||
-			((res.status === 403 || res.status === 429) && hasRate && remaining === 0))
-	)
-		return { failure: "rate", detail: "GitHub's request limit is used up. Try again after it resets.", resetAt };
+	const limited = rateFailure(res, text, rate);
+	if (limited) return limited;
 	if (!res.ok) return { failure: "http", detail: `GitHub answered ${res.status} for ${repo}.` };
 	const etag = res.headers.get("etag");
 	if (etag) {
@@ -169,6 +261,28 @@ export async function latestFromSource(
 		return r.version
 			? { version: r.version, release: r }
 			: { failure: "http", detail: `${name} has no tracked version tag.` };
+	}
+	if (scheme === "npm-tags") {
+		const url = `https://registry.npmjs.org/-/package/${name}/dist-tags`;
+		let tags: unknown;
+		try {
+			const res = await opts.fetch(url, { headers: { Accept: "application/json" } });
+			if (!res.ok) return { failure: "http", detail: `${url} answered ${res.status}.` };
+			tags = await res.json();
+		} catch (err) {
+			return {
+				failure: "network",
+				detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+		const pick = pickDistTag(
+			typeof tags === "object" && tags !== null ? (tags as Record<string, unknown>) : {},
+			opts.installed,
+		);
+		if (pick) return { version: pick };
+		return opts.installed
+			? { failure: "http", detail: `No published version at or above ${opts.installed}.` }
+			: { failure: "http", detail: `${url} sent no version.` };
 	}
 	const url =
 		scheme === "npm"

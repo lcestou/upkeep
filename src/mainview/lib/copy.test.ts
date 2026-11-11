@@ -8,6 +8,8 @@ import {
 	systemAbsent,
 	systemChecked,
 	systemProblem,
+	STAGE_NAME,
+	workingText,
 } from "./copy";
 
 const run = (patch: Partial<RunState>): RunState => ({
@@ -109,4 +111,9 @@ test("the System group's problem lines name the source and end cleanly without a
 	);
 	expect(systemAbsent({ code: "missing", command: "dpkg-query -W" })).toBeNull();
 	expect(systemAbsent({ code: "failed", command: "mintupdate-cli list", detail: "x" })).toBeNull();
+});
+
+test("the build stage is named Build and reads Building while it runs", () => {
+	expect(STAGE_NAME.build).toBe("Build");
+	expect(workingText("build", null)).toBe("Building");
 });
