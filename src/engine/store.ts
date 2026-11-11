@@ -146,7 +146,36 @@ export function releaseLock(paths: Paths, pid = process.pid): void {
 	}
 }
 
-export type Inflight = { key: string; dest: string; backupVersion: string | null };
+export type Inflight = {
+	key: string;
+	dest: string;
+	backupVersion: string | null;
+	tree?: {
+		step: "build" | "stopping" | "placing" | "starting" | "verify";
+		/** The build step running now, so recovery can end its tree first. */
+		build: { pid: number; started: number } | null;
+		/** serve entries that were active when the run began, and pause entries that were held. */
+		active: string[];
+		paused: string[];
+	};
+};
+
+const TREE_STEPS = new Set(["build", "stopping", "placing", "starting", "verify"]);
+const strings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
+
+/** A marker's tree, only when every field has the right type. */
+function treeOf(v: unknown): Inflight["tree"] | undefined {
+	const t = obj<unknown>(v);
+	if (typeof t.step !== "string" || !TREE_STEPS.has(t.step) || !strings(t.active) || !strings(t.paused))
+		return undefined;
+	let build: { pid: number; started: number } | null = null;
+	if (t.build !== null) {
+		const b = obj<unknown>(t.build);
+		if (typeof b.pid !== "number" || typeof b.started !== "number") return undefined;
+		build = { pid: b.pid, started: b.started };
+	}
+	return { step: t.step as NonNullable<Inflight["tree"]>["step"], build, active: t.active, paused: t.paused };
+}
 
 const inflightFile = (paths: Paths) => join(paths.state, "inflight.json");
 
@@ -159,7 +188,15 @@ export function readInflight(paths: Paths): Inflight | null {
 	try {
 		const v = obj<unknown>(JSON.parse(readFileSync(inflightFile(paths), "utf8")));
 		if (typeof v.key !== "string" || typeof v.dest !== "string") return null;
-		return { key: v.key, dest: v.dest, backupVersion: typeof v.backupVersion === "string" ? v.backupVersion : null };
+		const marker: Inflight = {
+			key: v.key,
+			dest: v.dest,
+			backupVersion: typeof v.backupVersion === "string" ? v.backupVersion : null,
+		};
+		// A tree that does not read cleanly is dropped; the rest of the marker still counts.
+		const tree = v.tree === undefined ? undefined : treeOf(v.tree);
+		if (tree) marker.tree = tree;
+		return marker;
 	} catch {
 		return null;
 	}

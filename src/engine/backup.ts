@@ -19,6 +19,17 @@ export type BackupMeta = {
 	at: string;
 	files: { name: string; dest: string; mode: string }[];
 	sudo: boolean;
+	tree?: {
+		/** The app's table as it was at the run, so recovery and restore never depend on a later edit. */
+		spec: AppSpec;
+		dir: string | null;
+		commit: string | null;
+		kept: { rel: string; link: boolean }[];
+		records: string[];
+		needs: string[];
+		/** place targets that were directories, saved under the point as placed-<i>. */
+		placed: { to: string; name: string }[];
+	};
 };
 
 function backupDir(paths: Paths, key: string): string {

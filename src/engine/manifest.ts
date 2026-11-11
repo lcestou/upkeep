@@ -134,7 +134,8 @@ export function tomlTable(spec: AppSpec): string {
 		if (v === undefined) continue;
 		let text: string;
 		if (typeof v === "boolean") text = String(v);
-		else if (Array.isArray(v)) text = `[${v.map(basic).join(", ")}]`;
+		// ORDER holds only string, list-of-string and boolean fields.
+		else if (Array.isArray(v)) text = `[${(v as string[]).map(basic).join(", ")}]`;
 		else if (f === "asset" && !v.includes("'") && !v.includes("\n")) text = `'${v}'`;
 		else text = basic(String(v));
 		lines.push(`${f} = ${text}`);
