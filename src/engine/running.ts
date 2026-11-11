@@ -127,3 +127,40 @@ export function earliestStart(
 	}
 	return earliest ?? boot * 1000;
 }
+
+/**
+ * True when a process other than this one, its ancestors and its descendants has text in its command line.
+ * A busy entry's process is matched this way: "ComfyUI/main.py" is an argument of python, not its name.
+ */
+export function argsRunning(text: string, procRoot = "/proc", selfPid = process.pid): boolean {
+	const skip = new Set<number>();
+	for (let p: number | null = selfPid; p !== null && !skip.has(p); p = parentOf(p, procRoot)) skip.add(p);
+	let entries: string[];
+	try {
+		entries = readdirSync(procRoot);
+	} catch {
+		return false;
+	}
+	for (const e of entries) {
+		if (!/^\d+$/.test(e) || skip.has(Number(e))) continue;
+		let ours = false;
+		for (let p = parentOf(Number(e), procRoot), n = 0; p !== null && n < 64; p = parentOf(p, procRoot), n++)
+			if (p === selfPid) {
+				ours = true;
+				break;
+			}
+		if (ours) continue;
+		try {
+			if (
+				readFileSync(join(procRoot, e, "cmdline"), "utf8")
+					.split("\0")
+					.join(" ")
+					.includes(text)
+			)
+				return true;
+		} catch {
+			// gone, or not ours to read
+		}
+	}
+	return false;
+}

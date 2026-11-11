@@ -151,7 +151,7 @@ export type Inflight = {
 	dest: string;
 	backupVersion: string | null;
 	tree?: {
-		step: "build" | "stopping" | "placing" | "starting" | "verify";
+		step: "pause" | "build" | "stopping" | "placing" | "starting" | "verify";
 		/** The build step running now, so recovery can end its tree first. */
 		build: { pid: number; started: number } | null;
 		/** serve entries that were active when the run began, and pause entries that were held. */
@@ -160,7 +160,7 @@ export type Inflight = {
 	};
 };
 
-const TREE_STEPS = new Set(["build", "stopping", "placing", "starting", "verify"]);
+const TREE_STEPS = new Set(["pause", "build", "stopping", "placing", "starting", "verify"]);
 const strings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
 
 /** A marker's tree, only when every field has the right type. */

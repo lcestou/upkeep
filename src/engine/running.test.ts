@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { earliestStart, isRunning } from "./running";
+import { argsRunning, earliestStart, isRunning } from "./running";
 import { tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -80,4 +80,13 @@ test("the earliest start of the app's processes comes from boot time plus clock 
 	// 25050 ticks at 100 per second is 250.5 s after boot.
 	expect(earliestStart({ kind: "file", process: "zen" }, proc, 9)).toBe((1800000000 + 250.5) * 1000);
 	expect(earliestStart({ kind: "file", process: "nope" }, proc, 9)).toBeNull();
+});
+
+test("a busy process is found by text in its command line, never in this process or its children", () => {
+	fakeProc(9, 1, "bun", ["bun", "upkeep"]);
+	fakeProc(700, 9, "python", ["python", "/x/ComfyUI/main.py", "--listen"]);
+	expect(argsRunning("ComfyUI/main.py", proc, 9)).toBe(false);
+	fakeProc(701, 1, "python", ["/usr/bin/python3", "/x/ComfyUI/main.py"]);
+	expect(argsRunning("ComfyUI/main.py", proc, 9)).toBe(true);
+	expect(argsRunning("nothing/like/this", proc, 9)).toBe(false);
 });
