@@ -218,7 +218,7 @@
 			<div class="veil" data-testid="drop-veil" aria-hidden="true"><span>{ADD.drop}</span></div>
 		{/if}
 		{#if m.refusal}
-			<p class="refusal" role="alert">{m.refusal}</p>
+			<p class="refusal" role="alert" data-testid="refusal">{m.refusal}</p>
 		{/if}
 	</div>
 {/if}
