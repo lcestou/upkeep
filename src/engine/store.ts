@@ -333,8 +333,13 @@ const DEFAULT_WEIGHTS: Record<AppKind, [Stage, number][]> = {
 };
 
 /** Stage widths from the last update's timings, each at least 8, summing to 100; the kind's default when there is none. */
-export function stageWeights(history: HistoryRow[], key: string, kind: AppKind): { id: Stage; weight: number }[] {
-	const defaults = DEFAULT_WEIGHTS[kind];
+export function stageWeights(
+	history: HistoryRow[],
+	key: string,
+	kind: AppKind,
+	given?: [Stage, number][],
+): { id: Stage; weight: number }[] {
+	const defaults = given ?? DEFAULT_WEIGHTS[kind];
 	const fallback = defaults.map(([id, weight]) => ({ id, weight }));
 	// history is newest first, as readHistory returns it.
 	const last = history.find((r) => r.key === key && r.result === "updated");

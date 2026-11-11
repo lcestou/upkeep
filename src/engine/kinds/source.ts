@@ -2,7 +2,8 @@ import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import { compareRefs, fetchRelease, isFailure, latestFromSource, type Release } from "../github";
-import { readProbe, stripEscapes } from "../probe";
+import { type ProbeResult, readProbe, stripEscapes } from "../probe";
+import { installBuilt } from "./built";
 import { SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { clearInflight, writeInflight } from "../store";
 import { isNewer } from "../version";
@@ -22,6 +23,24 @@ export function checkSource(spec: AppSpec, ctx: KindCtx): Promise<Checked | null
 	return spec.check ? checkBuilt(spec, ctx) : checkRelease(spec, ctx, false);
 }
 
+/**
+ * The installed version as the table's check prints it, or null when the check reports nothing there (exit 127).
+ * The table's author writes the check, so its first line is the version, taken as written: a commit hash or a
+ * prerelease must not be reshaped ("f2918cabb" would read "2918cabb", "0.2.2-rc.1" "0.2.2"). An empty first line
+ * is unknown. installBuilt's verify reads the version the same way.
+ */
+export async function readInstalled(
+	spec: AppSpec,
+	ctx: Pick<KindCtx, "run">,
+): Promise<{ probe: ProbeResult; installed: string | null } | null> {
+	const out = await ctx.run(spec.check ?? [], { timeoutMs: 10_000, merge: true });
+	if (out.code === 127) return null;
+	const first = stripEscapes(out.stdout).split("\n")[0]?.trim() ?? "";
+	let probe = readProbe(out.code, out.stdout);
+	if ("version" in probe && !first) probe = { state: "unknown", detail: "The version probe printed nothing." };
+	return { probe, installed: "version" in probe ? first : null };
+}
+
 /** Semver order when both sides are semver, so prereleases compare in full; the old script's order otherwise. */
 function newer(installed: string | null, latest: string): boolean {
 	if (installed === null) return false;
@@ -38,17 +57,12 @@ function newer(installed: string | null, latest: string): boolean {
  */
 async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 	const check = spec.check ?? [];
-	const out = await ctx.run(check, { timeoutMs: 10_000, merge: true });
-	if (out.code === 127) {
+	const read = await readInstalled(spec, ctx);
+	if (!read) {
 		ctx.log(`${spec.name} is not installed (${check[0] ?? ""}), skipped.`);
 		return null;
 	}
-	// The table's author writes the check, so it prints exactly the version on its first line, taken as written:
-	// a commit hash or a prerelease must not be reshaped ("f2918cabb" would read "2918cabb", "0.2.2-rc.1" "0.2.2").
-	const first = stripEscapes(out.stdout).split("\n")[0]?.trim() ?? "";
-	let probe = readProbe(out.code, out.stdout);
-	if ("version" in probe && !first) probe = { state: "unknown", detail: "The version probe printed nothing." };
-	const installed = "version" in probe ? first : null;
+	const { probe, installed } = read;
 	const opts = {
 		cacheDir: join(ctx.paths.cache, "github"),
 		token: ctx.token,
@@ -112,8 +126,12 @@ export function nonInteractive(step: string): string {
 	return step.replace(/(^|[;&|]\s*)sudo (?!-n )/g, "$1sudo -n ");
 }
 
-/** Clones the release tag and runs the manifest's build steps. There is no restore point: make install writes many files. */
+/**
+ * Clones the release tag and runs the manifest's build steps. There is no restore point: make install writes many files.
+ * A checkout or stage row goes to installBuilt, which keeps one.
+ */
 export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
+	if (spec.dir || spec.stage) return installBuilt(spec, target, ctx);
 	const dir = join(ctx.paths.cache, "build", spec.key);
 	const clock = stageClock(ctx);
 	const failed = (detail: string): Outcome => {

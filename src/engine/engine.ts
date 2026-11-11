@@ -10,6 +10,7 @@ import type {
 	RunState,
 	Settings,
 	Snapshot,
+	Stage,
 	Suggestion,
 } from "../shared/types";
 import { listBackups, prune, restoreBackup, takeBackup } from "./backup";
@@ -151,6 +152,15 @@ function checkOne(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 			return checkRelease(spec, ctx);
 	}
 }
+
+/** A built app's stages until its first update's timings exist: the build is most of the wait. */
+const BUILT_WEIGHTS: [Stage, number][] = [
+	["download", 5],
+	["backup", 5],
+	["build", 60],
+	["install", 15],
+	["verify", 15],
+];
 
 const resultOf = (r: Outcome["result"]): RunResult["result"] => (r === "done" ? "updated" : r);
 
@@ -305,7 +315,7 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	function buildApp(spec: AppSpec, c: Checked, history: HistoryRow[]): AppState {
 		const state = loadState(paths);
-		const restorable = canRestore(spec.kind);
+		const restorable = canRestore(spec);
 		const app: AppState = {
 			key: spec.key,
 			name: spec.name,
@@ -331,7 +341,12 @@ export function createEngine(deps: EngineDeps): Engine {
 			run: spec.run,
 			note: spec.note,
 			dest: spec.dest,
-			stages: stageWeights(history, spec.key, spec.kind),
+			stages: stageWeights(
+				history,
+				spec.key,
+				spec.kind,
+				restorable && spec.kind === "source" ? BUILT_WEIGHTS : undefined,
+			),
 		};
 		const note = interrupted.get(spec.key);
 		if (note) {
@@ -789,11 +804,11 @@ export function createEngine(deps: EngineDeps): Engine {
 				// A restore is a swap: what is installed now becomes a restore point first, so it can be undone.
 				// What is installed is read from disk: a row can be from the last start's cache, or from before an install.
 				let current = apps.get(key)?.installed ?? null;
-				if (canRestore(spec.kind)) {
+				if (canRestore(spec)) {
 					const now = await probeInstalled(spec, kindCtx(key));
 					current = "version" in now ? now.version : null;
 				}
-				if (canRestore(spec.kind) && current && current !== version) {
+				if (canRestore(spec) && current && current !== version) {
 					const files = installedFiles(spec, destOf(spec, { paths })).filter((f) => existsSync(f));
 					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString());
 				}

@@ -30,9 +30,13 @@ import {
 	type Target,
 } from "./context";
 
-/** appimage, archive and file keep a restore point; deb is owned by dpkg. */
-export function canRestore(kind: AppSpec["kind"]): boolean {
-	return kind === "appimage" || kind === "archive" || kind === "file";
+/**
+ * appimage, archive and file keep a restore point, and so does a source app built in a checkout or a stage.
+ * deb is owned by dpkg, and a source app built in a fresh clone (make install) keeps none.
+ */
+export function canRestore(spec: Pick<AppSpec, "kind" | "dir" | "stage">): boolean {
+	if (spec.kind === "source") return Boolean(spec.dir || spec.stage);
+	return spec.kind === "appimage" || spec.kind === "archive" || spec.kind === "file";
 }
 
 export function destOf(spec: AppSpec, ctx: Pick<KindCtx, "paths">): string {
@@ -144,7 +148,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 	const clock = stageClock(ctx);
 	const dl = join(ctx.paths.cache, "dl", `${spec.key}-${asset.name}`);
 	const extract = join(ctx.paths.cache, "dl", `${spec.key}-x`);
-	const restorable = canRestore(spec.kind);
+	const restorable = canRestore(spec);
 	const bins = spec.kind === "archive" ? (spec.bins ?? []) : [];
 	const targets = installedFiles(spec, dest);
 	let backupVersion: string | null = null;
@@ -279,7 +283,7 @@ async function rollBack(
 ): Promise<Omit<Outcome, "stages">> {
 	// Only the point this run took: an older one may be another version or another dest.
 	const point = backupVersion;
-	if (point && canRestore(spec.kind)) {
+	if (point && canRestore(spec)) {
 		const r = await restoreBackup(ctx.paths, spec, point, ctx.run);
 		if (r.ok)
 			return {
@@ -293,7 +297,7 @@ async function rollBack(
 	return {
 		result: "failed",
 		installed: target.from,
-		detail: canRestore(spec.kind)
+		detail: canRestore(spec)
 			? "Would not start after the update. No restore point was taken."
 			: "Would not start after the update. No restore point for this kind.",
 		restartToApply: false,

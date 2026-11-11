@@ -1,10 +1,25 @@
-import { lstatSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import type { AppSpec, Serve, Service } from "../../shared/types";
-import { asRootArgv, type Run, type RunOpts } from "../run";
+import { existsSync, lstatSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import type { AppSpec, Serve, Service, Test } from "../../shared/types";
+import { listBackups, prune, readMeta } from "../backup";
+import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
 import { argsRunning } from "../running";
 import { clearInflight, type Inflight, startTime, writeInflight } from "../store";
-import type { KindCtx, Outcome, Target } from "./context";
-import { expandGlob, fill, resolvePath, takeTree, type Tree, type TreeCtx, revertFiles, type Vars } from "./tree";
+import { type KindCtx, type Outcome, stageClock, type Target } from "./context";
+import { readInstalled } from "./source";
+import {
+	expandGlob,
+	fill,
+	notePlaced,
+	pointOf,
+	resolvePath,
+	restoreTree,
+	revertFiles,
+	takeTree,
+	type Tree,
+	type TreeCtx,
+	type Vars,
+} from "./tree";
 
 export const SUDO_REFUSED = "sudo needs a password here, so nothing was stopped or changed.";
 
@@ -322,3 +337,261 @@ export const failedBefore = (target: Target, detail: string): Omit<Outcome, "sta
 	detail,
 	restartToApply: false,
 });
+
+/** The probe's name when the version did not move. */
+const VERSION_CHECK = "the version check";
+
+/** Polls health every 2 s until it answers status (default 200) with expect matching, within wait_s (default 120). */
+async function healthy(svc: Serve, ctx: KindCtx): Promise<boolean> {
+	if (!svc.health) return true;
+	const until = Date.now() + (svc.wait_s ?? 120) * 1000;
+	const want = svc.status ?? 200;
+	for (;;) {
+		try {
+			// oxlint-disable-next-line no-await-in-loop -- polling until it answers or the time is up
+			const res = await ctx.fetch(svc.health, { signal: AbortSignal.timeout(10_000) });
+			// oxlint-disable-next-line no-await-in-loop -- the body of this one answer
+			const body = await res.text();
+			if (res.status === want && (!svc.expect || new RegExp(svc.expect).test(body))) return true;
+		} catch {
+			// not up yet
+		}
+		if (Date.now() >= until) return false;
+		// oxlint-disable-next-line no-await-in-loop -- polling every 2 s
+		await Bun.sleep(Math.min(2000, Math.max(0, until - Date.now())));
+	}
+}
+
+/** One test: a command (exit 0, expect matched, fail_on not) or a POST (2xx, expect matched, fail_on not). */
+async function passes(test: Test, ctx: KindCtx, built: Built): Promise<boolean> {
+	const timeoutMs = (test.timeout_s ?? 600) * 1000;
+	let text = "";
+	if (test.run) {
+		const r = await tracked(
+			ctx.run,
+			built.marker,
+			test.run.map((a) => fill(a, built.vars)),
+			{
+				cwd: built.dir ?? ctx.paths.home,
+				timeoutMs,
+				killTree: true,
+				merge: true,
+			},
+		);
+		if (r.code !== 0) return false;
+		text = r.stdout;
+	} else if (test.url) {
+		try {
+			const res = await ctx.fetch(test.url, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: test.body,
+				signal: AbortSignal.timeout(timeoutMs),
+			});
+			text = await res.text();
+			if (!res.ok) return false;
+		} catch {
+			return false;
+		}
+	}
+	if (test.expect && !new RegExp(test.expect).test(text)) return false;
+	if (test.fail_on && new RegExp(test.fail_on).test(text)) return false;
+	return true;
+}
+
+const testName = (t: Test) => t.name ?? t.url ?? t.run?.[0] ?? "a test";
+
+/**
+ * After a verified update: build directories prune names, except what needs prints now (live) and what any kept
+ * restore point names. Skipped, with a log line, when needs fails, prints nothing or names a missing directory:
+ * deleting the live build would be far worse than leaving old ones.
+ */
+async function pruneBuilds(spec: AppSpec, ctx: KindCtx, built: Built): Promise<void> {
+	if (!spec.prune?.length) return;
+	if (!spec.needs) {
+		ctx.log("Not pruning: the table has no needs to say what is live.");
+		return;
+	}
+	const r = await ctx.run(spec.needs, { timeoutMs: 60_000 });
+	const live =
+		r.code === 0
+			? r.stdout
+					.split("\n")
+					.map((l) => l.trim())
+					.filter(Boolean)
+			: [];
+	if (live.length === 0 || live.some((d) => !existsSync(d))) {
+		ctx.log("Not pruning: needs did not name a live build directory.");
+		return;
+	}
+	const kept = new Set(live);
+	for (const p of listBackups(ctx.paths, spec.key))
+		for (const d of readMeta(pointOf(ctx.paths, spec.key, p.version))?.tree?.needs ?? []) kept.add(d);
+	for (const pattern of spec.prune)
+		for (const d of expandGlob(pattern, ctx.paths, built.dir)) {
+			if (kept.has(d) || !lstatSync(d).isDirectory()) continue;
+			ctx.log(`Pruned ${d}`);
+			rmSync(d, { recursive: true, force: true });
+		}
+}
+
+/**
+ * Installs a built app from a checkout or a stage: prepareBuilt, then stop, place, start, verify. A failure
+ * after the first stop puts the restore point back and starts the old version; when that start fails too, every
+ * unit that was running is started anyway and the row says the putting back failed.
+ */
+export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
+	const clock = stageClock(ctx);
+	const finish = (o: Omit<Outcome, "stages">): Outcome => ({ ...o, stages: clock.stop() });
+	const prepared = await prepareBuilt(spec, target, ctx, clock);
+	if ("failed" in prepared) return finish(failedBefore(target, prepared.failed));
+	const built = prepared;
+	const { marker, point } = built;
+	const from = target.from ?? "the old version";
+	const stopped: { svc: Serve; since: string }[] = [];
+
+	const startPaused = async () => {
+		for (const p of built.paused.toReversed())
+			// oxlint-disable-next-line no-await-in-loop -- in reverse order of the stops
+			if (p.start && !(await startService(ctx.run, { ...p, start: p.start })))
+				ctx.log(`Could not start ${p.name} again.`);
+	};
+	/** Before anything was placed: start what was stopped, put the files back, start what was paused. */
+	const undoStop = async (detail: string): Promise<Outcome> => {
+		for (const s of stopped)
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			if (!(await startService(ctx.run, s.svc))) ctx.log(`Could not start ${s.svc.name} again.`);
+		try {
+			await revertFiles(point, built.treeCtx);
+		} catch (err) {
+			ctx.log(`Putting the files back failed: ${err instanceof Error ? err.message : String(err)}`);
+		}
+		await startPaused();
+		marker.clear();
+		return finish(failedBefore(target, detail));
+	};
+	/** After the new files were in place: stop what runs, restore the point, start the old version and prove it. */
+	const rollBack = async (detail: string): Promise<Outcome> => {
+		marker.step("stopping");
+		const before = new Map<string, string>();
+		for (const s of stopped) {
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			if (await isActive(ctx.run, s.svc)) await stopService(ctx.run, s.svc);
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			before.set(s.svc.name, s.svc.since ? (await ctx.run(s.svc.since, { timeoutMs: 30_000 })).stdout.trim() : "");
+		}
+		marker.step("placing");
+		let broken: string | null = null;
+		try {
+			await restoreTree(point, built.treeCtx);
+		} catch (err) {
+			ctx.log(`Restoring ${from} failed: ${err instanceof Error ? err.message : String(err)}`);
+			broken = stopped[0]?.svc.name ?? spec.name;
+		}
+		marker.step("starting");
+		for (const s of stopped) {
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			const up = (await startService(ctx.run, s.svc)) && (await healthy(s.svc, ctx));
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			const since = s.svc.since ? (await ctx.run(s.svc.since, { timeoutMs: 30_000 })).stdout.trim() : "";
+			if (!up || (s.svc.since && since === before.get(s.svc.name))) {
+				ctx.log(`${s.svc.name} did not answer after putting ${from} back.`);
+				broken ??= s.svc.name;
+			}
+		}
+		await startPaused();
+		marker.clear();
+		if (broken)
+			return finish({
+				result: "failed",
+				installed: target.from,
+				detail: `Would not start after the update, and putting ${from} back failed: ${broken} did not answer. See the log.`,
+				restartToApply: false,
+			});
+		return finish({ result: "rolled_back", installed: target.from, detail, restartToApply: false });
+	};
+
+	clock.start("install");
+	marker.step("stopping");
+	for (const a of built.active) {
+		// oxlint-disable-next-line no-await-in-loop -- services stop in table order
+		if (!(await stopService(ctx.run, a.svc))) return undoStop(`Could not stop ${a.svc.name}. Nothing was changed.`);
+		stopped.push(a);
+	}
+	const busyStopped = await busyNow(spec, ctx, true);
+	if (busyStopped) return undoStop(`${busyStopped} Nothing was changed.`);
+	marker.step("placing");
+	try {
+		for (const [i, pl] of (spec.place ?? []).entries()) {
+			const src = resolvePath(fill(pl.from, built.vars), ctx.paths, built.dir);
+			const to = resolvePath(fill(pl.to, built.vars), ctx.paths, built.dir);
+			if (lstatSync(src).isDirectory()) {
+				// The replaced directory goes into the restore point, so a rollback renames it back.
+				if (existsSync(to)) {
+					renameSync(to, join(point, `placed-${i}`));
+					notePlaced(point, { to, name: `placed-${i}` });
+				}
+				renameSync(src, to);
+			} else {
+				const mode = existsSync(to) ? (statSync(to).mode & 0o7777).toString(8) : "755";
+				// oxlint-disable-next-line no-await-in-loop -- one place at a time
+				const r = await installAside(ctx.run, src, to, mode, false);
+				if (r.code !== 0) throw new Error(firstLine(r.stderr || r.stdout));
+			}
+		}
+	} catch (err) {
+		ctx.log(`place: ${err instanceof Error ? err.message : String(err)}`);
+		return rollBack(`Could not put the new files in place. Restored ${from}.`);
+	}
+	marker.step("starting");
+	for (const s of stopped)
+		// oxlint-disable-next-line no-await-in-loop -- services start in table order
+		if (!(await startService(ctx.run, s.svc))) return rollBack(`Would not start after the update. Restored ${from}.`);
+	for (const h of spec.hold ?? [])
+		rmSync(`${resolvePath(h, ctx.paths, built.dir)}.upkeep-live`, { recursive: true, force: true });
+
+	clock.start("verify");
+	marker.step("verify");
+	for (const s of stopped) {
+		if (s.svc.since) {
+			// A restart counts only when since moved: the old process still answering health proves nothing.
+			// oxlint-disable-next-line no-await-in-loop -- one unit at a time
+			const now = (await ctx.run(s.svc.since, { timeoutMs: 30_000 })).stdout.trim();
+			if (now === s.since) return rollBack(`Would not start after the update. Restored ${from}.`);
+		}
+		// oxlint-disable-next-line no-await-in-loop -- one unit at a time
+		if (!(await healthy(s.svc, ctx))) return rollBack(`Would not start after the update. Restored ${from}.`);
+		for (const test of s.svc.test ?? []) {
+			// oxlint-disable-next-line no-await-in-loop -- tests run in order
+			if (await passes(test, ctx, built)) continue;
+			if (test.required === false) ctx.log(`Test did not pass (not required): ${testName(test)}`);
+			else return rollBack(`Failed its test after the update: ${testName(test)}. Restored ${from}.`);
+		}
+	}
+	for (const test of spec.test ?? []) {
+		// URL tests need a running service; with nothing in serve running they are skipped.
+		if (test.url && stopped.length === 0) continue;
+		// oxlint-disable-next-line no-await-in-loop -- tests run in order
+		if (await passes(test, ctx, built)) continue;
+		if (test.required === false) ctx.log(`Test did not pass (not required): ${testName(test)}`);
+		else return rollBack(`Failed its test after the update: ${testName(test)}. Restored ${from}.`);
+	}
+	// The version is read as checkBuilt reads it and compared as written: a commit hash is not a version to reshape.
+	const after = await readInstalled(spec, ctx);
+	const installed = after?.installed ?? null;
+	if (installed === null || (installed === target.from && target.from !== target.version))
+		return rollBack(`Failed its test after the update: ${VERSION_CHECK}. Restored ${from}.`);
+	prune(ctx.paths, spec.key, ctx.settings.keepBackups);
+	await pruneBuilds(spec, ctx, built);
+	await startPaused();
+	marker.clear();
+	return finish({
+		result: "done",
+		installed,
+		detail:
+			stopped.length === 0 && (spec.serve?.length ?? 0) > 0
+				? "Updated without a restart: none of its services was running."
+				: undefined,
+		restartToApply: false,
+	});
+}
