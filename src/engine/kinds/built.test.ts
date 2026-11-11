@@ -102,6 +102,12 @@ function ctx(run: KindCtx["run"]): KindCtx {
 	};
 }
 const clock = { start: () => {} };
+
+/** A process in the fake /proc with the start tick recovery compares. */
+function liveProc(pid: number, started: number): void {
+	mkdirSync(join(proc, String(pid)), { recursive: true });
+	writeFileSync(join(proc, String(pid), "stat"), `${pid} (x) S 1 1 1 0 -1 0 0 0 0 0 0 0 0 0 20 0 1 0 ${started} 0 0`);
+}
 const argvs = (calls: { argv: string[] }[]) => calls.map((c) => c.argv.join(" "));
 
 test("a build that fails its check stops nothing in serve, puts the files back and starts what it paused", async () => {
@@ -145,6 +151,7 @@ test("the marker exists with step pause and names the unit before the first paus
 });
 
 test("the fetch, a record step and a build step each put their pid in the marker while they run", async () => {
+	for (const pid of [101, 102, 103]) liveProc(pid, 500 + pid);
 	const b = box();
 	const r = (await prepareBuilt(spec(), target, ctx(b.run), clock)) as Built;
 	const seen = (prefix: string) =>
@@ -253,4 +260,20 @@ test("the sudo preflight covers every argv field of the table, not only the serv
 		"check",
 		"commit",
 	]);
+});
+
+test("a step that already exited records no pid, and the hold copy and the git move report theirs", async () => {
+	liveProc(101, 601);
+	const b = box();
+	const s = spec({ hold: ["bin"], record: [] });
+	const r = await prepareBuilt(s, target, ctx(b.run), clock);
+	expect("failed" in r).toBe(false);
+	const during = (prefix: string) =>
+		b.markers.find((m) => m.argv.startsWith(prefix) && m.argv.endsWith("(started)"))?.marker?.tree?.build;
+	// git has a live /proc entry; the build step (pid 103) has none, so nothing is recorded for it.
+	expect(during(`git -C ${srv} merge`)).toEqual({ pid: 101, started: 601 });
+	expect(during("bash -c make all")).toBeNull();
+	const hold = b.calls.find((c) => c.argv[0] === "cp" && (c.argv[2] ?? "").endsWith("bin.upkeep-live"));
+	expect(hold?.opts.onStart).toBeDefined();
+	expect(hold?.opts.killTree).toBe(true);
 });

@@ -59,9 +59,14 @@ export function markerOf(spec: AppSpec, ctx: KindCtx, dest: string) {
 			state.active = names;
 			write();
 		},
-		/** For RunOpts.onStart: the step's pid and its start time, so recovery ends this exact process. */
+		/**
+		 * For RunOpts.onStart: the step's pid and its start time, so recovery ends this exact process. A child that
+		 * already exited has no start time and is not recorded: a pid with a start time of 0 could match nothing real.
+		 */
 		onStart: (pid: number) => {
-			state.build = { pid, started: Number(startTime(pid, procRoot) ?? 0) };
+			const started = Number(startTime(pid, procRoot) ?? Number.NaN);
+			if (!Number.isFinite(started)) return;
+			state.build = { pid, started };
 			write();
 		},
 		/** The step that reported a pid has ended. */
@@ -338,7 +343,7 @@ export async function prepareBuilt(
 			return fail({ failed: `Build step failed: hold ${h}. Nothing was changed.`, cleanup: "revert" });
 		}
 		// oxlint-disable-next-line no-await-in-loop -- one tree at a time
-		const r = await ctx.run(["cp", "-a", `${p}.upkeep-live`, p], { timeoutMs: LONG });
+		const r = await tracked(ctx.run, marker, ["cp", "-a", `${p}.upkeep-live`, p], { timeoutMs: LONG, killTree: true });
 		if (r.code !== 0) return fail({ failed: `Build step failed: hold ${h}. Nothing was changed.`, cleanup: "revert" });
 	}
 	if (dir) {
@@ -349,7 +354,7 @@ export async function prepareBuilt(
 				: move === "detach"
 					? ["git", "-C", dir, "checkout", "-q", "--detach", target.tag]
 					: ["git", "-C", dir, "merge", "-q", "--ff-only", target.tag];
-		const moved = await ctx.run(argv, { timeoutMs: 120_000 });
+		const moved = await tracked(ctx.run, marker, argv, { timeoutMs: 120_000, killTree: true });
 		if (moved.code !== 0)
 			return fail({
 				failed: `${shown} cannot move to ${target.tag} without a merge. Nothing was changed.`,
@@ -700,6 +705,9 @@ async function sinceOf(ctx: KindCtx, s: Serve): Promise<string> {
 	return s.since ? (await ctx.run(asRootArgv(s.since), { timeoutMs: 30_000 })).stdout.trim() : "";
 }
 
+/** A pid recovery never signals, whatever a marker says: init, this process or its parent. */
+const mine = (pid: number) => pid <= 1 || pid === process.pid || pid === process.ppid;
+
 export type RecoverCtx = KindCtx & {
 	/** Ends a process tree. The engine passes killTree; tests pass a recorder, never a real signal. */
 	kill: (pid: number, procRoot: string) => void;
@@ -721,7 +729,11 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
 	const tree = m.tree;
 	if (!tree) return true;
 	const procRoot = ctx.procRoot ?? "/proc";
-	if (tree.build && Number(startTime(tree.build.pid, procRoot) ?? Number.NaN) === tree.build.started) {
+	if (
+		tree.build &&
+		!mine(tree.build.pid) &&
+		Number(startTime(tree.build.pid, procRoot) ?? Number.NaN) === tree.build.started
+	) {
 		ctx.kill(tree.build.pid, procRoot);
 		await Bun.sleep(ctx.waitMs ?? 2000);
 	}
@@ -749,8 +761,16 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
 		else
 			try {
 				if (!point) throw new Error("the marker names no restore point");
-				if (tree.step === "build") await revertFiles(point, treeCtx);
-				else await restoreTree(point, treeCtx);
+				if (tree.step === "build") {
+					await revertFiles(point, treeCtx);
+					// The half-built stage, as the build's own failure path removes it.
+					const stage = readMeta(point)?.tree?.stage;
+					if (stage)
+						rmSync(safePath(stage, ctx.paths, { dir: spec.dir ? resolvePath(spec.dir, ctx.paths, null) : null }), {
+							recursive: true,
+							force: true,
+						});
+				} else await restoreTree(point, treeCtx);
 			} catch (err) {
 				ctx.log(`Putting the files back failed: ${err instanceof Error ? err.message : String(err)}`);
 				ok = false;

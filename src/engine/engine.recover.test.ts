@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { cpSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createEngine, type EngineDeps, REASON_UNRECOVERED } from "./engine";
 import type { FetchLike } from "./github";
@@ -366,4 +366,32 @@ test("a built restore checks sudo -n -l before it stops anything", async () => {
 	});
 	expect(box.calls.map((c) => c.argv.join(" ")).filter((a) => a.includes("stop"))).toEqual([]);
 	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("recovery never signals init, this process or its parent, even when the start time matches", async () => {
+	for (const pid of [1, process.pid, process.ppid]) {
+		mkdirSync(join(proc, String(pid)), { recursive: true });
+		writeFileSync(join(proc, String(pid), "stat"), `${pid} (x) S 1 1 1 0 -1 0 0 0 0 0 0 0 0 0 20 0 1 0 777 0 0`);
+		writeInflight(t.paths, {
+			key: "srv",
+			dest: dir,
+			backupVersion: null,
+			tree: { step: "pause", build: { pid, started: 777 }, active: [], paused: [] },
+		});
+		const box = fakeBox();
+		// oxlint-disable-next-line no-await-in-loop -- one pid at a time
+		await createEngine(deps(box)).recover();
+		expect(box.killed).toEqual([]);
+	}
+});
+
+test("recovery at step build removes the half-built stage", async () => {
+	const s = { ...spec(), stage: "~/stage-{tag}" };
+	await expect(installBuilt(s, target, kindCtx(fakeBox("bash -c make all")) as never)).rejects.toThrow("killed");
+	const stage = join(t.paths.home, "stage-v0.9.0");
+	put(join(stage, "half.o"), "x");
+	expect(readInflight(t.paths)?.tree?.step).toBe("build");
+	expect(await createEngine(deps(fakeBox())).recover()).toMatchObject([{ key: "srv", ok: true }]);
+	expect(existsSync(stage)).toBe(false);
+	expect(existsSync(dir)).toBe(true);
 });

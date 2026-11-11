@@ -25,6 +25,8 @@ export type BackupMeta = {
 		dir: string | null;
 		/** What keep and hold may touch: dir, or the stage's parent for a table with no dir. Older points have none. */
 		scope?: string | null;
+		/** The stage this run builds into, so a recovery at step build can remove a half-built one. */
+		stage?: string | null;
 		commit: string | null;
 		kept: { rel: string; link: boolean }[];
 		records: string[];

@@ -117,7 +117,17 @@ export async function takeTree(
 	rmSync(tmp, { recursive: true, force: true });
 	mkdirSync(tmp, { recursive: true });
 	try {
-		const tree: Tree = { spec, dir, scope, commit: null, kept: [], records: [], needs: [], placed: [] };
+		const tree: Tree = {
+			spec,
+			dir,
+			scope,
+			stage: o.vars.stage ?? null,
+			commit: null,
+			kept: [],
+			records: [],
+			needs: [],
+			placed: [],
+		};
 		for (const pattern of spec.keep ?? []) {
 			for (const p of expandGlob(pattern, ctx.paths, dir).map((x) => inScope(x, ctx.paths, dir, scope))) {
 				const rel = relative(dir ?? "/", p);
@@ -240,7 +250,7 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 			rmSync(next, { recursive: true, force: true });
 			// The copy lands beside the live path; only renames touch the live name.
 			// oxlint-disable-next-line no-await-in-loop -- one path at a time
-			const r = await ctx.run(["cp", "-a", src, next], { timeoutMs: LONG });
+			const r = await ctx.run(["cp", "-a", src, next], { timeoutMs: LONG, killTree: true, onStart: ctx.onStart });
 			if (r.code !== 0) throw new Error(`cp ${k.rel}: ${firstLine(r.stderr || r.stdout)}`);
 			swapIn(next, p, rename);
 		} else {

@@ -294,3 +294,14 @@ test("keep or hold outside dir, a record path and a version that names a folder 
 	expect(() => safePath(`${app}/../x`, t.paths, { dir: null })).toThrow("Refused");
 	expect(safePath(join(app, "engine"), t.paths, { dir: app, under: [app] })).toBe(join(app, "engine"));
 });
+
+test("the copy of a kept directory into .upkeep-new reports its pid and is killed as a tree", async () => {
+	const { run, calls } = fakeBox();
+	const { point } = await takeTree(spec(), ctx(run), { version: "1.0", at: "x", vars: {} });
+	changeEverything();
+	calls.length = 0;
+	await restoreTree(point, ctx(run, { onStart: () => {} }));
+	const copies = calls.filter((c) => c.argv[0] === "cp" && (c.argv[3] ?? "").endsWith(".upkeep-new"));
+	expect(copies.length).toBeGreaterThan(0);
+	expect(copies.every((c) => c.opts.onStart !== undefined && c.opts.killTree === true)).toBe(true);
+});
