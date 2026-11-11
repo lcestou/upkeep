@@ -53,10 +53,12 @@ function fakeBox(
 		newVersion?: string;
 		healthFails?: boolean;
 		sinceStuck?: boolean;
+		stopFailsAfter?: number;
 	} = {},
 ) {
 	const svc = { running: true, starts: 1, servedVersion: "f2918cabb" };
 	let startCalls = 0;
+	let stopCalls = 0;
 	const newVersion = o.newVersion ?? "a1b2c3d4e";
 	const rec = strictRun((argv: string[], opts: RunOpts) => {
 		const key = argv.join(" ");
@@ -64,6 +66,8 @@ function fakeBox(
 		if (cmd === "sudo" && rest[0] === "-n" && rest[1] === "-l") return ok();
 		if (key === "is-active srv") return svc.running ? ok() : fail();
 		if (key === "sudo -n stop srv") {
+			stopCalls += 1;
+			if (o.stopFailsAfter !== undefined && stopCalls > o.stopFailsAfter) return fail("refused");
 			svc.running = false;
 			return ok();
 		}
@@ -316,4 +320,13 @@ test("prune never deletes a directory outside dir, whatever its pattern names", 
 	expect(existsSync(dir)).toBe(true);
 	expect(existsSync(live)).toBe(true);
 	expect(existsSync(join(dir, "build-old"))).toBe(false);
+});
+
+test("a rollback whose stop fails puts nothing back, keeps the marker and says so", async () => {
+	const box = fakeBox({ healthFails: true, stopFailsAfter: 1 });
+	const o = await installBuilt(spec(), target, ctx(box));
+	expect(o).toMatchObject({ result: "failed", detail: "Could not stop srv to put f2918cabb back. See the log." });
+	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version a1b2c3d4e");
+	expect(readInflight(t.paths)?.tree?.step).toBe("stopping");
+	expect(box.svc.running).toBe(true);
 });

@@ -64,7 +64,7 @@ wait_s = 0
 `;
 
 /** A fake box: two units (the served one and a paused one), a git that does nothing, a build that rewrites bin and lib. */
-function fakeBox(kill?: string) {
+function fakeBox(kill?: string, o: { stopFails?: boolean; sinceStuck?: boolean } = {}) {
 	const units: Record<string, { running: boolean; starts: number }> = {
 		srv: { running: true, starts: 1 },
 		api: { running: true, starts: 1 },
@@ -79,12 +79,13 @@ function fakeBox(kill?: string) {
 		const unit = units[argv.at(-1) ?? ""];
 		if (cmd === "is-active" && unit) return unit.running ? ok() : fail();
 		if ((cmd === "stop" || (cmd === "sudo" && rest[1] === "stop")) && unit) {
+			if (o.stopFails && unit === units.srv) return fail("refused");
 			unit.running = false;
 			return ok();
 		}
 		if ((cmd === "start" || (cmd === "sudo" && rest[1] === "start")) && unit) {
 			unit.running = true;
-			unit.starts += 1;
+			if (!o.sinceStuck) unit.starts += 1;
 			return ok();
 		}
 		if (cmd === "since" && unit) return ok(`${unit.starts}\n`);
@@ -315,4 +316,22 @@ test("a kill during a pause stop leaves the unit on the marker, and recover star
 	expect(await createEngine(deps(box)).recover()).toMatchObject([{ key: "srv", ok: true }]);
 	expect(box.units.api?.running).toBe(true);
 	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("recovery never puts files back under a unit it could not stop, and keeps the marker", async () => {
+	const killer = fakeBox("print-version");
+	await expect(installBuilt(spec(), target, kindCtx(killer) as never)).rejects.toThrow("killed");
+	const marker = readFileSync(join(t.paths.state, "inflight.json"), "utf8");
+	const box = fakeBox(undefined, { stopFails: true });
+	expect(await createEngine(deps(box)).recover()).toMatchObject([{ key: "srv", ok: false }]);
+	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version a1b2c3d4e");
+	expect(readFileSync(join(t.paths.state, "inflight.json"), "utf8")).toBe(marker);
+});
+
+test("recovery counts a start only when since moved", async () => {
+	const killer = fakeBox("print-version");
+	await expect(installBuilt(spec(), target, kindCtx(killer) as never)).rejects.toThrow("killed");
+	const box = fakeBox(undefined, { sinceStuck: true });
+	expect(await createEngine(deps(box)).recover()).toMatchObject([{ key: "srv", ok: false }]);
+	expect(readInflight(t.paths)?.tree).toBeDefined();
 });

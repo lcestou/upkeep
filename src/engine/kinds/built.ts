@@ -538,8 +538,23 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		marker.step("stopping");
 		const before = new Map<string, string>();
 		for (const s of stopped) {
+			// A unit that will not stop is still serving the new files: putting the old ones under it would leave
+			// neither version, so the marker stays for the next recovery and nothing is put back.
 			// oxlint-disable-next-line no-await-in-loop -- in table order
-			if (await isActive(ctx.run, s.svc)) await stopService(ctx.run, s.svc);
+			if ((await isActive(ctx.run, s.svc)) && !(await stopService(ctx.run, s.svc))) {
+				ctx.log(`Could not stop ${s.svc.name} to put ${from} back.`);
+				for (const o of stopped)
+					// oxlint-disable-next-line no-await-in-loop -- in table order
+					if (!(await isActive(ctx.run, o.svc))) await startService(ctx.run, o.svc);
+				// oxlint-disable-next-line no-await-in-loop -- the loop ends here
+				await startPaused();
+				return finish({
+					result: "failed",
+					installed: target.from,
+					detail: `Could not stop ${s.svc.name} to put ${from} back. See the log.`,
+					restartToApply: false,
+				});
+			}
 			const since = s.svc.since
 				? // oxlint-disable-next-line no-await-in-loop -- in table order
 					(await ctx.run(asRootArgv(s.svc.since), { timeoutMs: 30_000 })).stdout.trim()
@@ -662,6 +677,11 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	});
 }
 
+/** What a unit's since argv prints now, trimmed; empty for a unit with no since. */
+async function sinceOf(ctx: KindCtx, s: Serve): Promise<string> {
+	return s.since ? (await ctx.run(asRootArgv(s.since), { timeoutMs: 30_000 })).stdout.trim() : "";
+}
+
 export type RecoverCtx = KindCtx & {
 	/** Ends a process tree. The engine passes killTree; tests pass a recorder, never a real signal. */
 	kill: (pid: number, procRoot: string) => void;
@@ -695,20 +715,34 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
 		// Nothing was changed yet; a point being written when it stopped is half a point.
 		if (point) rmSync(`${point}.upkeep-tmp`, { recursive: true, force: true });
 	} else {
-		for (const s of active)
-			// oxlint-disable-next-line no-await-in-loop -- in table order
-			if (await isActive(ctx.run, s)) await stopService(ctx.run, s);
-		try {
-			if (!point) throw new Error("the marker names no restore point");
-			if (tree.step === "build") await revertFiles(point, treeCtx);
-			else await restoreTree(point, treeCtx);
-		} catch (err) {
-			ctx.log(`Putting the files back failed: ${err instanceof Error ? err.message : String(err)}`);
-			ok = false;
-		}
+		const before = new Map<string, string>();
+		let stopFailed = false;
 		for (const s of active) {
 			// oxlint-disable-next-line no-await-in-loop -- in table order
-			const up = (await startService(ctx.run, s)) && (await healthy(s, ctx));
+			before.set(s.name, await sinceOf(ctx, s));
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			if ((await isActive(ctx.run, s)) && !(await stopService(ctx.run, s))) {
+				ctx.log(`Could not stop ${s.name}, so nothing was put back.`);
+				stopFailed = true;
+			}
+		}
+		// Files are never put back under a process still running from them.
+		if (stopFailed) ok = false;
+		else
+			try {
+				if (!point) throw new Error("the marker names no restore point");
+				if (tree.step === "build") await revertFiles(point, treeCtx);
+				else await restoreTree(point, treeCtx);
+			} catch (err) {
+				ctx.log(`Putting the files back failed: ${err instanceof Error ? err.message : String(err)}`);
+				ok = false;
+			}
+		for (const s of active) {
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			const started = (await startService(ctx.run, s)) && (await healthy(s, ctx));
+			// A start counts only when since moved: the new process still answering proves nothing.
+			// oxlint-disable-next-line no-await-in-loop -- in table order
+			const up = started && (!s.since || (await sinceOf(ctx, s)) !== before.get(s.name));
 			if (!up) {
 				ctx.log(`${s.name} did not answer after the recovery.`);
 				ok = false;
