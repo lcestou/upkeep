@@ -132,7 +132,7 @@ test("the System group's problem lines name the source and end cleanly without a
 	expect(systemChecked("2 minutes ago", false)).toBe("From Update Manager, checked 2 minutes ago");
 	expect(systemChecked(null, true)).toBe("From Update Manager, checking");
 	expect(systemChecked(null, false)).toBe("From Update Manager");
-	expect(systemChecked("now", false, "Flatpak")).toBe("From Flatpak, checked now");
+	expect(systemChecked("just now", false, "Flatpak")).toBe("From Flatpak, checked just now");
 	// A tool the system does not have is said quietly; anything else missing is still a problem.
 	expect(systemAbsent({ code: "missing", command: "mintupdate-cli list" })).toBe(
 		"Package updates are listed on Linux Mint only. Flatpak updates still show here.",
@@ -154,7 +154,7 @@ test("short labels carry the value they are given", () => {
 	expect(skipLabel("1.2.3")).toBe("Skip 1.2.3");
 	expect(stopSkipLabel("1.2.3")).toBe("Stop skipping 1.2.3");
 	expect(releasedLabel("3 days ago")).toBe("Released 3 days ago");
-	expect(checkedTitle("now")).toBe("Checked now");
+	expect(checkedTitle("just now")).toBe("Checked just now");
 	expect(restoredText("1.2.3")).toBe("Restored 1.2.3.");
 	expect(stoppingLabel("fd")).toBe("Stopping after fd");
 	expect(retryLabel(2)).toBe("Retry 2 failed");

@@ -36,7 +36,7 @@ export function relativeTime(iso: string, now: number = Date.now()): string {
 		if (Math.abs(value) < size) return rtf.format(Math.trunc(value), unit);
 		value /= size;
 	}
-	return rtf.format(Math.round(value), "year");
+	return rtf.format(Math.trunc(value), "year");
 }
 
 /** Picks the singular for exactly one, the plural otherwise (including zero). */

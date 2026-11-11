@@ -26,6 +26,7 @@ describe("relativeTime", () => {
 		["2026-11-09T10:00:00Z", "yesterday"],
 		["2026-11-07T10:00:00Z", "3 days ago"],
 		["2026-08-10T10:00:00Z", "3 months ago"],
+		["2024-12-10T10:00:00Z", "last year"],
 	])("%s reads %s", (iso, text) => {
 		expect(relativeTime(iso, now)).toBe(text);
 	});
