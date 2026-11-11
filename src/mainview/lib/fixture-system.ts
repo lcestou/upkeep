@@ -3,6 +3,7 @@ import type { SystemRow, SystemState } from "../../shared/types";
 
 export type SystemVariant = "off" | "show" | "checking" | "empty" | "missing" | "failed" | "gl";
 
+/** Builds an apt row. Nothing is running, and the note is only set when the caller passes one. */
 const apt = (
 	name: string,
 	type: SystemRow["type"],
@@ -11,6 +12,7 @@ const apt = (
 	note?: SystemRow["note"],
 ): SystemRow => ({ id: `apt:${name}`, source: "apt", name, type, installed, latest, running: false, note });
 
+/** Builds a Flatpak row whose id is the ref; running defaults to false. */
 const flatpak = (
 	ref: string,
 	name: string,
@@ -37,6 +39,7 @@ export const FLATPAK_ROWS: SystemRow[] = [
 	flatpak("org.gnome.Platform", "GNOME Application Platform", "runtime", null, "51"),
 ];
 
+/** The System group for a variant. The base is the owner's machine with every row; each variant drops rows, sets the phase or adds a problem to match its name. */
 export function systemFor(variant: SystemVariant, checkedAt: string): SystemState {
 	const base: SystemState = {
 		mode: "show",

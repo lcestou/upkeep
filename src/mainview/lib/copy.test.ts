@@ -1,7 +1,38 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
 import {
+	ADD,
+	addApps,
+	addedMany,
+	addedOne,
+	allFreshLine,
+	byHandLine,
+	checkedTitle,
+	commitsHeading,
+	foundApps,
+	glLine,
 	installLabel,
+	lastTryFailed,
+	moreCommits,
+	noMatch,
+	noMint,
+	rateText,
+	removeAsk,
+	removedNote,
+	restartLine,
+	restoreLabel,
+	restoredText,
+	retryLabel,
+	releasedLabel,
+	resultCounts,
+	runSentence,
+	skipLabel,
+	stopSkipLabel,
+	stoppingLabel,
+	tomlWriteFailed,
+	versionText,
+	notInstalledLine,
+	installedText,
 	selectionText,
 	stateSentence,
 	statusText,
@@ -116,4 +147,73 @@ test("the System group's problem lines name the source and end cleanly without a
 test("the build stage is named Build and reads Building while it runs", () => {
 	expect(STAGE_NAME.build).toBe("Build");
 	expect(workingText("build", null)).toBe("Building");
+});
+
+test("short labels carry the value they are given", () => {
+	expect(restoreLabel("1.2.3")).toBe("Restore 1.2.3");
+	expect(skipLabel("1.2.3")).toBe("Skip 1.2.3");
+	expect(stopSkipLabel("1.2.3")).toBe("Stop skipping 1.2.3");
+	expect(releasedLabel("3 days ago")).toBe("Released 3 days ago");
+	expect(checkedTitle("now")).toBe("Checked now");
+	expect(restoredText("1.2.3")).toBe("Restored 1.2.3.");
+	expect(stoppingLabel("fd")).toBe("Stopping after fd");
+	expect(retryLabel(2)).toBe("Retry 2 failed");
+	expect(rateText(40, 60)).toBe("GitHub requests left this hour: 40 of 60");
+	expect(versionText("0.1.0")).toBe("Version 0.1.0");
+	expect(notInstalledLine("2.0")).toBe("Not installed. 2.0 is the latest.");
+	expect(installedText("2.0")).toBe("Installed 2.0");
+	expect(lastTryFailed("Timed out.")).toBe("Last try failed. Timed out.");
+});
+
+test("list lines name what is left and quote the filter as typed", () => {
+	expect(commitsHeading(1, "abc123")).toBe("1 commit since abc123");
+	expect(commitsHeading(3, null)).toBe("3 commits since the installed build");
+	expect(moreCommits(30, 20)).toBe("All 30 on GitHub (10 not shown)");
+	expect(restartLine(["Zen", "Cursor"])).toBe("Restart Zen, Cursor to finish.");
+	expect(byHandLine(3)).toBe("3 more by hand");
+	expect(allFreshLine(5)).toBe("All 5 apps are up to date.");
+	expect(noMatch("fd")).toBe('No app matches "fd".');
+});
+
+test("the add pane says one app or many", () => {
+	expect(ADD.button).toBe("Add app");
+	expect(addedOne("fd")).toBe("Added fd.");
+	expect(addedMany(1)).toBe("Added 1 app.");
+	expect(addedMany(3)).toBe("Added 3 apps.");
+	expect(foundApps(1)).toBe("Found 1 app not in the list");
+	expect(foundApps(2)).toBe("Found 2 apps not in the list");
+	expect(addApps(1)).toBe("Add 1 app");
+	expect(addApps(2)).toBe("Add 2 apps");
+	expect(removeAsk("fd")).toBe("Remove fd from the list? The app itself stays installed.");
+	expect(removedNote("fd")).toBe("Removed fd.");
+});
+
+test("a run's sentence counts failures and says when it was a retry", () => {
+	expect(resultCounts([{ result: "updated" }, { result: "rolled_back" }, { result: "failed" }])).toBe(
+		"1 updated, 2 failed",
+	);
+	expect(runSentence([{ result: "updated" }])).toBe("1 updated");
+	expect(runSentence([{ result: "failed", retry: true }])).toBe("Retry: 0 updated, 1 failed");
+});
+
+test("a failed apps.toml write says nothing was changed", () => {
+	expect(tomlWriteFailed("disk full")).toBe("Could not write apps.toml: disk full. Nothing was changed.");
+});
+
+test("a download shows the received part in the total's own unit, or the percent when the size is unknown", () => {
+	expect(workingText(undefined, null)).toBe("Downloading");
+	expect(workingText(undefined, 50)).toBe("Downloading 50%");
+	expect(workingText("download", 50, 30_000_000)).toBe("Downloading 15.0 of 30 MB");
+	expect(workingText("install", 50)).toBe("Installing");
+	expect(workingText("verify", null)).toBe("Verifying");
+});
+
+test("only a missing Update Manager counts as no Mint", () => {
+	expect(noMint({ code: "missing", command: "mintupdate-cli list" })).toBe(true);
+	expect(noMint({ code: "missing", command: "flatpak list" })).toBe(false);
+	expect(noMint(null)).toBe(false);
+});
+
+test("the GPU line names the runtime version", () => {
+	expect(glLine("580.1")).toContain("NVIDIA 580.1 runtime");
 });

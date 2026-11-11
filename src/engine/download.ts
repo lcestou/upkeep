@@ -15,8 +15,10 @@ export type DownloadOpts = {
 
 export type DownloadResult = { bytes: number; sha256: string };
 
+/** Marks a download that went quiet, so download() does not retry it as a network error. */
 class Stalled extends Error {}
 
+/** One try at the download. Sets started.any once the server answers, which tells the caller not to retry. */
 async function attempt(
 	url: string,
 	file: string,

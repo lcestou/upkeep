@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../shared/types";
 
+/** Reads the parent pid from /proc/<pid>/stat. Null for a gone process or pid 1's parent. */
 function parentOf(pid: number, procRoot: string): number | null {
 	try {
 		const stat = readFileSync(join(procRoot, String(pid), "stat"), "utf8");
@@ -12,6 +13,7 @@ function parentOf(pid: number, procRoot: string): number | null {
 	}
 }
 
+/** Null when the path no longer resolves, as a deleted exe link or a vanished process does. */
 function real(path: string): string | null {
 	try {
 		return realpathSync(path);

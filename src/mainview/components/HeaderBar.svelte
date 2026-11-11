@@ -18,15 +18,15 @@
 	const chrome = $derived(model.chrome);
 	const own = $derived(chrome?.own === true);
 
-	// Double-click on the strip's empty area maximizes, as a desktop title bar does; never on a control.
+	/** Double-click on the strip's empty area maximizes, as a desktop title bar does; never on a control, and only with the self-drawn frame. */
 	function ondblclick(e: MouseEvent) {
 		if (!own || (e.target instanceof Element && e.target.closest("button, input, select, a, [role=tab]"))) return;
 		void model.send("window", { op: "maximize" });
 	}
 
+	/** Arrow keys, Home and End move between tabs and wrap at the ends; the tab is selected as well as focused. */
 	function onTabKey(e: KeyboardEvent, i: number) {
-		const to: Record<string, number> = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
-		const target = to[e.key];
+		const target = new Map([["ArrowRight", i + 1], ["ArrowLeft", i - 1], ["Home", 0], ["End", tabs.length - 1]]).get(e.key);
 		if (target === undefined) return;
 		e.preventDefault();
 		const next = tabs[(target + tabs.length) % tabs.length];

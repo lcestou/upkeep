@@ -27,6 +27,7 @@ export type WindowHooks = {
 	extras: Extras;
 };
 
+/** Builds the main-process end of the view channel. Not unit-tested: it needs the Electrobun framework. */
 export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, hooks: WindowHooks) {
 	const logDir = join(deps.paths.state, "logs");
 	return BrowserView.defineRPC<UpkeepRPC>({

@@ -27,6 +27,7 @@ const MOVES = ["ff", "reset", "detach"] as const;
 
 type Field = keyof AppSpec;
 
+/** The fields a kind refuses to load without, beyond name. A versionless legacy app needs no legacy_name. */
 function required(kind: AppKind, versionless: boolean): Field[] {
 	switch (kind) {
 		case "appimage":
@@ -47,16 +48,16 @@ function required(kind: AppKind, versionless: boolean): Field[] {
 	}
 }
 
-function isRecord(v: unknown): v is Record<string, unknown> {
+/** Arrays do not count, though typeof calls them objects: a TOML array is never a table. */
+export function isRecord(v: unknown): v is Record<string, unknown> {
 	return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
 /** One [apps.<key>] table checked and lifted into an AppSpec, or the reason it is refused. */
 export function lift(key: string, table: Record<string, unknown>): AppSpec | string {
-	const kind = table.kind;
-	if (typeof kind !== "string" || !KINDS.includes(kind as AppKind))
-		return `${key}: kind is not one of ${KINDS.join(", ")}`;
-	const spec: AppSpec = { key, name: "", kind: kind as AppKind };
+	const kind = KINDS.find((k) => k === table.kind);
+	if (kind === undefined) return `${key}: kind is not one of ${KINDS.join(", ")}`;
+	const spec: AppSpec = { key, name: "", kind };
 	for (const f of STRING_FIELDS) {
 		const v = table[f];
 		if (v === undefined) continue;
@@ -66,8 +67,9 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	for (const f of LIST_FIELDS) {
 		const v = table[f];
 		if (v === undefined) continue;
-		if (!Array.isArray(v) || !v.every((x) => typeof x === "string")) return `${key}: ${f} must be a list of strings`;
-		spec[f] = v as string[];
+		if (!Array.isArray(v) || !v.every((x): x is string => typeof x === "string"))
+			return `${key}: ${f} must be a list of strings`;
+		spec[f] = v;
 	}
 	for (const f of BOOL_FIELDS) {
 		const v = table[f];
@@ -75,7 +77,8 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 		if (typeof v !== "boolean") return `${key}: ${f} must be true or false`;
 		spec[f] = v;
 	}
-	for (const f of ["name", ...required(spec.kind, spec.versionless === true)] as Field[]) {
+	const needed: Field[] = ["name", ...required(spec.kind, spec.versionless === true)];
+	for (const f of needed) {
 		const v = spec[f];
 		if (v === undefined || v === "" || (Array.isArray(v) && v.length === 0))
 			return `${key}: ${f} is required for kind ${spec.kind}`;
@@ -94,8 +97,11 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	return spec;
 }
 
+/** An empty string is false, so a blank field counts as missing. */
 const str = (v: unknown): v is string => typeof v === "string" && v !== "";
+/** An empty list is false, so it counts as missing. */
 const strs = (v: unknown): v is string[] => Array.isArray(v) && v.length > 0 && v.every((x) => typeof x === "string");
+/** An absent pattern is valid; a present one must be a string that compiles as a RegExp. */
 const validPattern = (p: unknown) => {
 	if (p === undefined) return true;
 	if (typeof p !== "string") return false;
@@ -108,6 +114,10 @@ const validPattern = (p: unknown) => {
 };
 
 type Entry = Record<string, unknown>;
+/** The AppSpec fields that are lists of tables in apps.toml. */
+type TableList = "record" | "config" | "place" | "busy" | "pause" | "test" | "serve";
+/** One entry of such a list, as the AppSpec holds it. */
+type Item<F extends TableList> = NonNullable<AppSpec[F]>[number];
 /** One list-of-tables entry: the lifted value, the key it misses, or "pattern" for a bad expect or fail_on. */
 type Lifted<T> = T | { missing: string } | "pattern";
 
@@ -129,10 +139,13 @@ function liftTest(e: Entry): Lifted<Test> {
 
 /** One pause or serve entry: name, active and stop, plus start for serve. Empty lists count as missing. */
 function liftService(e: Entry, needStart: boolean): Lifted<Service> {
-	for (const k of ["name", "active", "stop", ...(needStart ? ["start"] : [])])
-		if (k === "name" ? !str(e[k]) : !strs(e[k])) return { missing: k };
-	const s: Service = { name: e.name as string, active: e.active as string[], stop: e.stop as string[] };
-	if (strs(e.start)) s.start = e.start;
+	const { name, active, stop, start } = e;
+	if (!str(name)) return { missing: "name" };
+	if (!strs(active)) return { missing: "active" };
+	if (!strs(stop)) return { missing: "stop" };
+	if (needStart && !strs(start)) return { missing: "start" };
+	const s: Service = { name, active, stop };
+	if (strs(start)) s.start = start;
 	if (strs(e.since)) s.since = e.since;
 	return s;
 }
@@ -237,30 +250,36 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	for (const f of SOURCE_LISTS) {
 		const v = table[f];
 		if (v === undefined) continue;
-		if (!Array.isArray(v) || !v.every((x) => typeof x === "string")) return `${key}: ${f} must be a list of strings`;
-		spec[f] = v as string[];
+		if (!Array.isArray(v) || !v.every((x): x is string => typeof x === "string"))
+			return `${key}: ${f} must be a list of strings`;
+		spec[f] = v;
 	}
 	if (!spec.check && !spec.dest) return `${key}: check or dest is required for kind source`;
 	if (!spec.repo && !spec.latest) return `${key}: repo or latest is required for kind source`;
 	if (table.move !== undefined) {
-		if (!MOVES.includes(table.move as (typeof MOVES)[number])) return `${key}: move must be ff, reset or detach`;
+		const move = MOVES.find((m) => m === table.move);
+		if (move === undefined) return `${key}: move must be ff, reset or detach`;
 		if (spec.dir === undefined) return `${key}: move needs dir`;
-		spec.move = table.move as AppSpec["move"];
+		spec.move = move;
 	}
 	if (spec.commit && !spec.repo) return `${key}: commit needs a GitHub repo`;
 
 	// Lists of tables: each entry is checked, then lifted with only the keys it may carry.
-	const each = <T>(field: string, lift1: (e: Entry) => Lifted<T>): T[] | string | undefined => {
+	const each = <F extends TableList>(
+		field: F,
+		lift1: (e: Entry) => Lifted<Item<F>>,
+	): Item<F>[] | string | undefined => {
 		const v = table[field];
 		if (v === undefined) return undefined;
 		if (!Array.isArray(v)) return `${key}: ${field} entry 1 needs to be a table`;
-		const out: T[] = [];
+		const out: Item<F>[] = [];
 		for (const [i, e] of v.entries()) {
 			const r = isRecord(e) ? lift1(e) : { missing: "to be a table" };
 			if (r === "pattern") return `${key}: ${field} entry ${i + 1} has an invalid pattern`;
 			if (typeof r === "object" && r !== null && "missing" in r)
 				return `${key}: ${field} entry ${i + 1} needs ${r.missing}`;
-			out.push(r as T);
+			// SAFETY: r is neither "pattern" nor a { missing } object, and no lifted entry type has a missing field.
+			out.push(r as Item<F>);
 		}
 		return out;
 	};
@@ -269,9 +288,11 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	);
 	const config = each("config", (e) => {
 		if (!str(e.file)) return { missing: "file" };
-		if (!["string", "number", "boolean"].includes(typeof e.value)) return { missing: "value" };
+		const value = e.value;
+		if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean")
+			return { missing: "value" };
 		if (!str(e.key) && !(str(e.array) && str(e.flag))) return { missing: "key or array and flag" };
-		const c: NonNullable<AppSpec["config"]>[number] = { file: e.file, value: e.value as string | number | boolean };
+		const c: Item<"config"> = { file: e.file, value };
 		if (str(e.key)) c.key = e.key;
 		if (str(e.array)) c.array = e.array;
 		if (str(e.flag)) c.flag = e.flag;
@@ -283,7 +304,7 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	const busy = each("busy", (e) => {
 		if (!str(e.say)) return { missing: "say" };
 		if (!str(e.process) && !strs(e.run)) return { missing: "process or run" };
-		const b: NonNullable<AppSpec["busy"]>[number] = { say: e.say };
+		const b: Item<"busy"> = { say: e.say };
 		if (str(e.process)) b.process = e.process;
 		if (strs(e.run)) b.run = e.run;
 		if (e.when === "stopped") b.when = "stopped";
@@ -299,6 +320,7 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 		const svc = liftService(e, true);
 		if (typeof svc === "string" || "missing" in svc) return svc;
 		if (!validPattern(e.expect)) return "pattern";
+		// SAFETY: liftService with needStart returned missing unless start is a non-empty list of strings.
 		const sv: Serve = { ...svc, start: svc.start as string[] };
 		if (str(e.health)) sv.health = e.health;
 		if (typeof e.status === "number") sv.status = e.status;
@@ -319,14 +341,25 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	for (const r of [record, config, place, busy, pause, test, serve]) if (typeof r === "string") return r;
 	const typo = unknownPlaceholder(table);
 	if (typo) return `${key}: unknown placeholder {${typo.name}} in ${typo.field}`;
-	if (record) spec.record = record as AppSpec["record"];
-	if (config) spec.config = config as AppSpec["config"];
-	if (place) spec.place = place as AppSpec["place"];
-	if (busy) spec.busy = busy as AppSpec["busy"];
-	if (pause) spec.pause = pause as AppSpec["pause"];
-	if (test) spec.test = test as AppSpec["test"];
-	if (serve) spec.serve = serve as AppSpec["serve"];
+	// The loop above returned every string, so each list is an array or absent.
+	if (Array.isArray(record)) spec.record = record;
+	if (Array.isArray(config)) spec.config = config;
+	if (Array.isArray(place)) spec.place = place;
+	if (Array.isArray(busy)) spec.busy = busy;
+	if (Array.isArray(pause)) spec.pause = pause;
+	if (Array.isArray(test)) spec.test = test;
+	if (Array.isArray(serve)) spec.serve = serve;
 	return unsafeSourcePath(key, spec);
+}
+
+/** A spec put back through lift, or the reason lift refuses it. */
+export type Relifted = { spec: AppSpec } | { problem: string };
+
+/** A spec built in code checked by the same rules as a table read from apps.toml, so what is written reads back. */
+export function relift(s: AppSpec): Relifted {
+	const { key, ...fields } = s;
+	const lifted = lift(key, fields);
+	return typeof lifted === "string" ? { problem: lifted } : { spec: lifted };
 }
 
 /** Reads apps.toml. A bad table is left out and named in errors; the rest still load. */
@@ -368,6 +401,7 @@ const ORDER: (keyof AppSpec)[] = [
 	...BOOL_FIELDS,
 ];
 
+/** A TOML basic string: backslash, quote and newline escaped. Other control characters pass through unescaped. */
 const basic = (v: string) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
 
 /** An [apps.<key>] table holding only the fields the spec has. asset is a literal string when it can be. */
@@ -378,9 +412,10 @@ export function tomlTable(spec: AppSpec): string {
 		if (v === undefined) continue;
 		let text: string;
 		if (typeof v === "boolean") text = String(v);
-		// ORDER holds only string, list-of-string and boolean fields.
-		else if (Array.isArray(v)) text = `[${(v as string[]).map(basic).join(", ")}]`;
-		else if (f === "asset" && !v.includes("'") && !v.includes("\n")) text = `'${v}'`;
+		else if (Array.isArray(v)) {
+			// SAFETY: ORDER holds only string, list-of-string and boolean fields, so an array here is a list of strings.
+			text = `[${(v as string[]).map(basic).join(", ")}]`;
+		} else if (f === "asset" && !v.includes("'") && !v.includes("\n")) text = `'${v}'`;
 		else text = basic(String(v));
 		lines.push(`${f} = ${text}`);
 	}

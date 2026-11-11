@@ -96,6 +96,7 @@ function fakeBox(
 		if (cmd === "rm") return ok();
 		if (cmd === "git" && rest[2] === "rev-parse") return ok("c0ffee\n");
 		if (cmd === "git" && rest[2] === "status") return ok("");
+		if (cmd === "git" && rest[2] === "branch") return ok("origin/main\n");
 		if (cmd === "git") return ok();
 		if (cmd === "needs") return ok("");
 		if (key === "bash -c make all") {
@@ -352,4 +353,96 @@ test("after a verified update the held copy is gone", async () => {
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version a1b2c3d4e");
 	expect(existsSync(join(dir, "bin.upkeep-live"))).toBe(false);
 	expect(existsSync(join(dir, "bin.upkeep-gone"))).toBe(false);
+});
+
+test("config values are written into the app's JSON files: a key, and the value after a flag in an array", async () => {
+	put(join(dir, "app.json"), JSON.stringify({ keep: true, flags: ["--port", "1", "--v"] }));
+	const s = spec({
+		config: [
+			{ file: "~/srv/app.json", key: "mode", value: "fast" },
+			{ file: "~/srv/app.json", array: "flags", flag: "--port", value: 2 },
+			{ file: "~/srv/app.json", array: "flags", flag: "--host", value: "lan" },
+		],
+	});
+	expect(await installBuilt(s, target, ctx(fakeBox()))).toMatchObject({ result: "done" });
+	expect(JSON.parse(readFileSync(join(dir, "app.json"), "utf8"))).toEqual({
+		keep: true,
+		mode: "fast",
+		flags: ["--port", 2, "--v", "--host", "lan"],
+	});
+});
+
+test("a config file that holds a list, not an object, stops the update and is left as it was", async () => {
+	put(join(dir, "app.json"), "[1, 2]");
+	const s = spec({ config: [{ file: "~/srv/app.json", key: "mode", value: "fast" }] });
+	const o = await installBuilt(s, target, ctx(fakeBox()));
+	expect(o.result).not.toBe("done");
+	expect(o.detail).toBe("The build did not pass its check: config. Nothing was changed.");
+	expect(readFileSync(join(dir, "app.json"), "utf8")).toBe("[1, 2]");
+});
+
+test("a url test passes on a matching answer and rolls back on a fail_on match or an unreachable url", async () => {
+	const named = (extra: Partial<NonNullable<AppSpec["test"]>[number]>) =>
+		spec({ test: [{ name: "the answer", url: "http://127.0.0.1:1/c", body: "{}", ...extra }] });
+	expect(await installBuilt(named({ expect: "ok" }), target, ctx(fakeBox()))).toMatchObject({ result: "done" });
+	t.cleanup();
+	t = tempHome("built-install");
+	dir = join(t.paths.home, "srv");
+	put(join(dir, "bin/srv"), "version f2918cabb");
+	put(join(dir, "lib/core.so"), "core 1");
+	mkdirSync(proc, { recursive: true });
+	expect(await installBuilt(named({ fail_on: "ok" }), target, ctx(fakeBox()))).toMatchObject({
+		result: "rolled_back",
+		detail: "Failed its test after the update: the answer. Restored f2918cabb.",
+	});
+	const box = fakeBox();
+	const unreachable: KindCtx["fetch"] = async (url, init) => {
+		if (String(url).endsWith("/c")) throw new Error("connection refused");
+		return box.fetch(url, init);
+	};
+	expect(await installBuilt(named({ timeout_s: 0 }), target, { ...ctx(box), fetch: unreachable })).toMatchObject({
+		result: "rolled_back",
+	});
+});
+
+/** Resets the temp home to the starting tree, then runs one update with the given move and returns its git argv. */
+async function moveCommand(move: "reset" | "detach" | "ff"): Promise<string> {
+	t.cleanup();
+	t = tempHome("built-install");
+	dir = join(t.paths.home, "srv");
+	put(join(dir, "bin/srv"), "version f2918cabb");
+	put(join(dir, "lib/core.so"), "core 1");
+	mkdirSync(proc, { recursive: true });
+	const box = fakeBox();
+	expect(await installBuilt(spec({ move }), target, ctx(box))).toMatchObject({ result: "done" });
+	const argv = argvs(box.calls).find((a) => /^git -C \S+ (reset|checkout|merge) /.test(a)) ?? "";
+	return argv.replace(/^git -C \S+ /, "");
+}
+
+test("move picks the git command: reset or detach for those tables, a fast-forward merge otherwise", async () => {
+	expect(await moveCommand("reset")).toBe("reset -q --hard v0.9.0");
+	expect(await moveCommand("detach")).toBe("checkout -q --detach v0.9.0");
+	expect(await moveCommand("ff")).toBe("merge -q --ff-only v0.9.0");
+});
+
+test("a tree that cannot move to the tag without a merge changes nothing and starts nothing", async () => {
+	const before = hashTree(dir);
+	const box = fakeBox();
+	const run: KindCtx["run"] = async (argv, opts) =>
+		argv[0] === "git" && argv.includes("merge") ? fail("not possible to fast-forward") : box.run(argv, opts);
+	const o = await installBuilt(spec(), target, { ...ctx(box), run });
+	expect(o).toMatchObject({
+		result: "failed",
+		detail: expect.stringContaining("cannot move to v0.9.0 without a merge"),
+	});
+	expect(hashTree(dir)).toEqual(before);
+	expect(argvs(box.calls).some((a) => a.startsWith("sudo -n stop"))).toBe(false);
+});
+
+test("a restore point that cannot be taken refuses the update with nothing changed", async () => {
+	const box = fakeBox();
+	const run: KindCtx["run"] = async (argv, opts) => (argv[0] === "cp" ? fail("no space left") : box.run(argv, opts));
+	const o = await installBuilt(spec(), target, { ...ctx(box), run });
+	expect(o).toMatchObject({ result: "failed", detail: expect.stringContaining("Could not take a restore point") });
+	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
 });

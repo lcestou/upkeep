@@ -216,6 +216,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 	return Object.assign(run, { start });
 }
 
+/** A missing or unreadable capture file reads as empty output. The file is deleted either way. */
 async function readAndRemove(file: string): Promise<string> {
 	try {
 		return await Bun.file(file).text();
@@ -226,6 +227,7 @@ async function readAndRemove(file: string): Promise<string> {
 	}
 }
 
+/** Hands each finished line to onLine as it arrives and keeps the whole text in sink. A last line without a newline still counts. */
 async function readLines(
 	stream: ReadableStream<Uint8Array>,
 	sink: { text: string },

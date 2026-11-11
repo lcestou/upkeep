@@ -15,6 +15,7 @@ export const FLATPAK_RUNNING = ["flatpak", "ps", "--columns=application"];
 export const DRIVER_GL = ["dpkg-query", "-W", "-f", "${db:Status-Abbrev}\t${Version}\n", "libnvidia-gl-*"];
 export const FLATPAK_RUNTIMES = ["flatpak", "list", "--runtime", "--columns=application"];
 
+/** Trailing whitespace is dropped, and so are lines left empty. */
 const lines = (s: string) =>
 	s
 		.split("\n")
@@ -117,6 +118,7 @@ function aptRows(list: string, sources: Map<string, string>): SystemRow[] {
 	});
 }
 
+/** A command that did not answer, timed out or exited non-zero is not ok. */
 const ok = (r: ProcessResult | undefined) => r !== undefined && r.code === 0 && !r.timedOut;
 
 /** Exit 127 is a missing command; any other failure or a timeout is failed, with stderr's first line. */
@@ -134,11 +136,11 @@ function problemOf(argv: string[], r: ProcessResult): SystemCheck["problem"] {
  */
 export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 	const opts = { timeoutMs: 60_000 };
-	const [list, sources, updates, installed, running, gl, runtimes] = (await Promise.all(
+	const [list, sources, updates, installed, running, gl, runtimes] = await Promise.all(
 		[MINT_LIST, SOURCE_VERSIONS, FLATPAK_UPDATES, FLATPAK_INSTALLED, FLATPAK_RUNNING, DRIVER_GL, FLATPAK_RUNTIMES].map(
 			(argv) => ctx.run(argv, opts),
 		),
-	)) as ProcessResult[];
+	);
 	const rows: SystemRow[] = [];
 	const mintProblem = list ? problemOf(MINT_LIST, list) : null;
 	if (list && !mintProblem)

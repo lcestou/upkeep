@@ -12,7 +12,15 @@ import {
 import { join } from "node:path";
 import type { AppKind, AppSpec, Suggestion } from "../shared/types";
 import { download, verifyAsset } from "./download";
-import { type Asset, type FetchLike, fetchRelease, isFailure, type Release } from "./github";
+import {
+	type Asset,
+	type FetchLike,
+	fetchRelease,
+	isFailure,
+	parseRepoSearch,
+	type Release,
+	type RepoHit,
+} from "./github";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
 import type { Run } from "./run";
@@ -89,7 +97,7 @@ function rank(c: Candidate): number {
 }
 
 /** The release's assets that run on Linux x86_64, best first; prefer puts kinds that match what is on disk ahead. */
-export function machineAssets(assets: Asset[], prefer: AppKind[] = []): { candidates: Candidate[]; unopened: boolean } {
+export function machineAssets(assets: Asset[], prefer: AppKind[] = []) {
 	const candidates: Candidate[] = [];
 	let unopened = false;
 	for (const asset of assets) {
@@ -112,16 +120,14 @@ export function machineAssets(assets: Asset[], prefer: AppKind[] = []): { candid
 	return { candidates: sorted, unopened };
 }
 
+/** Escapes every regex metacharacter, so a file name is matched as plain text. */
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
  * An anchored pattern for name with the release's version made a wildcard. When that matches more
  * than one asset the pattern is the exact name, and widen says it will need editing at the next release.
  */
-export function assetPattern(
-	name: string,
-	release: Pick<Release, "tag" | "version" | "assets">,
-): { pattern: string; widen: boolean } {
+export function assetPattern(name: string, release: Pick<Release, "tag" | "version" | "assets">) {
 	const versions = [release.tag, release.version, release.version ? `v${release.version}` : null]
 		.filter((v): v is string => Boolean(v))
 		.toSorted((a, b) => b.length - a.length);
@@ -146,6 +152,7 @@ export function displayName(repoName: string): string {
 		.join(" ");
 }
 
+/** Lower case with anything but letters, digits and dashes made a dash, so the key is a bare TOML key. */
 export const keyOf = (repoName: string) => repoName.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
 const EXTENSION = /\.(tar\.gz|tgz|zip|appimage|deb|tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
@@ -207,11 +214,14 @@ export function head(file: string, bytes = 65_536, at = 0): Buffer | null {
 	}
 }
 
+/** False for a null or short head, so an unreadable file is never taken for a program. */
 export const isElf = (b: Buffer | null) =>
 	b !== null && b.length >= 4 && b.subarray(0, 4).toString("latin1") === "\x7fELF";
+/** Checks the AppImage type-2 magic at byte 8 as well as the ELF header; a type-1 image does not count. */
 export const isAppImage = (b: Buffer | null) =>
 	isElf(b) && b !== null && b.length >= 11 && b.subarray(8, 11).toString("latin1") === "AI\x02";
 
+/** A path under home written with ~, as apps.toml keeps it. A path elsewhere is returned as given. */
 const tilde = (p: string, home: string) => (p === home || p.startsWith(`${home}/`) ? `~${p.slice(home.length)}` : p);
 
 /** The installed AppImage of a repo: a regular file in the owner's app folders named after it. */
@@ -388,6 +398,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 
 const LOOK_INSIDE_MAX = 150 * 1024 * 1024;
 const MAX_BINS = 6;
+/** The last path segment; a path ending in a slash gives an empty string. */
 const baseOf = (p: string) => p.split("/").at(-1) ?? p;
 
 /**
@@ -481,8 +492,8 @@ type Search = { repo: string } | { none: true } | { problem: string; rate: boole
 /** GitHub's repository search for a project named name; only an exact name match counts. */
 async function searchRepo(name: string, ctx: DiscoverCtx): Promise<Search> {
 	const api = ctx.api ?? "https://api.github.com";
-	const headers: Record<string, string> = { Accept: "application/vnd.github+json", "User-Agent": "upkeep" };
-	if (ctx.token && api === "https://api.github.com") headers.Authorization = `Bearer ${ctx.token}`;
+	const headers = new Headers({ Accept: "application/vnd.github+json", "User-Agent": "upkeep" });
+	if (ctx.token && api === "https://api.github.com") headers.set("Authorization", `Bearer ${ctx.token}`);
 	let res: Response;
 	try {
 		res = await ctx.fetch(
@@ -495,23 +506,15 @@ async function searchRepo(name: string, ctx: DiscoverCtx): Promise<Search> {
 	if (res.status === 403 || res.status === 429)
 		return { problem: "GitHub's request limit is used up. Try again after it resets.", rate: true };
 	if (!res.ok) return { problem: `GitHub answered ${res.status} for ${name}.`, rate: false };
-	let items: { name?: unknown; full_name?: unknown; stargazers_count?: unknown }[] = [];
+	let items: RepoHit[] = [];
 	try {
-		const body = (await res.json()) as { items?: unknown };
-		if (Array.isArray(body.items)) items = body.items as typeof items;
+		items = parseRepoSearch(await res.json());
 	} catch {
 		// not JSON: no match
 	}
 	// A wrong repo is worse than none: only an exact name with a following counts.
-	const hit = items.find(
-		(i) =>
-			typeof i.name === "string" &&
-			i.name.toLowerCase() === name.toLowerCase() &&
-			typeof i.full_name === "string" &&
-			typeof i.stargazers_count === "number" &&
-			i.stargazers_count >= MIN_STARS,
-	);
-	return hit ? { repo: String(hit.full_name) } : { none: true };
+	const hit = items.find((i) => i.name.toLowerCase() === name.toLowerCase() && i.stars >= MIN_STARS);
+	return hit ? { repo: hit.fullName } : { none: true };
 }
 
 /** A suggestion for a file whose source is unknown: the path is kept so the view can prefill a repo. */
@@ -531,6 +534,7 @@ function fileProblem(path: string, home: string, problem: string, source: Sugges
 	};
 }
 
+/** The problem line for a file Upkeep cannot trace to a repo; it asks the person for one. */
 const unknownSource = (base: string) => `Could not tell where ${base} comes from. Paste its GitHub repo to add it.`;
 
 /** A suggestion for a file on disk. Never runs it; probe allows the version probe once a repo is known. */

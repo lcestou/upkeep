@@ -144,3 +144,32 @@ test("a build step that runs past its limit is reported as timed out", async () 
 	});
 	expect(calls.find((x) => x.argv[0] === "bash")?.opts.timeoutMs).toBe(30 * 60_000);
 });
+
+test("a build that leaves the app unable to start is a failure that keeps the old version", async () => {
+	const dest = script(join(t.dir, "tmux"), 'echo "tmux 3.6"');
+	const fake = cloneFake(t);
+	const run: Run = async (argv, opts) => {
+		opts?.onLine?.(`ran ${argv[0]}`);
+		return fake.run(argv, opts);
+	};
+	const target = { from: "3.6", version: "3.6a", tag: "3.6a" };
+	expect(await installSource(tmux(dest, [`printf 'exit 3' > ${dest}`]), target, ctx(run))).toMatchObject({
+		result: "failed",
+		installed: "3.6",
+		detail: "Would not start after the update. No restore point for this kind.",
+	});
+	expect(lines).toContain("ran git");
+});
+
+test("a clone that fails stops before any build step runs", async () => {
+	const dest = script(join(t.dir, "tmux"), 'echo "tmux 3.6"');
+	const { run, calls } = recordingRun(t.paths, (argv) =>
+		argv[0] === "git" ? { code: 128, stdout: "", stderr: "fatal", timedOut: false } : undefined,
+	);
+	const target = { from: "3.6", version: "3.6a", tag: "3.6a" };
+	expect(await installSource(tmux(dest, ["true"]), target, ctx(run))).toMatchObject({
+		result: "failed",
+		detail: "Could not clone tmux/tmux at 3.6a.",
+	});
+	expect(calls.some((x) => x.argv[0] === "bash")).toBe(false);
+});

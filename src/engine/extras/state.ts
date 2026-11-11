@@ -10,10 +10,12 @@ import { writeAtomic } from "../store";
  */
 export const DEFAULT_EXTRAS: ExtrasSettings = { system: "off" };
 
+/** extras.json, in the state directory beside state.json but never inside it. */
 const file = (paths: Paths) => join(paths.state, "extras.json");
 
 /** Any value other than "show" is off, so a file from a later version with more modes reads as off, never as on. */
 function clamp(raw: unknown): ExtrasSettings {
+	// SAFETY: raw is a non-null object, so any key reads as a value or undefined; only system is read, and it is compared, not trusted.
 	const r = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
 	return { system: r.system === "show" ? "show" : DEFAULT_EXTRAS.system };
 }

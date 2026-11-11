@@ -39,6 +39,7 @@ export function canRestore(spec: Pick<AppSpec, "kind" | "dir" | "stage">): boole
 	return spec.kind === "appimage" || spec.kind === "archive" || spec.kind === "file";
 }
 
+/** The app's dest with a leading ~ expanded to the home in paths; an app with no dest gives an empty path. */
 export function destOf(spec: AppSpec, ctx: Pick<KindCtx, "paths">): string {
 	return expandHome(spec.dest ?? "", ctx.paths.home);
 }
@@ -49,6 +50,7 @@ export function installedFiles(spec: AppSpec, dest: string): string[] {
 	return (spec.bins ?? []).map((b) => join(dirname(dest), basename(b)));
 }
 
+/** Reads the installed version from the AppImage metadata when the table names one, else by running the dest with its version args. */
 export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult> {
 	const dest = destOf(spec, ctx);
 	if (spec.meta_path) return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run });
@@ -117,6 +119,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 	return { installed, latest, status, size, target, ...base };
 }
 
+/** Depth-first search under dir for a file called name; null when none, and the first match in directory order wins. */
 function findFile(dir: string, name: string): string | null {
 	for (const e of readdirSync(dir, { withFileTypes: true })) {
 		const p = join(dir, e.name);
@@ -129,8 +132,10 @@ function findFile(dir: string, name: string): string | null {
 	return null;
 }
 
+/** A stage of an install that failed with a message fit to show the person; anything else thrown is unexpected and rethrown. */
 class StepError extends Error {}
 
+/** The real path of p, or p unchanged when it does not exist yet. */
 function resolved(p: string): string {
 	try {
 		return realpathSync(p);

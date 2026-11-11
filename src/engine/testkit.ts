@@ -5,7 +5,7 @@ import { type Paths, paths } from "./paths";
 import { createRunner, type Run, type RunOpts, type ProcessResult } from "./run";
 
 /** A temp home with every Upkeep directory under it. Tests never touch the real one. */
-export function tempHome(prefix: string): { dir: string; paths: Paths; cleanup(): void } {
+export function tempHome(prefix: string) {
 	const dir = mkdtempSync(join(tmpdir(), `upkeep-${prefix}-`));
 	const p = paths({
 		HOME: join(dir, "home"),
@@ -41,7 +41,7 @@ export type Call = { argv: string[]; opts: RunOpts };
 export function recordingRun(
 	p: Paths,
 	handle: (argv: string[], opts: RunOpts) => ProcessResult | undefined | Promise<ProcessResult | undefined>,
-): { run: Run; calls: Call[] } {
+) {
 	const calls: Call[] = [];
 	const real = realRun(p);
 	const run: Run = Object.assign(
@@ -55,6 +55,7 @@ export function recordingRun(
 	return { run, calls };
 }
 
+/** A clean exit with this stdout and nothing on stderr. */
 export const ok = (stdout = ""): ProcessResult => ({ code: 0, stdout, stderr: "", timedOut: false });
 
 /**
@@ -63,7 +64,7 @@ export const ok = (stdout = ""): ProcessResult => ({ code: 0, stdout, stderr: ""
  */
 export function strictRun(
 	handle: (argv: string[], opts: RunOpts) => ProcessResult | undefined | Promise<ProcessResult | undefined>,
-): { run: Run; calls: Call[] } {
+) {
 	const calls: Call[] = [];
 	const run: Run = async (argv, opts = {}) => {
 		calls.push({ argv, opts });

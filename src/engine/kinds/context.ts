@@ -57,15 +57,13 @@ export type Outcome = {
 	stages: Partial<Record<Stage, number>>;
 };
 
+/** Lifts the notes, release page and publish date off a release; each stays undefined when the release has none. */
 export function fromRelease(release: Release): Pick<Checked, "notes" | "releaseUrl" | "publishedAt"> {
 	return { notes: release.notes, releaseUrl: release.url, publishedAt: release.publishedAt };
 }
 
 /** Times each stage and reports it as it starts. */
-export function stageClock(ctx: KindCtx): {
-	start(stage: Stage, pct?: number | null): void;
-	stop(): Partial<Record<Stage, number>>;
-} {
+export function stageClock(ctx: KindCtx) {
 	const stages: Partial<Record<Stage, number>> = {};
 	let current: Stage | null = null;
 	let since = 0;
@@ -73,7 +71,7 @@ export function stageClock(ctx: KindCtx): {
 		if (current) stages[current] = (stages[current] ?? 0) + (Date.now() - since);
 	};
 	return {
-		start(stage, pct = null) {
+		start(stage: Stage, pct: number | null = null): void {
 			end();
 			current = stage;
 			since = Date.now();
@@ -87,6 +85,7 @@ export function stageClock(ctx: KindCtx): {
 	};
 }
 
+/** The sentence for a probe that found the app but read no version: a broken one will not start, any other shows the probe's own detail. */
 export function probeProblem(name: string, dest: string, probe: Exclude<ProbeResult, { version: string }>): string {
 	if (probe.state === "broken") return `${name} will not start (${dest}).`;
 	return `Version probe failed${probe.detail ? `: ${probe.detail}` : "."}`;

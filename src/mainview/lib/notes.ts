@@ -16,6 +16,7 @@ const TAG = /<\/?[a-zA-Z][^>]*>/g;
 const INLINE =
 	/`([^`]+)`|\*\*([^*]+)\*\*|__([^_]+)__|\[([^\]]+)\]\(([^)\s]+)\)|(https?:\/\/[^\s<>()]+[^\s<>().,;:!?'"])/g;
 
+/** Splits one line into text, bold, code and url runs. Link syntax keeps only its label, and a bare link ends before trailing punctuation. */
 export function inline(text: string): Inline[] {
 	const out: Inline[] = [];
 	const push = (part: Inline) => {
@@ -37,6 +38,7 @@ export function inline(text: string): Inline[] {
 	return out;
 }
 
+/** Reads a release body into headings, lists and paragraphs. HTML tags are dropped, not rendered; a list ends at the next blank line or non-item line. */
 export function parseNotes(body: string): Block[] {
 	const blocks: Block[] = [];
 	let para: string[] = [];

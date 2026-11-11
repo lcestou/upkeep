@@ -35,6 +35,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	corners: "rounded",
 };
 
+/** Any missing or out-of-range field takes its default; keepBackups is rounded into 1 to 5. */
 function clampSettings(s: Partial<Settings>): Settings {
 	const keep = Number(s.keepBackups ?? DEFAULT_SETTINGS.keepBackups);
 	return {
@@ -48,12 +49,16 @@ function clampSettings(s: Partial<Settings>): Settings {
 	};
 }
 
+/** An array, null or a scalar reads as an empty table. The values are not checked against T. */
 function obj<T>(v: unknown): Record<string, T> {
+	// SAFETY: v is a non-array object; T is the caller's claim about its values, true for the files writeAtomic wrote, unchecked for a hand edit.
 	return typeof v === "object" && v !== null && !Array.isArray(v) ? (v as Record<string, T>) : {};
 }
 
+/** Skips, holds, auto flags and settings, in the state directory beside run.lock rather than with apps.toml. */
 const stateFile = (paths: Paths) => join(paths.state, "state.json");
 
+/** Never throws: a missing or unreadable file gives defaults, and an unreadable one is first copied to state.json.unreadable. */
 export function loadState(paths: Paths): State {
 	let raw: Record<string, unknown> = {};
 	const file = stateFile(paths);
@@ -61,6 +66,7 @@ export function loadState(paths: Paths): State {
 		raw = obj(JSON.parse(readFileSync(file, "utf8")));
 	} catch (err) {
 		// Absent: defaults. Unreadable: defaults too, but the next write would replace the file, so keep what was there beside it.
+		// SAFETY: readFileSync throws an ErrnoException; JSON.parse's SyntaxError has no code, which reads as not ENOENT.
 		if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
 			try {
 				copyFileSync(file, `${file}.unreadable`);
@@ -79,6 +85,7 @@ export function loadState(paths: Paths): State {
 	};
 }
 
+/** A reader sees the old file or the new one, never half. The directory must exist; a crash can leave a .tmp file behind. */
 export function writeAtomic(file: string, text: string): void {
 	const tmp = `${file}.${process.pid}.tmp`;
 	writeFileSync(tmp, text);
@@ -106,8 +113,10 @@ export function startTime(pid: number, procRoot = "/proc"): string | null {
 	}
 }
 
+/** Holds "<pid> <start time>", so a lock left by a dead process can be told from a live one. */
 const lockFile = (paths: Paths) => join(paths.state, "run.lock");
 
+/** False when the file already exists. Any other error, a missing directory or a full disk, is thrown. */
 function createExclusive(file: string, text: string): boolean {
 	try {
 		const fd = openSync(file, "wx", 0o644);
@@ -115,6 +124,7 @@ function createExclusive(file: string, text: string): boolean {
 		closeSync(fd);
 		return true;
 	} catch (err) {
+		// SAFETY: openSync and writeFileSync throw ErrnoException, which carries the code.
 		if ((err as NodeJS.ErrnoException).code === "EEXIST") return false;
 		throw err;
 	}
@@ -146,6 +156,7 @@ export function claimLock(paths: Paths, pid = process.pid, procRoot = "/proc"): 
 	return createExclusive(file, mine);
 }
 
+/** Leaves a lock another process holds. A missing lock is not an error. */
 export function releaseLock(paths: Paths, pid = process.pid): void {
 	const file = lockFile(paths);
 	try {
@@ -170,6 +181,7 @@ export type Inflight = {
 };
 
 const TREE_STEPS = new Set(["pause", "build", "stopping", "placing", "starting", "verify"]);
+/** An empty array counts. */
 const strings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
 
 /** A marker's tree, only when every field has the right type. */
@@ -183,16 +195,20 @@ function treeOf(v: unknown): Inflight["tree"] | undefined {
 		if (typeof b.pid !== "number" || typeof b.started !== "number") return undefined;
 		build = { pid: b.pid, started: b.started };
 	}
+	// SAFETY: TREE_STEPS holds exactly the names of the step union, and t.step is in it.
 	return { step: t.step as NonNullable<Inflight["tree"]>["step"], build, active: t.active, paused: t.paused };
 }
 
+/** The marker of an install in progress; recover reads it after a crash. */
 const inflightFile = (paths: Paths) => join(paths.state, "inflight.json");
 
+/** Replaces any earlier marker: one install runs at a time. */
 export function writeInflight(paths: Paths, inflight: Inflight): void {
 	mkdirSync(paths.state, { recursive: true });
 	writeAtomic(inflightFile(paths), JSON.stringify(inflight));
 }
 
+/** Null when there is no marker or it lacks a string key and dest. A malformed tree is dropped, not the marker. */
 export function readInflight(paths: Paths): Inflight | null {
 	try {
 		const v = obj<unknown>(JSON.parse(readFileSync(inflightFile(paths), "utf8")));
@@ -211,10 +227,12 @@ export function readInflight(paths: Paths): Inflight | null {
 	}
 }
 
+/** A missing marker is not an error. */
 export function clearInflight(paths: Paths): void {
 	rmSync(inflightFile(paths), { force: true });
 }
 
+/** One JSON row per line, under data, so it outlives a cleared cache. */
 const historyFile = (paths: Paths) => join(paths.data, "history.jsonl");
 
 /** True when the file's last byte is not a newline: a write that was cut short by a crash. */
@@ -248,6 +266,7 @@ export function readHistory(paths: Paths, limit: number): HistoryRow[] {
 	for (const line of text.split("\n")) {
 		if (!line.trim()) continue;
 		try {
+			// SAFETY: appendHistory is the only writer, one HistoryRow per line; a hand-edited row is not checked.
 			rows.push(JSON.parse(line) as HistoryRow);
 		} catch {
 			// a torn last line from a crash
@@ -256,20 +275,24 @@ export function readHistory(paths: Paths, limit: number): HistoryRow[] {
 	return rows.toReversed().slice(0, Math.max(0, limit));
 }
 
+/** One file per run, named by the run id. */
 const logsDir = (paths: Paths) => join(paths.state, "logs");
 
+/** HH:MM:SS in local time. A string that is not a date is returned as given. */
 function clock(at: string): string {
 	const d = new Date(at);
 	if (Number.isNaN(d.getTime())) return at;
 	return [d.getHours(), d.getMinutes(), d.getSeconds()].map((n) => String(n).padStart(2, "0")).join(":");
 }
 
+/** Keeps newlines in the text; the run log writer flattens them, readRunLog relies on one line per entry. */
 export function formatLogLine(line: LogLine): string {
 	return line.key ? `[${clock(line.at)}] [${line.key}] ${line.text}` : `[${clock(line.at)}] ${line.text}`;
 }
 
 export type RunLog = { write(line: LogLine): void; close(): void; file: string };
 
+/** Writes after close() are dropped, not thrown. The file is created by the first write, not here. */
 export function openRunLog(paths: Paths, runId: string): RunLog {
 	mkdirSync(logsDir(paths), { recursive: true });
 	const file = join(logsDir(paths), `${runId}.log`);
@@ -367,8 +390,8 @@ export function stageWeights(
 	const last = history.find((r) => r.key === key && r.result === "updated");
 	if (!last || defaults.length === 0) return fallback;
 	const ms = defaults.map(([id]) => last.stages[id]);
-	if (ms.some((v) => typeof v !== "number" || v < 0)) return fallback;
-	const times = ms as number[];
+	if (!ms.every((v): v is number => typeof v === "number" && v >= 0)) return fallback;
+	const times = ms;
 	const total = times.reduce((a, b) => a + b, 0);
 	if (total <= 0) return fallback;
 	const floored = times.map((t) => Math.max(8, (t / total) * 100));
@@ -406,8 +429,10 @@ function commitsOf(v: unknown): KnownRow["commits"] {
 	return out.length > 0 ? out : undefined;
 }
 
+/** Anything that is not a string reads as undefined, so a wrong-typed field is treated as missing. */
 const str = (x: unknown) => (typeof x === "string" ? x : undefined);
 
+/** Under cache: losing it only means the next start shows no rows until a check. */
 const rowsFile = (paths: Paths) => join(paths.cache, "rows.json");
 
 /** Writes the rows file by rename, so a reader never sees half of it. */

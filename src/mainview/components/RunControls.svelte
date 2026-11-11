@@ -16,7 +16,7 @@
 	let root = $state<HTMLElement | null>(null);
 	let first = true;
 
-	// When the buttons swap (Install for Stop, Stop for Done), focus follows instead of falling to the page.
+	/** When the buttons swap (Install for Stop, Stop for Done), focus follows instead of falling to the page. Skips the first mount, and only acts when focus was lost or left the group. */
 	const handoff: Attachment<HTMLElement> = (node) => {
 		if (first) {
 			first = false;

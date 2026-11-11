@@ -9,9 +9,12 @@ Exemptions, all in `.oxlintrc.json` under `overrides`:
   - `src/engine/github.ts` (GitHub's API)
   - `src/engine/store.ts` (`state.json`)
   - `src/engine/extras/state.ts` (the extras settings file)
+  - `src/engine/backup.ts` (a restore point's `meta.json`)
   - `src/bun/window-size.ts` (the saved window size)
+  - `src/bun/dev-script.ts` (a development build's scripted steps)
 
   Code anywhere else gets typed values from these files. Add a new one to the override when it is written.
+
 - **Tests and browser specs** (`**/*.test.ts`, `e2e/**`) build partial fakes, so they skip the assertion, unknown, dictionary, shadowing and function-scoping rules. The specs also await in loops on purpose, one step of a person's input after another.
 - **The plugin's own AST helpers** walk nodes of any shape.
 

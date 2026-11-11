@@ -10,6 +10,7 @@ export type ProbeOpts = { run: Run; timeoutMs?: number };
 const BROKEN = /error while loading shared libraries|cannot open shared object file|symbol lookup error/;
 
 // oxlint-disable no-control-regex -- terminal escapes are control characters by definition
+/** Drops colour codes and title sequences a version probe prints to a terminal. An unterminated OSC eats the rest of the text. */
 export function stripEscapes(text: string): string {
 	return text
 		.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "")

@@ -46,6 +46,7 @@ export function releaseInstance(socketPath: string): void {
 	remove(socketPath);
 }
 
+/** Starts the socket that answers later launches; false when the path is taken, which means another Upkeep owns it. */
 function listen(socketPath: string, onShow: () => void): boolean {
 	try {
 		server = Bun.listen({
@@ -62,6 +63,7 @@ function listen(socketPath: string, onShow: () => void): boolean {
 	}
 }
 
+/** Creates the claim file exclusively. False means another process holds it. A stale claim is removed but this call still returns false; the next try takes it. */
 function takeClaim(file: string): boolean {
 	try {
 		closeSync(openSync(file, "wx"));
@@ -77,6 +79,7 @@ function takeClaim(file: string): boolean {
 	}
 }
 
+/** Deletes a file and shrugs if it is already gone. */
 function remove(file: string): void {
 	try {
 		unlinkSync(file);
@@ -85,6 +88,7 @@ function remove(file: string): void {
 	}
 }
 
+/** Asks a running Upkeep to show its window; resolves false when nothing answers on the socket. */
 function askToShow(socketPath: string): Promise<boolean> {
 	return new Promise((resolve) => {
 		Bun.connect({

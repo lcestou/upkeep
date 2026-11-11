@@ -3,7 +3,7 @@ import type { AppState, AppStatus } from "../../shared/types";
 export type GlyphName = "dot" | "wait" | "bud" | "drop" | "leaf" | "hand" | "pause" | "bang" | "cross";
 
 /** The care band's token and glyph for each status (plan F4b). */
-export const CARE: Record<AppStatus, { band: string; glyph: GlyphName }> = {
+export const CARE = {
 	checking: { band: "var(--line)", glyph: "dot" },
 	ready: { band: "var(--sun)", glyph: "bud" },
 	queued: { band: "var(--sun)", glyph: "wait" },
@@ -15,7 +15,7 @@ export const CARE: Record<AppStatus, { band: string; glyph: GlyphName }> = {
 	problem: { band: "var(--rust)", glyph: "bang" },
 	failed: { band: "var(--fail)", glyph: "cross" },
 	rolled_back: { band: "var(--fail)", glyph: "cross" },
-};
+} satisfies Record<AppStatus, { band: string; glyph: GlyphName }>;
 
 /** The glyph's colour. Checking draws its dot in --dot because the --line band is too faint for a glyph. */
 export function glyphColor(status: AppStatus): string {
@@ -27,6 +27,7 @@ export function isQuiet(app: Pick<AppState, "status">): boolean {
 	return app.status === "fresh" || app.status === "checking";
 }
 
+/** True when the title is crossed out: a failure, or a hold the person set by skipping a version. A plain hold is not struck. */
 export function isStruck(app: Pick<AppState, "status" | "skipped">): boolean {
 	return (
 		app.status === "failed" || app.status === "rolled_back" || (app.status === "held" && app.skipped !== undefined)
@@ -45,6 +46,7 @@ export function progressOf(app: AppState): number {
 	return sum / 100;
 }
 
+/** The version of the newest restore point, or null when there is none to go back to. */
 export function restoreText(app: AppState): string | null {
 	return app.restorePoints[0]?.version ?? null;
 }

@@ -59,6 +59,7 @@ function openWindow(tab = ""): void {
 		// Rounded corners need a see-through window: the view paints everything but the four corner cut-offs.
 		transparent: now.rounded,
 		// No x or y: the framework then centres the window itself, with no jump from the corner.
+		// SAFETY: the framework types a frame with x and y, but it centres the window when they are missing; the size file never holds a position.
 		frame: loadWindowSize(sizeFile) as { x: number; y: number; width: number; height: number },
 	});
 	// A drag fires many resize events; the size is written once it has been still for half a second.
@@ -79,6 +80,7 @@ function openWindow(tab = ""): void {
 		if (quitting || rebuilding) return;
 		// With no tray a hidden window is unreachable: close quits instead, except during a run.
 		if (!tray.visible && engine.snapshot().run.phase !== "installing") return quit();
+		// SAFETY: the framework passes a plain event object whose `response` field it reads back after the handlers run; the type does not declare it.
 		(event as { response?: { allow: boolean } }).response = { allow: false };
 		if (tray.visible) win?.hide();
 	});
@@ -98,6 +100,7 @@ function readSystemLayout(): SystemLayout {
 }
 const systemLayout = readSystemLayout();
 
+/** The frame state the view should draw now: the settings, the desktop layout and whether the window is maximised. */
 function chrome(): WindowChrome {
 	return windowChrome(engine.snapshot().settings, systemLayout, win?.isMaximized() ?? false);
 }
@@ -133,6 +136,7 @@ function followFrameSetting(): void {
 	tellChrome();
 }
 
+/** Runs a title-bar button the view drew. Does nothing before a window exists; close hides to the tray rather than ending the app. */
 function windowOp(op: WindowButton): void {
 	if (!win) return;
 	if (op === "minimize") win.minimize();
@@ -145,6 +149,7 @@ function windowOp(op: WindowButton): void {
 	else if (tray.visible) win.hide();
 }
 
+/** Ends the app for real: marks the close as wanted and frees the socket first so a new launch can start. */
 function quit(): void {
 	quitting = true;
 	releaseInstance(deps.paths.socket);
@@ -171,6 +176,7 @@ const extras = createExtras({ paths: deps.paths, run: deps.run, now: deps.now })
 // The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
 const launcher = join(import.meta.dir, "../../../bin/launcher");
 const appIcon = join(import.meta.dir, "../../appIcon.png");
+/** Writes or removes the login entry to match the setting; skipped in dev and source runs. Throws if the autostart folder cannot be written. */
 function applyLoginSetting(): void {
 	// Only an installed build may own the login entry; a dev bundle or a source run would point it at a moving target.
 	if (isDevBuild(import.meta.dir) || !existsSync(launcher)) return;
@@ -178,6 +184,7 @@ function applyLoginSetting(): void {
 }
 
 // One channel per window: a channel stays tied to the webview it was first given to, so a rebuilt window with the old one never hears from this process and stays blank.
+/** A fresh channel for a new window; see the note above on why one is never reused. */
 function makeRpc() {
 	return defineUpkeepRpc(engine, deps, {
 		onSettings: () => {
@@ -195,6 +202,7 @@ const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", templat
 let shownIcon = "";
 let shownMenu = "";
 
+/** Redraws the tray icon, title and menu from the engine, touching each only when it changed. */
 function refreshTray(): void {
 	const snapshot = engine.snapshot();
 	const icon = trayIcon(snapshot);
@@ -212,6 +220,7 @@ function refreshTray(): void {
 }
 
 tray.on("tray-clicked", (event) => {
+	// SAFETY: the framework gives the clicked menu item's `action` string in `data`; the type does not declare it and a click with no data leaves it undefined.
 	const action = (event as { data?: { action?: string } }).data?.action;
 	if (action === "open") openWindow();
 	else if (action === "check") void engine.check();
@@ -227,12 +236,13 @@ tray.on("tray-clicked", (event) => {
 	}
 });
 
+/** Shows a desktop notice unless the owner turned notices off. */
 function notify(body: string): void {
 	if (engine.snapshot().settings.notify) Utils.showNotification({ title: "Upkeep", body });
 }
 
-/** One notice per ready set: the same pending list is announced once, not after every check. */
 let firstBackgroundCheck = background;
+/** One notice per ready set: the same pending list is announced once, not after every check. */
 function announceReady(): void {
 	const all = engine.snapshot();
 	// At a login start the automatic apps are about to install and get their own "Updated" notice.
@@ -248,6 +258,7 @@ function announceReady(): void {
 	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot)));
 }
 
+/** Says the outcome of an install with no window to read it: one notice for the updated apps, one per failure. */
 function announceRun(): void {
 	const results = engine.snapshot().run.results;
 	const updated = results.filter((r) => r.result === "updated").map((r) => r.name);

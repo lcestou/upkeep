@@ -46,9 +46,11 @@ export function newlyReady(was: AppStatus | undefined, after: AppState): boolean
 	return after.status === "ready" && was !== "ready";
 }
 
+/** True when the lower-cased filter text is in the app's name or its repo; an app with no repo matches on name only. */
 const matches = (app: AppState, text: string) =>
 	app.name.toLowerCase().includes(text) || (app.repo ?? "").toLowerCase().includes(text);
 
+/** The heading of the run group: "installing" while the run is going, the neutral "this run" label in any other phase. */
 export function runLabel(phase: RunState["phase"]): string {
 	return phase === "installing" ? GROUP_LABEL.installing : GROUP_LABEL.thisRun;
 }
@@ -59,6 +61,7 @@ const LOG_CAP = 2000;
 
 export const IN_RUN: ReadonlySet<AppStatus> = new Set(["queued", "working", "done", "failed", "rolled_back"]);
 
+/** An empty run state, used before the first snapshot and as the reset value; a fresh object each call so callers never share one. */
 const idleRun = (): RunState => ({
 	id: null,
 	phase: "idle",
@@ -70,6 +73,7 @@ const idleRun = (): RunState => ({
 	retry: false,
 });
 
+/** The view's state: the engine's snapshot, applied events and the choices the person has made in the window. It never talks to the engine except through the bridge it is given. */
 export class Model {
 	apps = $state<AppState[]>([]);
 	run = $state<RunState>(idleRun());
@@ -127,7 +131,10 @@ export class Model {
 			apps: this.shown.filter((a) => groupOf(a, this.prior[a.key]) === id),
 		})).filter((g) => g.apps.length > 0),
 	);
-	#needle = $derived(this.filter.trim().toLowerCase());
+	/** The filter as matched: trimmed and lower case; empty means no filter. */
+	get #needle(): string {
+		return this.filter.trim().toLowerCase();
+	}
 	shown: AppState[] = $derived(this.#needle ? this.apps.filter((a) => matches(a, this.#needle)) : this.apps);
 	/** System rows the filter shows; shown only while the setting is on. */
 	systemShown: SystemRow[] = $derived(
@@ -162,12 +169,18 @@ export class Model {
 	hiddenTicked: number = $derived(this.#needle ? this.tickedApps.filter((a) => !matches(a, this.#needle)).length : 0);
 
 	tickedBytes: number | null = $derived.by(() => {
-		const sizes = this.tickedApps.flatMap((a) => (typeof a.size === "number" ? [a.size] : []));
+		const sizes = this.tickedApps.flatMap((a) => (a.size === undefined ? [] : [a.size]));
 		return sizes.length === 0 ? null : sizes.reduce((s, n) => s + n, 0);
 	});
 	problems: number = $derived(this.apps.filter((a) => a.status === "problem").length);
-	current: AppState | null = $derived(this.apps.find((a) => a.key === this.run.currentKey) ?? null);
-	openApp: AppState | null = $derived(this.apps.find((a) => a.key === this.openKey) ?? null);
+	/** The app the run is installing now; null between apps and outside a run. */
+	get current(): AppState | null {
+		return this.apps.find((a) => a.key === this.run.currentKey) ?? null;
+	}
+	/** The app whose inspector is open; null when none is, or when its key left the list. */
+	get openApp(): AppState | null {
+		return this.apps.find((a) => a.key === this.openKey) ?? null;
+	}
 	sentence: string = $derived(
 		stateSentence({
 			run: this.run,
@@ -190,10 +203,12 @@ export class Model {
 	#bridge: Bridge | null;
 	#off: (() => void) | null = null;
 
+	/** With no bridge the model stays empty and every request resolves to nothing, which the unit tests and the empty window rely on. */
 	constructor(bridge: Bridge | null = null) {
 		this.#bridge = bridge;
 	}
 
+	/** Subscribes to events before asking for the snapshot so none are missed. A chrome or extras request that fails leaves them null; the snapshot request itself is allowed to reject. */
 	async start(): Promise<void> {
 		const bridge = this.#bridge;
 		if (!bridge) return;
@@ -208,11 +223,13 @@ export class Model {
 		this.load(snap);
 	}
 
+	/** Unsubscribes from engine events. Safe to call twice. */
 	stop(): void {
 		this.#off?.();
 		this.#off = null;
 	}
 
+	/** Replaces the whole list from a snapshot. Ticks only the apps that are ready, and discards earlier ticks. */
 	load(snap: Snapshot): void {
 		this.apps = snap.apps;
 		this.run = snap.run;
@@ -224,6 +241,7 @@ export class Model {
 		this.loaded = true;
 	}
 
+	/** Folds one engine event into the state. An app that is being checked again keeps its last known versions and its place in the list. */
 	apply(e: EngineEvent): void {
 		switch (e.type) {
 			case "app": {
@@ -288,6 +306,7 @@ export class Model {
 		}
 	}
 
+	/** Adds or removes one key by swapping in a new set, because the ticked set is raw state and a mutation would not notify. */
 	#tick(key: string, on: boolean): void {
 		const next = new Set(this.ticked);
 		if (on) next.add(key);
@@ -295,6 +314,7 @@ export class Model {
 		this.ticked = next;
 	}
 
+	/** Flips the tick of a ready app. Any other status is ignored, so a row that cannot be installed never gets ticked. */
 	toggle(key: string): void {
 		if (this.apps.find((a) => a.key === key)?.status !== "ready") return;
 		this.#tick(key, !this.ticked.has(key));
@@ -303,26 +323,31 @@ export class Model {
 	/** Ready apps the filter shows; Select all, Select none and the header tick act on these. */
 	shownReady: AppState[] = $derived(this.ready.filter((a) => this.shown.includes(a)));
 
+	/** Ticks the ready apps the filter shows, keeping the ticks already made. */
 	selectAll(): void {
 		this.ticked = new Set([...this.ticked, ...this.shownReady.map((a) => a.key)]);
 	}
 
+	/** Unticks the ready apps the filter shows; ticks on rows the filter hides stay. */
 	selectNone(): void {
 		const hide = new Set(this.shownReady.map((a) => a.key));
 		this.ticked = new Set([...this.ticked].filter((k) => !hide.has(k)));
 	}
 
+	/** Opens an app in the inspector. During a run this pins the choice so the inspector stops following the queue. */
 	select(key: string): void {
 		this.adding = false;
 		this.openKey = key;
 		if (this.run.phase === "installing") this.pinned = true;
 	}
 
+	/** Closes the inspector and the add pane. */
 	close(): void {
 		this.openKey = null;
 		this.adding = false;
 	}
 
+	/** Opens the add pane. When input is given it is handed over and findSeq is bumped to make the pane look it up; with none, what was typed before stays. */
 	openAdd(input?: string): void {
 		this.openKey = null;
 		this.adding = true;
@@ -347,12 +372,14 @@ export class Model {
 		);
 	}
 
+	/** Remembers why the engine refused a request, or clears the reason when it accepted. Returns the answer unchanged. */
 	async #ask<T extends { started?: boolean; reason?: string }>(p: Promise<T>): Promise<T> {
 		const res = await p;
 		this.refusal = res.started === false ? (res.reason ?? null) : null;
 		return res;
 	}
 
+	/** Starts a run for the keys, by default the ticked apps. Does nothing with no keys or while a start is in flight; a rejected request is swallowed and the run's events tell the story. */
 	async install(keys: string[] = this.tickedApps.map((a) => a.key)): Promise<void> {
 		const bridge = this.#bridge;
 		if (!bridge || keys.length === 0 || this.starting) return;
@@ -366,10 +393,12 @@ export class Model {
 		}
 	}
 
+	/** Starts a run for the apps that did not update last time. */
 	retry(): Promise<void> {
 		return this.install(this.failedKeys);
 	}
 
+	/** Asks for a check, and the system list as well when that group is on. A refused check leaves the last refusal showing. */
 	async check(): Promise<void> {
 		// The system list checks beside the apps; nothing waits on it.
 		if (this.extras?.settings.system === "show") void this.send("systemCheck", {});
@@ -396,14 +425,17 @@ export class Model {
 		};
 	}
 
+	/** Asks the engine to stop after the app now running; nothing waits on the answer. */
 	async stopAfterCurrent(): Promise<void> {
 		await this.send("stopAfterCurrent", {});
 	}
 
+	/** Clears the run summary on the engine's side. */
 	async dismiss(): Promise<void> {
 		await this.send("dismissSummary", {});
 	}
 
+	/** Loads the newest 200 history rows; a failed request leaves the rows already shown. */
 	async loadHistory(): Promise<void> {
 		const rows = await this.send("history", { limit: 200 });
 		if (rows) this.history = rows;

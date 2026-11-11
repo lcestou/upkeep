@@ -75,6 +75,7 @@
 		else scanned = list.map((x) => (x.spec.key === key ? next : x));
 	}
 
+	/** Asks the engine what the field holds, naming `asset` when the owner picked another download. Empty text clears the last answer and asks nothing; a repo pasted for a scanned file keeps that file as dest. */
 	async function find(asset?: string) {
 		const text = input.trim();
 		// An empty Find clears what the last one said, so the hint reads alone again.
@@ -98,6 +99,7 @@
 		failures = {};
 	}
 
+	/** Opens the system file chooser and runs a Find on the chosen path; a cancelled chooser leaves the field alone. */
 	async function pick() {
 		const res = await guard("pick", () => model.request("pickFile", {}));
 		if (!res?.path) return;
@@ -106,6 +108,7 @@
 		await find();
 	}
 
+	/** Looks through the machine for programs Upkeep could add, ticking the sure ones that have no problem. Replaces any earlier scan and clears the Find results. */
 	async function scan() {
 		found = [];
 		problem = null;
@@ -116,6 +119,7 @@
 		scanTicks = new Set(res.suggestions.filter((s) => s.confidence === "sure" && !s.problem).map((s) => s.spec.key));
 	}
 
+	/** Adds one found app. On failure the reason shows on its card and nothing else changes; on success the new row takes focus. */
 	async function addOne(spec: AppSpec) {
 		const res = await guard("add", () => model.request("addApps", { specs: [spec] }));
 		if (!res) return;
@@ -130,6 +134,7 @@
 		await focusRow(spec.key);
 	}
 
+	/** Adds every ticked scan row in one request. Added rows leave the list, failed ones stay with their reason. */
 	async function addScanned() {
 		const specs = tickedSpecs.map((s) => s.spec);
 		const res = await guard("add", () => model.request("addApps", { specs }));
@@ -153,9 +158,10 @@
 		if (row && !row.closest("[inert]")) row.focus({ preventScroll: true });
 	}
 
-	// shortcut: assumes the Linux /home/<user> layout for "~"; upgrade when the bridge reports the home dir.
+	/** Shortens a home-folder path to `~` for display only. shortcut: assumes the Linux /home/<user> layout; upgrade when the bridge reports the home dir. */
 	const tilde = (path: string) => path.replace(/^\/home\/[^/]+(?=\/)/, "~");
 
+	/** Flips one scan row's tick by building a new set, since `scanTicks` is raw state that only reacts to reassignment. */
 	function toggleTick(key: string) {
 		const next = new Set(scanTicks);
 		if (next.has(key)) next.delete(key);
@@ -163,6 +169,7 @@
 		scanTicks = next;
 	}
 
+	/** For a scanned file with no known source: clears the field, remembers the file as the next Find's dest, and focuses the field for the repo link. */
 	async function pasteRepo(s: Suggestion) {
 		pendingPath = s.path ?? null;
 		input = "";
@@ -170,6 +177,7 @@
 		field?.focus();
 	}
 
+	/** Enter in the field runs a Find, without submitting any surrounding form. */
 	function onfieldkey(e: KeyboardEvent) {
 		if (e.key === "Enter") {
 			e.preventDefault();

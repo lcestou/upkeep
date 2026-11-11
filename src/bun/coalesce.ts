@@ -1,10 +1,11 @@
 import type { EngineEvent } from "../shared/types";
 
-type Timers = { set: (fn: () => void, ms: number) => unknown; clear: (handle: unknown) => void };
+type TimerHandle = ReturnType<typeof setTimeout>;
+type Timers = { set: (fn: () => void, ms: number) => TimerHandle; clear: (handle: TimerHandle) => void };
 
 const realTimers: Timers = {
 	set: (fn, ms) => setTimeout(fn, ms),
-	clear: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
+	clear: (handle) => clearTimeout(handle),
 };
 
 /**
@@ -15,7 +16,7 @@ const realTimers: Timers = {
  */
 export function createCoalescer(send: (event: EngineEvent) => void, windowMs = 50, timers: Timers = realTimers) {
 	const pending = new Map<string, EngineEvent>();
-	let handle: unknown = null;
+	let handle: TimerHandle | null = null;
 
 	function flush(): void {
 		if (handle !== null) timers.clear(handle);

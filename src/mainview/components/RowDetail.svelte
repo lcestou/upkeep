@@ -46,19 +46,21 @@
 	let keepBtn = $state<HTMLButtonElement | null>(null);
 	let removeBtn = $state<HTMLButtonElement | null>(null);
 
+	/** Opens the remove question and puts focus on Keep, the safe answer. */
 	async function ask() {
 		asking = true;
 		await tick();
 		keepBtn?.focus();
 	}
 
+	/** Dismisses the remove question and returns focus to the Remove button. */
 	async function keep() {
 		asking = false;
 		await tick();
 		removeBtn?.focus();
 	}
 
-	// Escape in the question is Keep, and goes no further, so the pane stays open.
+	/** Escape in the question is Keep, and goes no further, so the pane stays open. */
 	function escKeep(e: KeyboardEvent) {
 		if (e.key !== "Escape") return;
 		e.preventDefault();
@@ -66,6 +68,7 @@
 		void keep();
 	}
 
+	/** Removes the app from the list after the question, then focuses the next row (or the one before the last). A refused removal just closes the question. */
 	async function remove() {
 		const name = app.name;
 		// Focus goes to the next row, or the one before when this was the last.
@@ -84,12 +87,14 @@
 		(row ?? document.querySelector<HTMLElement>('[data-testid="filter"]'))?.focus();
 	}
 
+	/** Installs this app alone after a failure, keeping focus in the pane because the Retry button leaves with the failure. */
 	async function retryOne() {
 		await model.install([app.key]);
 		// The Retry button leaves with the failure; keep focus inside the pane.
 		document.querySelector<HTMLElement>('[data-testid="inspector-close"]')?.focus();
 	}
 
+	/** Copies text through the main process and shows "copied" for two seconds; nothing shows when the copy was refused. */
 	async function copyCommand(text: string) {
 		const res = await model.send("copy", { text });
 		if (!res?.ok) return;
@@ -97,6 +102,7 @@
 		setTimeout(() => (copied = false), 2000);
 	}
 
+	/** Restores a saved version of this app. The result line is kept (failure text included) and takes focus, and the row is scrolled into view because it moves to Held back. */
 	async function restore(version: string) {
 		busy = true;
 		try {

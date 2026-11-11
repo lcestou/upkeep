@@ -9,12 +9,14 @@
 	const active = $derived(live ? app.stages.findIndex((s) => s.id === app.stage) : -1);
 	const text = $derived(statusText(app));
 
+	/** Where stage i stands: a finished app shows every stage done; outside a live run all are pending. */
 	function phase(i: number): "done" | "active" | "pending" {
 		if (app.status === "done") return "done";
 		if (!live || i > active) return "pending";
 		return i < active ? "done" : "active";
 	}
 
+	/** How full stage i's bar is, from 0 to 1; only the active stage takes the live percentage. */
 	function fill(i: number): number {
 		const p = phase(i);
 		if (p === "done") return 1;

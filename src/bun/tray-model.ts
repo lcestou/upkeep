@@ -52,14 +52,17 @@ export function nameList(names: string[]): string {
 	return `${names.slice(0, 4).join(", ")} and ${names.length - 4} more`;
 }
 
+/** The notification text for a ready set; the count reads "1 update" in the singular. */
 export function readyNotice(names: string[]): string {
 	return `${names.length === 1 ? "1 update" : `${names.length} updates`} ready: ${nameList(names)}`;
 }
 
+/** The notification text after an install, naming at most four apps. */
 export function updatedNotice(names: string[]): string {
 	return `Updated ${nameList(names)}`;
 }
 
+/** The notification text for one failed app; it points at the log, which holds the cause. */
 export function failedNotice(name: string): string {
 	return `${name} failed to update. Open Upkeep for the log.`;
 }

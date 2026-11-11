@@ -3,11 +3,14 @@ import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	compareRefs,
+	type Failure,
 	type FetchLike,
 	fetchRelease,
 	githubToken,
 	isFailure,
 	latestFromSource,
+	parseRepoSearch,
 	pickAsset,
 	type Release,
 } from "./github";
@@ -186,4 +189,56 @@ test("latestFromSource reads npm, PyPI and GitHub", async () => {
 	]);
 	const failed = await latestFromSource("npm:x", { cacheDir: dir, fetch: down });
 	expect(isFailure(failed) && failed.failure).toBe("network");
+});
+
+const answer =
+	(body: unknown): FetchLike =>
+	async () =>
+		Response.json(body);
+
+test("an unreachable GitHub is a network failure for a release and for a comparison, never up to date", async () => {
+	const want: Failure = { failure: "network", detail: "Could not reach GitHub: offline" };
+	expect(await fetchRelease("sharkdp/fd", { cacheDir: dir, fetch: down, api: api() })).toEqual(want);
+	expect(await compareRefs("o/r", "abc", "main", { cacheDir: dir, fetch: down, api: api() })).toEqual(want);
+});
+
+test("npm dist-tags: offline is a network failure, and nothing at or above the installed version is a problem", async () => {
+	const url = "https://registry.npmjs.org/-/package/x/dist-tags";
+	expect(await latestFromSource("npm-tags:x", { cacheDir: dir, fetch: down })).toEqual({
+		failure: "network",
+		detail: `Could not reach ${url}: offline`,
+	});
+	const old = answer({ latest: "1.0.0", next: "1.1.0-rc.1" });
+	expect(await latestFromSource("npm-tags:x", { cacheDir: dir, fetch: old, installed: "2.0.0" })).toEqual({
+		failure: "http",
+		detail: "No published version at or above 2.0.0.",
+	});
+	expect(await latestFromSource("npm-tags:x", { cacheDir: dir, fetch: answer({}) })).toEqual({
+		failure: "http",
+		detail: `${url} sent no version.`,
+	});
+	expect(await latestFromSource("npm-tags:x", { cacheDir: dir, fetch: old, installed: "1.0.0" })).toEqual({
+		version: "1.0.0",
+	});
+});
+
+test("a version source with an unknown scheme is refused without a request", async () => {
+	expect(await latestFromSource("cargo:fd", { cacheDir: dir, fetch: down })).toEqual({
+		failure: "http",
+		detail: "Unknown version source cargo:fd.",
+	});
+});
+
+test("a search item without a string name, full name and star count is dropped", () => {
+	const body = {
+		items: [
+			{ name: "fd", full_name: "sharkdp/fd", stargazers_count: 40000 },
+			null,
+			{ name: "fd", full_name: "x/fd" },
+			{ name: 3, full_name: "y/fd", stargazers_count: 9 },
+		],
+	};
+	expect(parseRepoSearch(body)).toEqual([{ name: "fd", fullName: "sharkdp/fd", stars: 40000 }]);
+	expect(parseRepoSearch({ items: "none" })).toEqual([]);
+	expect(parseRepoSearch(null)).toEqual([]);
 });

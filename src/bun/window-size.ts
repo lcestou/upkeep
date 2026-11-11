@@ -8,6 +8,7 @@ export const DEFAULT_SIZE: WindowSize = { width: 980, height: 720 };
 const MIN: WindowSize = { width: 760, height: 520 };
 const MAX: WindowSize = { width: 3840, height: 2160 };
 
+/** Rounds to whole pixels and keeps the value inside the range; NaN is not handled, callers check finiteness first. */
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(n)));
 
 /**
@@ -18,6 +19,7 @@ export function loadWindowSize(file: string): WindowSize {
 	try {
 		const raw: unknown = JSON.parse(readFileSync(file, "utf8"));
 		if (typeof raw !== "object" || raw === null) return DEFAULT_SIZE;
+		// SAFETY: raw is a non-null object, checked on the line above; its fields are checked as numbers next.
 		const { width, height } = raw as Record<string, unknown>;
 		if (typeof width !== "number" || typeof height !== "number") return DEFAULT_SIZE;
 		if (!Number.isFinite(width) || !Number.isFinite(height)) return DEFAULT_SIZE;
@@ -27,6 +29,7 @@ export function loadWindowSize(file: string): WindowSize {
 	}
 }
 
+/** Writes through a temp file and a rename, so a crash mid-write cannot leave a half file that loads as the default. Throws if the folder cannot be made. */
 export function saveWindowSize(file: string, size: WindowSize): void {
 	mkdirSync(dirname(file), { recursive: true });
 	const tmp = `${file}.${process.pid}.tmp`;

@@ -36,6 +36,7 @@ export type BackupMeta = {
 	};
 };
 
+/** Under data, not cache, so clearing the cache never costs a restore point. The key is not checked here. */
 export function backupDir(paths: Paths, key: string): string {
 	return join(paths.data, "backups", key);
 }
@@ -81,8 +82,10 @@ export function takeBackup(
 	return { version, at };
 }
 
+/** Null for a missing or malformed meta.json, which listBackups then leaves out. File entries are not checked. */
 export function readMeta(dir: string): BackupMeta | null {
 	try {
+		// SAFETY: takeBackup wrote this file as a BackupMeta; the next line checks version, at and files, and the rest is trusted as written.
 		const m = JSON.parse(readFileSync(join(dir, "meta.json"), "utf8")) as BackupMeta;
 		return typeof m.version === "string" && typeof m.at === "string" && Array.isArray(m.files) ? m : null;
 	} catch {

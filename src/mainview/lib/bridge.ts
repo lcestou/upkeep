@@ -16,6 +16,7 @@ const LONG: ReadonlySet<string> = new Set(["restore", "install", "suggest", "sca
 const SHORT_MS = 15_000;
 const LONG_MS = 300_000;
 
+/** Picks the fixture bridge when the URL asks for one (a plain browser, the specs), else the real Electrobun channel. Unknown fixture names fall back to the default variant. */
 export async function getBridge(): Promise<Bridge> {
 	const query = new URLSearchParams(location.search);
 	if (query.has("fixture")) {
@@ -51,7 +52,7 @@ export async function getBridge(): Promise<Bridge> {
 	return {
 		request<K extends keyof Requests>(name: K, params: Requests[K]["params"]) {
 			const live = electroview.rpc ?? rpc;
-			// The framework types each request separately; indexing by a generic key needs the one signature.
+			// SAFETY: the framework types each request separately; the schema in UpkeepRPC gives every key this one signature.
 			const call = live.request[name] as (
 				p: Requests[K]["params"],
 				options: { maxRequestTime: number },

@@ -31,6 +31,7 @@
 	const options = $derived(s.asset ? [s.asset.name, ...s.alternatives] : s.alternatives);
 	const key = $derived(s.spec.key);
 
+	/** Hands the engine the spec with the owner's edits; an emptied name or dest falls back to the suggested one. */
 	function add() {
 		onadd({ ...s.spec, name: name.trim() || s.spec.name, dest: dest.trim() || s.spec.dest });
 	}

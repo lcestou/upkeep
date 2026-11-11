@@ -14,6 +14,7 @@ from gi.repository import GdkPixbuf
 src, dst, px = sys.argv[1], sys.argv[2], int(sys.argv[3])
 GdkPixbuf.Pixbuf.new_from_file_at_size(src, px, px).savev(dst, "png", [], [])`;
 
+/** Draws one SVG to a PNG of px by px through GdkPixbuf, because rsvg and Inkscape fill the knocked-out digits wrongly. Throws with Python's stderr on failure. */
 function render(svg: string, png: string, px: number): void {
 	const done = Bun.spawnSync(["python3", "-c", PY, svg, png, String(px)]);
 	if (done.exitCode !== 0) throw new Error(`render failed for ${svg}: ${done.stderr.toString()}`);

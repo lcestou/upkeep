@@ -12,10 +12,12 @@ export function tagVersion(tag: string): string | null {
 
 const SENTINELS = new Set(["", "unknown", "not_installed", "broken"]);
 
+/** False past the end of the string, where indexing gives undefined. ASCII digits only. */
 function isDigit(c: string | undefined): boolean {
 	return c !== undefined && c >= "0" && c <= "9";
 }
 
+/** A character's weight in verrevcmp: "~" sorts before the end of a string, letters before other symbols. */
 function order(c: string): number {
 	if (isDigit(c)) return 0;
 	if (/[A-Za-z]/.test(c)) return c.charCodeAt(0);

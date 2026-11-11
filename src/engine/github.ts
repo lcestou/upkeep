@@ -35,23 +35,33 @@ export type ReleaseOpts = {
 
 const GITHUB_API = "https://api.github.com";
 
-export function isFailure(v: object): v is Failure {
+/** Tells a failure from a result by its failure field, which no result type carries. */
+export function isFailure<T extends object>(v: T | Failure): v is Failure {
 	return "failure" in v;
 }
 
+/** Anything that is not a string reads as empty, so a missing field and a wrong-typed one are the same. */
 function str(v: unknown): string {
 	return typeof v === "string" ? v : "";
 }
 
+/** A JSON value read as a table of fields. Anything that is not an object, null included, reads as an empty one. */
+function record(v: unknown): Record<string, unknown> {
+	// SAFETY: v is a non-null object, and reading any key of one gives a value or undefined, never a throw.
+	return typeof v === "object" && v !== null ? (v as Record<string, unknown>) : {};
+}
+
+/** Null when the body has no tag. An asset that is not an object is skipped; a missing field reads as empty. */
 function parseRelease(body: unknown): Release | null {
 	if (typeof body !== "object" || body === null) return null;
-	const b = body as Record<string, unknown>;
+	const b = record(body);
 	const tag = str(b.tag_name);
 	if (!tag) return null;
 	const assets: Asset[] = [];
 	if (Array.isArray(b.assets)) {
-		for (const a of b.assets as Record<string, unknown>[]) {
-			if (typeof a !== "object" || a === null) continue;
+		for (const item of b.assets) {
+			if (typeof item !== "object" || item === null) continue;
+			const a = record(item);
 			assets.push({
 				name: str(a.name),
 				url: str(a.browser_download_url),
@@ -72,9 +82,10 @@ function parseRelease(body: unknown): Release | null {
 
 type Cached = { etag: string; body: string };
 
+/** Null for a missing, unreadable or malformed cache file, which then costs one full request. */
 function readCache(file: string): Cached | null {
 	try {
-		const c = JSON.parse(readFileSync(file, "utf8")) as Partial<Cached>;
+		const c = record(JSON.parse(readFileSync(file, "utf8")));
 		return typeof c.etag === "string" && typeof c.body === "string" ? { etag: c.etag, body: c.body } : null;
 	} catch {
 		return null;
@@ -150,7 +161,7 @@ export async function compareRefs(
 	if (isFailure(cmp)) return cmp;
 	if (cmp.status === 404) return { failure: "http", detail: `GitHub does not know ${base} in ${repo}.` };
 	if (cmp.status !== 200) return { failure: "http", detail: `GitHub answered ${cmp.status} for ${repo}.` };
-	const c = (typeof cmp.body === "object" && cmp.body !== null ? cmp.body : {}) as Record<string, unknown>;
+	const c = record(cmp.body);
 	const status = c.status;
 	if (status !== "ahead" && status !== "behind" && status !== "identical" && status !== "diverged")
 		return { failure: "http", detail: `GitHub sent no comparison for ${repo}.` };
@@ -161,13 +172,15 @@ export async function compareRefs(
 	if (isFailure(list)) return list;
 	if (list.status !== 200 || !Array.isArray(list.body))
 		return { failure: "http", detail: `GitHub answered ${list.status} for ${repo}.` };
-	const commits = (list.body as Record<string, unknown>[]).slice(0, Math.min(30, ahead)).map((x) => {
-		const commit = (typeof x.commit === "object" && x.commit !== null ? x.commit : {}) as Record<string, unknown>;
+	const commits = list.body.slice(0, Math.min(30, ahead)).map((item) => {
+		const x = record(item);
+		const commit = record(x.commit);
 		return { sha: str(x.sha), title: str(commit.message).split("\n")[0] ?? "" };
 	});
 	return { status, ahead, commits };
 }
 
+/** Null for an empty list. Throws, as Bun.semver.order does, when a string is not a semver version. */
 const highest = (vs: string[]) => vs.toSorted((a, b) => Bun.semver.order(b, a))[0] ?? null;
 
 /** The dist-tags pick: the highest stable version at or above installed, else the highest prerelease at or above it. */
@@ -221,6 +234,7 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 	return toRelease(text, repo);
 }
 
+/** A cached or fresh releases/latest body. Text that is not JSON or has no tag is an http failure. */
 function toRelease(text: string, repo: string): Release | Failure {
 	let body: unknown;
 	try {
@@ -229,6 +243,22 @@ function toRelease(text: string, repo: string): Release | Failure {
 		return { failure: "http", detail: `GitHub sent a release for ${repo} that is not JSON.` };
 	}
 	return parseRelease(body) ?? { failure: "http", detail: `GitHub sent no release tag for ${repo}.` };
+}
+
+/** One repository of a search answer, with the fields discovery decides on. */
+export type RepoHit = { name: string; fullName: string; stars: number };
+
+/** The items of a repository search answer. An item without a string name and full name and a numeric star count is dropped. */
+export function parseRepoSearch(body: unknown): RepoHit[] {
+	const items = record(body).items;
+	if (!Array.isArray(items)) return [];
+	const hits: RepoHit[] = [];
+	for (const item of items) {
+		const i = record(item);
+		if (typeof i.name === "string" && typeof i.full_name === "string" && typeof i.stargazers_count === "number")
+			hits.push({ name: i.name, fullName: i.full_name, stars: i.stargazers_count });
+	}
+	return hits;
 }
 
 const SIDE_FILES = /\.(sha256|sig|asc|zsync)$/;
@@ -276,10 +306,7 @@ export async function latestFromSource(
 				detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
 			};
 		}
-		const pick = pickDistTag(
-			typeof tags === "object" && tags !== null ? (tags as Record<string, unknown>) : {},
-			opts.installed,
-		);
+		const pick = pickDistTag(record(tags), opts.installed);
 		if (pick) return { version: pick };
 		return opts.installed
 			? { failure: "http", detail: `No published version at or above ${opts.installed}.` }
@@ -303,8 +330,8 @@ export async function latestFromSource(
 			detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
 		};
 	}
-	const b = (typeof body === "object" && body !== null ? body : {}) as Record<string, unknown>;
-	const info = (typeof b.info === "object" && b.info !== null ? b.info : {}) as Record<string, unknown>;
+	const b = record(body);
+	const info = record(b.info);
 	const version = str(scheme === "npm" ? b.version : info.version);
 	return version ? { version } : { failure: "http", detail: `${url} sent no version.` };
 }

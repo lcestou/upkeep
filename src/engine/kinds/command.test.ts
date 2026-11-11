@@ -90,3 +90,23 @@ test("an update of a current version that leaves it unchanged is still a failure
 		detail: "Still at 2.1.400 after the update command.",
 	});
 });
+
+test("a command that runs but prints no version is a problem, not fresh", async () => {
+	script(join(t.paths.home, ".local/bin/claude"), "exit 3");
+	expect(await checkCommand(claude([]), ctx())).toMatchObject({
+		installed: null,
+		latest: "2.1.400",
+		status: "problem",
+	});
+});
+
+test("an update that leaves the tool unable to start is a failure that keeps the old version", async () => {
+	fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf 'exit 3' > ${join(t.paths.home, ".local/bin/claude")}`);
+	const target = { from: "2.1.322", version: "2.1.400", tag: "2.1.400" };
+	expect(await installCommand(claude(["~/.local/bin/claude-up"]), target, ctx())).toMatchObject({
+		result: "failed",
+		installed: "2.1.322",
+		restartToApply: false,
+	});
+});

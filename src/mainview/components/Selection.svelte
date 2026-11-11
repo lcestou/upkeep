@@ -6,12 +6,12 @@
 	let { model }: { model: Model } = $props();
 
 	const idle = $derived(model.run.phase === "idle");
-	const partial = $derived(model.tickedApps.some((a) => typeof a.size !== "number") && model.tickedBytes !== null);
+	const partial = $derived(model.tickedApps.some((a) => a.size === undefined) && model.tickedBytes !== null);
 
 	let allBtn = $state<HTMLButtonElement | null>(null);
 	let noneBtn = $state<HTMLButtonElement | null>(null);
 
-	// The pressed button disables itself, so focus moves to its partner instead of falling to the page.
+	/** Selects all or none, then moves focus to the other button: the pressed one disables itself and focus would fall to the page. */
 	async function pick(all: boolean) {
 		if (all) model.selectAll();
 		else model.selectNone();

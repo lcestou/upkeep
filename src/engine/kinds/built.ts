@@ -2,6 +2,7 @@ import { existsSync, lstatSync, readFileSync, renameSync, rmSync, statSync, writ
 import { join } from "node:path";
 import type { AppSpec, Serve, Service, Test } from "../../shared/types";
 import { listBackups, prune, readMeta } from "../backup";
+import { isRecord } from "../manifest";
 import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
 import { argsRunning } from "../running";
 import { clearInflight, type Inflight, startTime, writeInflight } from "../store";
@@ -27,6 +28,7 @@ export const SUDO_REFUSED = "sudo needs a password here, so nothing was stopped 
 
 const LONG = 30 * 60_000;
 const SERVICE_MS = 120_000;
+/** The first line of s after trimming, or an empty string; the short form of a failed command's output for an error message. */
 const firstLine = (s: string) => s.trim().split("\n")[0] ?? "";
 
 type Step = Inflight["tree"] extends infer T ? (T extends { step: infer S } ? S : never) : never;
@@ -143,15 +145,20 @@ async function busyNow(spec: AppSpec, ctx: KindCtx, stopped: boolean): Promise<s
 	return null;
 }
 
-/** Writes each config value into the JSON files it names. Symlinks are skipped. */
+/**
+ * Writes each config value into the JSON files it names; the file's other keys are written back untouched. Symlinks
+ * are skipped. A file that is not JSON, or holds something other than an object, throws before anything is written.
+ */
 function applyConfig(spec: AppSpec, ctx: KindCtx, dir: string | null): void {
 	for (const c of spec.config ?? []) {
 		for (const file of expandGlob(c.file, ctx.paths, dir)) {
 			if (lstatSync(file).isSymbolicLink()) continue;
-			const json = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+			const json: unknown = JSON.parse(readFileSync(file, "utf8"));
+			if (!isRecord(json)) throw new Error(`${file} does not hold a JSON object.`);
 			if (c.key) json[c.key] = c.value;
 			else if (c.array && c.flag) {
-				const arr = Array.isArray(json[c.array]) ? (json[c.array] as unknown[]) : [];
+				const held = json[c.array];
+				const arr: unknown[] = Array.isArray(held) ? held : [];
 				const at = arr.indexOf(c.flag);
 				if (at >= 0 && at + 1 < arr.length) arr[at + 1] = c.value;
 				else arr.push(c.flag, c.value);
@@ -172,7 +179,8 @@ function placePaths(spec: AppSpec, ctx: KindCtx, dir: string | null, vars: Vars)
 	const at = (p: string, v: Vars) => resolvePath(fill(p, v), ctx.paths, dir);
 	const tos = (spec.place ?? []).map((pl) => at(pl.to, vars));
 	const stage = spec.stage ? safePath(at(spec.stage, vars), ctx.paths, { dir, not: tos }) : null;
-	const v = { ...vars, ...(stage ? { stage } : {}) };
+	const v = { ...vars };
+	if (stage) v.stage = stage;
 	for (const pl of spec.place ?? []) placeFromTo(pl, ctx, dir, stage, v);
 	return stage;
 }
@@ -184,7 +192,7 @@ function placeFromTo(
 	dir: string | null,
 	stage: string | null,
 	vars: Vars,
-): { src: string; to: string } {
+) {
 	const at = (p: string) => resolvePath(fill(p, vars), ctx.paths, dir);
 	const roots = [stage, dir].filter((r): r is string => r !== null);
 	return { src: safePath(at(pl.from), ctx.paths, { dir, under: roots }), to: safePath(at(pl.to), ctx.paths, { dir }) };
@@ -473,6 +481,7 @@ function dropHeld(spec: AppSpec, ctx: KindCtx, dir: string | null): void {
 	}
 }
 
+/** The name a test is reported under: its own name, else its url, else its command, else a generic label. */
 const testName = (t: Test) => t.name ?? t.url ?? t.run?.[0] ?? "a test";
 
 /**

@@ -239,7 +239,7 @@ const SEEDS: Seed[] = [
 	},
 ];
 
-const DEFAULT_STAGES: Record<AppKind, [Stage, number][]> = {
+const DEFAULT_STAGES = {
 	appimage: [
 		["download", 60],
 		["backup", 10],
@@ -277,9 +277,9 @@ const DEFAULT_STAGES: Record<AppKind, [Stage, number][]> = {
 		["verify", 15],
 	],
 	manual: [],
-};
+} satisfies Record<AppKind, [Stage, number][]>;
 
-const CAN_RESTORE: Record<AppKind, boolean> = {
+const CAN_RESTORE = {
 	appimage: true,
 	archive: true,
 	file: true,
@@ -288,12 +288,14 @@ const CAN_RESTORE: Record<AppKind, boolean> = {
 	command: false,
 	legacy: false,
 	manual: false,
-};
+} satisfies Record<AppKind, boolean>;
 
 const NOW = Date.parse("2026-11-10T09:41:00Z");
 const DAY = 86_400_000;
+/** An epoch time in the ISO form the engine sends. */
 const iso = (ms: number) => new Date(ms).toISOString();
 
+/** Fills an AppState from a seed, taking the engine's defaults for anything the seed leaves out. */
 function toApp(seed: Seed): AppState {
 	const restore = seed.restore ?? [];
 	return {
@@ -465,7 +467,19 @@ const BUILT_SEEDS: Seed[] = [
 ];
 
 /** How each built row's scripted run ends in the built variant: the starred sentences of plan 5 E. */
-const BUILT_ENDS: Record<string, { result: "failed" | "rolled_back"; detail: (from: string | null) => string }> = {
+/** The recorded window and System operations the specs read back from the page. */
+declare global {
+	var upkeepOps: string[] | undefined;
+	var upkeepSysOps: string[] | undefined;
+}
+
+/** One answer per request, each taking that request's params. */
+type Handlers = {
+	[K in keyof Requests]: (p: Requests[K]["params"]) => Requests[K]["response"] | Promise<Requests[K]["response"]>;
+};
+
+type BuiltEnd = { result: "failed" | "rolled_back"; detail: (from: string | null) => string };
+const BUILT_ENDS = {
 	strata: { result: "failed", detail: () => "sudo needs a password here, so nothing was stopped or changed." },
 	comfyui: { result: "failed", detail: () => "The image queue has a job waiting. Nothing was changed." },
 	cava: { result: "failed", detail: () => "Build step failed: cmake --build build -j 6. Nothing was changed." },
@@ -479,7 +493,10 @@ const BUILT_ENDS: Record<string, { result: "failed" | "rolled_back"; detail: (fr
 		detail: (from) =>
 			`Would not start after the update, and putting ${from ?? ""} back failed: tmux did not answer. See the log.`,
 	},
-};
+} satisfies Record<string, BuiltEnd>;
+
+/** The scripted end for a built row's key, or undefined for a row whose run succeeds. */
+const builtEnd = (key: string): BuiltEnd | undefined => Object.entries(BUILT_ENDS).find(([k]) => k === key)?.[1];
 
 /** Builds the app list for a fixture variant; built swaps in the source rows and rests every other pending row. */
 function seedsFor(variant: FixtureVariant): AppState[] {
@@ -527,7 +544,9 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 	return apps;
 }
 
+/** Resolves after ms; the fixture's stand-in for engine work taking time. */
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+/** A deep copy, so a caller changing a reply cannot reach the fixture's own state. */
 const clone = <T>(v: T): T => structuredClone(v);
 
 /** fail names one request that rejects, as a request that ran past its time limit does. */
@@ -547,9 +566,11 @@ export type FixtureOptions = {
 };
 
 // The owner's desktop puts the window buttons on the left: close, maximize, minimize.
+/** The window button order for the side the buttons sit on. */
 const orderFor = (side: "left" | "right"): WindowButton[] =>
 	side === "left" ? ["close", "maximize", "minimize"] : ["minimize", "maximize", "close"];
 
+/** A bridge that answers from canned data, with timers standing in for the engine; speed scales them. Also records window and System operations on globalThis for the specs to read. */
 export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const variant = opts.variant ?? "default";
 	const speed = opts.speed && opts.speed > 0 ? opts.speed : 1;
@@ -585,10 +606,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const history: HistoryRow[] = opts.noHistory ? [] : pastHistory();
 	const logs = new Map<string, LogLine[]>();
 	let attempts = 0;
-	(globalThis as { upkeepOps?: string[] }).upkeepOps = [];
+	globalThis.upkeepOps = [];
 	const offered = new Map<string, Suggestion>();
 	const sysOps: string[] = [];
-	(globalThis as { upkeepSysOps?: string[] }).upkeepSysOps = sysOps;
+	globalThis.upkeepSysOps = sysOps;
 	let extras: ExtrasSnapshot = {
 		settings: { system: opts.system && opts.system !== "off" ? "show" : "off" },
 		system: systemFor(opts.system ?? "off", iso(Date.now() - 5 * 60_000)),
@@ -658,7 +679,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const after = get(key);
 		if (!after) throw new Error(`No app ${key}`);
 		const ms = Date.now() - start;
-		const end = variant === "built" ? BUILT_ENDS[key] : undefined;
+		const end = variant === "built" ? builtEnd(key) : undefined;
 		if (end) {
 			const detail = end.detail(from);
 			log(runId, key, detail);
@@ -765,9 +786,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		emit({ type: "meta", rate, checkedAt, settings });
 	}
 
-	const handlers: {
-		[K in keyof Requests]: (p: Requests[K]["params"]) => Requests[K]["response"] | Promise<Requests[K]["response"]>;
-	} = {
+	const handlers: Handlers = {
 		snapshot: () =>
 			({
 				apps: clone(apps),
@@ -950,7 +969,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		chrome: () => clone(chrome),
 		window: ({ op }) => {
 			// Recorded so specs can see which window op a control sent.
-			(globalThis as { upkeepOps?: string[] }).upkeepOps?.push(op);
+			globalThis.upkeepOps?.push(op);
 			// Close hides to the tray in the real window; the fixture has nowhere to hide, so it only answers.
 			if (op === "maximize") {
 				chrome = { ...chrome, maximized: !chrome.maximized };
@@ -1001,6 +1020,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	};
 }
 
+/** What a row becomes when a re-check finishes. Finished or queued work settles; a row never goes backwards to the stale failure text. */
 function resolveCheck(app: AppState): AppState {
 	if (app.status === "done") return { ...app, status: "fresh" };
 	if (app.status === "ready" && app.detail?.startsWith(lastTryFailed(""))) return { ...app, detail: undefined };
@@ -1008,6 +1028,7 @@ function resolveCheck(app: AppState): AppState {
 	return app;
 }
 
+/** The log line the fixture prints when a stage begins. */
 function stageLog(app: AppState, stage: Stage): string {
 	switch (stage) {
 		case "download":
@@ -1023,6 +1044,7 @@ function stageLog(app: AppState, stage: Stage): string {
 	}
 }
 
+/** Builds one history row; daysAgo counts back from the fixture's fixed clock. */
 const row = (
 	runId: string,
 	daysAgo: number,
@@ -1046,6 +1068,7 @@ const row = (
 	stages: {},
 });
 
+/** The canned runs the History view shows before the person does anything. */
 function pastHistory(): HistoryRow[] {
 	return [
 		row("run-3", 2, "bat", "bat", "0.26.0", "0.26.1", 2400),

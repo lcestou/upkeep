@@ -44,6 +44,7 @@
 		next.click();
 	}
 
+	/** Sends a settings change and shows what the main process saved; a request that fails leaves the old values on screen. */
 	async function set(patch: Partial<Settings>) {
 		const next = await model.send("setSettings", patch);
 		if (next) model.settings = next;

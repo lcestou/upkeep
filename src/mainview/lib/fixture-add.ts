@@ -4,6 +4,7 @@ import type { AppSpec, Suggestion } from "../../shared/types";
 const SYSTEM_RG =
 	" A copy at /usr/bin/rg comes from the system's packages, so Upkeep will keep its own at ~/.local/bin/rg, which comes first on your PATH.";
 
+/** The canned ripgrep card. An asset name containing musl picks that build, anything else the gnu one; the other is listed as an alternative. */
 function ripgrep(asset?: string): Suggestion {
 	const musl = asset?.includes("musl") ?? false;
 	const name = musl
@@ -35,6 +36,7 @@ function ripgrep(asset?: string): Suggestion {
 	};
 }
 
+/** The canned Obsidian card. A .deb asset picks the system package (needs sudo); anything else picks the AppImage, and the card lists the other as its alternative. */
 function obsidian(asset?: string): Suggestion {
 	const deb = asset?.endsWith(".deb") ?? false;
 	const name = deb ? "obsidian_1.9.4_amd64.deb" : "Obsidian-1.9.4.AppImage";
@@ -59,6 +61,7 @@ function obsidian(asset?: string): Suggestion {
 	};
 }
 
+/** The canned card for a file picked from disk; the app's key and name come from the file name. */
 function fromFile(path: string): Suggestion {
 	const spec: AppSpec = {
 		key: "obsidian",
@@ -81,6 +84,7 @@ function fromFile(path: string): Suggestion {
 	};
 }
 
+/** The card for a file the fixture has no recipe for: kind file, nothing installed, nothing to compare. */
 const unknown = (path: string): Suggestion => {
 	const base = path.split("/").pop() ?? path;
 	return {
@@ -126,6 +130,7 @@ function btop(asset?: string): Suggestion {
 
 export const PICKED = "/home/owner/Downloads/Obsidian-1.9.4.AppImage";
 
+/** Answers the Add app field the way the engine's discover would. A repo already in the list gets a card under its own name rather than another app's assets. */
 export function suggestFor(input: string, asset: string | undefined, has: (key: string) => boolean) {
 	const text = input
 		.trim()

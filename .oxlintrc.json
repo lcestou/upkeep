@@ -59,7 +59,9 @@
 				"src/engine/github.ts",
 				"src/engine/store.ts",
 				"src/engine/extras/state.ts",
-				"src/bun/window-size.ts"
+				"src/engine/backup.ts",
+				"src/bun/window-size.ts",
+				"src/bun/dev-script.ts"
 			],
 			"rules": {
 				"anti-slop/no-runtime-typeof": "off",

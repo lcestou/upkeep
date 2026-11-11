@@ -17,6 +17,7 @@ export type Paths = {
 
 type Env = Record<string, string | undefined>;
 
+/** Throws when HOME is unset. An empty XDG variable counts as unset, as the spec says. */
 export function paths(env: Env): Paths {
 	const home = env.HOME;
 	if (!home) throw new Error("HOME is not set.");

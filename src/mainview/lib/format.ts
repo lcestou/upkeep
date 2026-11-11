@@ -23,6 +23,7 @@ const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
 
 const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
+/** "3 days ago" style text. Anything under 45 seconds reads as "now"; an unparseable date comes back unchanged. */
 export function relativeTime(iso: string, now: number = Date.now()): string {
 	const then = Date.parse(iso);
 	if (Number.isNaN(then)) return iso;
@@ -35,10 +36,12 @@ export function relativeTime(iso: string, now: number = Date.now()): string {
 	return rtf.format(Math.round(value), "year");
 }
 
+/** Picks the singular for exactly one, the plural otherwise (including zero). */
 export function plural(n: number, one: string, many: string): string {
 	return n === 1 ? one : many;
 }
 
+/** Seconds with one decimal under 10 s, whole seconds under a minute, whole minutes after that. */
 export function formatDuration(ms: number): string {
 	const s = ms / 1000;
 	if (s < 10) return `${s.toFixed(1)} s`;
@@ -55,6 +58,7 @@ export function formatRunTime(iso: string): string {
 	return `${day}, ${time}`;
 }
 
+/** Local 24-hour time with seconds, for log lines. An unparseable date comes back unchanged. */
 export function clockTime(iso: string): string {
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return iso;

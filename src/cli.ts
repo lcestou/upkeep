@@ -30,6 +30,7 @@ export function checkLine(a: AppState): string {
 	}
 }
 
+/** The line `install` prints for an event, or null for events a person has no use for (a working app, for instance). */
 function eventLine(e: EngineEvent): string | null {
 	if (e.type === "log") return formatLogLine(e.line);
 	if (e.type === "app" && ["queued", "working", "done", "failed", "rolled_back"].includes(e.app.status)) {
@@ -40,6 +41,7 @@ function eventLine(e: EngineEvent): string | null {
 	return null;
 }
 
+/** Prints one line per app as its check ends. Exits 1 only when the old updater's check did not finish; problems alone exit 0. */
 async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	const printed = new Set<string>();
 	const off = engine.subscribe((e) => {
@@ -54,6 +56,7 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	return engine.snapshot().apps.some((a) => a.status === "problem" && a.detail === CHECK_INCOMPLETE) ? 1 : 0;
 }
 
+/** Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. Exits 0 only when every result is "updated". */
 async function install(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
 	await engine.check();
 	await engine.idle();
@@ -81,6 +84,7 @@ async function install(engine: Engine, args: string[], json: boolean, out: Out):
 	return results.length > 0 && results.every((x) => x.result === "updated") ? 0 : 1;
 }
 
+/** Puts back a named version, or the newest restore point when none is named. Exits 1 when there is none or the restore fails. */
 async function restore(
 	engine: Engine,
 	deps: EngineDeps,
@@ -112,6 +116,7 @@ async function recover(engine: Engine, out: Out): Promise<number> {
 	return done.every((r) => r.ok) ? 0 : 1;
 }
 
+/** Prints the last 200 runs, in the order the engine returns them. Always exits 0. */
 function history(engine: Engine, out: Out): number {
 	const rows = engine.history(200);
 	if (rows.length === 0) out("No runs yet.");

@@ -249,3 +249,41 @@ test("a strict runner refuses any argv it was not told about", async () => {
 	const { run } = strictRun(() => undefined);
 	await expect(run(["sudo", "true"])).rejects.toThrow("strictRun: no answer for sudo true");
 });
+
+test("turning the area on checks at once, and a listener that throws does not stop the others", async () => {
+	const { run, calls } = box();
+	const x = createExtras(deps(run));
+	const seen: string[] = [];
+	x.subscribe(() => {
+		throw new Error("listener broke");
+	});
+	const unsubscribe = x.subscribe((e) => {
+		if (e.type === "extras") seen.push(e.extras.system.phase);
+	});
+	expect(x.setSettings({ system: "show" })).toEqual({ system: "show" });
+	expect(x.snapshot().system.phase).toBe("checking");
+	await x.idle();
+	expect(seen).toEqual(["idle", "checking", "idle"]);
+	expect(calls.filter((c) => c.argv[0] === "mintupdate-cli")).toHaveLength(1);
+	unsubscribe();
+	x.checkSystem();
+	await x.idle();
+	expect(seen).toHaveLength(3);
+});
+
+test("a check that throws is a failed problem with its message, and the area goes back to idle", async () => {
+	updateExtras(t.paths, { system: "show" });
+	const { run } = strictRun((argv) => {
+		if (argv[0] === "mintupdate-cli") throw new Error("runner died");
+		const hit = FIXTURES.find(([a]) => a.join(" ") === argv.join(" "));
+		return hit ? ok(fx(hit[1])) : undefined;
+	});
+	const x = createExtras(deps(run));
+	await x.idle();
+	expect(x.snapshot().system).toMatchObject({
+		mode: "show",
+		phase: "idle",
+		rows: [],
+		problem: { code: "failed", command: "", detail: "runner died" },
+	});
+});

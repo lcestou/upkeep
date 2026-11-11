@@ -5,6 +5,7 @@
 
 	let { model, chrome }: { model: Model; chrome: WindowChrome } = $props();
 
+	/** The button's accessible name; maximize reads "Restore" while the window is already maximized. */
 	const label = (b: WindowButton) => (b === "maximize" ? (chrome.maximized ? WIN.restore : WIN.maximize) : WIN[b]);
 </script>
 

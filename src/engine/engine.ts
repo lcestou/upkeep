@@ -31,7 +31,7 @@ import {
 import { canRestore, checkRelease, destOf, installedFiles, installRelease, probeInstalled } from "./kinds/release";
 import { recoverTree, restoreBuilt } from "./kinds/built";
 import { checkSource, installSource } from "./kinds/source";
-import { cutTable, ensureManifest, lift, loadManifest, replaceManifest, tomlTable } from "./manifest";
+import { cutTable, ensureManifest, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { expandHome, type Paths } from "./paths";
 import { killTree, type Run, type RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
@@ -133,8 +133,10 @@ function limiter(n: number): <T>(fn: () => Promise<T>) => Promise<T> {
 	};
 }
 
+/** Two digits, so a stamp sorts by time as plain text. */
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** A run id in local time with four random characters, so two runs in one second still get distinct logs. */
 function stamp(d: Date): string {
 	const rand = Math.random().toString(36).slice(2, 6);
 	return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${rand}`;
@@ -149,6 +151,7 @@ export function checksNatively(spec: AppSpec): boolean {
 	return (spec.kind === "legacy" || spec.kind === "manual") && (spec.check?.length ?? 0) > 0 && Boolean(spec.latest);
 }
 
+/** Every kind not named here is checked against a GitHub release. Null when the app is not installed, which the kind has already logged as skipped. */
 function checkOne(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 	switch (spec.kind) {
 		case "source":
@@ -171,8 +174,10 @@ const BUILT_WEIGHTS: [Stage, number][] = [
 	["verify", 15],
 ];
 
+/** A finished install is "updated" in the run's results; failures keep their own word. */
 const resultOf = (r: Outcome["result"]): RunResult["result"] => (r === "done" ? "updated" : r);
 
+/** Every file the engine writes comes from deps.paths and every process it starts goes through deps.run, so a test can run it in a temp home. */
 export function createEngine(deps: EngineDeps): Engine {
 	const { paths } = deps;
 	const listeners = new Set<(e: EngineEvent) => void>();
@@ -548,7 +553,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			say(spec.key, `Updating ${spec.name}${from ? ` from ${from}` : ""}${app.latest ? ` to ${app.latest}` : ""}`);
 			if (spec.kind === "legacy") {
 				// oxlint-disable-next-line no-await-in-loop -- one app at a time is the point of the queue
-				const lr = await installLegacy(spec, kindCtx(spec.key)).catch((err: unknown): LegacyRun => ({
+				const lr = await installLegacy(spec, kindCtx(spec.key)).catch((err: Error): LegacyRun => ({
 					failed: err instanceof Error ? err.message : String(err),
 					oldLines: [],
 				}));
@@ -691,7 +696,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		check(keys) {
 			if (run.phase === "installing" || run.phase === "checking") return busy;
-			const p = doCheck(keys).catch((err: unknown) => {
+			const p = doCheck(keys).catch((err: Error) => {
 				say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
 				run = { ...run, phase: "idle", currentKey: null };
 				emitRun();
@@ -756,7 +761,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				return { started: false, reason: err instanceof Error ? err.message : String(err) };
 			}
 			const p = doRun(queue)
-				.catch((err: unknown) => {
+				.catch((err: Error) => {
 					const reason = err instanceof Error ? err.message : String(err);
 					say(null, `Run failed: ${reason}`);
 					try {
@@ -1019,9 +1024,10 @@ export function createEngine(deps: EngineDeps): Engine {
 	/** Appends one app's table to apps.toml, or says why not. The written table must read back as the same spec. */
 	function writeApp(file: string, s: AppSpec): string | null {
 		if (!ADDABLE.has(s.kind)) return `${s.key}: kind is not one of appimage, archive, file, deb`;
-		const { key, ...fields } = s;
-		const lifted = lift(key, fields as Record<string, unknown>);
-		if (typeof lifted === "string") return lifted;
+		const { key } = s;
+		const relifted = relift(s);
+		if ("problem" in relifted) return relifted.problem;
+		const lifted = relifted.spec;
 		if (specs.some((x) => x.key === key)) return `${key} is already in the list.`;
 		const dest = expandHome(lifted.dest ?? "", paths.home);
 		const owner = specs.find((x) => x.dest && expandHome(x.dest, paths.home) === dest);

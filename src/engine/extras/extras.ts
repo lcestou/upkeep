@@ -16,6 +16,7 @@ export type Extras = {
 	idle(): Promise<void>;
 };
 
+/** A fresh object each call: callers spread it and must not share rows with an earlier state. */
 const offState = (): SystemState => ({
 	mode: "off",
 	phase: "off",
@@ -48,7 +49,8 @@ export function createExtras(deps: ExtrasDeps): Extras {
 		}
 	};
 
-	function check(): { started: boolean } {
+	/** Not started when the area is off or a check already runs. The check reports through emit, never by throwing. */
+	function check() {
 		if (system.mode !== "show" || system.phase === "checking") return { started: false };
 		system = { ...system, phase: "checking" };
 		emit();
@@ -58,7 +60,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 				if (system.mode !== "show") return;
 				system = { ...system, ...found, phase: "idle", checkedAt: deps.now().toISOString() };
 			})
-			.catch((err: unknown) => {
+			.catch((err: Error) => {
 				if (system.mode !== "show") return;
 				const detail = err instanceof Error ? err.message : String(err);
 				system = { ...system, phase: "idle", problem: { code: "failed", command: "", detail } };

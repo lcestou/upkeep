@@ -30,3 +30,16 @@ test("steps play in order and a file that is not a list is refused", async () =>
 		rmSync(dir, { recursive: true, force: true });
 	}
 });
+
+test("a step with no wait still plays, and the caller may leave out the settled hook", async () => {
+	const dir = mkdtempSync(join(tmpdir(), "upkeep-devscript-"));
+	try {
+		const file = join(dir, "steps.json");
+		writeFileSync(file, JSON.stringify([{ js: "only()", waitMs: 0 }]));
+		const ran: string[] = [];
+		await playDevScript(file, (js) => ran.push(js));
+		expect(ran).toEqual(["only()"]);
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});

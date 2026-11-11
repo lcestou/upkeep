@@ -17,6 +17,7 @@
 	// Fresh starts folded; the choice lasts for the session. A filter opens it while it is active.
 	const FRESH_KEY = "upkeep.freshOpen";
 	let freshOpen = $state(readFresh());
+	/** The fold state kept for this session; false when storage is blocked. */
 	function readFresh(): boolean {
 		try {
 			return sessionStorage.getItem(FRESH_KEY) === "1";
@@ -24,6 +25,7 @@
 			return false;
 		}
 	}
+	/** Folds or unfolds Fresh and remembers it; a blocked storage only costs the memory. */
 	function toggleFresh() {
 		freshOpen = !freshOpen;
 		try {
@@ -69,10 +71,12 @@
 
 	let root = $state<HTMLElement | null>(null);
 
+	/** Every drawn row, in screen order, for keyboard moves; empty before the list mounts. */
 	function rowButtons(): HTMLElement[] {
 		return root ? [...root.querySelectorAll<HTMLElement>("[data-row]")] : [];
 	}
 
+	/** List keys: PageUp and PageDown move by a screenful, Space ticks, Enter opens, arrows move, `a` adds, Ctrl+A selects all. An open pane follows the focused row. */
 	function onkeydown(e: KeyboardEvent) {
 		const target = e.target;
 		// PageUp and PageDown move row focus by as many rows as the list shows; elsewhere in the list they scroll a page.
@@ -122,8 +126,7 @@
 		}
 		const rows = rowButtons();
 		const i = rows.indexOf(target);
-		const go: Record<string, number> = { ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: rows.length - 1 };
-		const to = go[e.key];
+		const to = new Map([["ArrowDown", i + 1], ["ArrowUp", i - 1], ["Home", 0], ["End", rows.length - 1]]).get(e.key);
 		if (to === undefined) return;
 		e.preventDefault();
 		const next = rows[Math.max(0, Math.min(rows.length - 1, to))];
@@ -134,11 +137,13 @@
 		if (model.openKey) model.select(nextKey);
 	}
 
+	/** Remembers the last focused row, so the list keeps one tab stop there. */
 	function onfocusin(e: FocusEvent) {
 		const key = e.target instanceof HTMLElement ? e.target.dataset.row : undefined;
 		if (key) focusKey = key;
 	}
 
+	/** Filter field keys: Down enters the list, Enter opens the first match, Escape clears the text first. */
 	function onfilterkey(e: KeyboardEvent) {
 		const first = rowButtons()[0];
 		if (e.key === "ArrowDown" && first) {

@@ -58,7 +58,7 @@ export function sweepShims(paths: Paths, procRoot = "/proc"): void {
  * It is deleted after: an app the old script relaunches inherits this PATH and must find the real
  * zenity once the run is over, and two processes never share the events or token file.
  */
-function prepareShims(ctx: LegacyCtx): { dir: string; events: string; env: Record<string, string>; cleanup(): void } {
+function prepareShims(ctx: LegacyCtx) {
 	const root = join(ctx.paths.cache, "shim");
 	mkdirSync(root, { recursive: true });
 	const dir = mkdtempSync(join(root, `run-${process.pid}-`));
@@ -71,11 +71,11 @@ function prepareShims(ctx: LegacyCtx): { dir: string; events: string; env: Recor
 	}
 }
 
-function writeShims(
-	dir: string,
-	token: string | null,
-	cleanup: () => void,
-): { dir: string; events: string; env: Record<string, string>; cleanup(): void } {
+/** The environment the shims read: a path for each, keyed by variable name. */
+type ShimEnv = { UPKEEP_SHIM_EVENTS: string; UPKEEP_CURL_AUTH?: string };
+
+/** Writes the three shim scripts, an empty events file and, with a token, a 0600 curl header file; returns the env that points the shims at them. */
+function writeShims(dir: string, token: string | null, cleanup: () => void) {
 	for (const [name, text] of [
 		["zenity", zenityShim],
 		["notify-send", notifyShim],
@@ -86,8 +86,8 @@ function writeShims(
 	}
 	const events = join(dir, "events.ndjson");
 	writeFileSync(events, "");
-	const env: Record<string, string> = { UPKEEP_SHIM_EVENTS: events };
 	const auth = join(dir, "curl-auth");
+	const env: ShimEnv = { UPKEEP_SHIM_EVENTS: events };
 	if (token) {
 		writeFileSync(auth, `Authorization: Bearer ${token}\n`, { mode: 0o600 });
 		chmodSync(auth, 0o600);
@@ -111,6 +111,7 @@ export function matchLine(specs: AppSpec[], line: string): { spec: AppSpec; tag:
 	return { spec: best, tag, rest: text.slice((best.legacy_name ?? "").length + 1).trim() };
 }
 
+/** Maps one --check line's tag and text to a Checked: OK is fresh, UPDATE is ready with a target, anything else is a problem carrying the text. */
 export function readLine(tag: string, rest: string): Checked {
 	const tokens = rest.split(/\s+/).filter(Boolean);
 	if (tag === "OK") return { installed: tokens.at(-1) ?? null, latest: tokens.at(-1) ?? null, status: "fresh" };
@@ -192,6 +193,7 @@ export function oldUpdaterRunning(ctx: Pick<LegacyCtx, "oldLock" | "procRoot">):
 	return liveLock(ctx.oldLock, ctx.procRoot ?? "/proc");
 }
 
+/** Size of file in bytes, or 0 when it is missing or unreadable. */
 function sizeOf(file: string): number {
 	try {
 		return statSync(file).size;
@@ -235,13 +237,14 @@ export async function installLegacy(spec: AppSpec, ctx: LegacyCtx): Promise<Lega
 			if (!raw) continue;
 			let e: ShimEvent;
 			try {
+				// SAFETY: the shims in src/engine/shim write these lines themselves, with only the ShimEvent keys.
 				e = JSON.parse(raw) as ShimEvent;
 			} catch {
 				ctx.log(`shim: ${raw}`);
 				continue;
 			}
-			if ("pct" in e) ctx.stage("install", typeof e.pct === "number" ? Math.min(100, e.pct) : null);
-			else if (typeof e.text === "string" && !e.dialog) ctx.log(e.text);
+			if ("pct" in e) ctx.stage("install", e.pct == null ? null : Math.min(100, e.pct));
+			else if (e.text !== undefined && !e.dialog) ctx.log(e.text);
 			else if (e.dialog) {
 				const answer = e.dialog === "question" ? (e.answer ? " answered yes" : " answered no") : "";
 				ctx.log(`dialog ${e.dialog}: ${e.title ?? ""}${e.text ? ` ${e.text}` : ""}${answer}`);

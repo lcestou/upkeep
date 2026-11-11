@@ -18,10 +18,14 @@ const SIZES = [
 ];
 const BIG = [1400, 900];
 
+/** Resolves after ms milliseconds. */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/** A fresh worst-case record for `measure`; 99 and 999 are the "nothing seen yet" starts for the two minimum figures. */
 const blank = () => ({ a: 0, b: 0, c: 0, d: 0, e: 99, f: 0, g: 999, h: 0, i: 0 });
+/** Formats one figure for the report column, with 999 meaning "no reading" shown as a dash. */
 const fig = (v, w) => (v === 999 ? "-" : v.toFixed(v >= 100 ? 0 : 2)).padStart(w);
 
+/** Resolves true when something already listens on the dev port; never rejects. */
 function portOpen() {
 	return new Promise((resolve) => {
 		const socket = connect(PORT, "127.0.0.1");
@@ -33,6 +37,7 @@ function portOpen() {
 	});
 }
 
+/** Polls check every 150 ms until it is truthy, and throws "timed out waiting for <what>" after ms. */
 async function waitFor(check, ms, what) {
 	const end = Date.now() + ms;
 	while (Date.now() < end) {
@@ -55,6 +60,7 @@ function listenerPid() {
 	}
 }
 
+/** Stops vite and any listener left on its port, then waits up to 5 s for the port to close; a port that stays open is not an error. */
 async function stopVite(child) {
 	const pid = listenerPid();
 	if (child.exitCode === null) child.kill("SIGTERM");
@@ -68,6 +74,7 @@ async function stopVite(child) {
 	await waitFor(async () => !(await portOpen()), 5000, "vite to stop").catch(() => {});
 }
 
+/** Waits until the state sentence reads exactly text; rejects on timeout. */
 const sentenceIs = (page, text, timeout = 30000) =>
 	page.waitForFunction(
 		(t) => document.querySelector('[data-testid="state-sentence"]')?.textContent?.trim() === t,
@@ -77,6 +84,7 @@ const sentenceIs = (page, text, timeout = 30000) =>
 		},
 	);
 
+/** Waits until the first row's stem is at least 30 per cent, so a shot lands mid-install. */
 const midRun = (page) =>
 	page.waitForFunction(
 		() => {
@@ -340,11 +348,13 @@ function measure() {
 
 // oxlint-enable unicorn/consistent-function-scoping
 
+/** Waits 350 ms for motion to settle, then saves the page as <name>.png in the output folder. */
 async function shoot(page, name) {
 	await sleep(350);
 	await page.screenshot({ path: join(OUT, `${name}.png`) });
 }
 
+/** Captures the states at one window size, pushing console errors onto `errors` and measure results onto `table`; returns the capture count. Without `full` it stops after the built-app states and returns 5. */
 async function captureSize(browser, [width, height], errors, table, { full }) {
 	const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, colorScheme: "dark" });
 	const page = await ctx.newPage();
@@ -656,6 +666,7 @@ async function edges(browser, table) {
 	table.push({ state: "edges-1400", misses, worst: blank(), rows: 0 });
 }
 
+/** Starts vite, drives every size, writes the report and always stops vite. Throws if the port is already taken. */
 async function main() {
 	if (await portOpen()) throw new Error(`port ${PORT} is taken; stop whatever listens there first`);
 	mkdirSync(OUT, { recursive: true });

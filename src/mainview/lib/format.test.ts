@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { formatBytes, formatDuration, plural, relativeTime } from "./format";
+import { clockTime, formatBytes, formatDuration, formatRunTime, plural, relativeTime } from "./format";
 
 describe("formatBytes", () => {
 	test.each([
@@ -42,4 +42,18 @@ test("formatDuration", () => {
 	expect(formatDuration(64_000)).toBe("1 min");
 	expect(formatDuration(100_000)).toBe("2 min");
 	expect(formatDuration(120_000)).toBe("2 min");
+});
+
+describe("run and clock times", () => {
+	test("a run time is the short day and the 24-hour time of the local clock", () => {
+		const iso = new Date(2026, 10, 10, 9, 41).toISOString();
+		expect(formatRunTime(iso)).toMatch(/^Tue,? 10 Nov,? 09:41$/);
+	});
+	test("a clock time carries seconds", () => {
+		expect(clockTime(new Date(2026, 10, 10, 9, 41, 7).toISOString())).toBe("09:41:07");
+	});
+	test("an unreadable date comes back unchanged from both", () => {
+		expect(formatRunTime("soon")).toBe("soon");
+		expect(clockTime("soon")).toBe("soon");
+	});
 });

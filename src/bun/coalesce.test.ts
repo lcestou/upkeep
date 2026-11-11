@@ -9,11 +9,14 @@ const run: EngineEvent = { type: "run", run: { phase: "summary" } as RunState };
 
 function manualTimers() {
 	let pending: (() => void) | null = null;
+	// A spent real handle: the fake never starts a timer but must return the handle type the coalescer holds.
+	const spent = setTimeout(() => {}, 0);
+	clearTimeout(spent);
 	return {
 		timers: {
 			set: (fn: () => void) => {
 				pending = fn;
-				return 1;
+				return spent;
 			},
 			clear: () => {
 				pending = null;
@@ -78,4 +81,23 @@ test("an extras event is never dropped and never overtakes the row updates sent 
 	c.push(app("fd", 90));
 	fire();
 	expect(sent).toEqual([app("fd", 40), extras, app("fd", 90)]);
+});
+
+test("with the real timers, a burst of updates for one app reaches the view as the latest one", async () => {
+	const sent: EngineEvent[] = [];
+	const c = createCoalescer((e) => sent.push(e), 5);
+	c.push(app("fd", 10));
+	c.push(app("fd", 70));
+	expect(sent).toEqual([]);
+	await Bun.sleep(40);
+	expect(sent).toEqual([app("fd", 70)]);
+});
+
+test("a flush cancels the waiting timer, so nothing is sent twice", async () => {
+	const sent: EngineEvent[] = [];
+	const c = createCoalescer((e) => sent.push(e), 5);
+	c.push(app("fd", 10));
+	c.flush();
+	await Bun.sleep(30);
+	expect(sent).toEqual([app("fd", 10)]);
 });

@@ -10,6 +10,7 @@
 	// Folded by default, like Fresh; the choice lasts for the session. A filter opens it while it is active.
 	const OPEN_KEY = "upkeep.systemOpen";
 	let open = $state(readOpen());
+	/** The fold state kept for this session; false when storage is blocked. */
 	function readOpen(): boolean {
 		try {
 			return sessionStorage.getItem(OPEN_KEY) === "1";
@@ -17,6 +18,7 @@
 			return false;
 		}
 	}
+	/** Folds or unfolds the group and remembers it; a blocked storage only costs the memory, not the fold. */
 	function toggle() {
 		open = !open;
 		try {

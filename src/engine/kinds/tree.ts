@@ -68,6 +68,7 @@ export const scopeOf = (dir: string | null, stage: string | null | undefined): s
 export const inScope = (p: string, paths: Paths, dir: string | null, scope: string | null): string =>
 	safePath(p, paths, { dir, under: scope ? [scope] : [], not: scope ? [scope] : [] });
 
+/** True when anything is at p, a dangling link included; false on any stat error. */
 const exists = (p: string) => {
 	try {
 		lstatSync(p);
@@ -95,6 +96,7 @@ export function expandGlob(pattern: string, paths: Paths, dir: string | null): s
 }
 
 const LONG = 30 * 60_000;
+/** The first line of s after trimming, or an empty string; the short form of a failed command's output for an error message. */
 const firstLine = (s: string) => s.trim().split("\n")[0] ?? "";
 
 /** The point a version's restore files live in. */
@@ -207,6 +209,7 @@ function swapIn(src: string, p: string, rename: (a: string, b: string) => void):
 	rmSync(failed, { recursive: true, force: true });
 }
 
+/** The permission bits of p in octal, setuid and sticky included; throws when p is missing. */
 const modeOf = (p: string) => (statSync(p).mode & 0o7777).toString(8);
 
 /**

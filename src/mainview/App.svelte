@@ -17,7 +17,7 @@
 
 	let model = $state<Model | null>(null);
 	// The pane is a sheet over the list below 900 px.
-	const narrow = typeof matchMedia === "function" ? matchMedia("(max-width: 899px)") : null;
+	const narrow = globalThis.matchMedia?.("(max-width: 899px)") ?? null;
 	let sheet = $state(narrow?.matches ?? false);
 	narrow?.addEventListener("change", (e) => (sheet = e.matches));
 	// Opening the sheet moves focus to Back to list.
@@ -41,10 +41,12 @@
 		return live.start();
 	});
 
+	/** Focuses a list row by its app key; does nothing when the key is null or the row is not drawn. */
 	function focusRow(key: string | null) {
 		if (key) document.querySelector<HTMLElement>(`[data-row="${CSS.escape(key)}"]`)?.focus();
 	}
 
+	/** Closes the pane or sheet and returns focus to where it came from: the row that was open, or the add button. */
 	function closeInspector() {
 		const key = model?.openKey ?? null;
 		const wasAdding = model?.adding ?? false;
@@ -59,21 +61,26 @@
 	// Drop a file (or a repo link) anywhere on the window to add it.
 	let veil = $state(false);
 	let depth = 0;
+	/** True for a drag that holds a file, a link or text, the three things the add pane accepts. */
 	const carries = (e: DragEvent) =>
 		[...(e.dataTransfer?.types ?? [])].some((t) => t === "Files" || t === "text/uri-list" || t === "text/plain");
+	/** Shows the drop veil on the first enter; `depth` counts nested enters so child elements do not flicker it off. */
 	function ondragenter(e: DragEvent) {
 		if (!carries(e)) return;
 		e.preventDefault();
 		depth++;
 		veil = true;
 	}
+	/** Cancels the browser default for a drag that carries something, which is what makes the window a drop target. */
 	function ondragover(e: DragEvent) {
 		if (carries(e)) e.preventDefault();
 	}
+	/** Hides the veil only once every nested enter has been matched by a leave. */
 	function ondragleave() {
 		depth = Math.max(0, depth - 1);
 		if (depth === 0) veil = false;
 	}
+	/** Opens the add pane with the dropped path or link. A dropped file the webview cannot read a path for opens the pane with an "unreadable" problem instead. */
 	function ondrop(e: DragEvent) {
 		if (!carries(e)) return;
 		e.preventDefault();
@@ -91,6 +98,7 @@
 		}
 	}
 
+	/** Window shortcuts: Ctrl+W closes a self-drawn window, `/` or Ctrl+F focuses the filter, Tab wraps at the ends, Escape closes the log, then the pane. */
 	function onkeydown(e: KeyboardEvent) {
 		const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement;
 		if (e.key === "w" && e.ctrlKey && model?.chrome?.own) {
@@ -144,7 +152,9 @@
 	$effect(() => {
 		if (focused || !model?.loaded) return;
 		focused = true;
-		void tick().then(() => document.querySelector<HTMLElement>("[data-row]")?.focus({ preventScroll: true, focusVisible: false } as FocusOptions));
+		// SAFETY: `focusVisible` is a real option in current WebKit and Chromium, but the DOM typings do not list it yet.
+		const quiet = { preventScroll: true, focusVisible: false } as FocusOptions;
+		void tick().then(() => document.querySelector<HTMLElement>("[data-row]")?.focus(quiet));
 	});
 
 	$effect(() => {

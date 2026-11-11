@@ -115,3 +115,24 @@ test("verifyAsset checks size and digest", () => {
 	expect(() => verifyAsset(r, { size: 11, digest: null })).toThrow("Download is 10 bytes, expected 11.");
 	expect(() => verifyAsset(r, { size: 10, digest: "sha256:cd" })).toThrow("Checksum does not match the release.");
 });
+
+test("cancelling the caller's signal ends a download in flight, and it is not retried", async () => {
+	let calls = 0;
+	const counted: FetchLike = async (url, init) => {
+		calls += 1;
+		return fetch(url, init);
+	};
+	const ctl = new AbortController();
+	setTimeout(() => ctl.abort(), 50);
+	const started = Date.now();
+	await expect(
+		download(`${base()}/stall`, join(dir, "cancel.bin"), {
+			fetch: counted,
+			signal: ctl.signal,
+			stallMs: 10_000,
+			retryMs: 10,
+		}),
+	).rejects.toThrow();
+	expect(Date.now() - started).toBeLessThan(5000);
+	expect(calls).toBe(1);
+});

@@ -6,11 +6,12 @@ export type SystemLayout = { side: "left" | "right"; order: WindowButton[] };
 
 const DEFAULT_LAYOUT: SystemLayout = { side: "right", order: ["minimize", "maximize", "close"] };
 
+/** Keeps only the button names the app knows, in the order given; anything else (such as `appmenu`) is dropped. */
 function pick(part: string): WindowButton[] {
 	return part
 		.split(",")
 		.map((p) => p.trim())
-		.filter((p): p is WindowButton => (KNOWN as string[]).includes(p));
+		.filter((p): p is WindowButton => KNOWN.some((k) => k === p));
 }
 
 /**
@@ -35,6 +36,7 @@ function mirrored(order: WindowButton[]): WindowButton[] {
 	return order.toReversed();
 }
 
+/** Resolves the settings against the desktop's layout. `own` is false for the system frame, so the view draws no buttons of its own then. */
 export function windowChrome(settings: Settings, system: SystemLayout, maximized: boolean): WindowChrome {
 	const side = settings.buttons === "auto" ? system.side : settings.buttons;
 	const order = side === system.side ? system.order : mirrored(system.order);
