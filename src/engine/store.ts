@@ -1,6 +1,7 @@
 import {
 	appendFileSync,
 	closeSync,
+	copyFileSync,
 	existsSync,
 	mkdirSync,
 	openSync,
@@ -55,10 +56,18 @@ const stateFile = (paths: Paths) => join(paths.state, "state.json");
 
 export function loadState(paths: Paths): State {
 	let raw: Record<string, unknown> = {};
+	const file = stateFile(paths);
 	try {
-		raw = obj(JSON.parse(readFileSync(stateFile(paths), "utf8")));
-	} catch {
-		// absent or unreadable: defaults
+		raw = obj(JSON.parse(readFileSync(file, "utf8")));
+	} catch (err) {
+		// Absent: defaults. Unreadable: defaults too, but the next write would replace the file, so keep what was there beside it.
+		if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+			try {
+				copyFileSync(file, `${file}.unreadable`);
+			} catch {
+				// nothing to keep, or nowhere to keep it
+			}
+		}
 	}
 	return {
 		skip: obj<string>(raw.skip),
@@ -208,10 +217,23 @@ export function clearInflight(paths: Paths): void {
 
 const historyFile = (paths: Paths) => join(paths.data, "history.jsonl");
 
+/** True when the file's last byte is not a newline: a write that was cut short by a crash. */
+function endsMidLine(file: string): boolean {
+	try {
+		const text = readFileSync(file);
+		return text.length > 0 && text[text.length - 1] !== 0x0a;
+	} catch {
+		return false;
+	}
+}
+
+/** Appends whole lines. After a line cut short by a crash it starts on a fresh one, or the next row would be joined to the torn line and lost with it. */
 export function appendHistory(paths: Paths, rows: HistoryRow[]): void {
 	if (rows.length === 0) return;
 	mkdirSync(paths.data, { recursive: true });
-	appendFileSync(historyFile(paths), rows.map((r) => `${JSON.stringify(r)}\n`).join(""));
+	const file = historyFile(paths);
+	const lead = endsMidLine(file) ? "\n" : "";
+	appendFileSync(file, lead + rows.map((r) => `${JSON.stringify(r)}\n`).join(""));
 }
 
 /** The last limit rows, newest first. */

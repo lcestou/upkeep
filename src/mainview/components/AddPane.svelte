@@ -53,6 +53,15 @@
 		}
 	}
 
+	/** Another asset for a scanned program: ask again for that file with the asset named, and swap its row. */
+	async function pickScanAsset(s: Suggestion, asset: string) {
+		const from = s.path ?? s.spec.repo;
+		if (!from) return;
+		const res = await guard("find", () => model.request("suggest", { input: from, asset }));
+		const next = res?.suggestions[0];
+		if (next && scanned) scanned = scanned.map((x) => (x.spec.key === s.spec.key ? next : x));
+	}
+
 	async function find(asset?: string) {
 		const text = input.trim();
 		// An empty Find clears what the last one said, so the hint reads alone again.
@@ -283,7 +292,7 @@
 								busy={working}
 								failure={failures[s.spec.key] ?? null}
 								onadd={addOne}
-								onasset={() => {}}
+								onasset={(asset) => pickScanAsset(s, asset)}
 							/>
 						{/if}
 					</li>
