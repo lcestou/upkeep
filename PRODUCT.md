@@ -58,6 +58,9 @@ The Linux Mint Update Manager, for everything it cannot see. One list covers App
 4. Quiet by default. One tray count and one notification, never a dialog per app.
 5. The list is the product. Versions and status are readable at a glance, and detail is one click away.
 
+6. The owner chooses. Upkeep offers the feature and the person turns it on: no app installs without asking until he marks it so, extras are off until switched on, and nothing about one machine's habits is a default for the next. Stated by the owner on 2026-11-11: "more agnostic and feature rich [...] user makes the choice based on the features".
+7. Nothing is special-cased in code. What an app needs in order to update (where it comes from, how it is built, what is stopped and started, how it is tested) is written in its entry in the app list, so a stranger's app is handled by the same code as the owner's.
+
 ## Accessibility & Inclusion
 
 Keyboard operable end to end. Status is never carried by colour alone. Motion respects the reduced-motion setting. The owner's displays are HiDPI at 2x.
