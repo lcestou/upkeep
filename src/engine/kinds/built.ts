@@ -109,6 +109,16 @@ export function rootArgvs(spec: AppSpec): string[][] {
 	return all;
 }
 
+/** Whether sudo -n -l allows every root argv of the table, checked in table order before anything changes. */
+async function sudoAllowed(spec: AppSpec, ctx: KindCtx): Promise<boolean> {
+	for (const argv of rootArgvs(spec)) {
+		const rest = argv[1] === "-n" ? argv.slice(2) : argv.slice(1);
+		// oxlint-disable-next-line no-await-in-loop -- one check per command
+		if ((await ctx.run(["sudo", "-n", "-l", ...rest], { timeoutMs: 30_000 })).code !== 0) return false;
+	}
+	return true;
+}
+
 /** The first busy entry that holds right now, as its say text, or null. */
 async function busyNow(spec: AppSpec, ctx: KindCtx, stopped: boolean): Promise<string | null> {
 	for (const b of spec.busy ?? []) {
@@ -238,12 +248,7 @@ export async function prepareBuilt(
 	};
 
 	clock.start("download");
-	for (const argv of rootArgvs(spec)) {
-		const rest = argv[1] === "-n" ? argv.slice(2) : argv.slice(1);
-		// oxlint-disable-next-line no-await-in-loop -- one check per command
-		if ((await ctx.run(["sudo", "-n", "-l", ...rest], { timeoutMs: 30_000 })).code !== 0)
-			return { failed: SUDO_REFUSED };
-	}
+	if (!(await sudoAllowed(spec, ctx))) return { failed: SUDO_REFUSED };
 	const first = await busyNow(spec, ctx, false);
 	if (first) return { failed: `${first} Nothing was changed.` };
 	// The marker exists before the first pause stop, so a kill from here on is recovered.
@@ -760,9 +765,10 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
 }
 
 /**
- * Puts a built app's restore point back by hand: busy, pause, stop what runs, restoreTree, start, prove it,
- * start the paused units. It takes no point of the version it replaces, so this restore cannot itself be undone;
- * the next update takes a fresh point.
+ * Puts a built app's restore point back by hand: sudo preflight, busy, pause, stop what runs, restoreTree, start,
+ * prove it, start the paused units. Each step is on the in-flight marker first, so a kill at any point is finished
+ * by recover(); a failed restore keeps the marker for the same reason. It takes no point of the version it
+ * replaces, so this restore cannot itself be undone; the next update takes a fresh point.
  */
 export async function restoreBuilt(
 	spec: AppSpec,
@@ -771,8 +777,13 @@ export async function restoreBuilt(
 ): Promise<{ ok: boolean; detail?: string }> {
 	const point = pointOf(ctx.paths, spec.key, version);
 	if (!readMeta(point)?.tree) return { ok: false, detail: `No restore point ${version}.` };
+	if (!(await sudoAllowed(spec, ctx))) return { ok: false, detail: SUDO_REFUSED };
 	const busy = await busyNow(spec, ctx, false);
 	if (busy) return { ok: false, detail: `${busy} Nothing was changed.` };
+	const dir = spec.dir ? resolvePath(spec.dir, ctx.paths, null) : null;
+	const marker = markerOf(spec, ctx, dir ?? "");
+	marker.point(version);
+	marker.step("pause");
 	const paused: Service[] = [];
 	const startPaused = async () => {
 		for (const p of paused.toReversed())
@@ -783,10 +794,12 @@ export async function restoreBuilt(
 	for (const p of spec.pause ?? []) {
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (!(await isActive(ctx.run, p))) continue;
+		marker.paused(p.name);
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (!(await stopService(ctx.run, p))) {
 			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
 			await startPaused();
+			marker.clear();
 			return { ok: false, detail: `Could not stop ${p.name}. Nothing was changed.` };
 		}
 		paused.push(p);
@@ -795,6 +808,8 @@ export async function restoreBuilt(
 	for (const s of spec.serve ?? [])
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (await isActive(ctx.run, s)) running.push(s);
+	marker.active(running.map((s) => s.name));
+	marker.step("stopping");
 	for (const s of running)
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (!(await stopService(ctx.run, s))) {
@@ -802,18 +817,23 @@ export async function restoreBuilt(
 			for (const r of running) await startService(ctx.run, r);
 			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
 			await startPaused();
+			marker.clear();
 			return { ok: false, detail: `Could not stop ${s.name}. Nothing was changed.` };
 		}
+	marker.step("placing");
 	let detail: string | undefined;
 	try {
-		await restoreTree(point, { paths: ctx.paths, run: ctx.run, log: ctx.log });
+		await restoreTree(point, { paths: ctx.paths, run: ctx.run, log: ctx.log, rename: ctx.rename });
 	} catch (err) {
 		detail = `Could not restore ${version}: ${err instanceof Error ? err.message : String(err)}`;
 	}
+	marker.step("starting");
 	for (const s of running)
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (!((await startService(ctx.run, s)) && (await healthy(s, ctx))))
 			detail ??= `${s.name} did not answer after the restore. See the log.`;
 	await startPaused();
-	return detail ? { ok: false, detail } : { ok: true };
+	if (detail) return { ok: false, detail };
+	marker.clear();
+	return { ok: true };
 }

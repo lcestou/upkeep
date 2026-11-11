@@ -3,7 +3,7 @@ import { cpSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync
 import { dirname, join } from "node:path";
 import { createEngine, type EngineDeps, REASON_UNRECOVERED } from "./engine";
 import type { FetchLike } from "./github";
-import { installBuilt } from "./kinds/built";
+import { installBuilt, restoreBuilt, SUDO_REFUSED } from "./kinds/built";
 import { loadManifest } from "./manifest";
 import type { RunOpts, RunResult } from "./run";
 import { readInflight, writeInflight } from "./store";
@@ -304,6 +304,7 @@ test("a recovery that fails stops Install and every other app's restore, and lea
 	expect(readFileSync(file)).toEqual(before);
 	expect(await engine.restore("srv", "f2918cabb")).toEqual({ ok: true });
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
+	expect(readInflight(t.paths)).toBeNull();
 });
 
 test("a kill during a pause stop leaves the unit on the marker, and recover starts it again", async () => {
@@ -334,4 +335,35 @@ test("recovery counts a start only when since moved", async () => {
 	const box = fakeBox(undefined, { sinceStuck: true });
 	expect(await createEngine(deps(box)).recover()).toMatchObject([{ key: "srv", ok: false }]);
 	expect(readInflight(t.paths)?.tree).toBeDefined();
+});
+
+test("a kill during a built restore leaves a marker, and recover finishes the restore", async () => {
+	expect(await installBuilt(spec(), target, kindCtx(fakeBox()) as never)).toMatchObject({ result: "done" });
+	const killer = fakeBox("sudo -n start srv");
+	await expect(restoreBuilt(spec(), "f2918cabb", kindCtx(killer) as never)).rejects.toThrow("killed");
+	expect(readInflight(t.paths)).toMatchObject({
+		backupVersion: "f2918cabb",
+		tree: { step: "starting", active: ["srv"], paused: ["api"] },
+	});
+	const box = fakeBox();
+	box.units.srv = { ...(killer.units.srv ?? { running: false, starts: 1 }) };
+	box.units.api = { ...(killer.units.api ?? { running: false, starts: 1 }) };
+	expect(await createEngine(deps(box)).recover()).toMatchObject([{ key: "srv", ok: true }]);
+	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
+	expect(box.units.srv?.running).toBe(true);
+	expect(box.units.api?.running).toBe(true);
+	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("a built restore checks sudo -n -l before it stops anything", async () => {
+	expect(await installBuilt(spec(), target, kindCtx(fakeBox()) as never)).toMatchObject({ result: "done" });
+	const box = fakeBox();
+	const run = async (argv: string[], opts?: RunOpts) =>
+		argv[0] === "sudo" && argv[2] === "-l" ? fail("a password is required") : box.run(argv, opts);
+	expect(await restoreBuilt(spec(), "f2918cabb", { ...kindCtx(box), run } as never)).toEqual({
+		ok: false,
+		detail: SUDO_REFUSED,
+	});
+	expect(box.calls.map((c) => c.argv.join(" ")).filter((a) => a.includes("stop"))).toEqual([]);
+	expect(readInflight(t.paths)).toBeNull();
 });
