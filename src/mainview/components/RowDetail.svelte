@@ -3,6 +3,8 @@
 	import {
 		CHIP,
 		COLUMN,
+		commitsHeading,
+		moreCommits,
 		KIND_LABEL,
 		NO_RESTORE,
 		TEXT,
@@ -321,6 +323,24 @@
 		</div>
 	{/if}
 
+	{#if app.commits?.length}
+		<!-- What a built app is behind by, newest first. The list scrolls past twelve lines, so it is a labelled tab stop. -->
+		<section class="block commits" data-testid="commits-{app.key}" aria-labelledby="commits-heading-{app.key}">
+			<h4 id="commits-heading-{app.key}" data-testid="commits-heading-{app.key}">
+				{commitsHeading(app.ahead ?? app.commits.length, app.installed)}
+			</h4>
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+			<ul tabindex="0" aria-labelledby="commits-heading-{app.key}" data-testid="commits-list-{app.key}">
+				{#each app.commits as c (c.sha)}
+					<li title={c.title} data-testid="commit-{c.sha.slice(0, 9)}"><code>{c.sha.slice(0, 9)}</code> <span class="ct">{c.title}</span></li>
+				{/each}
+			</ul>
+			{#if (app.ahead ?? 0) > app.commits.length}
+				<p class="more" data-testid="commits-more-{app.key}">{moreCommits(app.ahead ?? 0, app.commits.length)}</p>
+			{/if}
+		</section>
+	{/if}
+
 	{#if app.note}<p class="note">{app.note}</p>{/if}
 
 	<dl class="facts">
@@ -573,6 +593,51 @@
 	.block {
 		display: grid;
 		gap: var(--s2);
+	}
+	.commits h4 {
+		margin: 0;
+		font-size: var(--fs-12);
+		font-weight: 620;
+		color: var(--text-2);
+	}
+	/* Twelve lines, then the list scrolls; each title takes one line and the ellipsis, with the whole title in title. */
+	.commits ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		max-height: calc(12 * 22px);
+		overflow-y: auto;
+		border-radius: var(--radius-sm);
+	}
+	.commits ul:focus-visible {
+		outline: 2px solid var(--focus);
+		outline-offset: 2px;
+	}
+	.commits li {
+		display: flex;
+		gap: var(--s2);
+		min-width: 0;
+		height: 22px;
+		align-items: baseline;
+		line-height: 22px;
+		font-size: var(--fs-12);
+		color: var(--text);
+	}
+	.commits code {
+		flex: none;
+		font-family: var(--mono);
+		color: var(--text-2);
+	}
+	.commits .ct {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.commits .more {
+		margin: 0;
+		font-size: var(--fs-12);
+		color: var(--text-3);
 	}
 	h3 {
 		margin: 0;

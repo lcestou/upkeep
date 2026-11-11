@@ -111,7 +111,7 @@
 					{#if restore}
 						<svg class="saved" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"
 							><path d="M2.25 6.25 4.75 8.75 9.75 3.5" /></svg
-						><span class="mono">{restore}</span>
+						><span class="mono point" title={restore}>{restore}</span>
 					{:else if canRestore}
 						<span class="none-yet" data-testid="none-yet-{app.key}">{TEXT.noneYet}</span>
 					{:else}
@@ -452,6 +452,14 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 5px;
+		max-width: 100%;
+	}
+	/* A commit as a restore point can outrun the column: it takes the ellipsis and keeps the whole value in title. */
+	.point {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.saved {
 		flex: none;

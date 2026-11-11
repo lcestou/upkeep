@@ -129,7 +129,7 @@ export function selectionText(n: number, bytes: number | null, partial = false, 
 /** Why a kind keeps no restore point, said in the pane only. */
 export const NO_RESTORE: Partial<Record<AppKind, string>> = {
 	deb: "dpkg owns these files, so there is no restore point.",
-	source: "Built from source, so there is no restore point.",
+	source: "Built in a fresh clone, so there is no restore point.",
 	command: "It updates itself, so there is no restore point.",
 	legacy: "Upkeep hands this one to lutechi-updater.",
 };
@@ -138,6 +138,11 @@ export const NO_RESTORE: Partial<Record<AppKind, string>> = {
 export const notInstalledLine = (latest: string) => `Not installed. ${latest} is the latest.`;
 export const installedText = (v: string) => `Installed ${v}`;
 export const lastTryFailed = (why: string) => `Last try failed. ${why}`;
+/** The pane's heading over a built app's commits; from is the installed build's commit, when it is known. */
+export const commitsHeading = (n: number, from: string | null) =>
+	`${n} ${n === 1 ? "commit" : "commits"} since ${from ?? "the installed build"}`;
+/** The line under a capped commits list. Text, not a link: the pane's release link already opens the project. */
+export const moreCommits = (n: number, shown: number) => `All ${n} on GitHub (${n - shown} not shown)`;
 export const restartLine = (names: string[]) => `Restart ${names.join(", ")} to finish.`;
 export const byHandLine = (n: number) => `${n} more by hand`;
 export const RUN_TEXT = {
