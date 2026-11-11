@@ -178,13 +178,34 @@ legacy_name = "Cursor"
 process = "cursor"
 note = "Updating closes Cursor and opens it again."
 
-# Checked by the old script: its latest is picked from npm dist-tags with Python's packaging order and compared with !=, which no latest source reproduces.
 [apps.dsh]
 name = "dsh"
-kind = "manual"
-legacy_name = "dsh"
-run = "lutechi-updater dsh"
-note = "Never installed unattended. The old script asks, stops dsh-web, smoke-tests and rolls back."
+kind = "source"
+latest = "npm-tags:@deepseek-ai/dsh"
+check = ["sh", "-c", '''grep -oP '"version": *"\K[^"]+' "$HOME/.local/share/dsh/lib/node_modules/@deepseek-ai/dsh/package.json" | head -1''']
+stage = "~/.local/share/dsh.upkeep-next"
+build = ["npm install -g --prefix {stage} @deepseek-ai/dsh@{version}"]
+check_built = [
+	"/usr/bin/node {stage}/lib/node_modules/@deepseek-ai/dsh/lib/bin.js --profile headless --dump-config >/dev/null",
+	'''echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{"fs":{"readTextFile":false,"writeTextFile":false}}}}' | timeout 60 /usr/bin/node {stage}/lib/node_modules/@deepseek-ai/dsh/lib/bin.js --profile acp 2>/dev/null | grep -q '"result"' ''',
+]
+busy = [{ process = "share/dsh/lib/node_modules", say = "dsh is running outside dsh web.", when = "stopped" }]
+place = [{ from = "{stage}", to = "~/.local/share/dsh" }]
+test = [
+	{ name = "headless profile", run = ["sh", "-c", "~/.local/bin/dsh --profile headless --dump-config >/dev/null"], timeout_s = 60 },
+	{ name = "ACP initialize", run = ["sh", "-c", '''echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{"fs":{"readTextFile":false,"writeTextFile":false}}}}' | timeout 60 ~/.local/bin/dsh-alpha --profile acp 2>/dev/null | grep -q '"result"' '''], timeout_s = 70 },
+]
+note = "Updating restarts dsh web, which ends every session running in it."
+
+[[apps.dsh.serve]]
+name = "dsh-web.service"
+active = ["systemctl", "--user", "is-active", "--quiet", "dsh-web.service"]
+stop = ["systemctl", "--user", "stop", "dsh-web.service"]
+start = ["systemctl", "--user", "start", "dsh-web.service"]
+since = ["systemctl", "--user", "show", "-p", "ActiveEnterTimestampMonotonic", "--value", "dsh-web.service"]
+health = "http://127.0.0.1:3080/"
+status = 401
+wait_s = 60
 
 [apps.pr-agent]
 name = "pr-agent"
