@@ -96,6 +96,8 @@ test("a put-back that failed stops the run there, and Install waits until that a
 		"Refused /home/you/src/neovim/runtime/link/doc: a link inside it leads outside what this table may change. Nothing was changed.",
 	);
 	await page.getByTestId("done").click();
+	// The summary's controls, with their own Install for a not-started row, fade out while the list's fade in.
+	await expect(page.getByTestId("done")).toHaveCount(0);
 	await page.getByTestId("select-none").click();
 	await page.getByTestId("tick-btop").check();
 	await page.getByTestId("tick-neovim").check();
@@ -104,6 +106,8 @@ test("a put-back that failed stops the run there, and Install waits until that a
 	await expect(page.getByTestId("sentence-btop")).toHaveText("Could not stop btop to put 1.4.3 back. See the log.");
 	await expect(page.getByTestId("row-neovim")).not.toContainText("Refused");
 	await page.getByTestId("done").click();
+	// The summary's controls, with their own Install for a not-started row, fade out while the list's fade in.
+	await expect(page.getByTestId("done")).toHaveCount(0);
 	await expect(page.getByTestId("install")).toHaveCount(1);
 	await page.getByTestId("install").click();
 	const unrecovered = "An update was interrupted and could not be put back. Restore it from its row first.";

@@ -5,8 +5,10 @@ const port = Number(process.env.UPKEEP_E2E_PORT) || 5182;
 
 export default defineConfig({
 	testDir: "e2e",
-	workers: 1,
-	fullyParallel: false,
+	// Every spec has its own page and its own in-page fixture, so specs run side by side: 282 specs went from
+	// 10.5 min on one worker to 1.7 min on 12 with fullyParallel (2026-11-11). One whole run at a time still.
+	workers: "75%",
+	fullyParallel: true,
 	retries: 0,
 	timeout: 60_000,
 	reporter: [["list"]],
