@@ -61,7 +61,9 @@ test("Choose a file finds the picked file", async ({ page }) => {
 	await page.getByTestId("add-app").click();
 	await page.getByTestId("add-pick").click();
 	await expect(page.getByTestId("add-input")).toHaveValue(PICKED);
-	await expect(page.getByTestId("suggestion-obsidian").getByTestId("sug-why")).toContainText(`Found it installed at ${PICKED}.`);
+	await expect(page.getByTestId("suggestion-obsidian").getByTestId("sug-why")).toContainText(
+		`Found it installed at ${PICKED}.`,
+	);
 });
 
 test("scan, add the two sure ones, the failed one stays with its reason", async ({ page }) => {
@@ -82,7 +84,9 @@ test("scan, add the two sure ones, the failed one stays with its reason", async 
 	await page.getByTestId("scan-all").click();
 	await page.getByTestId("scan-add").click();
 	await expect(page.getByTestId("scan-note")).toHaveText("Added 1 app.");
-	await expect(page.getByTestId("scan-fail-btop")).toHaveText("Could not write apps.toml: permission denied. Nothing was changed.");
+	await expect(page.getByTestId("scan-fail-btop")).toHaveText(
+		"Could not write apps.toml: permission denied. Nothing was changed.",
+	);
 	await expect(page.getByTestId("row-obsidian")).toHaveCount(1);
 });
 
@@ -95,7 +99,9 @@ test("Paste its repo keeps the scanned file as dest", async ({ page }) => {
 	await expect(page.getByTestId("pending-path")).toHaveText("/home/owner/.local/bin/mytool");
 	await page.keyboard.type("BurntSushi/ripgrep");
 	await page.keyboard.press("Enter");
-	await expect(page.getByTestId("suggestion-ripgrep").getByTestId("sug-dest")).toHaveValue("/home/owner/.local/bin/mytool");
+	await expect(page.getByTestId("suggestion-ripgrep").getByTestId("sug-dest")).toHaveValue(
+		"/home/owner/.local/bin/mytool",
+	);
 });
 
 test("drop a file URI anywhere on the window", async ({ page }) => {

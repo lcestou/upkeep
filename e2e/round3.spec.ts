@@ -38,13 +38,18 @@ test("at 760 the subline keeps the check time whole on the title's line", async 
 	const box = await page.getByTestId("checked").evaluate((el) => {
 		const r = el.getBoundingClientRect();
 		const more = el.parentElement?.getBoundingClientRect();
-		return { inside: !!more && r.top >= more.top - 0.5 && r.bottom <= more.bottom + 0.5 && r.right <= more.right + 0.5, w: el.scrollWidth - el.clientWidth };
+		return {
+			inside: !!more && r.top >= more.top - 0.5 && r.bottom <= more.bottom + 0.5 && r.right <= more.right + 0.5,
+			w: el.scrollWidth - el.clientWidth,
+		};
 	});
 	expect(box.inside, "the check time is on the visible line").toBe(true);
 	expect(box.w, "the check time is not cut").toBeLessThanOrEqual(0);
 	const head = await sentence(page).boundingBox();
 	const checked = await page.getByTestId("checked").boundingBox();
-	expect(Math.abs((checked?.y ?? 0) + (checked?.height ?? 0) - ((head?.y ?? 0) + (head?.height ?? 0)))).toBeLessThanOrEqual(4);
+	expect(
+		Math.abs((checked?.y ?? 0) + (checked?.height ?? 0) - ((head?.y ?? 0) + (head?.height ?? 0))),
+	).toBeLessThanOrEqual(4);
 });
 
 // 3. During a run at 760 only the name gives way.
@@ -55,7 +60,10 @@ test("at 760 a run's sentence keeps its verb and count, and title is the whole s
 	await expect(sentence(page)).toHaveText(/^Installing .+, 1 of 4$/);
 	await expect(sentence(page)).toHaveAttribute("title", (await sentence(page).textContent()) ?? "");
 	const cut = await sentence(page).evaluate((h1) =>
-		[...h1.querySelectorAll(".fixed")].map((el) => ({ text: el.textContent, clipped: el.scrollWidth > el.clientWidth + 0.5 })),
+		[...h1.querySelectorAll(".fixed")].map((el) => ({
+			text: el.textContent,
+			clipped: el.scrollWidth > el.clientWidth + 0.5,
+		})),
 	);
 	expect(cut.map((c) => c.text)).toEqual(["Installing ", ", 1 of 4"]);
 	for (const c of cut) expect(c.clipped, c.text ?? "").toBe(false);
@@ -67,7 +75,12 @@ test("at 760 a run's sentence keeps its verb and count, and title is the whole s
 // 4. Double-clicks select nothing in the title bar or the column header.
 test("double-clicking the title bar's text or a column header selects nothing", async ({ page }) => {
 	await load(page);
-	for (const target of [sentence(page), page.getByTestId("checked"), page.locator(".h-kind"), page.locator(".h-status")]) {
+	for (const target of [
+		sentence(page),
+		page.getByTestId("checked"),
+		page.locator(".h-kind"),
+		page.locator(".h-status"),
+	]) {
 		await target.dblclick();
 		expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
 	}
@@ -88,7 +101,9 @@ test("the close button's hover cross measures 4.5:1 or better", async ({ page })
 			return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3);
 		};
 		const lum = (c: number[]) =>
-			c.map((v) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4)).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+			c
+				.map((v) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4))
+				.reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
 		const s = getComputedStyle(el);
 		const [a, b] = [lum(rgb(s.color)), lum(rgb(s.backgroundColor))].toSorted((x, y) => y - x);
 		return (a + 0.05) / (b + 0.05);
@@ -140,7 +155,9 @@ test("the Add pane's error is an alert and describes the field while it shows", 
 });
 
 // 8. Focus lands on a row after Add and after Remove, never on the page.
-test("after Add focus is on the new row; after Remove on the next row, or the one before for the last", async ({ page }) => {
+test("after Add focus is on the new row; after Remove on the next row, or the one before for the last", async ({
+	page,
+}) => {
 	await page.setViewportSize({ width: 1200, height: 800 });
 	await load(page, "fixture&speed=4");
 	await page.getByTestId("add-app").click();
@@ -174,9 +191,7 @@ test("PageDown and PageUp move row focus by the rows that fit in the list", asyn
 	await load(page, "fixture=many", { wait: "sentence" });
 	await page.getByTestId("group-fresh-toggle").click();
 	const rows = await page.locator("[data-row]").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.row));
-	const fit = await page
-		.getByTestId("app-list")
-		.evaluate((el) => Math.max(1, Math.floor((el.clientHeight - 34) / 44)));
+	const fit = await page.getByTestId("app-list").evaluate((el) => Math.max(1, Math.floor((el.clientHeight - 34) / 44)));
 	await page.getByTestId(`open-${rows[0]}`).focus();
 	await page.keyboard.press("PageDown");
 	await expect(page.getByTestId(`open-${rows[fit]}`)).toBeFocused();
@@ -280,7 +295,9 @@ test("a narrowed In use chip keeps its dot, its title and its words for assistiv
 	// The title keeps the chip's explanation, which starts with its words.
 	await expect(chip).toHaveAttribute("title", /^In use/);
 	await expect(chip.locator(".dot")).toBeVisible();
-	const ct = await chip.locator(".ct").evaluate((el) => ({ display: getComputedStyle(el).display, text: el.textContent }));
+	const ct = await chip
+		.locator(".ct")
+		.evaluate((el) => ({ display: getComputedStyle(el).display, text: el.textContent }));
 	expect(ct.text).toBe("In use");
 	expect(ct.display).not.toBe("none");
 });
@@ -314,7 +331,9 @@ for (const width of [980, 760]) {
 			}),
 		);
 		expect(cut).toEqual([]);
-		await expect(page.getByTestId("sys-row-apt:openjdk-21").getByTestId("sys-new")).toHaveText("21.0.13.0.3+1-1~24.04.1");
+		await expect(page.getByTestId("sys-row-apt:openjdk-21").getByTestId("sys-new")).toHaveText(
+			"21.0.13.0.3+1-1~24.04.1",
+		);
 		// The kernel note starts after the new version with a gap, or sits under it.
 		const kernel = page.getByTestId("sys-row-apt:linux-generic");
 		const n = await kernel.getByTestId("sys-new").boundingBox();
@@ -330,7 +349,9 @@ test("Flatpak system rows read their display names", async ({ page }) => {
 	await load(page, "fixture&system=show");
 	const toggle = page.getByTestId("group-system-toggle");
 	if ((await toggle.getAttribute("aria-expanded")) === "false") await toggle.click();
-	await expect(page.getByTestId("sys-row-flatpak:com.discordapp.Discord").getByTestId("sys-name")).toHaveText("Discord");
+	await expect(page.getByTestId("sys-row-flatpak:com.discordapp.Discord").getByTestId("sys-name")).toHaveText(
+		"Discord",
+	);
 	await expect(page.getByTestId("sys-row-flatpak:org.gnome.Platform").getByTestId("sys-name")).toHaveText(
 		"GNOME Application Platform",
 	);
@@ -399,7 +420,9 @@ test("a failed apps.toml write gives the reason, says nothing changed, and offer
 });
 
 // 22. The fixture's duplicate card is named for itself; no build for this machine; a scan of unknowns only.
-test("a duplicate repo's card carries its own name, and the no-build and unknown-only cases read plainly", async ({ page }) => {
+test("a duplicate repo's card carries its own name, and the no-build and unknown-only cases read plainly", async ({
+	page,
+}) => {
 	await load(page, "fixture&speed=4");
 	await page.getByTestId("add-app").click();
 	await page.getByTestId("add-input").fill("sharkdp/bat");
@@ -441,9 +464,9 @@ test("the checking dot's pulse low point measures 3:1 on its row", async ({ page
 	await expect(dot).toBeVisible();
 	const res = await dot.evaluate((el) => {
 		const low = Math.min(
-			...el.getAnimations().flatMap((a) =>
-				(a.effect as KeyframeEffect).getKeyframes().map((k) => Number(k.opacity ?? 1)),
-			),
+			...el
+				.getAnimations()
+				.flatMap((a) => (a.effect as KeyframeEffect).getKeyframes().map((k) => Number(k.opacity ?? 1))),
 		);
 		const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
 		if (!ctx) return { low, ground: 0 };
@@ -455,7 +478,8 @@ test("the checking dot's pulse low point measures 3:1 on its row", async ({ page
 			const [r = 0, g = 0, b = 0, a = 255] = ctx.getImageData(0, 0, 1, 1).data;
 			return [r, g, b, a / 255] as const;
 		};
-		const over = (top: readonly number[], a: number, under: readonly number[]) => [0, 1, 2].map((i) => (top[i] ?? 0) * a + (under[i] ?? 0) * (1 - a));
+		const over = (top: readonly number[], a: number, under: readonly number[]) =>
+			[0, 1, 2].map((i) => (top[i] ?? 0) * a + (under[i] ?? 0) * (1 - a));
 		const lum = (c: number[]) =>
 			c
 				.map((v) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4))

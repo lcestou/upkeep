@@ -7,7 +7,15 @@ test("a full run walks every stage to 3 updated, 1 failed and opens the pane on 
 	await expect(sentence(page)).toHaveText(/^Installing Zen Browser, 1 of 4$/);
 	await expect(sentence(page)).toHaveText("3 updated, 1 failed", { timeout: 20_000 });
 	const texts = await seen();
-	for (const word of ["Queued", "Backing up", "Installing", "Verifying", "Restart Zen Browser to finish", "Updated to 10.5.2", "Failed"])
+	for (const word of [
+		"Queued",
+		"Backing up",
+		"Installing",
+		"Verifying",
+		"Restart Zen Browser to finish",
+		"Updated to 10.5.2",
+		"Failed",
+	])
 		expect(texts, word).toContain(word);
 	expect(texts.some((t) => /^Downloading [\d.]+ of [\d.]+ (kB|MB)$/.test(t))).toBe(true);
 	await expect(page.getByTestId("group-run")).toHaveText("This run");

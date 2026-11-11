@@ -1,6 +1,14 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
-import { installLabel, selectionText, stateSentence, statusText, systemChecked, systemProblem } from "./copy";
+import {
+	installLabel,
+	selectionText,
+	stateSentence,
+	statusText,
+	systemAbsent,
+	systemChecked,
+	systemProblem,
+} from "./copy";
 
 const run = (patch: Partial<RunState>): RunState => ({
 	id: null,
@@ -79,8 +87,8 @@ test("status text", () => {
 });
 
 test("the System group's problem lines name the source and end cleanly without a detail", () => {
-	expect(systemProblem({ code: "missing", command: "mintupdate-cli list" })).toBe(
-		"mintupdate-cli list is not installed, so this part of the list is empty.",
+	expect(systemProblem({ code: "missing", command: "dpkg-query -W" })).toBe(
+		"dpkg-query -W is not installed, so this part of the list is empty.",
 	);
 	expect(systemProblem({ code: "failed", command: "mintupdate-cli list", detail: "E: lock" })).toBe(
 		"Could not read Update Manager's list: E: lock",
@@ -91,4 +99,14 @@ test("the System group's problem lines name the source and end cleanly without a
 	expect(systemChecked("2 minutes ago", false)).toBe("From Update Manager, checked 2 minutes ago");
 	expect(systemChecked(null, true)).toBe("From Update Manager, checking");
 	expect(systemChecked(null, false)).toBe("From Update Manager");
+	expect(systemChecked("now", false, "Flatpak")).toBe("From Flatpak, checked now");
+	// A tool the system does not have is said quietly; anything else missing is still a problem.
+	expect(systemAbsent({ code: "missing", command: "mintupdate-cli list" })).toBe(
+		"Package updates are listed on Linux Mint only. Flatpak updates still show here.",
+	);
+	expect(systemAbsent({ code: "missing", command: "flatpak remote-ls --updates --columns=ref,name,version" })).toBe(
+		"Flatpak is not installed, so only package updates are listed.",
+	);
+	expect(systemAbsent({ code: "missing", command: "dpkg-query -W" })).toBeNull();
+	expect(systemAbsent({ code: "failed", command: "mintupdate-cli list", detail: "x" })).toBeNull();
 });

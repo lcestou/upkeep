@@ -29,7 +29,9 @@ test("ArrowDown keeps the focused row fully in view through 60 apps", async ({ p
 			const l = el.getBoundingClientRect();
 			const r = row.getBoundingClientRect();
 			// The sticky column header covers the top 34 px of the list.
-			return r.top >= l.top + 34 - 0.5 && r.bottom <= l.bottom + 0.5 ? "ok" : `${r.top}-${r.bottom} in ${l.top}-${l.bottom}`;
+			return r.top >= l.top + 34 - 0.5 && r.bottom <= l.bottom + 0.5
+				? "ok"
+				: `${r.top}-${r.bottom} in ${l.top}-${l.bottom}`;
 		});
 		expect(inside, `step ${i}`).toBe("ok");
 	}
@@ -117,10 +119,17 @@ test("a re-check keeps the Install count and says why it waits", async ({ page }
 
 test("headings clear the sticky column header after an automatic scroll", async ({ page }) => {
 	await load(page);
-	expect(await page.locator(".ghead").first().evaluate((el) => getComputedStyle(el).scrollMarginTop)).toBe("34px");
+	expect(
+		await page
+			.locator(".ghead")
+			.first()
+			.evaluate((el) => getComputedStyle(el).scrollMarginTop),
+	).toBe("34px");
 });
 
-test("the filter: Clear filter, ArrowDown to the first row, Enter opens the first match, PageDown scrolls", async ({ page }) => {
+test("the filter: Clear filter, ArrowDown to the first row, Enter opens the first match, PageDown scrolls", async ({
+	page,
+}) => {
 	await load(page, "fixture=many", { wait: "sentence" });
 	await page.getByTestId("filter").fill("nothing-here");
 	await page.getByTestId("clear-filter").click();
@@ -155,7 +164,8 @@ test("the checking dot pulses no lower than 0.85", async ({ page }) => {
 		for (const sheet of document.styleSheets)
 			for (const rule of sheet.cssRules)
 				if (rule instanceof CSSKeyframesRule && rule.name.includes("pulse"))
-					for (const k of rule.cssRules) if (k instanceof CSSKeyframeRule && k.style.opacity) return Number(k.style.opacity);
+					for (const k of rule.cssRules)
+						if (k instanceof CSSKeyframeRule && k.style.opacity) return Number(k.style.opacity);
 		return null;
 	});
 	expect(low).toBe(0.85);

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SYS, glLine, systemChecked, systemProblem } from "../lib/copy";
+	import { SYS, glLine, noMint, systemAbsent, systemChecked, systemProblem } from "../lib/copy";
 	import { relativeTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import Glyph from "./Glyph.svelte";
@@ -34,11 +34,18 @@
 	});
 
 	const sys = $derived(model.extras?.system ?? null);
+	const mint = $derived(!noMint(sys?.problem ?? null));
 	const checking = $derived(sys?.phase === "checking");
 	const sub = $derived(
-		systemChecked(checking ? null : sys?.checkedAt ? relativeTime(sys.checkedAt, now) : null, checking),
+		systemChecked(
+			checking ? null : sys?.checkedAt ? relativeTime(sys.checkedAt, now) : null,
+			checking,
+			mint ? "Update Manager" : "Flatpak",
+		),
 	);
-	const problem = $derived(sys?.problem ? systemProblem(sys.problem) : null);
+	// A tool this system does not have is not a fault: one quiet line, no warning glyph.
+	const absent = $derived(sys ? systemAbsent(sys.problem) : null);
+	const problem = $derived(sys?.problem && !absent ? systemProblem(sys.problem) : null);
 	const gl = $derived(sys?.glMissing ? glLine(sys.glMissing) : null);
 	const warning = $derived([problem, gl].filter((s) => s !== null).join(" "));
 	const rows = $derived(model.systemShown);
@@ -66,14 +73,17 @@
 				</button>
 			</h2>
 			<span class="sub" data-testid="system-checked">{sub}</span>
-			<button
-				type="button"
-				class="btn small quiet tool"
-				data-testid="open-update-manager"
-				onclick={() => model.send("openTool", { what: "update-manager" })}>{SYS.open}</button
-			>
+			{#if mint}<button
+					type="button"
+					class="btn small quiet tool"
+					data-testid="open-update-manager"
+					onclick={() => model.send("openTool", { what: "update-manager" })}>{SYS.open}</button
+				>{/if}
 		</div>
 		{#if shown}
+			{#if absent}
+				<p class="line" data-testid="system-absent">{absent}</p>
+			{/if}
 			{#if problem}
 				<p class="note" data-testid="system-problem"><Glyph name="bang" color="var(--rust)" />{problem}</p>
 			{/if}

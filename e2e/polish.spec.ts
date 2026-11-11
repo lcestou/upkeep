@@ -29,7 +29,9 @@ test("a re-check keeps versions, groups and the owner's ticks", async ({ page })
 	await expect(page.getByTestId("install")).toHaveText("Install 3 updates");
 });
 
-test("the filter narrows, keeps hidden ticks counted, says when nothing matches, and Escape clears it", async ({ page }) => {
+test("the filter narrows, keeps hidden ticks counted, says when nothing matches, and Escape clears it", async ({
+	page,
+}) => {
 	await load(page);
 	await page.keyboard.press("/");
 	await expect(page.getByTestId("filter")).toBeFocused();

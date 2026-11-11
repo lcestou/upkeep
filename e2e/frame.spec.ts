@@ -5,7 +5,9 @@ const ops = (page: Page) => page.evaluate(() => (globalThis as { upkeepOps?: str
 
 test("window buttons sit on the left in the desktop's order, and each sends its op", async ({ page }) => {
 	await load(page);
-	const ids = await page.locator('[data-testid^="win-"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
+	const ids = await page
+		.locator('[data-testid^="win-"]')
+		.evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
 	expect(ids).toEqual(["win-close", "win-maximize", "win-minimize"]);
 	const close = await page.getByTestId("win-close").boundingBox();
 	const mark = await page.locator("header .brand").boundingBox();
@@ -30,7 +32,9 @@ test("window buttons sit on the left in the desktop's order, and each sends its 
 
 test("buttons on the right are mirrored and come last", async ({ page }) => {
 	await load(page, "fixture&buttons=right");
-	const ids = await page.locator('[data-testid^="win-"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
+	const ids = await page
+		.locator('[data-testid^="win-"]')
+		.evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
 	expect(ids).toEqual(["win-minimize", "win-maximize", "win-close"]);
 	const close = await page.getByTestId("win-close").boundingBox();
 	expect((close?.x ?? 0) + (close?.width ?? 0)).toBe(980 - 12);
@@ -91,7 +95,9 @@ test("Settings: Window frame, buttons and corners send setSettings; buttons and 
 	await page.getByTestId("tab-settings").click();
 	await expect(page.getByTestId("setting-frame")).toContainText("Built in");
 	await expect(page.getByTestId("setting-frame-own")).toHaveAttribute("aria-checked", "true");
-	await expect(page.getByText("Built in puts the title bar inside Upkeep's own header. System uses the desktop's.")).toBeVisible();
+	await expect(
+		page.getByText("Built in puts the title bar inside Upkeep's own header. System uses the desktop's."),
+	).toBeVisible();
 	await page.getByTestId("setting-buttons-right").click();
 	await expect(page.getByTestId("setting-buttons-right")).toHaveAttribute("aria-checked", "true");
 	await expect(page.locator('[data-testid^="win-"]').last()).toHaveAttribute("data-testid", "win-close");

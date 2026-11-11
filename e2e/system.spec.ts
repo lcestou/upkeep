@@ -14,7 +14,7 @@ test("the System group is absent while the setting is off, and Settings shows an
 	await expect(page.getByTestId("group-system-section")).toHaveCount(0);
 	await page.getByTestId("tab-settings").click();
 	await expect(page.getByTestId("setting-system-help")).toHaveText(
-		"Lists what Update Manager would install: Mint and Ubuntu packages, and Flatpak apps and runtimes. Not counted in the tray number.",
+		"Lists your system's own pending updates: Flatpak apps and runtimes, and on Linux Mint the packages its Update Manager would install. Not counted in the tray number.",
 	);
 	await expect(page.getByTestId("extras-group")).toHaveText("Extras");
 	await page.getByTestId("setting-system").check();
@@ -124,19 +124,25 @@ test("each state of the group body says its own line", async ({ page }) => {
 	await expect(page.getByTestId("system-none")).toHaveText("No system updates.");
 
 	await load(page, "fixture&system=missing");
-	// Folded, the group still shows that something needs a look.
+	// A system without Linux Mint's Update Manager is not at fault: no warning, no button for a tool it lacks, Flatpak still listed.
+	await expect(page.getByTestId("system-warn")).toHaveCount(0);
+	await expect(page.getByTestId("open-update-manager")).toHaveCount(0);
+	await expect(page.getByTestId("system-checked")).toHaveText(/^From Flatpak/);
+	await openGroup(page);
+	await expect(page.getByTestId("system-absent")).toHaveText(
+		"Package updates are listed on Linux Mint only. Flatpak updates still show here.",
+	);
+	await expect(page.getByTestId("system-problem")).toHaveCount(0);
+	await expect(page.locator('[data-testid^="sys-row-flatpak:"]')).toHaveCount(3);
+
+	await load(page, "fixture&system=failed");
+	// Folded, the group still shows that something needs a look. (The fold is remembered, so fold it again here.)
 	await page.getByTestId("group-system-toggle").click();
 	await expect(page.getByTestId("group-system-toggle")).toHaveAttribute("aria-expanded", "false");
 	await expect(page.getByTestId("system-warn")).toHaveAttribute(
 		"aria-label",
-		"mintupdate-cli list is not installed, so this part of the list is empty.",
+		"Could not read Flatpak's list: error: Unable to load summary from remote flathub: Could not resolve host: dl.flathub.org",
 	);
-	await openGroup(page);
-	await expect(page.getByTestId("system-problem")).toHaveText(
-		"mintupdate-cli list is not installed, so this part of the list is empty.",
-	);
-	await expect(page.locator('[data-testid^="sys-row-flatpak:"]')).toHaveCount(3);
-	await expect(page.getByTestId("system-warn")).toHaveCount(0);
 
 	await load(page, "fixture&system=failed");
 	await openGroup(page);
@@ -148,7 +154,7 @@ test("each state of the group body says its own line", async ({ page }) => {
 	await load(page, "fixture&system=gl");
 	await openGroup(page);
 	await expect(page.getByTestId("system-gl")).toHaveText(
-		"Flatpak apps cannot use the GPU until the NVIDIA 580.178.04 runtime is installed. Update Manager's Flatpak update installs it.",
+		"Flatpak apps cannot use the GPU until the NVIDIA 580.178.04 runtime is installed. A Flatpak update installs it.",
 	);
 });
 
@@ -166,7 +172,10 @@ test("system rows share the app rows' column edges", async ({ page }) => {
 				return r ? Math.round((r.left + r.width / 2) * 2) / 2 : null;
 			};
 			return [
-				...["mark", "name", "ver"].map((c) => [box(app?.querySelector(`.cell.${c}`) ?? null), box(sys?.querySelector(`.cell.${c}`) ?? null)]),
+				...["mark", "name", "ver"].map((c) => [
+					box(app?.querySelector(`.cell.${c}`) ?? null),
+					box(sys?.querySelector(`.cell.${c}`) ?? null),
+				]),
 				[centre(app?.querySelector(".arrow")), centre(sys?.querySelector(".arrow"))],
 			];
 		});

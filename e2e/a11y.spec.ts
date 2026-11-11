@@ -8,14 +8,21 @@ async function audit(page: Page) {
 			const label = el.getAttribute("aria-label");
 			if (label) return label;
 			const by = el.getAttribute("aria-labelledby");
-			if (by) return by.split(" ").map((id) => document.getElementById(id)?.textContent ?? "").join(" ").trim();
+			if (by)
+				return by
+					.split(" ")
+					.map((id) => document.getElementById(id)?.textContent ?? "")
+					.join(" ")
+					.trim();
 			if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) {
 				const l = el.closest("label") ?? (el.id ? document.querySelector(`label[for="${el.id}"]`) : null);
 				if (l) return l.textContent?.trim() ?? "";
 			}
 			return el.textContent?.trim() ?? "";
 		};
-		for (const el of document.querySelectorAll("button, input, select, a[href], [role=tab], [tabindex]:not([tabindex='-1'])")) {
+		for (const el of document.querySelectorAll(
+			"button, input, select, a[href], [role=tab], [tabindex]:not([tabindex='-1'])",
+		)) {
 			if (!nameOf(el)) problems.push(`no name: ${el.outerHTML.slice(0, 90)}`);
 			const t = Number(el.getAttribute("tabindex") ?? "0");
 			if (t > 0) problems.push(`positive tabindex: ${el.outerHTML.slice(0, 90)}`);

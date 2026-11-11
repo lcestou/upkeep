@@ -289,14 +289,16 @@ export const WIN = {
 	tagline: "Keeps the apps your package manager misses up to date.",
 } as const;
 
-/** The System group: Update Manager's own list, shown read-only. */
+/** The System group: the system's own pending updates, shown read-only. Flatpak anywhere; packages where Linux Mint's Update Manager is installed. */
 export const SYS = {
 	extras: "Extras",
 	setting: "Show system updates",
 	settingHelp:
-		"Lists what Update Manager would install: Mint and Ubuntu packages, and Flatpak apps and runtimes. Not counted in the tray number.",
+		"Lists your system's own pending updates: Flatpak apps and runtimes, and on Linux Mint the packages its Update Manager would install. Not counted in the tray number.",
 	group: "System",
 	open: "Open Update Manager",
+	mintOnly: "Package updates are listed on Linux Mint only. Flatpak updates still show here.",
+	noFlatpak: "Flatpak is not installed, so only package updates are listed.",
 	checking: "Checking system updates",
 	none: "No system updates.",
 	newBuild: "new build",
@@ -312,9 +314,20 @@ export const SYS = {
 } as const;
 
 /** The group's subline: when it was checked, or that a check is under way. */
-export function systemChecked(relative: string | null, checking: boolean): string {
-	if (checking) return "From Update Manager, checking";
-	return relative ? `From Update Manager, checked ${relative}` : "From Update Manager";
+export function systemChecked(relative: string | null, checking: boolean, source = "Update Manager"): string {
+	if (checking) return `From ${source}, checking`;
+	return relative ? `From ${source}, checked ${relative}` : `From ${source}`;
+}
+
+const absentTool = (problem: SystemState["problem"], tool: string) =>
+	problem?.code === "missing" && problem.command.startsWith(tool);
+/** True on a system without Linux Mint's Update Manager: no package list, no button for it, and nothing wrong. */
+export const noMint = (problem: SystemState["problem"]) => absentTool(problem, "mintupdate-cli");
+
+/** A source this system simply does not have is said quietly, not as a fault. Null when the problem is a real one. */
+export function systemAbsent(problem: SystemState["problem"]): string | null {
+	if (noMint(problem)) return SYS.mintOnly;
+	return absentTool(problem, "flatpak") ? SYS.noFlatpak : null;
 }
 
 export function systemProblem(problem: NonNullable<SystemState["problem"]>): string {
@@ -324,4 +337,4 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 }
 
 export const glLine = (version: string) =>
-	`Flatpak apps cannot use the GPU until the NVIDIA ${version} runtime is installed. Update Manager's Flatpak update installs it.`;
+	`Flatpak apps cannot use the GPU until the NVIDIA ${version} runtime is installed. A Flatpak update installs it.`;

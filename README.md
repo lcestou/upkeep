@@ -4,7 +4,7 @@ One window for the apps the package manager misses. It checks every app in a lis
 
 It covers AppImages, binaries from GitHub release archives, single-file binaries, .deb files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
 
-Linux only for now. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
+Linux first: built and tested on Linux Mint, and written to run on any x86_64 Linux desktop (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
 
 ## Run it
 
@@ -128,9 +128,26 @@ Changing the frame or the corners rebuilds the window, which takes a moment.
 
 ### System updates
 
-The app list can also show the computer's own pending updates, the ones Linux Mint's Update Manager handles: Mint and Ubuntu packages (security, kernel and driver updates marked as such) and Flatpak apps and runtimes. They sit in a folded `System` group at the end of the list, with a button that opens Update Manager.
+The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, and on Linux Mint the packages its Update Manager would install (security, kernel and driver updates marked as such). They sit in a folded `System` group at the end of the list. On Linux Mint its header has a button that opens Update Manager; on other systems the group says that package updates are listed on Linux Mint only, and shows the Flatpak ones.
 
 The group is off until you turn on **Show system updates** in Settings, under Extras. Upkeep only reads these lists. It installs none of them, because system packages need root and Update Manager already installs them with its own checks. For the same reason the tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
+
+## Which Linux
+
+Upkeep is developed on Linux Mint 22 (Cinnamon, X11) and has only been run there. Nothing in the engine names that system, and this is what each part needs:
+
+| Part | Needs |
+| --- | --- |
+| AppImage, archive, single-file and source apps, self-updating tools | any x86_64 Linux; `gh` for a GitHub token is optional |
+| `.deb` apps | dpkg, so Debian, Ubuntu, Mint and their relatives |
+| The window | WebKitGTK 4.1 |
+| Window buttons on the desktop's side | Cinnamon or GNOME settings; elsewhere they sit on the right, and Settings can move them |
+| Rounded corners | a compositing window manager |
+| System group, Flatpak rows | Flatpak |
+| System group, package rows | Linux Mint's Update Manager (`mintupdate-cli`) |
+| Apps of kind `legacy` in the list that ships | the first owner's own script; a new list has none |
+
+The list that ships is one person's 32 apps. Start from your own with **Add app**, or empty `~/.config/upkeep/apps.toml`.
 
 ## Develop
 
