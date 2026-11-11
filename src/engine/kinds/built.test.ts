@@ -193,3 +193,26 @@ test("a build step that fails is named, and a hold tree goes back to the running
 	expect(readFileSync(join(srv, "engine/x"), "utf8")).toBe("engine 1");
 	expect(existsSync(join(srv, "engine.upkeep-live"))).toBe(false);
 });
+
+test("every sudo a table writes runs with -n: in active, in since and inside a build step", async () => {
+	const b = box({
+		"sudo -n is-active srv": ok(),
+		"sudo -n since srv": ok("7\n"),
+		"bash -c sudo -n make install": (_argv, opts) => {
+			opts.onStart?.(1);
+			return ok();
+		},
+	});
+	const s = spec({
+		build: ["sudo make install"],
+		check_built: [],
+		serve: [{ ...SERVE, active: ["sudo", "is-active", "srv"], since: ["sudo", "since", "srv"] }],
+	});
+	const r = await prepareBuilt(s, target, ctx(b.run), clock);
+	expect("failed" in r).toBe(false);
+	const all = argvs(b.calls);
+	expect(all).toContain("sudo -n is-active srv");
+	expect(all).toContain("sudo -n since srv");
+	expect(all).toContain("bash -c sudo -n make install");
+	expect(all.filter((a) => a.startsWith("sudo ") && !a.startsWith("sudo -n "))).toEqual([]);
+});

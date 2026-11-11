@@ -6,7 +6,7 @@ import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
 import { argsRunning } from "../running";
 import { clearInflight, type Inflight, startTime, writeInflight } from "../store";
 import { type KindCtx, type Outcome, stageClock, type Target } from "./context";
-import { readInstalled } from "./source";
+import { nonInteractive, readInstalled } from "./source";
 import {
 	expandGlob,
 	fill,
@@ -83,7 +83,7 @@ async function tracked(run: Run, marker: Marker, argv: string[], opts: RunOpts) 
 
 /** Whether the unit runs now: its active argv exits 0. A unit stuck stopping reads as down, which is what a stop wants. */
 export async function isActive(run: Run, svc: Service): Promise<boolean> {
-	return (await run(svc.active, { timeoutMs: 30_000 })).code === 0;
+	return (await run(asRootArgv(svc.active), { timeoutMs: 30_000 })).code === 0;
 }
 
 /** Stops a unit. A stop that fails or runs out counts when the unit is down after it. */
@@ -246,7 +246,7 @@ export async function prepareBuilt(
 		// oxlint-disable-next-line no-await-in-loop -- one unit at a time, in table order
 		if (!(await isActive(ctx.run, s))) continue;
 		// oxlint-disable-next-line no-await-in-loop -- one unit at a time, in table order
-		const since = s.since ? (await ctx.run(s.since, { timeoutMs: 30_000 })).stdout.trim() : "";
+		const since = s.since ? (await ctx.run(asRootArgv(s.since), { timeoutMs: 30_000 })).stdout.trim() : "";
 		active.push({ svc: s, since });
 	}
 	let tree: Tree;
@@ -300,7 +300,7 @@ export async function prepareBuilt(
 	const cwd = dir ?? ctx.paths.home;
 	for (const step of spec.build ?? []) {
 		// oxlint-disable-next-line no-await-in-loop -- build steps run in order
-		const r = await tracked(ctx.run, marker, ["bash", "-c", fill(step, vars)], {
+		const r = await tracked(ctx.run, marker, ["bash", "-c", nonInteractive(fill(step, vars))], {
 			cwd,
 			timeoutMs: LONG,
 			killTree: true,
@@ -316,7 +316,7 @@ export async function prepareBuilt(
 	}
 	for (const step of spec.check_built ?? []) {
 		// oxlint-disable-next-line no-await-in-loop -- checks run in order
-		const r = await tracked(ctx.run, marker, ["bash", "-c", fill(step, vars)], {
+		const r = await tracked(ctx.run, marker, ["bash", "-c", nonInteractive(fill(step, vars))], {
 			cwd,
 			timeoutMs: LONG,
 			killTree: true,
@@ -477,8 +477,11 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		for (const s of stopped) {
 			// oxlint-disable-next-line no-await-in-loop -- in table order
 			if (await isActive(ctx.run, s.svc)) await stopService(ctx.run, s.svc);
-			// oxlint-disable-next-line no-await-in-loop -- in table order
-			before.set(s.svc.name, s.svc.since ? (await ctx.run(s.svc.since, { timeoutMs: 30_000 })).stdout.trim() : "");
+			const since = s.svc.since
+				? // oxlint-disable-next-line no-await-in-loop -- in table order
+					(await ctx.run(asRootArgv(s.svc.since), { timeoutMs: 30_000 })).stdout.trim()
+				: "";
+			before.set(s.svc.name, since);
 		}
 		marker.step("placing");
 		let broken: string | null = null;
@@ -493,7 +496,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 			// oxlint-disable-next-line no-await-in-loop -- in table order
 			const up = (await startService(ctx.run, s.svc)) && (await healthy(s.svc, ctx));
 			// oxlint-disable-next-line no-await-in-loop -- in table order
-			const since = s.svc.since ? (await ctx.run(s.svc.since, { timeoutMs: 30_000 })).stdout.trim() : "";
+			const since = s.svc.since ? (await ctx.run(asRootArgv(s.svc.since), { timeoutMs: 30_000 })).stdout.trim() : "";
 			if (!up || (s.svc.since && since === before.get(s.svc.name))) {
 				ctx.log(`${s.svc.name} did not answer after putting ${from} back.`);
 				broken ??= s.svc.name;
@@ -556,7 +559,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		if (s.svc.since) {
 			// A restart counts only when since moved: the old process still answering health proves nothing.
 			// oxlint-disable-next-line no-await-in-loop -- one unit at a time
-			const now = (await ctx.run(s.svc.since, { timeoutMs: 30_000 })).stdout.trim();
+			const now = (await ctx.run(asRootArgv(s.svc.since), { timeoutMs: 30_000 })).stdout.trim();
 			if (now === s.since) return rollBack(`Would not start after the update. Restored ${from}.`);
 		}
 		// oxlint-disable-next-line no-await-in-loop -- one unit at a time

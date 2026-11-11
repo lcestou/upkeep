@@ -4,6 +4,7 @@ import type { AppSpec } from "../../shared/types";
 import { type BackupMeta, backupDir, readMeta } from "../backup";
 import { expandHome, type Paths } from "../paths";
 import { installAside, type Run } from "../run";
+import { nonInteractive } from "./source";
 
 export type Tree = NonNullable<BackupMeta["tree"]>;
 
@@ -235,7 +236,7 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 
 	for (const step of tree.spec.undo ?? []) {
 		// oxlint-disable-next-line no-await-in-loop -- undo steps run in order
-		const r = await ctx.run(["bash", "-c", fill(step, { point })], {
+		const r = await ctx.run(["bash", "-c", nonInteractive(fill(step, { point }))], {
 			cwd: dir ?? undefined,
 			timeoutMs: LONG,
 			killTree: true,
