@@ -17,6 +17,7 @@ import {
 } from "./context";
 import { checkRelease, destOf, probeInstalled } from "./release";
 
+/** A row with check reads its own version (checkBuilt); a clone row without it probes dest, as tmux and cava do. */
 export function checkSource(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 	return spec.check ? checkBuilt(spec, ctx) : checkRelease(spec, ctx, false);
 }

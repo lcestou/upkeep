@@ -83,6 +83,7 @@ function readCache(file: string): Cached | null {
 
 type RateRead = { hasRate: boolean; remaining: number; resetAt?: string };
 
+/** The budget headers of one GitHub answer, passed on to onRate. Absent headers read as no budget known. */
 function readRate(res: Response, opts: ReleaseOpts): RateRead {
 	const limit = Number(res.headers.get("x-ratelimit-limit"));
 	const remaining = Number(res.headers.get("x-ratelimit-remaining"));

@@ -80,6 +80,7 @@ export function kindOf(name: string): AppKind | "unopened" | null {
 	return null;
 }
 
+/** The kind order of the plan: AppImage, then gnu, musl and other archives, then a bare file, then a deb last. */
 function rank(c: Candidate): number {
 	const n = c.asset.name.toLowerCase();
 	if (c.kind === "appimage") return 0;
@@ -513,6 +514,7 @@ async function searchRepo(name: string, ctx: DiscoverCtx): Promise<Search> {
 	return hit ? { repo: String(hit.full_name) } : { none: true };
 }
 
+/** A suggestion for a file whose source is unknown: the path is kept so the view can prefill a repo. */
 function fileProblem(path: string, home: string, problem: string, source: Suggestion["source"]): Suggestion {
 	const base = path.split("/").at(-1) ?? path;
 	return {

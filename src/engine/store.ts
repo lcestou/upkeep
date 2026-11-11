@@ -369,6 +369,7 @@ export type KnownRow = {
 	checkedAt: string;
 };
 
+/** The cached commit list, only entries with a sha and a title, at most 30; an empty list reads as none. */
 function commitsOf(v: unknown): KnownRow["commits"] {
 	if (!Array.isArray(v)) return undefined;
 	const out = v
@@ -382,6 +383,7 @@ const str = (x: unknown) => (typeof x === "string" ? x : undefined);
 
 const rowsFile = (paths: Paths) => join(paths.cache, "rows.json");
 
+/** Writes the rows file by rename, so a reader never sees half of it. */
 export function saveRows(paths: Paths, rows: Record<string, KnownRow>): void {
 	mkdirSync(paths.cache, { recursive: true });
 	writeAtomic(rowsFile(paths), JSON.stringify(rows));

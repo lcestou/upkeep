@@ -158,6 +158,11 @@ function swapIn(src: string, p: string, rename: (a: string, b: string) => void):
 
 const modeOf = (p: string) => (statSync(p).mode & 0o7777).toString(8);
 
+/**
+ * Puts a built tree back from its point, in a fixed order: hold, keep, placed (after a stop only), git, undo.
+ * Every step reads the filesystem first, so a run cut off anywhere finishes on the next one. It throws on the
+ * first step that fails; the caller decides what that means for the services.
+ */
 async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promise<void> {
 	const meta = readMeta(point);
 	if (!meta?.tree) throw new Error(`No restore point at ${point}.`);

@@ -111,6 +111,7 @@ type Entry = Record<string, unknown>;
 /** One list-of-tables entry: the lifted value, the key it misses, or "pattern" for a bad expect or fail_on. */
 type Lifted<T> = T | { missing: string } | "pattern";
 
+/** One test entry: needs run or url; expect and fail_on must be valid patterns. Unknown keys are dropped. */
 function liftTest(e: Entry): Lifted<Test> {
 	if (!strs(e.run) && !str(e.url)) return { missing: "run or url" };
 	if (!validPattern(e.expect) || !validPattern(e.fail_on)) return "pattern";
@@ -126,6 +127,7 @@ function liftTest(e: Entry): Lifted<Test> {
 	return t;
 }
 
+/** One pause or serve entry: name, active and stop, plus start for serve. Empty lists count as missing. */
 function liftService(e: Entry, needStart: boolean): Lifted<Service> {
 	for (const k of ["name", "active", "stop", ...(needStart ? ["start"] : [])])
 		if (k === "name" ? !str(e[k]) : !strs(e[k])) return { missing: k };

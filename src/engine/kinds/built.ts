@@ -66,6 +66,7 @@ async function tracked(run: Run, marker: Marker, argv: string[], opts: RunOpts) 
 	}
 }
 
+/** Whether the unit runs now: its active argv exits 0. A unit stuck stopping reads as down, which is what a stop wants. */
 export async function isActive(run: Run, svc: Service): Promise<boolean> {
 	return (await run(svc.active, { timeoutMs: 30_000 })).code === 0;
 }

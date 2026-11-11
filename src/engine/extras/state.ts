@@ -12,6 +12,7 @@ export const DEFAULT_EXTRAS: ExtrasSettings = { system: "off" };
 
 const file = (paths: Paths) => join(paths.state, "extras.json");
 
+/** Any value other than "show" is off, so a file from a later version with more modes reads as off, never as on. */
 function clamp(raw: unknown): ExtrasSettings {
 	const r = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
 	return { system: r.system === "show" ? "show" : DEFAULT_EXTRAS.system };
@@ -26,6 +27,7 @@ export function loadExtras(paths: Paths): ExtrasSettings {
 	}
 }
 
+/** Merges patch into what is on disk, clamps it and writes it by rename. Returns what was written. */
 export function updateExtras(paths: Paths, patch: Partial<ExtrasSettings>): ExtrasSettings {
 	const next = clamp({ ...loadExtras(paths), ...patch });
 	mkdirSync(paths.state, { recursive: true });

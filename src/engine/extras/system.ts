@@ -92,6 +92,7 @@ export function glMissing(dpkgGl: string, flatpakRuntimes: string): string | nul
 	return lines(flatpakRuntimes).includes(runtime) ? null : driver;
 }
 
+/** Update Manager's rows, typed from its first column and the source name; kernels and drivers get the note. */
 function aptRows(list: string, sources: Map<string, string>): SystemRow[] {
 	return parseMintList(list).map((u) => {
 		const type: SystemRow["type"] =
@@ -118,6 +119,7 @@ function aptRows(list: string, sources: Map<string, string>): SystemRow[] {
 
 const ok = (r: RunResult | undefined) => r !== undefined && r.code === 0 && !r.timedOut;
 
+/** Exit 127 is a missing command; any other failure or a timeout is failed, with stderr's first line. */
 function problemOf(argv: string[], r: RunResult): SystemCheck["problem"] {
 	const command = argv.join(" ");
 	if (r.code === 127 && !r.timedOut) return { code: "missing", command };
