@@ -90,3 +90,13 @@ test("a busy process is found by text in its command line, never in this process
 	expect(argsRunning("ComfyUI/main.py", proc, 9)).toBe(true);
 	expect(argsRunning("nothing/like/this", proc, 9)).toBe(false);
 });
+
+test("a process the update was started from counts as busy: only this process and its children are skipped", () => {
+	fakeProc(50, 1, "node", ["node", "/h/.local/share/app/lib/node_modules/app/bin.js"]);
+	fakeProc(60, 50, "bash", ["bash", "-c", "upkeep install app"]);
+	fakeProc(9, 60, "bun", ["bun", "upkeep", "install"]);
+	expect(argsRunning("share/app/lib/node_modules", proc, 9)).toBe(true);
+	expect(argsRunning("upkeep install app", proc, 9)).toBe(true);
+	fakeProc(70, 9, "node", ["node", "/h/.local/share/app/lib/node_modules/app/bin.js"]);
+	expect(argsRunning("node_modules/app/bin.js", proc, 50)).toBe(false);
+});

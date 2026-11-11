@@ -129,12 +129,13 @@ export function earliestStart(
 }
 
 /**
- * True when a process other than this one, its ancestors and its descendants has text in its command line.
- * A busy entry's process is matched this way: "ComfyUI/main.py" is an argument of python, not its name.
+ * True when a process other than this one and its descendants has text in its command line. A busy entry's
+ * process is matched this way: a script path is an argument of its interpreter, not the process name. Ancestors
+ * count: an update started from inside the app it replaces must read as busy, or it would swap the tree its own
+ * caller runs from.
  */
 export function argsRunning(text: string, procRoot = "/proc", selfPid = process.pid): boolean {
-	const skip = new Set<number>();
-	for (let p: number | null = selfPid; p !== null && !skip.has(p); p = parentOf(p, procRoot)) skip.add(p);
+	const skip = new Set<number>([selfPid]);
 	let entries: string[];
 	try {
 		entries = readdirSync(procRoot);
