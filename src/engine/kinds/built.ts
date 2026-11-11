@@ -251,10 +251,11 @@ export async function prepareBuilt(
 	for (const p of spec.pause ?? []) {
 		// oxlint-disable-next-line no-await-in-loop -- units are held off in table order
 		if (!(await isActive(ctx.run, p))) continue;
+		// Written before the stop: a kill during or right after it must still find the unit to start again.
+		marker.paused(p.name);
 		// oxlint-disable-next-line no-await-in-loop -- units are held off in table order
 		if (!(await stopService(ctx.run, p))) return fail({ failed: `Could not stop ${p.name}. Nothing was changed.` });
 		paused.push(p);
-		marker.paused(p.name);
 	}
 	const second = await busyNow(spec, ctx, false);
 	if (second) return fail({ failed: `${second} Nothing was changed.` });

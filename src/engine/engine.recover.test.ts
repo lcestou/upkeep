@@ -304,3 +304,15 @@ test("a recovery that fails stops Install and every other app's restore, and lea
 	expect(await engine.restore("srv", "f2918cabb")).toEqual({ ok: true });
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
 });
+
+test("a kill during a pause stop leaves the unit on the marker, and recover starts it again", async () => {
+	const killer = fakeBox("stop api");
+	await expect(installBuilt(spec(), target, kindCtx(killer) as never)).rejects.toThrow("killed");
+	expect(readInflight(t.paths)?.tree).toMatchObject({ step: "pause", paused: ["api"] });
+	// The stop went through before the process died.
+	const box = fakeBox();
+	box.units.api = { running: false, starts: 1 };
+	expect(await createEngine(deps(box)).recover()).toMatchObject([{ key: "srv", ok: true }]);
+	expect(box.units.api?.running).toBe(true);
+	expect(readInflight(t.paths)).toBeNull();
+});

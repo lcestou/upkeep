@@ -135,12 +135,12 @@ test("a refused sudo preflight changes nothing and runs no git", async () => {
 	expect(readInflight(t.paths)).toBeNull();
 });
 
-test("the marker exists with step pause before the first pause stop", async () => {
+test("the marker exists with step pause and names the unit before the first pause stop", async () => {
 	const b = box();
 	const r = await prepareBuilt(spec(), target, ctx(b.run), clock);
 	expect("failed" in r).toBe(false);
 	const atStop = b.markers.find((m) => m.argv === "stop api");
-	expect(atStop?.marker?.tree).toMatchObject({ step: "pause", paused: [] });
+	expect(atStop?.marker?.tree).toMatchObject({ step: "pause", paused: ["api"] });
 	expect(readInflight(t.paths)?.tree).toMatchObject({ step: "build", active: ["srv"], paused: ["api"] });
 });
 
