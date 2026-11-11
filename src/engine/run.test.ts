@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { asRoot, sudoNeedsPassword } from "./run";
+import { asRoot, asRootArgv, sudoNeedsPassword } from "./run";
 import { realRun, script, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -108,3 +108,13 @@ test("a grandchild that keeps the pipe open does not hold the run, and its late 
 	await Bun.sleep(1000);
 	expect(got).toEqual(["done"]);
 }, 15_000);
+
+test("a table's sudo argv always gets -n, once, and onStart sees the child's pid", async () => {
+	expect(asRootArgv(["sudo", "systemctl", "stop", "x"])).toEqual(["sudo", "-n", "systemctl", "stop", "x"]);
+	expect(asRootArgv(["sudo", "-n", "systemctl", "stop", "x"])).toEqual(["sudo", "-n", "systemctl", "stop", "x"]);
+	expect(asRootArgv(["systemctl", "--user", "stop", "x"])).toEqual(["systemctl", "--user", "stop", "x"]);
+	const pids: number[] = [];
+	const s = script(join(t.dir, "pid.sh"), "echo $$");
+	const r = await realRun(t.paths)([s], { onStart: (pid) => pids.push(pid) });
+	expect(pids).toEqual([Number(r.stdout.trim())]);
+});

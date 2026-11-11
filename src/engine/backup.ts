@@ -32,7 +32,7 @@ export type BackupMeta = {
 	};
 };
 
-function backupDir(paths: Paths, key: string): string {
+export function backupDir(paths: Paths, key: string): string {
 	return join(paths.data, "backups", key);
 }
 
@@ -67,7 +67,7 @@ export function takeBackup(
 	return { version, at };
 }
 
-function readMeta(dir: string): BackupMeta | null {
+export function readMeta(dir: string): BackupMeta | null {
 	try {
 		const m = JSON.parse(readFileSync(join(dir, "meta.json"), "utf8")) as BackupMeta;
 		return typeof m.version === "string" && typeof m.at === "string" && Array.isArray(m.files) ? m : null;

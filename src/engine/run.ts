@@ -14,6 +14,8 @@ export type RunOpts = {
 	onLine?: (line: string) => void;
 	/** Without onLine: stderr goes into the same capture file as stdout, in the order written, and stderr comes back empty. */
 	merge?: boolean;
+	/** Called with the child's pid right after it starts, so a marker can record what is running. */
+	onStart?: (pid: number) => void;
 	/** Put in front of the runner's PATH, for the shim directory. */
 	pathPrefix?: string;
 };
@@ -168,6 +170,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			// The child holds its own copies; ours would only keep the files open.
 			for (const fd of fds) closeSync(fd);
 		}
+		opts.onStart?.(proc.pid);
 		let timedOut = false;
 		const timer =
 			opts.timeoutMs === undefined
@@ -244,6 +247,12 @@ async function readLines(
 /** Prefixes sudo -n when the step needs root, so a password prompt can never wait. */
 export function asRoot(argv: string[], sudo: boolean | undefined): string[] {
 	return sudo ? ["sudo", "-n", ...argv] : argv;
+}
+
+/** A table's own argv that begins with sudo gets -n, so a password prompt can never wait. */
+export function asRootArgv(argv: string[]): string[] {
+	if (argv[0] !== "sudo" || argv[1] === "-n") return argv;
+	return ["sudo", "-n", ...argv.slice(1)];
 }
 
 export const SUDO_PASSWORD = "sudo needs a password here. Run the update from a terminal.";
