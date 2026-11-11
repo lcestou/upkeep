@@ -36,6 +36,10 @@ export type Checked = {
 	notes?: string;
 	releaseUrl?: string;
 	publishedAt?: string;
+	/** The newest commits up to the release tag, newest first, at most 30 and never more than ahead. */
+	commits?: { sha: string; title: string }[];
+	/** How many commits the release is ahead of the installed build. */
+	ahead?: number;
 	/** What an install of this app would put in place. */
 	target?: Target;
 };

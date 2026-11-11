@@ -319,6 +319,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			notes: c.notes,
 			releaseUrl: c.releaseUrl,
 			publishedAt: c.publishedAt,
+			commits: c.commits,
+			ahead: c.ahead,
 			running: runningNow(spec),
 			restartToApply: restartFlag(spec),
 			restorePoints: restorable ? listBackups(paths, spec.key) : [],
