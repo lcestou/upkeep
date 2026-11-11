@@ -10,11 +10,14 @@ import { nonInteractive, readInstalled } from "./source";
 import {
 	expandGlob,
 	fill,
+	inScope,
 	notePlaced,
 	pointOf,
 	resolvePath,
 	restoreTree,
 	revertFiles,
+	safePath,
+	scopeOf,
 	takeTree,
 	type Tree,
 	type TreeCtx,
@@ -138,6 +141,32 @@ function applyConfig(spec: AppSpec, ctx: KindCtx, dir: string | null): void {
 	}
 }
 
+/**
+ * The stage, resolved and checked, after checking every place path: a stage may not be the home directory, dir or
+ * a live place target (or above one), and a place may not take a directory above home or dir. Throws the refusal.
+ */
+function placePaths(spec: AppSpec, ctx: KindCtx, dir: string | null, vars: Vars): string | null {
+	const at = (p: string, v: Vars) => resolvePath(fill(p, v), ctx.paths, dir);
+	const tos = (spec.place ?? []).map((pl) => at(pl.to, vars));
+	const stage = spec.stage ? safePath(at(spec.stage, vars), ctx.paths, { dir, not: tos }) : null;
+	const v = { ...vars, ...(stage ? { stage } : {}) };
+	for (const pl of spec.place ?? []) placeFromTo(pl, ctx, dir, stage, v);
+	return stage;
+}
+
+/** One place entry's from (inside the stage or dir) and to, resolved and checked; throws the refusal. */
+function placeFromTo(
+	pl: { from: string; to: string },
+	ctx: KindCtx,
+	dir: string | null,
+	stage: string | null,
+	vars: Vars,
+): { src: string; to: string } {
+	const at = (p: string) => resolvePath(fill(p, vars), ctx.paths, dir);
+	const roots = [stage, dir].filter((r): r is string => r !== null);
+	return { src: safePath(at(pl.from), ctx.paths, { dir, under: roots }), to: safePath(at(pl.to), ctx.paths, { dir }) };
+}
+
 /** What a build that passed every check hands to the install stage. */
 export type Built = {
 	dir: string | null;
@@ -167,8 +196,15 @@ export async function prepareBuilt(
 	const dir = spec.dir ? resolvePath(spec.dir, ctx.paths, null) : null;
 	const shown = spec.dir ?? "";
 	const vars: Vars = { tag: target.tag, version: target.version };
-	const stage = spec.stage ? resolvePath(fill(spec.stage, vars), ctx.paths, dir) : null;
+	// Every path the table removes or replaces is checked before the first command runs.
+	let stage: string | null;
+	try {
+		stage = placePaths(spec, ctx, dir, vars);
+	} catch (err) {
+		return { failed: `${err instanceof Error ? err.message : String(err)}. Nothing was changed.` };
+	}
 	if (stage) vars.stage = stage;
+	const scope = scopeOf(dir, stage);
 	const marker = markerOf(spec, ctx, dir ?? stage ?? "");
 	const paused: Service[] = [];
 	const treeCtx: TreeCtx = {
@@ -274,9 +310,10 @@ export async function prepareBuilt(
 
 	clock.start("build");
 	for (const h of spec.hold ?? []) {
-		const p = resolvePath(h, ctx.paths, dir);
+		let p = "";
 		// The running process keeps its open files under the .upkeep-live name; the build writes a copy.
 		try {
+			p = inScope(resolvePath(h, ctx.paths, dir), ctx.paths, dir, scope);
 			renameSync(p, `${p}.upkeep-live`);
 		} catch (err) {
 			ctx.log(`hold ${h}: ${err instanceof Error ? err.message : String(err)}`);
@@ -445,8 +482,15 @@ async function pruneBuilds(spec: AppSpec, ctx: KindCtx, built: Built): Promise<v
 	const kept = new Set(live);
 	for (const p of listBackups(ctx.paths, spec.key))
 		for (const d of readMeta(pointOf(ctx.paths, spec.key, p.version))?.tree?.needs ?? []) kept.add(d);
+	const scope = scopeOf(built.dir, built.stage);
 	for (const pattern of spec.prune)
 		for (const d of expandGlob(pattern, ctx.paths, built.dir)) {
+			try {
+				inScope(d, ctx.paths, built.dir, scope);
+			} catch (err) {
+				ctx.log(`Not pruning: ${err instanceof Error ? err.message : String(err)}`);
+				continue;
+			}
 			if (kept.has(d) || !lstatSync(d).isDirectory()) continue;
 			ctx.log(`Pruned ${d}`);
 			rmSync(d, { recursive: true, force: true });
@@ -545,8 +589,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	const rename = ctx.rename ?? renameSync;
 	try {
 		for (const [i, pl] of (spec.place ?? []).entries()) {
-			const src = resolvePath(fill(pl.from, built.vars), ctx.paths, built.dir);
-			const to = resolvePath(fill(pl.to, built.vars), ctx.paths, built.dir);
+			const { src, to } = placeFromTo(pl, ctx, built.dir, built.stage, built.vars);
 			if (lstatSync(src).isDirectory()) {
 				// The replaced directory goes into the restore point, so a rollback renames it back.
 				// Noted before the move: a kill between the two renames still leaves the old directory on record.

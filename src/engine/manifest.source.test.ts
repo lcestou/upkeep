@@ -183,3 +183,35 @@ test("a placeholder that does not exist is refused; shell variables and JSON bod
 		test: [{ body: '{"prompt":"{x}"}' }],
 	});
 });
+
+test("keep, hold and prune outside dir, and a stage that is home, dir or a live copy, are refused when read", () => {
+	const inDir = { dir: "~/x" };
+	for (const [field, v] of [
+		["keep", [".."]],
+		["keep", ["."]],
+		["keep", ["~/other"]],
+		["keep", ["sub/../../y"]],
+		["hold", ["/etc"]],
+		["prune", ["~/*"]],
+		["prune", ["~/x"]],
+	] as const)
+		expect(withField({ ...inDir, [field]: v })).toBe(`x: ${field} must stay inside dir`);
+	expect(withField({ stage: "~/.local/share/x.next", keep: ["engine"] })).toBe("x: keep must stay inside dir");
+	for (const stage of ["~", "~/", "/", ".", "~/a/../b", "rel"])
+		expect(withField({ stage })).toBe("x: stage cannot be the home directory or the live copy");
+	for (const stage of [".", "~/x", "~/x/", "~"])
+		expect(withField({ ...inDir, stage })).toBe("x: stage cannot be the home directory or the live copy");
+	expect(withField({ ...inDir, stage: "." })).toBe("x: stage cannot be the home directory or the live copy");
+	expect(withField({ stage: "~/share", place: [{ from: "{stage}", to: "~/share/pkg" }] })).toBe(
+		"x: stage cannot be the home directory or the live copy",
+	);
+	expect(withField({ stage: "~/share/pkg", place: [{ from: "{stage}", to: "~/share/pkg" }] })).toBe(
+		"x: stage cannot be the home directory or the live copy",
+	);
+	expect(
+		withField({ ...inDir, stage: "~/x/build-{tag}", keep: ["build", "~/x/lib"], prune: ["~/x/build-*"] }),
+	).not.toBeTypeOf("string");
+	expect(withField({ stage: "~/share/pkg.next", place: [{ from: "{stage}", to: "~/share/pkg" }] })).not.toBeTypeOf(
+		"string",
+	);
+});

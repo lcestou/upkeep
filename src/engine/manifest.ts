@@ -1,5 +1,5 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { AppKind, AppSpec, Serve, Service, Test } from "../shared/types";
 import type { Paths } from "./paths";
 
@@ -185,6 +185,42 @@ function unknownPlaceholder(table: Record<string, unknown>): { name: string; fie
 	return null;
 }
 
+/** A table path as written, with no trailing slash and no leading ./, so two can be compared before ~ is known. */
+const tidy = (p: string) => p.replace(/\/+$/, "").replace(/^(\.\/)+/, "") || ".";
+const rooted = (p: string) => p.startsWith("/") || p === "~" || p.startsWith("~/");
+const within = (p: string, root: string) => p.startsWith(`${root}/`);
+
+/**
+ * The load-time half of the path checks built.ts and tree.ts repeat where each path is used: keep, hold and prune
+ * stay strictly inside dir (inside the stage's parent for a table with no dir), and the stage is never the home
+ * directory, dir or a live place target, or above one. Compared as written, so dir = "/home/me/x" with keep =
+ * "~/x/y" is refused although it is inside; write both the same way.
+ */
+function unsafeSourcePath(key: string, spec: AppSpec): string | null {
+	const dir = spec.dir === undefined ? null : tidy(spec.dir);
+	const stage = spec.stage === undefined ? null : tidy(spec.stage);
+	const scope = dir ?? (stage && rooted(stage) ? dirname(stage) : null);
+	for (const field of ["keep", "hold", "prune"] as const)
+		for (const raw of spec[field] ?? []) {
+			const p = tidy(raw);
+			const inside = rooted(p) ? scope !== null && within(p, scope) : dir !== null && p !== ".";
+			if (!inside || p.split("/").includes("..")) return `${key}: ${field} must stay inside dir`;
+		}
+	if (stage !== null) {
+		const live = [dir, ...(spec.place ?? []).map((pl) => tidy(pl.to))].filter((x): x is string => x !== null);
+		if (
+			stage === "~" ||
+			stage === "/" ||
+			stage === "." ||
+			stage.split("/").includes("..") ||
+			(!rooted(stage) && dir === null) ||
+			live.some((l) => l === stage || within(l, stage))
+		)
+			return `${key}: stage cannot be the home directory or the live copy`;
+	}
+	return null;
+}
+
 /** The source kind's own fields and rules. Returns the refusal, or null with spec filled in. */
 function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec): string | null {
 	for (const f of SOURCE_STRINGS) {
@@ -285,7 +321,7 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	if (pause) spec.pause = pause as AppSpec["pause"];
 	if (test) spec.test = test as AppSpec["test"];
 	if (serve) spec.serve = serve as AppSpec["serve"];
-	return null;
+	return unsafeSourcePath(key, spec);
 }
 
 /** Reads apps.toml. A bad table is left out and named in errors; the rest still load. */

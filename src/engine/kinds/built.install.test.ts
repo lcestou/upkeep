@@ -279,3 +279,41 @@ test("a kill between the two place renames still puts the old directory back", a
 	expect(o.result).toBe("rolled_back");
 	expect(readFileSync(join(pkg, "index.js"), "utf8")).toBe("pkg 1");
 });
+
+test("a stage of the home directory, dir or a live place target refuses before any command runs", async () => {
+	for (const extra of [
+		{ stage: "~" },
+		{ stage: "~/srv" },
+		{ stage: "/" },
+		{ stage: "~/share", place: [{ from: "{stage}", to: "~/share/pkg" }] },
+		{ stage: "~/st", place: [{ from: "{stage}", to: "~" }] },
+		{ stage: "~/st", place: [{ from: "~/elsewhere", to: "~/share/pkg" }] },
+	]) {
+		const box = fakeBox();
+		// oxlint-disable-next-line no-await-in-loop -- one table at a time
+		const o = await installBuilt(spec(extra), target, ctx(box));
+		expect(o.result).toBe("failed");
+		expect(o.detail).toStartWith("Refused ");
+		expect(o.detail).toEndWith("Nothing was changed.");
+		expect(box.calls).toEqual([]);
+		expect(existsSync(t.paths.home)).toBe(true);
+	}
+});
+
+test("prune never deletes a directory outside dir, whatever its pattern names", async () => {
+	put(join(t.paths.home, "outside/x"), "x");
+	put(join(dir, "build-old/x"), "x");
+	const box = fakeBox();
+	const live = join(dir, "build-live");
+	put(join(live, "x"), "x");
+	const run: KindCtx["run"] = async (argv, opts) => (argv[0] === "needs" ? ok(`${live}\n`) : box.run(argv, opts));
+	const o = await installBuilt(spec({ needs: ["needs"], prune: ["~/*", "~/srv/build-*"] }), target, {
+		...ctx(box),
+		run,
+	});
+	expect(o.result).toBe("done");
+	expect(existsSync(join(t.paths.home, "outside/x"))).toBe(true);
+	expect(existsSync(dir)).toBe(true);
+	expect(existsSync(live)).toBe(true);
+	expect(existsSync(join(dir, "build-old"))).toBe(false);
+});

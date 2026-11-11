@@ -9,9 +9,9 @@ import {
 	statSync,
 	writeFileSync,
 } from "node:fs";
-import { dirname, isAbsolute, join, relative } from "node:path";
+import { dirname, isAbsolute, join, normalize, relative } from "node:path";
 import type { AppSpec } from "../../shared/types";
-import { type BackupMeta, backupDir, readMeta } from "../backup";
+import { type BackupMeta, backupDir, pointName, readMeta } from "../backup";
 import { expandHome, type Paths } from "../paths";
 import { installAside, type Run } from "../run";
 import { nonInteractive } from "./source";
@@ -41,6 +41,32 @@ export function resolvePath(p: string, paths: Paths, dir: string | null): string
 	const e = expandHome(p, paths.home);
 	return isAbsolute(e) || !dir ? e : join(dir, e);
 }
+
+/**
+ * Refuses a table path before anything removes, renames or copies over it. Refused: a path that is not absolute or
+ * has a .. segment; the root, the home directory or any directory above it; dir or any directory above it; anything
+ * in not or above it; and, when under is given, a path outside every root in under (a root itself counts as inside,
+ * so pass it in not too when it must not be touched whole). apps.toml was checked when it was read; this holds when
+ * a placeholder, a glob or an edited table names something else. Returns the path normalized.
+ */
+export function safePath(p: string, paths: Paths, o: { dir: string | null; under?: string[]; not?: string[] }): string {
+	if (!isAbsolute(p) || p.split("/").includes("..")) throw new Error(`Refused ${p}: not a plain absolute path`);
+	const n = normalize(p).replace(/(.)\/+$/, "$1");
+	const covers = (q: string) => q === n || q.startsWith(n === "/" ? "/" : `${n}/`);
+	for (const q of [paths.home, o.dir, ...(o.not ?? [])])
+		if (q && covers(normalize(q))) throw new Error(`Refused ${p}: it holds more than this table may change`);
+	if (o.under && !o.under.some((u) => n === u || n.startsWith(`${u}/`)))
+		throw new Error(`Refused ${p}: it is outside what this table may change`);
+	return n;
+}
+
+/** What keep, hold and prune may touch: dir, or the stage's parent for a table that builds only into a stage. */
+export const scopeOf = (dir: string | null, stage: string | null | undefined): string | null =>
+	dir ?? (stage ? dirname(stage) : null);
+
+/** safePath for keep, hold and prune: strictly inside the scope. With no scope, nothing passes. */
+export const inScope = (p: string, paths: Paths, dir: string | null, scope: string | null): string =>
+	safePath(p, paths, { dir, under: scope ? [scope] : [], not: scope ? [scope] : [] });
 
 const exists = (p: string) => {
 	try {
@@ -72,7 +98,7 @@ const LONG = 30 * 60_000;
 const firstLine = (s: string) => s.trim().split("\n")[0] ?? "";
 
 /** The point a version's restore files live in. */
-export const pointOf = (paths: Paths, key: string, version: string) => join(backupDir(paths, key), version);
+export const pointOf = (paths: Paths, key: string, version: string) => join(backupDir(paths, key), pointName(version));
 
 /**
  * Takes the restore point of a built app before its build: the kept paths (cp -a, so links and modes
@@ -85,14 +111,15 @@ export async function takeTree(
 	o: { version: string; at: string; vars: Vars },
 ): Promise<{ point: string; tree: Tree }> {
 	const dir = spec.dir ? resolvePath(spec.dir, ctx.paths, null) : null;
+	const scope = scopeOf(dir, o.vars.stage);
 	const point = pointOf(ctx.paths, spec.key, o.version);
 	const tmp = `${point}.upkeep-tmp`;
 	rmSync(tmp, { recursive: true, force: true });
 	mkdirSync(tmp, { recursive: true });
 	try {
-		const tree: Tree = { spec, dir, commit: null, kept: [], records: [], needs: [], placed: [] };
+		const tree: Tree = { spec, dir, scope, commit: null, kept: [], records: [], needs: [], placed: [] };
 		for (const pattern of spec.keep ?? []) {
-			for (const p of expandGlob(pattern, ctx.paths, dir)) {
+			for (const p of expandGlob(pattern, ctx.paths, dir).map((x) => inScope(x, ctx.paths, dir, scope))) {
 				const rel = relative(dir ?? "/", p);
 				const into = join(tmp, "keep", rel);
 				mkdirSync(dirname(into), { recursive: true });
@@ -103,6 +130,9 @@ export async function takeTree(
 			}
 		}
 		for (const rec of spec.record ?? []) {
+			// A record is a file in the point itself: never a path, and never a name the point already uses.
+			if (/[/\0]/.test(rec.file) || [".", "..", "", "meta.json", "keep"].includes(rec.file))
+				throw new Error(`record ${rec.file}: not a plain file name`);
 			const argv = rec.run.map((a) => fill(a, { ...o.vars, point: tmp }));
 			// oxlint-disable-next-line no-await-in-loop -- a record may read the one before it
 			const r = await ctx.run(argv, { cwd: dir ?? undefined, timeoutMs: LONG, killTree: true, onStart: ctx.onStart });
@@ -180,9 +210,10 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 	const tree = meta.tree;
 	const rename = ctx.rename ?? renameSync;
 	const dir = tree.dir;
+	const scope = tree.scope ?? dir;
 
 	// hold: the running process's own old tree goes back by rename, never by a copy.
-	const holds = (tree.spec.hold ?? []).map((h) => resolvePath(h, ctx.paths, dir));
+	const holds = (tree.spec.hold ?? []).map((h) => inScope(resolvePath(h, ctx.paths, dir), ctx.paths, dir, scope));
 	for (const [i, p] of holds.entries()) {
 		// A held copy being deleted after a verified update is renamed first; a cut delete leaves only this.
 		rmSync(`${p}.upkeep-gone`, { recursive: true, force: true });
@@ -197,7 +228,7 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 	const heldBack = new Set(withPlaced ? [] : holds.filter((_, i) => existsSync(join(point, `hold-done-${i}`))));
 
 	for (const k of tree.kept) {
-		const p = join(dir ?? "/", k.rel);
+		const p = inScope(join(dir ?? "/", k.rel), ctx.paths, dir, scope);
 		const src = join(point, "keep", k.rel);
 		if (heldBack.has(p)) continue;
 		if (k.link) {
@@ -221,6 +252,7 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 
 	if (withPlaced)
 		for (const pl of tree.placed) {
+			safePath(pl.to, ctx.paths, { dir });
 			const src = join(point, pl.name);
 			// Gone from the point: already put back (only a leftover move-aside may remain), or place never ran.
 			if (!exists(src)) {

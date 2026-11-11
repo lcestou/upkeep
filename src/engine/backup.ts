@@ -23,6 +23,8 @@ export type BackupMeta = {
 		/** The app's table as it was at the run, so recovery and restore never depend on a later edit. */
 		spec: AppSpec;
 		dir: string | null;
+		/** What keep and hold may touch: dir, or the stage's parent for a table with no dir. Older points have none. */
+		scope?: string | null;
 		commit: string | null;
 		kept: { rel: string; link: boolean }[];
 		records: string[];
@@ -36,6 +38,16 @@ export function backupDir(paths: Paths, key: string): string {
 	return join(paths.data, "backups", key);
 }
 
+/**
+ * A version as a restore point's folder name. A version is whatever a check printed, so one with a slash, or one
+ * that is empty, . or .., would name a folder outside the app's backups (and its delete would take them all).
+ */
+export function pointName(version: string): string {
+	if (version === "" || version === "." || version === ".." || version.includes("/") || version.includes("\0"))
+		throw new Error(`${JSON.stringify(version)} cannot name a restore point`);
+	return version;
+}
+
 /** Copies each installed file aside before an install. files are absolute paths that exist. */
 export function takeBackup(
 	paths: Paths,
@@ -44,7 +56,7 @@ export function takeBackup(
 	files: string[],
 	at = new Date().toISOString(),
 ): RestorePoint {
-	const dir = join(backupDir(paths, spec.key), version);
+	const dir = join(backupDir(paths, spec.key), pointName(version));
 	// Built aside and renamed in: a copy that fails (disk full, unreadable file) must not cost the old point.
 	const tmp = `${dir}.upkeep-tmp`;
 	rmSync(tmp, { recursive: true, force: true });

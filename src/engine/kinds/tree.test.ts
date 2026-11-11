@@ -16,7 +16,7 @@ import { dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import type { RunOpts, RunResult } from "../run";
 import { ok, strictRun, tempHome } from "../testkit";
-import { expandGlob, notePlaced, restoreTree, revertFiles, takeTree, type TreeCtx } from "./tree";
+import { expandGlob, notePlaced, restoreTree, revertFiles, safePath, takeTree, type TreeCtx } from "./tree";
 
 let t: ReturnType<typeof tempHome>;
 let app = "";
@@ -272,4 +272,25 @@ test("a put-back stopped just before its last delete leaves a stale .upkeep-fail
 	expectOld();
 	expect(read(join(pkg, "index.js"))).toBe("pkg 1");
 	for (const p of [join(app, ".venv"), join(app, "engine"), pkg]) expect(existsSync(`${p}.upkeep-failed`)).toBe(false);
+});
+
+test("keep or hold outside dir, a record path and a version that names a folder are refused before anything is copied", async () => {
+	const { run, calls } = fakeBox();
+	const o = { at: "x", vars: {} };
+	await expect(takeTree(spec({ keep: [".."] }), ctx(run), { ...o, version: "1.0" })).rejects.toThrow("Refused");
+	await expect(takeTree(spec({ keep: ["~/bin"] }), ctx(run), { ...o, version: "1.0" })).rejects.toThrow("Refused");
+	await expect(takeTree(spec({ keep: ["."] }), ctx(run), { ...o, version: "1.0" })).rejects.toThrow("Refused");
+	expect(calls.filter((c) => c.argv[0] === "cp")).toEqual([]);
+	await expect(
+		takeTree(spec({ keep: [], record: [{ file: "../../x", run: ["v"] }] }), ctx(run), { ...o, version: "1.0" }),
+	).rejects.toThrow("not a plain file name");
+	expect(existsSync(join(t.paths.home, "x"))).toBe(false);
+	for (const version of ["..", ".", "", "a/b"])
+		// oxlint-disable-next-line no-await-in-loop -- one version at a time
+		await expect(takeTree(spec(), ctx(run), { ...o, version })).rejects.toThrow("cannot name a restore point");
+	expect(readdirSync(join(t.paths.data, "backups/app"))).toEqual([]);
+	expect(() => safePath(t.paths.home, t.paths, { dir: null })).toThrow("Refused");
+	expect(() => safePath(dirname(t.paths.home), t.paths, { dir: null })).toThrow("Refused");
+	expect(() => safePath(`${app}/../x`, t.paths, { dir: null })).toThrow("Refused");
+	expect(safePath(join(app, "engine"), t.paths, { dir: app, under: [app] })).toBe(join(app, "engine"));
 });
