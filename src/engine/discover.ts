@@ -627,16 +627,19 @@ export async function suggest(
 const SKIP_NAME = /\.backup-|\.upkeep-new$|\.tmp$|\.(bak|backup|old|orig|save|prev)([-._]|$)|~$/i;
 const MAX_SCAN = 40;
 
-/** The catalogue's table for what was typed: an app's key or name, or its repo or github.com link, in any case. */
+/** The GitHub repo a table names, in its repo field or as a github: latest source; empty when it names none. */
+const repoOf = (c: AppSpec) => (c.repo ?? (c.latest?.startsWith("github:") ? c.latest.slice(7) : "")).toLowerCase();
+
+/**
+ * The catalogue's table for what was typed: an app's key or name, or its repo or github.com link, in any case. A
+ * table that names its repo only in latest ("github:owner/name") is found by that repo too.
+ */
 function inCatalogue(input: string, catalogue: AppSpec[]): AppSpec | undefined {
 	const text = input.trim().toLowerCase();
 	const read = readInput(input);
 	const repo = read && "repo" in read ? read.repo.toLowerCase() : null;
 	return catalogue.find(
-		(c) =>
-			c.key.toLowerCase() === text ||
-			c.name.toLowerCase() === text ||
-			(repo !== null && c.repo?.toLowerCase() === repo),
+		(c) => c.key.toLowerCase() === text || c.name.toLowerCase() === text || (repo !== null && repoOf(c) === repo),
 	);
 }
 
