@@ -234,12 +234,65 @@ keep = ["build"]
 build = ["cmake --build build -j 6"]
 test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"], timeout_s = 30 }]
 
-# Checked by the old script: it compares the checkout's HEAD commit date with the release date and shows a commit hash, not a version.
 [apps.llama]
 name = "llama.cpp"
-kind = "manual"
-legacy_name = "llama.cpp"
-run = "/llama in a Claude session"
+kind = "source"
+repo = "ggml-org/llama.cpp"
+dir = "~/llama.cpp"
+move = "ff"
+check = ["sh", "-c", '''"$HOME/.local/bin/llama-server" --version 2>&1 | grep -oP 'commit \K[0-9a-f]+' ''']
+commit = ["sh", "-c", '''"$HOME/.local/bin/llama-server" --version 2>&1 | grep -oP 'commit \K[0-9a-f]+' ''']
+stage = "~/llama.cpp/build-upkeep-{tag}"
+needs = ["sh", "-c", '''ldd "$HOME/.local/bin/llama-server" | awk '/libggml-cuda/ {print $3}' | xargs dirname | xargs dirname''']
+prune = ["~/llama.cpp/build-86real-new*", "~/llama.cpp/build-upkeep-*"]
+build = [
+	'''arch=$(grep '^CMAKE_CUDA_ARCHITECTURES:' "{needs}/CMakeCache.txt" | cut -d= -f2); test -n "$arch" || { echo "no CUDA arch in {needs}/CMakeCache.txt"; exit 1; }; cmake -S . -B {stage} -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="$arch" -DGGML_CUDA_F16=ON -DGGML_CUDA_FA_ALL_QUANTS=ON -DGGML_NATIVE=ON -DGGML_CUDA_NO_VMM=ON''',
+	"cmake --build {stage} -j 6 --target llama-server",
+]
+check_built = ['''{stage}/bin/llama-server --version 2>&1 | grep -q '^version:' ''']
+place = [{ from = "{stage}/bin/llama-server", to = "~/.local/bin/llama-server" }]
+busy = [
+	{ process = "ComfyUI/main.py", say = "ComfyUI is running a job." },
+	{ run = ["sh", "-c", '''grep -lqsE '"status": *"(queued|processing)"' "$HOME"/.local/share/sd-api/queue/*.json'''], say = "The image queue has a job waiting." },
+]
+pause = [
+	{ name = "sd-api.service", active = ["systemctl", "--user", "is-active", "--quiet", "sd-api.service"], stop = ["systemctl", "--user", "stop", "sd-api.service"], start = ["systemctl", "--user", "start", "sd-api.service"] },
+	{ name = "strata-watchdog.timer", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.timer"], stop = ["systemctl", "--user", "stop", "strata-watchdog.timer"], start = ["systemctl", "--user", "start", "strata-watchdog.timer"] },
+	{ name = "strata-watchdog.service", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.service"], stop = ["systemctl", "--user", "stop", "strata-watchdog.service"] },
+]
+note = "Updating restarts the llama-server services that are running. To judge whether these commits matter for this setup, run /llama in a Claude session."
+
+[[apps.llama.serve]]
+name = "llama-server"
+active = ["systemctl", "is-active", "--quiet", "llama-server"]
+stop = ["sudo", "systemctl", "stop", "llama-server"]
+start = ["sudo", "systemctl", "start", "llama-server"]
+since = ["systemctl", "show", "-p", "ActiveEnterTimestampMonotonic", "--value", "llama-server"]
+health = "http://127.0.0.1:8080/health"
+wait_s = 120
+
+[[apps.llama.serve.test]]
+name = "a short generation"
+url = "http://127.0.0.1:8080/completion"
+body = '{"model":"lutechi-llm","prompt":"Write a Python function that reverses a linked list.","n_predict":200,"cache_prompt":false}'
+expect = '"predicted_n"'
+timeout_s = 120
+
+[[apps.llama.serve]]
+name = "strata-embed"
+active = ["systemctl", "is-active", "--quiet", "strata-embed"]
+stop = ["sudo", "systemctl", "stop", "strata-embed"]
+start = ["sudo", "systemctl", "start", "strata-embed"]
+since = ["systemctl", "show", "-p", "ActiveEnterTimestampMonotonic", "--value", "strata-embed"]
+health = "http://127.0.0.1:8181/health"
+wait_s = 60
+
+[[apps.llama.serve.test]]
+name = "an embedding"
+url = "http://127.0.0.1:8181/v1/embeddings"
+body = '{"model":"bge-m3","input":"hi"}'
+expect = '"embedding"'
+timeout_s = 30
 
 # Checked by the old script: it fetches tags and calls the checkout current when it already contains the release's tag, which a version compare cannot see.
 [apps.strata]
