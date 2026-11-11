@@ -873,3 +873,23 @@ test("a native check of an old-script app that fails is a problem with a sentenc
 	expect(row("strata")).toMatchObject({ status: "problem" });
 	expect(slow).toBeDefined();
 }, 30_000);
+
+test("the rows cache carries a built row's commits and ahead, at most 30", async () => {
+	const d = await deps();
+	const first = createEngine(d);
+	await first.check();
+	const file = join(t.paths.cache, "rows.json");
+	const rows = JSON.parse(readFileSync(file, "utf8"));
+	rows.fd = {
+		...rows.fd,
+		ahead: 569,
+		commits: Array.from({ length: 40 }, (_, i) => ({ sha: `s${i}`, title: `t${i}` })),
+	};
+	writeFileSync(file, JSON.stringify(rows));
+	const row = createEngine(d)
+		.snapshot()
+		.apps.find((a) => a.key === "fd");
+	expect(row?.ahead).toBe(569);
+	expect(row?.commits).toHaveLength(30);
+	expect(row?.commits?.[0]).toEqual({ sha: "s0", title: "t0" });
+});

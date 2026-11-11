@@ -135,6 +135,54 @@ function liftService(e: Entry, needStart: boolean): Lifted<Service> {
 	return s;
 }
 
+/** The placeholders steps and paths may use. Anything else in braces is a typo, never passed to a shell. */
+const PLACEHOLDERS = new Set(["stage", "tag", "version", "needs", "point"]);
+const PLACEHOLDER_FIELDS = [
+	"stage",
+	"build",
+	"check_built",
+	"undo",
+	"prune",
+	"keep",
+	"hold",
+	"record",
+	"place",
+	"test",
+	"serve",
+];
+
+/** The first {name} that is not a placeholder, in the fields placeholders are filled in. ${var} is shell's, not ours. */
+function unknownPlaceholder(table: Record<string, unknown>): { name: string; field: string } | null {
+	const scan = (v: unknown, field: string): { name: string; field: string } | null => {
+		if (typeof v === "string") {
+			for (const m of v.matchAll(/(?<!\$)\{([a-z_]+)\}/g))
+				if (!PLACEHOLDERS.has(m[1] ?? "")) return { name: m[1] ?? "", field };
+			return null;
+		}
+		if (Array.isArray(v)) {
+			for (const x of v) {
+				const hit = scan(x, field);
+				if (hit) return hit;
+			}
+			return null;
+		}
+		if (isRecord(v)) {
+			// A request body is JSON sent as it is, not a step.
+			for (const [k, x] of Object.entries(v)) {
+				if (k === "body") continue;
+				const hit = scan(x, field);
+				if (hit) return hit;
+			}
+		}
+		return null;
+	};
+	for (const f of PLACEHOLDER_FIELDS) {
+		const hit = scan(table[f], f);
+		if (hit) return hit;
+	}
+	return null;
+}
+
 /** The source kind's own fields and rules. Returns the refusal, or null with spec filled in. */
 function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec): string | null {
 	for (const f of SOURCE_STRINGS) {
@@ -226,6 +274,8 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 		return sv;
 	});
 	for (const r of [record, config, place, busy, pause, test, serve]) if (typeof r === "string") return r;
+	const typo = unknownPlaceholder(table);
+	if (typo) return `${key}: unknown placeholder {${typo.name}} in ${typo.field}`;
 	if (record) spec.record = record as AppSpec["record"];
 	if (config) spec.config = config as AppSpec["config"];
 	if (place) spec.place = place as AppSpec["place"];

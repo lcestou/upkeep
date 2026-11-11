@@ -363,8 +363,20 @@ export type KnownRow = {
 	notes?: string;
 	releaseUrl?: string;
 	publishedAt?: string;
+	/** A built row's newest commits (at most 30) and how far the release is ahead, so the pane has them at start. */
+	commits?: { sha: string; title: string }[];
+	ahead?: number;
 	checkedAt: string;
 };
+
+function commitsOf(v: unknown): KnownRow["commits"] {
+	if (!Array.isArray(v)) return undefined;
+	const out = v
+		.filter((c): c is { sha: string; title: string } => typeof c?.sha === "string" && typeof c?.title === "string")
+		.slice(0, 30)
+		.map((c) => ({ sha: c.sha, title: c.title }));
+	return out.length > 0 ? out : undefined;
+}
 
 const str = (x: unknown) => (typeof x === "string" ? x : undefined);
 
@@ -395,6 +407,9 @@ export function loadRows(paths: Paths): Record<string, KnownRow> {
 				publishedAt: str(r.publishedAt),
 				checkedAt: str(r.checkedAt) ?? "",
 			};
+			const commits = commitsOf(r.commits);
+			if (commits) out[key].commits = commits;
+			if (typeof r.ahead === "number") out[key].ahead = r.ahead;
 		}
 		return out;
 	} catch {

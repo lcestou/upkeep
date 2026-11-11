@@ -163,3 +163,23 @@ test("a clone-shaped source table still lifts as before, and the fields are igno
 		dest: "~/f",
 	});
 });
+
+test("a placeholder that does not exist is refused; shell variables and JSON bodies are left alone", () => {
+	expect(withField({ build: ["make -C {stamp}"] })).toBe("x: unknown placeholder {stamp} in build");
+	expect(withField({ dir: "~/x", place: [{ from: "{stgae}/bin/s", to: "~/s" }] })).toBe(
+		"x: unknown placeholder {stgae} in place",
+	);
+	expect(
+		withField({
+			dir: "~/x",
+			stage: "~/x/b-{tag}",
+			build: ["a=${arch} cmake -B {stage} {version} {needs}"],
+			undo: ["cp {point}/f ."],
+		}),
+	).toMatchObject({
+		build: ["a=${arch} cmake -B {stage} {version} {needs}"],
+	});
+	expect(withField({ test: [{ url: "http://h/", body: '{"prompt":"{x}"}' }] })).toMatchObject({
+		test: [{ body: '{"prompt":"{x}"}' }],
+	});
+});
