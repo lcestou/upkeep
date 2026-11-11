@@ -40,7 +40,8 @@ let builtFrame = "";
 const sizeFile = join(deps.paths.state, "window.json");
 let sizeTimer: ReturnType<typeof setTimeout> | null = null;
 
-function openWindow(): void {
+/** `tab` opens the view on that tab: a window rebuilt from Settings comes back on Settings. */
+function openWindow(tab = ""): void {
 	if (win) {
 		win.show();
 		win.activate();
@@ -48,9 +49,10 @@ function openWindow(): void {
 	}
 	const now = chrome();
 	builtFrame = frameKey(now);
+	rpc = makeRpc();
 	win = new BrowserWindow({
 		title: "Upkeep",
-		url: "views://mainview/index.html",
+		url: `views://mainview/index.html${tab ? `#${tab}` : ""}`,
 		rpc,
 		// "hiddenInset" drops the desktop's title bar and keeps the resize edges; the view then draws the bar itself.
 		titleBarStyle: now.own ? "hiddenInset" : "default",
@@ -126,7 +128,7 @@ function followFrameSetting(): void {
 		} finally {
 			rebuilding = false;
 		}
-		openWindow();
+		openWindow("settings");
 	}
 	tellChrome();
 }
@@ -174,15 +176,19 @@ function applyLoginSetting(): void {
 	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, launcher, appIcon);
 }
 
-const rpc = defineUpkeepRpc(engine, deps, {
-	onSettings: () => {
-		applyLoginSetting();
-		followFrameSetting();
-	},
-	chrome,
-	windowOp,
-	extras,
-});
+// One channel per window: a channel stays tied to the webview it was first given to, so a rebuilt window with the old one never hears from this process and stays blank.
+function makeRpc() {
+	return defineUpkeepRpc(engine, deps, {
+		onSettings: () => {
+			applyLoginSetting();
+			followFrameSetting();
+		},
+		chrome,
+		windowOp,
+		extras,
+	});
+}
+let rpc = makeRpc();
 
 const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", template: false, width: 22, height: 22 });
 let shownIcon = "";

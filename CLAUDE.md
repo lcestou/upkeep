@@ -8,6 +8,7 @@ A desktop updater for the apps the distro's package manager does not cover. Elec
 - **The engine imports nothing from `electrobun` and nothing from `src/mainview`.** It is plain TypeScript that the window and the command line both use. `src/shared/types.ts` is the only thing all three share.
 - **Tests run in temp directories.** Every path the engine writes comes from `paths(env)`, and every process it starts goes through the runner in `deps`. A test that needs a real binary writes a script into its own temp dir. No test may call `sudo`, `dpkg`, `git clone` or the old updater.
 - **This machine is the owner's daily driver.** Never run `upkeep install` or the old `lutechi-updater <app>` as a test. `check` is read-only. The old script at `~/.local/bin/lutechi-updater` is the engine for `legacy` apps and is never edited from this repo.
+- **A change to how the window is built is checked in the real window.** `bash scripts/real-frame.sh` (after `bunx vite build`, with no Upkeep running) switches the frame and the corners and fails when a rebuilt window comes up blank. The browser specs cannot see the main process.
 - **Copy is decided, not improvised.** Every string a person reads has a `data-testid` hook and the browser specs assert on it. Change the spec with the string.
 - **Svelte 5 runes only.** No stores, no `$:`.
 - **Git:** a feature branch and a pull request, never a commit to `main`. No AI attribution lines.

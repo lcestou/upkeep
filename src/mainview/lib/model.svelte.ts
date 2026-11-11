@@ -93,7 +93,8 @@ export class Model {
 	pinned = $state(false);
 	/** True from a click on Install or Retry until the engine answers, so a second click cannot start a second run. */
 	starting = $state(false);
-	view = $state<View>("updates");
+	// A window rebuilt for a frame or corner change is opened with #settings, so the owner stays where he was.
+	view = $state<View>(globalThis.location?.hash === "#settings" ? "settings" : "updates");
 	log = $state<LogLine[]>([]);
 	history = $state<HistoryRow[]>([]);
 	loaded = $state(false);
