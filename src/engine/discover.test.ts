@@ -204,6 +204,8 @@ test("a name, key or repo in the catalogue answers with its tested table, sure, 
 	expect(claude.suggestions[0]).toMatchObject({ spec: CATALOGUE[1], source: "catalogue", latest: null });
 	expect(fetched.filter((u) => u.includes("anthropic"))).toEqual([]);
 	expect(await suggest("not-in-it", c)).toEqual({ suggestions: [], problem: BAD_INPUT });
+	const listed = { ...ctx([CATALOGUE[1] as AppSpec]).c, catalogue: CATALOGUE };
+	expect((await suggest("claude", listed)).suggestions[0]?.problem).toBe("Claude Code is already in the list.");
 });
 
 test("the asset filter keeps what runs on Linux x86_64, best first, on three real releases", () => {

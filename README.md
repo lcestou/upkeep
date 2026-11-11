@@ -196,9 +196,9 @@ Upkeep is developed on Linux Mint 22 (Cinnamon, X11) and has only been run there
 | Rounded corners | a compositing window manager |
 | System group, Flatpak rows | Flatpak |
 | System group, package rows | Linux Mint's Update Manager (`mintupdate-cli`) |
-| Apps of kind `legacy` in the list that ships | the first owner's own script; a new list has none |
+| Apps of kind `legacy` | the first owner's own script; nothing in the catalogue or a new list uses it |
 
-The list that ships is one person's 32 apps. Start from your own with **Add app**, or empty `~/.config/upkeep/apps.toml`.
+A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its GitHub repo or a file.
 
 ## Develop
 

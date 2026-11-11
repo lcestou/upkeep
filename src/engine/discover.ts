@@ -650,8 +650,11 @@ async function fromCatalogue(
 	asset?: string,
 ): Promise<{ suggestions: Suggestion[]; problem?: string }> {
 	const sure = { source: "catalogue" as const, confidence: "sure" as const, why: CATALOGUE_WHY };
-	if (!entry.repo || !RELEASE_KINDS.has(entry.kind))
-		return { suggestions: [{ spec: entry, installed: null, latest: null, asset: null, alternatives: [], ...sure }] };
+	if (!entry.repo || !RELEASE_KINDS.has(entry.kind)) {
+		const s: Suggestion = { spec: entry, installed: null, latest: null, asset: null, alternatives: [], ...sure };
+		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = `${entry.name} is already in the list.`;
+		return { suggestions: [s] };
+	}
 	const pattern = asset ?? entry.asset;
 	const r = await fromRepo(entry.repo, ctx, { asset: pattern });
 	if ("problem" in r) return { suggestions: [], problem: r.problem };

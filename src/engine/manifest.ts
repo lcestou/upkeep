@@ -373,8 +373,12 @@ export function loadManifest(file: string): { apps: AppSpec[]; errors: string[] 
 		return { apps: [], errors: [`${file}: ${err instanceof Error ? err.message : String(err)}`] };
 	}
 	const tables = isRecord(doc) ? doc.apps : undefined;
-	// A list with no apps yet is a list, not a fault: a new person starts with one.
-	if (tables === undefined) return { apps: [], errors: [] };
+	// A file with nothing in it but comments is a list with no apps yet, as a new person starts with. A file with
+	// other tables and no [apps] is a typo such as [app.fd], and must not read as a wiped list.
+	if (tables === undefined)
+		return isRecord(doc) && Object.keys(doc).length === 0
+			? { apps: [], errors: [] }
+			: { apps: [], errors: [`${file}: no [apps.<key>] tables`] };
 	if (!isRecord(tables)) return { apps: [], errors: [`${file}: apps is not a table of [apps.<key>] tables`] };
 	const apps: AppSpec[] = [];
 	const errors: string[] = [];

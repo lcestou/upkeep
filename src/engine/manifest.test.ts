@@ -26,8 +26,11 @@ test("every catalogue asset pattern compiles, and rtk and rustdesk are anchored"
 	expect(apps.find((a) => a.key === "lrcget")?.meta_path).toBe("usr/share/metainfo/lrcget.metainfo.xml");
 });
 
-test("the list a new person starts with is empty, and loads with no error", () => {
+test("the list a new person starts with is empty, and loads with no error; a mistyped header is an error", () => {
 	expect(loadManifest(SEED)).toEqual({ apps: [], errors: [] });
+	const typo = join(dir, "typo.toml");
+	writeFileSync(typo, '[app.fd]\nname = "fd"\n');
+	expect(loadManifest(typo)).toEqual({ apps: [], errors: [`${typo}: no [apps.<key>] tables`] });
 });
 
 test("the source-build examples load with no errors", () => {

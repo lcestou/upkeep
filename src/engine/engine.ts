@@ -1052,8 +1052,10 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	/** Appends one app's table to apps.toml, or says why not. The written table must read back as the same spec. */
 	function writeApp(file: string, s: AppSpec): string | null {
-		// A catalogue table may be any kind it was tested as; anything else the window writes is one it can work out.
-		const tested = catalogue.apps.some((c) => c.key === s.key && c.kind === s.kind);
+		// A kind the window cannot work out (a command, a source build) is written only as the catalogue tested it: the
+		// card may rename it or move its dest, but its steps, check and update are the catalogue's, never a caller's.
+		const entry = catalogue.apps.find((c) => c.key === s.key);
+		const tested = entry !== undefined && Bun.deepEquals({ ...entry, name: s.name, dest: s.dest }, s);
 		if (!ADDABLE.has(s.kind) && !tested) return `${s.key}: kind is not one of appimage, archive, file, deb`;
 		const { key } = s;
 		const relifted = relift(s);
