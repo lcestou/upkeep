@@ -71,6 +71,8 @@ export function listBackups(paths: Paths, key: string): RestorePoint[] {
 	if (!existsSync(root)) return [];
 	const points: RestorePoint[] = [];
 	for (const name of readdirSync(root)) {
+		// A point still being built when the process died: takeBackup clears it on its next run.
+		if (name.endsWith(".upkeep-tmp")) continue;
 		const meta = readMeta(join(root, name));
 		if (meta) points.push({ version: meta.version, at: meta.at });
 	}

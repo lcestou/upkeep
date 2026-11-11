@@ -223,7 +223,10 @@ export function createEngine(deps: EngineDeps): Engine {
 				? `An update was interrupted. Restore ${leftover.backupVersion} from this row.`
 				: `An update was interrupted. Check that ${name} still starts.`,
 		);
-		rmSync(`${leftover.dest}.upkeep-new`, { force: true });
+		// One temp per installed file: an archive with several programs writes one beside each.
+		const spec = specs.find((s) => s.key === leftover.key);
+		const files = spec ? installedFiles(spec, leftover.dest) : [leftover.dest];
+		for (const f of new Set([leftover.dest, ...files])) rmSync(`${f}.upkeep-new`, { force: true });
 		clearInflight(paths);
 		releaseLock(paths);
 	}
@@ -923,6 +926,13 @@ export function createEngine(deps: EngineDeps): Engine {
 			apps.delete(key);
 			checked.delete(key);
 			targets.delete(key);
+			// What the owner chose for this app goes with it: an app added again under the same key starts from the defaults, never as auto.
+			updateState(paths, (s) => {
+				delete s.skip[key];
+				delete s.hold[key];
+				delete s.auto[key];
+				delete s.restart[key];
+			});
 			emit({ type: "removed", key });
 			return { ok: true };
 		},

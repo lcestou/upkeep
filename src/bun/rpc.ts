@@ -36,13 +36,16 @@ export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, hooks: WindowH
 			requests: {
 				snapshot: () => engine.snapshot(),
 				check: ({ keys }) => {
+					// The engine ignores a check while it is checking or installing. Say so, so the view can.
+					const phase = engine.snapshot().run.phase;
 					void engine.check(keys);
-					return { started: true };
+					return { started: phase !== "installing" && phase !== "checking" };
 				},
 				install: ({ keys }) => engine.install(keys),
 				stopAfterCurrent: () => {
 					engine.stopAfterCurrent();
-					return { stopping: true };
+					// Only a run in progress can be stopped; outside one the engine does nothing.
+					return { stopping: engine.snapshot().run.stopping };
 				},
 				dismissSummary: () => {
 					engine.dismissSummary();

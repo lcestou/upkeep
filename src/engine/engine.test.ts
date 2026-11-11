@@ -5,7 +5,7 @@ import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD } from "./engine";
 import type { FetchLike } from "./github";
 import { loadManifest } from "./manifest";
-import { claimLock, readInflight, readRunLog, writeInflight } from "./store";
+import { claimLock, loadState, readInflight, readRunLog, writeInflight } from "./store";
 import { realRun, recordingRun, script, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -654,7 +654,13 @@ test("removing an app cuts its table, drops its row live, and keeps its files an
 	const events: EngineEvent[] = [];
 	engine.subscribe((e) => events.push(e));
 	expect(await engine.removeApp("nope")).toEqual({ ok: false, detail: "No app nope in the list." });
+	// What the owner chose for an app goes with it, so the same key added again never starts as auto.
+	engine.setAuto("bat", true);
+	engine.setHold("bat", true);
+	expect(loadState(t.paths).auto.bat).toBe(true);
 	expect(await engine.removeApp("bat")).toEqual({ ok: true });
+	const left = loadState(t.paths);
+	expect([left.auto, left.hold, left.skip]).toEqual([{}, {}, {}]);
 	expect(events).toContainEqual({ type: "removed", key: "bat" });
 	expect(engine.snapshot().apps.some((a) => a.key === "bat")).toBe(false);
 	const file = join(t.paths.config, "apps.toml");
