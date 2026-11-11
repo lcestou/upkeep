@@ -234,3 +234,13 @@ test("an app's name finds its tested table in the catalogue, and it adds like an
 	await expect(page.getByTestId("added-note")).toHaveText("Added Glow.");
 	await expect(page.getByTestId("tick-glow")).toBeChecked();
 });
+
+test("a catalogue app that updates itself shows the command it runs before it is added", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-input").fill("gh");
+	await page.keyboard.press("Enter");
+	const card = page.getByTestId("suggestion-gh");
+	await expect(card.getByTestId("sug-runs")).toHaveText("Updates by running gh upgrade");
+	await expect(page.getByTestId("suggestion-glow")).toHaveCount(0);
+});

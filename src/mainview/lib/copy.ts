@@ -274,6 +274,7 @@ export const ADD = {
 	label: "App name, GitHub repo, link or file",
 	placeholder: "fd, or owner/repo",
 	find: "Find",
+	runs: "Updates by running",
 	finding: "Finding",
 	hint: "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window.",
 	pick: "Choose a file",

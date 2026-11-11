@@ -187,6 +187,28 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 	if (/\.AppImage$/i.test(text) && (text.startsWith("/") || text.startsWith("~/") || text.startsWith("file://")))
 		return { suggestions: [fromFile(text.replace(/^file:\/\//, ""))] };
 	if (/^(glow|charmbracelet\/glow)$/i.test(text)) return { suggestions: [glow()] };
+	if (/^gh$/i.test(text))
+		return {
+			suggestions: [
+				{
+					spec: {
+						key: "gh",
+						name: "GitHub CLI",
+						kind: "command",
+						check: ["gh", "--version"],
+						latest: "github:cli/cli",
+						update: ["gh", "upgrade"],
+					},
+					installed: null,
+					latest: null,
+					asset: null,
+					alternatives: [],
+					source: "catalogue",
+					confidence: "sure",
+					why: "From Upkeep's catalogue of tested apps.",
+				} satisfies Suggestion,
+			],
+		};
 	return {
 		suggestions: [],
 		problem: "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.",

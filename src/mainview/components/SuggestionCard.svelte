@@ -30,6 +30,8 @@
 	const guess = $derived(s.confidence === "guess");
 	const options = $derived(s.asset ? [s.asset.name, ...s.alternatives] : s.alternatives);
 	const key = $derived(s.spec.key);
+	// A table with commands of its own (a self-updating tool, a source build) says what it will run before it is added.
+	const runs = $derived(s.spec.update?.join(" ") ?? s.spec.build?.join(" && ") ?? null);
 
 	/** Hands the engine the spec with the owner's edits; an emptied name or dest falls back to the suggested one. */
 	function add() {
@@ -88,6 +90,10 @@
 					><path d="M5.75 6a2.25 2.25 0 1 1 3.4 1.95c-.7.4-1.15.9-1.15 1.7v.35M8 12.25v.01" /></svg
 				>{/if}{s.why}
 		</p>
+	{/if}
+
+	{#if runs}
+		<p class="runs" data-testid="sug-runs">{ADD.runs} <code>{runs}</code></p>
 	{/if}
 
 	{#if s.problem || failure}
@@ -209,6 +215,16 @@
 		stroke-width: 1.4;
 		stroke-linecap: round;
 		stroke-linejoin: round;
+	}
+	.runs {
+		margin: 0;
+		font-size: var(--fs-12);
+		color: var(--text-2);
+		overflow-wrap: anywhere;
+	}
+	.runs code {
+		font-family: var(--mono);
+		color: var(--text);
 	}
 	.why {
 		margin: 0;
