@@ -441,7 +441,9 @@ export function cutTable(text: string, key: string): string | null {
 	const start = lines.findIndex((l) => l.trim() === `[apps.${key}]`);
 	if (start < 0) return null;
 	let end = start + 1;
-	while (end < lines.length && !(lines[end] ?? "").startsWith("[")) end++;
+	// The app's own [[apps.<key>.serve]] and other sub-tables go with it; the next app's table ends the cut.
+	const own = (l: string) => l.startsWith(`[apps.${key}.`) || l.startsWith(`[[apps.${key}.`);
+	while (end < lines.length && (!(lines[end] ?? "").startsWith("[") || own(lines[end] ?? ""))) end++;
 	if (end < lines.length) while (end - 1 > start && (lines[end - 1] ?? "").startsWith("#")) end--;
 	const before = lines.slice(0, start);
 	const after = lines.slice(end);

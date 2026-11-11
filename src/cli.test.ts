@@ -145,6 +145,27 @@ legacy_name = "Cursor"
 	expect(await main(["check"], d, () => {})).toBe(0);
 });
 
+test("recover with another Upkeep's run holding the lock says so and exits 1, leaving the marker", async () => {
+	const d = deps();
+	const marker = {
+		key: "borg",
+		dest: "/x",
+		backupVersion: null,
+		tree: { step: "pause" as const, build: null, active: [], paused: [] },
+	};
+	writeInflight(d.paths, marker);
+	mkdirSync(d.paths.state, { recursive: true });
+	// The lock's holder is alive: its pid has a stat entry with the same start time.
+	const proc = join(d.procRoot ?? "", "4242");
+	mkdirSync(proc, { recursive: true });
+	writeFileSync(join(proc, "stat"), "4242 (bun) S 1 1 1 0 -1 0 0 0 0 0 0 0 0 0 20 0 1 0 777 0 0");
+	writeFileSync(join(d.paths.state, "run.lock"), "4242 777");
+	const out: string[] = [];
+	expect(await main(["recover"], d, (l) => out.push(l))).toBe(1);
+	expect(out).toEqual(["Another Upkeep run is in progress. Try again when it ends."]);
+	expect(readInflight(d.paths)).toEqual(marker);
+});
+
 test("recover prints one line per app and exits 1 when one could not be put back", async () => {
 	const out: string[] = [];
 	expect(await main(["recover"], deps(), (l) => out.push(l))).toBe(0);

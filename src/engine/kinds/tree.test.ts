@@ -306,6 +306,8 @@ test("a path through a link that leads outside dir is refused, and a link named 
 		expect(() => safePath(found, t.paths, inApp)).toThrow("Refused");
 	expect(safePath(join(app, "link"), t.paths, inApp)).toBe(join(app, "link"));
 	expect(safePath(join(app, "new/sub"), t.paths, inApp)).toBe(join(app, "new/sub"));
+	symlinkSync(join(t.paths.home, "nothing-here"), join(app, "dangling"));
+	expect(() => safePath(join(app, "dangling/x"), t.paths, inApp)).toThrow("a link in it leads nowhere");
 });
 
 test("the copy of a kept directory into .upkeep-new reports its pid and is killed as a tree", async () => {

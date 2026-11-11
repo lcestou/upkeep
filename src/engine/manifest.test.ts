@@ -195,3 +195,34 @@ kind = "file"
 asset = "it's"
 `);
 });
+
+test("cutting an app takes its own sub-tables with it and leaves the next app whole", () => {
+	const text = `[apps.a]
+name = "A"
+kind = "source"
+
+[[apps.a.serve]]
+name = "a-web"
+
+[[apps.a.serve.test]]
+name = "answers"
+
+[apps.b]
+name = "B"
+kind = "file"
+`;
+	expect(cutTable(text, "a")).toBe(`[apps.b]
+name = "B"
+kind = "file"
+`);
+	expect(cutTable(text, "b")).toBe(`[apps.a]
+name = "A"
+kind = "source"
+
+[[apps.a.serve]]
+name = "a-web"
+
+[[apps.a.serve.test]]
+name = "answers"
+`);
+});

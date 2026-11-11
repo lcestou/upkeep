@@ -76,7 +76,12 @@ function realOf(p: string): string {
 		rest.unshift(basename(at));
 		at = dirname(at);
 	}
-	return join(realpathSync(at), ...rest);
+	try {
+		return join(realpathSync(at), ...rest);
+	} catch {
+		// A dangling link or a loop: nothing safe can be said about where it leads.
+		throw new Error(`Refused ${p}: a link in it leads nowhere`);
+	}
 }
 
 /** What keep, hold and prune may touch: dir, or the stage's parent for a table that builds only into a stage. */

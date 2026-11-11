@@ -4,7 +4,7 @@ import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { CHECK_INCOMPLETE } from "./engine/kinds/legacy";
 import { realDeps } from "./engine/real";
-import { formatLogLine } from "./engine/store";
+import { formatLogLine, readInflight } from "./engine/store";
 
 export const USAGE = "Usage: upkeep check|install|restore|history|recover";
 
@@ -106,10 +106,15 @@ const RESULT_TEXT = { updated: "Updated", failed: "Failed", rolled_back: "Rolled
 
 /**
  * Finishes or undoes a built update an interrupted run left behind, one line per app. Exits 0 when every app was
- * put back or there was nothing to do, 1 when one could not be put back.
+ * put back or there was nothing to do, 1 when one could not be put back or another Upkeep's run holds the lock.
  */
-async function recover(engine: Engine, out: Out): Promise<number> {
+async function recover(engine: Engine, paths: EngineDeps["paths"], out: Out): Promise<number> {
 	const done = await engine.recover();
+	// recover() answers nothing both when there is nothing to do and when another process's run holds the lock.
+	if (done.length === 0 && readInflight(paths)?.tree) {
+		out("Another Upkeep run is in progress. Try again when it ends.");
+		return 1;
+	}
 	if (done.length === 0) out("Nothing to recover.");
 	for (const r of done)
 		out(r.ok ? `${r.name}: put back ${r.version ?? ""}` : `${r.name}: could not be put back. See the log.`);
@@ -137,7 +142,7 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
 		return restore(createEngine(deps), deps, args[0], args[1], out);
 	if (cmd === "history" && args.length === 0) return history(createEngine(deps), out);
-	if (cmd === "recover" && args.length === 0) return recover(createEngine(deps), out);
+	if (cmd === "recover" && args.length === 0) return recover(createEngine(deps), deps.paths, out);
 	out(USAGE);
 	return 2;
 }

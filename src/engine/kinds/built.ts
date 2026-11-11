@@ -834,7 +834,8 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
  * Puts a built app's restore point back by hand: sudo preflight, busy, pause, stop what runs, restoreTree, start,
  * prove it, start the paused units. Each step is on the in-flight marker first, so a kill at any point is finished
  * by recover(); a failed restore keeps the marker for the same reason. Over a failed recovery's marker for this app,
- * it also starts the units that marker had down, and an exit before anything moved writes that marker back. It takes
+ * a restore that goes through also starts the units that marker had down; an exit before anything moved writes that
+ * marker back and leaves those units to the next recover(). It takes
  * no point of the version it replaces, so this restore cannot itself be undone; the next update takes a fresh point.
  */
 export async function restoreBuilt(
