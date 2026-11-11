@@ -149,7 +149,7 @@ components:
 
 # Design System: Upkeep
 
-This file records the view as built on `feat/2026-11-10-first-build`. Every value below was read from the source named in its section. The direction contract is `.impeccable/surfaces/src-mainview-app-svelte.md`; where the code and the contract part ways, the code is recorded and the difference is noted in one line.
+This file records the view as built on `feat/2026-11-10-first-build`. Every value below was read from the source named in its section. Where the code and the direction it was built to part ways, the code is recorded and the difference is noted in one line.
 
 ## Overview
 

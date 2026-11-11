@@ -82,6 +82,8 @@ export function listBackups(paths: Paths, key: string): RestorePoint[] {
 	if (!existsSync(root)) return [];
 	const points: RestorePoint[] = [];
 	for (const name of readdirSync(root)) {
+		// A point still being built when the process died. prune removes it.
+		if (name.endsWith(".upkeep-tmp")) continue;
 		const meta = readMeta(join(root, name));
 		if (meta) points.push({ version: meta.version, at: meta.at });
 	}
@@ -96,7 +98,8 @@ export async function restoreBackup(
 	run: Run,
 ): Promise<{ ok: boolean; detail?: string }> {
 	const dir = join(backupDir(paths, spec.key), version);
-	const meta = readMeta(dir);
+	// A half-built point has a meta file and maybe not every file: it is never a version to go back to.
+	const meta = version.endsWith(".upkeep-tmp") ? null : readMeta(dir);
 	if (!meta) return { ok: false, detail: `No restore point ${version}.` };
 	for (const f of meta.files) {
 		// oxlint-disable-next-line no-await-in-loop -- files go back one at a time so a failure stops the rest
@@ -107,9 +110,15 @@ export async function restoreBackup(
 	return { ok: true };
 }
 
-/** Deletes the oldest restore points beyond keep. At least one is always kept. */
+/**
+ * Deletes the oldest restore points beyond keep. At least one is always kept.
+ * Also deletes every point left half-built by a process that died: takeBackup clears only its own version's.
+ */
 export function prune(paths: Paths, key: string, keep: number): void {
-	const points = listBackups(paths, key);
-	for (const p of points.slice(Math.max(1, keep)))
-		rmSync(join(backupDir(paths, key), p.version), { recursive: true, force: true });
+	const root = backupDir(paths, key);
+	if (existsSync(root))
+		for (const name of readdirSync(root))
+			if (name.endsWith(".upkeep-tmp")) rmSync(join(root, name), { recursive: true, force: true });
+	for (const p of listBackups(paths, key).slice(Math.max(1, keep)))
+		rmSync(join(root, p.version), { recursive: true, force: true });
 }

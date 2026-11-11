@@ -5,7 +5,7 @@ import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD } from "./engine";
 import type { FetchLike } from "./github";
 import { loadManifest } from "./manifest";
-import { claimLock, readInflight, readRunLog, writeInflight } from "./store";
+import { claimLock, loadState, readInflight, readRunLog, updateState, writeInflight } from "./store";
 import { realRun, recordingRun, script, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -508,6 +508,15 @@ test("a legacy app whose install throws is in the results as failed", async () =
 	expect(log.some((l) => l.startsWith("failed: "))).toBe(true);
 });
 
+test("recovery clears the half-written file beside every bin of an archive, not only the first", async () => {
+	const d = await deps();
+	writeFileSync(join(t.dir, "seed.toml"), MANIFEST.replace('bins = ["fd"]', 'bins = ["fd", "fd-extra"]'));
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	for (const name of ["fd", "fd-extra"]) writeFileSync(join(bin, `${name}.upkeep-new`), "half");
+	createEngine(d);
+	expect(["fd", "fd-extra"].map((name) => existsSync(join(bin, `${name}.upkeep-new`)))).toEqual([false, false]);
+});
+
 test("a second engine leaves another process's install in progress alone", async () => {
 	const d = await deps();
 	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
@@ -654,7 +663,17 @@ test("removing an app cuts its table, drops its row live, and keeps its files an
 	const events: EngineEvent[] = [];
 	engine.subscribe((e) => events.push(e));
 	expect(await engine.removeApp("nope")).toEqual({ ok: false, detail: "No app nope in the list." });
+	// What the owner chose for an app goes with it, so the same key added again never starts as auto.
+	engine.setAuto("bat", true);
+	engine.setHold("bat", true);
+	updateState(t.paths, (s) => {
+		s.skip.bat = "1.0";
+		s.restart.bat = "2026-11-10T00:00:00.000Z";
+	});
+	expect(loadState(t.paths).auto.bat).toBe(true);
 	expect(await engine.removeApp("bat")).toEqual({ ok: true });
+	const left = loadState(t.paths);
+	expect([left.auto, left.hold, left.skip, left.restart]).toEqual([{}, {}, {}, {}]);
 	expect(events).toContainEqual({ type: "removed", key: "bat" });
 	expect(engine.snapshot().apps.some((a) => a.key === "bat")).toBe(false);
 	const file = join(t.paths.config, "apps.toml");

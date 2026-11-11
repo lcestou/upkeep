@@ -73,7 +73,7 @@ bins = ["fd"]
 | `deb` | a `.deb` from a release, through `dpkg -i` | `repo`, `asset`, `dest` |
 | `source` | a clone of the release tag, built with your steps | `repo`, `dest`, `build` |
 | `command` | a tool that updates itself | `check`, `latest`, `update` |
-| `legacy` | handed to the old `lutechi-updater` script | `legacy_key`, `legacy_name` |
+| `legacy` | handed to the old `lutechi-updater` script | `legacy_key`, and `legacy_name` unless the table is `versionless` |
 | `manual` | tracked only, you run the update | `legacy_name`, `run` |
 
 Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo or `.desktop` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`.
@@ -159,4 +159,4 @@ bun run e2e          # Playwright over the fixture
 
 The identity (app icon, mark, wordmark, tray drawings) is in `assets/brand`. `bun run tray-icons` renders the tray pictures and the launcher icon from it.
 
-`CLAUDE.md` has the rules for working in this repo. `PRODUCT.md` is the product record and `DESIGN.md` the visual system.
+`PRODUCT.md` is the product record and `DESIGN.md` the visual system.
