@@ -128,6 +128,28 @@ function btop(asset?: string): Suggestion {
 	};
 }
 
+/** A catalogue answer: the tested table as written, with today's release looked up. */
+function glow(): Suggestion {
+	return {
+		spec: {
+			key: "glow",
+			name: "Glow",
+			kind: "archive",
+			repo: "charmbracelet/glow",
+			asset: "Linux_x86_64\\.tar\\.gz$",
+			dest: "~/.local/bin/glow",
+			bins: ["glow"],
+		},
+		installed: null,
+		latest: "2.1.1",
+		asset: { name: "glow_2.1.1_Linux_x86_64.tar.gz", size: 5_212_160 },
+		alternatives: [],
+		source: "catalogue",
+		confidence: "sure",
+		why: "From Upkeep's catalogue of tested apps.",
+	};
+}
+
 export const PICKED = "/home/owner/Downloads/Obsidian-1.9.4.AppImage";
 
 /** Answers the Add app field the way the engine's discover would. A repo already in the list gets a card under its own name rather than another app's assets. */
@@ -164,7 +186,11 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 	if (text === "nobody/nothing") return { suggestions: [], problem: "nobody/nothing has no published release." };
 	if (/\.AppImage$/i.test(text) && (text.startsWith("/") || text.startsWith("~/") || text.startsWith("file://")))
 		return { suggestions: [fromFile(text.replace(/^file:\/\//, ""))] };
-	return { suggestions: [], problem: "Give a GitHub repo like owner/name, a github.com link, or a file path." };
+	if (/^(glow|charmbracelet\/glow)$/i.test(text)) return { suggestions: [glow()] };
+	return {
+		suggestions: [],
+		problem: "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.",
+	};
 }
 
 /** Four files with no source found (the common case on a real box) and two sure ones. */

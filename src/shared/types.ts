@@ -124,7 +124,7 @@ export type Suggestion = {
 	asset: { name: string; size: number } | null;
 	/** Other assets of that release that would also run on this machine, by name, for a picker. */
 	alternatives: string[];
-	source: "repo" | "file" | "scan";
+	source: "repo" | "file" | "scan" | "catalogue";
 	/** The file found on disk, for file and scan suggestions. */
 	path?: string;
 	/** "sure" when the file or the release names its source; "guess" when the repo came from a name search. */

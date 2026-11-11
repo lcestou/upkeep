@@ -188,6 +188,7 @@ export class Model {
 			problems: this.problems,
 			currentName: this.current?.name ?? null,
 			notStarted: this.notStarted,
+			total: this.apps.length,
 		}),
 	);
 	failedKeys: string[] = $derived(this.run.results.filter((r) => r.result !== "updated").map((r) => r.key));

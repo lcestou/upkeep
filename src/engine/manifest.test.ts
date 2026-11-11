@@ -2,10 +2,12 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cutTable, ensureManifest, loadManifest, tomlTable } from "./manifest";
+import { cutTable, ensureManifest, loadCatalogue, loadManifest, tomlTable } from "./manifest";
 import { paths } from "./paths";
 
 const SEED = join(import.meta.dir, "../../manifest/apps.toml");
+const CATALOGUE = join(import.meta.dir, "../../catalogue");
+const EXAMPLES = join(import.meta.dir, "../../manifest/examples.toml");
 let dir = "";
 
 beforeEach(() => {
@@ -15,8 +17,8 @@ afterEach(() => {
 	rmSync(dir, { recursive: true, force: true });
 });
 
-test("every seeded asset pattern compiles, and rtk and rustdesk are anchored", () => {
-	const { apps } = loadManifest(SEED);
+test("every catalogue asset pattern compiles, and rtk and rustdesk are anchored", () => {
+	const { apps } = loadCatalogue(CATALOGUE);
 	for (const a of apps) if (a.asset) expect(() => new RegExp(a.asset ?? "")).not.toThrow();
 	const asset = (key: string) => apps.find((a) => a.key === key)?.asset;
 	expect(asset("rtk")).toBe("^rtk-oss-x86_64-unknown-linux-musl\\.tar\\.gz$");
@@ -24,13 +26,30 @@ test("every seeded asset pattern compiles, and rtk and rustdesk are anchored", (
 	expect(apps.find((a) => a.key === "lrcget")?.meta_path).toBe("usr/share/metainfo/lrcget.metainfo.xml");
 });
 
-test("the seed manifest loads 32 apps with no errors", () => {
-	const { apps, errors } = loadManifest(SEED);
+test("the list a new person starts with is empty, and loads with no error", () => {
+	expect(loadManifest(SEED)).toEqual({ apps: [], errors: [] });
+});
+
+test("the source-build examples load with no errors", () => {
+	const { apps, errors } = loadManifest(EXAMPLES);
 	expect(errors).toEqual([]);
-	expect(apps.length).toBe(32);
+	expect(apps.map((a) => [a.key, a.kind])).toEqual([
+		["whisper", "source"],
+		["llama", "source"],
+		["comfyui", "source"],
+		["dsh", "source"],
+		["strata", "source"],
+	]);
+});
+
+test("the catalogue loads 22 apps, one per file, none of them installing without asking", () => {
+	const { apps, errors } = loadCatalogue(CATALOGUE);
+	expect(errors).toEqual([]);
+	expect(apps.length).toBe(22);
 	const counts: Record<string, number> = {};
 	for (const a of apps) counts[a.kind] = (counts[a.kind] ?? 0) + 1;
-	expect(counts).toEqual({ appimage: 3, archive: 9, file: 1, deb: 2, source: 7, command: 5, legacy: 5 });
+	expect(counts).toEqual({ appimage: 3, archive: 9, file: 1, deb: 2, source: 2, command: 5 });
+	expect(apps.filter((a) => a.auto)).toEqual([]);
 	const fd = apps.find((a) => a.key === "fd");
 	expect(fd).toEqual({
 		key: "fd",
@@ -225,4 +244,20 @@ name = "a-web"
 [[apps.a.serve.test]]
 name = "answers"
 `);
+});
+
+test("a catalogue file must hold one table named like the file; a broken one is reported and left out", () => {
+	writeFileSync(
+		join(dir, "good.toml"),
+		'[apps.good]\nname = "Good"\nkind = "file"\nrepo = "a/b"\nasset = "x$"\ndest = "~/x"\n',
+	);
+	writeFileSync(
+		join(dir, "wrong.toml"),
+		'[apps.other]\nname = "Other"\nkind = "file"\nrepo = "a/b"\nasset = "x$"\ndest = "~/y"\n',
+	);
+	writeFileSync(join(dir, "notes.txt"), "not a table");
+	const { apps, errors } = loadCatalogue(dir);
+	expect(apps.map((a) => a.key)).toEqual(["good"]);
+	expect(errors).toEqual(["catalogue/wrong.toml: must hold exactly one table, [apps.wrong]"]);
+	expect(loadCatalogue(join(dir, "missing"))).toEqual({ apps: [], errors: [] });
 });

@@ -1,0 +1,7 @@
+[apps.fd]
+name = "fd"
+kind = "archive"
+repo = "sharkdp/fd"
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/fd"
+bins = ["fd"]

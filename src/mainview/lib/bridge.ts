@@ -8,7 +8,7 @@ export type UpkeepRPC = {
 	webview: { requests: Record<string, never>; messages: { event: EngineEvent } };
 };
 
-const VARIANTS: FixtureVariant[] = ["default", "empty", "checking", "problems", "many", "built"];
+const VARIANTS: FixtureVariant[] = ["default", "empty", "checking", "problems", "many", "built", "none"];
 const SYSTEM_VARIANTS: SystemVariant[] = ["off", "show", "checking", "empty", "missing", "failed", "gl"];
 
 // Requests that wait on real work (a download, a restore, a scan) get five minutes; the engine has its own step limits.

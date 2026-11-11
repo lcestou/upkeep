@@ -172,6 +172,9 @@ export const RUN_TEXT = {
 } as const;
 /** The all-fresh line. n is not pluralised, so a list of one reads "All 1 apps". */
 export const allFreshLine = (n: number) => `All ${n} apps are up to date.`;
+/** The list with no apps yet, as a new person first sees it. */
+export const EMPTY_LINE =
+	"Add the apps you want Upkeep to keep up to date: type a name such as fd, or paste a GitHub repo.";
 /** The empty-filter message; the text is quoted exactly as typed after trimming by the caller. */
 export const noMatch = (text: string) => `No app matches "${text}".`;
 
@@ -248,14 +251,17 @@ export type SentenceInput = {
 	problems: number;
 	currentName: string | null;
 	notStarted?: number;
+	/** How many apps the list holds; zero says so instead of calling an empty list fresh. */
+	total?: number;
 };
 
-/** The one-line state of the whole list in the header. A run phase wins over ready and problem counts; with nothing to do it says everything is fresh. */
-export function stateSentence({ run, ready, problems, currentName, notStarted = 0 }: SentenceInput): string {
+/** The one-line state of the whole list in the header. A run phase wins over ready and problem counts; an empty list says so, and a list with nothing to do says everything is fresh. */
+export function stateSentence({ run, ready, problems, currentName, notStarted = 0, total }: SentenceInput): string {
 	if (run.phase === "checking") return `Checking ${run.index} of ${run.total}`;
 	if (run.phase === "installing")
 		return `${run.retry ? "Retrying" : "Installing"} ${currentName ?? ""}, ${run.index} of ${run.total}`;
 	if (run.phase === "summary") return resultCounts(run.results) + (notStarted > 0 ? `, ${notStarted} not started` : "");
+	if (total === 0) return "No apps yet";
 	if (ready > 0) return plural(ready, "1 update ready", `${ready} updates ready`);
 	if (problems > 0) return plural(problems, "1 needs a look", `${problems} need a look`);
 	return "Everything is fresh";
@@ -265,11 +271,11 @@ export function stateSentence({ run, ready, problems, currentName, notStarted = 
 export const ADD = {
 	button: "Add app",
 	title: "Add an app",
-	label: "GitHub repo, link or file",
-	placeholder: "owner/repo",
+	label: "App name, GitHub repo, link or file",
+	placeholder: "fd, or owner/repo",
 	find: "Find",
 	finding: "Finding",
-	hint: "Paste a repo such as sharkdp/fd, a github.com link, or drop a file anywhere on this window.",
+	hint: "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window.",
 	pick: "Choose a file",
 	scan: "Scan this computer",
 	scanning: "Scanning",

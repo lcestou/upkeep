@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
-	import { ADD, COLUMN, TEXT, allFreshLine, noMatch } from "../lib/copy";
+	import { ADD, COLUMN, EMPTY_LINE, TEXT, allFreshLine, noMatch } from "../lib/copy";
 	import type { Group, Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
 	import { shade } from "../lib/shade";
@@ -194,7 +194,18 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="list" bind:this={root} {onkeydown} {onfocusin} data-testid="app-list" {@attach shade} {@attach cutoff}>
 		<div class="ledger">
-			{#if model.allFresh}
+			{#if model.apps.length === 0 && model.run.phase === "idle"}
+				<section class="morning" data-testid="empty-list">
+					<span class="morning-mark"><Mark size={32} /></span>
+					<p data-testid="empty-line">{EMPTY_LINE}</p>
+					<div class="morning-actions">
+						<button type="button" class="btn primary" data-testid="add-app" onclick={() => model.openAdd()}>
+							<svg class="plus" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg>
+							{ADD.button}
+						</button>
+					</div>
+				</section>
+			{:else if model.allFresh}
 				<!-- The header already says Everything is fresh, when it was checked, and Check again. -->
 				<section class="morning" data-testid="all-fresh">
 					<span class="morning-mark"><Mark size={32} /></span>

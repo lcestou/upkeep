@@ -57,3 +57,14 @@ test("Check again runs a check with a loading bar and ends Checked just now", as
 	await expect(page.getByTestId("checked")).toHaveText("Checked just now");
 	await expect(page.getByTestId("check")).toBeFocused();
 });
+
+test("a new person's empty list says No apps yet and offers Add app, not Everything is fresh", async ({ page }) => {
+	await load(page, "fixture=none");
+	await expect(sentence(page)).toHaveText("No apps yet");
+	await expect(page.getByTestId("empty-line")).toHaveText(
+		"Add the apps you want Upkeep to keep up to date: type a name such as fd, or paste a GitHub repo.",
+	);
+	await expect(page.getByTestId("all-fresh")).toHaveCount(0);
+	await page.getByTestId("add-app").click();
+	await expect(page.getByTestId("add-input")).toBeFocused();
+});

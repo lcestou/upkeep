@@ -1,0 +1,7 @@
+[apps.omp]
+name = "omp"
+kind = "command"
+check = ["omp", "--version"]
+latest = "npm:@oh-my-pi/pi-coding-agent"
+update = ["omp", "update"]
+note = "Open sessions keep the old version until restarted."

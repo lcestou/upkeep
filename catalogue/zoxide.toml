@@ -1,0 +1,7 @@
+[apps.zoxide]
+name = "Zoxide"
+kind = "archive"
+repo = "ajeetdsouza/zoxide"
+asset = 'x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/zoxide"
+bins = ["zoxide"]

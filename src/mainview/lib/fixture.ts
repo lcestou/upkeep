@@ -23,7 +23,7 @@ import { PICKED, scanResults, suggestFor } from "./fixture-add";
 import { lastTryFailed, tomlWriteFailed } from "./copy";
 import { type SystemVariant, systemFor } from "./fixture-system";
 
-export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many" | "built";
+export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many" | "built" | "none";
 
 type Seed = {
 	key: string;
@@ -548,6 +548,8 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 			...added,
 		];
 	}
+	// A new person's first run: the list that ships holds no apps.
+	if (variant === "none") return [];
 	if (variant === "empty") {
 		return apps.map((a) => ({
 			...a,

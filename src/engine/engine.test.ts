@@ -644,6 +644,29 @@ test("adding refuses a taken key, a taken dest, a kind it cannot add, and an inv
 	expect(readFileSync(file, "utf8")).toBe(before);
 });
 
+test("a kind the window cannot work out is added when the catalogue holds it as that kind", async () => {
+	const d = await deps();
+	const catalogue = join(t.dir, "catalogue");
+	mkdirSync(catalogue);
+	const glow =
+		'[apps.glow]\nname = "Glow"\nkind = "command"\ncheck = ["glow", "--version"]\nlatest = "npm:glow"\nupdate = ["glow", "up"]\n';
+	writeFileSync(join(catalogue, "glow.toml"), glow);
+	const engine = createEngine({ ...d, catalogueDir: catalogue });
+	const spec = {
+		key: "glow",
+		name: "Glow",
+		kind: "command" as const,
+		check: ["glow", "--version"],
+		latest: "npm:glow",
+		update: ["glow", "up"],
+	};
+	expect(await engine.addApps([spec, { ...spec, key: "other" }])).toEqual({
+		added: ["glow"],
+		problems: [{ key: "other", detail: "other: kind is not one of appimage, archive, file, deb" }],
+	});
+	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "glow")).toEqual(spec);
+});
+
 test("a table that does not read back the same puts apps.toml back from its backup", async () => {
 	const engine = createEngine(await deps());
 	const file = join(t.paths.config, "apps.toml");

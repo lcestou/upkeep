@@ -1,0 +1,7 @@
+[apps.yazi]
+name = "Yazi"
+kind = "archive"
+repo = "sxyazi/yazi"
+asset = 'x86_64-unknown-linux-gnu\.zip$'
+dest = "~/.local/bin/yazi"
+bins = ["yazi-x86_64-unknown-linux-gnu/yazi", "yazi-x86_64-unknown-linux-gnu/ya"]

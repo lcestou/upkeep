@@ -1,0 +1,6 @@
+[apps.borg]
+name = "BorgBackup"
+kind = "file"
+repo = "borgbackup/borg"
+asset = 'borg-linux-glibc235-x86_64-gh$'
+dest = "~/.local/bin/borg"

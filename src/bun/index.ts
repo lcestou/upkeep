@@ -30,7 +30,10 @@ const VERSION = pkg.version;
 // An environment variable, because the framework's launcher drops command-line arguments on Linux.
 const background = process.env.UPKEEP_BACKGROUND === "1";
 
-const deps = { ...realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml")), version: VERSION };
+const deps = {
+	...realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml"), join(import.meta.dir, "../catalogue")),
+	version: VERSION,
+};
 
 let win: BrowserWindow | null = null;
 let quitting = false;

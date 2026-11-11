@@ -1,0 +1,7 @@
+[apps.zen]
+name = "Zen Browser"
+kind = "appimage"
+repo = "zen-browser/desktop"
+asset = 'x86_64\.AppImage$'
+dest = "~/.local/bin/zen-browser.AppImage"
+process = "zen"
