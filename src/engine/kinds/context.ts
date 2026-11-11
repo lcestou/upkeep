@@ -109,7 +109,11 @@ export async function readInstalled(
 	return { probe, installed: "version" in probe ? first : null };
 }
 
-/** A root step in the manifest must never wait on a password prompt. */
+/**
+ * A root step in the manifest must never wait on a password prompt, so every sudo that starts a command gets -n: at a
+ * line start, after ; & | ( { or a backtick, and after then, else or do. A sudo reached through a variable or an alias
+ * is not seen.
+ */
 export function nonInteractive(step: string): string {
-	return step.replace(/(^|[;&|]\s*)sudo (?!-n )/g, "$1sudo -n ");
+	return step.replace(/(^\s*|[;&|({`]\s*|\b(?:then|else|do)\s+)sudo (?!-n )/gm, "$1sudo -n ");
 }

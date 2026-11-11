@@ -97,6 +97,7 @@ test("npm-tags picks the highest stable at or above installed, else the highest 
 	expect(pickDistTag({ ...tags, old: "0.2.1" }, "0.2.2-rc.1")).toBe("0.2.2-rc.1");
 	expect(pickDistTag({ ...tags, stable: "0.2.3" }, "0.2.2-rc.1")).toBe("0.2.3");
 	expect(pickDistTag({ junk: "abc", ...tags }, "0.2.2-rc.1")).toBe("0.2.2-rc.1");
+	expect(pickDistTag({ junk: "abc", latest: "1.2.0", beta: "2.0.0-rc1" })).toBe("1.2.0");
 	const registry: FetchLike = async (url) => {
 		seen.push(url);
 		return Response.json({ latest: "0.1.0" });

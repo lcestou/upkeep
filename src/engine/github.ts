@@ -183,11 +183,14 @@ export async function compareRefs(
 /** Null for an empty list. Throws, as Bun.semver.order does, when a string is not a semver version. */
 const highest = (vs: string[]) => vs.toSorted((a, b) => Bun.semver.order(b, a))[0] ?? null;
 
-/** The dist-tags pick: the highest stable version at or above installed, else the highest prerelease at or above it. */
+/**
+ * The dist-tags pick: the highest stable version at or above installed, else the highest prerelease at or above it.
+ * A tag whose value is not semver is skipped, so one odd tag cannot fail the whole check.
+ */
 export function pickDistTag(tags: Record<string, unknown>, installed?: string): string | null {
 	const ok = (v: string) => {
 		try {
-			return installed === undefined || Bun.semver.order(v, installed) >= 0;
+			return Bun.semver.order(v, installed ?? v) >= 0;
 		} catch {
 			return false;
 		}

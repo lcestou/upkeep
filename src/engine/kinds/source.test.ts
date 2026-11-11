@@ -125,6 +125,13 @@ test("nonInteractive adds -n to every sudo", () => {
 	expect(nonInteractive("make && sudo make install")).toBe("make && sudo -n make install");
 	expect(nonInteractive("sudo -n true")).toBe("sudo -n true");
 	expect(nonInteractive("./configure")).toBe("./configure");
+	expect(nonInteractive("make\n  sudo make install")).toBe("make\n  sudo -n make install");
+	expect(nonInteractive("if true; then sudo make install; fi")).toBe("if true; then sudo -n make install; fi");
+	expect(nonInteractive("v=$(sudo cat f) `sudo id`")).toBe("v=$(sudo -n cat f) `sudo -n id`");
+	expect(nonInteractive("for u in a; do sudo systemctl stop $u; done")).toBe(
+		"for u in a; do sudo -n systemctl stop $u; done",
+	);
+	expect(nonInteractive("echo pseudo sudo-ish")).toBe("echo pseudo sudo-ish");
 });
 
 test("a build step that runs past its limit is reported as timed out", async () => {
