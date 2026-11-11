@@ -36,7 +36,7 @@ The update manager your desktop ships with, for everything it cannot see. One li
 
 ## Capabilities and Constraints
 
-- Kinds of app: AppImage, binary from a release archive, single-file binary, .deb, source build, self-updating tool, plugin set, notify-only.
+- Kinds of app: AppImage, binary from a release archive, single-file binary, .deb, source build (a checkout updated in place, built beside the live copy, restarted and tested), self-updating tool, plugin set, notify-only.
 - The old script stays installed and is the engine for the kinds not yet ported.
 - The owner's commands `lutechi-updater --check`, `--list` and `lutechi-updater <app>` must keep working until he retires them.
 - Apps are added in the window: paste a GitHub repo or link, choose or drop a file, or scan the computer. A scan never runs what it finds. Removing an app takes it off the list and uninstalls nothing.

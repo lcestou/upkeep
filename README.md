@@ -33,6 +33,7 @@ bun run cli install --all         # everything that is ready
 bun run cli install --auto        # only apps marked auto
 bun run cli restore fd            # put back the newest restore point
 bun run cli history
+bun run cli recover               # finish or undo an update that was interrupted
 ```
 
 `check` exits 0 unless the old updater's own check did not finish. `install` exits 0 when every app it ran ended updated.
@@ -71,7 +72,7 @@ bins = ["fd"]
 | `archive` | binaries inside a release `.tar.gz` or `.zip` | `repo`, `asset`, `dest`, `bins` |
 | `file` | a binary that is itself the release asset | `repo`, `asset`, `dest` |
 | `deb` | a `.deb` from a release, through `dpkg -i` | `repo`, `asset`, `dest` |
-| `source` | a clone of the release tag, built with your steps | `repo`, `dest`, `build` |
+| `source` | a checkout or a clone of the release tag, built with your steps, restarted and tested | `build`, `check` or `dest`, `repo` or `latest` |
 | `command` | a tool that updates itself | `check`, `latest`, `update` |
 | `legacy` | handed to the old `lutechi-updater` script | `legacy_key`, and `legacy_name` unless the table is `versionless` |
 | `manual` | tracked only, you run the update | `legacy_name`, `run` |
@@ -80,10 +81,55 @@ Other fields: `version_args` (default `["--version"]`), `meta_path` (read an App
 
 `asset` is a regular expression matched against the release's asset names. If it matches more than one, the app is listed under "Needs a look" until you narrow it. Anchor it with `^` when a project ships several variants.
 
+## Apps built from source
+
+A `source` app with `dir` updates a checkout you already have; without it the release tag is cloned into the cache. The build runs while the live copy keeps serving. Only after it passes does Upkeep stop what must stop, swap the new build in, start it again, prove that a new process answers, and run the tests. When anything after the stop fails, the restore point goes back and the old version is started. If Upkeep itself is killed half way, `bun run cli recover` (or the next Install) finishes or undoes the update.
+
+The short form, an app rebuilt in place:
+
+```toml
+[apps.whisper]
+name = "whisper.cpp"
+kind = "source"
+repo = "ggml-org/whisper.cpp"
+dir = "~/whisper.cpp"
+move = "detach"
+check = ["sh", "-c", '''git -C "$HOME/whisper.cpp" describe --tags --abbrev=0 | sed 's/^v//' ''']
+keep = ["build"]
+build = ["cmake --build build -j 6"]
+test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"], timeout_s = 30 }]
+```
+
+`manifest/apps.toml` holds the long forms: llama.cpp builds into a stage beside the live copy and places one binary, Strata holds its running engine and writes config values, ComfyUI records its Python packages for an offline rollback, and dsh installs a second npm prefix and swaps it in.
+
+| Field | What it does |
+| --- | --- |
+| `dir` | an existing git checkout, moved to the release tag in place |
+| `move` | how `dir` moves: `ff` (fast-forward its branch, the default), `reset` (refused when HEAD is on no remote ref), `detach` |
+| `check` | argv printing the installed version; its first line is taken as written |
+| `commit` | argv printing the commit the installed copy was built from; the row is ready when the release is ahead of it on GitHub, and the pane lists the newest commits |
+| `stage` | a directory the build writes into beside the live copy |
+| `needs` | argv printing the directories the installed copy needs at run time; kept while a restore point names them |
+| `prune` | globs of build directories that may go after a verified update, never one that is live or kept |
+| `keep` | paths in `dir` saved in the restore point and put back by rename on a rollback; a link stays a link |
+| `hold` | directories a running process executes from; moved aside and copied back so it keeps its open files; each must also be in `keep` |
+| `record` | command output saved in the restore point as a file |
+| `build` | shell steps run in `dir` (or the clone) |
+| `check_built` | shell steps that must pass before anything is stopped |
+| `config` | values written into JSON config files after the build: a top-level `key`, or the value after `flag` in an `array` |
+| `place` | files or directories moved into place while services are stopped; the replaced one goes into the restore point |
+| `undo` | shell steps run on a rollback after the files are back |
+| `busy` | what must not be happening: a `process` name or a `run` that exits 0, with the sentence to `say` |
+| `pause` | units held off for the whole update, each only when it was running |
+| `serve` | services stopped and started, each with `active`, `stop`, `start`, and optionally `since` (must change, proving a new process), `health`, `status`, `expect`, `wait_s` and its own `test` list |
+| `test` | a command (`run`) or an HTTP POST (`url` and `body`) with `expect`, `fail_on`, `timeout_s` and `required` |
+
+Steps and paths may use `{dir}`, `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`; any other name in braces is refused. `latest` also takes `npm-tags:<package>`, the highest stable version at or above the installed one, else the highest prerelease. Every path a table removes, renames or copies over is checked where it is used: never the home directory, `dir` itself, or anything outside it, and never through a link that leads elsewhere. A step that starts with `sudo` gets `-n`, so a password prompt never waits.
+
 ## What an install does
 
 1. **Download** to `~/.cache/upkeep/dl`. The size must equal what GitHub lists, and the SHA-256 must match the asset's digest when the release has one.
-2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. `.deb`, source and self-updating apps have none.
+2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. `.deb`, self-updating apps and source apps without `dir` or `stage` have none. A source app with them keeps its checkout's commit, the files its table names and the files it replaces.
 3. **Install.** The new file is written beside the old one and renamed into place, so a running copy keeps working and a full disk leaves the old file whole. A running app is not closed. Its row says "Restart to apply".
 4. **Verify.** The version probe runs again. If the new copy will not start, the restore point goes back and the row says so.
 
