@@ -20,7 +20,8 @@
 		"deadcode": "fallow dead-code && bun scripts/dead-svelte.ts",
 		"e2e": "node node_modules/playwright/cli.js test",
 		"tray-icons": "bun scripts/tray-icons.ts",
-		"validate": "bun run prepare:eb && bun run fmt:check && bun run --parallel lint check test:coverage deadcode && bun run build:view && bun run e2e"
+		"validate": "bun run prepare:eb && bun run fmt:check && bun run --parallel lint check test:coverage deadcode && bun run build:view && bun run e2e",
+		"validate:quick": "bun run prepare:eb && bun run fmt:check && bun run --parallel lint check test:coverage deadcode && bun run build:view && node node_modules/playwright/cli.js test --only-changed=main --project=chromium --pass-with-no-tests"
 	},
 	"devDependencies": {
 		"@fontsource-variable/archivo": "^5.3.0",
