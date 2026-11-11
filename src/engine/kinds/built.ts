@@ -171,7 +171,13 @@ export async function prepareBuilt(
 	if (stage) vars.stage = stage;
 	const marker = markerOf(spec, ctx, dir ?? stage ?? "");
 	const paused: Service[] = [];
-	const treeCtx: TreeCtx = { paths: ctx.paths, run: ctx.run, log: ctx.log, onStart: marker.onStart };
+	const treeCtx: TreeCtx = {
+		paths: ctx.paths,
+		run: ctx.run,
+		log: ctx.log,
+		onStart: marker.onStart,
+		rename: ctx.rename,
+	};
 	let point: string | null = null;
 
 	const startPaused = async () => {
@@ -536,17 +542,19 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	const busyStopped = await busyNow(spec, ctx, true);
 	if (busyStopped) return undoStop(`${busyStopped} Nothing was changed.`);
 	marker.step("placing");
+	const rename = ctx.rename ?? renameSync;
 	try {
 		for (const [i, pl] of (spec.place ?? []).entries()) {
 			const src = resolvePath(fill(pl.from, built.vars), ctx.paths, built.dir);
 			const to = resolvePath(fill(pl.to, built.vars), ctx.paths, built.dir);
 			if (lstatSync(src).isDirectory()) {
 				// The replaced directory goes into the restore point, so a rollback renames it back.
+				// Noted before the move: a kill between the two renames still leaves the old directory on record.
 				if (existsSync(to)) {
-					renameSync(to, join(point, `placed-${i}`));
 					notePlaced(point, { to, name: `placed-${i}` });
+					rename(to, join(point, `placed-${i}`));
 				}
-				renameSync(src, to);
+				rename(src, to);
 			} else {
 				const mode = existsSync(to) ? (statSync(to).mode & 0o7777).toString(8) : "755";
 				// oxlint-disable-next-line no-await-in-loop -- one place at a time

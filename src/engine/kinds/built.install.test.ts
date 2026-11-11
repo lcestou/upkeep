@@ -247,3 +247,35 @@ test("prune is skipped when needs prints nothing, and url tests are skipped when
 	expect(existsSync(join(t.paths.home, "builds/old-1"))).toBe(true);
 	expect(statSync(join(t.paths.home, "builds/old-1")).isDirectory()).toBe(true);
 });
+
+test("a kill between the two place renames still puts the old directory back", async () => {
+	const pkg = join(t.paths.home, "share/pkg");
+	put(join(pkg, "index.js"), "pkg 1");
+	const box = fakeBox();
+	const s = spec({
+		stage: "~/stage-{tag}",
+		build: ["make all", "make pkg {stage}"],
+		place: [{ from: "{stage}", to: "~/share/pkg" }],
+	});
+	const run: KindCtx["run"] = async (argv, opts) => {
+		const step = argv[2] ?? "";
+		if (argv[0] === "bash" && step.startsWith("make pkg ")) {
+			put(join(step.slice("make pkg ".length), "index.js"), "pkg 2");
+			return ok();
+		}
+		return box.run(argv, opts);
+	};
+	let cut = false;
+	// The first move of the live directory happens, then the process dies before anything else runs.
+	const rename = (a: string, b: string) => {
+		renameSync(a, b);
+		if (!cut && a === pkg) {
+			cut = true;
+			throw new Error("killed");
+		}
+	};
+	const o = await installBuilt(s, target, { ...ctx(box), run, rename });
+	expect(cut).toBe(true);
+	expect(o.result).toBe("rolled_back");
+	expect(readFileSync(join(pkg, "index.js"), "utf8")).toBe("pkg 1");
+});

@@ -24,6 +24,8 @@ export type KindCtx = {
 	/** Overrides for the download limits, for tests. */
 	stallMs?: number;
 	retryMs?: number;
+	/** The rename a built update's place and put-back use. Tests pass one that dies after a move, as a kill would. */
+	rename?: (from: string, to: string) => void;
 };
 
 /** What a check found. null from a check means the app is not installed and is left out. */
