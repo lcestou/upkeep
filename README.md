@@ -160,7 +160,7 @@ bun run build
 
 This writes `artifacts/linux-x64-Upkeep-Setup.tar.gz`. Unpack it and run `./installer`. It needs no root and puts the app under `~/.local/share/dev.afk.upkeep/stable/` with a menu entry. The launcher is `~/.local/share/dev.afk.upkeep/stable/app/bin/launcher`. To remove it, run `~/.local/share/dev.afk.upkeep/stable/uninstall --quiet`.
 
-"Check at login" in Settings writes `~/.config/autostart/upkeep.desktop` and turning it off removes the file.
+"Start at login" in Settings writes `~/.config/autostart/upkeep.desktop` and turning it off removes the file.
 
 ## The window
 

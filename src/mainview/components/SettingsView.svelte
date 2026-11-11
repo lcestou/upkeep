@@ -63,7 +63,10 @@
 			/>
 		</label>
 		<label class="row">
-			<span class="text">{TEXT.checkAtLogin}</span>
+			<span class="text">
+				<span data-testid="setting-login-label">{TEXT.startAtLogin}</span>
+				<span class="hint" data-testid="setting-login-hint">{TEXT.startAtLoginHint}</span>
+			</span>
 			<input
 				type="checkbox"
 				checked={model.settings.checkAtLogin}
@@ -207,8 +210,15 @@
 		border-bottom: 0;
 	}
 	.text {
+		display: grid;
+		gap: 2px;
+		padding-block: var(--s2);
 		font-size: var(--fs-14);
 		color: var(--text);
+	}
+	.hint {
+		font-size: var(--fs-12);
+		color: var(--text-2);
 	}
 	select {
 		height: 30px;
