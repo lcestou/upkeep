@@ -1,0 +1,7 @@
+[apps.bun]
+name = "Bun"
+kind = "archive"
+repo = "oven-sh/bun"
+asset = 'bun-linux-x64\.zip$'
+dest = "~/.bun/bin/bun"
+bins = ["bun-linux-x64/bun"]

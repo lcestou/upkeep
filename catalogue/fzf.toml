@@ -1,0 +1,7 @@
+[apps.fzf]
+name = "fzf"
+kind = "archive"
+repo = "junegunn/fzf"
+asset = 'linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/fzf"
+bins = ["fzf"]

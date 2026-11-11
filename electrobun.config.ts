@@ -19,6 +19,7 @@ export default {
 			"dist/index.html": "views/mainview/index.html",
 			"dist/assets": "views/mainview/assets",
 			"manifest/apps.toml": "manifest/apps.toml",
+			catalogue: "catalogue",
 			"assets/tray": "views/tray",
 		},
 		watchIgnore: ["dist/**"],

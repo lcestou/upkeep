@@ -1,5 +1,5 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 import type { AppKind, AppSpec, Serve, Service, Test } from "../shared/types";
 import type { Paths } from "./paths";
 
@@ -373,13 +373,45 @@ export function loadManifest(file: string): { apps: AppSpec[]; errors: string[] 
 		return { apps: [], errors: [`${file}: ${err instanceof Error ? err.message : String(err)}`] };
 	}
 	const tables = isRecord(doc) ? doc.apps : undefined;
-	if (!isRecord(tables)) return { apps: [], errors: [`${file}: no [apps.<key>] tables`] };
+	// A file with nothing in it but comments is a list with no apps yet, as a new person starts with. A file with
+	// other tables and no [apps] is a typo such as [app.fd], and must not read as a wiped list.
+	if (tables === undefined)
+		return isRecord(doc) && Object.keys(doc).length === 0
+			? { apps: [], errors: [] }
+			: { apps: [], errors: [`${file}: no [apps.<key>] tables`] };
+	if (!isRecord(tables)) return { apps: [], errors: [`${file}: apps is not a table of [apps.<key>] tables`] };
 	const apps: AppSpec[] = [];
 	const errors: string[] = [];
 	for (const [key, table] of Object.entries(tables)) {
 		const result = isRecord(table) ? lift(key, table) : `${key}: is not a table`;
 		if (typeof result === "string") errors.push(result);
 		else apps.push(result);
+	}
+	return { apps, errors };
+}
+
+/**
+ * The catalogue: one file per app, each holding the single [apps.<key>] table named like the file. A file that
+ * breaks that rule is reported and left out; a missing folder is an empty catalogue.
+ */
+export function loadCatalogue(dir: string): { apps: AppSpec[]; errors: string[] } {
+	let names: string[];
+	try {
+		names = readdirSync(dir)
+			.filter((n) => n.endsWith(".toml"))
+			.toSorted();
+	} catch {
+		return { apps: [], errors: [] };
+	}
+	const apps: AppSpec[] = [];
+	const errors: string[] = [];
+	for (const name of names) {
+		const key = basename(name, ".toml");
+		const r = loadManifest(join(dir, name));
+		errors.push(...r.errors.map((e) => `catalogue/${name}: ${e}`));
+		if (r.apps.length !== 1 || r.apps[0]?.key !== key)
+			errors.push(`catalogue/${name}: must hold exactly one table, [apps.${key}]`);
+		else apps.push(r.apps[0]);
 	}
 	return { apps, errors };
 }

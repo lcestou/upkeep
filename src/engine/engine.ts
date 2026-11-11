@@ -38,7 +38,7 @@ import {
 import { canRestore, checkRelease, destOf, installedFiles, installRelease, probeInstalled } from "./kinds/release";
 import { recoverTree, restoreBuilt } from "./kinds/built";
 import { checkSource, installSource } from "./kinds/source";
-import { cutTable, ensureManifest, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
+import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { expandHome, type Paths } from "./paths";
 import { killTree, type Run, type RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
@@ -69,6 +69,8 @@ export type EngineDeps = {
 	recoverWaitMs?: number;
 	paths: Paths;
 	seedManifest: string;
+	/** The folder of tested tables Add app looks in first, one file per app. Without it Add app only guesses. */
+	catalogueDir?: string;
 	fetch: FetchLike;
 	run: Run;
 	now: () => Date;
@@ -237,6 +239,9 @@ export function createEngine(deps: EngineDeps): Engine {
 		return list;
 	}
 	loadSpecs();
+	// Read once: the catalogue ships with the app and does not change while it runs.
+	const catalogue = deps.catalogueDir ? loadCatalogue(deps.catalogueDir) : { apps: [], errors: [] };
+	for (const e of catalogue.errors) say(null, e);
 
 	sweepShims(paths, deps.procRoot);
 
@@ -1033,12 +1038,25 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	async function discoverCtx(): Promise<DiscoverCtx> {
 		if (!token) token = await githubToken(deps.run);
-		return { paths, run: deps.run, fetch: deps.fetch, token, specs, log: (text) => say(null, text), api: deps.api };
+		return {
+			paths,
+			run: deps.run,
+			fetch: deps.fetch,
+			token,
+			specs,
+			catalogue: catalogue.apps,
+			log: (text) => say(null, text),
+			api: deps.api,
+		};
 	}
 
 	/** Appends one app's table to apps.toml, or says why not. The written table must read back as the same spec. */
 	function writeApp(file: string, s: AppSpec): string | null {
-		if (!ADDABLE.has(s.kind)) return `${s.key}: kind is not one of appimage, archive, file, deb`;
+		// A kind the window cannot work out (a command, a source build) is written only as the catalogue tested it: the
+		// card may rename it or move its dest, but its steps, check and update are the catalogue's, never a caller's.
+		const entry = catalogue.apps.find((c) => c.key === s.key);
+		const tested = entry !== undefined && Bun.deepEquals({ ...entry, name: s.name, dest: s.dest }, s);
+		if (!ADDABLE.has(s.kind) && !tested) return `${s.key}: kind is not one of appimage, archive, file, deb`;
 		const { key } = s;
 		const relifted = relift(s);
 		if ("problem" in relifted) return relifted.problem;

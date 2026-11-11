@@ -7,7 +7,7 @@ test("find by repo and add: the row lands ticked in Ready to install and the pan
 	await page.getByTestId("add-app").click();
 	await expect(page.getByTestId("add-pane")).toContainText("Add an app");
 	await expect(page.getByTestId("add-input")).toBeFocused();
-	await expect(page.getByTestId("add-input")).toHaveAttribute("placeholder", "owner/repo");
+	await expect(page.getByTestId("add-input")).toHaveAttribute("placeholder", "fd, or owner/repo");
 	await page.getByTestId("add-input").fill("https://github.com/BurntSushi/ripgrep");
 	await page.keyboard.press("Enter");
 	await expect(page.getByTestId("add-status")).toHaveText("Looking at the latest release");
@@ -69,7 +69,7 @@ test("a problem card has no add button, and a bad input says why", async ({ page
 	await page.getByTestId("add-input").fill("just some words");
 	await page.keyboard.press("Enter");
 	await expect(page.getByTestId("add-problem")).toHaveText(
-		"Give a GitHub repo like owner/name, a github.com link, or a file path.",
+		"Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.",
 	);
 });
 
@@ -220,4 +220,27 @@ test.describe("at 760 by 520", () => {
 		}
 		expect(await pane.locator(".scroll").evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
 	});
+});
+
+test("an app's name finds its tested table in the catalogue, and it adds like any other", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-input").fill("glow");
+	await page.keyboard.press("Enter");
+	const card = page.getByTestId("suggestion-glow");
+	await expect(card.getByTestId("sug-why")).toHaveText("From Upkeep's catalogue of tested apps.");
+	await expect(card.getByTestId("sug-dest")).toHaveValue("~/.local/bin/glow");
+	await card.getByTestId("sug-add").click();
+	await expect(page.getByTestId("added-note")).toHaveText("Added Glow.");
+	await expect(page.getByTestId("tick-glow")).toBeChecked();
+});
+
+test("a catalogue app that updates itself shows the command it runs before it is added", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.getByTestId("add-app").click();
+	await page.getByTestId("add-input").fill("gh");
+	await page.keyboard.press("Enter");
+	const card = page.getByTestId("suggestion-gh");
+	await expect(card.getByTestId("sug-runs")).toHaveText("Updates by running gh upgrade");
+	await expect(page.getByTestId("suggestion-glow")).toHaveCount(0);
 });

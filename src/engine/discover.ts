@@ -32,6 +32,8 @@ export type DiscoverCtx = {
 	token: string | null;
 	/** The apps already in the list. */
 	specs: AppSpec[];
+	/** Tested tables, looked up by name, key or repo before anything is guessed. */
+	catalogue?: AppSpec[];
 	log: (text: string) => void;
 	/** Tests point this at a local server. The token is only ever sent to the real one. */
 	api?: string;
@@ -41,7 +43,11 @@ export type DiscoverCtx = {
 	searchGapMs?: number;
 };
 
-export const BAD_INPUT = "Give a GitHub repo like owner/name, a github.com link, or a file path.";
+export const BAD_INPUT = "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.";
+export const CATALOGUE_WHY = "From Upkeep's catalogue of tested apps.";
+
+/** The kinds whose table names a release asset, so a catalogue entry of one is looked up on GitHub for today's release. */
+const RELEASE_KINDS = new Set<AppKind>(["appimage", "archive", "file", "deb"]);
 
 const SEGMENT = /^[A-Za-z0-9_.-]+$/;
 
@@ -605,6 +611,8 @@ export async function suggest(
 	ctx: DiscoverCtx,
 	asset?: string,
 ): Promise<{ suggestions: Suggestion[]; problem?: string }> {
+	const entry = inCatalogue(input, ctx.catalogue ?? []);
+	if (entry) return fromCatalogue(entry, ctx, asset);
 	const what = readInput(input);
 	if (!what) return { suggestions: [], problem: BAD_INPUT };
 	if ("repo" in what) {
@@ -618,6 +626,43 @@ export async function suggest(
 // Leftovers: our own temp names, and the owner's backups ("llama-server.bak-20260508", "x.old", "x~").
 const SKIP_NAME = /\.backup-|\.upkeep-new$|\.tmp$|\.(bak|backup|old|orig|save|prev)([-._]|$)|~$/i;
 const MAX_SCAN = 40;
+
+/** The GitHub repo a table names, in its repo field or as a github: latest source; empty when it names none. */
+const repoOf = (c: AppSpec) => (c.repo ?? (c.latest?.startsWith("github:") ? c.latest.slice(7) : "")).toLowerCase();
+
+/**
+ * The catalogue's table for what was typed: an app's key or name, or its repo or github.com link, in any case. A
+ * table that names its repo only in latest ("github:owner/name") is found by that repo too.
+ */
+function inCatalogue(input: string, catalogue: AppSpec[]): AppSpec | undefined {
+	const text = input.trim().toLowerCase();
+	const read = readInput(input);
+	const repo = read && "repo" in read ? read.repo.toLowerCase() : null;
+	return catalogue.find(
+		(c) => c.key.toLowerCase() === text || c.name.toLowerCase() === text || (repo !== null && repoOf(c) === repo),
+	);
+}
+
+/**
+ * A catalogue table as a suggestion, sure and taken as written. A release kind still asks GitHub for today's release
+ * and asset (asset is the picker's choice, else the table's pattern); a source or command table needs no lookup.
+ */
+async function fromCatalogue(
+	entry: AppSpec,
+	ctx: DiscoverCtx,
+	asset?: string,
+): Promise<{ suggestions: Suggestion[]; problem?: string }> {
+	const sure = { source: "catalogue" as const, confidence: "sure" as const, why: CATALOGUE_WHY };
+	if (!entry.repo || !RELEASE_KINDS.has(entry.kind)) {
+		const s: Suggestion = { spec: entry, installed: null, latest: null, asset: null, alternatives: [], ...sure };
+		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = `${entry.name} is already in the list.`;
+		return { suggestions: [s] };
+	}
+	const pattern = asset ?? entry.asset;
+	const r = await fromRepo(entry.repo, ctx, { asset: pattern });
+	if ("problem" in r) return { suggestions: [], problem: r.problem };
+	return { suggestions: [{ ...r.suggestion, spec: { ...entry, asset: pattern }, ...sure }] };
+}
 
 /** Installed AppImages and binaries that are not in the list. Nothing found is ever run. */
 export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[] }> {

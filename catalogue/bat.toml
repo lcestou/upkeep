@@ -1,0 +1,7 @@
+[apps.bat]
+name = "bat"
+kind = "archive"
+repo = "sharkdp/bat"
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/bat"
+bins = ["bat"]

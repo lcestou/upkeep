@@ -1,0 +1,8 @@
+[apps.tmux]
+name = "tmux"
+kind = "source"
+repo = "tmux/tmux"
+dest = "/usr/local/bin/tmux"
+version_args = ["-V"]
+build = ["sh autogen.sh", "./configure", "make -j$(nproc)", "sudo make install"]
+sudo = true

@@ -1,0 +1,7 @@
+[apps.opencode]
+name = "opencode"
+kind = "command"
+check = ["opencode", "--version"]
+latest = "npm:opencode-ai"
+update = ["opencode", "upgrade"]
+note = "Open sessions keep the old version until restarted."

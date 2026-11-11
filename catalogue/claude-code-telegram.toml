@@ -1,0 +1,6 @@
+[apps.claude-code-telegram]
+name = "claude-code-telegram"
+kind = "command"
+check = ["sh", "-c", '''command -v uv >/dev/null || exit 127; v=$(uv tool list 2>/dev/null | awk '/^claude-code-telegram /{print $2}' | sed 's/^v//'); [ -n "$v" ] || exit 127; echo "$v"''']
+latest = "github:RichardAtCT/claude-code-telegram"
+update = ["uv", "tool", "install", "--reinstall", "git+https://github.com/RichardAtCT/claude-code-telegram?rev={tag}"]

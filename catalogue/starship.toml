@@ -1,0 +1,8 @@
+[apps.starship]
+name = "Starship"
+kind = "archive"
+repo = "starship/starship"
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "/usr/local/bin/starship"
+bins = ["starship"]
+sudo = true

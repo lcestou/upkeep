@@ -40,8 +40,9 @@ bun run cli recover               # finish or undo an update that was interrupte
 
 ## Adding an app
 
-Press **Add app** in the window. There are four ways in:
+Press **Add app** in the window. There are five ways in:
 
+- **Type an app's name**, such as `fd` or `Zen Browser`. Apps in Upkeep's catalogue come with a table that has been used for real: the asset pattern, where it installs, how to read its version. Upkeep still looks up today's release. A repo or link of a catalogue app finds the same table.
 - **Paste** a GitHub `owner/repo` or any github.com link to the project. Upkeep reads the latest release, picks the asset that runs on this machine, works out the kind, and for an archive opens it to see which programs it holds (ripgrep ships `rg`, not `ripgrep`). If the app is already installed it finds it and reads its version.
 - **Choose a file** or **drop a file** on the window. An AppImage that names its own release source is matched for certain. Otherwise Upkeep searches by name and marks the result as a guess to check.
 - **Scan this computer.** It looks through `~/.local/bin`, `~/Applications` and `~/bin` for compiled programs and AppImages that are not in the list. It never runs what it finds. A guess is only offered when a well-known project has exactly that name and a release for this machine. Everything else is listed with "Could not tell where it comes from", and you paste the repo.
@@ -54,7 +55,7 @@ A program that the system's package manager owns (say `/usr/bin/rg` from apt) is
 
 ## The app list
 
-`~/.config/upkeep/apps.toml`, copied from `manifest/apps.toml` on first run. Adding and removing in the window edits this file, one table at a time, and keeps the previous version as `apps.toml.bak`. You can also edit it by hand. One table per app:
+`~/.config/upkeep/apps.toml`. On first run it is copied from `manifest/apps.toml`, which holds no apps, so a new list starts empty and fills from Add app. Adding and removing in the window edits this file, one table at a time, and keeps the previous version as `apps.toml.bak`. You can also edit it by hand. One table per app:
 
 ```toml
 [apps.fd]
@@ -100,7 +101,7 @@ build = ["cmake --build build -j 6"]
 test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"], timeout_s = 30 }]
 ```
 
-`manifest/apps.toml` holds the long forms: llama.cpp builds into a stage beside the live copy and places one binary, Strata holds its running engine and writes config values, ComfyUI records its Python packages for an offline rollback, and dsh installs a second npm prefix and swaps it in.
+`manifest/examples.toml` holds the long forms: llama.cpp builds into a stage beside the live copy and places one binary, Strata holds its running engine and writes config values, ComfyUI records its Python packages for an offline rollback, and dsh installs a second npm prefix and swaps it in.
 
 | Field | What it does |
 | --- | --- |
@@ -125,6 +126,10 @@ test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"]
 | `test` | a command (`run`) or an HTTP POST (`url` and `body`) with `expect`, `fail_on`, `timeout_s` and `required` |
 
 Steps and paths may use `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`; any other name in braces is refused. A `command` app's `update` may use `{tag}` and `{version}`. A tag or version that is not a plain version name (letters, digits, `.`, `_`, `+`, `-`, starting with a letter or digit) is refused before anything runs. `latest` also takes `npm-tags:<package>`, the highest stable version at or above the installed one, else the highest prerelease. Every path a table removes, renames or copies over is checked where it is used: never the home directory, `dir` itself, or anything above them. `keep`, `hold` and `prune` must stay inside `dir`, also after following the links on the way there. A `place` target is never a folder directly in the home directory, nor Upkeep's own folders. A step that starts with `sudo` gets `-n`, so a password prompt never waits.
+
+## The catalogue
+
+`catalogue/` holds one file per app, `catalogue/<key>.toml`, each with the single `[apps.<key>]` table Add app writes when someone picks that app. To add an app, write its table the way it works on your machine, name the file after its key, and open a pull request; a unit test loads every file, so a broken one fails the gate. Apps built from source, which name a person's own folders and services, stay out of the catalogue: `manifest/examples.toml` shows them instead. No catalogue table sets `auto`.
 
 ## What an install does
 
@@ -191,9 +196,9 @@ Upkeep is developed on Linux Mint 22 (Cinnamon, X11) and has only been run there
 | Rounded corners | a compositing window manager |
 | System group, Flatpak rows | Flatpak |
 | System group, package rows | Linux Mint's Update Manager (`mintupdate-cli`) |
-| Apps of kind `legacy` in the list that ships | the first owner's own script; a new list has none |
+| Apps of kind `legacy` | the first owner's own script; nothing in the catalogue or a new list uses it |
 
-The list that ships is one person's 32 apps. Start from your own with **Add app**, or empty `~/.config/upkeep/apps.toml`.
+A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its GitHub repo or a file.
 
 ## Develop
 

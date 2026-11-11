@@ -1,0 +1,7 @@
+[apps.lrcget]
+name = "LRCGET"
+kind = "appimage"
+repo = "tranxuanthang/lrcget"
+asset = 'amd64\.AppImage$'
+dest = "~/.local/bin/lrcget"
+meta_path = "usr/share/metainfo/lrcget.metainfo.xml"

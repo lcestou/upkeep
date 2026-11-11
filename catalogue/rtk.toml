@@ -1,0 +1,7 @@
+[apps.rtk]
+name = "rtk"
+kind = "archive"
+repo = "rtk-ai/rtk"
+asset = '^rtk-oss-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/rtk"
+bins = ["rtk"]

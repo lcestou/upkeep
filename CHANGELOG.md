@@ -12,7 +12,9 @@ First version.
 - An app built from source shows, in its pane, the commits it is behind by, newest first, and its row shows a Build stage while it builds.
 - llama.cpp, Strata, ComfyUI, whisper.cpp, dsh and claude-code-telegram are updated by Upkeep itself, with restore points. Each builds while the running copy keeps serving, is swapped in only once the build passes, and is restarted and tested; anything that fails after the stop puts the old version back.
 - `recover` from the command line finishes or undoes an update that was interrupted.
-- Add an app by pasting its GitHub repo, choosing or dropping a file, or scanning the computer. Remove one from its pane.
+- Add an app by typing its name, pasting its GitHub repo, choosing or dropping a file, or scanning the computer. Remove one from its pane.
+- A catalogue of 22 tested apps (AppImages, release binaries, .deb files, tools that update themselves, two built from source): typing one's name adds its known-good table.
+- A new list starts empty and says so, with Add app right there.
 - Filter the list by name.
 - Skip one version of an app, hold an app, or mark it to install without asking.
 - A tray icon shows how many updates are ready. One notification per new set of updates.

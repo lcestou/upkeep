@@ -1,0 +1,7 @@
+[apps.uv]
+name = "uv"
+kind = "archive"
+repo = "astral-sh/uv"
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/uv"
+bins = ["uv-x86_64-unknown-linux-gnu/uv", "uv-x86_64-unknown-linux-gnu/uvx"]

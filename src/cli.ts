@@ -149,5 +149,8 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 
 if (import.meta.main)
 	process.exit(
-		await main(process.argv.slice(2), realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml"))),
+		await main(
+			process.argv.slice(2),
+			realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml"), join(import.meta.dir, "../catalogue")),
+		),
 	);

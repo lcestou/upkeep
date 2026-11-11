@@ -5,6 +5,7 @@ import type { AppSpec } from "../shared/types";
 import {
 	assetPattern,
 	BAD_INPUT,
+	CATALOGUE_WHY,
 	bareName,
 	type DiscoverCtx,
 	appName,
@@ -162,6 +163,64 @@ test("input: a repo, a github.com link, a file path, or neither", () => {
 
 test("suggest refuses input that is not a repo, a link or a path", async () => {
 	expect(await suggest("fd please", ctx().c)).toEqual({ suggestions: [], problem: BAD_INPUT });
+});
+
+const CATALOGUE: AppSpec[] = [
+	{
+		key: "fd",
+		name: "fd",
+		kind: "archive",
+		repo: "sharkdp/fd",
+		asset: "x86_64-unknown-linux-gnu\\.tar\\.gz$",
+		dest: "~/.local/bin/fd",
+		bins: ["fd"],
+	},
+	{
+		key: "claude",
+		name: "Claude Code",
+		kind: "command",
+		check: ["claude", "--version"],
+		latest: "npm:@anthropic-ai/claude-code",
+		update: ["claude", "update"],
+	},
+];
+
+test("a name, key or repo in the catalogue answers with its tested table, sure, and today's release", async () => {
+	const c = { ...ctx().c, catalogue: CATALOGUE };
+	for (const input of ["fd", " FD ", "sharkdp/fd", "https://github.com/sharkdp/fd"]) {
+		// oxlint-disable-next-line no-await-in-loop -- one input at a time
+		const r = await suggest(input, c);
+		expect(r.suggestions).toHaveLength(1);
+		expect(r.suggestions[0]).toMatchObject({
+			spec: CATALOGUE[0],
+			source: "catalogue",
+			confidence: "sure",
+			why: CATALOGUE_WHY,
+			latest: "10.5.2",
+			asset: { name: "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz" },
+		});
+	}
+	const claude = await suggest("claude code", c);
+	expect(claude.suggestions[0]).toMatchObject({ spec: CATALOGUE[1], source: "catalogue", latest: null });
+	expect(fetched.filter((u) => u.includes("anthropic"))).toEqual([]);
+	expect(await suggest("not-in-it", c)).toEqual({ suggestions: [], problem: BAD_INPUT });
+	const telegram: AppSpec = {
+		key: "claude-code-telegram",
+		name: "claude-code-telegram",
+		kind: "command",
+		check: ["x"],
+		latest: "github:RichardAtCT/claude-code-telegram",
+		update: ["y"],
+	};
+	const withTelegram = { ...ctx().c, catalogue: [...CATALOGUE, telegram] };
+	expect(
+		(await suggest("https://github.com/RichardAtCT/claude-code-telegram", withTelegram)).suggestions[0],
+	).toMatchObject({
+		spec: telegram,
+		source: "catalogue",
+	});
+	const listed = { ...ctx([CATALOGUE[1] as AppSpec]).c, catalogue: CATALOGUE };
+	expect((await suggest("claude", listed)).suggestions[0]?.problem).toBe("Claude Code is already in the list.");
 });
 
 test("the asset filter keeps what runs on Linux x86_64, best first, on three real releases", () => {

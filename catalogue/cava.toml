@@ -1,0 +1,8 @@
+[apps.cava]
+name = "CAVA"
+kind = "source"
+repo = "karlstav/cava"
+dest = "/usr/local/bin/cava"
+version_args = ["-v"]
+build = ["./autogen.sh", "./configure", "make -j$(nproc)", "sudo make install"]
+sudo = true

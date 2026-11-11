@@ -1,0 +1,6 @@
+[apps.wrangler]
+name = "wrangler"
+kind = "command"
+check = ["wrangler", "--version"]
+latest = "npm:wrangler"
+update = ["~/.bun/bin/bun", "add", "-g", "wrangler@latest"]
