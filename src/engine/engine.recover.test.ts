@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { createEngine, type EngineDeps, REASON_UNRECOVERED } from "./engine";
+import { createEngine, type EngineDeps } from "./engine";
+import { REASON_UNRECOVERED } from "./kinds/context";
 import type { FetchLike } from "./github";
 import { installBuilt, restoreBuilt, SUDO_REFUSED } from "./kinds/built";
 import { loadManifest } from "./manifest";
@@ -241,6 +242,75 @@ test("a built restore stops what runs, puts the point back and starts it again",
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
 	expect(box.units.srv?.running).toBe(true);
 	expect(engine.history(5)[0]).toMatchObject({ key: "srv", result: "restored", to: "f2918cabb" });
+});
+
+test("a run stops at an app whose marker was kept, so the next app cannot erase it", async () => {
+	const box = fakeBox("sudo -n start srv");
+	box.units.two = { running: true, starts: 1 };
+	const d = deps(box);
+	writeFileSync(join(t.dir, "seed.toml"), `${SEED}\n${SEED.replaceAll("srv", "two")}`);
+	// The fake's version probe reads srv's binary for both apps.
+	put(join(dir, "bin/srv"), "version 0.8.0");
+	put(join(t.paths.home, "two/bin/two"), "version 0.8.0");
+	const engine = createEngine(d);
+	await engine.check();
+	expect(engine.readyKeys(false)).toEqual(["srv", "two"]);
+	expect(await engine.install(["srv", "two"])).toEqual({ started: true });
+	await engine.idle();
+	expect(engine.snapshot().run.results.map((r) => r.key)).toEqual(["srv"]);
+	expect(readInflight(t.paths)).toMatchObject({ key: "srv", tree: { step: "starting" } });
+	expect(engine.snapshot().apps.find((a) => a.key === "two")?.status).toBe("ready");
+});
+
+test("an update never writes over another app's kept marker", async () => {
+	const other = {
+		key: "two",
+		dest: "",
+		backupVersion: null,
+		tree: { step: "stopping" as const, build: null, active: [], paused: [] },
+	};
+	writeInflight(t.paths, other);
+	const file = join(t.paths.state, "inflight.json");
+	const before = readFileSync(file);
+	await expect(installBuilt(spec(), target, kindCtx(fakeBox()) as never)).rejects.toThrow(REASON_UNRECOVERED);
+	expect(readFileSync(file)).toEqual(before);
+});
+
+test("a restore over a failed recovery's marker keeps it when a stop fails, and starts its paused units when it works", async () => {
+	const box = fakeBox(undefined, { stopFails: true });
+	expect(await installBuilt(spec(), target, kindCtx(fakeBox()) as never)).toMatchObject({ result: "done" });
+	box.units.api = { running: false, starts: 1 };
+	const kept = {
+		key: "srv",
+		dest: dir,
+		backupVersion: "gone",
+		tree: { step: "placing" as const, build: null, active: [], paused: ["api"] },
+	};
+	writeInflight(t.paths, kept);
+	const file = join(t.paths.state, "inflight.json");
+	const before = readFileSync(file);
+	expect(await restoreBuilt(spec(), "f2918cabb", kindCtx(box) as never)).toEqual({
+		ok: false,
+		detail: "Could not stop srv. Nothing was changed.",
+	});
+	expect(readFileSync(file)).toEqual(before);
+	const works = fakeBox();
+	works.units.api = { running: false, starts: 1 };
+	expect(await restoreBuilt(spec(), "f2918cabb", kindCtx(works) as never)).toEqual({ ok: true });
+	expect(works.units.api?.running).toBe(true);
+	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("the app a kept marker names cannot be removed: recovery needs its table", async () => {
+	writeInflight(t.paths, {
+		key: "srv",
+		dest: dir,
+		backupVersion: "gone",
+		tree: { step: "placing", build: null, active: [], paused: [] },
+	});
+	const engine = createEngine(deps(fakeBox()));
+	expect(await engine.removeApp("srv")).toEqual({ ok: false, detail: REASON_UNRECOVERED });
+	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.map((a) => a.key)).toEqual(["srv"]);
 });
 
 const KILLS = [

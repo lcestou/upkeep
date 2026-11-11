@@ -5,6 +5,9 @@ import { type ProbeResult, readProbe, stripEscapes } from "../probe";
 import type { Run } from "../run";
 
 /** What a kind needs from the engine. Every path and process goes through here so tests pass temp dirs and fakes. */
+/** Install and every other restore wait until the interrupted update is put back: its marker is the only record of it. */
+export const REASON_UNRECOVERED = "An update was interrupted and could not be put back. Restore it from its row first.";
+
 export type KindCtx = {
 	paths: Paths;
 	run: Run;

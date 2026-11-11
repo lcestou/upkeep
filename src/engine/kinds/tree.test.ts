@@ -295,6 +295,19 @@ test("keep or hold outside dir, a record path and a version that names a folder 
 	expect(safePath(join(app, "engine"), t.paths, { dir: app, under: [app] })).toBe(join(app, "engine"));
 });
 
+test("a path through a link that leads outside dir is refused, and a link named itself is kept as a link", () => {
+	const outside = join(t.paths.home, "outside");
+	mkdirSync(join(outside, "victim"), { recursive: true });
+	mkdirSync(app, { recursive: true });
+	symlinkSync(outside, join(app, "link"));
+	const inApp = { dir: app, under: [app], not: [app] };
+	expect(() => safePath(join(app, "link/victim"), t.paths, inApp)).toThrow("a link inside it leads outside");
+	for (const found of expandGlob("link/*", t.paths, app))
+		expect(() => safePath(found, t.paths, inApp)).toThrow("Refused");
+	expect(safePath(join(app, "link"), t.paths, inApp)).toBe(join(app, "link"));
+	expect(safePath(join(app, "new/sub"), t.paths, inApp)).toBe(join(app, "new/sub"));
+});
+
 test("the copy of a kept directory into .upkeep-new reports its pid and is killed as a tree", async () => {
 	const { run, calls } = fakeBox();
 	const { point } = await takeTree(spec(), ctx(run), { version: "1.0", at: "x", vars: {} });

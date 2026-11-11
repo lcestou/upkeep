@@ -208,7 +208,7 @@ const within = (p: string, root: string) => p.startsWith(`${root}/`);
 /**
  * The load-time half of the path checks built.ts and tree.ts repeat where each path is used: keep, hold and prune
  * stay strictly inside dir (inside the stage's parent for a table with no dir), and the stage is never the home
- * directory, dir or a live place target, or above one. Compared as written, so an absolute dir with a keep under ~
+ * directory, dir or a live place target, or above one; a place target is never a folder directly in ~. Compared as written, so an absolute dir with a keep under ~
  * is refused even when it is inside; write both the same way.
  */
 function unsafeSourcePath(key: string, spec: AppSpec): string | null {
@@ -224,6 +224,8 @@ function unsafeSourcePath(key: string, spec: AppSpec): string | null {
 	const kept = new Set((spec.keep ?? []).map(tidy));
 	// After a verified update the held copy is deleted; keep is then the only old copy a later restore has.
 	if ((spec.hold ?? []).some((h) => !kept.has(tidy(h)))) return `${key}: every hold path must also be in keep`;
+	if ((spec.place ?? []).some((pl) => dirname(tidy(pl.to)) === "~"))
+		return `${key}: place to cannot be a folder directly in the home directory`;
 	if (stage !== null) {
 		const live = [dir, ...(spec.place ?? []).map((pl) => tidy(pl.to))].filter((x): x is string => x !== null);
 		if (

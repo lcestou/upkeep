@@ -255,7 +255,7 @@ export function asRoot(argv: string[], sudo: boolean | undefined): string[] {
 	return sudo ? ["sudo", "-n", ...argv] : argv;
 }
 
-/** A table's own argv that begins with sudo gets -n, so a password prompt can never wait. */
+/** A table's own argv that begins with sudo gets -n, so a password prompt can never wait. A full path such as /usr/bin/sudo is not seen. */
 export function asRootArgv(argv: string[]): string[] {
 	if (argv[0] !== "sudo" || argv[1] === "-n") return argv;
 	return ["sudo", "-n", ...argv.slice(1)];

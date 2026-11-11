@@ -4,12 +4,13 @@ import {
 	mkdirSync,
 	readdirSync,
 	readlinkSync,
+	realpathSync,
 	renameSync,
 	rmSync,
 	statSync,
 	writeFileSync,
 } from "node:fs";
-import { dirname, isAbsolute, join, normalize, relative } from "node:path";
+import { basename, dirname, isAbsolute, join, normalize, relative } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import { type BackupMeta, backupDir, pointName, readMeta } from "../backup";
 import { expandHome, type Paths } from "../paths";
@@ -46,8 +47,10 @@ export function resolvePath(p: string, paths: Paths, dir: string | null): string
  * Refuses a table path before anything removes, renames or copies over it. Refused: a path that is not absolute or
  * has a .. segment; the root, the home directory or any directory above it; dir or any directory above it; anything
  * in not or above it; and, when under is given, a path outside every root in under (a root itself counts as inside,
- * so pass it in not too when it must not be touched whole). apps.toml was checked when it was read; this holds when
- * a placeholder, a glob or an edited table names something else. Returns the path normalized.
+ * so pass it in not too when it must not be touched whole). With under, the path's parent is also resolved through
+ * its links and must still land inside a root, so dir/link/x with link pointing elsewhere is refused; the last segment
+ * is not followed, so a link in keep is kept as a link. apps.toml was checked when it was read; this holds when a
+ * placeholder, a glob or an edited table names something else. Returns the path normalized.
  */
 export function safePath(p: string, paths: Paths, o: { dir: string | null; under?: string[]; not?: string[] }): string {
 	if (!isAbsolute(p) || p.split("/").includes("..")) throw new Error(`Refused ${p}: not a plain absolute path`);
@@ -57,7 +60,23 @@ export function safePath(p: string, paths: Paths, o: { dir: string | null; under
 		if (q && covers(normalize(q))) throw new Error(`Refused ${p}: it holds more than this table may change`);
 	if (o.under && !o.under.some((u) => n === u || n.startsWith(`${u}/`)))
 		throw new Error(`Refused ${p}: it is outside what this table may change`);
+	if (o.under) {
+		const real = join(realOf(dirname(n)), basename(n));
+		if (!o.under.map(realOf).some((u) => real === u || real.startsWith(`${u}/`)))
+			throw new Error(`Refused ${p}: a link inside it leads outside what this table may change`);
+	}
 	return n;
+}
+
+/** p with its links resolved; the part that does not exist yet is joined as written onto its nearest real parent. */
+function realOf(p: string): string {
+	const rest: string[] = [];
+	let at = p;
+	while (!exists(at) && at !== dirname(at)) {
+		rest.unshift(basename(at));
+		at = dirname(at);
+	}
+	return join(realpathSync(at), ...rest);
 }
 
 /** What keep, hold and prune may touch: dir, or the stage's parent for a table that builds only into a stage. */
