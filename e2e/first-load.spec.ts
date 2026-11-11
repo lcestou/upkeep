@@ -47,13 +47,13 @@ test("group names and the restore column", async ({ page }) => {
 	await expect(page.getByTestId("row-cursor").locator(".kind")).toHaveText("Updater script");
 });
 
-test("Check again runs a check with a loading bar and ends Checked now", async ({ page }) => {
+test("Check again runs a check with a loading bar and ends Checked just now", async ({ page }) => {
 	// Slow enough that the Checking sentence holds between the crossfades.
 	await load(page, "fixture&speed=0.4");
 	await page.getByTestId("check").click();
 	await expect(page.getByTestId("state-sentence")).toHaveText(/^Checking \d+ of 32$/);
 	await expect(page.getByTestId("check")).toHaveAttribute("aria-disabled", "true");
 	await expect(page.getByTestId("state-sentence")).toHaveText("4 updates ready", { timeout: 10_000 });
-	await expect(page.getByTestId("checked")).toHaveText("Checked now");
+	await expect(page.getByTestId("checked")).toHaveText("Checked just now");
 	await expect(page.getByTestId("check")).toBeFocused();
 });

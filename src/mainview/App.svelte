@@ -180,7 +180,7 @@
 			{:else if m.view === "settings"}
 				<SettingsView model={m} />
 			{:else}
-				<div class="bench" class:open={m.openApp !== null || m.adding}>
+				<div class="bench">
 					<!-- Under 900 px the pane is a sheet: the list behind it is out of reach until it closes. -->
 					<div class="listbox" inert={sheet && (m.openApp !== null || m.adding)}>
 						<AppList model={m} />
@@ -199,12 +199,12 @@
 							aria-label={m.openApp.name}
 							transition:fly={{ x: 32, duration: ms(200) }}
 						>
-							<div class="scroll" {@attach shade}>
-								<!-- Keyed so a different app starts with no leftover Copied or Restored message. -->
-								{#key m.openApp.key}
+							<!-- Keyed so a different app starts at the top, with no leftover Copied or Restored message. -->
+							{#key m.openApp.key}
+								<div class="scroll" {@attach shade}>
 									<RowDetail app={m.openApp} model={m} onclose={closeInspector} />
-								{/key}
-							</div>
+								</div>
+							{/key}
 						</aside>
 					{/if}
 				</div>
@@ -309,10 +309,17 @@
 		opacity: 1;
 	}
 	@media (min-width: 900px) {
-		.bench.open {
+		/* The pane's column lasts as long as the pane is on the page, its fly-out included: keyed on a class that
+		   drops at the close, the closing pane fell into a second row and squeezed the list to nothing for 200 ms. */
+		.bench:has(> .inspector) {
 			grid-template-columns: minmax(0, 1fr) max(380px, 42%);
 		}
+		.listbox {
+			grid-area: 1 / 1;
+		}
+		/* Both panes share one cell, so one leaving while the other arrives never makes a second row either. */
 		.inspector {
+			grid-area: 1 / 2;
 			border-left: 1px solid var(--line-soft);
 		}
 	}

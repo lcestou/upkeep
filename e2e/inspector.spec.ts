@@ -78,3 +78,41 @@ test("at 760 by 520 the pane is a sheet with a close button and nothing in it is
 		expect(await button.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
 	}
 });
+
+test("closing the pane never squeezes the list: it keeps its height while the pane flies out, then widens once", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1400, height: 900 });
+	await load(page);
+	await page.locator("[data-row]").first().click();
+	await expect(page.getByTestId("inspector")).toBeVisible();
+	const list = () =>
+		page.evaluate(() => {
+			const b = document.querySelector(".listbox")?.getBoundingClientRect();
+			return { width: Math.round(b?.width ?? 0), height: Math.round(b?.height ?? 0) };
+		});
+	const open = await list();
+	expect(open.height).toBeGreaterThan(300);
+	await page.keyboard.press("Escape");
+	const heights: number[] = [];
+	for (let i = 0; i < 10; i++) {
+		heights.push((await list()).height);
+		await page.waitForTimeout(25);
+	}
+	expect(heights.every((h) => h === open.height)).toBe(true);
+	await expect(page.getByTestId("inspector")).toHaveCount(0);
+	expect((await list()).width).toBeGreaterThan(open.width);
+});
+
+test("opening another app's pane starts it at the top, not where the last one was scrolled", async ({ page }) => {
+	await page.setViewportSize({ width: 1400, height: 560 });
+	await load(page);
+	const rows = page.locator("[data-row]");
+	await rows.nth(0).click();
+	const scroll = page.locator('[data-testid="inspector"] .scroll');
+	await scroll.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+	await expect.poll(() => scroll.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+	await rows.nth(1).click();
+	await expect(page.getByTestId("inspector")).toHaveAttribute("aria-label", /.+/);
+	await expect.poll(() => scroll.evaluate((el) => el.scrollTop)).toBe(0);
+});

@@ -7,10 +7,10 @@
 
 	let { model }: { model: Model } = $props();
 
-	// Re-read the relative time each minute so "Checked 2 minutes ago" does not go stale on screen.
+	// Re-read the relative time every 15 s so "Checked 2 minutes ago" does not go stale on screen.
 	let now = $state(Date.now());
 	$effect(() => {
-		const id = setInterval(() => (now = Date.now()), 60_000);
+		const id = setInterval(() => (now = Date.now()), 15_000);
 		return () => clearInterval(id);
 	});
 	const checked = $derived(model.checkedAt ? checkedTitle(relativeTime(model.checkedAt, now)) : null);
