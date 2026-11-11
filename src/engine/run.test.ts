@@ -118,3 +118,15 @@ test("a table's sudo argv always gets -n, once, and onStart sees the child's pid
 	const r = await realRun(t.paths)([s], { onStart: (pid) => pids.push(pid) });
 	expect(pids).toEqual([Number(r.stdout.trim())]);
 });
+
+test("the runner gives every argv that starts with sudo -n, in run and in start", async () => {
+	// A stand-in sudo in the temp home, and no system directory on PATH, so the real one can never run.
+	script(join(t.paths.home, ".local/bin/sudo"), 'echo "stand-in $*"');
+	const run = realRun(t.paths, "");
+	expect((await run(["sudo", "systemctl", "stop", "x"])).stdout).toBe("stand-in -n systemctl stop x\n");
+	expect((await run(["sudo", "-n", "true"])).stdout).toBe("stand-in -n true\n");
+	const started = run.start?.(["sudo", "sleep-ish"]);
+	await Bun.sleep(300);
+	expect(started?.output()).toBe("stand-in -n sleep-ish\n");
+	await started?.stop();
+});

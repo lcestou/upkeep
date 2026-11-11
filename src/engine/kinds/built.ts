@@ -101,12 +101,24 @@ export async function startService(run: Run, svc: Service & { start: string[] })
 	return r.code === 0 || (await isActive(run, svc));
 }
 
-/** Every serve and pause argv the table runs as root, checked with sudo -n -l before anything changes. */
+/**
+ * Every argv of the table that starts with sudo, roughly in the order an update runs them, checked with sudo -n -l
+ * before anything changes. Placeholders are not filled here, so a sudoers rule that names exact arguments will not
+ * match an argv that carries one. sudo inside a step's shell text is not seen; nonInteractive gives it -n instead.
+ */
 export function rootArgvs(spec: AppSpec): string[][] {
-	const all: string[][] = [];
-	for (const s of [...(spec.pause ?? []), ...(spec.serve ?? [])])
-		for (const argv of [s.active, s.stop, s.start, s.since]) if (argv?.[0] === "sudo") all.push(argv);
-	return all;
+	const services = [...(spec.pause ?? []), ...(spec.serve ?? [])];
+	const tests = [...(spec.serve ?? []).flatMap((s) => s.test ?? []), ...(spec.test ?? [])];
+	const argvs = [
+		...(spec.busy ?? []).map((b) => b.run),
+		...services.flatMap((s) => [s.active, s.stop, s.start, s.since]),
+		...(spec.record ?? []).map((r) => r.run),
+		spec.needs,
+		...tests.map((t) => t.run),
+		spec.check,
+		spec.commit,
+	];
+	return argvs.filter((a): a is string[] => a?.[0] === "sudo");
 }
 
 /** Whether sudo -n -l allows every root argv of the table, checked in table order before anything changes. */

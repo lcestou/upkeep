@@ -5,7 +5,7 @@ import type { AppSpec } from "../../shared/types";
 import type { RunOpts, RunResult } from "../run";
 import { type Inflight, readInflight } from "../store";
 import { ok, strictRun, tempHome } from "../testkit";
-import { type Built, prepareBuilt, SUDO_REFUSED } from "./built";
+import { type Built, prepareBuilt, rootArgvs, SUDO_REFUSED } from "./built";
 import type { KindCtx } from "./context";
 
 let t: ReturnType<typeof tempHome>;
@@ -215,4 +215,42 @@ test("every sudo a table writes runs with -n: in active, in since and inside a b
 	expect(all).toContain("sudo -n since srv");
 	expect(all).toContain("bash -c sudo -n make install");
 	expect(all.filter((a) => a.startsWith("sudo ") && !a.startsWith("sudo -n "))).toEqual([]);
+});
+
+test("the sudo preflight covers every argv field of the table, not only the services", () => {
+	const s: AppSpec = {
+		key: "x",
+		name: "X",
+		kind: "source",
+		repo: "o/x",
+		dir: "~/x",
+		build: ["make"],
+		check: ["sudo", "check"],
+		commit: ["sudo", "commit"],
+		needs: ["sudo", "needs"],
+		busy: [{ run: ["sudo", "busy"], say: "Busy." }],
+		record: [{ file: "r.txt", run: ["sudo", "record"] }],
+		test: [{ name: "t", run: ["sudo", "test"] }],
+		pause: [{ name: "p", active: ["is-active"], stop: ["sudo", "stop", "p"] }],
+		serve: [
+			{
+				name: "s",
+				active: ["is-active"],
+				stop: ["stop"],
+				start: ["sudo", "start", "s"],
+				test: [{ name: "u", run: ["sudo", "serve-test"] }],
+			},
+		],
+	};
+	expect(rootArgvs(s).map((a) => a.slice(1).join(" "))).toEqual([
+		"busy",
+		"stop p",
+		"start s",
+		"record",
+		"needs",
+		"serve-test",
+		"test",
+		"check",
+		"commit",
+	]);
 });

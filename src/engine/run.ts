@@ -88,7 +88,11 @@ export function killTree(pid: number, procRoot = "/proc"): void {
 	}
 }
 
-/** The real runner. Stdin is ignored, ~/ is expanded in every argv element, and the owner's bin directories lead PATH. */
+/**
+ * The real runner. Stdin is ignored, ~/ is expanded in every argv element, the owner's bin directories lead PATH,
+ * and an argv that starts with sudo gets -n: a child keeps the terminal, so a sudo without it would prompt there
+ * and wait out its timeout.
+ */
 export function createRunner(home: string, tmpDir: string, basePath: string): Run {
 	const path = [join(home, ".local/bin"), join(home, ".bun/bin"), basePath].filter(Boolean).join(":");
 	let seq = 0;
@@ -105,7 +109,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		let proc: ReturnType<typeof Bun.spawn> | null = null;
 		try {
 			proc = Bun.spawn(
-				argv.map((a) => expandHome(a, home)),
+				asRootArgv(argv).map((a) => expandHome(a, home)),
 				{ env: envFor(opts.pathPrefix), stdin: "ignore", stdout: fd, stderr: "ignore" },
 			);
 		} catch {
@@ -137,7 +141,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		};
 	};
 	const run = async (argv: string[], opts: RunOpts = {}): Promise<RunResult> => {
-		const cmd = argv.map((a) => expandHome(a, home));
+		const cmd = asRootArgv(argv).map((a) => expandHome(a, home));
 		const env = envFor(opts.pathPrefix, opts.env);
 		const stream = opts.onLine !== undefined;
 		let outFile = "";
