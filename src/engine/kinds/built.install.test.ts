@@ -3,7 +3,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, s
 import { dirname, join } from "node:path";
 import type { AppSpec, Serve } from "../../shared/types";
 import type { FetchLike } from "../github";
-import type { RunOpts, RunResult } from "../run";
+import type { RunOpts, ProcessResult } from "../run";
 import { readInflight } from "../store";
 import { ok, strictRun, tempHome } from "../testkit";
 import { installBuilt } from "./built";
@@ -26,7 +26,7 @@ function put(file: string, text: string): void {
 	mkdirSync(dirname(file), { recursive: true });
 	writeFileSync(file, text);
 }
-const fail = (stderr = "no"): RunResult => ({ code: 1, stdout: "", stderr, timedOut: false });
+const fail = (stderr = "no"): ProcessResult => ({ code: 1, stdout: "", stderr, timedOut: false });
 
 /** Every file under root with its content, so a tree can be compared byte for byte. */
 function hashTree(root: string): Record<string, string> {

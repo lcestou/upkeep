@@ -2,7 +2,7 @@ import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { type Paths, paths } from "./paths";
-import { createRunner, type Run, type RunOpts, type RunResult } from "./run";
+import { createRunner, type Run, type RunOpts, type ProcessResult } from "./run";
 
 /** A temp home with every Upkeep directory under it. Tests never touch the real one. */
 export function tempHome(prefix: string): { dir: string; paths: Paths; cleanup(): void } {
@@ -40,7 +40,7 @@ export type Call = { argv: string[]; opts: RunOpts };
  */
 export function recordingRun(
 	p: Paths,
-	handle: (argv: string[], opts: RunOpts) => RunResult | undefined | Promise<RunResult | undefined>,
+	handle: (argv: string[], opts: RunOpts) => ProcessResult | undefined | Promise<ProcessResult | undefined>,
 ): { run: Run; calls: Call[] } {
 	const calls: Call[] = [];
 	const real = realRun(p);
@@ -55,14 +55,14 @@ export function recordingRun(
 	return { run, calls };
 }
 
-export const ok = (stdout = ""): RunResult => ({ code: 0, stdout, stderr: "", timedOut: false });
+export const ok = (stdout = ""): ProcessResult => ({ code: 0, stdout, stderr: "", timedOut: false });
 
 /**
  * A runner that never reaches a real process: every argv must be answered by handle, and any other argv throws.
  * The extras tests use only this one.
  */
 export function strictRun(
-	handle: (argv: string[], opts: RunOpts) => RunResult | undefined | Promise<RunResult | undefined>,
+	handle: (argv: string[], opts: RunOpts) => ProcessResult | undefined | Promise<ProcessResult | undefined>,
 ): { run: Run; calls: Call[] } {
 	const calls: Call[] = [];
 	const run: Run = async (argv, opts = {}) => {

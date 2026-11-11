@@ -5,8 +5,8 @@ import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
 import type { Run } from "../run";
 import { ok, recordingRun, script, tempHome } from "../testkit";
-import type { KindCtx } from "./context";
-import { checkSource, installSource, nonInteractive } from "./source";
+import { type KindCtx, nonInteractive } from "./context";
+import { checkSource, installSource } from "./source";
 
 let t: ReturnType<typeof tempHome>;
 let lines: string[] = [];

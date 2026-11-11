@@ -152,10 +152,9 @@ function quit(): void {
 }
 
 if ((await claimInstance(deps.paths.socket, openWindow)) === "secondary") {
-	// Another Upkeep is running and has been asked to show its window.
-	process.exit(0);
-	// The framework's process.exit starts a graceful quit and returns; stop here so no second engine, tray or window is built.
-	await new Promise<never>(() => {});
+	// Another Upkeep is running and has been asked to show its window. The framework's process.exit starts a
+	// graceful quit and returns; the promise never settles, so no second engine, tray or window is built.
+	await new Promise<never>(() => process.exit(0));
 }
 
 // SIGTERM at logout and the framework's own quit paths skip quit(): let the window close and free the socket.

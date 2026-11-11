@@ -1,7 +1,7 @@
-import type { Settings, Stage } from "../../shared/types";
+import type { AppSpec, Settings, Stage } from "../../shared/types";
 import type { Asset, FetchLike, Rate, Release } from "../github";
 import type { Paths } from "../paths";
-import type { ProbeResult } from "../probe";
+import { type ProbeResult, readProbe, stripEscapes } from "../probe";
 import type { Run } from "../run";
 
 /** What a kind needs from the engine. Every path and process goes through here so tests pass temp dirs and fakes. */
@@ -90,4 +90,27 @@ export function stageClock(ctx: KindCtx): {
 export function probeProblem(name: string, dest: string, probe: Exclude<ProbeResult, { version: string }>): string {
 	if (probe.state === "broken") return `${name} will not start (${dest}).`;
 	return `Version probe failed${probe.detail ? `: ${probe.detail}` : "."}`;
+}
+
+/**
+ * The installed version as the table's check prints it, or null when the check reports nothing there (exit 127).
+ * The table's author writes the check, so its first line is the version, taken as written: a commit hash or a
+ * prerelease must not be reshaped ("f2918cabb" would read "2918cabb", "0.2.2-rc.1" "0.2.2"). An empty first line
+ * is unknown. installBuilt's verify reads the version the same way.
+ */
+export async function readInstalled(
+	spec: AppSpec,
+	ctx: Pick<KindCtx, "run">,
+): Promise<{ probe: ProbeResult; installed: string | null } | null> {
+	const out = await ctx.run(spec.check ?? [], { timeoutMs: 10_000, merge: true });
+	if (out.code === 127) return null;
+	const first = stripEscapes(out.stdout).split("\n")[0]?.trim() ?? "";
+	let probe = readProbe(out.code, out.stdout);
+	if ("version" in probe && !first) probe = { state: "unknown", detail: "The version probe printed nothing." };
+	return { probe, installed: "version" in probe ? first : null };
+}
+
+/** A root step in the manifest must never wait on a password prompt. */
+export function nonInteractive(step: string): string {
+	return step.replace(/(^|[;&|]\s*)sudo (?!-n )/g, "$1sudo -n ");
 }

@@ -5,7 +5,7 @@ import { createEngine, type EngineDeps, REASON_UNRECOVERED } from "./engine";
 import type { FetchLike } from "./github";
 import { installBuilt, restoreBuilt, SUDO_REFUSED } from "./kinds/built";
 import { loadManifest } from "./manifest";
-import type { RunOpts, RunResult } from "./run";
+import type { RunOpts, ProcessResult } from "./run";
 import { readInflight, writeInflight } from "./store";
 import { ok, strictRun, tempHome } from "./testkit";
 
@@ -27,7 +27,7 @@ function put(file: string, text: string): void {
 	mkdirSync(dirname(file), { recursive: true });
 	writeFileSync(file, text);
 }
-const fail = (stderr = "no"): RunResult => ({ code: 1, stdout: "", stderr, timedOut: false });
+const fail = (stderr = "no"): ProcessResult => ({ code: 1, stdout: "", stderr, timedOut: false });
 
 function hashTree(root: string): Record<string, string> {
 	const out: Record<string, string> = {};

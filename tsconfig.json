@@ -1,6 +1,9 @@
 {
 	"extends": "./.hutch/devkit/tsconfig.json",
 	"compilerOptions": {
+		// Electrobun's generated .hutch/devkit/tsconfig.json sets baseUrl, which TypeScript 6 deprecates and 7
+		// removes. This silences 6; moving to 7 waits on Electrobun dropping it.
+		"ignoreDeprecations": "6.0",
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleResolution": "bundler",
@@ -16,8 +19,13 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
+		// exactOptionalPropertyTypes and noImplicitReturns, which the other projects turn on, stay off:
+		// Electrobun's own source under .hutch is type-checked with this program and fails both.
+		"allowUnusedLabels": false,
+		"allowUnreachableCode": false,
+		"allowImportingTsExtensions": true,
 		"skipLibCheck": true
 	},
-	"include": ["src", "scripts", "electrobun.config.ts", "vite.config.ts"],
+	"include": ["src", "scripts", "e2e", "tools", "electrobun.config.ts", "vite.config.ts", "playwright.config.ts"],
 	"exclude": ["node_modules", "dist", "build", "artifacts"]
 }

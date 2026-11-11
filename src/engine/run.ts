@@ -20,7 +20,7 @@ export type RunOpts = {
 	pathPrefix?: string;
 };
 
-export type RunResult = { code: number; stdout: string; stderr: string; timedOut: boolean };
+export type ProcessResult = { code: number; stdout: string; stderr: string; timedOut: boolean };
 
 /** A process left running in the background, for one that never ends on its own (an AppImage mount). */
 export type Started = {
@@ -36,7 +36,7 @@ export type StartOpts = { pathPrefix?: string; stopMs?: number };
  * Every process the engine starts goes through one of these, so tests can pass a recording fake.
  * start is for a process the caller reads and then stops; a runner without it cannot start one.
  */
-export type Run = ((argv: string[], opts?: RunOpts) => Promise<RunResult>) & {
+export type Run = ((argv: string[], opts?: RunOpts) => Promise<ProcessResult>) & {
 	start?: (argv: string[], opts?: StartOpts) => Started;
 };
 
@@ -140,7 +140,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			},
 		};
 	};
-	const run = async (argv: string[], opts: RunOpts = {}): Promise<RunResult> => {
+	const run = async (argv: string[], opts: RunOpts = {}): Promise<ProcessResult> => {
 		const cmd = asRootArgv(argv).map((a) => expandHome(a, home));
 		const env = envFor(opts.pathPrefix, opts.env);
 		const stream = opts.onLine !== undefined;
@@ -262,7 +262,7 @@ export function asRootArgv(argv: string[]): string[] {
 export const SUDO_PASSWORD = "sudo needs a password here. Run the update from a terminal.";
 
 /** True when sudo refused because it would have had to ask for a password. */
-export function sudoNeedsPassword(r: RunResult): boolean {
+export function sudoNeedsPassword(r: ProcessResult): boolean {
 	return r.code !== 0 && /a password is required|a terminal is required/.test(r.stderr + r.stdout);
 }
 
@@ -276,7 +276,7 @@ export async function installAside(
 	to: string,
 	mode: string,
 	sudo: boolean | undefined,
-): Promise<RunResult> {
+): Promise<ProcessResult> {
 	const next = `${to}.upkeep-new`;
 	let r = await run(asRoot(["install", "-m", mode, src, next], sudo), { timeoutMs: 120_000 });
 	if (r.code === 0 && !(existsSync(next) && statSync(next).size === statSync(src).size))

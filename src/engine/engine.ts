@@ -17,7 +17,7 @@ import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup } fr
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { type FetchLike, githubToken, type Rate } from "./github";
 import { checkCommand, installCommand } from "./kinds/command";
-import type { Checked, KindCtx, Outcome, Target } from "./kinds/context";
+import { type Checked, type KindCtx, type Outcome, readInstalled, type Target } from "./kinds/context";
 import {
 	checkLegacy,
 	installLegacy,
@@ -30,7 +30,7 @@ import {
 } from "./kinds/legacy";
 import { canRestore, checkRelease, destOf, installedFiles, installRelease, probeInstalled } from "./kinds/release";
 import { recoverTree, restoreBuilt } from "./kinds/built";
-import { checkSource, installSource, readInstalled } from "./kinds/source";
+import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, lift, loadManifest, replaceManifest, tomlTable } from "./manifest";
 import { expandHome, type Paths } from "./paths";
 import { killTree, type Run, type RunOpts } from "./run";

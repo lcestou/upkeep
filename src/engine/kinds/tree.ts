@@ -14,7 +14,7 @@ import type { AppSpec } from "../../shared/types";
 import { type BackupMeta, backupDir, pointName, readMeta } from "../backup";
 import { expandHome, type Paths } from "../paths";
 import { installAside, type Run } from "../run";
-import { nonInteractive } from "./source";
+import { nonInteractive } from "./context";
 
 export type Tree = NonNullable<BackupMeta["tree"]>;
 

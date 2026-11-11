@@ -14,7 +14,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
-import type { RunOpts, RunResult } from "../run";
+import type { RunOpts, ProcessResult } from "../run";
 import { ok, strictRun, tempHome } from "../testkit";
 import { expandGlob, notePlaced, restoreTree, revertFiles, safePath, takeTree, type TreeCtx } from "./tree";
 
@@ -54,7 +54,7 @@ const spec = (extra: Partial<AppSpec> = {}): AppSpec => ({
 	...extra,
 });
 
-const done = (stdout = ""): RunResult => ok(stdout);
+const done = (stdout = ""): ProcessResult => ok(stdout);
 
 /** The fake box: cp, ln, install, mv, rm and git act on the temp tree; anything else throws. */
 function fakeBox() {

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { type Call, ok, strictRun, tempHome } from "../testkit";
-import type { RunResult } from "../run";
+import type { ProcessResult } from "../run";
 import { createExtras } from "./extras";
 import { DEFAULT_EXTRAS, loadExtras, updateExtras } from "./state";
 import {
@@ -37,10 +37,10 @@ beforeEach(() => {
 });
 afterEach(() => t.cleanup());
 
-const missing: RunResult = { code: 127, stdout: "", stderr: "Executable not found in $PATH", timedOut: false };
+const missing: ProcessResult = { code: 127, stdout: "", stderr: "Executable not found in $PATH", timedOut: false };
 
 /** Answers the seven commands from the fixtures, with overrides by argv; anything else throws. */
-function box(over: Map<string, RunResult | Promise<RunResult>> = new Map()) {
+function box(over: Map<string, ProcessResult | Promise<ProcessResult>> = new Map()) {
 	return strictRun((argv) => {
 		const key = argv.join(" ");
 		const o = over.get(key);
@@ -157,8 +157,8 @@ test("one source missing names the command; the other still lists", async () => 
 });
 
 test("a timeout or a failing command is a failed problem with the first line of stderr", async () => {
-	const timedOut: RunResult = { code: 137, stdout: "", stderr: "", timedOut: true };
-	const offline: RunResult = {
+	const timedOut: ProcessResult = { code: 137, stdout: "", stderr: "", timedOut: true };
+	const offline: ProcessResult = {
 		code: 1,
 		stdout: "",
 		stderr: "error: Couldn't resolve host name\nmore\n",
@@ -213,7 +213,7 @@ test("mode off runs nothing at all", async () => {
 test("shown: it checks at start, again when asked, never twice at once, and turning off clears the rows", async () => {
 	updateExtras(t.paths, { system: "show" });
 	let release: (() => void) | undefined;
-	const gate = new Promise<RunResult>((r) => {
+	const gate = new Promise<ProcessResult>((r) => {
 		release = () => r(ok(fx("mint-list.txt")));
 	});
 	const { run, calls } = box(new Map([[MINT_LIST.join(" "), gate]]));

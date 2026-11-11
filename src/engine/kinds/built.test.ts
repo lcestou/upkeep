@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
-import type { RunOpts, RunResult } from "../run";
+import type { RunOpts, ProcessResult } from "../run";
 import { type Inflight, readInflight } from "../store";
 import { ok, strictRun, tempHome } from "../testkit";
 import { type Built, prepareBuilt, rootArgvs, SUDO_REFUSED } from "./built";
@@ -25,7 +25,7 @@ function put(file: string, text: string): void {
 	writeFileSync(file, text);
 }
 
-const fail = (stderr = "no"): RunResult => ({ code: 1, stdout: "", stderr, timedOut: false });
+const fail = (stderr = "no"): ProcessResult => ({ code: 1, stdout: "", stderr, timedOut: false });
 
 const SERVE = {
 	name: "srv",
@@ -56,7 +56,7 @@ const spec = (extra: Partial<AppSpec> = {}): AppSpec => ({
 });
 const target = { from: "1.0", version: "1.1", tag: "v1.1" };
 
-type Answer = RunResult | undefined | ((argv: string[], opts: RunOpts) => RunResult | undefined);
+type Answer = ProcessResult | undefined | ((argv: string[], opts: RunOpts) => ProcessResult | undefined);
 
 /** A box where everything succeeds unless a test overrides a command by its joined argv. */
 function box(over: Record<string, Answer> = {}) {

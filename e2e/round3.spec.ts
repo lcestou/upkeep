@@ -103,9 +103,9 @@ test("the close button's hover cross measures 4.5:1 or better", async ({ page })
 		const lum = (c: number[]) =>
 			c
 				.map((v) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4))
-				.reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+				.reduce((s, v, i) => s + v * ([0.2126, 0.7152, 0.0722][i] ?? 0), 0);
 		const s = getComputedStyle(el);
-		const [a, b] = [lum(rgb(s.color)), lum(rgb(s.backgroundColor))].toSorted((x, y) => y - x);
+		const [a = 0, b = 0] = [lum(rgb(s.color)), lum(rgb(s.backgroundColor))].toSorted((x, y) => y - x);
 		return (a + 0.05) / (b + 0.05);
 	});
 	expect(ratio).toBeGreaterThanOrEqual(4.5);

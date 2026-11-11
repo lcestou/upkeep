@@ -5,8 +5,7 @@ import { listBackups, prune, readMeta } from "../backup";
 import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
 import { argsRunning } from "../running";
 import { clearInflight, type Inflight, startTime, writeInflight } from "../store";
-import { type KindCtx, type Outcome, stageClock, type Target } from "./context";
-import { nonInteractive, readInstalled } from "./source";
+import { type KindCtx, nonInteractive, type Outcome, readInstalled, stageClock, type Target } from "./context";
 import {
 	expandGlob,
 	fill,
@@ -29,9 +28,6 @@ export const SUDO_REFUSED = "sudo needs a password here, so nothing was stopped 
 const LONG = 30 * 60_000;
 const SERVICE_MS = 120_000;
 const firstLine = (s: string) => s.trim().split("\n")[0] ?? "";
-
-/** A step's failure becomes this, with its sentence; everything before it is put back by the caller. */
-export class BuiltFailure extends Error {}
 
 type Step = Inflight["tree"] extends infer T ? (T extends { step: infer S } ? S : never) : never;
 

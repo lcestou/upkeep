@@ -1,5 +1,5 @@
 import type { SystemRow, SystemState } from "../../shared/types";
-import type { Run, RunResult } from "../run";
+import type { Run, ProcessResult } from "../run";
 
 export type SystemCtx = { run: Run };
 
@@ -117,10 +117,10 @@ function aptRows(list: string, sources: Map<string, string>): SystemRow[] {
 	});
 }
 
-const ok = (r: RunResult | undefined) => r !== undefined && r.code === 0 && !r.timedOut;
+const ok = (r: ProcessResult | undefined) => r !== undefined && r.code === 0 && !r.timedOut;
 
 /** Exit 127 is a missing command; any other failure or a timeout is failed, with stderr's first line. */
-function problemOf(argv: string[], r: RunResult): SystemCheck["problem"] {
+function problemOf(argv: string[], r: ProcessResult): SystemCheck["problem"] {
 	const command = argv.join(" ");
 	if (r.code === 127 && !r.timedOut) return { code: "missing", command };
 	if (r.code !== 0 || r.timedOut)
@@ -138,7 +138,7 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 		[MINT_LIST, SOURCE_VERSIONS, FLATPAK_UPDATES, FLATPAK_INSTALLED, FLATPAK_RUNNING, DRIVER_GL, FLATPAK_RUNTIMES].map(
 			(argv) => ctx.run(argv, opts),
 		),
-	)) as RunResult[];
+	)) as ProcessResult[];
 	const rows: SystemRow[] = [];
 	const mintProblem = list ? problemOf(MINT_LIST, list) : null;
 	if (list && !mintProblem)
