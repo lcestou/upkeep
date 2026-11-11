@@ -6,7 +6,7 @@ import { CHECK_INCOMPLETE } from "./engine/kinds/legacy";
 import { realDeps } from "./engine/real";
 import { formatLogLine } from "./engine/store";
 
-export const USAGE = "Usage: upkeep check|install|restore|history";
+export const USAGE = "Usage: upkeep check|install|restore|history|recover";
 
 type Out = (line: string) => void;
 
@@ -100,6 +100,18 @@ async function restore(
 
 const RESULT_TEXT = { updated: "Updated", failed: "Failed", rolled_back: "Rolled back", restored: "Restored" } as const;
 
+/**
+ * Finishes or undoes a built update an interrupted run left behind, one line per app. Exits 0 when every app was
+ * put back or there was nothing to do, 1 when one could not be put back.
+ */
+async function recover(engine: Engine, out: Out): Promise<number> {
+	const done = await engine.recover();
+	if (done.length === 0) out("Nothing to recover.");
+	for (const r of done)
+		out(r.ok ? `${r.name}: put back ${r.version ?? ""}` : `${r.name}: could not be put back. See the log.`);
+	return done.every((r) => r.ok) ? 0 : 1;
+}
+
 function history(engine: Engine, out: Out): number {
 	const rows = engine.history(200);
 	if (rows.length === 0) out("No runs yet.");
@@ -120,6 +132,7 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
 		return restore(createEngine(deps), deps, args[0], args[1], out);
 	if (cmd === "history" && args.length === 0) return history(createEngine(deps), out);
+	if (cmd === "recover" && args.length === 0) return recover(createEngine(deps), out);
 	out(USAGE);
 	return 2;
 }

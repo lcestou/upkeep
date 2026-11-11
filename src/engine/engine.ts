@@ -102,7 +102,7 @@ export type Engine = {
 	addApps(specs: AppSpec[]): Promise<{ added: string[]; problems: { key: string; detail: string }[] }>;
 	removeApp(key: string): Promise<{ ok: boolean; detail?: string }>;
 	/** Finishes or undoes a built update that was interrupted. Install and restore call it first; check never does. */
-	recover(): Promise<{ key: string; ok: boolean }[]>;
+	recover(): Promise<{ key: string; name: string; version: string | null; ok: boolean }[]>;
 };
 
 /** The kinds an owner can add from the window. */
@@ -965,7 +965,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				const point = m.backupVersion ? readMeta(join(backupDir(paths, m.key), m.backupVersion)) : null;
 				// The table as it was at the run, so a later edit of apps.toml never changes what is put back.
 				const spec = point?.tree?.spec ?? specOf(m.key);
-				if (!spec) return [{ key: m.key, ok: false }];
+				if (!spec) return [{ key: m.key, name: m.key, version: m.backupVersion, ok: false }];
 				const ok = await recoverTree(m, spec, {
 					...kindCtx(m.key),
 					kill: deps.kill ?? killTree,
@@ -982,7 +982,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					app.detail = sentence;
 					emitApp(app);
 				}
-				return [{ key: m.key, ok }];
+				return [{ key: m.key, name: spec.name, version: m.backupVersion, ok }];
 			} finally {
 				releaseLock(paths);
 			}

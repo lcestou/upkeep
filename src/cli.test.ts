@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkLine, main, USAGE } from "./cli";
 import type { EngineDeps } from "./engine/engine";
+import { readInflight, writeInflight } from "./engine/store";
 import type { FetchLike } from "./engine/github";
 import { realRun, recordingRun, script, tempHome } from "./engine/testkit";
 import type { AppState } from "./shared/types";
@@ -142,4 +143,30 @@ legacy_name = "Cursor"
 	expect(out).toContain("  SKIP:   Cursor The old updater's check did not finish.");
 	script(d.oldScript, 'echo "  OK:     Cursor 2.1.0"');
 	expect(await main(["check"], d, () => {})).toBe(0);
+});
+
+test("recover prints one line per app and exits 1 when one could not be put back", async () => {
+	const out: string[] = [];
+	expect(await main(["recover"], deps(), (l) => out.push(l))).toBe(0);
+	expect(out).toEqual(["Nothing to recover."]);
+	const d = deps();
+	writeInflight(d.paths, {
+		key: "borg",
+		dest: "/x",
+		backupVersion: "1.4.1",
+		tree: { step: "pause", build: null, active: [], paused: [] },
+	});
+	const ok: string[] = [];
+	expect(await main(["recover"], d, (l) => ok.push(l))).toBe(0);
+	expect(ok).toEqual(["BorgBackup: put back 1.4.1"]);
+	writeInflight(d.paths, {
+		key: "borg",
+		dest: "/x",
+		backupVersion: "9.9",
+		tree: { step: "build", build: null, active: [], paused: [] },
+	});
+	const bad: string[] = [];
+	expect(await main(["recover"], d, (l) => bad.push(l))).toBe(1);
+	expect(bad).toEqual(["BorgBackup: could not be put back. See the log."]);
+	expect(readInflight(d.paths)?.backupVersion).toBe("9.9");
 });

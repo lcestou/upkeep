@@ -186,7 +186,7 @@ test("recover after a stop in the pause step starts the paused units and clears 
 		backupVersion: null,
 		tree: { step: "pause", build: null, active: [], paused: ["api"] },
 	});
-	expect(await createEngine(deps(box)).recover()).toEqual([{ key: "srv", ok: true }]);
+	expect(await createEngine(deps(box)).recover()).toMatchObject([{ key: "srv", ok: true }]);
 	expect(box.units.api?.running).toBe(true);
 	expect(readInflight(t.paths)).toBeNull();
 });
@@ -203,7 +203,7 @@ test("recover ends a live build step first, restores, and starts every unit that
 	writeInflight(t.paths, { ...m, tree: { ...m.tree, build: { pid: 4242, started: 777 } } });
 	box.units.srv = { running: false, starts: 5 };
 	const engine = createEngine(d);
-	expect(await engine.recover()).toEqual([{ key: "srv", ok: true }]);
+	expect(await engine.recover()).toMatchObject([{ key: "srv", ok: true }]);
 	expect(box.killed).toEqual([4242]);
 	const all = box.calls.map((c) => c.argv.join(" "));
 	expect(all.indexOf("sudo -n start srv")).toBeGreaterThan(-1);
@@ -272,7 +272,7 @@ test("end to end: a kill at each step, then recover(): the old tree is back, eve
 		box.units.api = { ...(killer.units.api ?? { running: false, starts: 1 }) };
 		const engine = createEngine(deps(box));
 		// oxlint-disable-next-line no-await-in-loop -- one kill point at a time
-		expect(await engine.recover()).toEqual([{ key: "srv", ok: true }]);
+		expect(await engine.recover()).toMatchObject([{ key: "srv", ok: true }]);
 		expect(readInflight(t.paths)).toBeNull();
 		expect(box.units.srv?.running).toBe(true);
 		expect(box.units.api?.running).toBe(true);
