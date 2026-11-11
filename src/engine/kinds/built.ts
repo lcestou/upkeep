@@ -399,6 +399,18 @@ async function passes(test: Test, ctx: KindCtx, built: Built): Promise<boolean> 
 	return true;
 }
 
+/**
+ * Deletes each held old tree. It is renamed to .upkeep-gone first, so a cut delete never leaves a half tree under the
+ * .upkeep-live name a put-back would rename in.
+ */
+function dropHeld(spec: AppSpec, ctx: KindCtx, dir: string | null): void {
+	for (const h of spec.hold ?? []) {
+		const p = resolvePath(h, ctx.paths, dir);
+		if (existsSync(`${p}.upkeep-live`)) renameSync(`${p}.upkeep-live`, `${p}.upkeep-gone`);
+		rmSync(`${p}.upkeep-gone`, { recursive: true, force: true });
+	}
+}
+
 const testName = (t: Test) => t.name ?? t.url ?? t.run?.[0] ?? "a test";
 
 /**
@@ -550,8 +562,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	for (const s of stopped)
 		// oxlint-disable-next-line no-await-in-loop -- services start in table order
 		if (!(await startService(ctx.run, s.svc))) return rollBack(`Would not start after the update. Restored ${from}.`);
-	for (const h of spec.hold ?? [])
-		rmSync(`${resolvePath(h, ctx.paths, built.dir)}.upkeep-live`, { recursive: true, force: true });
+	dropHeld(spec, ctx, built.dir);
 
 	clock.start("verify");
 	marker.step("verify");

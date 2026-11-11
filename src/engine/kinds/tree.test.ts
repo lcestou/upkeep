@@ -4,6 +4,7 @@ import {
 	existsSync,
 	lstatSync,
 	mkdirSync,
+	readdirSync,
 	readFileSync,
 	readlinkSync,
 	renameSync,
@@ -146,8 +147,8 @@ test("a revert puts everything back by rename: every copy lands in .upkeep-new, 
 	const copies = calls.filter((c) => c.argv[0] === "cp");
 	expect(copies.length).toBeGreaterThan(0);
 	expect(copies.every((c) => (c.argv[3] ?? "").endsWith(".upkeep-new"))).toBe(true);
-	// The engine is in both hold and keep: hold put it back, so keep never copies it.
-	expect(copies.some((c) => (c.argv[2] ?? "").endsWith("/keep/engine"))).toBe(false);
+	// After the stop the kept copy is the truth: keep copies the engine even though hold renamed one back.
+	expect(copies.some((c) => (c.argv[2] ?? "").endsWith("/keep/engine"))).toBe(true);
 	expect(calls.some((c) => c.argv.join(" ") === `git -C ${app} reset -q --keep c0ffee`)).toBe(true);
 	expect(calls.find((c) => c.argv[0] === "bash")?.argv[2]).toBe(`echo undone ${point}`);
 });
@@ -219,6 +220,38 @@ test("a copy that fails takes no restore point and leaves no half-written one", 
 	);
 	expect(existsSync(join(t.paths.data, "backups/app/1.0"))).toBe(false);
 	expect(existsSync(join(t.paths.data, "backups/app/1.0.upkeep-tmp"))).toBe(false);
+});
+
+/** The engine's four files as read now, null where one is missing. */
+const engineFiles = () =>
+	["a", "b", "c", "bin"].map((f) => (existsSync(join(app, "engine", f)) ? read(join(app, "engine", f)) : null));
+
+test("a cut while .upkeep-live was being deleted: restoreTree puts back the kept copy, and a second run changes nothing", async () => {
+	for (const f of ["a", "b", "c"]) put(join(app, "engine", f), `${f} 1`);
+	const { run } = fakeBox();
+	const { point } = await takeTree(spec(), ctx(run), { version: "1.0", at: "x", vars: {} });
+	changeEverything();
+	// The delete of the held copy ran at step starting and was cut after removing two of its files.
+	for (const f of ["a", "b"]) rmSync(join(app, "engine.upkeep-live", f));
+	await restoreTree(point, ctx(run));
+	expect(engineFiles()).toEqual(["a 1", "b 1", "c 1", "engine 1"]);
+	await restoreTree(point, ctx(run));
+	expect(engineFiles()).toEqual(["a 1", "b 1", "c 1", "engine 1"]);
+	expectOld();
+	expect(readdirSync(point).filter((f) => f.startsWith("hold-done"))).toEqual([]);
+});
+
+test("before the stop, revertFiles renames the held copy back and keep skips it; no marks or .upkeep-gone stay", async () => {
+	const { run, calls } = fakeBox();
+	const { point } = await takeTree(spec(), ctx(run), { version: "1.0", at: "x", vars: {} });
+	changeEverything();
+	put(join(app, "engine.upkeep-gone/half"), "x");
+	calls.length = 0;
+	await revertFiles(point, ctx(run));
+	expectOld();
+	expect(calls.some((c) => c.argv[0] === "cp" && (c.argv[2] ?? "").endsWith("/keep/engine"))).toBe(false);
+	expect(existsSync(join(app, "engine.upkeep-gone"))).toBe(false);
+	expect(readdirSync(point).filter((f) => f.startsWith("hold-done"))).toEqual([]);
 });
 
 test("a put-back stopped just before its last delete leaves a stale .upkeep-failed, and the next run still finishes", async () => {

@@ -1,4 +1,14 @@
-import { existsSync, lstatSync, mkdirSync, readlinkSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	lstatSync,
+	mkdirSync,
+	readdirSync,
+	readlinkSync,
+	renameSync,
+	rmSync,
+	statSync,
+	writeFileSync,
+} from "node:fs";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import { type BackupMeta, backupDir, readMeta } from "../backup";
@@ -174,14 +184,17 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 	// hold: the running process's own old tree goes back by rename, never by a copy.
 	const holds = (tree.spec.hold ?? []).map((h) => resolvePath(h, ctx.paths, dir));
 	for (const [i, p] of holds.entries()) {
+		// A held copy being deleted after a verified update is renamed first; a cut delete leaves only this.
+		rmSync(`${p}.upkeep-gone`, { recursive: true, force: true });
 		const live = `${p}.upkeep-live`;
 		if (exists(live)) {
 			swapIn(live, p, rename);
-			// Marks that this hold is back, so keep does not copy the same tree again.
-			writeFileSync(join(point, `hold-done-${i}`), "");
+			// Before the stop the held copy is whole, so keep need not copy it again. After the stop the kept copy is
+			// the truth, so restoreTree never marks a hold done.
+			if (!withPlaced) writeFileSync(join(point, `hold-done-${i}`), "");
 		} else rmSync(`${p}.upkeep-failed`, { recursive: true, force: true });
 	}
-	const heldBack = new Set(holds.filter((_, i) => existsSync(join(point, `hold-done-${i}`))));
+	const heldBack = new Set(withPlaced ? [] : holds.filter((_, i) => existsSync(join(point, `hold-done-${i}`))));
 
 	for (const k of tree.kept) {
 		const p = join(dir ?? "/", k.rel);
@@ -244,6 +257,8 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 		});
 		if (r.code !== 0) throw new Error(`Undo step failed: ${step}`);
 	}
+	// A finished put-back leaves no marks, so a later restore from this point copies every kept path again.
+	for (const f of readdirSync(point)) if (f.startsWith("hold-done-")) rmSync(join(point, f), { force: true });
 }
 
 /** Before anything was stopped: hold, keep, git and undo go back. place never ran. */
