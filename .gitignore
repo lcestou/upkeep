@@ -4,7 +4,10 @@ build/
 dist/
 artifacts/
 *.tsbuildinfo
+# The owner's working files, not part of the repo: the rules an agent works by,
+# agent state, the queue and the plans behind it.
+CLAUDE.md
+.claude/
+.impeccable/
 notes/
-.impeccable/questions/
-.impeccable/review/
-.impeccable/mocks/
+.cottontail-tmp/

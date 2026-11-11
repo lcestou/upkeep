@@ -1,7 +1,337 @@
-* {
+/* Upkeep: a nursery bench at night. Tokens first; components hold their own layout. */
+
+:root {
+	/* The owner's Mint-Y theme rounds its windows by 8 px; a rounded Upkeep window matches its neighbours. */
+	--window-radius: 8px;
+	/* Dark only in this version: the system webview reports light on a dark desktop, so the scheme is never read. */
+	color-scheme: dark;
+
+	/* Ground and shell. Hues sit in leaf green so the window is never a grey screen with one accent. */
+	--ground: oklch(0.19 0.022 165);
+	--surface: oklch(0.225 0.026 165);
+	--raised: oklch(0.26 0.03 165);
+	--shell: oklch(0.3 0.06 158);
+	--shell-hi: oklch(0.36 0.07 158);
+	--shell-lo: oklch(0.255 0.05 158);
+	--line: oklch(0.36 0.03 165);
+	--line-soft: oklch(0.28 0.026 165);
+
+	/* Tag-white text, three steps. text-3 is tuned to 0.69 so it holds 4.5:1 on the shell too. */
+	--text: oklch(0.955 0.012 110);
+	--text-2: oklch(0.8 0.02 150);
+	--text-3: oklch(0.69 0.025 155);
+	--on-sun: oklch(0.19 0.022 165);
+
+	/* Care bands. Each is at least 4.6:1 on the shell and 5.9:1 on the ground. */
+	--sun: oklch(0.87 0.16 96);
+	--water: oklch(0.76 0.11 232);
+	--leaf: oklch(0.8 0.17 148);
+	--rust: oklch(0.7 0.16 42);
+	/* Failure is its own red, apart from the rust amber of Needs a look: 6.3:1 on the ground, 5.8:1 on surface. */
+	--fail: oklch(0.7 0.19 25);
+	/* The checking dot: its pulse never goes below 0.85 opacity, and there it still measures 3:1 on its row. */
+	--dot: oklch(0.6 0.02 160);
+	--frost: oklch(0.74 0.03 250);
+	--bloom: oklch(0.72 0.17 352);
+
+	--focus: var(--water);
+
+	/* Type. Archivo carries the interface; its width axis makes the tag caps. Martian Mono carries data. */
+	--sans: "Archivo Variable", "Archivo", system-ui, sans-serif;
+	--mono: "Martian Mono Variable", "Martian Mono", ui-monospace, monospace;
+	--fs-11: 0.6875rem;
+	--fs-12: 0.75rem;
+	--fs-13: 0.8125rem;
+	--fs-14: 0.875rem;
+	--fs-16: 1rem;
+	--fs-19: 1.1875rem;
+	--tag-stretch: 74%;
+
+	/* Spacing on a 4 px step. */
+	--s1: 4px;
+	--s2: 8px;
+	--s3: 12px;
+	--s4: 16px;
+	--s5: 20px;
+	--s6: 24px;
+
+	--radius: 6px;
+	--radius-sm: 4px;
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--shadow-pop: 0 10px 28px -6px oklch(0.08 0.02 165 / 0.7), 0 2px 6px oklch(0.08 0.02 165 / 0.5);
+}
+
+*,
+*::before,
+*::after {
 	box-sizing: border-box;
 }
 
+html,
 body {
 	margin: 0;
+	height: 100%;
+	overflow: hidden;
+}
+
+/* A rounded window is see-through: the page outside the shell's corners must paint nothing. */
+html[data-rounded],
+html[data-rounded] body {
+	background: transparent;
+}
+
+body {
+	background: var(--ground);
+	color: var(--text);
+	font-family: var(--sans);
+	font-size: var(--fs-13);
+	line-height: 1.4;
+	font-optical-sizing: auto;
+	/* Archivo's word space is tight at interface sizes. */
+	word-spacing: 0.08em;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+#app {
+	height: 100%;
+}
+
+::selection {
+	background: oklch(0.76 0.11 232 / 0.35);
+	color: var(--text);
+}
+
+:focus-visible {
+	outline: 2px solid var(--focus);
+	outline-offset: 2px;
+}
+
+/* Controls take the page's type, word space and tracking instead of the browser's control defaults. */
+button,
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+	word-spacing: inherit;
+	letter-spacing: inherit;
+}
+
+/* Scrollbars in the palette, for WebKit and for engines that read scrollbar-color. */
+* {
+	scrollbar-color: var(--line) transparent;
+	scrollbar-width: thin;
+}
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+::-webkit-scrollbar-thumb {
+	background: var(--line);
+	border: 3px solid transparent;
+	border-radius: 10px;
+	background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+	background-color: var(--text-3);
+}
+
+/* Shared vocabulary. Every layout uses these and only these. */
+
+.tag-name {
+	font-family: var(--sans);
+	font-stretch: var(--tag-stretch);
+	font-weight: 680;
+	text-transform: uppercase;
+	letter-spacing: 0.035em;
+	word-spacing: 0.14em;
+	font-size: var(--fs-14);
+	line-height: 1.15;
+}
+
+.latin {
+	font-style: italic;
+	font-weight: 400;
+	color: var(--text-3);
+	font-size: var(--fs-12);
+}
+
+.mono {
+	font-family: var(--mono);
+	font-stretch: 87.5%;
+	font-size: var(--fs-12);
+	font-variant-numeric: tabular-nums slashed-zero;
+	letter-spacing: -0.01em;
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--s2);
+	height: 32px;
+	padding: 0 var(--s3);
+	border-radius: var(--radius);
+	border: 1px solid var(--line);
+	background: transparent;
+	color: var(--text);
+	font-size: var(--fs-13);
+	font-weight: 560;
+	white-space: nowrap;
+	cursor: pointer;
+	transition:
+		background-color 100ms ease-out,
+		border-color 100ms ease-out,
+		opacity 100ms ease-out;
+}
+.btn:hover:not(:disabled) {
+	background: oklch(0.955 0.012 110 / 0.07);
+	border-color: var(--text-3);
+}
+.btn:active:not(:disabled) {
+	background: oklch(0.955 0.012 110 / 0.12);
+}
+.btn:disabled,
+.btn[aria-disabled="true"] {
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+.btn.small {
+	height: 26px;
+	padding: 0 var(--s2);
+	font-size: var(--fs-12);
+}
+.btn.quiet {
+	border-color: transparent;
+	color: var(--text-2);
+}
+.btn.quiet:hover:not(:disabled) {
+	color: var(--text);
+	border-color: transparent;
+}
+.btn.primary {
+	height: 36px;
+	padding: 0 var(--s4);
+	background: var(--sun);
+	border-color: var(--sun);
+	color: var(--on-sun);
+	font-weight: 680;
+	box-shadow: 0 1px 0 oklch(1 0 0 / 0.25) inset;
+}
+.btn.primary:hover:not(:disabled) {
+	background: oklch(0.91 0.15 96);
+	border-color: oklch(0.91 0.15 96);
+}
+.btn.primary:active:not(:disabled) {
+	background: oklch(0.82 0.15 96);
+}
+.btn.primary:disabled {
+	background: var(--shell-hi);
+	border-color: var(--shell-hi);
+	color: var(--text-2);
+	box-shadow: none;
+	opacity: 1;
+}
+.btn.primary:focus-visible {
+	outline-color: var(--text);
+}
+
+/* The tick: a real checkbox, drawn in the palette. */
+input[type="checkbox"] {
+	appearance: none;
+	-webkit-appearance: none;
+	margin: 0;
+	width: 16px;
+	height: 16px;
+	flex: none;
+	border: 1.5px solid var(--text-3);
+	border-radius: var(--radius-sm);
+	background: transparent center / 12px 12px no-repeat;
+	cursor: pointer;
+	transition:
+		background-color 120ms ease-out,
+		border-color 120ms ease-out;
+}
+input[type="checkbox"]:hover:not(:disabled) {
+	border-color: var(--text);
+}
+input[type="checkbox"]:checked {
+	background-color: var(--sun);
+	border-color: var(--sun);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.6l4.6-5' fill='none' stroke='%23142a20' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+input[type="checkbox"]:disabled {
+	cursor: default;
+	opacity: 0.55;
+}
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	height: 18px;
+	padding: 0 6px;
+	border-radius: 9px;
+	border: 1px solid var(--line);
+	color: var(--text-2);
+	font-size: var(--fs-11);
+	font-weight: 560;
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+	cursor: help;
+}
+
+/* The ledger's column sets, keyed to the list's own width (the list narrows beside a docked inspector). */
+/* The name column stops at 360 px and Status takes the rest, so on a wide window the stem grows, not the gap. */
+/*
+ * --hit-cols are the row button's own tracks (everything after the tick); --cols adds the tick in front.
+ * Both come from this one place, so the row, its button and the column heads cannot disagree.
+ * No subgrid: WebKitGTK 2.52 does not re-resolve a subgrid's tracks when the row's content changes.
+ */
+.ledger-cols {
+	--hit-cols: [mark] 20px [name] minmax(0, 360px) [kind] 92px [ver] 168px [size] 64px [restore] 96px [status]
+		minmax(248px, 1fr) [end];
+	--cols: [tick] 32px var(--hit-cols);
+}
+/* Between 900 and 1099 the Status column holds at 212 px so the name keeps room for itself and its chips. */
+@container list (max-width: 1099px) {
+	.ledger-cols {
+		--hit-cols: [mark] 20px [name] minmax(0, 360px) [kind] 92px [ver] 168px [size] 64px [restore] 96px [status] 212px
+			[end];
+	}
+}
+@container list (max-width: 899px) {
+	.ledger-cols {
+		--hit-cols: [mark] 20px [name] minmax(0, 1fr) [ver] 168px [restore] 96px [status] 212px [end];
+	}
+}
+@container list (max-width: 639px) {
+	.ledger-cols {
+		--hit-cols: [mark] 20px [name] minmax(0, 1fr) [ver] 150px [status] 168px [end];
+	}
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.001ms !important;
+	}
 }

@@ -11,25 +11,31 @@
 		"build:view": "vite build",
 		"build": "electrobun prepare && vite build && electrobun build --env=stable",
 		"cli": "bun src/cli.ts",
-		"fmt": "oxfmt src scripts",
-		"fmt:check": "oxfmt --check src scripts",
-		"lint": "oxlint src scripts --deny-warnings",
+		"fmt": "oxfmt src scripts e2e tools",
+		"fmt:check": "oxfmt --check src scripts e2e tools",
+		"lint": "oxlint src scripts e2e tools --deny-warnings",
 		"check": "svelte-check --tsconfig ./tsconfig.json --threshold warning && tsc --noEmit -p tsconfig.json",
 		"test": "bun test src",
-		"validate": "bun run prepare:eb && bun run fmt:check && bun run lint && bun run check && bun run test && bun run build:view"
+		"test:coverage": "bun test src --coverage",
+		"deadcode": "fallow dead-code && bun scripts/dead-svelte.ts",
+		"e2e": "node node_modules/playwright/cli.js test",
+		"tray-icons": "bun scripts/tray-icons.ts",
+		"validate": "bun run prepare:eb && bun run fmt:check && bun run --parallel lint check test:coverage deadcode && bun run build:view && bun run e2e"
 	},
 	"devDependencies": {
 		"@fontsource-variable/archivo": "^5.3.0",
 		"@fontsource-variable/martian-mono": "^5.3.0",
+		"@oxlint/plugins": "1.93.0",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@types/bun": "latest",
 		"electrobun": "2.0.6",
+		"fallow": "^3.42.0",
 		"oxfmt": "^0.78.0",
 		"oxlint": "^1.93.0",
 		"playwright": "1.62.1",
 		"svelte": "^5.57.2",
 		"svelte-check": "^4.7.8",
-		"typescript": "~5.9.3",
+		"typescript": "^6.0.3",
 		"vite": "^7.3.7"
 	}
 }

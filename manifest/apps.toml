@@ -14,6 +14,7 @@ kind = "appimage"
 repo = "pkgforge-dev/ghostty-appimage"
 asset = 'x86_64\.AppImage$'
 dest = "~/.local/bin/ghostty.appimage"
+process = "ghostty"
 
 [apps.lrcget]
 name = "LRCGET"
@@ -21,7 +22,7 @@ kind = "appimage"
 repo = "tranxuanthang/lrcget"
 asset = 'amd64\.AppImage$'
 dest = "~/.local/bin/lrcget"
-meta_path = "usr/share/metainfo/LRCGET.metainfo.xml"
+meta_path = "usr/share/metainfo/lrcget.metainfo.xml"
 
 [apps.starship]
 name = "Starship"
@@ -76,7 +77,7 @@ bins = ["fzf"]
 name = "rtk"
 kind = "archive"
 repo = "rtk-ai/rtk"
-asset = 'x86_64-unknown-linux-musl\.tar\.gz$'
+asset = '^rtk-oss-x86_64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/rtk"
 bins = ["rtk"]
 
@@ -107,7 +108,7 @@ dest = "~/.local/bin/borg"
 name = "RustDesk"
 kind = "deb"
 repo = "rustdesk/rustdesk"
-asset = 'x86_64\.deb$'
+asset = '^rustdesk-[0-9.]+-x86_64\.deb$'
 dest = "/usr/bin/rustdesk"
 sudo = true
 
@@ -143,7 +144,6 @@ kind = "command"
 check = ["claude", "--version"]
 latest = "npm:@anthropic-ai/claude-code"
 update = ["claude", "update"]
-auto = true
 note = "Open sessions keep the old version until restarted."
 
 [apps.omp]
@@ -152,7 +152,6 @@ kind = "command"
 check = ["omp", "--version"]
 latest = "npm:@oh-my-pi/pi-coding-agent"
 update = ["omp", "update"]
-auto = true
 note = "Open sessions keep the old version until restarted."
 
 [apps.opencode]
@@ -161,7 +160,6 @@ kind = "command"
 check = ["opencode", "--version"]
 latest = "npm:opencode-ai"
 update = ["opencode", "upgrade"]
-auto = true
 note = "Open sessions keep the old version until restarted."
 
 [apps.wrangler]
@@ -170,16 +168,17 @@ kind = "command"
 check = ["wrangler", "--version"]
 latest = "npm:wrangler"
 update = ["~/.bun/bin/bun", "add", "-g", "wrangler@latest"]
-auto = true
 
+# Checked by the old script: its installed version is read from package.json inside the mounted AppImage, which a check argv cannot do.
 [apps.cursor]
 name = "Cursor"
 kind = "legacy"
 legacy_key = "cursor"
 legacy_name = "Cursor"
 process = "cursor"
-note = "The old script closes Cursor to update it."
+note = "Updating closes Cursor and opens it again."
 
+# Checked by the old script: its latest is picked from npm dist-tags with Python's packaging order and compared with !=, which no latest source reproduces.
 [apps.dsh]
 name = "dsh"
 kind = "manual"
@@ -192,47 +191,54 @@ name = "pr-agent"
 kind = "legacy"
 legacy_key = "pr-agent"
 legacy_name = "pr-agent"
-auto = true
+# The installed tag the old script recorded, else uv's package version (old lines 1474 to 1484).
+check = ["sh", "-c", '''command -v uv >/dev/null || exit 127; v=$(tr -d '[:space:]' < "$HOME/.cache/lutechi-updater/pr-agent-tag" 2>/dev/null); [ -n "$v" ] || v=$(uv tool list 2>/dev/null | awk '/^pr-agent /{print $2}' | sed 's/^v//'); [ -n "$v" ] || exit 127; echo "$v"''']
+latest = "github:The-PR-Agent/pr-agent"
 
 [apps.headroom]
 name = "headroom"
 kind = "legacy"
 legacy_key = "headroom"
 legacy_name = "headroom"
-auto = true
+check = ["sh", "-c", '''command -v uv >/dev/null || exit 127; v=$(uv tool list 2>/dev/null | awk '/^headroom-ai /{print $2}' | sed 's/^v//'); [ -n "$v" ] || exit 127; echo "$v"''']
+latest = "pypi:headroom-ai"
 
 [apps.claude-code-telegram]
 name = "claude-code-telegram"
 kind = "manual"
 legacy_name = "claude-code-telegram"
 run = "lutechi-updater claude-code-telegram"
+check = ["sh", "-c", '''command -v uv >/dev/null || exit 127; v=$(uv tool list 2>/dev/null | awk '/^claude-code-telegram /{print $2}' | sed 's/^v//'); [ -n "$v" ] || exit 127; echo "$v"''']
+latest = "github:RichardAtCT/claude-code-telegram"
 
 [apps.claude-plugins]
 name = "Claude Code plugins"
 kind = "legacy"
 legacy_key = "claude-plugins"
 versionless = true
-auto = true
 
 [apps.omp-plugins]
 name = "omp plugins"
 kind = "legacy"
 legacy_key = "omp-plugins"
 versionless = true
-auto = true
 
 [apps.whisper]
 name = "whisper.cpp"
 kind = "manual"
 legacy_name = "whisper.cpp"
 run = "lutechi-updater whisper"
+check = ["sh", "-c", '''[ -d "$HOME/whisper.cpp/.git" ] || exit 127; git -C "$HOME/whisper.cpp" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//'''']
+latest = "github:ggml-org/whisper.cpp"
 
+# Checked by the old script: it compares the checkout's HEAD commit date with the release date and shows a commit hash, not a version.
 [apps.llama]
 name = "llama.cpp"
 kind = "manual"
 legacy_name = "llama.cpp"
 run = "/llama in a Claude session"
 
+# Checked by the old script: it fetches tags and calls the checkout current when it already contains the release's tag, which a version compare cannot see.
 [apps.strata]
 name = "Strata"
 kind = "manual"
@@ -244,3 +250,5 @@ name = "ComfyUI"
 kind = "manual"
 legacy_name = "comfyui"
 run = "comfyui-update"
+check = ["sh", "-c", '''[ -d "$HOME/repos/ComfyUI/.git" ] || exit 127; grep -oP '__version__ = "\K[^"]+' "$HOME/repos/ComfyUI/comfyui_version.py" 2>/dev/null''']
+latest = "github:comfyanonymous/ComfyUI"

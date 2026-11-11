@@ -1,0 +1,9 @@
+[test]
+# `bun run test:coverage` (and validate) fails when any one file is below these. Bun checks each
+# file on its own, so a file that starts a process or reads the network needs tests of those paths
+# through the runner and fetch in `deps`.
+coverageThreshold = { functions = 0.9, lines = 0.9 }
+coverageSkipTestFiles = true
+# Not app code: the view's fixtures feed the browser specs and the dev server, testkit builds the
+# unit tests' fakes, and real.ts wires the real processes no test may start (CLAUDE.md).
+coveragePathIgnorePatterns = ["src/mainview/lib/fixture*.ts", "src/engine/testkit.ts", "src/engine/real.ts"]

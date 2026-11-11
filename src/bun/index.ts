@@ -1,7 +1,326 @@
-import { BrowserWindow } from "electrobun/main";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import Electrobun, { BrowserWindow, Tray, Utils } from "electrobun/main";
+import pkg from "../../package.json";
+import { createEngine } from "../engine/engine";
+import { createExtras } from "../engine/extras/extras";
+import { realDeps } from "../engine/real";
+import { loadState, updateState } from "../engine/store";
+import type { EngineEvent, RunPhase, WindowButton, WindowChrome } from "../shared/types";
+import { syncAutostart } from "./autostart";
+import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
+import { createCoalescer } from "./coalesce";
+import { isDevBuild, playDevScript } from "./dev-script";
+import { claimInstance, releaseInstance } from "./instance";
+import { defineUpkeepRpc } from "./rpc";
+import { loadWindowSize, saveWindowSize } from "./window-size";
+import {
+	failedNotice,
+	readyFingerprint,
+	readyNames,
+	readyNotice,
+	trayIcon,
+	trayMenu,
+	trayTitle,
+	updatedNotice,
+} from "./tray-model";
 
-export const mainWindow = new BrowserWindow({
-	title: "Upkeep",
-	url: "views://mainview/index.html",
-	frame: { width: 980, height: 720, x: 200, y: 120 },
+const VERSION = pkg.version;
+// Started at login: no window, check, install what is marked automatic, stay in the tray.
+// An environment variable, because the framework's launcher drops command-line arguments on Linux.
+const background = process.env.UPKEEP_BACKGROUND === "1";
+
+const deps = { ...realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml")), version: VERSION };
+
+let win: BrowserWindow | null = null;
+let quitting = false;
+let quitAfterRun = false;
+let rebuilding = false;
+let builtFrame = "";
+const sizeFile = join(deps.paths.state, "window.json");
+let sizeTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** `tab` opens the view on that tab: a window rebuilt from Settings comes back on Settings. */
+function openWindow(tab = ""): void {
+	if (win) {
+		win.show();
+		win.activate();
+		return;
+	}
+	const now = chrome();
+	builtFrame = frameKey(now);
+	rpc = makeRpc();
+	win = new BrowserWindow({
+		title: "Upkeep",
+		url: `views://mainview/index.html${tab ? `#${tab}` : ""}`,
+		rpc,
+		// "hiddenInset" drops the desktop's title bar and keeps the resize edges; the view then draws the bar itself.
+		titleBarStyle: now.own ? "hiddenInset" : "default",
+		// Rounded corners need a see-through window: the view paints everything but the four corner cut-offs.
+		transparent: now.rounded,
+		// No x or y: the framework then centres the window itself, with no jump from the corner.
+		// SAFETY: the framework types a frame with x and y, but it centres the window when they are missing; the size file never holds a position.
+		frame: loadWindowSize(sizeFile) as { x: number; y: number; width: number; height: number },
+	});
+	// A drag fires many resize events; the size is written once it has been still for half a second.
+	win.on("resize", () => {
+		tellChrome();
+		if (sizeTimer) clearTimeout(sizeTimer);
+		sizeTimer = setTimeout(() => {
+			// An exception in a timer ends the process, mid-run included; a size is not worth that.
+			try {
+				if (win && !win.isMaximized()) saveWindowSize(sizeFile, win.getSize());
+			} catch {
+				// disk full or read-only: keep the old size
+			}
+		}, 500);
+	});
+	// The framework destroys the window unless a handler refuses. Hiding keeps the view's state and the tray alive.
+	win.on("will-close", (event) => {
+		if (quitting || rebuilding) return;
+		// With no tray a hidden window is unreachable: close quits instead, except during a run.
+		if (!tray.visible && engine.snapshot().run.phase !== "installing") return quit();
+		// SAFETY: the framework passes a plain event object whose `response` field it reads back after the handlers run; the type does not declare it.
+		(event as { response?: { allow: boolean } }).response = { allow: false };
+		if (tray.visible) win?.hide();
+	});
+}
+
+/** The desktop's own button layout, read once: the built-in frame puts its buttons where the owner expects them. */
+function readSystemLayout(): SystemLayout {
+	for (const schema of ["org.cinnamon.desktop.wm.preferences", "org.gnome.desktop.wm.preferences"]) {
+		try {
+			const out = Bun.spawnSync(["gsettings", "get", schema, "button-layout"], { stdin: "ignore", stderr: "ignore" });
+			if (out.exitCode === 0 && out.stdout.toString().includes(":")) return parseButtonLayout(out.stdout.toString());
+		} catch {
+			// No gsettings on this desktop: fall through to the default.
+		}
+	}
+	return parseButtonLayout("");
+}
+const systemLayout = readSystemLayout();
+
+/** The frame state the view should draw now: the settings, the desktop layout and whether the window is maximised. */
+function chrome(): WindowChrome {
+	return windowChrome(engine.snapshot().settings, systemLayout, win?.isMaximized() ?? false);
+}
+
+let toldChrome = "";
+/** Tells the view when the frame, the button side or the maximised state changed. */
+function tellChrome(): void {
+	const now = chrome();
+	const key = JSON.stringify(now);
+	if (key === toldChrome) return;
+	toldChrome = key;
+	if (win) rpc.send.event({ type: "chrome", chrome: now });
+}
+
+/** What a window is built with and cannot change afterwards. */
+function frameKey(c: WindowChrome): string {
+	return `${c.own}/${c.rounded}`;
+}
+
+/** The frame and the corners are fixed when a window is created, so a change of either closes the window and opens a new one. */
+function followFrameSetting(): void {
+	if (win && frameKey(chrome()) !== builtFrame) {
+		const old = win;
+		win = null;
+		rebuilding = true;
+		try {
+			old.close();
+		} finally {
+			rebuilding = false;
+		}
+		openWindow("settings");
+	}
+	tellChrome();
+}
+
+/** Runs a title-bar button the view drew. Does nothing before a window exists; close hides to the tray rather than ending the app. */
+function windowOp(op: WindowButton): void {
+	if (!win) return;
+	if (op === "minimize") win.minimize();
+	else if (op === "maximize") {
+		if (win.isMaximized()) win.unmaximize();
+		else win.maximize();
+		tellChrome();
+	} else if (!tray.visible && engine.snapshot().run.phase !== "installing") quit();
+	// Close hides, exactly as the desktop's own close button does.
+	else if (tray.visible) win.hide();
+}
+
+/** Ends the app for real: marks the close as wanted and frees the socket first so a new launch can start. */
+function quit(): void {
+	quitting = true;
+	releaseInstance(deps.paths.socket);
+	Utils.quit();
+}
+
+if ((await claimInstance(deps.paths.socket, openWindow)) === "secondary") {
+	// Another Upkeep is running and has been asked to show its window. The framework's process.exit starts a
+	// graceful quit and returns; the promise never settles, so no second engine, tray or window is built.
+	await new Promise<never>(() => process.exit(0));
+}
+
+// SIGTERM at logout and the framework's own quit paths skip quit(): let the window close and free the socket.
+Electrobun.events.on("before-quit", () => {
+	quitting = true;
+	releaseInstance(deps.paths.socket);
 });
+
+const engine = createEngine(deps);
+// An update cut off by a crash or a power cut is finished or undone before the first check.
+void engine.recover();
+// The system updates list: same paths and runner, its own state, never awaited by the engine's check.
+const extras = createExtras({ paths: deps.paths, run: deps.run, now: deps.now });
+// The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
+const launcher = join(import.meta.dir, "../../../bin/launcher");
+const appIcon = join(import.meta.dir, "../../appIcon.png");
+/** Writes or removes the login entry to match the setting; skipped in dev and source runs. Throws if the autostart folder cannot be written. */
+function applyLoginSetting(): void {
+	// Only an installed build may own the login entry; a dev bundle or a source run would point it at a moving target.
+	if (isDevBuild(import.meta.dir) || !existsSync(launcher)) return;
+	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, launcher, appIcon);
+}
+
+// One channel per window: a channel stays tied to the webview it was first given to, so a rebuilt window with the old one never hears from this process and stays blank.
+/** A fresh channel for a new window; see the note above on why one is never reused. */
+function makeRpc() {
+	return defineUpkeepRpc(engine, deps, {
+		onSettings: () => {
+			applyLoginSetting();
+			followFrameSetting();
+		},
+		chrome,
+		windowOp,
+		extras,
+	});
+}
+let rpc = makeRpc();
+
+const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", template: false, width: 22, height: 22 });
+let shownIcon = "";
+let shownMenu = "";
+
+/** Redraws the tray icon, title and menu from the engine, touching each only when it changed. */
+function refreshTray(): void {
+	const snapshot = engine.snapshot();
+	const icon = trayIcon(snapshot);
+	if (icon !== shownIcon) {
+		shownIcon = icon;
+		tray.setImage(`views://tray/${icon}.png`);
+		tray.setTitle(trayTitle(snapshot));
+	}
+	const menu = trayMenu(snapshot, extras.snapshot().system);
+	const key = JSON.stringify(menu);
+	if (key !== shownMenu) {
+		shownMenu = key;
+		tray.setMenu(menu);
+	}
+}
+
+tray.on("tray-clicked", (event) => {
+	// SAFETY: the framework gives the clicked menu item's `action` string in `data`; the type does not declare it and a click with no data leaves it undefined.
+	const action = (event as { data?: { action?: string } }).data?.action;
+	if (action === "open") openWindow();
+	else if (action === "check") void engine.check();
+	// The window holds the owner's ticks; once it exists, its Install is the one that honours them.
+	else if (action === "install") {
+		if (win) openWindow();
+		else void engine.install(engine.readyKeys(false));
+	} else if (action === "quit") {
+		if (engine.snapshot().run.phase === "installing") {
+			quitAfterRun = true;
+			engine.stopAfterCurrent();
+		} else quit();
+	}
+});
+
+/** Shows a desktop notice unless the owner turned notices off. */
+function notify(body: string): void {
+	if (engine.snapshot().settings.notify) Utils.showNotification({ title: "Upkeep", body });
+}
+
+let firstBackgroundCheck = background;
+/** One notice per ready set: the same pending list is announced once, not after every check. */
+function announceReady(): void {
+	const all = engine.snapshot();
+	// At a login start the automatic apps are about to install and get their own "Updated" notice.
+	const auto = firstBackgroundCheck ? new Set(engine.readyKeys(true)) : new Set<string>();
+	firstBackgroundCheck = false;
+	const snapshot = { ...all, apps: all.apps.filter((a) => !auto.has(a.key)) };
+	const fingerprint = readyFingerprint(snapshot);
+	if (fingerprint === loadState(deps.paths).notified) return;
+	updateState(deps.paths, (s) => {
+		s.notified = fingerprint;
+	});
+	// A visible window already shows the list.
+	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot)));
+}
+
+/** Says the outcome of an install with no window to read it: one notice for the updated apps, one per failure. */
+function announceRun(): void {
+	const results = engine.snapshot().run.results;
+	const updated = results.filter((r) => r.result === "updated").map((r) => r.name);
+	if (updated.length > 0) notify(updatedNotice(updated));
+	for (const r of results) if (r.result !== "updated") notify(failedNotice(r.name));
+}
+
+// Before the window exists there is nobody to tell; the view asks for a snapshot when it mounts.
+const toView = createCoalescer((event: EngineEvent) => {
+	if (win) rpc.send.event(event);
+});
+let phase: RunPhase = "idle";
+
+// Through the same coalescer as the engine's events: a non-row event flushes pending rows first, so order holds.
+extras.subscribe((event) => {
+	toView.push(event);
+	refreshTray();
+});
+
+engine.subscribe((event) => {
+	toView.push(event);
+	if (event.type !== "run") {
+		if (event.type === "app") refreshTray();
+		return;
+	}
+	const before = phase;
+	phase = event.run.phase;
+	refreshTray();
+	if (before === "checking" && phase === "idle") announceReady();
+	if (before === "installing" && phase === "summary") {
+		// With no window to read the summary in, say it once and clear it.
+		if (!win?.isVisible() || quitAfterRun) {
+			announceRun();
+			engine.dismissSummary();
+		}
+		if (quitAfterRun) quit();
+	}
+});
+
+refreshTray();
+// Only an entry the owner asked for is kept: off removes a stale file, on repairs a moved install.
+try {
+	applyLoginSetting();
+} catch (err) {
+	// An autostart folder that cannot be written must not leave the app half started.
+	console.error("login entry:", err);
+}
+
+if (background && tray.visible) {
+	await engine.check();
+	const auto = engine.readyKeys(true);
+	if (auto.length > 0) await engine.install(auto);
+} else {
+	openWindow();
+	const checked = engine.check();
+	const script = process.env.UPKEEP_DEV_SCRIPT;
+	if (script && isDevBuild(import.meta.dir)) {
+		await checked;
+		await playDevScript(
+			script,
+			(js) => win?.webview.executeJavascript(js),
+			(index) => console.log(`[dev-script] step ${index} settled`),
+		);
+	}
+}

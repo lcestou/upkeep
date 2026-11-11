@@ -1,5 +1,88 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"categories": { "correctness": "error", "suspicious": "warn", "perf": "warn" },
-	"ignorePatterns": ["dist", "build", "artifacts", ".hutch", "node_modules"]
+	"plugins": ["typescript", "unicorn", "oxc"],
+	"categories": { "correctness": "error", "suspicious": "error", "perf": "warn" },
+	"ignorePatterns": ["dist", "build", "artifacts", ".hutch", "node_modules"],
+	"jsPlugins": ["./tools/oxlint/anti-slop/index.ts"],
+	"rules": {
+		"anti-slop/no-chained-type-assertions": "error",
+		"anti-slop/no-known-value-widening": "error",
+		"anti-slop/no-module-mocking": "error",
+		"anti-slop/no-reflect-apply": "error",
+		"anti-slop/no-reflect-get": "error",
+		"anti-slop/no-runtime-typeof": "error",
+		"anti-slop/no-unknown-type-aliases": "error",
+		"anti-slop/no-widen-then-assert": "error",
+		"anti-slop/no-unknown-returns": "error",
+		"anti-slop/no-conditional-empty-object-spread": "error",
+		"anti-slop/no-unsafe-dictionary-type": "error",
+		"anti-slop/no-unknown-parameters": "error",
+		"anti-slop/no-shape-in-symbol-names": "error",
+		"anti-slop/require-safety-comment-for-type-assertion": "error",
+		"anti-slop/no-object-parameters": "error",
+		"anti-slop/require-field-label": "error",
+		"anti-slop/require-doc-comment": "error",
+		"unicorn/consistent-function-scoping": "error",
+		"unicorn/no-array-sort": "error",
+		"no-unused-vars": "error",
+		"no-shadow": "error",
+		"prefer-const": "error",
+		"typescript/no-explicit-any": "error"
+	},
+	"overrides": [
+		{
+			"files": ["**/*.test.ts", "e2e/**"],
+			"rules": {
+				"anti-slop/require-safety-comment-for-type-assertion": "off",
+				"anti-slop/require-doc-comment": "off",
+				"anti-slop/no-chained-type-assertions": "off",
+				"anti-slop/no-unknown-parameters": "off",
+				"anti-slop/no-known-value-widening": "off",
+				"anti-slop/no-unsafe-dictionary-type": "off",
+				"anti-slop/no-runtime-typeof": "off",
+				"anti-slop/no-module-mocking": "off",
+				"anti-slop/no-conditional-empty-object-spread": "off",
+				"no-shadow": "off",
+				"unicorn/consistent-function-scoping": "off"
+			}
+		},
+		{
+			"files": ["e2e/**"],
+			"rules": {
+				"no-await-in-loop": "off",
+				"no-underscore-dangle": "off"
+			}
+		},
+		{
+			"files": [
+				"src/engine/manifest.ts",
+				"src/engine/github.ts",
+				"src/engine/store.ts",
+				"src/engine/extras/state.ts",
+				"src/engine/backup.ts",
+				"src/bun/window-size.ts",
+				"src/bun/dev-script.ts"
+			],
+			"rules": {
+				"anti-slop/no-runtime-typeof": "off",
+				"anti-slop/no-unknown-parameters": "off",
+				"anti-slop/no-unknown-returns": "off",
+				"anti-slop/no-unsafe-dictionary-type": "off",
+				"anti-slop/no-known-value-widening": "off"
+			}
+		},
+		{
+			"files": [
+				"tools/oxlint/anti-slop/shared/lexical-type-parameters.ts",
+				"tools/oxlint/anti-slop/rules/no-runtime-typeof.ts"
+			],
+			"rules": {
+				"typescript/no-explicit-any": "off",
+				"anti-slop/no-runtime-typeof": "off",
+				"anti-slop/no-unknown-parameters": "off",
+				"anti-slop/no-unsafe-dictionary-type": "off",
+				"anti-slop/no-chained-type-assertions": "off"
+			}
+		}
+	]
 }

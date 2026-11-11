@@ -1,0 +1,31 @@
+{
+	"$schema": "./node_modules/fallow/schema.json",
+
+	// Entries fallow cannot infer: the main process Electrobun starts (electrobun.config.ts),
+	// the command line, the scripts run by hand or through package.json, and the lint plugin
+	// (loaded by path from .oxlintrc.json).
+	"entry": [
+		"src/bun/index.ts",
+		"src/mainview/main.ts",
+		"electrobun.config.ts",
+		"svelte.config.js",
+		"src/cli.ts",
+		"scripts/**/*.{ts,mjs}",
+		"tools/oxlint/anti-slop/index.ts"
+	],
+
+	"ignorePatterns": [".hutch/**"],
+
+	// System tools the engine and the drive script start: GNOME's settings reader, Linux Mint's
+	// Update Manager, and iproute2's socket list.
+	"ignoreBinaries": ["gsettings", "mintupdate", "ss"],
+
+	"ignoreExportsUsedInFile": true,
+
+	"rules": {
+		// Electrobun bundles the main process and Vite bundles the view; nothing installs this
+		// package from a registry, so the dependencies/devDependencies split has no reader.
+		"dev-dependencies-in-production": "off",
+		"circular-dependencies": "error"
+	}
+}

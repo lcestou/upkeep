@@ -24,7 +24,7 @@ Success is the owner pressing Install once and walking away. Nothing is skipped 
 
 ## Positioning
 
-The Linux Mint Update Manager, for everything it cannot see. One list covers AppImages, release binaries, .deb files from GitHub, source builds, tools that update themselves, and items the owner updates by hand.
+The update manager your desktop ships with, for everything it cannot see. One list covers AppImages, release binaries, .deb files from GitHub, source builds, tools that update themselves, and items the owner updates by hand.
 
 ## Operating Context
 
@@ -39,9 +39,11 @@ The Linux Mint Update Manager, for everything it cannot see. One list covers App
 - Kinds of app: AppImage, binary from a release archive, single-file binary, .deb, source build, self-updating tool, plugin set, notify-only.
 - The old script stays installed and is the engine for the kinds not yet ported.
 - The owner's commands `lutechi-updater --check`, `--list` and `lutechi-updater <app>` must keep working until he retires them.
+- Apps are added in the window: paste a GitHub repo or link, choose or drop a file, or scan the computer. A scan never runs what it finds. Removing an app takes it off the list and uninstalls nothing.
 - No prompt may appear after Install is pressed.
 - This is a production machine. An update that cannot be verified is rolled back.
-- Undecided: the product name (Upkeep is a working name), whether it is published, other operating systems.
+- Direction set by the owner on 2026-11-11: any Linux first, then any operating system. Today it is built and tested on Linux Mint only. What already works on any x86_64 Linux desktop with WebKitGTK: AppImages, release archives, single files, source builds, self-updating tools, the window and the tray. What is tied to one family today: `.deb` installs need dpkg; package rows in the System group need Linux Mint's Update Manager (Flatpak rows need only Flatpak); the window buttons' side is read from Cinnamon's or GNOME's settings and falls back to the right. Nothing for macOS or Windows exists yet; `notes/research/2026-11-10-other-platforms.md` has the groundwork.
+- Undecided: the product name (Upkeep is a working name), whether it is published.
 
 ## Evidence on Hand
 
@@ -56,6 +58,9 @@ The Linux Mint Update Manager, for everything it cannot see. One list covers App
 3. Never worse than before. Back up first, verify after, roll back on doubt.
 4. Quiet by default. One tray count and one notification, never a dialog per app.
 5. The list is the product. Versions and status are readable at a glance, and detail is one click away.
+
+6. The owner chooses. Upkeep offers the feature and the person turns it on: no app installs without asking until he marks it so, extras are off until switched on, and nothing about one machine's habits is a default for the next. Stated by the owner on 2026-11-11: "more agnostic and feature rich [...] user makes the choice based on the features".
+7. Nothing is special-cased in code. What an app needs in order to update (where it comes from, how it is built, what is stopped and started, how it is tested) is written in its entry in the app list, so a stranger's app is handled by the same code as the owner's.
 
 ## Accessibility & Inclusion
 

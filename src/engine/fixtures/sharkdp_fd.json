@@ -1,0 +1,28 @@
+{
+	"assets": [
+		{ "name": "fd-musl_10.5.2_amd64.deb", "size": 1482492 },
+		{ "name": "fd-musl_10.5.2_arm64.deb", "size": 1353394 },
+		{ "name": "fd-musl_10.5.2_armhf.deb", "size": 1233836 },
+		{ "name": "fd-musl_10.5.2_i686.deb", "size": 1281980 },
+		{ "name": "fd-v10.5.2-aarch64-apple-darwin.tar.gz", "size": 1349389 },
+		{ "name": "fd-v10.5.2-aarch64-pc-windows-gnullvm.zip", "size": 1399049 },
+		{ "name": "fd-v10.5.2-aarch64-pc-windows-msvc.zip", "size": 1388549 },
+		{ "name": "fd-v10.5.2-aarch64-unknown-linux-gnu.tar.gz", "size": 1599113 },
+		{ "name": "fd-v10.5.2-aarch64-unknown-linux-musl.tar.gz", "size": 1643779 },
+		{ "name": "fd-v10.5.2-arm-unknown-linux-gnueabihf.tar.gz", "size": 1638731 },
+		{ "name": "fd-v10.5.2-arm-unknown-linux-musleabihf.tar.gz", "size": 1479925 },
+		{ "name": "fd-v10.5.2-i686-pc-windows-msvc.zip", "size": 1408275 },
+		{ "name": "fd-v10.5.2-i686-unknown-linux-gnu.tar.gz", "size": 1808124 },
+		{ "name": "fd-v10.5.2-i686-unknown-linux-musl.tar.gz", "size": 1534195 },
+		{ "name": "fd-v10.5.2-x86_64-apple-darwin.tar.gz", "size": 1453160 },
+		{ "name": "fd-v10.5.2-x86_64-pc-windows-gnu.zip", "size": 1503016 },
+		{ "name": "fd-v10.5.2-x86_64-pc-windows-msvc.zip", "size": 1564536 },
+		{ "name": "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz", "size": 1747445 },
+		{ "name": "fd-v10.5.2-x86_64-unknown-linux-musl.tar.gz", "size": 1798931 },
+		{ "name": "fd_10.5.2_amd64.deb", "size": 1437022 },
+		{ "name": "fd_10.5.2_arm64.deb", "size": 1306046 },
+		{ "name": "fd_10.5.2_armhf.deb", "size": 1362100 },
+		{ "name": "fd_10.5.2_i686.deb", "size": 1512242 }
+	],
+	"tag_name": "v10.5.2"
+}
