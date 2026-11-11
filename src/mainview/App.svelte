@@ -199,12 +199,12 @@
 							aria-label={m.openApp.name}
 							transition:fly={{ x: 32, duration: ms(200) }}
 						>
-							<div class="scroll" {@attach shade}>
-								<!-- Keyed so a different app starts with no leftover Copied or Restored message. -->
-								{#key m.openApp.key}
+							<!-- Keyed so a different app starts at the top, with no leftover Copied or Restored message. -->
+							{#key m.openApp.key}
+								<div class="scroll" {@attach shade}>
 									<RowDetail app={m.openApp} model={m} onclose={closeInspector} />
-								{/key}
-							</div>
+								</div>
+							{/key}
 						</aside>
 					{/if}
 				</div>

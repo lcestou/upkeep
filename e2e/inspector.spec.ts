@@ -103,3 +103,16 @@ test("closing the pane never squeezes the list: it keeps its height while the pa
 	await expect(page.getByTestId("inspector")).toHaveCount(0);
 	expect((await list()).width).toBeGreaterThan(open.width);
 });
+
+test("opening another app's pane starts it at the top, not where the last one was scrolled", async ({ page }) => {
+	await page.setViewportSize({ width: 1400, height: 560 });
+	await load(page);
+	const rows = page.locator("[data-row]");
+	await rows.nth(0).click();
+	const scroll = page.locator('[data-testid="inspector"] .scroll');
+	await scroll.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+	await expect.poll(() => scroll.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+	await rows.nth(1).click();
+	await expect(page.getByTestId("inspector")).toHaveAttribute("aria-label", /.+/);
+	await expect.poll(() => scroll.evaluate((el) => el.scrollTop)).toBe(0);
+});
