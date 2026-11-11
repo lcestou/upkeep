@@ -21,6 +21,8 @@ test("each Settings control", async ({ page }) => {
 	await expect(notify).toBeChecked();
 	await notify.uncheck();
 	await expect(notify).not.toBeChecked();
+	await expect(page.getByTestId("setting-login-label")).toHaveText("Start at login");
+	await expect(page.getByTestId("setting-login-hint")).toHaveText("Opens in the tray and checks for updates.");
 	const login = page.getByTestId("setting-login");
 	await login.check();
 	await expect(login).toBeChecked();
