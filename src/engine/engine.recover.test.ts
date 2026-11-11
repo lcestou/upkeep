@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { cpSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { createEngine, type EngineDeps } from "./engine";
+import { createEngine, type EngineDeps, REASON_UNRECOVERED } from "./engine";
 import type { FetchLike } from "./github";
 import { installBuilt } from "./kinds/built";
 import { loadManifest } from "./manifest";
@@ -280,4 +280,27 @@ test("end to end: a kill at each step, then recover(): the old tree is back, eve
 		// oxlint-disable-next-line no-await-in-loop -- one kill point at a time
 		expect(await engine.recover()).toEqual([]);
 	}
+});
+
+test("a recovery that fails stops Install and every other app's restore, and leaves its marker byte for byte", async () => {
+	const box = fakeBox();
+	expect(await installBuilt(spec(), target, kindCtx(box) as never)).toMatchObject({ result: "done" });
+	const d = deps(box);
+	writeFileSync(join(t.dir, "seed.toml"), `${SEED}\n${SEED.replaceAll("srv", "two")}`);
+	// The marker names a restore point that is not there, so the put-back fails and the marker is kept.
+	writeInflight(t.paths, {
+		key: "srv",
+		dest: dir,
+		backupVersion: "gone",
+		tree: { step: "placing", build: null, active: [], paused: [] },
+	});
+	const file = join(t.paths.state, "inflight.json");
+	const before = readFileSync(file);
+	const engine = createEngine(d);
+	expect(await engine.install(["srv"])).toEqual({ started: false, reason: REASON_UNRECOVERED });
+	expect(readFileSync(file)).toEqual(before);
+	expect(await engine.restore("two", "f2918cabb")).toEqual({ ok: false, detail: REASON_UNRECOVERED });
+	expect(readFileSync(file)).toEqual(before);
+	expect(await engine.restore("srv", "f2918cabb")).toEqual({ ok: true });
+	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
 });

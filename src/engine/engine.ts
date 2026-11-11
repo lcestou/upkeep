@@ -112,6 +112,8 @@ export const REASON_CHECKING = "A check is running.";
 export const REASON_BUSY = "A run is already in progress.";
 export const REASON_NOTHING = "Nothing to install.";
 export const REASON_OLD = "The old updater is running. Finish or close its dialogs first.";
+/** Install and every other restore wait until the interrupted update is put back: its marker is the only record of it. */
+export const REASON_UNRECOVERED = "An update was interrupted and could not be put back. Restore it from its row first.";
 
 const NATIVE = new Set(["appimage", "archive", "file", "deb", "source", "command"]);
 
@@ -700,7 +702,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		async install(keys) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
 			if (run.phase === "installing") return { started: false, reason: REASON_BUSY };
-			await this.recover();
+			// A run would write its own marker over the one a failed recovery kept.
+			if ((await this.recover()).some((r) => !r.ok)) return { started: false, reason: REASON_UNRECOVERED };
 			// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
 			// What the first pass updated stays on screen and in the count, so the summary reads as one run.
 			const retry = run.phase === "summary";
@@ -813,7 +816,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (run.phase === "installing" || run.phase === "checking") return { ok: false, detail: REASON_BUSY };
 			const spec = specOf(key);
 			if (!spec) return { ok: false, detail: `No app ${key}.` };
-			await this.recover();
+			// Only the app whose recovery failed may be restored; its restore replaces the kept marker.
+			if ((await this.recover()).some((r) => !r.ok && r.key !== key)) return { ok: false, detail: REASON_UNRECOVERED };
 			if (!claimLock(paths, process.pid, deps.procRoot)) return { ok: false, detail: REASON_BUSY };
 			try {
 				if (canRestore(spec) && spec.kind === "source") return await restoreBuiltApp(spec, version);
