@@ -389,9 +389,25 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 	await midRun(page);
 	await shoot(page, `run-${width}`);
 	await measured("run");
+	// Built-from-source rows: the list, the pane with its commits, and a row in its build stage.
+	await go("fixture=built&speed=0.3");
+	await shoot(page, `built-${width}`);
+	await measured("built");
+	await page.getByTestId("open-llama").click();
+	await page.getByTestId("commits-llama").waitFor();
+	await shoot(page, `built-pane-${width}`);
+	await measured("built+pane");
+	await page.keyboard.press("Escape");
+	await page.getByTestId("select-none").click();
+	await page.getByTestId("tick-llama").click();
+	await page.getByTestId("install").click();
+	await page.locator('[data-testid="stem-llama"] .span.active[title="Build"]').waitFor();
+	await shoot(page, `built-run-${width}`);
+	await measured("built-run");
+
 	if (!full) {
 		await ctx.close();
-		return 2;
+		return 5;
 	}
 
 	await go("fixture");
@@ -512,7 +528,7 @@ async function captureSize(browser, [width, height], errors, table, { full }) {
 	});
 	await shoot(page, `many-${width}`);
 	await ctx.close();
-	return 17;
+	return 20;
 }
 
 /** Opens a fold the session may already have opened. */
