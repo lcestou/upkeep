@@ -225,11 +225,14 @@ versionless = true
 
 [apps.whisper]
 name = "whisper.cpp"
-kind = "manual"
-legacy_name = "whisper.cpp"
-run = "lutechi-updater whisper"
-check = ["sh", "-c", '''[ -d "$HOME/whisper.cpp/.git" ] || exit 127; git -C "$HOME/whisper.cpp" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//'''']
-latest = "github:ggml-org/whisper.cpp"
+kind = "source"
+repo = "ggml-org/whisper.cpp"
+dir = "~/whisper.cpp"
+move = "detach"
+check = ["sh", "-c", '''[ -d "$HOME/whisper.cpp/.git" ] || exit 127; git -C "$HOME/whisper.cpp" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' ''']
+keep = ["build"]
+build = ["cmake --build build -j 6"]
+test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"], timeout_s = 30 }]
 
 # Checked by the old script: it compares the checkout's HEAD commit date with the release date and shows a commit hash, not a version.
 [apps.llama]
