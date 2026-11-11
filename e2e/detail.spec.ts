@@ -87,3 +87,11 @@ test("a restore that runs out of time leaves the buttons usable and says nothing
 	await expect(page.getByTestId("restore-result")).toHaveText("");
 	await expect(page.getByTestId("status-fd")).toHaveText("Ready");
 });
+
+// Native builds, chunk 8: a source row without a checkout or a stage is built in a fresh clone.
+test("a source app without a restore point says it is built in a fresh clone", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-tmux").click();
+	await expect(page.getByTestId("no-restore")).toHaveText("Built in a fresh clone, so there is no restore point.");
+});

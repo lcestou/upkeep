@@ -9,6 +9,7 @@ First version.
 - A new version that will not start is replaced by the copy taken before it.
 - Downloads are checked against the size and SHA-256 that GitHub lists.
 - A running app is not closed. Its file is replaced and the row says "Restart to apply".
+- An app built from source shows, in its pane, the commits it is behind by, newest first, and its row shows a Build stage while it builds.
 - Add an app by pasting its GitHub repo, choosing or dropping a file, or scanning the computer. Remove one from its pane.
 - Filter the list by name.
 - Skip one version of an app, hold an app, or mark it to install without asking.

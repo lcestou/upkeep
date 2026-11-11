@@ -23,7 +23,7 @@ import { PICKED, scanResults, suggestFor } from "./fixture-add";
 import { lastTryFailed, tomlWriteFailed } from "./copy";
 import { type SystemVariant, systemFor } from "./fixture-system";
 
-export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many";
+export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many" | "built";
 
 type Seed = {
 	key: string;
@@ -46,6 +46,10 @@ type Seed = {
 	stages?: [Stage, number][];
 	notes?: string;
 	publishedDaysAgo?: number;
+	/** Read in place of CAN_RESTORE for the kind: a source row with dir or stage keeps a restore point. */
+	canRestore?: boolean;
+	commits?: { sha: string; title: string }[];
+	ahead?: number;
 };
 
 export const ZEN_NOTES =
@@ -308,7 +312,9 @@ function toApp(seed: Seed): AppState {
 		running: seed.running ?? false,
 		restartToApply: false,
 		restorePoints: restore.map((version, i) => ({ version, at: iso(NOW - (12 + i * 20) * DAY) })),
-		canRestore: CAN_RESTORE[seed.kind],
+		canRestore: seed.canRestore ?? CAN_RESTORE[seed.kind],
+		commits: seed.commits,
+		ahead: seed.ahead,
 		auto: seed.auto ?? false,
 		sudo: seed.sudo ?? false,
 		versionless: seed.versionless ?? false,
@@ -320,8 +326,170 @@ function toApp(seed: Seed): AppState {
 	};
 }
 
+/** The five stages of a built app, weighted as the engine weighs them (plan 5 E); they sum to 100. */
+const BUILT_STAGES: [Stage, number][] = [
+	["download", 5],
+	["backup", 5],
+	["build", 60],
+	["install", 15],
+	["verify", 15],
+];
+
+/** Thirty commit titles shaped like llama.cpp's, newest first, one long enough to be cut in the pane. */
+const LLAMA_TITLES = [
+	"server : add --reasoning-budget-message to the chat template path",
+	"CUDA : fuse rms_norm and mul for the Ampere tile path",
+	"ggml : fix a race in the threadpool when n_threads changes between graphs, seen with speculative decoding on two GPUs at once",
+	"model : add support for Qwen3.8 MoE routing",
+	"vulkan : skip the coopmat path on drivers older than 1.3.280",
+	"server : stream usage in the final chunk when stream_options is set",
+	"llama : refactor the KV cache defrag heuristics",
+	"CUDA : FA kernels for head size 576",
+	"common : accept --no-mmap in the presets file",
+	"convert : handle tied embeddings in the HF converter",
+	"server : return 503 while the model is loading",
+	"ggml-cpu : AVX-512 path for q4_K dot products",
+	"metal : fix the argsort kernel for large rows",
+	"llama-bench : print the build commit",
+	"sampling : add top-n-sigma",
+	"server : fix the /slots endpoint when slots are disabled",
+	"CUDA : reduce register pressure in mmq for sm_86",
+	"docs : describe the tool-call grammar",
+	"ggml : add ggml_set_rows for quantized types",
+	"server : keep the prompt cache across model reloads",
+	"llama : fix the chat template for gpt-oss",
+	"cmake : find CUDA 13.1 on Debian layouts",
+	"tests : cover the new rope scaling types",
+	"server : expose n_ctx_train in /props",
+	"vocab : fix the pre-tokenizer for Kimi",
+	"CUDA : enable graphs for batch size 1 decoding",
+	"common : log the effective sampler chain",
+	"ggml : speed up get_rows for f16",
+	"server : honour cache_prompt=false in the OAI endpoint",
+	"llama : print the device split at load time",
+];
+/** A distinct made-up 40-character sha per position, starting from the real newest commit's short form. */
+const fakeSha = (i: number) =>
+	(i === 0 ? "cd959bae9" : (0xcd959bae9 - i * 0x1f3a7).toString(16).padStart(9, "0")).padEnd(40, "0");
+const LLAMA_COMMITS = LLAMA_TITLES.map((title, i) => ({ sha: fakeSha(i), title }));
+
+/** The built-from-source rows the native-builds plan moves into Upkeep, as the engine reports them once their tables are live. */
+const BUILT_SEEDS: Seed[] = [
+	{
+		key: "llama",
+		name: "llama.cpp",
+		kind: "source",
+		repo: "ggml-org/llama.cpp",
+		installed: "f2918cabb",
+		latest: "v0.9.0",
+		status: "ready",
+		canRestore: true,
+		restore: ["a41d0c7e2"],
+		ahead: 569,
+		commits: LLAMA_COMMITS,
+		stages: BUILT_STAGES,
+		note: "Updating restarts the llama-server services that are running. To judge whether these commits matter for this setup, run /llama in a Claude session.",
+	},
+	{
+		key: "whisper",
+		name: "whisper.cpp",
+		kind: "source",
+		repo: "ggml-org/whisper.cpp",
+		installed: "v1.8.2",
+		latest: "v1.8.3",
+		status: "ready",
+		canRestore: true,
+		ahead: 3,
+		commits: [
+			{ sha: "7be3f0a1c".padEnd(40, "0"), title: "cli : print the model's language list with --help" },
+			{ sha: "4d91e2b06".padEnd(40, "0"), title: "ggml : sync with llama.cpp" },
+			{ sha: "e05c13f87".padEnd(40, "0"), title: "release : v1.8.3" },
+		],
+		stages: BUILT_STAGES,
+	},
+	{
+		key: "strata",
+		name: "Strata",
+		kind: "source",
+		repo: "lcestou/strata",
+		installed: "0.2.10",
+		latest: "0.2.13",
+		status: "ready",
+		canRestore: true,
+		stages: BUILT_STAGES,
+	},
+	{
+		key: "comfyui",
+		name: "ComfyUI",
+		kind: "source",
+		repo: "comfyanonymous/ComfyUI",
+		installed: "0.43.0",
+		latest: "0.44.0",
+		status: "ready",
+		canRestore: true,
+		stages: BUILT_STAGES,
+	},
+	{
+		key: "cava",
+		name: "CAVA",
+		kind: "source",
+		repo: "karlstav/cava",
+		installed: "0.10.6",
+		latest: "0.10.7",
+		status: "ready",
+		canRestore: true,
+		stages: BUILT_STAGES,
+	},
+	{
+		key: "dsh",
+		name: "dsh",
+		kind: "source",
+		repo: "dsh-dev/dsh",
+		installed: "0.2.2-alpha.3",
+		latest: "0.2.2-rc.1",
+		status: "ready",
+		canRestore: true,
+		stages: BUILT_STAGES,
+	},
+	{
+		key: "tmux",
+		name: "tmux",
+		kind: "source",
+		repo: "tmux/tmux",
+		installed: "3.6a",
+		latest: "3.6b",
+		status: "ready",
+		canRestore: true,
+		stages: BUILT_STAGES,
+	},
+];
+
+/** How each built row's scripted run ends in the built variant: the starred sentences of plan 5 E. */
+const BUILT_ENDS: Record<string, { result: "failed" | "rolled_back"; detail: (from: string | null) => string }> = {
+	strata: { result: "failed", detail: () => "sudo needs a password here, so nothing was stopped or changed." },
+	comfyui: { result: "failed", detail: () => "The image queue has a job waiting. Nothing was changed." },
+	cava: { result: "failed", detail: () => "Build step failed: cmake --build build -j 6. Nothing was changed." },
+	dsh: { result: "rolled_back", detail: (from) => `Would not start after the update. Restored ${from ?? ""}.` },
+	whisper: {
+		result: "rolled_back",
+		detail: (from) => `Failed its test after the update: whisper-cli starts. Restored ${from ?? ""}.`,
+	},
+	tmux: {
+		result: "failed",
+		detail: (from) =>
+			`Would not start after the update, and putting ${from ?? ""} back failed: tmux did not answer. See the log.`,
+	},
+};
+
+/** Builds the app list for a fixture variant; built swaps in the source rows and rests every other pending row. */
 function seedsFor(variant: FixtureVariant): AppState[] {
 	const apps = SEEDS.map(toApp);
+	if (variant === "built") {
+		const built = new Map(BUILT_SEEDS.map((s) => [s.key, toApp(s)]));
+		return apps.map(
+			(a) => built.get(a.key) ?? (a.status === "ready" ? { ...a, status: "fresh", installed: a.latest } : a),
+		);
+	}
 	if (variant === "empty") {
 		return apps.map((a) => ({
 			...a,
@@ -490,6 +658,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const after = get(key);
 		if (!after) throw new Error(`No app ${key}`);
 		const ms = Date.now() - start;
+		const end = variant === "built" ? BUILT_ENDS[key] : undefined;
+		if (end) {
+			const detail = end.detail(from);
+			log(runId, key, detail);
+			put({ ...after, status: end.result, stage: undefined, stagePct: undefined, detail });
+			return { key, name: app.name, from, to, result: end.result, detail, ms };
+		}
 		if (key === "wrangler" && attempts === 1) {
 			const detail = "Still at 4.157.0 after the update.";
 			log(runId, key, `wrangler --version printed 4.157.0. ${detail}`);
