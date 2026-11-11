@@ -144,7 +144,6 @@ kind = "command"
 check = ["claude", "--version"]
 latest = "npm:@anthropic-ai/claude-code"
 update = ["claude", "update"]
-auto = true
 note = "Open sessions keep the old version until restarted."
 
 [apps.omp]
@@ -153,7 +152,6 @@ kind = "command"
 check = ["omp", "--version"]
 latest = "npm:@oh-my-pi/pi-coding-agent"
 update = ["omp", "update"]
-auto = true
 note = "Open sessions keep the old version until restarted."
 
 [apps.opencode]
@@ -162,7 +160,6 @@ kind = "command"
 check = ["opencode", "--version"]
 latest = "npm:opencode-ai"
 update = ["opencode", "upgrade"]
-auto = true
 note = "Open sessions keep the old version until restarted."
 
 [apps.wrangler]
@@ -171,7 +168,6 @@ kind = "command"
 check = ["wrangler", "--version"]
 latest = "npm:wrangler"
 update = ["~/.bun/bin/bun", "add", "-g", "wrangler@latest"]
-auto = true
 
 # Checked by the old script: its installed version is read from package.json inside the mounted AppImage, which a check argv cannot do.
 [apps.cursor]
@@ -198,7 +194,6 @@ legacy_name = "pr-agent"
 # The installed tag the old script recorded, else uv's package version (old lines 1474 to 1484).
 check = ["sh", "-c", '''command -v uv >/dev/null || exit 127; v=$(tr -d '[:space:]' < "$HOME/.cache/lutechi-updater/pr-agent-tag" 2>/dev/null); [ -n "$v" ] || v=$(uv tool list 2>/dev/null | awk '/^pr-agent /{print $2}' | sed 's/^v//'); [ -n "$v" ] || exit 127; echo "$v"''']
 latest = "github:The-PR-Agent/pr-agent"
-auto = true
 
 [apps.headroom]
 name = "headroom"
@@ -207,7 +202,6 @@ legacy_key = "headroom"
 legacy_name = "headroom"
 check = ["sh", "-c", '''command -v uv >/dev/null || exit 127; v=$(uv tool list 2>/dev/null | awk '/^headroom-ai /{print $2}' | sed 's/^v//'); [ -n "$v" ] || exit 127; echo "$v"''']
 latest = "pypi:headroom-ai"
-auto = true
 
 [apps.claude-code-telegram]
 name = "claude-code-telegram"
@@ -222,14 +216,12 @@ name = "Claude Code plugins"
 kind = "legacy"
 legacy_key = "claude-plugins"
 versionless = true
-auto = true
 
 [apps.omp-plugins]
 name = "omp plugins"
 kind = "legacy"
 legacy_key = "omp-plugins"
 versionless = true
-auto = true
 
 [apps.whisper]
 name = "whisper.cpp"

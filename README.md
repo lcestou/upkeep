@@ -21,7 +21,7 @@ To start in the tray with no window, the way a login entry does:
 UPKEEP_BACKGROUND=1 bun run dev
 ```
 
-In that mode Upkeep checks, installs the apps marked `auto`, and waits. It sends one notification per new set of pending updates.
+In that mode Upkeep checks, installs the apps marked `auto`, and waits. It sends one notification per new set of pending updates. No app is `auto` until you make it so: nothing in the list that ships with Upkeep is, and an app you add is not. Turn it on per app in its pane, or with `auto = true` in its table.
 
 ## Command line
 
