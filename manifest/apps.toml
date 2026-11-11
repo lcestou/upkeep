@@ -303,8 +303,31 @@ run = "strata-update"
 
 [apps.comfyui]
 name = "ComfyUI"
-kind = "manual"
-legacy_name = "comfyui"
-run = "comfyui-update"
+kind = "source"
+repo = "comfyanonymous/ComfyUI"
+dir = "~/repos/ComfyUI"
+move = "reset"
 check = ["sh", "-c", '''[ -d "$HOME/repos/ComfyUI/.git" ] || exit 127; grep -oP '__version__ = "\K[^"]+' "$HOME/repos/ComfyUI/comfyui_version.py" 2>/dev/null''']
-latest = "github:comfyanonymous/ComfyUI"
+busy = [
+	{ process = "ComfyUI/main.py", say = "ComfyUI is running a job." },
+	{ run = ["sh", "-c", '''grep -lqsE '"status": *"(queued|processing)"' "$HOME"/.local/share/sd-api/queue/*.json'''], say = "The image queue has a job waiting." },
+]
+pause = [{ name = "sd-api.service", active = ["systemctl", "--user", "is-active", "--quiet", "sd-api.service"], stop = ["systemctl", "--user", "stop", "sd-api.service"], start = ["systemctl", "--user", "start", "sd-api.service"] }]
+record = [
+	{ file = "pip-freeze.txt", run = ["venv/bin/pip", "freeze"] },
+	{ file = "custom-nodes.txt", run = ["sh", "-c", '''for d in custom_nodes/*/; do if [ -d "$d/.git" ]; then echo "$d $(git -C "$d" rev-parse HEAD)"; fi; done'''] },
+	{ file = "wheels.log", run = ["sh", "-c", '''set -e; p="{point}"; git show {tag}:requirements.txt > "$p/requirements.new.txt"; venv/bin/pip install -q --dry-run --report "$p/plan.json" -r "$p/requirements.new.txt" --extra-index-url https://download.pytorch.org/whl/cu130; venv/bin/python -c 'import json,sys; p=sys.argv[1]; plan={i["metadata"]["name"].lower() for i in json.load(open(p+"/plan.json"))["install"]}; old={l.split("==")[0].lower():l.strip() for l in open(p+"/pip-freeze.txt") if "==" in l}; open(p+"/old-pins.txt","w").write("".join(old[n]+"\n" for n in plan if n in old)); open(p+"/added.txt","w").write("".join(n+"\n" for n in plan if n not in old))' "$p"; if [ -s "$p/old-pins.txt" ]; then venv/bin/pip download -q --no-deps -d "$p/wheels" -r "$p/old-pins.txt" --extra-index-url https://download.pytorch.org/whl/cu130; fi'''] },
+]
+build = [
+	"venv/bin/pip install -q -r requirements.txt",
+	'''for d in custom_nodes/*/; do [ -d "$d/.git" ] || continue; git -C "$d" pull -q --ff-only 2>/dev/null || echo "$d: pull skipped"; if [ -f "$d/requirements.txt" ]; then venv/bin/pip install -q -r "$d/requirements.txt" || exit 1; fi; done''',
+]
+undo = [
+	'''while read -r d h; do git -C "$d" checkout -q "$h"; done < "{point}/custom-nodes.txt"''',
+	'''if [ -s "{point}/added.txt" ]; then venv/bin/pip uninstall -q -y -r "{point}/added.txt"; fi; if [ -s "{point}/old-pins.txt" ]; then venv/bin/pip install -q --no-index --find-links "{point}/wheels" -r "{point}/old-pins.txt"; fi''',
+]
+test = [
+	{ name = "every node pack loads", run = ["timeout", "600", "venv/bin/python", "main.py", "--quick-test-for-ci", "--cpu"], fail_on = "IMPORT FAILED|Traceback", timeout_s = 660 },
+	{ name = "torch still sees CUDA", run = ["venv/bin/python", "-c", "import torch; assert torch.cuda.is_available()"], timeout_s = 120 },
+]
+note = "Updating pauses the image queue (sd-api) for a few minutes."
