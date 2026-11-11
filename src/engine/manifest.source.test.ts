@@ -215,3 +215,8 @@ test("keep, hold and prune outside dir, and a stage that is home, dir or a live 
 		"string",
 	);
 });
+
+test("a hold path that is not also in keep is refused when read", () => {
+	expect(withField({ dir: "~/x", hold: ["engine"], keep: [".venv"] })).toBe("x: every hold path must also be in keep");
+	expect(withField({ dir: "~/x", hold: ["engine/"], keep: ["./engine"] })).not.toBeTypeOf("string");
+});

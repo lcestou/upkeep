@@ -206,6 +206,9 @@ function unsafeSourcePath(key: string, spec: AppSpec): string | null {
 			const inside = rooted(p) ? scope !== null && within(p, scope) : dir !== null && p !== ".";
 			if (!inside || p.split("/").includes("..")) return `${key}: ${field} must stay inside dir`;
 		}
+	const kept = new Set((spec.keep ?? []).map(tidy));
+	// After a verified update the held copy is deleted; keep is then the only old copy a later restore has.
+	if ((spec.hold ?? []).some((h) => !kept.has(tidy(h)))) return `${key}: every hold path must also be in keep`;
 	if (stage !== null) {
 		const live = [dir, ...(spec.place ?? []).map((pl) => tidy(pl.to))].filter((x): x is string => x !== null);
 		if (

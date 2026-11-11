@@ -646,7 +646,6 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	for (const s of stopped)
 		// oxlint-disable-next-line no-await-in-loop -- services start in table order
 		if (!(await startService(ctx.run, s.svc))) return rollBack(`Would not start after the update. Restored ${from}.`);
-	dropHeld(spec, ctx, built.dir);
 
 	clock.start("verify");
 	marker.step("verify");
@@ -681,6 +680,8 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		return rollBack(`Failed its test after the update: ${VERSION_CHECK}. Restored ${from}.`);
 	prune(ctx.paths, spec.key, ctx.settings.keepBackups);
 	await pruneBuilds(spec, ctx, built);
+	// Only now: until verify passed, the held copy is what a rollback renames back.
+	dropHeld(spec, ctx, built.dir);
 	await startPaused();
 	marker.clear();
 	return finish({

@@ -330,3 +330,26 @@ test("a rollback whose stop fails puts nothing back, keeps the marker and says s
 	expect(readInflight(t.paths)?.tree?.step).toBe("stopping");
 	expect(box.svc.running).toBe(true);
 });
+
+test("a held directory is still there to roll back to when a test fails after the start", async () => {
+	const box = fakeBox();
+	const run: KindCtx["run"] = async (argv, opts) => (argv[0] === "a-test" ? fail("no") : box.run(argv, opts));
+	const s = spec({ keep: ["lib"], hold: ["bin"], test: [{ name: "a test", run: ["a-test"] }] });
+	const o = await installBuilt(s, target, { ...ctx(box), run });
+	expect(o).toMatchObject({
+		result: "rolled_back",
+		detail: "Failed its test after the update: a test. Restored f2918cabb.",
+	});
+	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
+	expect(existsSync(join(dir, "bin.upkeep-live"))).toBe(false);
+	expect(existsSync(join(dir, "bin.upkeep-gone"))).toBe(false);
+});
+
+test("after a verified update the held copy is gone", async () => {
+	const box = fakeBox();
+	const o = await installBuilt(spec({ hold: ["bin"] }), target, ctx(box));
+	expect(o.result).toBe("done");
+	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version a1b2c3d4e");
+	expect(existsSync(join(dir, "bin.upkeep-live"))).toBe(false);
+	expect(existsSync(join(dir, "bin.upkeep-gone"))).toBe(false);
+});
