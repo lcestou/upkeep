@@ -314,12 +314,66 @@ body = '{"model":"bge-m3","input":"hi"}'
 expect = '"embedding"'
 timeout_s = 30
 
-# Checked by the old script: it fetches tags and calls the checkout current when it already contains the release's tag, which a version compare cannot see.
 [apps.strata]
 name = "Strata"
-kind = "manual"
-legacy_name = "strata"
-run = "strata-update"
+kind = "source"
+repo = "Niko1221/Strata"
+dir = "~/Projects/Strata"
+move = "ff"
+check = ["sh", "-c", '''git -C "$HOME/Projects/Strata" describe --tags --abbrev=0 HEAD 2>/dev/null | sed 's/^v//; s/-.*//' ''']
+commit = ["git", "-C", "~/Projects/Strata", "rev-parse", "HEAD"]
+keep = ["engine", ".venv", "strata-*.json"]
+hold = ["engine"]
+build = ['''t=$(readlink strata-active.json) || exit 1; rm -f strata-active.json; sh ./setup.sh --update; rc=$?; ln -sfn "$t" strata-active.json; exit $rc''']
+check_built = ['''test "$(python3 -c 'import json; print(json.load(open("engine/BUILD.json"))["version"])')" = "$(grep -oP 'project\(strata VERSION \K[0-9.]+' CMakeLists.txt)"''']
+config = [
+	{ file = "strata-*.json", key = "host", value = "127.0.0.1" },
+	{ file = "strata-*.json", key = "port", value = 8092 },
+	{ file = "strata-*.json", array = "args", flag = "--max-context", value = "262144" },
+	{ file = "strata-*.json", array = "args", flag = "--vram-reserve-mib", value = "1800" },
+]
+busy = [
+	{ process = "ComfyUI/main.py", say = "ComfyUI is running a job." },
+	{ run = ["sh", "-c", '''grep -lqsE '"status": *"(queued|processing)"' "$HOME"/.local/share/sd-api/queue/*.json'''], say = "The image queue has a job waiting." },
+]
+pause = [
+	{ name = "sd-api.service", active = ["systemctl", "--user", "is-active", "--quiet", "sd-api.service"], stop = ["systemctl", "--user", "stop", "sd-api.service"], start = ["systemctl", "--user", "start", "sd-api.service"] },
+	{ name = "strata-watchdog.timer", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.timer"], stop = ["systemctl", "--user", "stop", "strata-watchdog.timer"], start = ["systemctl", "--user", "start", "strata-watchdog.timer"] },
+	{ name = "strata-watchdog.service", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.service"], stop = ["systemctl", "--user", "stop", "strata-watchdog.service"] },
+]
+note = "Updating restarts Strata, which takes a minute or two to load the model."
+
+[[apps.strata.serve]]
+name = "strata"
+active = ["systemctl", "is-active", "--quiet", "strata"]
+stop = ["sudo", "systemctl", "stop", "strata"]
+start = ["sudo", "systemctl", "start", "strata"]
+since = ["systemctl", "show", "-p", "ActiveEnterTimestampMonotonic", "--value", "strata"]
+health = "http://127.0.0.1:8080/health"
+expect = '"loaded": true'
+wait_s = 300
+
+[[apps.strata.serve.test]]
+name = "a cold generation"
+url = "http://127.0.0.1:8080/v1/chat/completions"
+body = '{"model":"lutechi-llm","messages":[{"role":"user","content":"Write a Python function that reverses a linked list."}],"max_tokens":300,"reasoning_effort":"none"}'
+expect = '"completion_tokens"'
+timeout_s = 120
+
+[[apps.strata.serve.test]]
+name = "a warm generation"
+url = "http://127.0.0.1:8080/v1/chat/completions"
+body = '{"model":"lutechi-llm","messages":[{"role":"user","content":"Write a Python function that reverses a linked list."}],"max_tokens":300,"reasoning_effort":"none"}'
+expect = '"completion_tokens"'
+timeout_s = 120
+
+[[apps.strata.serve.test]]
+name = "embeddings"
+url = "http://127.0.0.1:8080/v1/embeddings"
+body = '{"model":"bge-m3","input":"hi"}'
+expect = '"embedding"'
+timeout_s = 30
+required = false
 
 [apps.comfyui]
 name = "ComfyUI"

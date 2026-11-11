@@ -30,7 +30,7 @@ test("the seed manifest loads 32 apps with no errors", () => {
 	expect(apps.length).toBe(32);
 	const counts: Record<string, number> = {};
 	for (const a of apps) counts[a.kind] = (counts[a.kind] ?? 0) + 1;
-	expect(counts).toEqual({ appimage: 3, archive: 9, file: 1, deb: 2, source: 6, command: 5, legacy: 5, manual: 1 });
+	expect(counts).toEqual({ appimage: 3, archive: 9, file: 1, deb: 2, source: 7, command: 5, legacy: 5 });
 	const fd = apps.find((a) => a.key === "fd");
 	expect(fd).toEqual({
 		key: "fd",
