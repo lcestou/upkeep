@@ -31,7 +31,7 @@
 
 	let now = $state(Date.now());
 	$effect(() => {
-		const id = setInterval(() => (now = Date.now()), 60_000);
+		const id = setInterval(() => (now = Date.now()), 15_000);
 		return () => clearInterval(id);
 	});
 

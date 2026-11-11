@@ -23,14 +23,17 @@ const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
 
 const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
-/** "3 days ago" style text. Anything under 45 seconds reads as "now"; an unparseable date comes back unchanged. */
+/**
+ * "3 days ago" style text, in whole units counted down: 1 minute 59 seconds is "1 minute ago", never rounded up to 2.
+ * Anything under a minute reads "just now"; an unparseable date comes back unchanged.
+ */
 export function relativeTime(iso: string, now: number = Date.now()): string {
 	const then = Date.parse(iso);
 	if (Number.isNaN(then)) return iso;
 	let value = (then - now) / 1000;
-	if (Math.abs(value) < 45) return rtf.format(0, "second");
+	if (Math.abs(value) < 60) return "just now";
 	for (const [unit, size] of STEPS) {
-		if (Math.abs(value) < size) return rtf.format(Math.round(value), unit);
+		if (Math.abs(value) < size) return rtf.format(Math.trunc(value), unit);
 		value /= size;
 	}
 	return rtf.format(Math.round(value), "year");

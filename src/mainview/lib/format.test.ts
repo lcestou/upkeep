@@ -17,7 +17,10 @@ describe("formatBytes", () => {
 describe("relativeTime", () => {
 	const now = Date.parse("2026-11-10T10:00:00Z");
 	test.each([
-		["2026-11-10T09:59:40Z", "now"],
+		["2026-11-10T09:59:40Z", "just now"],
+		["2026-11-10T09:59:01Z", "just now"],
+		["2026-11-10T09:59:00Z", "1 minute ago"],
+		["2026-11-10T09:58:01Z", "1 minute ago"],
 		["2026-11-10T09:58:00Z", "2 minutes ago"],
 		["2026-11-10T07:00:00Z", "3 hours ago"],
 		["2026-11-09T10:00:00Z", "yesterday"],
