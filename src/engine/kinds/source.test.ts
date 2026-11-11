@@ -134,6 +134,26 @@ test("nonInteractive adds -n to every sudo", () => {
 	expect(nonInteractive("echo pseudo sudo-ish")).toBe("echo pseudo sudo-ish");
 });
 
+test("a tag with shell syntax or a leading dash is refused before any command, for a clone and for a checkout", async () => {
+	const { run, calls } = recordingRun(t.paths, () => ok());
+	const spec = tmux(join(t.dir, "tmux"), ["make"]);
+	for (const tag of ["v1$(touch x)", "v1`id`", "1;rm -rf x", "-oops", "v1 2", "v'1"])
+		for (const s of [spec, { ...spec, dir: "~/tmux" }]) {
+			// oxlint-disable-next-line no-await-in-loop -- one tag at a time
+			const o = await installSource(s, { from: "3.6", version: "3.7", tag }, ctx(run));
+			expect(o).toMatchObject({
+				result: "failed",
+				detail: `Refused ${tag}: not a plain version name. Nothing was changed.`,
+			});
+		}
+	expect(calls).toEqual([]);
+	expect(
+		await installSource(spec, { from: "3.6", version: "3.7", tag: "v3.7-rc.1+build_2" }, ctx(run)),
+	).not.toMatchObject({
+		detail: expect.stringContaining("not a plain version name"),
+	});
+});
+
 test("a build step that runs past its limit is reported as timed out", async () => {
 	const dest = script(join(t.dir, "tmux"), 'echo "tmux 3.6"');
 	const { run, calls } = recordingRun(t.paths, (argv) => {
