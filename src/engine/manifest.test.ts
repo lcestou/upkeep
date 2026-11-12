@@ -152,10 +152,22 @@ test("relaunch needs dest, and an AppImage's needs process too; restart is a lis
 			'dest = "~/zen.AppImage"',
 			'process = "zen"',
 			"relaunch = true",
+			"[apps.py]",
+			'name = "Py"',
+			'kind = "file"',
+			'repo = "a/b"',
+			'asset = "x"',
+			'dest = "~/py"',
+			'process = "python3"',
+			"relaunch = true",
 		].join("\n"),
 	);
 	const { apps, errors } = loadManifest(file);
-	expect(errors).toEqual(["nodest: relaunch needs dest", "noproc: relaunch needs process"]);
+	expect(errors).toEqual([
+		"nodest: relaunch needs dest",
+		"noproc: relaunch needs process",
+		"py: relaunch would close every python3 process; give process the app's own name",
+	]);
 	expect(apps.map((a) => [a.key, a.restart ?? a.relaunch])).toEqual([
 		["svc", ["systemctl", "restart", "svc"]],
 		["zen", true],

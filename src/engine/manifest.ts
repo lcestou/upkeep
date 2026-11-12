@@ -20,6 +20,24 @@ const STRING_FIELDS = [
 ] as const;
 const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore", "restart"] as const;
 const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch"] as const;
+// Process names that many programs share: relaunch closes every process with its name, so it refuses these.
+// shortcut: a fixed list of common interpreters; a table naming another shared runtime is the owner's to get right.
+const SHARED_NAMES = new Set([
+	"sh",
+	"bash",
+	"zsh",
+	"dash",
+	"fish",
+	"python",
+	"python3",
+	"node",
+	"bun",
+	"deno",
+	"java",
+	"perl",
+	"ruby",
+	"electron",
+]);
 // Read only for kind source.
 const SOURCE_STRINGS = ["dir", "stage"] as const;
 const SOURCE_LISTS = ["commit", "prune", "needs", "keep", "hold", "undo", "check_built"] as const;
@@ -93,6 +111,8 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.
 	if (spec.relaunch && !spec.dest) return `${key}: relaunch needs dest`;
 	if (spec.relaunch && !spec.process) return `${key}: relaunch needs process`;
+	if (spec.relaunch && SHARED_NAMES.has(spec.process ?? ""))
+		return `${key}: relaunch would close every ${spec.process ?? ""} process; give process the app's own name`;
 	if (spec.kind === "source") {
 		const refused = liftSource(key, table, spec);
 		if (refused) return refused;
