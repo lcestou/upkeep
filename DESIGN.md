@@ -349,7 +349,7 @@ Sources: `lib/brand.ts`, `components/Mark.svelte`, `components/Glyph.svelte`, `a
 - The leaf (`ui-leaf.svg`, the mark's own leaf, upright) is the fresh and done glyph.
 - About in Settings shows the horizontal dark lockup at 40 px tall: the mark on its sun tile (`#f4d340`, mark `#0a1711`) beside the UPKEEP wordmark in `#f0f1e8`.
 - App icons: a sun tile with the dark drawing. 16, 22, 24 and 32 px use the hand-placed pixel sprout; 48 and 64 px a refitted mark on the 256 grid; 256 and 512 px the mark on a 224 px tile with a 48 px radius and a 1 px `#debb32` edge.
-- Tray: the shipping pictures are the light drawings at 44 px (`tray-light-44`, rendered by `scripts/tray-icons.ts`), shown at 22 on the owner's 2x panel. States are idle, working, failed, a count badge with a knocked-out digit from 1 to 9, and 9+. The 22 px masters and the dark drawings are kept in `assets/brand` but not shipped.
+- Tray: the shipping pictures are the light drawings at 44 px (`tray-light-44`, rendered by `scripts/tray-icons.ts`), shown at 22 on the owner's 2x panel. States are idle, working, failed, a count badge with a knocked-out digit from 1 to 9, and 9+. The plant sits left of centre to leave the badge its corner; idle has no badge, so its plant is centred. The 22 px masters and the dark drawings are kept in `assets/brand` but not shipped.
 
 ### Focus and keyboard
 Sources: `App.svelte`, `AppList.svelte`, `HeaderBar.svelte`, `e2e/keyboard.spec.ts`, `e2e/a11y.spec.ts`.
