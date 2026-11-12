@@ -57,6 +57,8 @@ const COPY_ATTRIBUTE = new Set(["title", "aria-label", "alt", "placeholder"]);
  */
 function isCopy(text, file) {
 	const body = [text.body].flat().join("\n").trim();
+	// engine-text.ts holds only the window's wording of engine sentences, lower-case fragments included.
+	if (file.endsWith("lib/engine-text.ts")) return /\p{L}/u.test(body) ? "message" : false;
 	if (NOT_COPY.has(body)) return false;
 	const attribute = text.path.findLast((step) => step.type === "attribute")?.name;
 	if (attribute && COPY_ATTRIBUTE.has(attribute) && text.path.at(-1)?.type === "attribute") {
@@ -100,6 +102,7 @@ export default defineConfig({
 				"src/mainview/**/*.svelte",
 				"src/mainview/lib/copy.ts",
 				"src/mainview/lib/format.ts",
+				"src/mainview/lib/engine-text.ts",
 			].slice(),
 			runtime: {
 				initReactive: (...where) => {

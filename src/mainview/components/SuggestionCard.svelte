@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { say } from "../lib/engine-say";
 	import type { AppSpec, Suggestion } from "../../shared/types";
 	import { ADD, KIND_LABEL, TEXT, aboutManifest } from "../lib/copy";
 
@@ -88,7 +89,7 @@
 		<p class="why" data-testid="sug-why">
 			{#if guess}<svg class="q" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"
 					><path d="M5.75 6a2.25 2.25 0 1 1 3.4 1.95c-.7.4-1.15.9-1.15 1.7v.35M8 12.25v.01" /></svg
-				>{/if}{s.why}
+				>{/if}{say(s.why)}
 		</p>
 	{/if}
 
@@ -97,7 +98,7 @@
 	{/if}
 
 	{#if s.problem || failure}
-		<p class="problem" data-testid="sug-problem">{failure ?? s.problem}</p>
+		<p class="problem" data-testid="sug-problem">{say(failure ?? s.problem)}</p>
 		{#if onmanifest && aboutManifest(failure)}<div>
 				<button type="button" class="btn small" data-testid="sug-open-manifest" onclick={onmanifest}>{TEXT.openManifest}</button>
 			</div>{/if}

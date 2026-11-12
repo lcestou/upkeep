@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { say } from "./lib/engine-say";
 	import AddPane from "./components/AddPane.svelte";
 	import AppList from "./components/AppList.svelte";
 	import FooterBar from "./components/FooterBar.svelte";
@@ -218,7 +219,7 @@
 			<div class="veil" data-testid="drop-veil" aria-hidden="true"><span>{ADD.drop}</span></div>
 		{/if}
 		{#if m.refusal}
-			<p class="refusal" role="alert" data-testid="refusal">{m.refusal}</p>
+			<p class="refusal" role="alert" data-testid="refusal">{say(m.refusal)}</p>
 		{/if}
 	</div>
 {/if}

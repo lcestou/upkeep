@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
 	import { CHIP, KIND_LABEL, TEXT, statusText } from "../lib/copy";
 	import { fitLine, fitWords } from "../lib/fit";
@@ -23,7 +24,7 @@
 	const stemmed = $derived(app.status === "working" || app.status === "done");
 	// A ready row may carry why its last try ended; it reads like any reason line.
 	const sentence = $derived(
-		app.detail && ["problem", "failed", "rolled_back", "done", "ready"].includes(app.status) ? app.detail : null,
+		app.detail && ["problem", "failed", "rolled_back", "done", "ready"].includes(app.status) ? say(app.detail) : null,
 	);
 	// While a row is re-checked it keeps what it showed before: its versions and its (disabled) tick.
 	const was = $derived(app.status === "checking" ? model.prior[app.key] : undefined);

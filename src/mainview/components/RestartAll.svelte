@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
 	import { RESTART, restartAllLabel, restartAsk, restartedNote } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
@@ -70,7 +71,7 @@
 				onclick={start}>{restartAllLabel(can.map((a) => a.name))}</button
 			>
 		{/if}
-		{#if problem}<span class="problem" role="status" data-testid="restart-all-result">{problem}</span>{/if}
+		{#if problem}<span class="problem" role="status" data-testid="restart-all-result">{say(problem)}</span>{/if}
 	</div>
 {/if}
 

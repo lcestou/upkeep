@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { say } from "../lib/engine-say";
 	import type { HistoryRow } from "../../shared/types";
 	import { RUN_TEXT, TEXT, installedText, runSentence } from "../lib/copy";
 	import { formatDuration, formatRunTime } from "../lib/format";
@@ -58,7 +59,7 @@
 											>{row.from ?? ""} <span class="to">to</span> <span class:struck={row.result !== "updated"}>{row.to ?? ""}</span></span
 										>{/if}
 								</span>
-								{#if row.detail}<span class="detail">{row.detail}</span>{/if}
+								{#if row.detail}<span class="detail">{say(row.detail)}</span>{/if}
 								{#if row.result === "updated" && pending.has(`${row.runId}:${row.key}`)}<span class="pending" data-testid="restart-pending"
 										>{RUN_TEXT.restartPending}</span
 									>{/if}

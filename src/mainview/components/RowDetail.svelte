@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
 	import {
 		CHIP,
@@ -212,7 +213,7 @@
 		{#if app.status === "working" || app.status === "done"}
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
-		{#if app.detail}<p class="sentence" data-testid="pane-detail">{app.detail}</p>{/if}
+		{#if app.detail}<p class="sentence" data-testid="pane-detail">{say(app.detail)}</p>{/if}
 		{#if app.restartToApply && app.canRestart}
 			<div class="restart-now">
 				{#if askingRestart}
@@ -239,7 +240,7 @@
 						onclick={askRestart}>{RESTART.now}</button
 					>
 				{/if}
-				{#if restartNote}<p class="sentence" role="status" data-testid="restart-result">{restartNote}</p>{/if}
+				{#if restartNote}<p class="sentence" role="status" data-testid="restart-result">{say(restartNote)}</p>{/if}
 			</div>
 		{/if}
 		{#if failed}
@@ -306,7 +307,7 @@
 			</ul>
 		{/if}
 		<span class="result" role="status" tabindex="-1" bind:this={resultEl} data-testid="restore-result"
-			>{restoreNote ?? ""}</span
+			>{say(restoreNote)}</span
 		>
 	</div>
 
