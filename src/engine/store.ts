@@ -375,6 +375,7 @@ const DEFAULT_WEIGHTS: Record<AppKind, [Stage, number][]> = {
 		["install", 85],
 		["verify", 15],
 	],
+	"claude-plugins": [["install", 100]],
 	legacy: [
 		["install", 85],
 		["verify", 15],

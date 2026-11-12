@@ -204,6 +204,27 @@ test("an AppImage needs repo, or a latest that carries its download", () => {
 	expect(apps.map((a) => a.key)).toEqual(["cursor"]);
 });
 
+test("versionless is for the old script's apps and Claude Code's plugins only, and the plugins row always is", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(
+		file,
+		[
+			"[apps.man]",
+			'name = "Man"',
+			'kind = "manual"',
+			'legacy_name = "man"',
+			'run = "man-up"',
+			"versionless = true",
+			"[apps.cc]",
+			'name = "Claude Code plugins"',
+			'kind = "claude-plugins"',
+		].join("\n"),
+	);
+	const { apps, errors } = loadManifest(file);
+	expect(errors).toEqual(["man: versionless is only for kinds legacy and claude-plugins"]);
+	expect(apps).toEqual([{ key: "cc", name: "Claude Code plugins", kind: "claude-plugins", versionless: true }]);
+});
+
 test("a file that is not TOML is one error and no apps", () => {
 	const file = join(dir, "apps.toml");
 	writeFileSync(file, "[apps.x\nname = ");

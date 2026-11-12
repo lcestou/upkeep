@@ -17,6 +17,7 @@ import type {
 import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { type FetchLike, githubToken, type Rate } from "./github";
+import { checkClaudePlugins, installClaudePlugins } from "./kinds/plugins";
 import { checkCommand, installCommand, tagOf } from "./kinds/command";
 import { fill } from "./kinds/tree";
 import {
@@ -133,7 +134,7 @@ export const REASON_NOTHING = "Nothing to install.";
 export const REASON_STOPPING = "The run stops after the current app, so nothing more can join it.";
 export const REASON_OLD = "The old updater is running. Finish or close its dialogs first.";
 
-const NATIVE = new Set(["appimage", "archive", "file", "deb", "source", "command"]);
+const NATIVE = new Set(["appimage", "archive", "file", "deb", "source", "command", "claude-plugins"]);
 
 /** Runs fn with at most n in flight at once. */
 function limiter(n: number): <T>(fn: () => Promise<T>) => Promise<T> {
@@ -174,6 +175,8 @@ function checkOne(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 	switch (spec.kind) {
 		case "source":
 			return checkSource(spec, ctx);
+		case "claude-plugins":
+			return Promise.resolve(checkClaudePlugins(ctx));
 		case "command":
 		case "legacy":
 		case "manual":
@@ -569,6 +572,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				return installSource(spec, target, ctx);
 			case "command":
 				return installCommand(spec, target, ctx);
+			case "claude-plugins":
+				return installClaudePlugins(ctx);
 			case "legacy":
 			case "manual":
 				throw new Error(`${spec.name} cannot be installed here.`);
@@ -632,7 +637,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const wanted = new Set(keys);
 		const pick = specs.filter((s) => {
 			const a = apps.get(s.key);
-			return wanted.has(s.key) && a && (a.status === "ready" || (a.versionless && s.kind === "legacy"));
+			return wanted.has(s.key) && a && (a.status === "ready" || a.versionless);
 		});
 		const queue = [...pick.filter((s) => s.kind !== "legacy"), ...pick.filter((s) => s.kind === "legacy")];
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
@@ -1090,7 +1095,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				const a = apps.get(s.key);
 				if (!a) continue;
 				if (a.status === "ready" && (!autoOnly || a.auto)) keys.push(s.key);
-				else if (autoOnly && a.versionless && a.auto && s.kind === "legacy") keys.push(s.key);
+				else if (autoOnly && a.versionless && a.auto) keys.push(s.key);
 			}
 			return keys;
 		},

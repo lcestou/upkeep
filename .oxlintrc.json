@@ -60,6 +60,7 @@
 				"src/engine/store.ts",
 				"src/engine/extras/state.ts",
 				"src/engine/backup.ts",
+				"src/engine/kinds/plugins.ts",
 				"src/bun/window-size.ts",
 				"src/bun/dev-script.ts"
 			],

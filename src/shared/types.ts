@@ -5,6 +5,7 @@ export type AppKind =
 	| "deb" // a .deb from a GitHub release, installed with dpkg
 	| "source" // built from a git checkout or a clone of the release tag, with the steps in its table
 	| "command" // a tool that updates itself with its own command
+	| "claude-plugins" // every plugin in Claude Code's registry, through claude plugin update
 	| "legacy" // delegated to the old lutechi-updater script
 	| "manual"; // tracked only; the owner runs the update
 

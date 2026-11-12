@@ -77,7 +77,8 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 	clock.start("install");
 	const update = (spec.update ?? []).map((a) => fill(a, { tag: target.tag, version: target.version }));
 	ctx.log(`$ ${update.join(" ")}`);
-	const r = await ctx.run(update, { timeoutMs: 600_000, onLine: (l) => ctx.log(l) });
+	// In home, never in whatever folder Upkeep was started from: a tool may write beside where it runs (old line 1725).
+	const r = await ctx.run(update, { timeoutMs: 600_000, onLine: (l) => ctx.log(l), cwd: ctx.paths.home });
 	ctx.log(r.timedOut ? "The update command ran past 600 s and was stopped." : `The update command exited ${r.code}.`);
 	clock.start("verify");
 	const after = await probeCommand(spec.check ?? [], { run: ctx.run });

@@ -18,6 +18,7 @@ export const KIND_LABEL = {
 	deb: ".deb",
 	source: "Source build",
 	command: "Updates itself",
+	"claude-plugins": "Plugins",
 	legacy: "Updater script",
 	manual: "By hand",
 } satisfies Record<AppKind, string>;
@@ -157,6 +158,7 @@ export const NO_RESTORE = {
 	deb: undefined,
 	source: "Built in a fresh clone, so there is no restore point.",
 	command: "It updates itself, and its table has no restore command.",
+	"claude-plugins": "Claude Code keeps no older plugin to go back to.",
 	legacy: "Upkeep hands this one to lutechi-updater.",
 } satisfies Record<AppKind, string | undefined>;
 
