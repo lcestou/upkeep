@@ -69,7 +69,13 @@ test("the language list closes on Escape and on a click elsewhere, and keeps the
 	await expect(page.getByTestId("setting-language-list")).toHaveCount(0);
 	await expect(pick).toBeFocused();
 	await expect(pick).toHaveText("Same as the system");
-	await pick.click();
+	// Space opens it once and leaves it open: no second toggle from the button's own click.
+	await pick.focus();
+	await page.keyboard.press(" ");
+	await expect(page.getByTestId("setting-language-list")).toHaveCount(1);
+	await page.keyboard.press("Escape");
+	await page.keyboard.press("ArrowDown");
+	await expect(page.getByTestId("setting-language-list")).toHaveCount(1);
 	await page.keyboard.press("Tab");
 	await expect(page.getByTestId("setting-language-list")).toHaveCount(0);
 	await expect(pick).toBeFocused();

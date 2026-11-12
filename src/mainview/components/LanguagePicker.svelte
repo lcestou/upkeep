@@ -68,9 +68,12 @@ focus returns to the button. Each language is named in itself and marked with it
 		if (v !== value) onpick(v);
 	}
 
-	/** The button opens the list with Enter, Space or the down and up arrows, as a select does. */
+	/**
+	 * The down and up arrows open the list, as a select does. Enter and Space are the button's own click, which
+	 * toggles it: handling them here too would open it on the key press and close it again on the click.
+	 */
 	function onbutton(e: KeyboardEvent) {
-		if (["ArrowDown", "ArrowUp", "Enter", " "].includes(e.key)) {
+		if (e.key === "ArrowDown" || e.key === "ArrowUp") {
 			e.preventDefault();
 			show();
 		}
