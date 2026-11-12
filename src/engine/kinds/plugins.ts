@@ -89,7 +89,10 @@ export async function installClaudePlugins(ctx: KindCtx): Promise<Outcome> {
 			timeoutMs: STEP_MS,
 			cwd: e.cwd,
 		});
-		const out = outcomeOf(r.stdout, r.stderr);
+		// A run stopped at its limit is a failure whatever it printed before.
+		const out = r.timedOut
+			? { kind: "failed", message: `ran past ${STEP_MS / 1000} s and was stopped` }
+			: outcomeOf(r.stdout, r.stderr);
 		if (out.kind === "up_to_date") ctx.log(`${e.id} is up to date`);
 		else if (out.kind === "updated") {
 			updated += 1;

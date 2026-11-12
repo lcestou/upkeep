@@ -103,3 +103,15 @@ test("every plugin up to date or updated is done, saying how many changed", asyn
 	writeFileSync(join(t.paths.home, ".claude/plugins/installed_plugins.json"), "{");
 	expect(await installClaudePlugins(ctx(quiet.run))).toMatchObject({ result: "done" });
 });
+
+test("an update stopped at its time limit fails, whatever it printed first", async () => {
+	registry({ "a@m": [{}] });
+	const { run } = recordingRun(t.paths, (argv) =>
+		argv[2] === "update" ? { ...ok('{"updateOutcome":"updated"}', 137), timedOut: true } : ok(""),
+	);
+	expect(await installClaudePlugins(ctx(run))).toMatchObject({
+		result: "failed",
+		detail: "Could not update a@m. See the log.",
+	});
+	expect(lines).toContain("a@m update failed: ran past 120 s and was stopped");
+});
