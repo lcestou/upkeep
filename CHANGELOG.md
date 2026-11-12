@@ -6,7 +6,7 @@ First version.
 
 - One window lists every app with its installed and latest version, its size and its restore point. Tick what you want and press Install once. Nothing asks a question after that.
 - Each app shows its own progress through download, back up, install and verify.
-- A new version that will not start is replaced by the copy taken before it.
+- A new version that will not start is replaced by the copy taken before it. .deb apps now keep the installed version's package as a restore point, and self-updating tools keep one when their table says how to install a given version (wrangler and claude-code-telegram in the catalogue do).
 - Downloads are checked against the size and SHA-256 that GitHub lists.
 - A running app is not closed. Its file is replaced and the row says "Restart to apply".
 - An app built from source shows, in its pane, the commits it is behind by, newest first, and its row shows a Build stage while it builds.

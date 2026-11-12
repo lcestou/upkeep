@@ -74,7 +74,7 @@ bins = ["fd"]
 | `file` | a binary that is itself the release asset | `repo`, `asset`, `dest` |
 | `deb` | a `.deb` from a release, through `dpkg -i` | `repo`, `asset`, `dest` |
 | `source` | a checkout or a clone of the release tag, built with your steps, restarted and tested | `build`, `check` or `dest`, `repo` or `latest` |
-| `command` | a tool that updates itself | `check`, `latest`, `update` |
+| `command` | a tool that updates itself | `check`, `latest`, `update`, and `restore` for a restore point |
 | `legacy` | handed to the old `lutechi-updater` script | `legacy_key`, and `legacy_name` unless the table is `versionless` |
 | `manual` | tracked only, you run the update | `legacy_name`, `run` |
 
@@ -134,7 +134,7 @@ Steps and paths may use `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`
 ## What an install does
 
 1. **Download** to `~/.cache/upkeep/dl`. The size must equal what GitHub lists, and the SHA-256 must match the asset's digest when the release has one.
-2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. `.deb`, self-updating apps and source apps without `dir` or `stage` have none. A source app with them keeps its checkout's commit, the files its table names and the files it replaces.
+2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. A `.deb` keeps the installed version's package, taken from that version's GitHub release, and goes back with `dpkg -i`. A self-updating app keeps one when its table has `restore`, a command with `{version}` (and `{tag}`) that installs a given version, such as `["bun", "add", "-g", "wrangler@{version}"]`. A source app with `dir` or `stage` keeps its checkout's commit, the files its table names and the files it replaces; one built in a fresh clone keeps none. "Restore points to keep" in Settings applies to all of them.
 3. **Install.** The new file is written beside the old one and renamed into place, so a running copy keeps working and a full disk leaves the old file whole. A running app is not closed. Its row says "Restart to apply".
 4. **Verify.** The version probe runs again. If the new copy will not start, the restore point goes back and the row says so.
 

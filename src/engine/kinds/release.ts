@@ -11,7 +11,7 @@ import {
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
-import { prune, restoreBackup, takeBackup } from "../backup";
+import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
 import { download, verifyAsset } from "../download";
 import { fetchRelease, isFailure, pickAsset } from "../github";
 import { expandHome } from "../paths";
@@ -31,12 +31,14 @@ import {
 } from "./context";
 
 /**
- * appimage, archive and file keep a restore point, and so does a source app built in a checkout or a stage.
- * deb is owned by dpkg, and a source app built in a fresh clone (make install) keeps none.
+ * Whether an install of this app keeps a restore point. A file kind copies its files; a .deb keeps the installed
+ * version's package from its GitHub release; a command app needs its table's restore argv; a source app keeps one
+ * only with a dir or stage (one built in a fresh clone runs make install, which writes many files).
  */
-export function canRestore(spec: Pick<AppSpec, "kind" | "dir" | "stage">): boolean {
+export function canRestore(spec: Pick<AppSpec, "kind" | "dir" | "stage" | "restore">): boolean {
 	if (spec.kind === "source") return Boolean(spec.dir || spec.stage);
-	return spec.kind === "appimage" || spec.kind === "archive" || spec.kind === "file";
+	if (spec.kind === "command") return (spec.restore?.length ?? 0) > 0;
+	return spec.kind === "appimage" || spec.kind === "archive" || spec.kind === "file" || spec.kind === "deb";
 }
 
 /** The app's dest with a leading ~ expanded to the home in paths; an app with no dest gives an empty path. */
@@ -173,7 +175,17 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		verifyAsset(got, asset);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}`);
 
-		if (restorable) {
+		if (restorable && spec.kind === "deb" && target.from) {
+			clock.start("backup");
+			const old = await oldDeb(spec, target, ctx);
+			if ("problem" in old) ctx.log(`No restore point: ${old.problem}`);
+			else {
+				takePoint(ctx.paths, spec, target.from, { deb: old.file }, (ctx.now?.() ?? new Date()).toISOString());
+				rmSync(dirname(old.file), { recursive: true, force: true });
+				backupVersion = target.from;
+				ctx.log(`Restore point ${target.from} taken`);
+			}
+		} else if (restorable) {
 			clock.start("backup");
 			const existing = targets.filter((f) => existsSync(f));
 			if (existing.length > 0 && target.from) {
@@ -277,6 +289,40 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		rmSync(extract, { recursive: true, force: true });
 		rmSync(`${dest}.upkeep-new`, { force: true });
 	}
+}
+
+/**
+ * The installed version's .deb, from the release whose tag is the new one's with the installed version in its place
+ * ("v1.5.3" for 1.5.3 gives "v1.5.1" for 1.5.1), matched with the app's own asset pattern and checked like any
+ * download. A tag that does not hold the version, a missing release or no matching asset is a problem, never a throw.
+ */
+async function oldDeb(spec: AppSpec, target: Target, ctx: KindCtx): Promise<{ file: string } | { problem: string }> {
+	const from = target.from ?? "";
+	if (!target.tag.includes(target.version)) return { problem: `${target.tag} does not name its version.` };
+	const tag = target.tag.replace(target.version, from);
+	const release = await fetchRelease(spec.repo ?? "", {
+		cacheDir: join(ctx.paths.cache, "github"),
+		token: ctx.token,
+		fetch: ctx.fetch,
+		onRate: ctx.onRate,
+		api: ctx.api,
+		tag,
+	});
+	if (isFailure(release)) return { problem: `${tag}: ${release.detail}` };
+	const picked = pickAsset(release, spec.asset ?? "");
+	if (!picked) return { problem: `the ${tag} release has no .deb matching ${spec.asset ?? ""}.` };
+	// A folder of its own, so the point keeps the package under the name it was released with.
+	const file = join(ctx.paths.cache, "dl", `${spec.key}-old`, picked.asset.name);
+	try {
+		verifyAsset(
+			await download(picked.asset.url, file, { fetch: ctx.fetch, stallMs: ctx.stallMs, retryMs: ctx.retryMs }),
+			picked.asset,
+		);
+	} catch (err) {
+		rmSync(file, { force: true });
+		return { problem: `could not download ${picked.asset.name}: ${err instanceof Error ? err.message : String(err)}` };
+	}
+	return { file };
 }
 
 /** The new copy would not start: put the restore point back when there is one. */

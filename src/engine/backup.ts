@@ -12,13 +12,17 @@ import {
 import { basename, join } from "node:path";
 import type { AppSpec, RestorePoint } from "../shared/types";
 import type { Paths } from "./paths";
-import { installAside, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
+import { asRoot, installAside, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
 
 export type BackupMeta = {
 	version: string;
 	at: string;
 	files: { name: string; dest: string; mode: string }[];
 	sudo: boolean;
+	/** A .deb point: its one file is the old version's package, put back with dpkg -i. */
+	deb?: boolean;
+	/** A command app's point: no files, only the argv that puts this version back. */
+	command?: string[];
 	tree?: {
 		/** The app's table as it was at the run, so recovery and restore never depend on a later edit. */
 		spec: AppSpec;
@@ -49,6 +53,39 @@ export function pointName(version: string): string {
 	if (version === "" || version === "." || version === ".." || version.includes("/") || version.includes("\0"))
 		throw new Error(`${JSON.stringify(version)} cannot name a restore point`);
 	return version;
+}
+
+/**
+ * A point for an app whose files are not Upkeep's to copy: a .deb (pass the old version's package as deb) or a
+ * command app (pass the argv that installs this version again as command). Built aside and renamed in, as takeBackup's.
+ */
+export function takePoint(
+	paths: Paths,
+	spec: Pick<AppSpec, "key">,
+	version: string,
+	how: { deb: string } | { command: string[] },
+	at = new Date().toISOString(),
+): RestorePoint {
+	const dir = join(backupDir(paths, spec.key), pointName(version));
+	const tmp = `${dir}.upkeep-tmp`;
+	rmSync(tmp, { recursive: true, force: true });
+	mkdirSync(tmp, { recursive: true });
+	try {
+		const meta: BackupMeta = { version, at, files: [], sudo: false };
+		if ("deb" in how) {
+			const name = basename(how.deb);
+			copyFileSync(how.deb, join(tmp, name));
+			meta.files.push({ name, dest: "", mode: "644" });
+			meta.deb = true;
+		} else meta.command = how.command;
+		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
+		rmSync(dir, { recursive: true, force: true });
+		renameSync(tmp, dir);
+	} catch (err) {
+		rmSync(tmp, { recursive: true, force: true });
+		throw err;
+	}
+	return { version, at };
 }
 
 /** Copies each installed file aside before an install. files are absolute paths that exist. */
@@ -118,6 +155,16 @@ export async function restoreBackup(
 	// A half-built point has a meta file and maybe not every file: it is never a version to go back to.
 	const meta = version.endsWith(".upkeep-tmp") ? null : readMeta(dir);
 	if (!meta) return { ok: false, detail: `No restore point ${version}.` };
+	if (meta.command) {
+		const r = await run(meta.command, { timeoutMs: 600_000 });
+		return r.code === 0 ? { ok: true } : { ok: false, detail: `${meta.command.join(" ")} exited ${r.code}.` };
+	}
+	if (meta.deb) {
+		const deb = join(dir, meta.files[0]?.name ?? "");
+		const r = await run(asRoot(["dpkg", "-i", deb], true), { timeoutMs: 600_000 });
+		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
+		return r.code === 0 ? { ok: true } : { ok: false, detail: `dpkg could not put ${version} back. See the log.` };
+	}
 	for (const f of meta.files) {
 		// oxlint-disable-next-line no-await-in-loop -- files go back one at a time so a failure stops the rest
 		const r = await installAside(run, join(dir, f.name), f.dest, f.mode, meta.sudo);

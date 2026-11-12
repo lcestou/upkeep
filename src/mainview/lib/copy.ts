@@ -154,9 +154,9 @@ export const NO_RESTORE = {
 	archive: undefined,
 	file: undefined,
 	manual: undefined,
-	deb: "dpkg owns these files, so there is no restore point.",
+	deb: undefined,
 	source: "Built in a fresh clone, so there is no restore point.",
-	command: "It updates itself, so there is no restore point.",
+	command: "It updates itself, and its table has no restore command.",
 	legacy: "Upkeep hands this one to lutechi-updater.",
 } satisfies Record<AppKind, string | undefined>;
 

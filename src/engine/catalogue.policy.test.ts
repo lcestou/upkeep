@@ -23,13 +23,14 @@ const FIELDS = new Set<keyof AppSpec>([
 	"latest",
 	"update",
 	"build",
+	"restore",
 ]);
 const DANGER =
 	/\b(curl|wget|nc|ncat|socat|eval|base64|xxd)\b|\/dev\/(tcp|udp)|\|\s*(ba|z|da)?sh\b|\brm\s+-\S*r|\bchmod\s+[0-7]*[2467][0-7]{3}\b|\bsudo\b(?! make install$)/;
 
 /** Every command string a table can make Upkeep run, with the field it came from. */
 const commands = (a: AppSpec): [string, string][] =>
-	(["check", "update", "build", "version_args"] as const).flatMap((f) =>
+	(["check", "update", "build", "version_args", "restore"] as const).flatMap((f) =>
 		(a[f] ?? []).map((c): [string, string] => [f, c]),
 	);
 

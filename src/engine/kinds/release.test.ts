@@ -60,7 +60,29 @@ function publish(tag: string, files: Record<string, Uint8Array<ArrayBuffer>>, di
 
 const limited: FetchLike = async () => new Response('{"message":"API rate limit exceeded"}', { status: 403 });
 
+/** A release by tag answers only when a test published one with publishOld; by default it is GitHub's 404. */
+let oldRelease: { tag: string; files: Record<string, Uint8Array<ArrayBuffer>> } | null = null;
+
 const fakeFetch: FetchLike = async (url) => {
+	const byTag = /\/releases\/tags\/([^/]+)$/.exec(url);
+	if (byTag) {
+		if (!oldRelease || decodeURIComponent(byTag[1] ?? "") !== oldRelease.tag)
+			return new Response('{"message":"Not Found"}', { status: 404 });
+		return Response.json({
+			tag_name: oldRelease.tag,
+			html_url: "",
+			assets: Object.entries(oldRelease.files).map(([name, b]) => ({
+				name,
+				browser_download_url: `https://dl.test/old/${name}`,
+				size: b.length,
+				digest: sha(b),
+			})),
+		});
+	}
+	const old = url.startsWith("https://dl.test/old/")
+		? oldRelease?.files[url.replace("https://dl.test/old/", "")]
+		: undefined;
+	if (old) return new Response(old);
 	if (url.startsWith("https://api.github.com/"))
 		return Response.json(release, { headers: { "x-ratelimit-limit": "5000", "x-ratelimit-remaining": "4999" } });
 	const name = url.replace("https://dl.test/", "");
@@ -267,7 +289,8 @@ const rustdesk = (dest: string): AppSpec => ({
 	sudo: true,
 });
 
-test("install: a deb goes through sudo -n dpkg -i and has no restore point", async () => {
+test("install: a deb goes through sudo -n dpkg -i; with no release of the installed version there is no point", async () => {
+	oldRelease = null;
 	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
 	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });
 	const { run, calls } = recordingRun(t.paths, (argv) => {
@@ -278,7 +301,6 @@ test("install: a deb goes through sudo -n dpkg -i and has no restore point", asy
 	const c = ctx(run);
 	const outcome = await installRelease(rustdesk(dest), await checkAndTarget(rustdesk(dest), c), c);
 	expect(outcome).toMatchObject({ result: "done", installed: "1.4.3" });
-	expect(Object.keys(outcome.stages)).toEqual(["download", "install", "verify"]);
 	const dpkg = calls.find((x) => x.argv[2] === "dpkg");
 	expect(dpkg?.argv).toEqual([
 		"sudo",
@@ -288,6 +310,29 @@ test("install: a deb goes through sudo -n dpkg -i and has no restore point", asy
 		join(t.paths.cache, "dl/rustdesk-rustdesk-1.4.3-x86_64.deb"),
 	]);
 	expect(listBackups(t.paths, "rustdesk")).toEqual([]);
+	expect(lines.some((l) => l.startsWith("No restore point: 1.4.2: GitHub answered 404"))).toBe(true);
+});
+
+test("install: a deb keeps the installed version's package as its point, and a new one that will not start gets it back", async () => {
+	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
+	const oldDebBytes = new Uint8Array([9, 9, 9]);
+	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.deb": oldDebBytes } };
+	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });
+	const installed: string[] = [];
+	const { run } = recordingRun(t.paths, (argv) => {
+		if (argv[2] !== "dpkg") return undefined;
+		const file = argv[4] ?? "";
+		installed.push(file.split("/").at(-1) ?? "");
+		// The new package breaks the program; the old one puts it back.
+		script(dest, file.includes("1.4.2") ? 'echo "1.4.2"' : "exit 1");
+		return ok();
+	});
+	const c = ctx(run);
+	const outcome = await installRelease(rustdesk(dest), await checkAndTarget(rustdesk(dest), c), c);
+	expect(outcome).toMatchObject({ result: "rolled_back", installed: "1.4.2" });
+	expect(installed).toEqual(["rustdesk-rustdesk-1.4.3-x86_64.deb", "rustdesk-1.4.2-x86_64.deb"]);
+	expect(listBackups(t.paths, "rustdesk").map((p) => p.version)).toEqual(["1.4.2"]);
+	oldRelease = null;
 });
 
 test("install: sudo that wants a password fails plainly", async () => {
