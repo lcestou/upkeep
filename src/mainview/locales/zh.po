@@ -68,6 +68,7 @@ msgstr "可以安装"
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Installing"
 msgstr "正在安装"
 
@@ -178,6 +179,7 @@ msgstr "未选择"
 msgid "Stop after this one"
 msgstr "完成这个后停止"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "完成"
@@ -309,6 +311,7 @@ msgstr "还没有运行记录。"
 msgid "Updated"
 msgstr "已更新"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Failed"
@@ -760,6 +763,7 @@ msgstr "立即重启"
 msgid "Restart"
 msgstr "重启"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Not now"
 msgstr "以后再说"
@@ -1999,3 +2003,114 @@ msgstr "输入应用名称，粘贴 sharkdp/fd 这样的仓库或 GitHub、GitLa
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
 msgstr "无法判断 {0} 的来源。粘贴它的仓库或链接即可添加。"
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates from Upkeep"
+msgstr "从 Upkeep 安装系统更新"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "在“系统”组中勾选行，并从那里安装。内核和 NVIDIA 驱动交给更新管理器，因为两者都需要重启。软件包和 Snap 通过 sudo 安装，sudo 不能询问密码。"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands, in this order:"
+msgstr "Upkeep 将按以下顺序运行这些命令："
+
+#: src/mainview/lib/copy.ts
+msgid "The commands that start with sudo need administrator rights and run as root."
+msgstr "以 sudo 开头的命令需要管理员权限，并以 root 身份运行。"
+
+#: src/mainview/lib/copy.ts
+msgid "Install now"
+msgstr "立即安装"
+
+#: src/mainview/lib/copy.ts
+msgid "Waiting"
+msgstr "等待中"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed"
+msgstr "已安装"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon applet that has an update."
+msgstr "与所有有更新的 Cinnamon 小程序一起安装。"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon desklet that has an update."
+msgstr "与所有有更新的 Cinnamon 桌面小部件一起安装。"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon extension that has an update."
+msgstr "与所有有更新的 Cinnamon 扩展一起安装。"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon theme that has an update."
+msgstr "与所有有更新的 Cinnamon 主题一起安装。"
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates"
+msgstr "安装系统更新"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # system update"
+msgid_plural "Install # system updates"
+msgstr[0] "安装 # 个系统更新"
+
+#. 0: done; 1: all
+#: src/mainview/lib/copy.ts
+msgid "Installed {0} of {1}."
+msgstr "已安装 {0} 个，共 {1} 个。"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Install it with {0}."
+msgstr "请用 {0} 安装。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here, so nothing was installed. Install these from the system's own updater."
+msgstr "这里的 sudo 需要密码，因此没有安装任何内容。请用系统自带的更新工具安装。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes."
+msgstr "更新管理器或其他安装程序正在使用软件包系统，因此没有安装任何内容。请在它完成后重试。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Flatpak would ask for a password here, so nothing was installed."
+msgstr "这里的 Flatpak 会要求输入密码，因此没有安装任何内容。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A trial run would also change {0}, which Update Manager installs with a restart, so nothing was installed."
+msgstr "试运行还会更改 {0}，这需要由更新管理器安装并重启，因此没有安装任何内容。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run failed, so nothing was installed: {0}"
+msgstr "试运行失败，因此没有安装任何内容：{0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The system's list changed since you looked. Look at it again, then install."
+msgstr "自你查看以来，系统列表已更改。请重新查看，然后再安装。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "None of these is a system update Upkeep installs."
+msgstr "其中没有 Upkeep 可安装的系统更新。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Still pending after the install. See the log."
+msgstr "安装后仍在等待中。请查看日志。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} ran past its time limit and was stopped."
+msgstr "{0} 超过了时间限制，已被停止。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read the list again to see whether it installed: {0}"
+msgstr "无法重新读取列表来确认是否已安装：{0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. Restart it to use the new version."
+msgstr "已更新。重启它以使用新版本。"

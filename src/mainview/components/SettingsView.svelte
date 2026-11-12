@@ -226,6 +226,18 @@
 			/>
 			<span class="help" data-testid="setting-system-help">{SYS.settingHelp}</span>
 		</label>
+		{#if model.extras?.settings.system === "show"}
+			<label class="row stack">
+				<span class="text">{SYS.installSetting}</span>
+				<input
+					type="checkbox"
+					checked={model.extras.settings.systemInstall === true}
+					data-testid="setting-system-install"
+					onchange={(e) => model.setExtras({ systemInstall: e.currentTarget.checked })}
+				/>
+				<span class="help" data-testid="setting-system-install-help">{SYS.installSettingHelp}</span>
+			</label>
+		{/if}
 	</div>
 
 	<h2 class="group">{WIN.about}</h2>

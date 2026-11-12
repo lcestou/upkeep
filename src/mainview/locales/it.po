@@ -68,6 +68,7 @@ msgstr "Da installare"
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Installing"
 msgstr "Installazione"
 
@@ -178,6 +179,7 @@ msgstr "Niente selezionato"
 msgid "Stop after this one"
 msgstr "Fermati dopo questa"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "Fatto"
@@ -309,6 +311,7 @@ msgstr "Ancora nessuna sessione."
 msgid "Updated"
 msgstr "Aggiornato"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Failed"
@@ -792,6 +795,7 @@ msgstr "Riavvia ora"
 msgid "Restart"
 msgstr "Riavvia"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Not now"
 msgstr "Non ora"
@@ -2035,3 +2039,116 @@ msgstr "Scrivi il nome di un'app, incolla un repo come sharkdp/fd o un link GitH
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
 msgstr "Impossibile capire da dove viene {0}. Incolla il suo repo o un link per aggiungerla."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates from Upkeep"
+msgstr "Installa gli aggiornamenti di sistema da Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "Spunta le righe nel gruppo Sistema e installale da lì. I kernel e il driver NVIDIA restano al Gestore aggiornamenti, perché entrambi richiedono un riavvio. Pacchetti e Snap si installano tramite sudo, che non deve chiedere una password."
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands, in this order:"
+msgstr "Upkeep esegue questi comandi, in quest'ordine:"
+
+#: src/mainview/lib/copy.ts
+msgid "The commands that start with sudo need administrator rights and run as root."
+msgstr "I comandi che iniziano con sudo richiedono i diritti di amministratore e vengono eseguiti come root."
+
+#: src/mainview/lib/copy.ts
+msgid "Install now"
+msgstr "Installa ora"
+
+#: src/mainview/lib/copy.ts
+msgid "Waiting"
+msgstr "In attesa"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed"
+msgstr "Installato"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon applet that has an update."
+msgstr "Si installa insieme a ogni applet di Cinnamon con un aggiornamento."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon desklet that has an update."
+msgstr "Si installa insieme a ogni desklet di Cinnamon con un aggiornamento."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon extension that has an update."
+msgstr "Si installa insieme a ogni estensione di Cinnamon con un aggiornamento."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon theme that has an update."
+msgstr "Si installa insieme a ogni tema di Cinnamon con un aggiornamento."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates"
+msgstr "Installa aggiornamenti di sistema"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # system update"
+msgid_plural "Install # system updates"
+msgstr[0] "Installa # aggiornamento di sistema"
+msgstr[1] "Installa # aggiornamenti di sistema"
+msgstr[2] "Installa # aggiornamenti di sistema"
+
+#. 0: done; 1: all
+#: src/mainview/lib/copy.ts
+msgid "Installed {0} of {1}."
+msgstr "Installati {0} su {1}."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Install it with {0}."
+msgstr "Installalo con {0}."
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here, so nothing was installed. Install these from the system's own updater."
+msgstr "sudo qui richiede una password, quindi non è stato installato nulla. Installali con lo strumento di aggiornamento del sistema."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes."
+msgstr "Il Gestore aggiornamenti o un altro programma di installazione sta usando il sistema dei pacchetti, quindi non è stato installato nulla. Riprova quando ha finito."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Flatpak would ask for a password here, so nothing was installed."
+msgstr "Flatpak qui chiederebbe una password, quindi non è stato installato nulla."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A trial run would also change {0}, which Update Manager installs with a restart, so nothing was installed."
+msgstr "Una prova cambierebbe anche {0}, che il Gestore aggiornamenti installa con un riavvio, quindi non è stato installato nulla."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run failed, so nothing was installed: {0}"
+msgstr "La prova non è riuscita, quindi non è stato installato nulla: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The system's list changed since you looked. Look at it again, then install."
+msgstr "L'elenco del sistema è cambiato da quando l'hai guardato. Guardalo di nuovo, poi installa."
+
+#: src/mainview/lib/engine-text.ts
+msgid "None of these is a system update Upkeep installs."
+msgstr "Nessuno di questi è un aggiornamento di sistema che Upkeep installa."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Still pending after the install. See the log."
+msgstr "Ancora in sospeso dopo l'installazione. Vedi il registro."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} ran past its time limit and was stopped."
+msgstr "{0} ha superato il tempo limite ed è stato fermato."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read the list again to see whether it installed: {0}"
+msgstr "Impossibile rileggere l'elenco per vedere se è stato installato: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. Restart it to use the new version."
+msgstr "Aggiornato. Riavvialo per usare la nuova versione."

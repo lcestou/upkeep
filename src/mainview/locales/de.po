@@ -68,6 +68,7 @@ msgstr "Bereit zur Installation"
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Installing"
 msgstr "Wird installiert"
 
@@ -178,6 +179,7 @@ msgstr "Nichts ausgewählt"
 msgid "Stop after this one"
 msgstr "Nach dieser stoppen"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "Fertig"
@@ -309,6 +311,7 @@ msgstr "Noch keine Durchläufe."
 msgid "Updated"
 msgstr "Aktualisiert"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Failed"
@@ -776,6 +779,7 @@ msgstr "Jetzt neu starten"
 msgid "Restart"
 msgstr "Neu starten"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Not now"
 msgstr "Nicht jetzt"
@@ -2017,3 +2021,115 @@ msgstr "Gib den Namen einer App ein, füge ein Repo wie sharkdp/fd oder einen Gi
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
 msgstr "Unklar, woher {0} stammt. Füge das Repo oder einen Link ein, um es hinzuzufügen."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates from Upkeep"
+msgstr "Systemaktualisierungen aus Upkeep installieren"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "Zeilen in der Gruppe System ankreuzen und dort installieren. Kernel und der NVIDIA-Treiber bleiben bei der Aktualisierungsverwaltung, weil beide einen Neustart brauchen. Pakete und Snaps werden über sudo installiert, das nicht nach einem Passwort fragen darf."
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands, in this order:"
+msgstr "Upkeep führt diese Befehle in dieser Reihenfolge aus:"
+
+#: src/mainview/lib/copy.ts
+msgid "The commands that start with sudo need administrator rights and run as root."
+msgstr "Die Befehle, die mit sudo beginnen, brauchen Administratorrechte und laufen als root."
+
+#: src/mainview/lib/copy.ts
+msgid "Install now"
+msgstr "Jetzt installieren"
+
+#: src/mainview/lib/copy.ts
+msgid "Waiting"
+msgstr "Wartet"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed"
+msgstr "Installiert"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon applet that has an update."
+msgstr "Wird zusammen mit jedem Cinnamon-Applet installiert, für das es eine Aktualisierung gibt."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon desklet that has an update."
+msgstr "Wird zusammen mit jedem Cinnamon-Desklet installiert, für das es eine Aktualisierung gibt."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon extension that has an update."
+msgstr "Wird zusammen mit jeder Cinnamon-Erweiterung installiert, für die es eine Aktualisierung gibt."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon theme that has an update."
+msgstr "Wird zusammen mit jedem Cinnamon-Thema installiert, für das es eine Aktualisierung gibt."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates"
+msgstr "Systemaktualisierungen installieren"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # system update"
+msgid_plural "Install # system updates"
+msgstr[0] "# Systemaktualisierung installieren"
+msgstr[1] "# Systemaktualisierungen installieren"
+
+#. 0: done; 1: all
+#: src/mainview/lib/copy.ts
+msgid "Installed {0} of {1}."
+msgstr "{0} von {1} installiert."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Install it with {0}."
+msgstr "Mit {0} installieren."
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here, so nothing was installed. Install these from the system's own updater."
+msgstr "sudo braucht hier ein Passwort, deshalb wurde nichts installiert. Installiere diese mit dem eigenen Aktualisierungswerkzeug des Systems."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes."
+msgstr "Die Aktualisierungsverwaltung oder ein anderes Installationsprogramm nutzt gerade das Paketsystem, deshalb wurde nichts installiert. Versuche es erneut, wenn es fertig ist."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Flatpak would ask for a password here, so nothing was installed."
+msgstr "Flatpak würde hier nach einem Passwort fragen, deshalb wurde nichts installiert."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A trial run would also change {0}, which Update Manager installs with a restart, so nothing was installed."
+msgstr "Ein Probelauf würde auch {0} ändern, was die Aktualisierungsverwaltung mit einem Neustart installiert, deshalb wurde nichts installiert."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run failed, so nothing was installed: {0}"
+msgstr "Der Probelauf ist fehlgeschlagen, deshalb wurde nichts installiert: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The system's list changed since you looked. Look at it again, then install."
+msgstr "Die Liste des Systems hat sich geändert, seit du sie angesehen hast. Sieh sie dir erneut an und installiere dann."
+
+#: src/mainview/lib/engine-text.ts
+msgid "None of these is a system update Upkeep installs."
+msgstr "Keine davon ist eine Systemaktualisierung, die Upkeep installiert."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Still pending after the install. See the log."
+msgstr "Nach der Installation noch ausstehend. Siehe das Protokoll."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} ran past its time limit and was stopped."
+msgstr "{0} hat sein Zeitlimit überschritten und wurde beendet."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read the list again to see whether it installed: {0}"
+msgstr "Die Liste konnte nicht erneut gelesen werden, um zu prüfen, ob es installiert wurde: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. Restart it to use the new version."
+msgstr "Aktualisiert. Starte es neu, um die neue Version zu verwenden."
