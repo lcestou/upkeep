@@ -1,0 +1,17 @@
+fastanime v3.1.0
+- fastanime
+git-filter-repo v2.47.0
+- git-filter-repo
+headroom-ai v0.44.0
+- headroom
+- headroom-cache-ttl
+iopaint v1.6.0
+- iopaint
+pr-agent v0.49.0
+- pr-agent
+subliminal v2.7.1
+- subliminal
+trafilatura v2.2.0
+- trafilatura
+yt-dlp v2026.8.19
+- yt-dlp

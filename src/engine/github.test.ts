@@ -192,6 +192,24 @@ test("latestFromSource reads npm, PyPI and GitHub", async () => {
 	expect(isFailure(failed) && failed.failure).toBe("network");
 });
 
+test("latestFromSource reads a crate's newest stable version from crates.io, sending a User-Agent", async () => {
+	const seen: { url: string; headers: HeadersInit | undefined }[] = [];
+	const fake: FetchLike = async (url, init) => {
+		seen.push({ url, headers: init?.headers });
+		return url.endsWith("/nothing")
+			? Response.json({ crate: {} })
+			: Response.json({ crate: { max_version: "15.0.0-rc.1", max_stable_version: "14.1.1" } });
+	};
+	const opts = { cacheDir: dir, fetch: fake };
+	expect(await latestFromSource("crates:ripgrep", opts)).toEqual({ version: "14.1.1" });
+	expect(seen[0]?.url).toBe("https://crates.io/api/v1/crates/ripgrep");
+	expect(seen[0]?.headers).toEqual({ Accept: "application/json", "User-Agent": "upkeep" });
+	const none = await latestFromSource("crates:nothing", opts);
+	expect(isFailure(none) && none.failure).toBe("http");
+	const down2 = await latestFromSource("crates:x", { cacheDir: dir, fetch: down });
+	expect(isFailure(down2) && down2.failure).toBe("network");
+});
+
 const answer =
 	(body: unknown): FetchLike =>
 	async () =>

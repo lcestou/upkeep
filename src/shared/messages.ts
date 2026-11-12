@@ -53,6 +53,8 @@ export const MESSAGES = {
 	patternNeedsWidening: () => `The pattern is this release's exact asset name and will need widening.`,
 	/** discover.ts */
 	couldNotReadVersion: () => `Could not read the installed version with --version.`,
+	/** discover.ts. {0} a tool manager: uv, pipx, npm or cargo */
+	installedWith: (v0: Value) => `Installed with ${v0}. Upkeep updates it the same way.`,
 	/** discover.ts. {0} app name */
 	alreadyInList: (v0: Value) => `${v0} is already in the list.`,
 	/** discover.ts. {0} asset (archive) name */

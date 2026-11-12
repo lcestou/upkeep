@@ -1975,3 +1975,8 @@ msgstr "Snap"
 #: src/mainview/lib/copy.ts
 msgid "Cinnamon"
 msgstr "Cinnamon"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Installed with {0}. Upkeep updates it the same way."
+msgstr "Installato con {0}. Upkeep lo aggiorna allo stesso modo."

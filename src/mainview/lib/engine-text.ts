@@ -28,6 +28,7 @@ export const ENGINE_COPY = {
 	nothingInstalledAt: (v0: string) => `Nothing is installed at ${v0} yet, so Install will put it there.`,
 	patternNeedsWidening: () => `The pattern is this release's exact asset name and will need widening.`,
 	couldNotReadVersion: () => `Could not read the installed version with --version.`,
+	installedWith: (v0: string) => `Installed with ${v0}. Upkeep updates it the same way.`,
 	alreadyInList: (v0: string) => `${v0} is already in the list.`,
 	noProgramInArchive: (v0: string) => `${v0} holds no program Upkeep can install.`,
 	couldNotReachGithubSearch: (v0: string) => `Could not reach GitHub: ${v0}`,

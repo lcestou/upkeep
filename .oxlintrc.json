@@ -57,6 +57,7 @@
 			"files": [
 				"src/engine/manifest.ts",
 				"src/engine/github.ts",
+				"src/engine/managers.ts",
 				"src/engine/store.ts",
 				"src/engine/transfer.ts",
 				"src/engine/extras/state.ts",
