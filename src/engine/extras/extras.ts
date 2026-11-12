@@ -128,23 +128,23 @@ export function createExtras(deps: ExtrasDeps): Extras {
 	 */
 	async function install(ids: string[], commands: string[][], log: RunLog, runId: string) {
 		installingNow = true;
-		const steps = planSteps(system.rows, ids, system.packages);
-		const picked = system.rows.filter((r) => steps.some((s) => s.ids.includes(r.id)));
-		const started = Date.now();
-		const say = (text: string) => log.write({ at: deps.now().toISOString(), key: "system", text });
-		const set = (outcomes: SystemOutcome[]) => {
-			if (system.install) system = { ...system, install: { ...system.install, outcomes } };
-			emit();
-		};
-		const ctx = {
-			run: deps.run,
-			pid: process.pid,
-			log: say,
-			onStart: (pid: number) => {
-				child = pid;
-			},
-		};
 		try {
+			const steps = planSteps(system.rows, ids, system.packages);
+			const picked = system.rows.filter((r) => steps.some((s) => s.ids.includes(r.id)));
+			const started = Date.now();
+			const say = (text: string) => log.write({ at: deps.now().toISOString(), key: "system", text });
+			const set = (outcomes: SystemOutcome[]) => {
+				if (system.install) system = { ...system, install: { ...system.install, outcomes } };
+				emit();
+			};
+			const ctx = {
+				run: deps.run,
+				pid: process.pid,
+				log: say,
+				onStart: (pid: number) => {
+					child = pid;
+				},
+			};
 			say(`System install: ${picked.map((r) => r.name).join(", ")}`);
 			const refused = await preflight(steps, system.rows, ctx);
 			if (refused) {
