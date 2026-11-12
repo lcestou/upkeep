@@ -55,6 +55,7 @@ const ctx = (): KindCtx => ({
 		frame: "own",
 		buttons: "auto",
 		corners: "rounded",
+		language: "system",
 	},
 	log: () => {},
 	stage: () => {},

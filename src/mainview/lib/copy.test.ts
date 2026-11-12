@@ -1,49 +1,62 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
 import {
+	aboutManifest,
 	ADD,
 	addApps,
 	addedMany,
 	addedOne,
 	allFreshLine,
 	byHandLine,
+	CHECK_EVERY,
 	checkedTitle,
+	CHIP,
+	COLUMN,
 	commitsHeading,
+	failedPart,
 	foundApps,
 	glLine,
+	GROUP_LABEL,
+	installedText,
 	installLabel,
+	KIND_LABEL,
 	lastTryFailed,
 	moreCommits,
+	NO_RESTORE,
 	noMatch,
 	noMint,
+	notInstalledLine,
+	PACKAGES_FROM,
 	rateText,
+	releasedLabel,
 	removeAsk,
 	removedNote,
+	RESTART,
 	restartAllLabel,
 	restartAsk,
 	restartedNote,
 	restartLine,
-	restoreLabel,
 	restoredText,
-	retryLabel,
-	releasedLabel,
+	restoreLabel,
 	resultCounts,
+	retryLabel,
+	RUN_TEXT,
 	runSentence,
-	skipLabel,
-	stopSkipLabel,
-	stoppingLabel,
-	tomlWriteFailed,
-	versionText,
-	notInstalledLine,
-	installedText,
 	selectionText,
+	skipLabel,
+	STAGE_NAME,
 	stateSentence,
 	statusText,
+	stoppingLabel,
+	stopSkipLabel,
+	SYS,
 	systemAbsent,
 	systemChecked,
-	PACKAGES_FROM,
 	systemProblem,
-	STAGE_NAME,
+	TEXT,
+	tomlWriteFailed,
+	versionText,
+	WIN,
 	workingText,
 } from "./copy";
 
@@ -128,10 +141,10 @@ test("the System group's problem lines name the source and end cleanly without a
 		"dpkg-query -W is not installed, so this part of the list is empty.",
 	);
 	expect(systemProblem({ code: "failed", command: "mintupdate-cli list", detail: "E: lock" })).toBe(
-		"Could not read Update Manager's list: E: lock",
+		"Could not read the Update Manager list: E: lock",
 	);
 	expect(systemProblem({ code: "failed", command: "flatpak remote-ls --updates", detail: "" })).toBe(
-		"Could not read Flatpak's list.",
+		"Could not read the Flatpak list.",
 	);
 	expect(systemChecked("2 minutes ago", false)).toBe("From Update Manager, checked 2 minutes ago");
 	expect(systemChecked(null, true)).toBe("From Update Manager, checking");
@@ -232,14 +245,52 @@ test("restart copy: one app or several, and what closing costs", () => {
 
 test("a failed package list is named by its own tool", () => {
 	expect(systemProblem({ code: "failed", command: "apt list --upgradable", detail: "E: x" })).toBe(
-		"Could not read apt's list: E: x",
+		"Could not read the apt list: E: x",
 	);
 	expect(systemProblem({ code: "failed", command: "dnf -q check-update", detail: "" })).toBe(
-		"Could not read dnf's list.",
+		"Could not read the dnf list.",
 	);
-	expect(systemProblem({ code: "failed", command: "checkupdates", detail: "" })).toBe("Could not read pacman's list.");
+	expect(systemProblem({ code: "failed", command: "checkupdates", detail: "" })).toBe(
+		"Could not read the pacman list.",
+	);
 	expect(PACKAGES_FROM.pacman).toBe("pacman");
 	expect(systemProblem({ code: "failed", command: "zypper -n -q --no-refresh list-updates", detail: "" })).toBe(
-		"Could not read zypper's list.",
+		"Could not read the zypper list.",
 	);
+});
+
+test("every label in the copy tables is words, read through its getter", () => {
+	// JSON.stringify reads each getter, so every label is drawn the way the window draws it.
+	const tables = [
+		KIND_LABEL,
+		STAGE_NAME,
+		GROUP_LABEL,
+		COLUMN,
+		CHIP,
+		TEXT,
+		NO_RESTORE,
+		RUN_TEXT,
+		ADD,
+		RESTART,
+		WIN,
+		SYS,
+		PACKAGES_FROM,
+		CHECK_EVERY,
+	];
+	const labels = [...JSON.stringify(tables).matchAll(/:"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1] ?? "");
+	expect(labels.length).toBeGreaterThan(150);
+	expect(labels.filter((l) => !/\p{L}/u.test(l))).toEqual([]);
+});
+
+test("the summary's failed part and an apps.toml failure are found without matching English words", () => {
+	expect(failedPart([{ result: "updated" }, { result: "failed" }, { result: "rolled_back" }])).toBe("2 failed");
+	expect(failedPart([{ result: "updated" }])).toBeNull();
+	expect(resultCounts([{ result: "updated" }, { result: "failed" }]).split(", ")).toEqual(["1 updated", "1 failed"]);
+	expect(failedPart([{ result: "failed" }])).toBe("1 failed");
+	// The engine's own message and the window's both name the file, in any language.
+	expect(aboutManifest("Could not write fd to apps.toml.")).toBe(true);
+	expect(aboutManifest(tomlWriteFailed("permission denied"))).toBe(true);
+	expect(aboutManifest("無法寫入 apps.toml")).toBe(true);
+	expect(aboutManifest("fd is already in the list.")).toBe(false);
+	expect(aboutManifest(null)).toBe(false);
 });

@@ -48,6 +48,7 @@ function setup(over: Partial<Desktop> = {}) {
 		},
 		chrome: () => ({ own: true, side: "right" as const, order: [], maximized: false, rounded: true }),
 		windowOp: (op: string) => void did.push(`window ${op}`),
+		languages: () => ["de_DE.UTF-8"],
 		extras: createExtras({ paths: t.paths, run, now: deps.now }),
 	};
 	return { r: upkeepRequests(engine, deps, hooks, desktop), did, engine };
@@ -73,6 +74,7 @@ test("the requests answer from the engine, and refuse what the engine refuses", 
 	expect(await r.restartApp({ key: "nope" })).toEqual({ ok: false, detail: "No app nope." });
 	expect(await r.addApps({ specs: [] })).toEqual({ added: [], problems: [] });
 	expect((await r.chrome({})).own).toBe(true);
+	expect(await r.languages({})).toEqual(["de_DE.UTF-8"]);
 	expect(await r.window({ op: "close" })).toEqual({ ok: true });
 	expect(await r.copy({ text: "x y" })).toEqual({ ok: true });
 	expect((await r.extras({})).settings.system).toBe("off");

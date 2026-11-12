@@ -9,11 +9,12 @@
 
 	let { model }: { model: Model } = $props();
 
-	const tabs: { id: View; text: string }[] = [
+	// $derived: the labels follow a language switch.
+	const tabs: { id: View; text: string }[] = $derived([
 		{ id: "updates", text: TEXT.updates },
 		{ id: "history", text: TEXT.history },
 		{ id: "settings", text: TEXT.settings },
-	];
+	]);
 	const checking = $derived(model.run.phase === "checking");
 	const chrome = $derived(model.chrome);
 	const own = $derived(chrome?.own === true);

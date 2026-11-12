@@ -39,6 +39,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			frame: "own",
 			buttons: "auto",
 			corners: "rounded",
+			language: "system",
 		},
 		rate: null,
 		checkedAt: null,
@@ -110,4 +111,11 @@ test("the fingerprint changes when the ready set or a version changes, and only 
 	b.apps[1]!.latest = "9.9";
 	expect(readyFingerprint(a)).not.toBe(readyFingerprint(b));
 	expect(readyFingerprint(snap(0))).toBe("");
+});
+
+test("the menu and the icon's title speak the language given", () => {
+	const labels = trayMenu(snap(2), undefined, "es").flatMap((i) => (i.type === "normal" ? [i.label] : []));
+	expect(labels).toEqual(["Abrir Upkeep", "Buscar ahora", "Instalar 2 listas", "Salir"]);
+	expect(trayTitle(snap(2), "ru")).toBe("Upkeep, 2 обновления готовы");
+	expect(trayTitle(snap(1), "en")).toBe("Upkeep, 1 update ready");
 });

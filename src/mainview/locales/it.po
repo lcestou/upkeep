@@ -1,0 +1,1045 @@
+msgid ""
+msgstr ""
+"Source-Language: en\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3\n"
+"X-Plurals-Order: one, many, other\n"
+
+#: src/mainview/components/HistoryView.svelte
+#: src/mainview/components/SuggestionCard.svelte
+#: src/mainview/components/Versions.svelte
+msgid "to"
+msgstr "a"
+
+#: src/mainview/components/SuggestionCard.svelte
+msgid "Name"
+msgstr "Nome"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Binary"
+msgstr "Binario"
+
+#: src/mainview/lib/copy.ts
+msgid "Source build"
+msgstr "Compilato"
+
+#: src/mainview/lib/copy.ts
+msgid "Updates itself"
+msgstr "Si aggiorna"
+
+#: src/mainview/lib/copy.ts
+msgid "Plugins"
+msgstr "Plugin"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "By hand"
+msgstr "A mano"
+
+#: src/mainview/lib/copy.ts
+msgid "Download"
+msgstr "Download"
+
+#: src/mainview/lib/copy.ts
+msgid "Back up"
+msgstr "Backup"
+
+#: src/mainview/lib/copy.ts
+msgid "Build"
+msgstr "Compilazione"
+
+#: src/mainview/lib/copy.ts
+msgid "Install"
+msgstr "Installazione"
+
+#: src/mainview/lib/copy.ts
+msgid "Verify"
+msgstr "Verifica"
+
+#: src/mainview/lib/copy.ts
+msgid "Ready to install"
+msgstr "Da installare"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Installing"
+msgstr "Installazione"
+
+#: src/mainview/lib/copy.ts
+msgid "This run"
+msgstr "Questa sessione"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart to finish"
+msgstr "Riavvia per finire"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Needs a look"
+msgstr "Da controllare"
+
+#: src/mainview/lib/copy.ts
+msgid "Held back"
+msgstr "In pausa"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Checking"
+msgstr "Controllo"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Fresh"
+msgstr "In pari"
+
+#: src/mainview/lib/copy.ts
+msgid "App"
+msgstr "App"
+
+#: src/mainview/lib/copy.ts
+msgid "Kind"
+msgstr "Tipo"
+
+#: src/mainview/lib/copy.ts
+msgid "Version"
+msgstr "Versione"
+
+#: src/mainview/lib/copy.ts
+msgid "Size"
+msgstr "Dimensione"
+
+#: src/mainview/lib/copy.ts
+msgid "Restore point"
+msgstr "Ripristino"
+
+#: src/mainview/lib/copy.ts
+msgid "Status"
+msgstr "Stato"
+
+#: src/mainview/lib/copy.ts
+msgid "In use"
+msgstr "In uso"
+
+#: src/mainview/lib/copy.ts
+msgid "In use now. The update applies when you restart it."
+msgstr "In uso ora. L'aggiornamento vale quando la riavvii."
+
+#: src/mainview/lib/copy.ts
+msgid "Root"
+msgstr "Root"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with sudo."
+msgstr "Si installa con sudo."
+
+#: src/mainview/lib/copy.ts
+msgid "Auto"
+msgstr "Auto"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed without asking when Upkeep checks in the background."
+msgstr "Si installa senza chiedere quando Upkeep controlla in background."
+
+#: src/mainview/lib/copy.ts
+msgid "Updates"
+msgstr "Aggiornamenti"
+
+#: src/mainview/lib/copy.ts
+msgid "History"
+msgstr "Cronologia"
+
+#: src/mainview/lib/copy.ts
+msgid "Settings"
+msgstr "Impostazioni"
+
+#: src/mainview/lib/copy.ts
+msgid "Check again"
+msgstr "Controlla di nuovo"
+
+#: src/mainview/lib/copy.ts
+msgid "Select all"
+msgstr "Seleziona tutto"
+
+#: src/mainview/lib/copy.ts
+msgid "Select none"
+msgstr "Deseleziona tutto"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing selected"
+msgstr "Niente selezionato"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop after this one"
+msgstr "Fermati dopo questa"
+
+#: src/mainview/lib/copy.ts
+msgid "Done"
+msgstr "Fatto"
+
+#: src/mainview/lib/copy.ts
+msgid "None"
+msgstr "Nessuno"
+
+#: src/mainview/lib/copy.ts
+msgid "none yet"
+msgstr "nessuno"
+
+#: src/mainview/lib/copy.ts
+msgid "checks itself when run"
+msgstr "si controlla da sé all'avvio"
+
+#: src/mainview/lib/copy.ts
+msgid "Run now"
+msgstr "Esegui ora"
+
+#: src/mainview/lib/copy.ts
+msgid "What changed"
+msgstr "Cosa è cambiato"
+
+#: src/mainview/lib/copy.ts
+msgid "No release notes."
+msgstr "Nessuna nota di rilascio."
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Installed at"
+msgstr "Installata in"
+
+#: src/mainview/lib/copy.ts
+msgid "Source"
+msgstr "Origine"
+
+#: src/mainview/lib/copy.ts
+msgid "Restore points"
+msgstr "Punti di ripristino"
+
+#: src/mainview/lib/copy.ts
+msgid "Hold updates"
+msgstr "Metti in pausa gli aggiornamenti"
+
+#: src/mainview/lib/copy.ts
+msgid "Release hold"
+msgstr "Riprendi gli aggiornamenti"
+
+#: src/mainview/lib/copy.ts
+msgid "Open release page"
+msgstr "Apri la pagina della versione"
+
+#: src/mainview/lib/copy.ts
+msgid "Install automatically"
+msgstr "Installa automaticamente"
+
+#: src/mainview/lib/copy.ts
+msgid "Run it yourself:"
+msgstr "Eseguilo tu:"
+
+#: src/mainview/lib/copy.ts
+msgid "Copy"
+msgstr "Copia"
+
+#: src/mainview/lib/copy.ts
+msgid "Copied"
+msgstr "Copiato"
+
+#: src/mainview/lib/copy.ts
+msgid "Show log"
+msgstr "Mostra registro"
+
+#: src/mainview/lib/copy.ts
+msgid "Log"
+msgstr "Registro"
+
+#: src/mainview/lib/copy.ts
+msgid "Hide log"
+msgstr "Nascondi registro"
+
+#: src/mainview/lib/copy.ts
+msgid "Back to list"
+msgstr "Torna all'elenco"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Retry"
+msgstr "Riprova"
+
+#: src/mainview/lib/copy.ts
+msgid "Filter apps"
+msgstr "Filtra app"
+
+#: src/mainview/lib/copy.ts
+msgid "Clear filter"
+msgstr "Cancella filtro"
+
+#: src/mainview/lib/copy.ts
+msgid "Some sizes are not known until they download."
+msgstr "Alcune dimensioni si conoscono solo dopo il download."
+
+#: src/mainview/lib/copy.ts
+msgid "Tick an update to install."
+msgstr "Spunta un aggiornamento da installare."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for the check to finish."
+msgstr "Attendi la fine del controllo."
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing to install."
+msgstr "Niente da installare."
+
+#: src/mainview/lib/copy.ts
+msgid "Open log file"
+msgstr "Apri file di registro"
+
+#: src/mainview/lib/copy.ts
+msgid "No log lines yet."
+msgstr "Ancora nessuna riga nel registro."
+
+#: src/mainview/lib/copy.ts
+msgid "No runs yet."
+msgstr "Ancora nessuna sessione."
+
+#: src/mainview/lib/copy.ts
+msgid "Updated"
+msgstr "Aggiornato"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Failed"
+msgstr "Non riuscito"
+
+#: src/mainview/lib/copy.ts
+msgid "Rolled back"
+msgstr "Tornato indietro"
+
+#: src/mainview/lib/copy.ts
+msgid "Restored"
+msgstr "Ripristinato"
+
+#: src/mainview/lib/copy.ts
+msgid "Notify when updates are ready"
+msgstr "Avvisa quando ci sono aggiornamenti pronti"
+
+#: src/mainview/lib/copy.ts
+msgid "Start at login"
+msgstr "Avvia all'accesso"
+
+#: src/mainview/lib/copy.ts
+msgid "Opens in the tray and checks for updates."
+msgstr "Si apre nell'area di notifica e controlla gli aggiornamenti."
+
+#: src/mainview/lib/copy.ts
+msgid "Restore points to keep"
+msgstr "Punti di ripristino da tenere"
+
+#: src/mainview/lib/copy.ts
+msgid "Check for updates"
+msgstr "Controlla aggiornamenti"
+
+#: src/mainview/lib/copy.ts
+msgid "App list"
+msgstr "Elenco app"
+
+#: src/mainview/lib/copy.ts
+msgid "Open apps.toml"
+msgstr "Apri apps.toml"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Restore {0}"
+msgstr "Ripristina {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Skip {0}"
+msgstr "Salta {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Stop skipping {0}"
+msgstr "Non saltare più {0}"
+
+#. 0: relative
+#: src/mainview/lib/copy.ts
+msgid "Released {0}"
+msgstr "Rilasciata {0}"
+
+#. 0: relative
+#: src/mainview/lib/copy.ts
+msgid "Checked {0}"
+msgstr "Controllato {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Restored {0}."
+msgstr "Ripristinata la {0}."
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping after {0}"
+msgstr "Mi fermo dopo {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Retry # failed"
+msgid_plural "Retry # failed"
+msgstr[0] "Riprova # non riuscita"
+msgstr[1] "Riprova # non riuscite"
+msgstr[2] "Riprova # non riuscite"
+
+#. 0: remaining; 1: limit
+#: src/mainview/lib/copy.ts
+msgid "GitHub requests left this hour: {0} of {1}"
+msgstr "Richieste GitHub rimaste in quest'ora: {0} di {1}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Version {0}"
+msgstr "Versione {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Install updates"
+msgstr "Installa aggiornamenti"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # update"
+msgid_plural "Install # updates"
+msgstr[0] "Installa # aggiornamento"
+msgstr[1] "Installa # aggiornamenti"
+msgstr[2] "Installa # aggiornamenti"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "at least {0}"
+msgstr "almeno {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "# hidden"
+msgid_plural "# hidden"
+msgstr[0] "# nascosta"
+msgstr[1] "# nascoste"
+msgstr[2] "# nascoste"
+
+#: src/mainview/lib/copy.ts
+msgid "# selected"
+msgid_plural "# selected"
+msgstr[0] "# selezionata"
+msgstr[1] "# selezionate"
+msgstr[2] "# selezionate"
+
+#: src/mainview/lib/copy.ts
+msgid "Built in a fresh clone, so there is no restore point."
+msgstr "Compilata in un clone nuovo, quindi non c'è un punto di ripristino."
+
+#: src/mainview/lib/copy.ts
+msgid "It updates itself, and its table has no restore command."
+msgstr "Si aggiorna da sé e la sua tabella non ha un comando di ripristino."
+
+#: src/mainview/lib/copy.ts
+msgid "Claude Code keeps no older plugin to go back to."
+msgstr "Claude Code non tiene un plugin precedente a cui tornare."
+
+#. 0: latest
+#: src/mainview/lib/copy.ts
+msgid "Not installed. {0} is the latest."
+msgstr "Non installata. L'ultima è la {0}."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Installed {0}"
+msgstr "Installata la {0}"
+
+#. 0: why
+#: src/mainview/lib/copy.ts
+msgid "Last try failed. {0}"
+msgstr "L'ultimo tentativo non è riuscito. {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "# commit since the installed build"
+msgid_plural "# commits since the installed build"
+msgstr[0] "# commit dalla build installata"
+msgstr[1] "# commit dalla build installata"
+msgstr[2] "# commit dalla build installata"
+
+#: src/mainview/lib/copy.ts
+msgid "# commit"
+msgid_plural "# commits"
+msgstr[0] "# commit"
+msgstr[1] "# commit"
+msgstr[2] "# commit"
+
+#. 0: from
+#: src/mainview/lib/copy.ts
+msgid "since {0}"
+msgstr "da {0}"
+
+#. 0: n; 1: n - shown
+#: src/mainview/lib/copy.ts
+msgid "All {0} on GitHub ({1} not shown)"
+msgstr "Tutti i {0} su GitHub ({1} non mostrati)"
+
+#. 0: names.join(", ")
+#: src/mainview/lib/copy.ts
+msgid "Restart {0} to finish."
+msgstr "Riavvia {0} per finire."
+
+#: src/mainview/lib/copy.ts
+msgid "# more by hand"
+msgid_plural "# more by hand"
+msgstr[0] "# in più a mano"
+msgstr[1] "# in più a mano"
+msgstr[2] "# in più a mano"
+
+#: src/mainview/lib/copy.ts
+msgid "A run is in progress."
+msgstr "C'è una sessione in corso."
+
+#: src/mainview/lib/copy.ts
+msgid "Restart pending"
+msgstr "Riavvio in sospeso"
+
+#: src/mainview/lib/copy.ts
+msgid "All # apps are up to date."
+msgid_plural "All # apps are up to date."
+msgstr[0] "# app in pari."
+msgstr[1] "Tutte le # app sono in pari."
+msgstr[2] "Tutte le # app sono in pari."
+
+#: src/mainview/lib/copy.ts
+msgid "Add the apps you want Upkeep to keep up to date: type a name such as fd, or paste a GitHub repo."
+msgstr "Aggiungi le app che vuoi che Upkeep tenga aggiornate: scrivi un nome come fd o incolla un repo GitHub."
+
+#. 0: text
+#: src/mainview/lib/copy.ts
+msgid "No app matches \"{0}\"."
+msgstr "Nessuna app corrisponde a «{0}»."
+
+#: src/mainview/lib/copy.ts
+msgid "Ready"
+msgstr "Pronto"
+
+#. 0: app.name
+#. 0: app.name
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Restart {0} to finish"
+msgstr "Riavvia {0} per finire"
+
+#. 0: app.skipped
+#: src/mainview/lib/copy.ts
+msgid "Skipping {0}"
+msgstr "{0} saltata"
+
+#: src/mainview/lib/copy.ts
+msgid "Held"
+msgstr "In pausa"
+
+#: src/mainview/lib/copy.ts
+msgid "Queued"
+msgstr "In coda"
+
+#. 0: app.installed ?? app.latest ?? ""
+#: src/mainview/lib/copy.ts
+msgid "Updated to {0}"
+msgstr "Aggiornata a {0}"
+
+#. 0: app.installed ?? ""
+#: src/mainview/lib/copy.ts
+msgid "Rolled back to {0}"
+msgstr "Tornata a {0}"
+
+#. 0: ((total * pct) / 100 / scale).toFixed(1); 1: whole
+#: src/mainview/lib/copy.ts
+msgid "{0} of {1}"
+msgstr "{0} di {1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Backing up"
+msgstr "Backup"
+
+#: src/mainview/lib/copy.ts
+msgid "Building"
+msgstr "Compilazione"
+
+#: src/mainview/lib/copy.ts
+msgid "Verifying"
+msgstr "Verifica"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloading"
+msgstr "Download"
+
+#. 0: partOf(pct, size)
+#: src/mainview/lib/copy.ts
+msgid "Downloading {0}"
+msgstr "Download {0}"
+
+#. 0: Math.round(pct)
+#: src/mainview/lib/copy.ts
+msgid "Downloading {0}%"
+msgstr "Download {0}%"
+
+#: src/mainview/lib/copy.ts
+msgid "# updated"
+msgid_plural "# updated"
+msgstr[0] "# aggiornata"
+msgstr[1] "# aggiornate"
+msgstr[2] "# aggiornate"
+
+#: src/mainview/lib/copy.ts
+msgid "# failed"
+msgid_plural "# failed"
+msgstr[0] "# non riuscita"
+msgstr[1] "# non riuscite"
+msgstr[2] "# non riuscite"
+
+#: src/mainview/lib/copy.ts
+msgid "Retry: "
+msgstr "Nuovo tentativo: "
+
+#. 0: reason
+#: src/mainview/lib/copy.ts
+msgid "Could not write apps.toml: {0}. Nothing was changed."
+msgstr "Impossibile scrivere apps.toml: {0}. Non è cambiato nulla."
+
+#. 0: run.index; 1: run.total
+#: src/mainview/lib/copy.ts
+msgid "Checking {0} of {1}"
+msgstr "Controllo {0} di {1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Retrying"
+msgstr "Nuovo tentativo"
+
+#. 0: run.retry ? "Retrying" \\: "Installing"; 1: currentName ?? ""; 2: run.index; 3: run.total
+#: src/mainview/lib/copy.ts
+msgid "{0} {1}, {2} of {3}"
+msgstr "{0} di {1}, {2} di {3}"
+
+#: src/mainview/lib/copy.ts
+msgid "# not started"
+msgid_plural "# not started"
+msgstr[0] "# non avviata"
+msgstr[1] "# non avviate"
+msgstr[2] "# non avviate"
+
+#: src/mainview/lib/copy.ts
+msgid "No apps yet"
+msgstr "Ancora nessuna app"
+
+#: src/mainview/lib/copy.ts
+msgid "# update ready"
+msgid_plural "# updates ready"
+msgstr[0] "# aggiornamento pronto"
+msgstr[1] "# aggiornamenti pronti"
+msgstr[2] "# aggiornamenti pronti"
+
+#: src/mainview/lib/copy.ts
+msgid "# needs a look"
+msgid_plural "# need a look"
+msgstr[0] "# da controllare"
+msgstr[1] "# da controllare"
+msgstr[2] "# da controllare"
+
+#: src/mainview/lib/copy.ts
+msgid "Everything is fresh"
+msgstr "Tutto in pari"
+
+#: src/mainview/lib/copy.ts
+msgid "Add app"
+msgstr "Aggiungi app"
+
+#: src/mainview/lib/copy.ts
+msgid "Add an app"
+msgstr "Aggiungi un'app"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, GitHub repo, link or file"
+msgstr "Nome dell'app, repo GitHub, link o file"
+
+#: src/mainview/lib/copy.ts
+msgid "fd, or owner/repo"
+msgstr "fd, o owner/repo"
+
+#: src/mainview/lib/copy.ts
+msgid "Find"
+msgstr "Cerca"
+
+#: src/mainview/lib/copy.ts
+msgid "Updates by running"
+msgstr "Si aggiorna eseguendo"
+
+#: src/mainview/lib/copy.ts
+msgid "Finding"
+msgstr "Ricerca"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
+msgstr "Scrivi il nome di un'app, incolla un repo come sharkdp/fd o un link github.com, oppure trascina un file in un punto qualsiasi di questa finestra."
+
+#: src/mainview/lib/copy.ts
+msgid "Choose a file"
+msgstr "Scegli un file"
+
+#: src/mainview/lib/copy.ts
+msgid "Scan this computer"
+msgstr "Analizza questo computer"
+
+#: src/mainview/lib/copy.ts
+msgid "Scanning"
+msgstr "Analisi"
+
+#: src/mainview/lib/copy.ts
+msgid "Looking at the latest release"
+msgstr "Controllo dell'ultima versione"
+
+#: src/mainview/lib/copy.ts
+msgid "Looking through ~/.local/bin, ~/Applications and ~/bin"
+msgstr "Ricerca in ~/.local/bin, ~/Applications e ~/bin"
+
+#: src/mainview/lib/copy.ts
+msgid "Asset"
+msgstr "File"
+
+#: src/mainview/lib/copy.ts
+msgid "Not installed"
+msgstr "Non installata"
+
+#: src/mainview/lib/copy.ts
+msgid "Add to Upkeep"
+msgstr "Aggiungi a Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing new found."
+msgstr "Niente di nuovo trovato."
+
+#: src/mainview/lib/copy.ts
+msgid "Tick an app to add it."
+msgstr "Spunta un'app per aggiungerla."
+
+#: src/mainview/lib/copy.ts
+msgid "Paste its repo"
+msgstr "Incolla il suo repo"
+
+#: src/mainview/lib/copy.ts
+msgid "Drop to add it to Upkeep"
+msgstr "Rilascia per aggiungerla a Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Could not read where that file is. Use Choose a file."
+msgstr "Impossibile leggere dove si trova quel file. Usa Scegli un file."
+
+#: src/mainview/lib/copy.ts
+msgid "That took too long. Try again."
+msgstr "Ci è voluto troppo. Riprova."
+
+#: src/mainview/lib/copy.ts
+msgid "Remove from Upkeep"
+msgstr "Rimuovi da Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove"
+msgstr "Rimuovi"
+
+#: src/mainview/lib/copy.ts
+msgid "Keep"
+msgstr "Tieni"
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for the run to finish."
+msgstr "Attendi la fine della sessione."
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Added {0}."
+msgstr "Aggiunta {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Added # app."
+msgid_plural "Added # apps."
+msgstr[0] "Aggiunta # app."
+msgstr[1] "Aggiunte # app."
+msgstr[2] "Aggiunte # app."
+
+#: src/mainview/lib/copy.ts
+msgid "Found # app not in the list"
+msgid_plural "Found # apps not in the list"
+msgstr[0] "Trovata # app non in elenco"
+msgstr[1] "Trovate # app non in elenco"
+msgstr[2] "Trovate # app non in elenco"
+
+#: src/mainview/lib/copy.ts
+msgid "Add # app"
+msgid_plural "Add # apps"
+msgstr[0] "Aggiungi # app"
+msgstr[1] "Aggiungi # app"
+msgstr[2] "Aggiungi # app"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Remove {0} from the list? The app itself stays installed."
+msgstr "Rimuovere {0} dall'elenco? L'app resta installata."
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Removed {0}."
+msgstr "Rimossa {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Restart now"
+msgstr "Riavvia ora"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart"
+msgstr "Riavvia"
+
+#: src/mainview/lib/copy.ts
+msgid "Not now"
+msgstr "Non ora"
+
+#. 0: names[0]
+#: src/mainview/lib/copy.ts
+msgid "{0} will close and reopen. Unsaved work in it is lost."
+msgstr "{0} si chiuderà e si riaprirà. Il lavoro non salvato andrà perso."
+
+#. 0: names.join(", ")
+#: src/mainview/lib/copy.ts
+msgid "{0} will close and reopen. Unsaved work in them is lost."
+msgstr "{0} si chiuderanno e si riapriranno. Il lavoro non salvato andrà perso."
+
+#. 0: names[0]
+#: src/mainview/lib/copy.ts
+msgid "Restart {0} now"
+msgstr "Riavvia {0} ora"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart # apps now"
+msgid_plural "Restart # apps now"
+msgstr[0] "Riavvia # app ora"
+msgstr[1] "Riavvia # app ora"
+msgstr[2] "Riavvia # app ora"
+
+#. 0: names.join(", ")
+#: src/mainview/lib/copy.ts
+msgid "Restarted {0}."
+msgstr "Riavviate: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Close"
+msgstr "Chiudi"
+
+#: src/mainview/lib/copy.ts
+msgid "Minimize"
+msgstr "Riduci a icona"
+
+#: src/mainview/lib/copy.ts
+msgid "Maximize"
+msgstr "Ingrandisci"
+
+#: src/mainview/lib/copy.ts
+msgid "Restore"
+msgstr "Ripristina"
+
+#: src/mainview/lib/copy.ts
+msgid "Window"
+msgstr "Finestra"
+
+#: src/mainview/lib/copy.ts
+msgid "Window frame"
+msgstr "Cornice della finestra"
+
+#: src/mainview/lib/copy.ts
+msgid "Built in"
+msgstr "Integrata"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "System"
+msgstr "Sistema"
+
+#: src/mainview/lib/copy.ts
+msgid "Built in puts the title bar inside Upkeep's own header. System uses the desktop's."
+msgstr "Integrata mette la barra del titolo dentro l'intestazione di Upkeep. Sistema usa quella del desktop."
+
+#: src/mainview/lib/copy.ts
+msgid "Window buttons"
+msgstr "Pulsanti della finestra"
+
+#: src/mainview/lib/copy.ts
+msgid "Follow the desktop"
+msgstr "Come il desktop"
+
+#: src/mainview/lib/copy.ts
+msgid "Left"
+msgstr "Sinistra"
+
+#: src/mainview/lib/copy.ts
+msgid "Right"
+msgstr "Destra"
+
+#: src/mainview/lib/copy.ts
+msgid "Window corners"
+msgstr "Angoli della finestra"
+
+#: src/mainview/lib/copy.ts
+msgid "Rounded"
+msgstr "Arrotondati"
+
+#: src/mainview/lib/copy.ts
+msgid "Square"
+msgstr "Squadrati"
+
+#: src/mainview/lib/copy.ts
+msgid "A rounded window has no shadow from the desktop."
+msgstr "Una finestra arrotondata non riceve l'ombra del desktop."
+
+#: src/mainview/lib/copy.ts
+msgid "About"
+msgstr "Informazioni"
+
+#: src/mainview/lib/copy.ts
+msgid "Keeps the apps your package manager misses up to date."
+msgstr "Tiene aggiornate le app che il tuo gestore di pacchetti non copre."
+
+#: src/mainview/lib/copy.ts
+msgid "Extras"
+msgstr "Extra"
+
+#: src/mainview/lib/copy.ts
+msgid "Show system updates"
+msgstr "Mostra aggiornamenti di sistema"
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "Elenca gli aggiornamenti in sospeso del sistema: app e runtime Flatpak, e i pacchetti che il tuo gestore di pacchetti installerebbe (Gestore aggiornamenti su Linux Mint, altrimenti apt, dnf, pacman o zypper). Non contano nel numero dell'area di notifica."
+
+#: src/mainview/lib/copy.ts
+msgid "Open Update Manager"
+msgstr "Apri Gestore aggiornamenti"
+
+#: src/mainview/lib/copy.ts
+msgid "No package list Upkeep can read is installed (Update Manager, apt, dnf, pacman or zypper). Flatpak updates still show here."
+msgstr "Non è installata nessuna lista di pacchetti che Upkeep possa leggere (Gestore aggiornamenti, apt, dnf, pacman o zypper). Gli aggiornamenti Flatpak compaiono comunque qui."
+
+#: src/mainview/lib/copy.ts
+msgid "Flatpak is not installed, so only package updates are listed."
+msgstr "Flatpak non è installato, quindi sono elencati solo gli aggiornamenti dei pacchetti."
+
+#: src/mainview/lib/copy.ts
+msgid "Checking system updates"
+msgstr "Controllo aggiornamenti di sistema"
+
+#: src/mainview/lib/copy.ts
+msgid "No system updates."
+msgstr "Nessun aggiornamento di sistema."
+
+#: src/mainview/lib/copy.ts
+msgid "new build"
+msgstr "nuova build"
+
+#: src/mainview/lib/copy.ts
+msgid "Needs a restart after it installs."
+msgstr "Richiede un riavvio dopo l'installazione."
+
+#: src/mainview/lib/copy.ts
+msgid "Security"
+msgstr "Sicurezza"
+
+#: src/mainview/lib/copy.ts
+msgid "Package"
+msgstr "Pacchetto"
+
+#: src/mainview/lib/copy.ts
+msgid "Kernel"
+msgstr "Kernel"
+
+#: src/mainview/lib/copy.ts
+msgid "Driver"
+msgstr "Driver"
+
+#: src/mainview/lib/copy.ts
+msgid "Flatpak app"
+msgstr "App Flatpak"
+
+#: src/mainview/lib/copy.ts
+msgid "Flatpak runtime"
+msgstr "Runtime Flatpak"
+
+#. 0: source
+#: src/mainview/lib/copy.ts
+msgid "From {0}, checking"
+msgstr "Da {0}, controllo in corso"
+
+#. 0: source; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "From {0}, checked {1}"
+msgstr "Da {0}, controllato {1}"
+
+#. 0: source
+#: src/mainview/lib/copy.ts
+msgid "From {0}"
+msgstr "Da {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Update Manager"
+msgstr "Gestore aggiornamenti"
+
+#. 0: problem.command
+#: src/mainview/lib/copy.ts
+msgid "{0} is not installed, so this part of the list is empty."
+msgstr "{0} non è installato, quindi questa parte dell'elenco è vuota."
+
+#. 0: version
+#: src/mainview/lib/copy.ts
+msgid "Flatpak apps cannot use the GPU until the NVIDIA {0} runtime is installed. A Flatpak update installs it."
+msgstr "Le app Flatpak non possono usare la GPU finché non è installato il runtime NVIDIA {0}. Un aggiornamento Flatpak lo installa."
+
+#: src/mainview/lib/copy.ts
+msgid "Every 6 hours"
+msgstr "Ogni 6 ore"
+
+#: src/mainview/lib/copy.ts
+msgid "Once a day"
+msgstr "Una volta al giorno"
+
+#: src/mainview/lib/copy.ts
+msgid "Only when I ask"
+msgstr "Solo quando lo chiedo"
+
+#. 0: s.toFixed(1)
+#. 0: Math.round(s)
+#: src/mainview/lib/format.ts
+#: src/mainview/lib/format.ts
+msgid "{0} s"
+msgstr "{0} s"
+
+#. 0: Math.round(s / 60)
+#: src/mainview/lib/format.ts
+msgid "{0} min"
+msgstr "{0} min"
+
+#: src/mainview/lib/format.ts
+msgid "just now"
+msgstr "adesso"
+
+#: src/mainview/lib/copy.ts
+msgid "Language"
+msgstr "Lingua"
+
+#: src/mainview/lib/copy.ts
+msgid "Same as the system"
+msgstr "Come il sistema"
+
+#. 0: source; 1: problem.detail
+#: src/mainview/lib/copy.ts
+msgid "Could not read the {0} list: {1}"
+msgstr "Impossibile leggere l'elenco di {0}: {1}"
+
+#. 0: source
+#: src/mainview/lib/copy.ts
+msgid "Could not read the {0} list."
+msgstr "Impossibile leggere l'elenco di {0}."

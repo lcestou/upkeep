@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppSpec, Suggestion } from "../../shared/types";
-	import { ADD, TEXT, addApps, addedMany, addedOne, foundApps, tomlWriteFailed } from "../lib/copy";
+	import { ADD, TEXT, aboutManifest, addApps, addedMany, addedOne, foundApps } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
 	import { tick } from "svelte";
 	import SuggestionCard from "./SuggestionCard.svelte";
@@ -23,7 +23,6 @@
 	let field = $state<HTMLInputElement | null>(null);
 
 	const working = $derived(busy !== null);
-	const TOML_FAIL = tomlWriteFailed("").split(":")[0] ?? "";
 	const tickedSpecs = $derived((scanned ?? []).filter((s) => scanTicks.has(s.spec.key) && !s.problem));
 
 	// A drop hands text over and asks for a Find: once on opening with it, and again for each later drop.
@@ -274,7 +273,7 @@
 								</span>
 								{#if failures[s.spec.key]}
 									<span class="fail" data-testid="scan-fail-{s.spec.key}">{failures[s.spec.key]}</span>
-									{#if failures[s.spec.key]?.startsWith(TOML_FAIL)}<button
+									{#if aboutManifest(failures[s.spec.key])}<button
 											type="button"
 											class="btn small toml"
 											data-testid="scan-open-manifest-{s.spec.key}"

@@ -12,6 +12,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import { isLanguage } from "../shared/languages";
 import type { AppKind, HistoryRow, LogLine, Settings, Stage } from "../shared/types";
 import type { Paths } from "./paths";
 
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	frame: "own",
 	buttons: "auto",
 	corners: "rounded",
+	language: "system",
 };
 
 /** Any missing or out-of-range field takes its default; keepBackups is rounded into 1 to 5. */
@@ -50,6 +52,7 @@ function clampSettings(s: Partial<Settings>): Settings {
 		buttons:
 			s.buttons === "left" || s.buttons === "right" || s.buttons === "auto" ? s.buttons : DEFAULT_SETTINGS.buttons,
 		corners: s.corners === "square" || s.corners === "rounded" ? s.corners : DEFAULT_SETTINGS.corners,
+		language: s.language === "system" || isLanguage(s.language) ? s.language : DEFAULT_SETTINGS.language,
 	};
 }
 

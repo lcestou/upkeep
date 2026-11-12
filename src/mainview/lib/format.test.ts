@@ -35,9 +35,21 @@ describe("relativeTime", () => {
 	});
 });
 
-test("plural", () => {
-	expect(plural(1, "app", "apps")).toBe("app");
-	expect(plural(0, "app", "apps")).toBe("apps");
+test("plural picks the form for the count, with # as the number, by the language's own categories", () => {
+	expect(plural(1, ["# app", "# apps"])).toBe("1 app");
+	expect(plural(0, ["# app", "# apps"])).toBe("0 apps");
+	expect(plural(3, ["# app", "# apps"])).toBe("3 apps");
+	// Polish: one, few, many, other.
+	const pl = ["# aplikacja", "# aplikacje", "# aplikacji", "# aplikacji"];
+	expect([1, 3, 5, 22].map((n) => plural(n, pl, "pl"))).toEqual([
+		"1 aplikacja",
+		"3 aplikacje",
+		"5 aplikacji",
+		"22 aplikacje",
+	]);
+	// Japanese has one form; a form missing for a category falls back to the last.
+	expect(plural(2, ["# 個"], "ja")).toBe("2 個");
+	expect(plural(1, ["only"], "en")).toBe("only");
 });
 
 test("formatDuration", () => {

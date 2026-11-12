@@ -106,7 +106,7 @@
 			</span>
 			{#if sentence}<span class="sentence" title={sentence} data-testid="sentence-{app.key}">{sentence}</span>{/if}
 		</span>
-		<span class="cell kind">{KIND_LABEL[app.kind]}</span>
+		<span class="cell kind" title={KIND_LABEL[app.kind]}>{KIND_LABEL[app.kind]}</span>
 		<span class="cell ver"><Versions app={look} {from} /></span>
 		<span class="cell size mono">{!fresh && typeof app.size === "number" ? formatBytes(app.size) : ""}</span>
 		<span class="cell restore">
@@ -296,6 +296,11 @@
 	}
 	.kind {
 		grid-column: kind;
+		/* A kind longer than its column, as some languages write it, is cut; the title has it whole. */
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.ver {
 		grid-column: ver;

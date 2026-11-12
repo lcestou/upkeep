@@ -88,6 +88,7 @@ describe("events", () => {
 				frame: "own",
 				buttons: "auto",
 				corners: "rounded",
+				language: "system",
 			},
 			rate: null,
 			checkedAt: null,

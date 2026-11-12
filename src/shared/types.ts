@@ -1,3 +1,5 @@
+import type { LanguageSetting } from "./languages";
+
 export type AppKind =
 	| "appimage" // one AppImage file from a GitHub release
 	| "archive" // one or more binaries inside a release tar.gz or zip
@@ -241,6 +243,8 @@ export type Settings = {
 	buttons: "auto" | "left" | "right";
 	/** The window's corners when the frame is Upkeep's own. A rounded window is see-through outside its corners, and the desktop draws no shadow under it. */
 	corners: "rounded" | "square";
+	/** The window's and the tray's language. "system" follows the desktop's; a code from LANGUAGES is the person's pick. */
+	language: LanguageSetting;
 };
 
 export type WindowButton = "close" | "minimize" | "maximize";
@@ -339,6 +343,8 @@ export type Requests = {
 	open: { params: { what: "manifest" | "log" | "release"; key?: string }; response: { ok: boolean } };
 	copy: { params: { text: string }; response: { ok: boolean } };
 	chrome: { params: Record<string, never>; response: WindowChrome };
+	/** The desktop's languages, most preferred first, as the main process reads them from its environment; the tray uses the same list. */
+	languages: { params: Record<string, never>; response: string[] };
 	window: { params: { op: WindowButton }; response: { ok: boolean } };
 	suggest: { params: { input: string; asset?: string }; response: { suggestions: Suggestion[]; problem?: string } };
 	scan: { params: Record<string, never>; response: { suggestions: Suggestion[] } };

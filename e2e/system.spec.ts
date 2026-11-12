@@ -141,13 +141,13 @@ test("each state of the group body says its own line", async ({ page }) => {
 	await expect(page.getByTestId("group-system-toggle")).toHaveAttribute("aria-expanded", "false");
 	await expect(page.getByTestId("system-warn")).toHaveAttribute(
 		"aria-label",
-		"Could not read Flatpak's list: error: Unable to load summary from remote flathub: Could not resolve host: dl.flathub.org",
+		"Could not read the Flatpak list: error: Unable to load summary from remote flathub: Could not resolve host: dl.flathub.org",
 	);
 
 	await load(page, "fixture&system=failed");
 	await openGroup(page);
 	await expect(page.getByTestId("system-problem")).toHaveText(
-		"Could not read Flatpak's list: error: Unable to load summary from remote flathub: Could not resolve host: dl.flathub.org",
+		"Could not read the Flatpak list: error: Unable to load summary from remote flathub: Could not resolve host: dl.flathub.org",
 	);
 	await expect(page.locator('[data-testid^="sys-row-apt:"]')).toHaveCount(7);
 

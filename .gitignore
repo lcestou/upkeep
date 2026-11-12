@@ -4,6 +4,10 @@ build/
 dist/
 artifacts/
 *.tsbuildinfo
+# wuchale writes these on every extraction and build. The .po catalogs, the loader and data.js (the
+# loader imports it, and the unit tests run before any build) are kept.
+src/mainview/locales/.wuchale/
+src/mainview/locales/plural.js
 # The owner's working files, not part of the repo: the rules an agent works by,
 # agent state, the queue and the plans behind it.
 CLAUDE.md

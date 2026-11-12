@@ -4,6 +4,9 @@
 # through the runner and fetch in `deps`.
 coverageThreshold = { functions = 0.9, lines = 0.9 }
 coverageSkipTestFiles = true
+# The view's runes (model, language, wuchale's loader) compile under test through this plugin.
+preload = ["./src/mainview/lib/runes-plugin.ts"]
 # Not app code: the view's fixtures feed the browser specs and the dev server, testkit builds the
-# unit tests' fakes, and real.ts wires the real processes no test may start (CLAUDE.md).
-coveragePathIgnorePatterns = ["src/mainview/lib/fixture*.ts", "src/engine/testkit.ts", "src/engine/real.ts"]
+# unit tests' fakes, real.ts wires the real processes no test may start (CLAUDE.md), and src/mainview/locales
+# is what wuchale writes.
+coveragePathIgnorePatterns = ["src/mainview/lib/fixture*.ts", "src/engine/testkit.ts", "src/engine/real.ts", "src/mainview/locales/**"]

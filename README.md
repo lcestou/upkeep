@@ -175,6 +175,10 @@ Upkeep draws its own title bar: the header is the drag area, a double click on i
 
 Changing the frame or the corners rebuilds the window, which takes a moment.
 
+### Languages
+
+The window, the tray menu and the notifications speak English, Chinese (Simplified), Spanish, Portuguese (Brazil), German, French, Italian, Polish, Russian and Japanese. **Language** in Settings follows the desktop's language by default (`LANGUAGE`, then `LC_ALL`, `LC_MESSAGES` and `LANG`), falling back to English, or can be set to any of the ten. The switch shows at once, with no restart. Right-to-left languages are not offered yet.
+
 ### System updates
 
 The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, and the packages the system's package manager would install (security, kernel and driver updates marked as such). The packages come from the first list the system has: Linux Mint's Update Manager (`mintupdate-cli list`), else `apt list --upgradable`, `dnf check-update`, pacman (`checkupdates`, else `pacman -Qu`), or `zypper list-updates`. None needs root. apt, `pacman -Qu` and zypper read the system's last refresh; dnf and `checkupdates` may fetch fresh metadata into a cache of their own. They sit in a folded `System` group at the end of the list, whose subline names the source. On Linux Mint its header has a button that opens Update Manager.
@@ -218,7 +222,11 @@ A new list starts empty. Fill it with **Add app**: the catalogue's apps by name,
 bun run validate     # format check, lint, types, unit tests, view build, browser specs
 bun run dev:view     # the view alone at http://localhost:5182/?fixture
 bun run e2e          # Playwright over the fixture
+bun run i18n         # extract new strings into the catalogs in src/mainview/locales
+bun run i18n:check   # fails when a catalog is stale or a string is untranslated (part of validate)
 ```
+
+The window's text is translated with [wuchale](https://wuchale.dev): almost all of it lives in `src/mainview/lib/copy.ts`, as getters and functions so a language switch shows at once, and each language has a hand-written `.po` catalog. A new or changed string needs its translation in every catalog before the gate passes. The tray's words are a typed table in `src/bun/tray-text.ts`, since Vite never builds the Bun process.
 
 The identity (app icon, mark, wordmark, tray drawings) is in `assets/brand`. `bun run tray-icons` renders the tray pictures and the launcher icon from it.
 

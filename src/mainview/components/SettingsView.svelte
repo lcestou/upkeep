@@ -1,26 +1,31 @@
 <script lang="ts">
+	import { LANGUAGES, isLanguage } from "../../shared/languages";
 	import type { Settings } from "../../shared/types";
 	import { CHECK_EVERY, SYS, TEXT, WIN, rateText, versionText } from "../lib/copy";
 	import { LOCKUP_SVG } from "../lib/brand";
+	import { followSetting } from "../lib/language.svelte";
 	import type { Model } from "../lib/model.svelte";
 
 	let { model }: { model: Model } = $props();
 
 	// The span carries the name; the drawing inside is hidden from assistive tech.
 	const lockup = LOCKUP_SVG.replace("<svg ", '<svg aria-hidden="true" focusable="false" ');
-	const frames = [
+	// $derived: the labels follow a language switch.
+	const frames = $derived([
 		{ v: "own", t: WIN.frameOwn },
 		{ v: "system", t: WIN.frameSystem },
-	] as const;
-	const cornerChoices = [
+	] as const);
+	// $derived: the labels follow a language switch.
+	const cornerChoices = $derived([
 		{ v: "rounded", t: WIN.cornersRounded },
 		{ v: "square", t: WIN.cornersSquare },
-	] as const;
-	const sides = [
+	] as const);
+	// $derived: the labels follow a language switch.
+	const sides = $derived([
 		{ v: "auto", t: WIN.buttonsAuto },
 		{ v: "left", t: WIN.buttonsLeft },
 		{ v: "right", t: WIN.buttonsRight },
-	] as const;
+	] as const);
 
 	/** One tab stop per group, on the checked option; the arrows move and select, Home and End go to the ends. */
 	function onseg(e: KeyboardEvent) {
@@ -47,7 +52,9 @@
 	/** Sends a settings change and shows what the main process saved; a request that fails leaves the old values on screen. */
 	async function set(patch: Partial<Settings>) {
 		const next = await model.send("setSettings", patch);
-		if (next) model.settings = next;
+		if (!next) return;
+		model.settings = next;
+		followSetting(next.language, model.desktopLanguages);
 	}
 </script>
 
@@ -87,6 +94,22 @@
 			>
 				{#each CHECK_EVERY as o (o.v)}
 					<option value={o.v}>{o.label}</option>
+				{/each}
+			</select>
+		</label>
+		<label class="row">
+			<span class="text" data-testid="setting-language-label">{TEXT.language}</span>
+			<select
+				value={model.settings.language}
+				data-testid="setting-language"
+				onchange={(e) => {
+					const v = e.currentTarget.value;
+					if (v === "system" || isLanguage(v)) set({ language: v });
+				}}
+			>
+				<option value="system">{TEXT.languageSystem}</option>
+				{#each LANGUAGES as l (l.code)}
+					<option value={l.code} lang={l.code}>{l.name}</option>
 				{/each}
 			</select>
 		</label>

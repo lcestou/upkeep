@@ -1,5 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { LANGUAGES } from "../shared/languages";
+import { TRAY_TEXT } from "./tray-text";
 
 /** Where the desktop session looks for programs to start at login. `configDir` is Upkeep's own config directory. */
 export function autostartFile(configDir: string): string {
@@ -14,14 +16,16 @@ const execArg = (s: string) => `"${s.replace(/[\\"`$]/g, "\\$&")}"`.replaceAll("
 
 /**
  * The login entry. Background mode travels as an environment variable because the framework's
- * launcher drops command-line arguments on Linux.
+ * launcher drops command-line arguments on Linux. The Comment carries every interface language.
  */
 export function autostartEntry(launcher: string, icon: string): string {
 	return [
 		"[Desktop Entry]",
 		"Type=Application",
 		"Name=Upkeep",
-		"Comment=Check app updates at login and stay in the tray",
+		`Comment=${TRAY_TEXT.en.loginComment}`,
+		// The desktop shows the Comment in the person's own language, whichever Upkeep shows.
+		...LANGUAGES.filter((l) => l.code !== "en").map((l) => `Comment[${l.code}]=${TRAY_TEXT[l.code].loginComment}`),
 		`Exec=env UPKEEP_BACKGROUND=1 ${execArg(launcher)}`,
 		`Icon=${icon}`,
 		"Terminal=false",

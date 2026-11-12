@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppState } from "../../shared/types";
-	import { ADD, COLUMN, EMPTY_LINE, TEXT, allFreshLine, noMatch } from "../lib/copy";
+	import { ADD, COLUMN, TEXT, allFreshLine, emptyLine, noMatch } from "../lib/copy";
 	import type { Group, Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
 	import { shade } from "../lib/shade";
@@ -199,7 +199,7 @@
 			{#if model.apps.length === 0 && model.run.phase === "idle"}
 				<section class="morning" data-testid="empty-list">
 					<span class="morning-mark"><Mark size={32} /></span>
-					<p data-testid="empty-line">{EMPTY_LINE}</p>
+					<p data-testid="empty-line">{emptyLine()}</p>
 					<div class="morning-actions">
 						<button type="button" class="btn primary" data-testid="add-app" onclick={() => model.openAdd()}>
 							<svg class="plus" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg>
@@ -244,11 +244,11 @@
 						bind:value={model.filter}
 						onkeydown={onfilterkey}
 					/>
-					<span class="h-kind" aria-hidden="true">{COLUMN.kind}</span>
-					<span class="h-ver" aria-hidden="true">{COLUMN.version}</span>
-					<span class="h-size" aria-hidden="true">{COLUMN.size}</span>
-					<span class="h-restore" aria-hidden="true">{COLUMN.restore}</span>
-					<span class="h-status" aria-hidden="true">{COLUMN.status}</span>
+					<span class="h-kind" aria-hidden="true" title={COLUMN.kind}>{COLUMN.kind}</span>
+					<span class="h-ver" aria-hidden="true" title={COLUMN.version}>{COLUMN.version}</span>
+					<span class="h-size" aria-hidden="true" title={COLUMN.size}>{COLUMN.size}</span>
+					<span class="h-restore" aria-hidden="true" title={COLUMN.restore}>{COLUMN.restore}</span>
+					<span class="h-status" aria-hidden="true" title={COLUMN.status}>{COLUMN.status}</span>
 					<button type="button" class="btn small quiet add" data-testid="add-app" onclick={() => model.openAdd()}>
 						<svg class="plus" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg>
 						{ADD.button}
@@ -394,6 +394,17 @@
 	}
 	.filter:focus-visible {
 		outline-offset: 0;
+	}
+	/* A heading longer than its column, as some languages write it, is cut with an ellipsis; the title has it whole. */
+	.h-kind,
+	.h-ver,
+	.h-size,
+	.h-restore,
+	.h-status {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.h-kind {
 		grid-column: kind;

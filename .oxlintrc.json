@@ -2,7 +2,7 @@
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
 	"plugins": ["typescript", "unicorn", "oxc"],
 	"categories": { "correctness": "error", "suspicious": "error", "perf": "warn" },
-	"ignorePatterns": ["dist", "build", "artifacts", ".hutch", "node_modules"],
+	"ignorePatterns": ["dist", "build", "artifacts", ".hutch", "node_modules", "src/mainview/locales"],
 	"jsPlugins": ["./tools/oxlint/anti-slop/index.ts"],
 	"rules": {
 		"anti-slop/no-chained-type-assertions": "error",

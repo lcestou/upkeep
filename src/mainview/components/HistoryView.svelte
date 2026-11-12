@@ -9,7 +9,8 @@
 	let { model }: { model: Model } = $props();
 
 	const STATUS = { updated: "done", failed: "failed", rolled_back: "rolled_back", restored: "held" } as const;
-	const RESULT = { updated: TEXT.updated, failed: TEXT.failed, rolled_back: TEXT.rolledBack, restored: TEXT.restored } as const;
+	// $derived: the labels follow a language switch.
+	const RESULT = $derived({ updated: TEXT.updated, failed: TEXT.failed, rolled_back: TEXT.rolledBack, restored: TEXT.restored } as const);
 
 	// The newest update of each app that still waits on a restart carries a Restart pending note.
 	const pending = $derived.by(() => {
