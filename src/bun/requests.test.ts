@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createEngine, type EngineDeps } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
+import { claimLock, releaseLock } from "../engine/store";
 import { recordingRun, tempHome } from "../engine/testkit";
 import { type Desktop, upkeepRequests } from "./requests";
 
@@ -39,6 +40,7 @@ function setup(over: Partial<Desktop> = {}) {
 		openExternal: (u) => (did.push(`url ${u}`), true),
 		clipboardWriteText: (x) => void did.push(`copy ${x}`),
 		pickFile: async () => [""],
+		pickFolder: async () => [""],
 		spawnDetached: (argv) => void did.push(`spawn ${argv.join(" ")}`),
 		...over,
 	};
@@ -113,4 +115,49 @@ test("a cancelled file dialog picks nothing, and Update Manager opens detached o
 	expect(await chosen.r.pickFile({})).toEqual({ path: "/home/x/app.AppImage" });
 	expect(await chosen.r.openTool({ what: "update-manager" })).toEqual({ ok: false });
 	expect(await chosen.r.suggest({ input: "" })).toMatchObject({ suggestions: [] });
+});
+
+test("Export saves to the picked folder and Import replaces the setup from a picked file; a cancel does nothing", async () => {
+	// Cancelled dialogs: nothing written, nothing said.
+	const none = setup();
+	expect(await none.r.exportSetup({})).toEqual({ ok: false });
+	expect(await none.r.importSetup({})).toEqual({ ok: false });
+
+	const folder = join(t.dir, "out");
+	mkdirSync(folder, { recursive: true });
+	const saved = setup({ pickFolder: async () => [folder] });
+	const exported = await saved.r.exportSetup({});
+	expect(exported).toEqual({ ok: true, file: join(folder, "upkeep-settings-2026-11-12.json") });
+	const file = exported.file ?? "";
+	expect(JSON.parse(readFileSync(file, "utf8")).upkeep).toBe(1);
+
+	const loaded = setup({ pickFile: async () => [file] });
+	expect(await loaded.r.importSetup({})).toEqual({ ok: true, apps: 1 });
+	await loaded.engine.idle();
+
+	writeFileSync(join(t.dir, "bad.json"), "{");
+	const bad = setup({ pickFile: async () => [join(t.dir, "bad.json")] });
+	const refused = await bad.r.importSetup({});
+	expect(refused.ok).toBe(false);
+	expect(refused.problems?.[0]).toStartWith("not JSON");
+	const missing = setup({ pickFile: async () => [join(t.dir, "absent.json")] });
+	expect((await missing.r.importSetup({})).ok).toBe(false);
+	const unwritable = setup({ pickFolder: async () => [join(t.dir, "no", "such")] });
+	expect((await unwritable.r.exportSetup({})).problem).toBeTruthy();
+});
+
+test("Import waits for no run: with the run lock held elsewhere it refuses", async () => {
+	const file = join(t.dir, "upkeep.json");
+	const folder = join(t.dir, "out2");
+	mkdirSync(folder, { recursive: true });
+	const saved = setup({ pickFolder: async () => [folder] });
+	const exported = await saved.r.exportSetup({});
+	writeFileSync(file, readFileSync(exported.file ?? "", "utf8"));
+	expect(claimLock(t.paths, process.ppid)).toBe(true);
+	const busy = setup({ pickFile: async () => [file] });
+	expect(await busy.r.importSetup({})).toEqual({
+		ok: false,
+		problems: ["An Upkeep run is in progress. Try again when it ends."],
+	});
+	releaseLock(t.paths, process.ppid);
 });

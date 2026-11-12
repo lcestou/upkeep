@@ -343,6 +343,10 @@ export type Requests = {
 	open: { params: { what: "manifest" | "log" | "release"; key?: string }; response: { ok: boolean } };
 	copy: { params: { text: string }; response: { ok: boolean } };
 	chrome: { params: Record<string, never>; response: WindowChrome };
+	/** Asks for a folder and writes the settings and app list there as one file. Cancelled: ok false with no problem. */
+	exportSetup: { params: Record<string, never>; response: { ok: boolean; file?: string; problem?: string } };
+	/** Asks for an export file and replaces the settings and app list from it, then checks again. Refused during a run. */
+	importSetup: { params: Record<string, never>; response: { ok: boolean; apps?: number; problems?: string[] } };
 	/** The desktop's languages, most preferred first, as the main process reads them from its environment; the tray uses the same list. */
 	languages: { params: Record<string, never>; response: string[] };
 	window: { params: { op: WindowButton }; response: { ok: boolean } };

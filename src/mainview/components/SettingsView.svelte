@@ -1,10 +1,20 @@
 <script lang="ts">
-	import { LANGUAGES, isLanguage } from "../../shared/languages";
 	import type { Settings } from "../../shared/types";
-	import { CHECK_EVERY, SYS, TEXT, WIN, rateText, versionText } from "../lib/copy";
+	import {
+		CHECK_EVERY,
+		SYS,
+		TEXT,
+		WIN,
+		exportedNote,
+		importedNote,
+		rateText,
+		setupFailed,
+		versionText,
+	} from "../lib/copy";
 	import { LOCKUP_SVG } from "../lib/brand";
 	import { followSetting } from "../lib/language.svelte";
 	import type { Model } from "../lib/model.svelte";
+	import LanguagePicker from "./LanguagePicker.svelte";
 
 	let { model }: { model: Model } = $props();
 
@@ -47,6 +57,23 @@
 		e.preventDefault();
 		next.focus();
 		next.click();
+	}
+
+	/** What the last Export or Import did, in place of the help line; null shows the help. */
+	let note = $state<string | null>(null);
+
+	/** Asks for a folder and saves the export there; a cancelled dialog says nothing. */
+	async function exportSetup() {
+		const r = await model.send("exportSetup", {});
+		if (r?.file) note = exportedNote(r.file);
+		else if (r?.problem) note = setupFailed(r.problem);
+	}
+
+	/** Asks for an export and replaces the settings and list from it; the window follows through its events. */
+	async function importSetup() {
+		const r = await model.send("importSetup", {});
+		if (r?.ok) note = importedNote(r.apps ?? 0);
+		else if (r?.problems?.length) note = setupFailed(r.problems.join(" "));
 	}
 
 	/** Sends a settings change and shows what the main process saved; a request that fails leaves the old values on screen. */
@@ -97,22 +124,14 @@
 				{/each}
 			</select>
 		</label>
-		<label class="row">
-			<span class="text" data-testid="setting-language-label">{TEXT.language}</span>
-			<select
+		<div class="row">
+			<span class="text" id="language-label" data-testid="setting-language-label">{TEXT.language}</span>
+			<LanguagePicker
 				value={model.settings.language}
-				data-testid="setting-language"
-				onchange={(e) => {
-					const v = e.currentTarget.value;
-					if (v === "system" || isLanguage(v)) set({ language: v });
-				}}
-			>
-				<option value="system">{TEXT.languageSystem}</option>
-				{#each LANGUAGES as l (l.code)}
-					<option value={l.code} lang={l.code}>{l.name}</option>
-				{/each}
-			</select>
-		</label>
+				labelledby="language-label"
+				onpick={(v) => set({ language: v })}
+			/>
+		</div>
 		<label class="row">
 			<span class="text">{TEXT.keepBackups}</span>
 			<select
@@ -125,11 +144,16 @@
 				{/each}
 			</select>
 		</label>
-		<div class="row">
+		<div class="row stack">
 			<span class="text">{TEXT.appList}</span>
-			<button type="button" class="btn small" data-testid="open-manifest" onclick={() => model.send("open", { what: "manifest" })}
-				>{TEXT.openManifest}</button
-			>
+			<span class="buttons">
+				<button type="button" class="btn small" data-testid="open-manifest" onclick={() => model.send("open", { what: "manifest" })}
+					>{TEXT.openManifest}</button
+				>
+				<button type="button" class="btn small" data-testid="export-setup" onclick={exportSetup}>{TEXT.exportSetup}</button>
+				<button type="button" class="btn small" data-testid="import-setup" onclick={importSetup}>{TEXT.importSetup}</button>
+			</span>
+			<p class="help" data-testid="setup-note" aria-live="polite">{note ?? TEXT.setupHelp}</p>
 		</div>
 	</div>
 	<h2 class="group">{WIN.group}</h2>
@@ -282,6 +306,10 @@
 		flex-wrap: wrap;
 		padding: var(--s3) var(--s4);
 		row-gap: var(--s2);
+	}
+	.buttons {
+		display: inline-flex;
+		gap: var(--s2);
 	}
 	.help {
 		flex-basis: 100%;

@@ -1060,3 +1060,33 @@ msgstr "Не удалось прочитать список {0}: {1}"
 #: src/mainview/lib/copy.ts
 msgid "Could not read the {0} list."
 msgstr "Не удалось прочитать список {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Export"
+msgstr "Экспорт"
+
+#: src/mainview/lib/copy.ts
+msgid "Import"
+msgstr "Импорт"
+
+#: src/mainview/lib/copy.ts
+msgid "Export saves the settings and the app list as one file, for another computer or a script. Import replaces them from such a file."
+msgstr "Экспорт сохраняет настройки и список приложений в один файл для другого компьютера или скрипта. Импорт заменяет их из такого файла."
+
+#. 0: file
+#: src/mainview/lib/copy.ts
+msgid "Saved {0}."
+msgstr "Сохранено: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Imported a list of # app."
+msgid_plural "Imported a list of # apps."
+msgstr[0] "Импортирован список из # приложения."
+msgstr[1] "Импортирован список из # приложений."
+msgstr[2] "Импортирован список из # приложений."
+msgstr[3] "Импортирован список из # приложения."
+
+#. 0: reason
+#: src/mainview/lib/copy.ts
+msgid "Nothing was changed: {0}"
+msgstr "Ничего не изменено: {0}"

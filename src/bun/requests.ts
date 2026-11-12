@@ -1,7 +1,9 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Engine, EngineDeps } from "../engine/engine";
 import type { Extras } from "../engine/extras/extras";
+import { claimLock, releaseLock } from "../engine/store";
+import { exportSetup, importSetup } from "../engine/transfer";
 import type { RequestHandlers, WindowButton, WindowChrome } from "../shared/types";
 
 /** The newest run log, for "Open log file" when no run is in progress. */
@@ -34,6 +36,8 @@ export type Desktop = {
 	clipboardWriteText: (text: string) => void;
 	/** The paths chosen; empty or [""] when cancelled. */
 	pickFile: (startingFolder: string) => Promise<string[]>;
+	/** A folder dialog; a cancelled one gives no path, or an empty one. */
+	pickFolder: (startingFolder: string) => Promise<string[]>;
 	/** Starts argv detached and never waits; throws when it cannot start. */
 	spawnDetached: (argv: string[]) => void;
 };
@@ -110,6 +114,43 @@ export function upkeepRequests(
 			const picked = await desktop.pickFile(deps.paths.home);
 			// A cancelled dialog gives no path, or an empty one.
 			return { path: picked.find((p) => p !== "") ?? null };
+		},
+		exportSetup: async () => {
+			const dir = (await desktop.pickFolder(deps.paths.home)).find((p) => p !== "");
+			if (!dir) return { ok: false };
+			const day = deps.now().toISOString().slice(0, 10);
+			const file = join(dir, `upkeep-settings-${day}.json`);
+			try {
+				writeFileSync(file, `${JSON.stringify(exportSetup(deps.paths, deps.seedManifest, deps.now()), null, "\t")}\n`);
+				return { ok: true, file };
+			} catch (err) {
+				return { ok: false, problem: err instanceof Error ? err.message : String(err) };
+			}
+		},
+		importSetup: async () => {
+			const file = (await desktop.pickFile(deps.paths.home)).find((p) => p !== "");
+			if (!file) return { ok: false };
+			let text: string;
+			try {
+				text = readFileSync(file, "utf8");
+			} catch (err) {
+				return { ok: false, problems: [err instanceof Error ? err.message : String(err)] };
+			}
+			// The same lock an install holds, so an import never lands during a run.
+			if (!claimLock(deps.paths))
+				return { ok: false, problems: ["An Upkeep run is in progress. Try again when it ends."] };
+			let r: ReturnType<typeof importSetup>;
+			try {
+				r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
+			} finally {
+				releaseLock(deps.paths);
+			}
+			if (!r.ok) return { ok: false, problems: r.problems };
+			// The new settings, extras and list reach the window: settings and extras by their events, the list by a check.
+			engine.setSettings({});
+			hooks.extras.setSettings({});
+			void engine.check();
+			return { ok: true, apps: r.apps };
 		},
 		extras: () => hooks.extras.snapshot(),
 		setExtras: (patch) => hooks.extras.setSettings(patch),
