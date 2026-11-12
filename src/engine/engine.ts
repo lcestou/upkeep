@@ -196,6 +196,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	let checkedAt: string | null = null;
 	let token: string | null = null;
 	let busy: Promise<void> = Promise.resolve();
+	let starting = false;
 	let log: RunLog | null = null;
 	let run: RunState = {
 		id: null,
@@ -537,6 +538,89 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 	}
 
+	/** The body of install() once its phase checks passed; install() holds `starting` around it. */
+	async function startInstall(this: Engine, keys: string[]): Promise<{ started: boolean; reason?: string }> {
+		// A run would write its own marker over the one a failed recovery kept.
+		if ((await this.recover()).some((r) => !r.ok)) return { started: false, reason: REASON_UNRECOVERED };
+		// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
+		// What the first pass updated stays on screen and in the count, so the summary reads as one run.
+		const retry = run.phase === "summary";
+		const carried = retry ? run.results.filter((r) => r.result === "updated") : [];
+		if (run.phase === "summary") resetFailed();
+		const wanted = new Set(keys);
+		const pick = specs.filter((s) => {
+			const a = apps.get(s.key);
+			return wanted.has(s.key) && a && (a.status === "ready" || (a.versionless && s.kind === "legacy"));
+		});
+		const queue = [...pick.filter((s) => s.kind !== "legacy"), ...pick.filter((s) => s.kind === "legacy")];
+		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
+		if (!claimLock(paths, process.pid, deps.procRoot)) return { started: false, reason: REASON_BUSY };
+		if (oldUpdaterRunning(kindCtx(""))) {
+			releaseLock(paths);
+			return { started: false, reason: REASON_OLD };
+		}
+		try {
+			rmSync(join(paths.cache, "dl"), { recursive: true, force: true });
+			const id = stamp(deps.now());
+			log = openRunLog(paths, id);
+			run = {
+				id,
+				phase: "installing",
+				index: 0,
+				total: queue.length,
+				currentKey: null,
+				stopping: false,
+				results: carried,
+				retry,
+			};
+			for (const s of queue) {
+				const a = apps.get(s.key);
+				if (a) {
+					a.status = "queued";
+					a.restartToApply = false;
+					emitApp(a);
+				}
+			}
+			emitRun();
+			if (!token) token = await githubToken(deps.run);
+		} catch (err) {
+			// Nothing ran yet: put the rows back and give the lock up.
+			log?.close();
+			log = null;
+			backToReady(queue);
+			releaseLock(paths);
+			run = { ...run, phase: "idle", currentKey: null, stopping: false };
+			emitRun();
+			return { started: false, reason: err instanceof Error ? err.message : String(err) };
+		}
+		const p = doRun(queue)
+			.catch((err: Error) => {
+				const reason = err instanceof Error ? err.message : String(err);
+				say(null, `Run failed: ${reason}`);
+				try {
+					log?.close();
+				} catch {
+					// the log is already broken
+				}
+				log = null;
+				for (const s of queue) {
+					const a = apps.get(s.key);
+					if (a && (a.status === "queued" || a.status === "working"))
+						finishApp(a, {
+							result: "failed",
+							installed: a.installed,
+							detail: `The run stopped: ${reason}`,
+							restartToApply: false,
+						});
+				}
+				run = { ...run, phase: "summary", currentKey: null, stopping: false };
+				emitRun();
+			})
+			.finally(() => releaseLock(paths));
+		busy = p;
+		return { started: true };
+	}
+
 	async function doRun(queue: AppSpec[]): Promise<void> {
 		const history: HistoryRow[] = [];
 		const legacyRuns = new Map<string, { run: LegacyRun; before: string | null; started: number; ended: number }>();
@@ -712,7 +796,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			return () => listeners.delete(listener);
 		},
 		check(keys) {
-			if (run.phase === "installing" || run.phase === "checking") return busy;
+			if (run.phase === "installing" || run.phase === "checking" || starting) return busy;
 			const p = doCheck(keys).catch((err: Error) => {
 				say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
 				run = { ...run, phase: "idle", currentKey: null };
@@ -723,87 +807,17 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		async install(keys) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
-			if (run.phase === "installing") return { started: false, reason: REASON_BUSY };
-			// A run would write its own marker over the one a failed recovery kept.
-			if ((await this.recover()).some((r) => !r.ok)) return { started: false, reason: REASON_UNRECOVERED };
-			// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
-			// What the first pass updated stays on screen and in the count, so the summary reads as one run.
-			const retry = run.phase === "summary";
-			const carried = retry ? run.results.filter((r) => r.result === "updated") : [];
-			if (run.phase === "summary") resetFailed();
-			const wanted = new Set(keys);
-			const pick = specs.filter((s) => {
-				const a = apps.get(s.key);
-				return wanted.has(s.key) && a && (a.status === "ready" || (a.versionless && s.kind === "legacy"));
-			});
-			const queue = [...pick.filter((s) => s.kind !== "legacy"), ...pick.filter((s) => s.kind === "legacy")];
-			if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
-			if (!claimLock(paths, process.pid, deps.procRoot)) return { started: false, reason: REASON_BUSY };
-			if (oldUpdaterRunning(kindCtx(""))) {
-				releaseLock(paths);
-				return { started: false, reason: REASON_OLD };
-			}
+			if (run.phase === "installing" || starting) return { started: false, reason: REASON_BUSY };
+			// Between here and the run's own "installing", recover() may wait on disk: a check started in that gap
+			// (pressed, or the schedule's) would run beside the install, so check() refuses while this is set.
+			starting = true;
 			try {
-				rmSync(join(paths.cache, "dl"), { recursive: true, force: true });
-				const id = stamp(deps.now());
-				log = openRunLog(paths, id);
-				run = {
-					id,
-					phase: "installing",
-					index: 0,
-					total: queue.length,
-					currentKey: null,
-					stopping: false,
-					results: carried,
-					retry,
-				};
-				for (const s of queue) {
-					const a = apps.get(s.key);
-					if (a) {
-						a.status = "queued";
-						a.restartToApply = false;
-						emitApp(a);
-					}
-				}
-				emitRun();
-				if (!token) token = await githubToken(deps.run);
-			} catch (err) {
-				// Nothing ran yet: put the rows back and give the lock up.
-				log?.close();
-				log = null;
-				backToReady(queue);
-				releaseLock(paths);
-				run = { ...run, phase: "idle", currentKey: null, stopping: false };
-				emitRun();
-				return { started: false, reason: err instanceof Error ? err.message : String(err) };
+				return await startInstall.call(this, keys);
+			} finally {
+				starting = false;
 			}
-			const p = doRun(queue)
-				.catch((err: Error) => {
-					const reason = err instanceof Error ? err.message : String(err);
-					say(null, `Run failed: ${reason}`);
-					try {
-						log?.close();
-					} catch {
-						// the log is already broken
-					}
-					log = null;
-					for (const s of queue) {
-						const a = apps.get(s.key);
-						if (a && (a.status === "queued" || a.status === "working"))
-							finishApp(a, {
-								result: "failed",
-								installed: a.installed,
-								detail: `The run stopped: ${reason}`,
-								restartToApply: false,
-							});
-					}
-					run = { ...run, phase: "summary", currentKey: null, stopping: false };
-					emitRun();
-				})
-				.finally(() => releaseLock(paths));
-			busy = p;
-			return { started: true };
 		},
+
 		stopAfterCurrent() {
 			if (run.phase !== "installing") return;
 			run = { ...run, stopping: true };

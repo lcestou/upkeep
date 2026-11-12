@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import type { AppSpec, Serve } from "../../shared/types";
 import type { FetchLike } from "../github";
 import type { RunOpts, ProcessResult } from "../run";
-import { readInflight } from "../store";
+import { DEFAULT_SETTINGS, readInflight } from "../store";
 import { ok, strictRun, tempHome } from "../testkit";
 import { installBuilt } from "./built";
 import type { KindCtx } from "./context";
@@ -144,7 +144,7 @@ function ctx(box: ReturnType<typeof fakeBox>): KindCtx {
 		run: box.run,
 		fetch: box.fetch,
 		token: null,
-		settings: { keepBackups: 1, notify: true, checkAtLogin: false } as KindCtx["settings"],
+		settings: DEFAULT_SETTINGS,
 		log: () => {},
 		stage: () => {},
 		procRoot: proc,

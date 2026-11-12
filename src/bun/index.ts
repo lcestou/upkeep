@@ -297,10 +297,9 @@ engine.subscribe((event) => {
 	const before = phase;
 	phase = event.run.phase;
 	refreshTray();
-	if (before === "checking" && phase === "idle") {
-		schedule.checked();
-		announceReady();
-	}
+	// A finished check or a dismissed run both just looked at every app: the schedule's wait starts again.
+	if (phase === "idle" && (before === "checking" || before === "summary")) schedule.checked();
+	if (before === "checking" && phase === "idle") announceReady();
 	if (before === "installing" && phase === "summary") {
 		// With no window to read the summary in, say it once and clear it.
 		if (!win?.isVisible() || quitAfterRun) {
