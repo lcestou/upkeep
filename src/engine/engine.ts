@@ -20,6 +20,7 @@ import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./disc
 import { type FetchLike, githubToken, type Rate } from "./github";
 import { checkClaudePlugins, installClaudePlugins } from "./kinds/plugins";
 import { checkCommand, installCommand, tagOf } from "./kinds/command";
+import { isPackage } from "./kinds/package";
 import { fill } from "./kinds/tree";
 import {
 	type Checked,
@@ -122,7 +123,7 @@ export type Engine = {
 };
 
 /** The kinds an owner can add from the window. */
-const ADDABLE = new Set(["appimage", "archive", "file", "deb"]);
+const ADDABLE = new Set(["appimage", "archive", "file", "deb", "rpm"]);
 
 export const REASON_CHECKING = MESSAGES.reasonChecking();
 export const REASON_BUSY = MESSAGES.reasonBusy();
@@ -178,9 +179,15 @@ const BUILT_WEIGHTS: [Stage, number][] = [
 	["install", 15],
 	["verify", 15],
 ];
-/** A .deb or a command app that keeps a restore point shows a backup stage its default stem has no room for. */
+/** A .deb, .rpm or a command app that keeps a restore point shows a backup stage its default stem has no room for. */
 const POINT_WEIGHTS = {
 	deb: [
+		["download", 45],
+		["backup", 10],
+		["install", 35],
+		["verify", 10],
+	],
+	rpm: [
 		["download", 45],
 		["backup", 10],
 		["install", 35],
@@ -191,7 +198,7 @@ const POINT_WEIGHTS = {
 		["install", 75],
 		["verify", 15],
 	],
-} satisfies Record<"deb" | "command", [Stage, number][]>;
+} satisfies Record<"deb" | "rpm" | "command", [Stage, number][]>;
 
 /** A finished install is "updated" in the run's results; failures keep their own word. */
 const resultOf = (r: Outcome["result"]): RunResult["result"] => (r === "done" ? "updated" : r);
@@ -338,7 +345,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/** Kinds whose running process is watched for a restart; a command only gives advice. */
-	const WATCHED = new Set(["appimage", "archive", "file", "deb", "source"]);
+	const WATCHED = new Set(["appimage", "archive", "file", "deb", "rpm", "source"]);
 	/** Apps whose Restart now is under way. */
 	const restarting = new Set<string>();
 	/** The run under way's queue, which addToRun appends to; null outside a run. */
@@ -421,7 +428,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				spec.kind,
 				restorable && spec.kind === "source"
 					? BUILT_WEIGHTS
-					: restorable && (spec.kind === "deb" || spec.kind === "command")
+					: restorable && (isPackage(spec.kind) || spec.kind === "command")
 						? POINT_WEIGHTS[spec.kind]
 						: undefined,
 			),
@@ -851,7 +858,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					);
 					const command = spec.restore.map((a) => fill(a, { version: current ?? "", tag }));
 					takePoint(paths, spec, current, { command, tag }, deps.now().toISOString());
-				} else if (canRestore(spec) && current && current !== version && spec.kind !== "deb") {
+				} else if (canRestore(spec) && current && current !== version && !isPackage(spec.kind)) {
 					const files = installedFiles(spec, destOf(spec, { paths })).filter((f) => existsSync(f));
 					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString());
 				}

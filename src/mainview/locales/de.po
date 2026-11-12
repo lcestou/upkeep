@@ -1073,11 +1073,6 @@ msgstr "Kein Wiederherstellungspunkt {0}."
 msgid "{0} exited {1}."
 msgstr "Der Befehl {0} endete mit Code {1}."
 
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not put {0} back. See the log."
-msgstr "dpkg konnte {0} nicht zurückspielen. Siehe Protokoll."
-
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
@@ -1570,21 +1565,6 @@ msgstr "{0} ließ sich nicht installieren. Wiederherstellung fehlgeschlagen: {1}
 msgid "Could not install {0}. No restore point was taken."
 msgstr "{0} ließ sich nicht installieren. Es wurde kein Wiederherstellungspunkt angelegt."
 
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. Restored {1}."
-msgstr "dpkg konnte {0} nicht installieren. Wiederhergestellt: {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. See the log."
-msgstr "dpkg konnte {0} nicht installieren. Siehe Protokoll."
-
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr "dpkg konnte {0} nicht installieren, und {1} ließ sich nicht zurückspielen. Siehe Protokoll."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
@@ -1932,3 +1912,23 @@ msgstr "Als Programmname nimmt es {0}, nach dem Repo; ändere den Pfad, wenn der
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
 msgstr "Eine Kopie unter {0} kommt in deinem PATH zuerst; entferne sie nach dem Bau, sonst läuft weiter sie."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not put {1} back. See the log."
+msgstr "{0} konnte {1} nicht zurückspielen. Siehe Protokoll."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. Restored {2}."
+msgstr "{0} konnte {1} nicht installieren. Wiederhergestellt: {2}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. See the log."
+msgstr "{0} konnte {1} nicht installieren. Siehe Protokoll."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}, and putting {2} back failed. See the log."
+msgstr "{0} konnte {1} nicht installieren, und {2} ließ sich nicht zurückspielen. Siehe Protokoll."

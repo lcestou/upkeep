@@ -1091,11 +1091,6 @@ msgstr "Aucun point de restauration {0}."
 msgid "{0} exited {1}."
 msgstr "La commande {0} s'est terminée avec le code {1}."
 
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not put {0} back. See the log."
-msgstr "dpkg n'a pas pu remettre {0} en place. Voir le journal."
-
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
@@ -1588,21 +1583,6 @@ msgstr "Impossible d'installer {0}. Échec de la restauration : {1}"
 msgid "Could not install {0}. No restore point was taken."
 msgstr "Impossible d'installer {0}. Aucun point de restauration n'a été créé."
 
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. Restored {1}."
-msgstr "dpkg n'a pas pu installer {0}. Retour à {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. See the log."
-msgstr "dpkg n'a pas pu installer {0}. Voir le journal."
-
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr "dpkg n'a pas pu installer {0}, et la remise en place de {1} a échoué. Voir le journal."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
@@ -1950,3 +1930,23 @@ msgstr "Le programme est supposé s'appeler {0}, d'après le dépôt ; modifiez 
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
 msgstr "Une copie dans {0} passe en premier dans votre PATH ; supprimez-la une fois la compilation en place, sinon c'est elle qui continue de tourner."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not put {1} back. See the log."
+msgstr "{0} n'a pas pu remettre {1} en place. Voir le journal."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. Restored {2}."
+msgstr "{0} n'a pas pu installer {1}. Retour à {2}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. See the log."
+msgstr "{0} n'a pas pu installer {1}. Voir le journal."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}, and putting {2} back failed. See the log."
+msgstr "{0} n'a pas pu installer {1}, et la remise en place de {2} a échoué. Voir le journal."

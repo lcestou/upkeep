@@ -263,6 +263,11 @@ const DEFAULT_STAGES = {
 		["install", 40],
 		["verify", 10],
 	],
+	rpm: [
+		["download", 50],
+		["install", 40],
+		["verify", 10],
+	],
 	source: [
 		["download", 10],
 		["install", 80],
@@ -281,6 +286,7 @@ const CAN_RESTORE = {
 	archive: true,
 	file: true,
 	deb: true,
+	rpm: true,
 	source: false,
 	command: false,
 	"claude-plugins": false,

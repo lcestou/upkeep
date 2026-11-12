@@ -1109,11 +1109,6 @@ msgstr "Brak punktu przywracania {0}."
 msgid "{0} exited {1}."
 msgstr "Polecenie {0} zakończyło się kodem {1}."
 
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not put {0} back. See the log."
-msgstr "dpkg nie mógł przywrócić {0}. Zobacz dziennik."
-
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
@@ -1606,21 +1601,6 @@ msgstr "Nie udało się zainstalować {0}. Przywracanie nie powiodło się: {1}"
 msgid "Could not install {0}. No restore point was taken."
 msgstr "Nie udało się zainstalować {0}. Nie utworzono punktu przywracania."
 
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. Restored {1}."
-msgstr "dpkg nie mógł zainstalować {0}. Przywrócono {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. See the log."
-msgstr "dpkg nie mógł zainstalować {0}. Zobacz dziennik."
-
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr "dpkg nie mógł zainstalować {0}, a przywrócenie {1} nie powiodło się. Zobacz dziennik."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
@@ -1968,3 +1948,23 @@ msgstr "Przyjmuje, że program nazywa się {0}, tak jak repozytorium; zmień śc
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
 msgstr "Kopia w {0} jest pierwsza w PATH; usuń ją po zbudowaniu, inaczej to ona będzie dalej uruchamiana."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not put {1} back. See the log."
+msgstr "{0} nie mógł przywrócić {1}. Zobacz dziennik."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. Restored {2}."
+msgstr "{0} nie mógł zainstalować {1}. Przywrócono {2}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. See the log."
+msgstr "{0} nie mógł zainstalować {1}. Zobacz dziennik."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}, and putting {2} back failed. See the log."
+msgstr "{0} nie mógł zainstalować {1}, a przywrócenie {2} nie powiodło się. Zobacz dziennik."

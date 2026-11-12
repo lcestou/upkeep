@@ -10,7 +10,7 @@ export const ENGINE_COPY = {
 	pointNameRefused: (v0: string) => `${v0} cannot name a restore point`,
 	noRestorePoint: (v0: string) => `No restore point ${v0}.`,
 	commandExited: (v0: string, v1: string) => `${v0} exited ${v1}.`,
-	dpkgCouldNotPutBack: (v0: string) => `dpkg could not put ${v0} back. See the log.`,
+	packageCouldNotPutBack: (v0: string, v1: string) => `${v0} could not put ${v1} back. See the log.`,
 	couldNotRestoreFile: (v0: string, v1: string) => `Could not restore ${v0}: ${v1}`,
 	badInput: () => `Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.`,
 	catalogueWhy: () => `From Upkeep's catalogue of tested apps.`,
@@ -123,10 +123,10 @@ export const ENGINE_COPY = {
 	couldNotInstallRestored: (v0: string, v1: string) => `Could not install ${v0}. Restored ${v1}.`,
 	couldNotInstallRestoreFailed: (v0: string, v1: string) => `Could not install ${v0}. Restore failed: ${v1}`,
 	couldNotInstallNoPoint: (v0: string) => `Could not install ${v0}. No restore point was taken.`,
-	dpkgRestored: (v0: string, v1: string) => `dpkg could not install ${v0}. Restored ${v1}.`,
-	dpkgSeeLog: (v0: string) => `dpkg could not install ${v0}. See the log.`,
-	dpkgPutBackFailed: (v0: string, v1: string) =>
-		`dpkg could not install ${v0}, and putting ${v1} back failed. See the log.`,
+	packageRestored: (v0: string, v1: string, v2: string) => `${v0} could not install ${v1}. Restored ${v2}.`,
+	packageSeeLog: (v0: string, v1: string) => `${v0} could not install ${v1}. See the log.`,
+	packagePutBackFailed: (v0: string, v1: string, v2: string) =>
+		`${v0} could not install ${v1}, and putting ${v2} back failed. See the log.`,
 	stillAtAfterUpdate: (v0: string) => `Still at ${v0} after the update.`,
 	wouldNotStartNoPointTaken: () => `Would not start after the update. No restore point was taken.`,
 	wouldNotStartNoPointKind: () => `Would not start after the update. No restore point for this kind.`,

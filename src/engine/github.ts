@@ -305,10 +305,15 @@ export function parseRepoSearch(body: unknown): RepoHit[] {
 
 const SIDE_FILES = /\.(sha256|sig|asc|zsync)$/;
 
-/** The first asset matching pattern, skipping checksum and signature files, with the number of matches. */
+/**
+ * The first asset matching pattern, skipping checksum and signature files and source rpms (which install only sources),
+ * with the number of matches.
+ */
 export function pickAsset(release: Release, pattern: string): { asset: Asset; count: number; names: string[] } | null {
 	const re = new RegExp(pattern);
-	const matches = release.assets.filter((a) => re.test(a.name) && !SIDE_FILES.test(a.name));
+	const matches = release.assets.filter(
+		(a) => re.test(a.name) && !SIDE_FILES.test(a.name) && !/\.src\.rpm$/i.test(a.name),
+	);
 	const first = matches[0];
 	return first ? { asset: first, count: matches.length, names: matches.map((m) => m.name) } : null;
 }

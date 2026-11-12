@@ -4,7 +4,7 @@ import { MESSAGES } from "../../shared/messages";
 import { isRecord } from "../manifest";
 import { type Checked, type KindCtx, type Outcome, stageClock } from "./context";
 
-// The one place the code names Claude Code: this kind drives its plugin CLI, as release.ts drives dpkg.
+// The one place the code names Claude Code: this kind drives its plugin CLI, as package.ts drives dpkg and rpm.
 const REGISTRY = ".claude/plugins/installed_plugins.json";
 const CLAUDE = "claude";
 const STEP_MS = 120_000;

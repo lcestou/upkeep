@@ -25,7 +25,7 @@ import {
 	repoText,
 	rootNames,
 } from "./github";
-import { DEB_TOOL } from "./kinds/release";
+import { isPackage, PACKAGE_TOOL } from "./kinds/package";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
 import type { Run } from "./run";
@@ -52,7 +52,7 @@ export const BAD_INPUT = MESSAGES.badInput();
 export const CATALOGUE_WHY = MESSAGES.catalogueWhy();
 
 /** The kinds whose table names a release asset, so a catalogue entry of one is looked up on GitHub for today's release. */
-const RELEASE_KINDS = new Set<AppKind>(["appimage", "archive", "file", "deb"]);
+const RELEASE_KINDS = new Set<AppKind>(["appimage", "archive", "file", "deb", "rpm"]);
 
 const SEGMENT = /^[A-Za-z0-9_.-]+$/;
 
@@ -81,7 +81,8 @@ const OTHER_ARCH =
 // An asset that names this machine outright beats one that names no architecture.
 const THIS_MACHINE = /x86_64|x86-64|amd64|x64|64-?bit/i;
 const SIDE_FILE = /\.(sha256|sha512|sig|asc|zsync|sbom|json|txt|pem|minisig)$/i;
-const OTHER_PACKAGE = /\.(rpm|apk|pacman|flatpak|snap)$/i;
+// A source rpm installs only its sources into rpmbuild, never the program.
+const OTHER_PACKAGE = /\.(apk|pacman|flatpak|snap|src\.rpm)$/i;
 const UNOPENED = /\.(tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
 const TRIPLE = /x86_64-unknown-linux-(gnu|musl)$/i;
 
@@ -92,6 +93,7 @@ export function kindOf(name: string): AppKind | "unopened" | null {
 	const n = name.toLowerCase();
 	if (n.endsWith(".appimage")) return "appimage";
 	if (n.endsWith(".deb")) return "deb";
+	if (n.endsWith(".rpm")) return "rpm";
 	if (n.endsWith(".tar.gz") || n.endsWith(".tgz") || n.endsWith(".zip")) return "archive";
 	if (UNOPENED.test(n)) return "unopened";
 	// A trailing ".3" is a version, not an extension.
@@ -99,7 +101,7 @@ export function kindOf(name: string): AppKind | "unopened" | null {
 	return null;
 }
 
-/** The kind order of the plan: AppImage, then gnu, musl and other archives, then a bare file, then a deb last. */
+/** The kind order of the plan: AppImage, then gnu, musl and other archives, then a bare file, then a deb or rpm last. */
 function rank(c: Candidate): number {
 	const n = c.asset.name.toLowerCase();
 	if (c.kind === "appimage") return 0;
@@ -166,7 +168,7 @@ export function displayName(repoName: string): string {
 /** Lower case with anything but letters, digits and dashes made a dash, so the key is a bare TOML key. */
 export const keyOf = (repoName: string) => repoName.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
-const EXTENSION = /\.(tar\.gz|tgz|zip|appimage|deb|tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
+const EXTENSION = /\.(tar\.gz|tgz|zip|appimage|deb|rpm|tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
 const NOISE = new Set(["linux", "gnu", "musl", "unknown", "pc", "appimage", "setup", "installer", "portable", "bin"]);
 
 /**
@@ -313,12 +315,19 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	if (opts.file) prefer = opts.file.appimage ? ["appimage"] : ["archive", "file"];
 	else if (image) prefer = ["appimage"];
 	// A program outside the home directory came from a package.
-	else if (onPath) prefer = onPath.startsWith(`${home}/`) ? ["archive", "file"] : ["deb"];
+	else if (onPath) prefer = onPath.startsWith(`${home}/`) ? ["archive", "file"] : ["deb", "rpm"];
 	const { candidates, unopened } = machineAssets(release.assets, prefer);
-	// A .deb needs dpkg: on a system without it, a .deb is no file this machine can install. A file on disk never
-	// takes a .deb, so a scan runs nothing for it.
-	const noDeb = !opts.file && candidates.some((c) => c.kind === "deb") && (await which(ctx, DEB_TOOL)) === null;
-	const installable = noDeb ? candidates.filter((c) => c.kind !== "deb") : candidates;
+	// A package installs only through the system's own package tool. dpkg marks a Debian system: a .deb needs it, and
+	// an .rpm is refused there even when the rpm tool is installed, since its files would sit outside dpkg's records.
+	// A file on disk never takes a package, so a scan runs nothing for it.
+	const missing = new Set<string>();
+	const packages = new Set(candidates.map((c) => c.kind).filter(isPackage));
+	if (!opts.file && packages.size > 0) {
+		const dpkg = (await which(ctx, PACKAGE_TOOL.deb)) !== null;
+		if (!dpkg) missing.add("deb");
+		if (packages.has("rpm") && (dpkg || (await which(ctx, PACKAGE_TOOL.rpm)) === null)) missing.add("rpm");
+	}
+	const installable = candidates.filter((c) => !missing.has(c.kind));
 	const usable = opts.file ? installable.filter((c) => prefer.includes(c.kind)) : installable;
 	const picked = (opts.asset ? usable.find((c) => c.asset.name === opts.asset) : undefined) ?? usable[0];
 	if (!picked) {
@@ -333,7 +342,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	let dest: string;
 	if (opts.file) dest = opts.file.path;
 	else if (kind === "appimage") dest = image ?? join(home, ".local/bin", `${bin}.AppImage`);
-	else if (kind === "deb") dest = onPath ?? `/usr/bin/${bin}`;
+	else if (isPackage(kind)) dest = onPath ?? `/usr/bin/${bin}`;
 	else dest = onPath ?? join(home, ".local/bin", bin);
 	// A program on PATH outside home and /usr/local belongs to the package manager: never install over it.
 	let systemCopy: string | null = null;
@@ -369,7 +378,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	}
 	const spec: AppSpec = { key, name, kind, repo, asset: pattern, dest: tilde(dest, home) };
 	if (bins) spec.bins = bins;
-	if (kind === "deb" || rootDest) spec.sudo = true;
+	if (isPackage(kind) || rootDest) spec.sudo = true;
 	const exists = existsSync(dest);
 	if (!exists) spec.install_if_missing = true;
 

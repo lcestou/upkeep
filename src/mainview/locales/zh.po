@@ -1055,11 +1055,6 @@ msgstr "没有还原点 {0}。"
 msgid "{0} exited {1}."
 msgstr "{0} 已退出，代码 {1}。"
 
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not put {0} back. See the log."
-msgstr "dpkg 无法还原到 {0}。请查看日志。"
-
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
@@ -1552,21 +1547,6 @@ msgstr "无法安装 {0}。还原失败：{1}"
 msgid "Could not install {0}. No restore point was taken."
 msgstr "无法安装 {0}。未创建还原点。"
 
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. Restored {1}."
-msgstr "dpkg 无法安装 {0}。已还原到 {1}。"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. See the log."
-msgstr "dpkg 无法安装 {0}。请查看日志。"
-
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr "dpkg 无法安装 {0}，且还原到 {1} 失败。请查看日志。"
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
@@ -1914,3 +1894,23 @@ msgstr "程序名按仓库名取为 {0}；如果构建安装的是其他名称�
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
 msgstr "{0} 处的副本在 PATH 中排在前面；构建完成后请将其删除，否则运行的仍是它。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not put {1} back. See the log."
+msgstr "{0} 无法还原到 {1}。请查看日志。"
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. Restored {2}."
+msgstr "{0} 无法安装 {1}。已还原到 {2}。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. See the log."
+msgstr "{0} 无法安装 {1}。请查看日志。"
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}, and putting {2} back failed. See the log."
+msgstr "{0} 无法安装 {1}，且还原到 {2} 失败。请查看日志。"

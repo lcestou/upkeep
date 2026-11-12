@@ -4,6 +4,7 @@
 
 First version.
 
+- Apps that ship an `.rpm` on GitHub install, update and roll back through `rpm`, as `.deb` apps do through `dpkg`. Add app offers an `.rpm` only on a system without `dpkg`.
 - Add app drafts a source build when nothing in a project's release runs on this computer. It reads the project's build file (Cargo, Go, Meson, CMake, autotools or a Makefile), shows every step as a guess to read before adding, and says when the build tool is missing. A `.deb` is no longer offered on a system without `dpkg`.
 - What the engine reports in the window (a row's problem, why an install or restore failed, what Add app found, why an import was refused) now shows in the language picked, not only the window's own labels.
 - Settings has Export and Import beside Open apps.toml, to carry the settings and app list to another computer as one file. The Language choice opens a list drawn inside the window, which no longer runs past its edge with scroll arrows and empty space.

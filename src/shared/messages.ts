@@ -19,8 +19,8 @@ export const MESSAGES = {
 	noRestorePoint: (v0: Value) => `No restore point ${v0}.`,
 	/** backup.ts. {0} the restore argv joined with spaces; {1} exit code */
 	commandExited: (v0: Value, v1: Value) => `${v0} exited ${v1}.`,
-	/** backup.ts. {0} version */
-	dpkgCouldNotPutBack: (v0: Value) => `dpkg could not put ${v0} back. See the log.`,
+	/** backup.ts. {0} package tool (dpkg or rpm, never translated); {1} version */
+	packageCouldNotPutBack: (v0: Value, v1: Value) => `${v0} could not put ${v1} back. See the log.`,
 	/** backup.ts. {0} file name in the restore point; {1} raw stderr or stdout of install/mv, trimmed (can be run.ts:279 'size differs after copy') */
 	couldNotRestoreFile: (v0: Value, v1: Value) => `Could not restore ${v0}: ${v1}`,
 	/** discover.ts */
@@ -237,13 +237,13 @@ export const MESSAGES = {
 	couldNotInstallRestoreFailed: (v0: Value, v1: Value) => `Could not install ${v0}. Restore failed: ${v1}`,
 	/** kinds/release.ts. {0} program (bin) name */
 	couldNotInstallNoPoint: (v0: Value) => `Could not install ${v0}. No restore point was taken.`,
-	/** kinds/release.ts. {0} asset name; {1} restore point version */
-	dpkgRestored: (v0: Value, v1: Value) => `dpkg could not install ${v0}. Restored ${v1}.`,
-	/** kinds/release.ts. {0} asset name */
-	dpkgSeeLog: (v0: Value) => `dpkg could not install ${v0}. See the log.`,
-	/** kinds/release.ts. {0} asset name; {1} restore point version */
-	dpkgPutBackFailed: (v0: Value, v1: Value) =>
-		`dpkg could not install ${v0}, and putting ${v1} back failed. See the log.`,
+	/** kinds/release.ts. {0} package tool (dpkg or rpm, never translated); {1} asset name; {2} restore point version */
+	packageRestored: (v0: Value, v1: Value, v2: Value) => `${v0} could not install ${v1}. Restored ${v2}.`,
+	/** kinds/release.ts. {0} package tool (dpkg or rpm, never translated); {1} asset name */
+	packageSeeLog: (v0: Value, v1: Value) => `${v0} could not install ${v1}. See the log.`,
+	/** kinds/release.ts. {0} package tool (dpkg or rpm, never translated); {1} asset name; {2} restore point version */
+	packagePutBackFailed: (v0: Value, v1: Value, v2: Value) =>
+		`${v0} could not install ${v1}, and putting ${v2} back failed. See the log.`,
 	/** kinds/release.ts. {0} version */
 	stillAtAfterUpdate: (v0: Value) => `Still at ${v0} after the update.`,
 	/** kinds/release.ts */

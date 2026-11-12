@@ -1109,11 +1109,6 @@ msgstr "Нет точки восстановления {0}."
 msgid "{0} exited {1}."
 msgstr "Команда {0} завершилась с кодом {1}."
 
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not put {0} back. See the log."
-msgstr "dpkg не смог вернуть {0}. Подробности в журнале."
-
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
@@ -1606,21 +1601,6 @@ msgstr "Не удалось установить {0}. Восстановлени
 msgid "Could not install {0}. No restore point was taken."
 msgstr "Не удалось установить {0}. Точка восстановления не создавалась."
 
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. Restored {1}."
-msgstr "dpkg не смог установить {0}. Выполнен откат на {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. See the log."
-msgstr "dpkg не смог установить {0}. Подробности в журнале."
-
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr "dpkg не смог установить {0}, а вернуть {1} не удалось. Подробности в журнале."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
@@ -1968,3 +1948,23 @@ msgstr "Программа считается названной {0}, по им�
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
 msgstr "Копия в {0} стоит в PATH первой; удалите её после сборки, иначе запускаться будет она."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not put {1} back. See the log."
+msgstr "{0} не смог вернуть {1}. Подробности в журнале."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. Restored {2}."
+msgstr "{0} не смог установить {1}. Выполнен откат на {2}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. See the log."
+msgstr "{0} не смог установить {1}. Подробности в журнале."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}, and putting {2} back failed. See the log."
+msgstr "{0} не смог установить {1}, а вернуть {2} не удалось. Подробности в журнале."

@@ -9,6 +9,7 @@ const KINDS: readonly AppKind[] = [
 	"archive",
 	"file",
 	"deb",
+	"rpm",
 	"source",
 	"command",
 	"claude-plugins",
@@ -51,6 +52,7 @@ function required(kind: AppKind): Field[] {
 			return ["asset", "dest"];
 		case "file":
 		case "deb":
+		case "rpm":
 			return ["repo", "asset", "dest"];
 		case "archive":
 			return ["repo", "asset", "dest", "bins"];

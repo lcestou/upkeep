@@ -5,6 +5,7 @@ export type AppKind =
 	| "archive" // one or more binaries inside a release tar.gz or zip
 	| "file" // a single binary that is itself the release asset
 	| "deb" // a .deb from a GitHub release, installed with dpkg
+	| "rpm" // an .rpm from a GitHub release, installed with rpm -U
 	| "source" // built from a git checkout or a clone of the release tag, with the steps in its table
 	| "command" // a tool that updates itself with its own command
 	| "claude-plugins" // every plugin in Claude Code's registry, through claude plugin update

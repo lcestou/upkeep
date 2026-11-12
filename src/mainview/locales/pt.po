@@ -1091,11 +1091,6 @@ msgstr "Não há ponto de restauração {0}."
 msgid "{0} exited {1}."
 msgstr "{0} saiu com código {1}."
 
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not put {0} back. See the log."
-msgstr "O dpkg não conseguiu restaurar a versão {0}. Veja o registro."
-
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
@@ -1588,21 +1583,6 @@ msgstr "Não foi possível instalar {0}. A restauração falhou: {1}"
 msgid "Could not install {0}. No restore point was taken."
 msgstr "Não foi possível instalar {0}. Nenhum ponto de restauração foi criado."
 
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. Restored {1}."
-msgstr "O dpkg não conseguiu instalar {0}. Versão {1} restaurada."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. See the log."
-msgstr "O dpkg não conseguiu instalar {0}. Veja o registro."
-
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr "O dpkg não conseguiu instalar {0}, e não foi possível restaurar a versão {1}. Veja o registro."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
@@ -1950,3 +1930,23 @@ msgstr "Supõe que o programa se chama {0}, como o repositório; altere o caminh
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
 msgstr "Uma cópia em {0} vem primeiro no seu PATH; remova-a depois da compilação, ou ela continuará rodando no lugar."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not put {1} back. See the log."
+msgstr "O {0} não conseguiu restaurar a versão {1}. Veja o registro."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. Restored {2}."
+msgstr "O {0} não conseguiu instalar {1}. Versão {2} restaurada."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. See the log."
+msgstr "O {0} não conseguiu instalar {1}. Veja o registro."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}, and putting {2} back failed. See the log."
+msgstr "O {0} não conseguiu instalar {1}, e não foi possível restaurar a versão {2}. Veja o registro."

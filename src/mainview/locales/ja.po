@@ -1055,11 +1055,6 @@ msgstr "復元ポイント {0} はありません。"
 msgid "{0} exited {1}."
 msgstr "{0} が終了コード {1} で終了しました。"
 
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not put {0} back. See the log."
-msgstr "dpkg で {0} に戻せませんでした。ログを確認してください。"
-
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
@@ -1552,21 +1547,6 @@ msgstr "{0} をインストールできませんでした。復元に失敗し�
 msgid "Could not install {0}. No restore point was taken."
 msgstr "{0} をインストールできませんでした。復元ポイントは作成されていません。"
 
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. Restored {1}."
-msgstr "dpkg で {0} をインストールできませんでした。{1} に復元しました。"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}. See the log."
-msgstr "dpkg で {0} をインストールできませんでした。ログを確認してください。"
-
-#. 0: v0; 1: v1
-#: src/mainview/lib/engine-text.ts
-msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr "dpkg で {0} をインストールできず、{1} への復元にも失敗しました。ログを確認してください。"
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
@@ -1914,3 +1894,23 @@ msgstr "プログラム名はリポジトリ名から {0} とみなしていま�
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
 msgstr "{0} にあるコピーが PATH で先に見つかります。ビルドの後で削除してください。そうしないとそちらが動き続けます。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not put {1} back. See the log."
+msgstr "{0} で {1} に戻せませんでした。ログを確認してください。"
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. Restored {2}."
+msgstr "{0} で {1} をインストールできませんでした。{2} に復元しました。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}. See the log."
+msgstr "{0} で {1} をインストールできませんでした。ログを確認してください。"
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} could not install {1}, and putting {2} back failed. See the log."
+msgstr "{0} で {1} をインストールできず、{2} への復元にも失敗しました。ログを確認してください。"

@@ -117,3 +117,33 @@ test("a command point runs its restore argv, and one that wants a sudo password 
 	});
 	expect(calls[0]?.argv).toEqual(["sudo", "tool-pin", "1.0.0"]);
 });
+
+test("a package point restores through its own tool: rpm -U --oldpackage, and dpkg -i for a deb point", async () => {
+	const rpm = join(t.dir, "tool-1.0.0.rpm");
+	const deb = join(t.dir, "tool-1.0.0.deb");
+	writeFileSync(rpm, "r");
+	writeFileSync(deb, "d");
+	takePoint(t.paths, { key: "r" }, "1.0.0", { package: "rpm", file: rpm });
+	takePoint(t.paths, { key: "d" }, "1.0.0", { package: "deb", file: deb });
+	const meta = (key: string) => JSON.parse(readFileSync(join(t.paths.data, `backups/${key}/1.0.0/meta.json`), "utf8"));
+	expect(meta("r")).toMatchObject({ rpm: true });
+	expect(meta("r").deb).toBeUndefined();
+	expect(meta("d")).toMatchObject({ deb: true });
+	const ok = recordingRun(t.paths, () => ({ code: 0, stdout: "", stderr: "", timedOut: false }));
+	expect(await restoreBackup(t.paths, { key: "r" }, "1.0.0", ok.run)).toEqual({ ok: true });
+	expect(await restoreBackup(t.paths, { key: "d" }, "1.0.0", ok.run)).toEqual({ ok: true });
+	expect(ok.calls[0]?.argv).toEqual([
+		"sudo",
+		"-n",
+		"rpm",
+		"-U",
+		"--oldpackage",
+		join(t.paths.data, "backups/r/1.0.0/tool-1.0.0.rpm"),
+	]);
+	expect(ok.calls[1]?.argv).toEqual(["sudo", "-n", "dpkg", "-i", join(t.paths.data, "backups/d/1.0.0/tool-1.0.0.deb")]);
+	const bad = recordingRun(t.paths, () => ({ code: 1, stdout: "", stderr: "", timedOut: false }));
+	expect(await restoreBackup(t.paths, { key: "r" }, "1.0.0", bad.run)).toEqual({
+		ok: false,
+		detail: "rpm could not put 1.0.0 back. See the log.",
+	});
+});
