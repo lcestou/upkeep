@@ -824,3 +824,24 @@ test("a catalogue app with no release file here gets the drafted build as a gues
 	expect(s?.confidence).toBe("guess");
 	expect(s?.source).toBe("repo");
 });
+
+test("a catalogue table stays sure when the release's best file is of another kind than the table's", async () => {
+	releases["o/both"] = {
+		tag_name: "v1.0",
+		assets: [
+			{ name: "both-1.0-x86_64.AppImage", size: 1 },
+			{ name: "both-1.0-x86_64-linux.tar.gz", size: 1 },
+		],
+	};
+	const entry: AppSpec = {
+		key: "both",
+		name: "Both",
+		kind: "archive",
+		repo: "o/both",
+		asset: "tar\\.gz$",
+		dest: "~/.local/bin/both",
+	};
+	const s = (await suggest("both", { ...ctx().c, catalogue: [entry] })).suggestions[0];
+	expect(s?.spec.kind).toBe("archive");
+	expect(s?.source).toBe("catalogue");
+});

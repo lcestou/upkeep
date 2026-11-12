@@ -727,7 +727,7 @@ async function fromCatalogue(
 	const r = await fromRepo(entry.repo, ctx, { asset: pattern });
 	if ("problem" in r) return { suggestions: [], problem: r.problem };
 	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
-	if (r.suggestion.spec.kind !== entry.kind) return { suggestions: [r.suggestion] };
+	if (r.suggestion.spec.kind === "source") return { suggestions: [r.suggestion] };
 	return { suggestions: [{ ...r.suggestion, spec: { ...entry, asset: pattern }, ...sure }] };
 }
 
