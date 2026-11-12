@@ -34,6 +34,7 @@ import rustdeskRelease from "./fixtures/rustdesk_rustdesk.json";
 import zenRelease from "./fixtures/zen-browser_desktop.json";
 import codebergRelease from "./fixtures/codeberg_forgejo_forgejo.json";
 import gitlabRelease from "./fixtures/gitlab-org_gitlab-runner.json";
+import catalogueAssets from "./fixtures/catalogue-assets.json";
 import type { Asset, FetchLike } from "./github";
 import { ok, realRun, recordingRun, script, tempHome } from "./testkit";
 
@@ -333,6 +334,7 @@ test("kinds: bare names, -gh and the machine triple are files; archives the inst
 	expect(kindOf("tool-1.2.3")).toBe("file");
 	expect(kindOf("gh-x86_64-unknown-linux-gnu")).toBe("file");
 	expect(kindOf("dsh-gh")).toBe("file");
+	expect(kindOf("tool-1.2-aarch64-unknown-linux-musl")).toBe("file");
 	expect(kindOf("zen.linux-x86_64.tar.xz")).toBe("unopened");
 	expect(kindOf("a.tgz")).toBe("archive");
 	expect(kindOf("notes.html")).toBeNull();
@@ -1158,4 +1160,106 @@ test("Add app from a GitLab link, a Codeberg repo and a self-hosted forge a tabl
 	});
 	// No GitHub contents listing is asked of another forge: a drafted build is GitHub's alone.
 	expect(fetched.some((u) => u.includes("/contents"))).toBe(false);
+});
+
+/** The asset names machineAssets keeps for an aarch64 machine, best first. */
+const onArm = (list: string[]) =>
+	machineAssets(
+		list.map((name) => ({ name, url: "", size: 1, digest: null })),
+		[],
+		"aarch64",
+	).candidates.map((c) => c.asset.name);
+
+test("on aarch64 the asset filter keeps only builds that name aarch64 or arm64, on five real releases", () => {
+	expect(onArm(names(fdRelease).map((a) => a.name))).toEqual([
+		"fd-v10.5.2-aarch64-unknown-linux-gnu.tar.gz",
+		"fd-v10.5.2-aarch64-unknown-linux-musl.tar.gz",
+		"fd_10.5.2_arm64.deb",
+		"fd-musl_10.5.2_arm64.deb",
+	]);
+	expect(onArm(catalogueAssets.ripgrep.assets)).toEqual([
+		"ripgrep-15.2.0-aarch64-unknown-linux-gnu.tar.gz",
+		"ripgrep-15.2.0-aarch64-unknown-linux-musl.tar.gz",
+	]);
+	expect(onArm(names(lazygitRelease).map((a) => a.name))).toEqual(["lazygit_0.66.3_linux_arm64.tar.gz"]);
+	const zen = machineAssets(names(zenRelease), [], "aarch64");
+	expect(zen.candidates.map((c) => c.asset.name)).toEqual(["zen-aarch64.AppImage"]);
+	expect(zen.unopened).toBe(true);
+	// The unsigned archive names no architecture: on an arm64 machine that is an x86_64 build, so it is left out.
+	expect(machineAssets(names(rustdeskRelease), [], "aarch64").candidates.map((c) => [c.asset.name, c.kind])).toEqual([
+		["rustdesk-1.5.1-aarch64.AppImage", "appimage"],
+		["rustdesk-1.5.1-aarch64.deb", "deb"],
+		["rustdesk-1.5.1-0.aarch64.rpm", "rpm"],
+		["rustdesk-1.5.1-0.aarch64-suse.rpm", "rpm"],
+	]);
+	expect(machineAssets(names(rustdeskRelease), ["rpm"], "aarch64").candidates[0]?.asset.name).toBe(
+		"rustdesk-1.5.1-0.aarch64.rpm",
+	);
+	// x86_64 in any spelling, 32-bit arm and a bare name are out; a package for every architecture is in.
+	expect(
+		onArm([
+			"t-x86_64.tar.gz",
+			"t_amd64.deb",
+			"t-linux-x64.zip",
+			"t-armhf.tar.gz",
+			"t-armv7.tar.gz",
+			"t.tar.gz",
+			"t_1.0_all.deb",
+			"t-1.0.noarch.rpm",
+			"t-linux-arm64.tar.gz",
+		]),
+	).toEqual(["t-linux-arm64.tar.gz", "t_1.0_all.deb", "t-1.0.noarch.rpm"]);
+});
+
+const FD_ARM: AppSpec = { ...(CATALOGUE[0] as AppSpec), asset_aarch64: "aarch64-unknown-linux-gnu\\.tar\\.gz$" };
+
+/** The fd aarch64 archives as real tarballs, so a lookup inside finds the program. */
+async function fdArm() {
+	for (const libc of ["gnu", "musl"]) {
+		const top = `fd-v10.5.2-aarch64-unknown-linux-${libc}`;
+		// oxlint-disable-next-line no-await-in-loop -- both archives share one temp tree
+		bodies[`${top}.tar.gz`] = await archive({ [`${top}/fd`]: "elf" });
+	}
+}
+
+test("on aarch64 a catalogue table's aarch64 pattern picks the file, and a picked file is kept in that field", async () => {
+	await fdArm();
+	const c = { ...ctx().c, catalogue: [FD_ARM], arch: "aarch64" as const };
+	const r = await suggest("fd", c);
+	expect(r.problem).toBeUndefined();
+	expect(r.suggestions[0]).toMatchObject({
+		spec: FD_ARM,
+		source: "catalogue",
+		asset: { name: "fd-v10.5.2-aarch64-unknown-linux-gnu.tar.gz" },
+		alternatives: ["fd-v10.5.2-aarch64-unknown-linux-musl.tar.gz", "fd_10.5.2_arm64.deb", "fd-musl_10.5.2_arm64.deb"],
+	});
+	const picked = await suggest("fd", c, "fd-v10.5.2-aarch64-unknown-linux-musl.tar.gz");
+	expect(picked.suggestions[0]?.spec).toEqual({
+		...FD_ARM,
+		install_if_missing: true,
+		asset_aarch64: "^fd-.*-aarch64-unknown-linux-musl\\.tar\\.gz$",
+	});
+	// The same table on an x86_64 machine still takes its x86_64 pattern.
+	const x86 = await suggest("fd", { ...ctx().c, catalogue: [FD_ARM] });
+	expect(x86.suggestions[0]?.asset?.name).toBe("fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz");
+});
+
+test("on aarch64 a catalogue table with no aarch64 pattern is not offered, and nothing is looked up", async () => {
+	const c = { ...ctx().c, catalogue: CATALOGUE, arch: "aarch64" as const };
+	expect(await suggest("fd", c)).toEqual({
+		suggestions: [],
+		problem: "The table for fd names no release file for aarch64 machines.",
+	});
+	expect(fetched).toEqual([]);
+	// A command table names no release file and is offered on any machine.
+	expect((await suggest("claude", c)).suggestions[0]?.spec).toEqual(CATALOGUE[1]);
+});
+
+test("on aarch64 an app added by repo keeps its pattern as asset_aarch64, named without the architecture", async () => {
+	await fdArm();
+	const r = await suggest("sharkdp/fd", { ...ctx().c, arch: "aarch64" });
+	const spec = r.suggestions[0]?.spec;
+	expect(spec).toMatchObject({ key: "fd", name: "fd", asset_aarch64: "^fd-.*-aarch64-unknown-linux-gnu\\.tar\\.gz$" });
+	expect(spec?.asset).toBeUndefined();
+	expect(spec && tomlTable(spec)).toContain("asset_aarch64 = '^fd-.*-aarch64-unknown-linux-gnu\\.tar\\.gz$'");
 });

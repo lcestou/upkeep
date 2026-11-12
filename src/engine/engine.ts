@@ -15,6 +15,7 @@ import type {
 	Suggestion,
 } from "../shared/types";
 import { MESSAGES } from "../shared/messages";
+import type { Arch } from "./arch";
 import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { managedSpecs } from "./managers";
@@ -86,6 +87,8 @@ export type EngineDeps = {
 	procRoot?: string;
 	/** Tests point GitHub lookups at a local server. */
 	api?: string;
+	/** The machine's architecture, which decides each release file. Default x86_64; realDeps reads the real one. */
+	arch?: Arch;
 	/** Test overrides for waits inside kinds. */
 	stallMs?: number;
 	retryMs?: number;
@@ -337,6 +340,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				rate = r;
 			},
 			api: deps.api,
+			arch: deps.arch,
 			procRoot: deps.procRoot,
 			now: deps.now,
 			stallMs: deps.stallMs,
@@ -1093,6 +1097,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			catalogue: catalogue.apps,
 			log: (text) => say(null, text),
 			api: deps.api,
+			arch: deps.arch,
 		};
 	}
 

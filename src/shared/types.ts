@@ -23,8 +23,10 @@ export type AppSpec = {
 	repo?: string;
 	/** The forge a repo on a host Upkeep does not know runs: GitLab, or Gitea and Forgejo. */
 	forge?: "gitlab" | "gitea";
-	/** Regular expression matched against release asset names. */
+	/** Regular expression matched against release asset names, on an x86_64 machine. */
 	asset?: string;
+	/** The same pattern for an aarch64 machine. A release kind with none is not offered or checked there. */
+	asset_aarch64?: string;
 	/** The installed file the version probe runs. */
 	dest?: string;
 	/** archive: paths inside the archive; each installs into dest's directory under its base name. */

@@ -1646,11 +1646,6 @@ msgstr "{0}：kind {2} には {1} が必要です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: asset is not a valid regular expression"
-msgstr "{0}：asset が正しい正規表現ではありません"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: versionless is only for kind claude-plugins"
 msgstr "{0}：versionless は kind claude-plugins 専用です"
 
@@ -2456,3 +2451,13 @@ msgstr "{0} を削除できませんでした: {1}"
 #: src/mainview/lib/engine-text.ts
 msgid "Left {0} alone: it is not inside the folder being cleaned."
 msgstr "{0} はそのままにしました: 片付け対象のフォルダーの中にありません。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "The table for {0} names no release file for {1} machines."
+msgstr "{0} のテーブルには {1} マシン用のリリースファイルがありません。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} is not a valid regular expression"
+msgstr "{0}：{1} が正しい正規表現ではありません"

@@ -1682,11 +1682,6 @@ msgstr "{0}: {1} es obligatorio para kind {2}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: asset is not a valid regular expression"
-msgstr "{0}: asset no es una expresión regular válida"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: versionless is only for kind claude-plugins"
 msgstr "{0}: versionless solo vale para kind claude-plugins"
 
@@ -2498,3 +2493,13 @@ msgstr "No se pudo borrar {0}: {1}"
 #: src/mainview/lib/engine-text.ts
 msgid "Left {0} alone: it is not inside the folder being cleaned."
 msgstr "Se dejó {0} sin tocar: no está dentro de la carpeta que se limpia."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "The table for {0} names no release file for {1} machines."
+msgstr "La tabla de {0} no indica ningún archivo de versión para equipos {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} is not a valid regular expression"
+msgstr "{0}: {1} no es una expresión regular válida"

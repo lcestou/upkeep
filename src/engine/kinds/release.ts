@@ -14,6 +14,7 @@ import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
 import { download, verifyAsset } from "../download";
+import { assetFor } from "../arch";
 import { forgeRelease, linksRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
@@ -79,13 +80,16 @@ async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Rel
 		tag,
 	};
 	if (spec.repo || !spec.latest) return forgeRelease(spec.repo ?? "", spec.forge, opts);
-	if (spec.latest.startsWith("links:")) return linksRelease(spec.latest.slice(6), spec.asset ?? "", opts);
+	if (spec.latest.startsWith("links:")) return linksRelease(spec.latest.slice(6), assetFor(spec, ctx.arch) ?? "", opts);
 	const r = await latestFromSource(spec.latest, opts);
 	if (isFailure(r)) return r;
 	return r.release ?? { failure: "http", detail: MESSAGES.sourceGivesNoDownload(spec.latest) };
 }
 
-/** Probes the installed copy and looks up the latest release. Source builds pass needAsset false. */
+/**
+ * Probes the installed copy and looks up the latest release. Source builds pass needAsset false. A table with no asset
+ * pattern for this machine's architecture is a problem before any lookup, never another architecture's file.
+ */
 export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true): Promise<Checked | null> {
 	const dest = destOf(spec, ctx);
 	const probe = await probeInstalled(spec, ctx);
@@ -96,6 +100,15 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		return null;
 	}
 	const installed = "version" in probe ? probe.version : null;
+	const pattern = assetFor(spec, ctx.arch);
+	// A table written on the other architecture (an apps.toml brought from another machine) names no file for this one.
+	if (needAsset && pattern === undefined)
+		return {
+			installed,
+			latest: null,
+			status: "problem",
+			detail: MESSAGES.noAssetForArch(spec.name, ctx.arch ?? "x86_64"),
+		};
 	const release = await releaseOf(spec, ctx);
 	if (isFailure(release)) return { installed, latest: null, status: "problem", detail: release.detail };
 	const base = { ...fromRelease(release) };
@@ -123,15 +136,15 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 	let target: Target = { from: installed, version: latest, tag: release.tag };
 	let size: number | undefined;
 	if (needAsset) {
-		const pick = pickAsset(release, spec.asset ?? "");
+		const pick = pickAsset(release, pattern ?? "");
 		if (!pick)
-			return { installed, latest, status: "problem", detail: MESSAGES.noAssetMatches(String(spec.asset)), ...base };
+			return { installed, latest, status: "problem", detail: MESSAGES.noAssetMatches(String(pattern)), ...base };
 		if (pick.count > 1)
 			return {
 				installed,
 				latest,
 				status: "problem",
-				detail: MESSAGES.severalAssetsMatch(String(spec.asset), pick.names.join(", ")),
+				detail: MESSAGES.severalAssetsMatch(String(pattern), pick.names.join(", ")),
 				...base,
 			};
 		target = { ...target, asset: pick.asset };
@@ -355,9 +368,10 @@ async function oldPackage(
 	const tag = target.tag.replace(target.version, from);
 	const release = await releaseOf(spec, ctx, tag);
 	if (isFailure(release)) return { problem: `${tag}: ${release.detail}` };
-	const picked = pickAsset(release, spec.asset ?? "");
-	if (!picked) return { problem: `the ${tag} release has no package matching ${spec.asset ?? ""}.` };
-	if (picked.count > 1) return { problem: `more than one ${tag} asset matches ${spec.asset ?? ""}.` };
+	const pattern = assetFor(spec, ctx.arch) ?? "";
+	const picked = pickAsset(release, pattern);
+	if (!picked) return { problem: `the ${tag} release has no package matching ${pattern}.` };
+	if (picked.count > 1) return { problem: `more than one ${tag} asset matches ${pattern}.` };
 	// A folder of its own, so the point keeps the package under the name it was released with.
 	const file = join(ctx.paths.cache, "dl", `${spec.key}-old`, picked.asset.name);
 	try {

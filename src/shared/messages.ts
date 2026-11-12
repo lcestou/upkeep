@@ -231,6 +231,8 @@ export const MESSAGES = {
 	latestTagNotTracked: (v0: Value) => `The latest tag ${v0} is not a tracked version.`,
 	/** kinds/release.ts */
 	rebuildFixes: () => `Will not start. A rebuild against the current libraries fixes it.`,
+	/** kinds/release.ts, discover.ts. {0} app name; {1} the machine's architecture, x86_64 or aarch64 */
+	noAssetForArch: (v0: Value, v1: Value) => `The table for ${v0} names no release file for ${v1} machines.`,
 	/** kinds/release.ts. {0} asset pattern (regex) */
 	noAssetMatches: (v0: Value) => `No release asset matches ${v0}.`,
 	/** kinds/release.ts. {0} asset pattern; {1} matching asset names joined with ', ' */
@@ -301,8 +303,8 @@ export const MESSAGES = {
 	liftMustBeBool: (v0: Value, v1: Value) => `${v0}: ${v1} must be true or false`,
 	/** manifest.ts. {0} app key; {1} field name; {2} kind */
 	liftRequiredForKind: (v0: Value, v1: Value, v2: Value) => `${v0}: ${v1} is required for kind ${v2}`,
-	/** manifest.ts. {0} app key */
-	liftAssetNotRegex: (v0: Value) => `${v0}: asset is not a valid regular expression`,
+	/** manifest.ts. {0} app key; {1} the field, asset or asset_aarch64 */
+	liftAssetNotRegex: (v0: Value, v1: Value) => `${v0}: ${v1} is not a valid regular expression`,
 	/** manifest.ts. {0} app key */
 	liftVersionlessOnly: (v0: Value) => `${v0}: versionless is only for kind claude-plugins`,
 	/** manifest.ts. {0} app key */

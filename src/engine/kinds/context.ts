@@ -1,6 +1,7 @@
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, Settings, Stage } from "../../shared/types";
 import type { Asset, FetchLike, Rate, Release } from "../github";
+import type { Arch } from "../arch";
 import type { Paths } from "../paths";
 import { type ProbeResult, readProbe, stripEscapes } from "../probe";
 import type { Run } from "../run";
@@ -22,6 +23,8 @@ export type KindCtx = {
 	onRate?: (rate: Rate) => void;
 	/** Tests point GitHub lookups at a local server. */
 	api?: string;
+	/** The machine's architecture: which of a table's asset patterns a release kind uses. Default x86_64. */
+	arch?: Arch;
 	procRoot?: string;
 	/** Clock for restore point times. */
 	now?: () => Date;

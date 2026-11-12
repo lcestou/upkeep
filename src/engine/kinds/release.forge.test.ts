@@ -170,3 +170,74 @@ test("a file from a links: page: the newest matching link is checked and install
 	expect(readFileSync(dest, "utf8")).toStartWith('#!/bin/bash\necho "tool 1.10.0"');
 	expect(sent.every(([, auth]) => auth === null)).toBe(true);
 });
+
+test("on aarch64 a table's aarch64 pattern picks the file, and a table with none is refused before any lookup", async () => {
+	const spec: AppSpec = {
+		key: "tool",
+		name: "Tool",
+		kind: "appimage",
+		repo: "gitlab.com/group/sub/tool",
+		asset: "x86_64\\.AppImage$",
+		asset_aarch64: "aarch64\\.AppImage$",
+		dest: "~/.local/bin/tool.AppImage",
+	};
+	script(join(t.paths.home, ".local/bin/tool.AppImage"), 'echo "tool 1.0.0"');
+	gitlab("group/sub/tool", "v2.0.0", ["tool-2.0.0-x86_64.AppImage", "tool-2.0.0-aarch64.AppImage"]);
+	const arm = { ...ctx(), arch: "aarch64" as const };
+	expect((await target(spec, arm)).asset?.name).toBe("tool-2.0.0-aarch64.AppImage");
+	expect((await target(spec, ctx())).asset?.name).toBe("tool-2.0.0-x86_64.AppImage");
+	// Added on an x86_64 machine and checked on an arm64 one: its table names no file for this machine.
+	sent = [];
+	expect(await checkRelease({ ...spec, asset_aarch64: undefined }, arm)).toEqual({
+		installed: "1.0.0",
+		latest: null,
+		status: "problem",
+		detail: "The table for Tool names no release file for aarch64 machines.",
+	});
+	// And the other way round.
+	expect((await checkRelease({ ...spec, asset: undefined }, ctx()))?.detail).toBe(
+		"The table for Tool names no release file for x86_64 machines.",
+	);
+	expect(sent).toEqual([]);
+});
+
+test("on aarch64 a deb keeps the installed version's arm64 package, and a links: page is read for arm64 links", async () => {
+	const dest = script(join(t.dir, "usr/bin/tool"), 'echo "1.4.2"');
+	const spec: AppSpec = {
+		key: "tool",
+		name: "Tool",
+		kind: "deb",
+		repo: "gitlab.com/g/tool",
+		asset: "amd64\\.deb$",
+		asset_aarch64: "arm64\\.deb$",
+		dest,
+		sudo: true,
+	};
+	gitlab("g/tool", "v1.4.3", ["tool_1.4.3_amd64.deb", "tool_1.4.3_arm64.deb"]);
+	gitlab("g/tool", "v1.4.2", ["tool_1.4.2_amd64.deb", "tool_1.4.2_arm64.deb"], "v1.4.2");
+	files["https://gitlab.example.org/g/tool/-/releases/v1.4.3/downloads/tool_1.4.3_arm64.deb"] = big("new");
+	files["https://gitlab.example.org/g/tool/-/releases/v1.4.2/downloads/tool_1.4.2_arm64.deb"] = big("old");
+	const { run } = recordingRun(t.paths, (argv) => {
+		if (argv[2] !== "dpkg") return undefined;
+		script(dest, 'echo "1.4.3"');
+		return ok();
+	});
+	const c = { ...ctx(run), arch: "aarch64" as const };
+	expect(await installRelease(spec, await target(spec, c), c)).toMatchObject({ result: "done", installed: "1.4.3" });
+	expect(listBackups(t.paths, "tool").map((p) => p.version)).toEqual(["1.4.2"]);
+
+	const file: AppSpec = {
+		key: "page",
+		name: "Page",
+		kind: "file",
+		latest: "links:https://example.org/downloads/",
+		asset: "^tool-[0-9.]+-linux-x86_64$",
+		asset_aarch64: "^tool-[0-9.]+-linux-aarch64$",
+		dest: "~/.local/bin/tool",
+	};
+	script(join(t.paths.home, ".local/bin/tool"), 'echo "tool 1.9.0"');
+	page = ["tool-1.9.0-linux-aarch64", "tool-1.10.0-linux-x86_64"].map((n) => `<a href="${n}">${n}</a>`).join("\n");
+	// Only the x86_64 build has 1.10.0 yet: an arm64 machine stays on 1.9.0.
+	expect(await checkRelease(file, c)).toMatchObject({ latest: "1.9.0", status: "fresh" });
+	expect(await checkRelease(file, ctx())).toMatchObject({ latest: "1.10.0", status: "ready" });
+});
