@@ -26,7 +26,7 @@ export type WindowHooks = {
 	/** The desktop's languages from the environment, so the window and the tray follow the same list. */
 	languages: () => string[];
 	windowOp: (op: WindowButton) => void;
-	/** The read-only system updates list, beside the engine. */
+	/** The system updates list and its install, beside the engine. */
 	extras: Extras;
 };
 
@@ -155,6 +155,9 @@ export function upkeepRequests(
 		extras: () => hooks.extras.snapshot(),
 		setExtras: (patch) => hooks.extras.setSettings(patch),
 		systemCheck: () => hooks.extras.checkSystem(),
+		systemPlan: ({ ids }) => hooks.extras.planSystem(ids),
+		// The person's press, after they read the commands: nothing else in Upkeep starts a System install.
+		systemInstall: ({ ids, commands }) => hooks.extras.installSystem(ids, commands),
 		openTool: ({ what }) => {
 			if (what !== "update-manager") return { ok: false };
 			try {

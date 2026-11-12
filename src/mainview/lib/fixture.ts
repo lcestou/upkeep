@@ -5,6 +5,7 @@ import type {
 	AppStatus,
 	Bridge,
 	EngineEvent,
+	ExtrasSettings,
 	ExtrasSnapshot,
 	HistoryRow,
 	LogLine,
@@ -22,7 +23,8 @@ import type {
 } from "../../shared/types";
 import { PICKED, scanResults, suggestFor } from "./fixture-add";
 import { lastTryFailed, tomlWriteFailed } from "./copy";
-import { type SystemVariant, systemFor } from "./fixture-system";
+import { MESSAGES } from "../../shared/messages";
+import { type SystemVariant, fixtureInstallable, fixtureOutcome, fixturePlan, systemFor } from "./fixture-system";
 
 export type FixtureVariant = "default" | "empty" | "checking" | "problems" | "many" | "built" | "none";
 
@@ -657,14 +659,60 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const offered = new Map<string, Suggestion>();
 	const sysOps: string[] = [];
 	globalThis.upkeepSysOps = sysOps;
+	const installing = opts.system === "install" || opts.system === "refuse";
 	let extras: ExtrasSnapshot = {
-		settings: { system: opts.system && opts.system !== "off" ? "show" : "off" },
+		settings:
+			!opts.system || opts.system === "off"
+				? { system: "off" }
+				: installing
+					? { system: "show", systemInstall: true }
+					: { system: "show" },
 		system: systemFor(opts.system ?? "off", iso(Date.now() - 5 * 60_000)),
 	};
+	/** What the main process sends: the installable ids worked out from the rows, as the engine does, only while installing is on. */
+	const extrasNow = (): ExtrasSnapshot =>
+		clone(
+			extras.settings.systemInstall && extras.system.mode === "show"
+				? { ...extras, system: { ...extras.system, installable: fixtureInstallable(extras.system) } }
+				: extras,
+		);
 	const setExtras = (system: SystemState) => {
 		extras = { ...extras, system };
-		emit({ type: "extras", extras });
+		emit({ type: "extras", extras: extrasNow() });
 	};
+	/**
+	 * A fake System install: the refuse variant is refused by its sudo check; any other runs each ticked row for a
+	 * moment, then libsoup3 stays pending and the rest are installed and leave the list. Nothing real runs.
+	 */
+	async function runSystemInstall(ids: string[], commands: string[][]) {
+		const at = iso(Date.now());
+		const picked = extras.system.rows.filter((r) => ids.includes(r.id));
+		await sleep(300 / speed);
+		if (opts.system === "refuse") {
+			setExtras({
+				...extras.system,
+				phase: "idle",
+				install: { at, commands, outcomes: [], refused: MESSAGES.systemSudo() },
+			});
+			return;
+		}
+		setExtras({
+			...extras.system,
+			install: { at, commands, refused: null, outcomes: picked.map((r) => fixtureOutcome(r, "working")) },
+		});
+		await sleep(1200 / speed);
+		const outcomes = picked.map((r) =>
+			r.id === "apt:libsoup3" ? fixtureOutcome(r, "failed", MESSAGES.systemStillPending()) : fixtureOutcome(r, "done"),
+		);
+		const done = new Set(outcomes.filter((o) => o.status === "done").map((o) => o.id));
+		setExtras({
+			...extras.system,
+			phase: "idle",
+			rows: extras.system.rows.filter((r) => !done.has(r.id)),
+			checkedAt: iso(Date.now()),
+			install: { at, commands, refused: null, outcomes },
+		});
+	}
 	/** A check that ends with the full list after a short wait; the checking variant never ends, so specs can read it. */
 	async function runSystemCheck() {
 		setExtras({ ...extras.system, phase: "checking" });
@@ -1073,13 +1121,21 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			}
 			return { ok: true };
 		},
-		extras: () => clone(extras),
+		extras: () => extrasNow(),
 		setExtras: (patch) => {
-			const next = { ...extras.settings, ...patch };
+			const merged = { ...extras.settings, ...patch };
+			// As the engine's clamp: installing is on only while the list is shown.
+			const next: ExtrasSettings =
+				merged.system !== "show"
+					? { system: "off" }
+					: merged.systemInstall
+						? { system: "show", systemInstall: true }
+						: { system: "show" };
 			const turnedOn = next.system === "show" && extras.settings.system !== "show";
 			extras = { ...extras, settings: next };
 			if (next.system === "off") setExtras(systemFor("off", ""));
 			else if (turnedOn) void runSystemCheck();
+			else setExtras(extras.system);
 			return clone(next);
 		},
 		systemCheck: () => {
@@ -1091,6 +1147,18 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		openTool: ({ what }) => {
 			sysOps.push(`openTool:${what}`);
 			return { ok: true };
+		},
+		systemPlan: ({ ids }) => {
+			sysOps.push(`systemPlan:${ids.join(",")}`);
+			const commands = fixturePlan(extras.system, ids);
+			return commands.length > 0 ? { commands } : { commands, reason: MESSAGES.systemNothing() };
+		},
+		systemInstall: ({ ids, commands }) => {
+			sysOps.push(`systemInstall:${ids.join(",")}`);
+			if (extras.system.phase !== "idle") return { started: false, reason: MESSAGES.reasonBusy() };
+			setExtras({ ...extras.system, phase: "installing" });
+			void runSystemInstall(ids, commands);
+			return { started: true };
 		},
 		// The file dialogs answer at once in the fixture; the real ones are the desktop's.
 		exportSetup: async () => ({ ok: true, file: "/home/you/upkeep-settings-2026-11-12.json" }),

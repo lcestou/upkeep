@@ -219,4 +219,20 @@ export const ENGINE_COPY = {
 		`A copy at ${v0} runs first on your PATH; remove it once the build is in, or it keeps running instead.`,
 	draftNeedsTools: (v0: string) => `Building it needs ${v0}, which is not installed.`,
 	importDuringRun: () => `An Upkeep run is in progress. Try again when it ends.`,
+	systemSudo: () =>
+		`sudo needs a password here, so nothing was installed. Install these from the system's own updater.`,
+	systemAptBusy: () =>
+		`Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes.`,
+	systemPolkit: () => `Flatpak would ask for a password here, so nothing was installed.`,
+	systemTrialNamesRestart: (v0: string) =>
+		`A trial run would also change ${v0}, which Update Manager installs with a restart, so nothing was installed.`,
+	systemTrialRemoves: (v0: string) =>
+		`The trial run would remove ${v0}, so nothing was installed. Update Manager can install this one.`,
+	systemTrialFailed: (v0: string) => `The trial run failed, so nothing was installed: ${v0}`,
+	systemListChanged: () => `The system's list changed since you looked. Look at it again, then install.`,
+	systemNothing: () => `None of these is a system update Upkeep installs.`,
+	systemStillPending: () => `Still pending after the install. See the log.`,
+	systemTimedOut: (v0: string) => `${v0} ran past its time limit and was stopped.`,
+	systemNotRechecked: (v0: string) => `Could not read the list again to see whether it installed: ${v0}`,
+	systemRestartApp: () => `Updated. Restart it to use the new version.`,
 } satisfies Record<MessageId, (...values: string[]) => string>;

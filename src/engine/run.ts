@@ -11,6 +11,12 @@ export type RunOpts = {
 	timeoutMs?: number;
 	/** On timeout, also kill every descendant, deepest first. */
 	killTree?: boolean;
+	/**
+	 * Starts the child as the leader of a process group of its own, and on timeout ends the whole group with
+	 * killGroup. For root commands under sudo: sudo passes the TERM on to the command it runs, which a kill of sudo's
+	 * own pid alone would not do, and a grandchild left behind would outlive Upkeep.
+	 */
+	group?: boolean;
 	/** Streams stdout and stderr lines here as they arrive. Without it output is captured through a temp file. */
 	onLine?: (line: string) => void;
 	/** Without onLine: stderr goes into the same capture file as stdout, in the order written, and stderr comes back empty. */
@@ -88,6 +94,23 @@ export function killTree(pid: number, procRoot = "/proc"): void {
 }
 
 /**
+ * Ends the process group pid leads: TERM to every member, then KILL to what is left after graceMs. A member that runs
+ * as root ignores both from here; sudo, which runs as the person, hands the TERM on to the root command it started.
+ * A group already gone is not an error.
+ */
+export function killGroup(pid: number, graceMs = 5000): void {
+	const send = (signal: NodeJS.Signals) => {
+		try {
+			process.kill(-pid, signal);
+		} catch {
+			// the group is gone, or holds only processes this user may not signal
+		}
+	};
+	send("SIGTERM");
+	setTimeout(() => send("SIGKILL"), graceMs).unref();
+}
+
+/**
  * The real runner. Stdin is ignored, ~/ is expanded in every argv element, the owner's bin directories lead PATH,
  * and an argv that starts with sudo gets -n: a child keeps the terminal, so a sudo without it would prompt there
  * and wait out its timeout.
@@ -157,6 +180,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			proc = Bun.spawn(cmd, {
 				cwd: opts.cwd,
 				env,
+				detached: opts.group === true,
 				stdin: "ignore",
 				stdout: stream ? "pipe" : (fds[0] ?? "ignore"),
 				stderr: stream ? "pipe" : (fds[1] ?? fds[0] ?? "ignore"),
@@ -176,7 +200,8 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 				? undefined
 				: setTimeout(() => {
 						timedOut = true;
-						if (opts.killTree) killTree(proc.pid);
+						if (opts.group) killGroup(proc.pid);
+						else if (opts.killTree) killTree(proc.pid);
 						else proc.kill("SIGKILL");
 					}, opts.timeoutMs);
 		const sinks = [{ text: "" }, { text: "" }];

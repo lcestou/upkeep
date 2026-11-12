@@ -420,6 +420,34 @@ export const MESSAGES = {
 	draftNeedsTools: (v0: Value) => `Building it needs ${v0}, which is not installed.`,
 	/** requests.ts and cli.ts: an import refused because a run holds the lock */
 	importDuringRun: () => `An Upkeep run is in progress. Try again when it ends.`,
+	/** extras/install.ts: refused before anything ran */
+	systemSudo: () =>
+		`sudo needs a password here, so nothing was installed. Install these from the system's own updater.`,
+	/** extras/install.ts: refused, another process holds the dpkg lock */
+	systemAptBusy: () =>
+		`Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes.`,
+	/** extras/install.ts: refused, pkcheck says Flatpak would ask */
+	systemPolkit: () => `Flatpak would ask for a password here, so nothing was installed.`,
+	/** extras/install.ts. {0} kernel or NVIDIA packages the trial run named, comma-separated */
+	systemTrialNamesRestart: (v0: Value) =>
+		`A trial run would also change ${v0}, which Update Manager installs with a restart, so nothing was installed.`,
+	/** extras/install.ts. {0} the trial run's first line of output, or its exit code */
+	/** install.ts. {0} the packages the trial run would remove, comma-separated */
+	systemTrialRemoves: (v0: Value) =>
+		`The trial run would remove ${v0}, so nothing was installed. Update Manager can install this one.`,
+	systemTrialFailed: (v0: Value) => `The trial run failed, so nothing was installed: ${v0}`,
+	/** extras/install.ts: refused, the list differs from what the person confirmed */
+	systemListChanged: () => `The system's list changed since you looked. Look at it again, then install.`,
+	/** extras/install.ts: refused, no ticked row is one Upkeep installs */
+	systemNothing: () => `None of these is a system update Upkeep installs.`,
+	/** extras/install.ts: a ticked row still listed after its step ran */
+	systemStillPending: () => `Still pending after the install. See the log.`,
+	/** extras/install.ts. {0} the command, argv joined with spaces */
+	systemTimedOut: (v0: Value) => `${v0} ran past its time limit and was stopped.`,
+	/** extras/install.ts: a Flatpak app that was running during its update */
+	/** extras/install.ts. {0} the first line of the failed re-read */
+	systemNotRechecked: (v0: Value) => `Could not read the list again to see whether it installed: ${v0}`,
+	systemRestartApp: () => `Updated. Restart it to use the new version.`,
 } satisfies Record<string, (...values: Value[]) => string>;
 
 export type MessageId = keyof typeof MESSAGES;

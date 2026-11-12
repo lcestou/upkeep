@@ -197,3 +197,109 @@ test("on a system with apt and no Update Manager the packages come from apt, wit
 	await expect(page.getByTestId("system-absent")).toHaveCount(0);
 	await expect(page.getByTestId("count-system")).toHaveText("10");
 });
+
+test("installing is a second switch, off by default and shown only while the list is", async ({ page }) => {
+	await load(page, "fixture&system=show");
+	await page.getByTestId("tab-settings").click();
+	const install = page.getByTestId("setting-system-install");
+	await expect(install).not.toBeChecked();
+	await expect(page.getByTestId("setting-system-install-help")).toHaveText(
+		"Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password.",
+	);
+	await page.getByTestId("tab-updates").click();
+	await openGroup(page);
+	// Off: the group stays read-only, with no tick and no Install.
+	await expect(page.locator('[data-testid^="sys-tick-"]')).toHaveCount(0);
+	await expect(page.getByTestId("system-install")).toHaveCount(0);
+	await page.getByTestId("tab-settings").click();
+	await install.check();
+	await page.getByTestId("tab-updates").click();
+	await expect(page.getByTestId("sys-tick-apt:perl")).toBeVisible();
+	await page.getByTestId("tab-settings").click();
+	await page.getByTestId("setting-system").uncheck();
+	await expect(page.getByTestId("setting-system-install")).toHaveCount(0);
+	await page.getByTestId("setting-system").check();
+	await expect(page.getByTestId("setting-system-install")).not.toBeChecked();
+});
+
+test("kernel and driver rows have no tick; the rows Upkeep installs do", async ({ page }) => {
+	await load(page, "fixture&system=install");
+	await openGroup(page);
+	await expect(page.getByTestId("sys-tick-apt:linux-generic")).toHaveCount(0);
+	await expect(page.getByTestId("sys-tick-apt:nvidia-driver-580")).toHaveCount(0);
+	await expect(page.getByTestId("sys-row-apt:linux-generic").getByTestId("sys-note")).toHaveText(
+		"Needs a restart after it installs.",
+	);
+	await expect(page.locator('[data-testid^="sys-tick-"]')).toHaveCount(9);
+	for (const id of ["apt:perl", "flatpak:com.discordapp.Discord", "cinnamon:extension:CinnamonBurnMyWindows@klangman"])
+		await expect(page.getByTestId(`sys-tick-${id}`)).not.toBeChecked();
+	await expect(
+		page.getByTestId("sys-row-cinnamon:extension:CinnamonBurnMyWindows@klangman").getByTestId("sys-note"),
+	).toHaveText("Installs with every Cinnamon extension that has an update.");
+	await expect(page.getByTestId("system-install")).toBeDisabled();
+	await expect(page.getByTestId("system-install")).toHaveText("Install system updates");
+});
+
+test("the confirm sheet names the commands before anything runs, and a finished install shows each row's result", async ({
+	page,
+}) => {
+	await load(page, "fixture&system=install");
+	await openGroup(page);
+	for (const id of ["apt:perl", "apt:libsoup3", "flatpak:com.discordapp.Discord"])
+		await page.getByTestId(`sys-tick-${id}`).check();
+	await expect(page.getByTestId("system-install")).toHaveText("Install 3 system updates");
+	await page.getByTestId("system-install").click();
+	await expect(page.getByTestId("system-confirm-ask")).toHaveText("Upkeep runs these commands, in this order:");
+	await expect(page.getByTestId("system-command")).toHaveText([
+		"sudo -n mintupdate-cli upgrade -y --keep-configuration -i linux,linux-signed*,linux-meta*,linux-hwe*,nvidia-graphics-drivers-*,google-chrome-stable,libgphoto2,openjdk-21,linux-generic,nvidia-driver-580",
+		"flatpak update -y --noninteractive com.discordapp.Discord",
+	]);
+	await expect(page.getByTestId("system-confirm-root")).toHaveText(
+		"The commands that start with sudo need administrator rights and run as root.",
+	);
+	// Nothing ran yet: only the plan was asked for.
+	expect((await sysOps(page)).filter((op) => op.startsWith("systemInstall"))).toEqual([]);
+	await page.getByTestId("system-cancel").click();
+	await expect(page.getByTestId("system-confirm-sheet")).toHaveCount(0);
+	expect((await sysOps(page)).filter((op) => op.startsWith("systemInstall"))).toEqual([]);
+
+	await page.getByTestId("system-install").click();
+	await page.getByTestId("system-confirm").click();
+	await expect(page.getByTestId("sys-row-apt:perl").getByTestId("sys-state")).toHaveText("Installing");
+	expect(await sysOps(page)).toContain("systemInstall:apt:libsoup3,apt:perl,flatpak:com.discordapp.Discord");
+	await expect(page.getByTestId("system-summary")).toHaveText("Installed 2 of 3.");
+	await expect(page.getByTestId("sys-result-apt:perl").getByTestId("sys-result-state")).toHaveText("Installed");
+	const soup = page.getByTestId("sys-result-apt:libsoup3");
+	await expect(soup.getByTestId("sys-result-state")).toHaveText("Failed");
+	await expect(soup.getByTestId("sys-result-detail")).toHaveText("Still pending after the install. See the log.");
+	// The installed rows left the list; the failed one stays, unticked.
+	await expect(page.getByTestId("sys-row-apt:perl")).toHaveCount(0);
+	await expect(page.getByTestId("sys-tick-apt:libsoup3")).not.toBeChecked();
+	await page.getByTestId("system-dismiss").click();
+	await expect(page.getByTestId("system-results")).toHaveCount(0);
+});
+
+test("a refused pre-check shows its reason and nothing installs", async ({ page }) => {
+	await load(page, "fixture&system=refuse");
+	await openGroup(page);
+	await page.getByTestId("sys-tick-apt:perl").check();
+	await page.getByTestId("system-install").click();
+	await page.getByTestId("system-confirm").click();
+	await expect(page.getByTestId("system-refused")).toHaveText(
+		"sudo needs a password here, so nothing was installed. Install these from the system's own updater.",
+	);
+	await expect(page.getByTestId("sys-row-apt:perl")).toBeVisible();
+	await expect(page.getByTestId("system-results")).toHaveCount(0);
+});
+
+test("without Update Manager, package rows have no tick and name the system's own tool", async ({ page }) => {
+	await load(page, "fixture&system=apt");
+	await page.getByTestId("tab-settings").click();
+	await page.getByTestId("setting-system-install").check();
+	await page.getByTestId("tab-updates").click();
+	await openGroup(page);
+	const perl = page.getByTestId("sys-row-apt:perl");
+	await expect(perl.getByTestId("sys-tick-apt:perl")).toHaveCount(0);
+	await expect(perl.getByTestId("sys-note")).toHaveText("Install it with apt.");
+	await expect(page.getByTestId("sys-tick-flatpak:com.discordapp.Discord")).toBeVisible();
+});

@@ -68,6 +68,7 @@ msgstr "Готово к установке"
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Installing"
 msgstr "Установка"
 
@@ -178,6 +179,7 @@ msgstr "Ничего не выбрано"
 msgid "Stop after this one"
 msgstr "Остановить после этого"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "Готово"
@@ -309,6 +311,7 @@ msgstr "Проходов пока не было."
 msgid "Updated"
 msgstr "Обновлено"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Failed"
@@ -808,6 +811,7 @@ msgstr "Перезапустить сейчас"
 msgid "Restart"
 msgstr "Перезапустить"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Not now"
 msgstr "Не сейчас"
@@ -2053,3 +2057,122 @@ msgstr "Введите название приложения, вставьте �
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
 msgstr "Не удалось определить, откуда взят {0}. Чтобы добавить его, вставьте его репозиторий или ссылку."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates from Upkeep"
+msgstr "Устанавливать обновления системы из Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "Отмечайте строки в группе «Система» и устанавливайте их оттуда. Ядра и драйвер NVIDIA остаются за Менеджером обновлений: обоим нужна перезагрузка. Пакеты и Snap устанавливаются через sudo, который не должен спрашивать пароль."
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands, in this order:"
+msgstr "Upkeep выполнит эти команды в таком порядке:"
+
+#: src/mainview/lib/copy.ts
+msgid "The commands that start with sudo need administrator rights and run as root."
+msgstr "Команды, начинающиеся с sudo, требуют прав администратора и выполняются от root."
+
+#: src/mainview/lib/copy.ts
+msgid "Install now"
+msgstr "Установить сейчас"
+
+#: src/mainview/lib/copy.ts
+msgid "Waiting"
+msgstr "Ожидает"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed"
+msgstr "Установлено"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon applet that has an update."
+msgstr "Устанавливается вместе со всеми апплетами Cinnamon, у которых есть обновление."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon desklet that has an update."
+msgstr "Устанавливается вместе со всеми десклетами Cinnamon, у которых есть обновление."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon extension that has an update."
+msgstr "Устанавливается вместе со всеми расширениями Cinnamon, у которых есть обновление."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon theme that has an update."
+msgstr "Устанавливается вместе со всеми темами Cinnamon, у которых есть обновление."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates"
+msgstr "Установить обновления системы"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # system update"
+msgid_plural "Install # system updates"
+msgstr[0] "Установить # обновление системы"
+msgstr[1] "Установить # обновления системы"
+msgstr[2] "Установить # обновлений системы"
+msgstr[3] "Установить # обновления системы"
+
+#. 0: done; 1: all
+#: src/mainview/lib/copy.ts
+msgid "Installed {0} of {1}."
+msgstr "Установлено {0} из {1}."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Install it with {0}."
+msgstr "Установите это через {0}."
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here, so nothing was installed. Install these from the system's own updater."
+msgstr "Здесь sudo требует пароль, поэтому ничего не установлено. Установите их собственным средством обновления системы."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes."
+msgstr "Менеджер обновлений или другой установщик использует систему пакетов, поэтому ничего не установлено. Попробуйте снова, когда он закончит."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Flatpak would ask for a password here, so nothing was installed."
+msgstr "Здесь Flatpak спросил бы пароль, поэтому ничего не установлено."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A trial run would also change {0}, which Update Manager installs with a restart, so nothing was installed."
+msgstr "Пробный запуск изменил бы также {0}, а это Менеджер обновлений устанавливает с перезагрузкой, поэтому ничего не установлено."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run failed, so nothing was installed: {0}"
+msgstr "Пробный запуск не удался, поэтому ничего не установлено: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The system's list changed since you looked. Look at it again, then install."
+msgstr "Список системы изменился с тех пор, как вы его смотрели. Посмотрите его снова, затем установите."
+
+#: src/mainview/lib/engine-text.ts
+msgid "None of these is a system update Upkeep installs."
+msgstr "Ни одно из них не является обновлением системы, которое устанавливает Upkeep."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Still pending after the install. See the log."
+msgstr "После установки всё ещё ожидает. Смотрите журнал."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} ran past its time limit and was stopped."
+msgstr "{0} превысил лимит времени и был остановлен."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read the list again to see whether it installed: {0}"
+msgstr "Не удалось снова прочитать список, чтобы проверить, установилось ли: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. Restart it to use the new version."
+msgstr "Обновлено. Перезапустите, чтобы использовать новую версию."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "Пробный запуск удалил бы {0}, поэтому ничего не установлено. Это обновление можно установить в Менеджере обновлений."

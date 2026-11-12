@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createEngine, type EngineDeps } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
+import { MESSAGES } from "../shared/messages";
 import { claimLock, releaseLock } from "../engine/store";
 import { recordingRun, tempHome } from "../engine/testkit";
 import { type Desktop, upkeepRequests } from "./requests";
@@ -82,6 +83,12 @@ test("the requests answer from the engine, and refuse what the engine refuses", 
 	expect((await r.extras({})).settings.system).toBe("off");
 	expect((await r.setExtras({ system: "off" })).system).toBe("off");
 	expect(await r.systemCheck({})).toEqual({ started: false });
+	// Installing is off, so nothing is planned and nothing starts.
+	expect(await r.systemPlan({ ids: ["apt:perl"] })).toEqual({ commands: [], reason: MESSAGES.systemNothing() });
+	expect(await r.systemInstall({ ids: ["apt:perl"], commands: [] })).toEqual({
+		started: false,
+		reason: MESSAGES.systemNothing(),
+	});
 	expect(did).toEqual(["window close", "copy x y"]);
 });
 

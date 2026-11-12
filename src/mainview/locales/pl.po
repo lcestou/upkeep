@@ -68,6 +68,7 @@ msgstr "Gotowe do instalacji"
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Installing"
 msgstr "Instalowanie"
 
@@ -178,6 +179,7 @@ msgstr "Nic nie zaznaczono"
 msgid "Stop after this one"
 msgstr "Zatrzymaj po tej"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "Gotowe"
@@ -309,6 +311,7 @@ msgstr "Brak przebiegów."
 msgid "Updated"
 msgstr "Zaktualizowano"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Failed"
@@ -808,6 +811,7 @@ msgstr "Uruchom ponownie teraz"
 msgid "Restart"
 msgstr "Uruchom ponownie"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Not now"
 msgstr "Nie teraz"
@@ -2053,3 +2057,122 @@ msgstr "Wpisz nazwę aplikacji, wklej repozytorium, np. sharkdp/fd, albo link z 
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
 msgstr "Nie wiadomo, skąd pochodzi {0}. Wklej jego repozytorium lub link, aby go dodać."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates from Upkeep"
+msgstr "Instaluj aktualizacje systemu z Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "Zaznacz wiersze w grupie System i zainstaluj je stamtąd. Jądra i sterownik NVIDIA zostają przy Menedżerze aktualizacji, bo oba wymagają ponownego uruchomienia. Pakiety i Snapy instalują się przez sudo, które nie może pytać o hasło."
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands, in this order:"
+msgstr "Upkeep uruchamia te polecenia w tej kolejności:"
+
+#: src/mainview/lib/copy.ts
+msgid "The commands that start with sudo need administrator rights and run as root."
+msgstr "Polecenia zaczynające się od sudo wymagają uprawnień administratora i działają jako root."
+
+#: src/mainview/lib/copy.ts
+msgid "Install now"
+msgstr "Zainstaluj teraz"
+
+#: src/mainview/lib/copy.ts
+msgid "Waiting"
+msgstr "Czeka"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed"
+msgstr "Zainstalowano"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon applet that has an update."
+msgstr "Instaluje się razem z każdym apletem Cinnamon, który ma aktualizację."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon desklet that has an update."
+msgstr "Instaluje się razem z każdym deskletem Cinnamon, który ma aktualizację."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon extension that has an update."
+msgstr "Instaluje się razem z każdym rozszerzeniem Cinnamon, które ma aktualizację."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon theme that has an update."
+msgstr "Instaluje się razem z każdym motywem Cinnamon, który ma aktualizację."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates"
+msgstr "Zainstaluj aktualizacje systemu"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # system update"
+msgid_plural "Install # system updates"
+msgstr[0] "Zainstaluj # aktualizację systemu"
+msgstr[1] "Zainstaluj # aktualizacje systemu"
+msgstr[2] "Zainstaluj # aktualizacji systemu"
+msgstr[3] "Zainstaluj # aktualizacji systemu"
+
+#. 0: done; 1: all
+#: src/mainview/lib/copy.ts
+msgid "Installed {0} of {1}."
+msgstr "Zainstalowano {0} z {1}."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Install it with {0}."
+msgstr "Zainstaluj to przez {0}."
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here, so nothing was installed. Install these from the system's own updater."
+msgstr "sudo wymaga tu hasła, więc nic nie zostało zainstalowane. Zainstaluj je własnym narzędziem aktualizacji systemu."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes."
+msgstr "Menedżer aktualizacji lub inny instalator używa systemu pakietów, więc nic nie zostało zainstalowane. Spróbuj ponownie, gdy skończy."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Flatpak would ask for a password here, so nothing was installed."
+msgstr "Flatpak zapytałby tu o hasło, więc nic nie zostało zainstalowane."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A trial run would also change {0}, which Update Manager installs with a restart, so nothing was installed."
+msgstr "Próbny przebieg zmieniłby też {0}, co Menedżer aktualizacji instaluje z ponownym uruchomieniem, więc nic nie zostało zainstalowane."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run failed, so nothing was installed: {0}"
+msgstr "Próbny przebieg się nie udał, więc nic nie zostało zainstalowane: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The system's list changed since you looked. Look at it again, then install."
+msgstr "Lista systemu zmieniła się, odkąd ją oglądałeś. Obejrzyj ją ponownie, a potem zainstaluj."
+
+#: src/mainview/lib/engine-text.ts
+msgid "None of these is a system update Upkeep installs."
+msgstr "Żadna z nich nie jest aktualizacją systemu, którą instaluje Upkeep."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Still pending after the install. See the log."
+msgstr "Nadal oczekuje po instalacji. Zobacz dziennik."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} ran past its time limit and was stopped."
+msgstr "{0} przekroczyło limit czasu i zostało zatrzymane."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read the list again to see whether it installed: {0}"
+msgstr "Nie udało się ponownie odczytać listy, by sprawdzić, czy się zainstalowało: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. Restart it to use the new version."
+msgstr "Zaktualizowano. Uruchom ponownie, aby używać nowej wersji."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "Próba usunęłaby {0}, więc nic nie zainstalowano. Tę aktualizację może zainstalować Menedżer aktualizacji."

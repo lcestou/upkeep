@@ -1,9 +1,35 @@
 <script lang="ts">
-	import type { SystemRow } from "../../shared/types";
+	import type { SystemOutcome, SystemRow } from "../../shared/types";
 	import { CHIP, SYS, notInstalledLine } from "../lib/copy";
 	import Glyph from "./Glyph.svelte";
 
-	let { row }: { row: SystemRow } = $props();
+	let {
+		row,
+		can = false,
+		ticked = false,
+		locked = false,
+		onTick = () => {},
+		outcome = null,
+		note = null,
+	}: {
+		row: SystemRow;
+		/** Upkeep can install this row: it gets a tick box. Never true for a kernel or driver row. */
+		can?: boolean;
+		ticked?: boolean;
+		/** A System install is running: the ticks keep what they show. */
+		locked?: boolean;
+		onTick?: (on: boolean) => void;
+		/** Its place in the System install now running. */
+		outcome?: SystemOutcome | null;
+		/** A note the group words for it, such as which tool installs it. */
+		note?: string | null;
+	} = $props();
+
+	const spice = $derived(
+		row.type === "applet" || row.type === "desklet" || row.type === "extension" || row.type === "theme"
+			? SYS.spiceNote[row.type]
+			: null,
+	);
 
 	const sameBuild = $derived(row.installed !== null && row.installed === row.latest);
 	// The whole change, as the cell's title and its accessible name; the drawn parts are hidden from assistive tech.
@@ -16,14 +42,28 @@
 	);
 </script>
 
-<!-- Read-only: not a button, no tab stop, no tick. The cells sit on the ledger's own columns. -->
+<!-- Not a button and no pane. A row Upkeep can install has a tick box, its only tab stop; any other row has none.
+     The cells sit on the ledger's own columns. -->
 <div class="row ledger-cols" data-testid="sys-row-{row.id}">
-	<span class="cell tick"></span>
+	<span class="cell tick">
+		{#if can}
+			<label class="tickhit">
+				<input
+					type="checkbox"
+					checked={ticked}
+					disabled={locked}
+					aria-labelledby="sys-name-{row.id}"
+					data-testid="sys-tick-{row.id}"
+					onchange={(e) => onTick(e.currentTarget.checked)}
+				/>
+			</label>
+		{/if}
+	</span>
 	<div class="hit">
 		<span class="cell mark"><Glyph name="leaf" color="var(--text-3)" /></span>
 		<span class="cell name">
 			<span class="line">
-				<span class="tag-name" data-testid="sys-name">{row.name}</span>
+				<span class="tag-name" id="sys-name-{row.id}" data-testid="sys-name">{row.name}</span>
 				{#if row.running}<span class="chip-use" title={CHIP.running.title} data-testid="sys-chip-running"
 						><span class="dot" aria-hidden="true"></span>{CHIP.running.text}</span
 					>{/if}
@@ -41,7 +81,12 @@
 			<span class="after">
 				{#if sameBuild}<span class="quiet" aria-hidden="true" data-testid="sys-newbuild">{SYS.newBuild}</span>
 				{:else}<span class="new mono" aria-hidden="true" data-testid="sys-new">{row.latest}</span>{/if}
-				{#if row.note === "update-manager-only"}<span class="note" data-testid="sys-note">{SYS.restartNote}</span>{/if}
+				{#if outcome}<span class="state" class:working={outcome.status === "working"} data-testid="sys-state"
+						>{#if outcome.status === "working"}<Glyph name="dot" color="var(--sun)" />{/if}{SYS.state[outcome.status]}</span
+					>
+				{:else if row.note === "update-manager-only"}<span class="note" data-testid="sys-note">{SYS.restartNote}</span>
+				{:else if can && spice}<span class="note" data-testid="sys-note">{spice}</span>
+				{:else if note}<span class="note" data-testid="sys-note">{note}</span>{/if}
 			</span>
 		</span>
 	</div>
@@ -157,6 +202,32 @@
 	.note {
 		font-size: var(--fs-12);
 		color: var(--text-2);
+	}
+	.state {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--s2);
+		font-size: var(--fs-12);
+		color: var(--text-2);
+		white-space: nowrap;
+	}
+	.state.working {
+		color: var(--text);
+	}
+	.tick {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		align-self: stretch;
+	}
+	.tickhit {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		margin-right: -6px;
+		cursor: pointer;
 	}
 	.line {
 		display: flex;

@@ -7,6 +7,7 @@ import type {
 	Settings,
 	Stage,
 	SystemRow,
+	SystemOutcome,
 	SystemState,
 } from "../../shared/types";
 import { formatBytes, plural } from "./format";
@@ -710,7 +711,7 @@ export const WIN = {
 	},
 } as const;
 
-/** The System group: the system's own pending updates, shown read-only. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */
+/** The System group: the system's own pending updates, read-only unless installing is switched on. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */
 export const SYS = {
 	get extras() {
 		return "Extras";
@@ -745,6 +746,57 @@ export const SYS = {
 	},
 	get restartNote() {
 		return "Needs a restart after it installs.";
+	},
+	get installSetting() {
+		return "Install system updates from Upkeep";
+	},
+	get installSettingHelp() {
+		return "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password.";
+	},
+	get confirmIntro() {
+		return "Upkeep runs these commands, in this order:";
+	},
+	get confirmRoot() {
+		return "The commands that start with sudo need administrator rights and run as root.";
+	},
+	get confirmYes() {
+		return "Install now";
+	},
+	get confirmNo() {
+		return "Not now";
+	},
+	get dismiss() {
+		return "Done";
+	},
+	/** A ticked row's place in a System install, then its result. */
+	state: {
+		get queued() {
+			return "Waiting";
+		},
+		get working() {
+			return "Installing";
+		},
+		get done() {
+			return "Installed";
+		},
+		get failed() {
+			return "Failed";
+		},
+	} satisfies Record<SystemOutcome["status"], string>,
+	/** Cinnamon's updater updates a whole spice type at once, so a spice row says so. */
+	spiceNote: {
+		get applet() {
+			return "Installs with every Cinnamon applet that has an update.";
+		},
+		get desklet() {
+			return "Installs with every Cinnamon desklet that has an update.";
+		},
+		get extension() {
+			return "Installs with every Cinnamon extension that has an update.";
+		},
+		get theme() {
+			return "Installs with every Cinnamon theme that has an update.";
+		},
 	},
 	type: {
 		get security() {
@@ -862,6 +914,18 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 /** The NVIDIA runtime warning; the version is the one the driver needs. */
 export const glLine = (version: string) =>
 	`Flatpak apps cannot use the GPU until the NVIDIA ${version} runtime is installed. A Flatpak update installs it.`;
+
+/** The System group's Install button. Zero reads as the generic label, because the button is disabled then. */
+export function systemInstallLabel(n: number): string {
+	if (n === 0) return "Install system updates";
+	return plural(n, ["Install # system update", "Install # system updates"]);
+}
+
+/** The line over a finished System install's results. */
+export const systemSummary = (done: number, all: number) => `Installed ${done} of ${all}.`;
+
+/** A row from a package list Upkeep only reads, while installing is on: the system's own tool installs it. */
+export const systemToolNote = (tool: string) => `Install it with ${tool}.`;
 
 /** The "Check for updates" choices, in the order Settings lists them. */
 export const CHECK_EVERY = [

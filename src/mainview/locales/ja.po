@@ -68,6 +68,7 @@ msgstr "インストール可能"
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Installing"
 msgstr "インストール中"
 
@@ -178,6 +179,7 @@ msgstr "選択なし"
 msgid "Stop after this one"
 msgstr "これが終わったら停止"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "完了"
@@ -309,6 +311,7 @@ msgstr "実行の履歴はまだありません。"
 msgid "Updated"
 msgstr "更新済み"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Failed"
@@ -760,6 +763,7 @@ msgstr "今すぐ再起動"
 msgid "Restart"
 msgstr "再起動"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Not now"
 msgstr "後で"
@@ -1999,3 +2003,119 @@ msgstr "アプリ名を入力するか、sharkdp/fd のようなリポジトリ�
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
 msgstr "{0} の入手元がわかりませんでした。追加するにはリポジトリかリンクを貼り付けてください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates from Upkeep"
+msgstr "Upkeep からシステムの更新をインストール"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "システムグループで行にチェックを入れ、そこからインストールします。カーネルと NVIDIA ドライバーはどちらも再起動が必要なため、アップデートマネージャーに任せます。パッケージと Snap は sudo でインストールされ、sudo がパスワードを求めないことが条件です。"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands, in this order:"
+msgstr "Upkeep は次のコマンドをこの順に実行します:"
+
+#: src/mainview/lib/copy.ts
+msgid "The commands that start with sudo need administrator rights and run as root."
+msgstr "sudo で始まるコマンドは管理者権限が必要で、root として実行されます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Install now"
+msgstr "今すぐインストール"
+
+#: src/mainview/lib/copy.ts
+msgid "Waiting"
+msgstr "待機中"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed"
+msgstr "インストール済み"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon applet that has an update."
+msgstr "更新のある Cinnamon アプレットすべてと一緒にインストールされます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon desklet that has an update."
+msgstr "更新のある Cinnamon デスクレットすべてと一緒にインストールされます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon extension that has an update."
+msgstr "更新のある Cinnamon 拡張機能すべてと一緒にインストールされます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon theme that has an update."
+msgstr "更新のある Cinnamon テーマすべてと一緒にインストールされます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates"
+msgstr "システムの更新をインストール"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # system update"
+msgid_plural "Install # system updates"
+msgstr[0] "# 件のシステム更新をインストール"
+
+#. 0: done; 1: all
+#: src/mainview/lib/copy.ts
+msgid "Installed {0} of {1}."
+msgstr "{1} 件中 {0} 件をインストールしました。"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Install it with {0}."
+msgstr "{0} でインストールしてください。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here, so nothing was installed. Install these from the system's own updater."
+msgstr "ここでは sudo にパスワードが必要なため、何もインストールしませんでした。システム自身の更新ツールでインストールしてください。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes."
+msgstr "アップデートマネージャーか別のインストーラーがパッケージシステムを使用中のため、何もインストールしませんでした。終わってからもう一度お試しください。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Flatpak would ask for a password here, so nothing was installed."
+msgstr "ここでは Flatpak がパスワードを求めるため、何もインストールしませんでした。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A trial run would also change {0}, which Update Manager installs with a restart, so nothing was installed."
+msgstr "試行では {0} も変更されます。これはアップデートマネージャーが再起動つきでインストールするものなので、何もインストールしませんでした。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run failed, so nothing was installed: {0}"
+msgstr "試行に失敗したため、何もインストールしませんでした: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The system's list changed since you looked. Look at it again, then install."
+msgstr "確認したあとでシステムの一覧が変わりました。もう一度確認してからインストールしてください。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "None of these is a system update Upkeep installs."
+msgstr "Upkeep がインストールするシステムの更新はこの中にありません。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Still pending after the install. See the log."
+msgstr "インストール後もまだ保留中です。ログを確認してください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} ran past its time limit and was stopped."
+msgstr "{0} は制限時間を超えたため停止しました。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read the list again to see whether it installed: {0}"
+msgstr "インストールされたか確かめるために一覧を読み直せませんでした: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. Restart it to use the new version."
+msgstr "更新しました。新しいバージョンを使うには再起動してください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "試行で {0} が削除されるため、何もインストールしませんでした。この更新はアップデートマネージャーでインストールできます。"

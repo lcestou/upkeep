@@ -68,6 +68,7 @@ msgstr "Para instalar"
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Installing"
 msgstr "Instalando"
 
@@ -178,6 +179,7 @@ msgstr "Nada seleccionado"
 msgid "Stop after this one"
 msgstr "Parar tras esta"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "Listo"
@@ -309,6 +311,7 @@ msgstr "Aún no hay tandas."
 msgid "Updated"
 msgstr "Actualizado"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Failed"
@@ -792,6 +795,7 @@ msgstr "Reiniciar ahora"
 msgid "Restart"
 msgstr "Reiniciar"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Not now"
 msgstr "Ahora no"
@@ -2035,3 +2039,121 @@ msgstr "Escribe el nombre de una app, pega un repo como sharkdp/fd o un enlace d
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
 msgstr "No se pudo saber de dónde viene {0}. Pega su repo o un enlace para añadirla."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates from Upkeep"
+msgstr "Instalar las actualizaciones del sistema desde Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "Marca filas en el grupo Sistema e instálalas desde allí. Los kernels y el controlador de NVIDIA se quedan con el Gestor de actualizaciones, porque ambos necesitan reiniciar. Los paquetes y los Snaps se instalan con sudo, que no debe pedir contraseña."
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands, in this order:"
+msgstr "Upkeep ejecuta estos comandos, en este orden:"
+
+#: src/mainview/lib/copy.ts
+msgid "The commands that start with sudo need administrator rights and run as root."
+msgstr "Los comandos que empiezan por sudo necesitan permisos de administrador y se ejecutan como root."
+
+#: src/mainview/lib/copy.ts
+msgid "Install now"
+msgstr "Instalar ahora"
+
+#: src/mainview/lib/copy.ts
+msgid "Waiting"
+msgstr "En espera"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed"
+msgstr "Instalada"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon applet that has an update."
+msgstr "Se instala junto con cada applet de Cinnamon que tenga una actualización."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon desklet that has an update."
+msgstr "Se instala junto con cada desklet de Cinnamon que tenga una actualización."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon extension that has an update."
+msgstr "Se instala junto con cada extensión de Cinnamon que tenga una actualización."
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with every Cinnamon theme that has an update."
+msgstr "Se instala junto con cada tema de Cinnamon que tenga una actualización."
+
+#: src/mainview/lib/copy.ts
+msgid "Install system updates"
+msgstr "Instalar actualizaciones del sistema"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # system update"
+msgid_plural "Install # system updates"
+msgstr[0] "Instalar # actualización del sistema"
+msgstr[1] "Instalar # actualizaciones del sistema"
+msgstr[2] "Instalar # actualizaciones del sistema"
+
+#. 0: done; 1: all
+#: src/mainview/lib/copy.ts
+msgid "Installed {0} of {1}."
+msgstr "Instaladas {0} de {1}."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Install it with {0}."
+msgstr "Instálala con {0}."
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here, so nothing was installed. Install these from the system's own updater."
+msgstr "sudo necesita una contraseña aquí, así que no se instaló nada. Instálalas con el actualizador del propio sistema."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Update Manager or another installer is using the package system, so nothing was installed. Try again when it finishes."
+msgstr "El Gestor de actualizaciones u otro instalador está usando el sistema de paquetes, así que no se instaló nada. Inténtalo de nuevo cuando termine."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Flatpak would ask for a password here, so nothing was installed."
+msgstr "Flatpak pediría una contraseña aquí, así que no se instaló nada."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A trial run would also change {0}, which Update Manager installs with a restart, so nothing was installed."
+msgstr "Una prueba también cambiaría {0}, que el Gestor de actualizaciones instala con un reinicio, así que no se instaló nada."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run failed, so nothing was installed: {0}"
+msgstr "La prueba falló, así que no se instaló nada: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The system's list changed since you looked. Look at it again, then install."
+msgstr "La lista del sistema cambió desde que la miraste. Vuelve a mirarla y luego instala."
+
+#: src/mainview/lib/engine-text.ts
+msgid "None of these is a system update Upkeep installs."
+msgstr "Ninguna de estas es una actualización del sistema que Upkeep instale."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Still pending after the install. See the log."
+msgstr "Sigue pendiente después de la instalación. Consulta el registro."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} ran past its time limit and was stopped."
+msgstr "{0} superó su tiempo límite y se detuvo."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read the list again to see whether it installed: {0}"
+msgstr "No se pudo volver a leer la lista para ver si se instaló: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. Restart it to use the new version."
+msgstr "Actualizada. Reiníciala para usar la nueva versión."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "La prueba eliminaría {0}, así que no se instaló nada. El Gestor de actualizaciones puede instalar esta."
