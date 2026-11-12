@@ -40,3 +40,11 @@ test("text the engine did not write comes back unchanged; nested sentences are w
 	const outer = MESSAGES.lastTryFailed(inner);
 	expect(say(outer)).toBe(outer);
 });
+
+test("a long tool output that is no engine sentence is turned away quickly, not backtracked over", () => {
+	// Separators of several templates, many times over: the bare patterns took about two seconds on this.
+	const junk = Array.from({ length: 400 }, (_, i) => `line ${i}: error: entry ${i} needs x (y) -> `).join("\n");
+	const started = performance.now();
+	expect(say(junk)).toBe(junk);
+	expect(performance.now() - started).toBeLessThan(250);
+});

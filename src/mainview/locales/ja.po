@@ -1043,850 +1043,850 @@ msgstr "何も変更されていません：{0}"
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot name a restore point"
-msgstr ""
+msgstr "{0} は復元ポイントの名前に使えません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No restore point {0}."
-msgstr ""
+msgstr "復元ポイント {0} はありません。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} exited {1}."
-msgstr ""
+msgstr "{0} が終了コード {1} で終了しました。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "dpkg could not put {0} back. See the log."
-msgstr ""
+msgstr "dpkg で {0} に戻せませんでした。ログを確認してください。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
-msgstr ""
+msgstr "{0} を復元できませんでした：{1}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path."
-msgstr ""
+msgstr "アプリ名、owner/name 形式の GitHub リポジトリ、github.com のリンク、またはファイルのパスを入力してください。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "From Upkeep's catalogue of tested apps."
-msgstr ""
+msgstr "Upkeep のテスト済みアプリのカタログから。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has no published release."
-msgstr ""
+msgstr "{0} には公開されたリリースがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "The latest tag {0} is not a version Upkeep can compare."
-msgstr ""
+msgstr "最新のタグ {0} は Upkeep が比較できるバージョンではありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No asset of {0}'s latest release runs on this machine."
-msgstr ""
+msgstr "{0} の最新リリースに、このマシンで動くアセットがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet."
-msgstr ""
+msgstr "{0} Linux 向けビルドは .tar.xz、.tar.zst、.tar.bz2、.7z のアーカイブで、Upkeep はまだ開けません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "It installs {0}."
-msgstr ""
+msgstr "{0} をインストールします。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid " The archive holds {0} programs; only the first {1} are listed."
-msgstr ""
+msgstr " アーカイブには {0} 個のプログラムがあります。最初の {1} 個だけを表示しています。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Matched {0} for this machine."
-msgstr ""
+msgstr "このマシン向けに {0} が一致しました。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} comes from the system's packages, so Upkeep will keep its own at {1}, which comes first on your PATH."
-msgstr ""
+msgstr "{0} のコピーはシステムのパッケージから入ったものなので、Upkeep は PATH で先に来る {1} に独自のコピーを置きます。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Found it installed at {0}."
-msgstr ""
+msgstr "{0} にインストール済みです。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Nothing is installed at {0} yet, so Install will put it there."
-msgstr ""
+msgstr "{0} にはまだ何もインストールされていません。「インストール」でそこに入ります。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "The pattern is this release's exact asset name and will need widening."
-msgstr ""
+msgstr "パターンはこのリリースのアセット名そのものなので、広げる必要があります。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Could not read the installed version with --version."
-msgstr ""
+msgstr "--version でインストール済みのバージョンを読み取れませんでした。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is already in the list."
-msgstr ""
+msgstr "{0} はすでに一覧にあります。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} holds no program Upkeep can install."
-msgstr ""
+msgstr "{0} には Upkeep がインストールできるプログラムがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not reach GitHub: {0}"
-msgstr ""
+msgstr "GitHub に接続できませんでした：{0}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub's request limit is used up. Try again after it resets."
-msgstr ""
+msgstr "GitHub のリクエスト上限に達しました。リセット後にもう一度試してください。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
-msgstr ""
+msgstr "GitHub が {1} に対して {0} を返しました。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr ""
+msgstr "{0} の入手元がわかりませんでした。追加するには GitHub リポジトリを貼り付けてください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file at {0}."
-msgstr ""
+msgstr "{0} にファイルがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is not a program Upkeep can track (it is not a compiled binary or an AppImage)."
-msgstr ""
+msgstr "{0} は Upkeep が追跡できるプログラムではありません（コンパイル済みバイナリでも AppImage でもありません）。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "The AppImage names its own release source."
-msgstr ""
+msgstr "AppImage 自身がリリース元を示しています。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Guessed from the file name. Check that {0} is the right project."
-msgstr ""
+msgstr "ファイル名から推測しました。{0} が正しいプロジェクトか確認してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Download failed: the server answered {0}."
-msgstr ""
+msgstr "ダウンロードに失敗しました：サーバーが {0} を返しました。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Download stalled."
-msgstr ""
+msgstr "ダウンロードが止まりました。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Download is {0} bytes, expected {1}."
-msgstr ""
+msgstr "ダウンロードは {0} バイトで、想定は {1} です。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Download is {0} bytes, too small to be a release."
-msgstr ""
+msgstr "ダウンロードは {0} バイトで、リリースとしては小さすぎます。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Checksum does not match the release."
-msgstr ""
+msgstr "チェックサムがリリースと一致しません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "A check is running."
-msgstr ""
+msgstr "確認中です。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "A run is already in progress."
-msgstr ""
+msgstr "すでに実行中です。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "The run stops after the current app, so nothing more can join it."
-msgstr ""
+msgstr "実行は現在のアプリの後で止まるため、これ以上追加できません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "The old updater is running. Finish or close its dialogs first."
-msgstr ""
+msgstr "古いアップデーターが動作中です。先にそのダイアログを完了するか閉じてください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."
-msgstr ""
+msgstr "更新が中断されました。この行から {0} に復元してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Check that {0} still starts."
-msgstr ""
+msgstr "更新が中断されました。{0} が起動するか確認してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has no update to install. Check again."
-msgstr ""
+msgstr "{0} にはインストールする更新がありません。もう一度確認してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot be installed here."
-msgstr ""
+msgstr "{0} はここではインストールできません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "The run stopped: {0}"
-msgstr ""
+msgstr "実行が止まりました：{0}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No app {0}."
-msgstr ""
+msgstr "アプリ {0} はありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is already restarting."
-msgstr ""
+msgstr "{0} はすでに再起動中です。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No app {0} in the list."
-msgstr ""
+msgstr "一覧にアプリ {0} はありません。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. {0} {1} was put back."
-msgstr ""
+msgstr "更新が中断されました。{0} を {1} に戻しました。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: kind is not one of appimage, archive, file, deb"
-msgstr ""
+msgstr "{0}：kind が appimage、archive、file、deb のいずれでもありません"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} already belongs to {1}."
-msgstr ""
+msgstr "{0} はすでに {1} が使っています。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write {0} to apps.toml."
-msgstr ""
+msgstr "{0} を apps.toml に書き込めませんでした。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub sent an answer for {0} that is not JSON."
-msgstr ""
+msgstr "GitHub から返った {0} の応答が JSON ではありません。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub does not know {0} in {1}."
-msgstr ""
+msgstr "GitHub は {1} の {0} を認識していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub sent no comparison for {0}."
-msgstr ""
+msgstr "GitHub から {0} の比較が返りませんでした。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub sent a release for {0} that is not JSON."
-msgstr ""
+msgstr "GitHub から返った {0} のリリースが JSON ではありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub sent no release tag for {0}."
-msgstr ""
+msgstr "GitHub から {0} のリリースタグが返りませんでした。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not reach {0}: {1}"
-msgstr ""
+msgstr "{0} に接続できませんでした：{1}"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} answered {1}."
-msgstr ""
+msgstr "{0} が {1} を返しました。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} sent no version."
-msgstr ""
+msgstr "{0} からバージョンが返りませんでした。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has no tracked version tag."
-msgstr ""
+msgstr "{0} には追跡対象のバージョンタグがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No published version at or above {0}."
-msgstr ""
+msgstr "{0} 以上の公開バージョンがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Unknown version source {0}."
-msgstr ""
+msgstr "バージョンの取得元 {0} は不明です。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "sudo needs a password here, so nothing was stopped or changed."
-msgstr ""
+msgstr "sudo にはここでパスワードが必要なため、何も停止・変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: a place target cannot be a folder directly in the home directory"
-msgstr ""
+msgstr "{0} を拒否しました：place の対象をホームディレクトリ直下のフォルダーにはできません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}. Nothing was changed."
-msgstr ""
+msgstr "{0}。何も変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} Nothing was changed."
-msgstr ""
+msgstr "{0} 何も変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not stop {0}. Nothing was changed."
-msgstr ""
+msgstr "{0} を停止できませんでした。何も変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has local changes. Nothing was changed."
-msgstr ""
+msgstr "{0} にローカルの変更があります。何も変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has commits that are not on GitHub. Nothing was changed."
-msgstr ""
+msgstr "{0} に GitHub にないコミットがあります。何も変更していません。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not fetch {0} into {1}. Nothing was changed."
-msgstr ""
+msgstr "{0} を {1} に取得できませんでした。何も変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not take a restore point: {0}. Nothing was changed."
-msgstr ""
+msgstr "復元ポイントを作成できませんでした：{0}。何も変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Build step failed: hold {0}. Nothing was changed."
-msgstr ""
+msgstr "ビルド手順に失敗しました：hold {0}。何も変更していません。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot move to {1} without a merge. Nothing was changed."
-msgstr ""
+msgstr "{0} はマージせずに {1} へ移動できません。何も変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Build step failed: {0}. Nothing was changed."
-msgstr ""
+msgstr "ビルド手順に失敗しました：{0}。何も変更していません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "The build did not pass its check: config. Nothing was changed."
-msgstr ""
+msgstr "ビルドがチェックに通りませんでした：config。何も変更していません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "The build did not pass its check: {0}. Nothing was changed."
-msgstr ""
+msgstr "ビルドがチェックに通りませんでした：{0}。何も変更していません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "the version check"
-msgstr ""
+msgstr "バージョン確認"
 
 #: src/mainview/lib/engine-text.ts
 msgid "a test"
-msgstr ""
+msgstr "テスト"
 
 #: src/mainview/lib/engine-text.ts
 msgid "the old version"
-msgstr ""
+msgstr "以前のバージョン"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not stop {0} to put {1} back. See the log."
-msgstr ""
+msgstr "{1} に戻すために {0} を停止しようとしましたが、できませんでした。ログを確認してください。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update, and putting {0} back failed: {1} did not answer. See the log."
-msgstr ""
+msgstr "更新後に起動せず、{0} への復元にも失敗しました：{1} が応答しませんでした。ログを確認してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not put the new files in place. Restored {0}."
-msgstr ""
+msgstr "新しいファイルを配置できませんでした。{0} に復元しました。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. Restored {0}."
-msgstr ""
+msgstr "更新後に起動しませんでした。{0} に復元しました。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Failed its test after the update: {0}. Restored {1}."
-msgstr ""
+msgstr "更新後のテストに失敗しました：{0}。{1} に復元しました。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Updated without a restart: none of its services was running."
-msgstr ""
+msgstr "再起動せずに更新しました：実行中のサービスはありませんでした。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} did not answer after the restore. See the log."
-msgstr ""
+msgstr "復元後に {0} が応答しませんでした。ログを確認してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update, and putting {0} back failed. See the log."
-msgstr ""
+msgstr "更新後に起動せず、{0} への復元にも失敗しました。ログを確認してください。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. No restore point: the installed version was not known."
-msgstr ""
+msgstr "更新後に起動しませんでした。インストール済みのバージョンが不明なため、復元ポイントがありません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. Its table has no restore command."
-msgstr ""
+msgstr "更新後に起動しませんでした。テーブルに復元コマンドがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update command."
-msgstr ""
+msgstr "更新コマンドの後も {0} のままです。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Reports {0}."
-msgstr ""
+msgstr "報告されたバージョンは {0} です。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted and could not be put back. Restore it from its row first."
-msgstr ""
+msgstr "中断された更新を元に戻せませんでした。先にその行から復元してください。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1})."
-msgstr ""
+msgstr "{0} が起動しません（{1}）。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Version probe failed: {0}"
-msgstr ""
+msgstr "バージョンの検出に失敗しました：{0}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Version probe failed."
-msgstr ""
+msgstr "バージョンの検出に失敗しました。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not update {0}. See the log."
-msgstr ""
+msgstr "{0} を更新できませんでした。ログを確認してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Updated {0}. New sessions pick them up."
-msgstr ""
+msgstr "{0} 件を更新しました。新しいセッションで反映されます。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} gives a version but no download."
-msgstr ""
+msgstr "{0} はバージョンを示しますが、ダウンロードはありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "The latest tag {0} is not a tracked version."
-msgstr ""
+msgstr "最新のタグ {0} は追跡対象のバージョンではありません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Will not start. A rebuild against the current libraries fixes it."
-msgstr ""
+msgstr "起動しません。現在のライブラリで再ビルドすると直ります。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No release asset matches {0}."
-msgstr ""
+msgstr "{0} に一致するリリースのアセットがありません。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "More than one release asset matches {0}: {1}. Narrow the pattern in apps.toml."
-msgstr ""
+msgstr "{0} に一致するリリースのアセットが複数あります：{1}。apps.toml でパターンを絞り込んでください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No release asset for {0}."
-msgstr ""
+msgstr "{0} のリリースのアセットがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not install {0}."
-msgstr ""
+msgstr "{0} をインストールできませんでした。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not extract {0}."
-msgstr ""
+msgstr "{0} を展開できませんでした。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not install {0}. Restored {1}."
-msgstr ""
+msgstr "{0} をインストールできませんでした。{1} に復元しました。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not install {0}. Restore failed: {1}"
-msgstr ""
+msgstr "{0} をインストールできませんでした。復元に失敗しました：{1}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not install {0}. No restore point was taken."
-msgstr ""
+msgstr "{0} をインストールできませんでした。復元ポイントは作成されていません。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "dpkg could not install {0}. Restored {1}."
-msgstr ""
+msgstr "dpkg で {0} をインストールできませんでした。{1} に復元しました。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "dpkg could not install {0}. See the log."
-msgstr ""
+msgstr "dpkg で {0} をインストールできませんでした。ログを確認してください。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr ""
+msgstr "dpkg で {0} をインストールできず、{1} への復元にも失敗しました。ログを確認してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
-msgstr ""
+msgstr "更新後も {0} のままです。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. No restore point was taken."
-msgstr ""
+msgstr "更新後に起動しませんでした。復元ポイントは作成されていません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. No restore point for this kind."
-msgstr ""
+msgstr "更新後に起動しませんでした。この種類には復元ポイントがありません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Could not read the commit the installed copy was built from."
-msgstr ""
+msgstr "インストール済みのコピーのビルド元コミットを読み取れませんでした。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Built from a commit that is not on the release's history."
-msgstr ""
+msgstr "リリースの履歴にないコミットからビルドされています。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: not a plain version name. Nothing was changed."
-msgstr ""
+msgstr "{0} を拒否しました：単純なバージョン名ではありません。何も変更していません。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not clone {0} at {1}."
-msgstr ""
+msgstr "{0} を {1} でクローンできませんでした。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Build step timed out: {0}"
-msgstr ""
+msgstr "ビルド手順がタイムアウトしました：{0}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Build step failed: {0}"
-msgstr ""
+msgstr "ビルド手順に失敗しました：{0}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: not a plain absolute path"
-msgstr ""
+msgstr "{0} を拒否しました：単純な絶対パスではありません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: it holds more than this table may change"
-msgstr ""
+msgstr "{0} を拒否しました：このテーブルが変更できる範囲より多くを含んでいます"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: it is outside what this table may change"
-msgstr ""
+msgstr "{0} を拒否しました：このテーブルが変更できる範囲の外です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: a link inside it leads outside what this table may change"
-msgstr ""
+msgstr "{0} を拒否しました：中のリンクがこのテーブルが変更できる範囲の外を指しています"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: a link in it leads nowhere"
-msgstr ""
+msgstr "{0} を拒否しました：中のリンクのリンク先がありません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "record {0}: not a plain file name"
-msgstr ""
+msgstr "record {0}：単純なファイル名ではありません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "needs printed nothing: {0}"
-msgstr ""
+msgstr "needs が何も出力しませんでした：{0}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No restore point at {0}."
-msgstr ""
+msgstr "{0} に復元ポイントがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Undo step failed: {0}"
-msgstr ""
+msgstr "元に戻す手順に失敗しました：{0}"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: kind is not one of {1}"
-msgstr ""
+msgstr "{0}：kind が {1} のいずれでもありません"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} must be a string"
-msgstr ""
+msgstr "{0}：{1} は文字列である必要があります"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} must be a list of strings"
-msgstr ""
+msgstr "{0}：{1} は文字列のリストである必要があります"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} must be true or false"
-msgstr ""
+msgstr "{0}：{1} は true か false である必要があります"
 
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} is required for kind {2}"
-msgstr ""
+msgstr "{0}：kind {2} には {1} が必要です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: asset is not a valid regular expression"
-msgstr ""
+msgstr "{0}：asset が正しい正規表現ではありません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: versionless is only for kind claude-plugins"
-msgstr ""
+msgstr "{0}：versionless は kind claude-plugins 専用です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: repo or latest is required for kind appimage"
-msgstr ""
+msgstr "{0}：kind appimage には repo か latest が必要です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags: or json:"
-msgstr ""
+msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json: のいずれかで始まる必要があります"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a json: latest is only for kind appimage"
-msgstr ""
+msgstr "{0}：json: の latest は kind appimage 専用です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: relaunch needs dest"
-msgstr ""
+msgstr "{0}：relaunch には dest が必要です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: relaunch needs process"
-msgstr ""
+msgstr "{0}：relaunch には process が必要です"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: relaunch would close every {1} process; give process the app's own name"
-msgstr ""
+msgstr "{0}：relaunch がすべての {1} プロセスを閉じてしまいます。process にはアプリ自身の名前を指定してください"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} must stay inside dir"
-msgstr ""
+msgstr "{0}：{1} は dir の中にある必要があります"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: every hold path must also be in keep"
-msgstr ""
+msgstr "{0}：hold のパスはすべて keep にも含める必要があります"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: place to cannot be a folder directly in the home directory"
-msgstr ""
+msgstr "{0}：place の to をホームディレクトリ直下のフォルダーにはできません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: stage cannot be the home directory or the live copy"
-msgstr ""
+msgstr "{0}：stage をホームディレクトリや稼働中のコピーにはできません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: check or dest is required for kind source"
-msgstr ""
+msgstr "{0}：kind source には check か dest が必要です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: repo or latest is required for kind source"
-msgstr ""
+msgstr "{0}：kind source には repo か latest が必要です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: move must be ff, reset or detach"
-msgstr ""
+msgstr "{0}：move は ff、reset、detach のいずれかである必要があります"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: move needs dir"
-msgstr ""
+msgstr "{0}：move には dir が必要です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: commit needs a GitHub repo"
-msgstr ""
+msgstr "{0}：commit には GitHub リポジトリが必要です"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} entry 1 needs to be a table"
-msgstr ""
+msgstr "{0}：{1} の 1 番目の項目はテーブルである必要があります"
 
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} entry {2} has an invalid pattern"
-msgstr ""
+msgstr "{0}：{1} の {2} 番目の項目のパターンが正しくありません"
 
 #. 0: v0; 1: v1; 2: v2; 3: v3
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} entry {2} needs {3}"
-msgstr ""
+msgstr "{0}：{1} の {2} 番目の項目には {3} が必要です"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: busy entry {1} when must be stopped"
-msgstr ""
+msgstr "{0}：busy の {1} 番目の項目の when は stopped である必要があります"
 
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: unknown placeholder {{1}} in {2}"
-msgstr ""
+msgstr "{0}：{2} に不明なプレースホルダー {{1}} があります"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: no [apps.<key>] tables"
-msgstr ""
+msgstr "{0}：[apps.<key>] テーブルがありません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: apps is not a table of [apps.<key>] tables"
-msgstr ""
+msgstr "{0}：apps が [apps.<key>] テーブルのテーブルではありません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: is not a table"
-msgstr ""
+msgstr "{0}：テーブルではありません"
 
 #: src/mainview/lib/engine-text.ts
 msgid "The version probe printed nothing."
-msgstr ""
+msgstr "バージョンの検出で何も出力されませんでした。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} never reported a mount point."
-msgstr ""
+msgstr "{0} はマウントポイントを報告しませんでした。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is missing inside {1}."
-msgstr ""
+msgstr "{1} の中に {0} がありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} names no version."
-msgstr ""
+msgstr "{0} にバージョンが書かれていません。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "nothing to start"
-msgstr ""
+msgstr "起動するものがありません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "sudo needs a password here. Restart {0} yourself."
-msgstr ""
+msgstr "sudo にはここでパスワードが必要です。{0} はご自身で再起動してください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}'s table does not say how to restart it."
-msgstr ""
+msgstr "{0} のテーブルに再起動の方法が書かれていません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} did not close. Close it, then open it again."
-msgstr ""
+msgstr "{0} が終了しませんでした。閉じてから、もう一度開いてください。"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} closed, but could not be started again: {1}"
-msgstr ""
+msgstr "{0} は終了しましたが、再起動できませんでした：{1}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "sudo needs a password here. Run the update from a terminal."
-msgstr ""
+msgstr "sudo にはここでパスワードが必要です。ターミナルから更新を実行してください。"
 
 #: src/mainview/lib/engine-text.ts
 msgid "size differs after copy"
-msgstr ""
+msgstr "コピー後のサイズが一致しません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "not JSON: {0}"
-msgstr ""
+msgstr "JSON ではありません：{0}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "not an Upkeep export: the file is not an object"
-msgstr ""
+msgstr "Upkeep の書き出しファイルではありません：ファイルがオブジェクトではありません"
 
 #: src/mainview/lib/engine-text.ts
 msgid "not an Upkeep export this version reads: no \"upkeep\": 1"
-msgstr ""
+msgstr "このバージョンで読める Upkeep の書き出しファイルではありません：\"upkeep\": 1 がありません"
 
 #: src/mainview/lib/engine-text.ts
 msgid "the export has no \"apps\" text"
-msgstr ""
+msgstr "書き出しファイルに \"apps\" のテキストがありません"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "could not write: {0}."
-msgstr ""
+msgstr "書き込めませんでした：{0}。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} Some files could not be put back:"
-msgstr ""
+msgstr "{0} 一部のファイルを元に戻せませんでした："
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: its copy from before is {1}"
-msgstr ""
+msgstr "{0}：読み込み前のコピーは {1} です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: written by this import, and could not be removed"
-msgstr ""
+msgstr "{0}：この読み込みで書き込まれ、削除できませんでした"

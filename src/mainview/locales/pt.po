@@ -1079,850 +1079,850 @@ msgstr "Nada foi alterado: {0}"
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot name a restore point"
-msgstr ""
+msgstr "{0} não serve como nome de ponto de restauração"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No restore point {0}."
-msgstr ""
+msgstr "Não há ponto de restauração {0}."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} exited {1}."
-msgstr ""
+msgstr "{0} saiu com código {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "dpkg could not put {0} back. See the log."
-msgstr ""
+msgstr "O dpkg não conseguiu restaurar a versão {0}. Veja o registro."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not restore {0}: {1}"
-msgstr ""
+msgstr "Não foi possível restaurar {0}: {1}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path."
-msgstr ""
+msgstr "Informe o nome de um app, um repositório do GitHub como owner/name, um link do github.com ou o caminho de um arquivo."
 
 #: src/mainview/lib/engine-text.ts
 msgid "From Upkeep's catalogue of tested apps."
-msgstr ""
+msgstr "Do catálogo de apps testados do Upkeep."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has no published release."
-msgstr ""
+msgstr "{0} não tem nenhuma versão publicada."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "The latest tag {0} is not a version Upkeep can compare."
-msgstr ""
+msgstr "A tag mais recente, {0}, não é uma versão que o Upkeep consiga comparar."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No asset of {0}'s latest release runs on this machine."
-msgstr ""
+msgstr "Nenhum arquivo da versão mais recente de {0} roda nesta máquina."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet."
-msgstr ""
+msgstr "{0} As compilações para Linux são arquivos .tar.xz, .tar.zst, .tar.bz2 ou .7z, que o Upkeep ainda não consegue abrir."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "It installs {0}."
-msgstr ""
+msgstr "Instala {0}."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid " The archive holds {0} programs; only the first {1} are listed."
-msgstr ""
+msgstr " O pacote contém {0} programas; só os primeiros {1} aparecem."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Matched {0} for this machine."
-msgstr ""
+msgstr "{0} serve para esta máquina."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "A copy at {0} comes from the system's packages, so Upkeep will keep its own at {1}, which comes first on your PATH."
-msgstr ""
+msgstr "Uma cópia em {0} vem dos pacotes do sistema, então o Upkeep vai manter a própria em {1}, que vem primeiro no seu PATH."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Found it installed at {0}."
-msgstr ""
+msgstr "Encontrado instalado em {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Nothing is installed at {0} yet, so Install will put it there."
-msgstr ""
+msgstr "Ainda não há nada instalado em {0}, então Instalar vai colocá-lo lá."
 
 #: src/mainview/lib/engine-text.ts
 msgid "The pattern is this release's exact asset name and will need widening."
-msgstr ""
+msgstr "O padrão é o nome exato do arquivo desta versão e vai precisar ser ampliado."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Could not read the installed version with --version."
-msgstr ""
+msgstr "Não foi possível ler a versão instalada com --version."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is already in the list."
-msgstr ""
+msgstr "{0} já está na lista."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} holds no program Upkeep can install."
-msgstr ""
+msgstr "{0} não contém nenhum programa que o Upkeep consiga instalar."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not reach GitHub: {0}"
-msgstr ""
+msgstr "Não foi possível acessar o GitHub: {0}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub's request limit is used up. Try again after it resets."
-msgstr ""
+msgstr "O limite de requisições do GitHub acabou. Tente de novo depois que ele zerar."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
-msgstr ""
+msgstr "O GitHub respondeu {0} para {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr ""
+msgstr "Não foi possível saber de onde vem {0}. Cole o repositório do GitHub dele para adicioná-lo."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file at {0}."
-msgstr ""
+msgstr "Não há nenhum arquivo em {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is not a program Upkeep can track (it is not a compiled binary or an AppImage)."
-msgstr ""
+msgstr "{0} não é um programa que o Upkeep consiga acompanhar (não é um binário compilado nem um AppImage)."
 
 #: src/mainview/lib/engine-text.ts
 msgid "The AppImage names its own release source."
-msgstr ""
+msgstr "O AppImage indica a própria fonte de versões."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Guessed from the file name. Check that {0} is the right project."
-msgstr ""
+msgstr "Deduzido do nome do arquivo. Confira se {0} é o projeto certo."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Download failed: the server answered {0}."
-msgstr ""
+msgstr "O download falhou: o servidor respondeu {0}."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Download stalled."
-msgstr ""
+msgstr "O download travou."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Download is {0} bytes, expected {1}."
-msgstr ""
+msgstr "O download tem {0} bytes; eram esperados {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Download is {0} bytes, too small to be a release."
-msgstr ""
+msgstr "O download tem {0} bytes, pequeno demais para ser uma versão."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Checksum does not match the release."
-msgstr ""
+msgstr "O checksum não confere com a versão."
 
 #: src/mainview/lib/engine-text.ts
 msgid "A check is running."
-msgstr ""
+msgstr "Há uma verificação em andamento."
 
 #: src/mainview/lib/engine-text.ts
 msgid "A run is already in progress."
-msgstr ""
+msgstr "Já há uma execução em andamento."
 
 #: src/mainview/lib/engine-text.ts
 msgid "The run stops after the current app, so nothing more can join it."
-msgstr ""
+msgstr "A execução para depois do app atual, então nada mais pode entrar nela."
 
 #: src/mainview/lib/engine-text.ts
 msgid "The old updater is running. Finish or close its dialogs first."
-msgstr ""
+msgstr "O atualizador antigo está rodando. Conclua ou feche as janelas dele primeiro."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."
-msgstr ""
+msgstr "Uma atualização foi interrompida. Restaure {0} por esta linha."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Check that {0} still starts."
-msgstr ""
+msgstr "Uma atualização foi interrompida. Confira se {0} ainda inicia."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has no update to install. Check again."
-msgstr ""
+msgstr "{0} não tem atualização para instalar. Verifique de novo."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot be installed here."
-msgstr ""
+msgstr "{0} não pode ser instalado aqui."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "The run stopped: {0}"
-msgstr ""
+msgstr "A execução parou: {0}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No app {0}."
-msgstr ""
+msgstr "Não existe o app {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is already restarting."
-msgstr ""
+msgstr "{0} já está reiniciando."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No app {0} in the list."
-msgstr ""
+msgstr "Não há nenhum app {0} na lista."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. {0} {1} was put back."
-msgstr ""
+msgstr "Uma atualização foi interrompida. {0} {1} foi restaurado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: kind is not one of appimage, archive, file, deb"
-msgstr ""
+msgstr "{0}: kind não é appimage, archive, file nem deb"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} already belongs to {1}."
-msgstr ""
+msgstr "{0} já pertence a {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write {0} to apps.toml."
-msgstr ""
+msgstr "Não foi possível gravar {0} no apps.toml."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub sent an answer for {0} that is not JSON."
-msgstr ""
+msgstr "O GitHub enviou para {0} uma resposta que não é JSON."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub does not know {0} in {1}."
-msgstr ""
+msgstr "O GitHub não conhece {0} em {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub sent no comparison for {0}."
-msgstr ""
+msgstr "O GitHub não enviou comparação para {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub sent a release for {0} that is not JSON."
-msgstr ""
+msgstr "O GitHub enviou para {0} uma versão que não é JSON."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub sent no release tag for {0}."
-msgstr ""
+msgstr "O GitHub não enviou tag de versão para {0}."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not reach {0}: {1}"
-msgstr ""
+msgstr "Não foi possível acessar {0}: {1}"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} answered {1}."
-msgstr ""
+msgstr "{0} respondeu {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} sent no version."
-msgstr ""
+msgstr "{0} não enviou nenhuma versão."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has no tracked version tag."
-msgstr ""
+msgstr "{0} não tem nenhuma tag de versão que o Upkeep consiga acompanhar."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No published version at or above {0}."
-msgstr ""
+msgstr "Não há versão publicada igual ou acima de {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Unknown version source {0}."
-msgstr ""
+msgstr "Fonte de versões desconhecida: {0}."
 
 #: src/mainview/lib/engine-text.ts
 msgid "sudo needs a password here, so nothing was stopped or changed."
-msgstr ""
+msgstr "O sudo pede senha aqui, então nada foi parado nem alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: a place target cannot be a folder directly in the home directory"
-msgstr ""
+msgstr "{0} recusado: um destino de place não pode ser uma pasta direto na pasta pessoal"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}. Nothing was changed."
-msgstr ""
+msgstr "{0}. Nada foi alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} Nothing was changed."
-msgstr ""
+msgstr "{0} Nada foi alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not stop {0}. Nothing was changed."
-msgstr ""
+msgstr "Não foi possível parar {0}. Nada foi alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has local changes. Nothing was changed."
-msgstr ""
+msgstr "{0} tem alterações locais. Nada foi alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has commits that are not on GitHub. Nothing was changed."
-msgstr ""
+msgstr "{0} tem commits que não estão no GitHub. Nada foi alterado."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not fetch {0} into {1}. Nothing was changed."
-msgstr ""
+msgstr "Não foi possível buscar {0} em {1}. Nada foi alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not take a restore point: {0}. Nothing was changed."
-msgstr ""
+msgstr "Não foi possível criar um ponto de restauração: {0}. Nada foi alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Build step failed: hold {0}. Nothing was changed."
-msgstr ""
+msgstr "Uma etapa de compilação falhou: hold {0}. Nada foi alterado."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot move to {1} without a merge. Nothing was changed."
-msgstr ""
+msgstr "{0} não pode ir para {1} sem um merge. Nada foi alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Build step failed: {0}. Nothing was changed."
-msgstr ""
+msgstr "Uma etapa de compilação falhou: {0}. Nada foi alterado."
 
 #: src/mainview/lib/engine-text.ts
 msgid "The build did not pass its check: config. Nothing was changed."
-msgstr ""
+msgstr "A compilação não passou na verificação: config. Nada foi alterado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "The build did not pass its check: {0}. Nothing was changed."
-msgstr ""
+msgstr "A compilação não passou na verificação: {0}. Nada foi alterado."
 
 #: src/mainview/lib/engine-text.ts
 msgid "the version check"
-msgstr ""
+msgstr "a verificação de versão"
 
 #: src/mainview/lib/engine-text.ts
 msgid "a test"
-msgstr ""
+msgstr "um teste"
 
 #: src/mainview/lib/engine-text.ts
 msgid "the old version"
-msgstr ""
+msgstr "a versão anterior"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not stop {0} to put {1} back. See the log."
-msgstr ""
+msgstr "Não foi possível parar {0} para restaurar {1}. Veja o registro."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update, and putting {0} back failed: {1} did not answer. See the log."
-msgstr ""
+msgstr "Não iniciou depois da atualização, e não foi possível restaurar {0}: {1} não respondeu. Veja o registro."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not put the new files in place. Restored {0}."
-msgstr ""
+msgstr "Não foi possível colocar os arquivos novos no lugar. Voltou para {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. Restored {0}."
-msgstr ""
+msgstr "Não iniciou depois da atualização. Voltou para {0}."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Failed its test after the update: {0}. Restored {1}."
-msgstr ""
+msgstr "Falhou no teste depois da atualização: {0}. Voltou para {1}."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Updated without a restart: none of its services was running."
-msgstr ""
+msgstr "Atualizado sem reiniciar: nenhum dos serviços dele estava rodando."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} did not answer after the restore. See the log."
-msgstr ""
+msgstr "{0} não respondeu depois da restauração. Veja o registro."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update, and putting {0} back failed. See the log."
-msgstr ""
+msgstr "Não iniciou depois da atualização, e não foi possível restaurar {0}. Veja o registro."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. No restore point: the installed version was not known."
-msgstr ""
+msgstr "Não iniciou depois da atualização. Sem ponto de restauração: a versão instalada era desconhecida."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. Its table has no restore command."
-msgstr ""
+msgstr "Não iniciou depois da atualização. A tabela dele não tem comando de restauração."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update command."
-msgstr ""
+msgstr "Continua em {0} depois do comando de atualização."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Reports {0}."
-msgstr ""
+msgstr "Informa a versão {0}."
 
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted and could not be put back. Restore it from its row first."
-msgstr ""
+msgstr "Uma atualização foi interrompida e não pôde ser desfeita. Restaure o app pela linha dele primeiro."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1})."
-msgstr ""
+msgstr "{0} não inicia ({1})."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Version probe failed: {0}"
-msgstr ""
+msgstr "A consulta da versão falhou: {0}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "Version probe failed."
-msgstr ""
+msgstr "A consulta da versão falhou."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not update {0}. See the log."
-msgstr ""
+msgstr "Não foi possível atualizar {0}. Veja o registro."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Updated {0}. New sessions pick them up."
-msgstr ""
+msgstr "Atualizados: {0}. As sessões novas passam a usá-los."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} gives a version but no download."
-msgstr ""
+msgstr "{0} informa uma versão, mas nenhum download."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "The latest tag {0} is not a tracked version."
-msgstr ""
+msgstr "A tag mais recente, {0}, não é uma versão acompanhada."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Will not start. A rebuild against the current libraries fixes it."
-msgstr ""
+msgstr "Não inicia. Recompilar com as bibliotecas atuais resolve."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No release asset matches {0}."
-msgstr ""
+msgstr "Nenhum arquivo da versão corresponde a {0}."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "More than one release asset matches {0}: {1}. Narrow the pattern in apps.toml."
-msgstr ""
+msgstr "Mais de um arquivo da versão corresponde a {0}: {1}. Restrinja o padrão no apps.toml."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No release asset for {0}."
-msgstr ""
+msgstr "Não há arquivo de versão para {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not install {0}."
-msgstr ""
+msgstr "Não foi possível instalar {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not extract {0}."
-msgstr ""
+msgstr "Não foi possível extrair {0}."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not install {0}. Restored {1}."
-msgstr ""
+msgstr "Não foi possível instalar {0}. Versão {1} restaurada."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not install {0}. Restore failed: {1}"
-msgstr ""
+msgstr "Não foi possível instalar {0}. A restauração falhou: {1}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Could not install {0}. No restore point was taken."
-msgstr ""
+msgstr "Não foi possível instalar {0}. Nenhum ponto de restauração foi criado."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "dpkg could not install {0}. Restored {1}."
-msgstr ""
+msgstr "O dpkg não conseguiu instalar {0}. Versão {1} restaurada."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "dpkg could not install {0}. See the log."
-msgstr ""
+msgstr "O dpkg não conseguiu instalar {0}. Veja o registro."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "dpkg could not install {0}, and putting {1} back failed. See the log."
-msgstr ""
+msgstr "O dpkg não conseguiu instalar {0}, e não foi possível restaurar a versão {1}. Veja o registro."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Still at {0} after the update."
-msgstr ""
+msgstr "Continua em {0} depois da atualização."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. No restore point was taken."
-msgstr ""
+msgstr "Não iniciou depois da atualização. Nenhum ponto de restauração foi criado."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Would not start after the update. No restore point for this kind."
-msgstr ""
+msgstr "Não iniciou depois da atualização. Este tipo não tem ponto de restauração."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Could not read the commit the installed copy was built from."
-msgstr ""
+msgstr "Não foi possível ler o commit do qual a cópia instalada foi compilada."
 
 #: src/mainview/lib/engine-text.ts
 msgid "Built from a commit that is not on the release's history."
-msgstr ""
+msgstr "Compilado a partir de um commit que não está no histórico da versão."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: not a plain version name. Nothing was changed."
-msgstr ""
+msgstr "{0} recusado: não é um nome de versão simples. Nada foi alterado."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "Could not clone {0} at {1}."
-msgstr ""
+msgstr "Não foi possível clonar {0} na tag {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Build step timed out: {0}"
-msgstr ""
+msgstr "Uma etapa de compilação esgotou o tempo: {0}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Build step failed: {0}"
-msgstr ""
+msgstr "Uma etapa de compilação falhou: {0}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: not a plain absolute path"
-msgstr ""
+msgstr "{0} recusado: não é um caminho absoluto simples"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: it holds more than this table may change"
-msgstr ""
+msgstr "{0} recusado: contém mais do que esta tabela pode alterar"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: it is outside what this table may change"
-msgstr ""
+msgstr "{0} recusado: está fora do que esta tabela pode alterar"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: a link inside it leads outside what this table may change"
-msgstr ""
+msgstr "{0} recusado: um link dentro dele leva para fora do que esta tabela pode alterar"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Refused {0}: a link in it leads nowhere"
-msgstr ""
+msgstr "{0} recusado: um link nele não leva a lugar nenhum"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "record {0}: not a plain file name"
-msgstr ""
+msgstr "record {0}: não é um nome de arquivo simples"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "needs printed nothing: {0}"
-msgstr ""
+msgstr "needs não imprimiu nada: {0}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "No restore point at {0}."
-msgstr ""
+msgstr "Não há ponto de restauração em {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "Undo step failed: {0}"
-msgstr ""
+msgstr "Uma etapa de desfazer falhou: {0}"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: kind is not one of {1}"
-msgstr ""
+msgstr "{0}: kind não é um de {1}"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} must be a string"
-msgstr ""
+msgstr "{0}: {1} precisa ser uma string"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} must be a list of strings"
-msgstr ""
+msgstr "{0}: {1} precisa ser uma lista de strings"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} must be true or false"
-msgstr ""
+msgstr "{0}: {1} precisa ser true ou false"
 
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} is required for kind {2}"
-msgstr ""
+msgstr "{0}: {1} é obrigatório para kind {2}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: asset is not a valid regular expression"
-msgstr ""
+msgstr "{0}: asset não é uma expressão regular válida"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: versionless is only for kind claude-plugins"
-msgstr ""
+msgstr "{0}: versionless só vale para kind claude-plugins"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: repo or latest is required for kind appimage"
-msgstr ""
+msgstr "{0}: repo ou latest é obrigatório para kind appimage"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags: or json:"
-msgstr ""
+msgstr "{0}: latest precisa começar com npm:, pypi:, github:, npm-tags: ou json:"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a json: latest is only for kind appimage"
-msgstr ""
+msgstr "{0}: um latest json: só vale para kind appimage"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: relaunch needs dest"
-msgstr ""
+msgstr "{0}: relaunch precisa de dest"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: relaunch needs process"
-msgstr ""
+msgstr "{0}: relaunch precisa de process"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: relaunch would close every {1} process; give process the app's own name"
-msgstr ""
+msgstr "{0}: relaunch fecharia todos os processos {1}; coloque em process o nome do próprio app"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} must stay inside dir"
-msgstr ""
+msgstr "{0}: {1} precisa ficar dentro de dir"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: every hold path must also be in keep"
-msgstr ""
+msgstr "{0}: todo caminho de hold também precisa estar em keep"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: place to cannot be a folder directly in the home directory"
-msgstr ""
+msgstr "{0}: o to de place não pode ser uma pasta direto na pasta pessoal"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: stage cannot be the home directory or the live copy"
-msgstr ""
+msgstr "{0}: stage não pode ser a pasta pessoal nem a cópia em uso"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: check or dest is required for kind source"
-msgstr ""
+msgstr "{0}: check ou dest é obrigatório para kind source"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: repo or latest is required for kind source"
-msgstr ""
+msgstr "{0}: repo ou latest é obrigatório para kind source"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: move must be ff, reset or detach"
-msgstr ""
+msgstr "{0}: move precisa ser ff, reset ou detach"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: move needs dir"
-msgstr ""
+msgstr "{0}: move precisa de dir"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: commit needs a GitHub repo"
-msgstr ""
+msgstr "{0}: commit precisa de um repositório do GitHub"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} entry 1 needs to be a table"
-msgstr ""
+msgstr "{0}: a entrada 1 de {1} precisa ser uma tabela"
 
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} entry {2} has an invalid pattern"
-msgstr ""
+msgstr "{0}: a entrada {2} de {1} tem um padrão inválido"
 
 #. 0: v0; 1: v1; 2: v2; 3: v3
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} entry {2} needs {3}"
-msgstr ""
+msgstr "{0}: a entrada {2} de {1} requer {3}"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: busy entry {1} when must be stopped"
-msgstr ""
+msgstr "{0}: na entrada {1} de busy, when precisa ser stopped"
 
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: unknown placeholder {{1}} in {2}"
-msgstr ""
+msgstr "{0}: marcador desconhecido {{1}} em {2}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: no [apps.<key>] tables"
-msgstr ""
+msgstr "{0}: não há tabelas [apps.<key>]"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: apps is not a table of [apps.<key>] tables"
-msgstr ""
+msgstr "{0}: apps não é uma tabela de tabelas [apps.<key>]"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: is not a table"
-msgstr ""
+msgstr "{0}: não é uma tabela"
 
 #: src/mainview/lib/engine-text.ts
 msgid "The version probe printed nothing."
-msgstr ""
+msgstr "A consulta da versão não mostrou nada."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} never reported a mount point."
-msgstr ""
+msgstr "{0} nunca informou um ponto de montagem."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is missing inside {1}."
-msgstr ""
+msgstr "{0} não existe dentro de {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} names no version."
-msgstr ""
+msgstr "{0} não indica nenhuma versão."
 
 #: src/mainview/lib/engine-text.ts
 msgid "nothing to start"
-msgstr ""
+msgstr "nada para iniciar"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "sudo needs a password here. Restart {0} yourself."
-msgstr ""
+msgstr "O sudo pede senha aqui. Reinicie {0} você mesmo."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}'s table does not say how to restart it."
-msgstr ""
+msgstr "A tabela de {0} não diz como reiniciá-lo."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} did not close. Close it, then open it again."
-msgstr ""
+msgstr "{0} não fechou. Feche e abra de novo."
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} closed, but could not be started again: {1}"
-msgstr ""
+msgstr "{0} fechou, mas não foi possível iniciá-lo de novo: {1}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "sudo needs a password here. Run the update from a terminal."
-msgstr ""
+msgstr "O sudo pede senha aqui. Execute a atualização em um terminal."
 
 #: src/mainview/lib/engine-text.ts
 msgid "size differs after copy"
-msgstr ""
+msgstr "o tamanho ficou diferente após a cópia"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "not JSON: {0}"
-msgstr ""
+msgstr "não é JSON: {0}"
 
 #: src/mainview/lib/engine-text.ts
 msgid "not an Upkeep export: the file is not an object"
-msgstr ""
+msgstr "não é uma exportação do Upkeep: o arquivo não é um objeto"
 
 #: src/mainview/lib/engine-text.ts
 msgid "not an Upkeep export this version reads: no \"upkeep\": 1"
-msgstr ""
+msgstr "não é uma exportação do Upkeep que esta versão consiga ler: falta \"upkeep\": 1"
 
 #: src/mainview/lib/engine-text.ts
 msgid "the export has no \"apps\" text"
-msgstr ""
+msgstr "a exportação não tem texto \"apps\""
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "could not write: {0}."
-msgstr ""
+msgstr "não foi possível gravar: {0}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} Some files could not be put back:"
-msgstr ""
+msgstr "{0} Alguns arquivos não puderam ser restaurados:"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: its copy from before is {1}"
-msgstr ""
+msgstr "{0}: a cópia de antes é {1}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: written by this import, and could not be removed"
-msgstr ""
+msgstr "{0}: gravado por esta importação, e não foi possível removê-lo"

@@ -11,7 +11,8 @@ import { ENGINE_COPY } from "./engine-text";
 /** Marks where a value goes when a template is drawn to learn its shape; never in real text. */
 const MARK = (i: number) => `\u{E000}${i}\u{E001}`;
 
-type Pattern = { id: MessageId; re: RegExp; order: number[] };
+/** A template as a pattern, with the fixed text between its values for a quick check before the pattern runs. */
+type Pattern = { id: MessageId; re: RegExp; order: number[]; pieces: string[] };
 
 /** A RegExp source that matches the text literally. */
 const literal = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -31,8 +32,8 @@ function patterns(): Pattern[] {
 		const fn = MESSAGES[id] as (...v: string[]) => string;
 		const drawn = fn(...Array.from({ length: fn.length }, (_, i) => MARK(i)));
 		const order: number[] = [];
-		const source = drawn
-			.split(/(\u{E000}\d+\u{E001})/u)
+		const split = drawn.split(/(\u{E000}\d+\u{E001})/u);
+		const source = split
 			.map((part) => {
 				const at = /^\u{E000}(\d+)\u{E001}$/u.exec(part);
 				if (!at) return literal(part);
@@ -41,16 +42,38 @@ function patterns(): Pattern[] {
 			})
 			.join("");
 		const fixed = drawn.replace(/\u{E000}\d+\u{E001}/gu, "").replace(/[^\p{L}]/gu, "").length;
-		return { id, re: new RegExp(`^${source}$`, "u"), order, fixed };
+		// split alternates fixed text and marks, so the even entries are the fixed text, "" at an end that is a value.
+		const pieces = split.filter((_, i) => i % 2 === 0);
+		return { id, re: new RegExp(`^${source}$`, "u"), order, pieces, fixed };
 	});
 	all.sort((a, b) => b.fixed - a.fixed);
 	built = all;
 	return built;
 }
 
+/**
+ * Whether the text starts with the first piece, ends with the last, and has the ones between in order. A pattern of
+ * several values backtracks over every place its separators occur, which took seconds on a long tool output; this
+ * check is linear and turns away nearly every template before the pattern runs.
+ */
+function couldBe(text: string, pieces: string[]): boolean {
+	if (pieces.length === 1) return text === pieces[0];
+	const first = pieces[0] ?? "";
+	const last = pieces.at(-1) ?? "";
+	if (!text.startsWith(first) || !text.endsWith(last) || text.length < first.length + last.length) return false;
+	let at = first.length;
+	for (const piece of pieces.slice(1, -1)) {
+		at = text.indexOf(piece, at);
+		if (at < 0) return false;
+		at += piece.length;
+	}
+	return at <= text.length - last.length;
+}
+
 /** The template a text was written from, with its values in the template's own order; null when none fits. */
 export function match(text: string): { id: MessageId; values: string[] } | null {
 	for (const s of patterns()) {
+		if (!couldBe(text, s.pieces)) continue;
 		const m = s.re.exec(text);
 		if (!m) continue;
 		const values: string[] = [];
