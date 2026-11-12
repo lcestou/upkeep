@@ -1231,10 +1231,6 @@ msgstr "C'è già una sessione in corso."
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "La sessione si ferma dopo l'app attuale, quindi non si può aggiungere altro."
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "Il vecchio programma di aggiornamento è in esecuzione. Prima completa o chiudi le sue finestre."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."

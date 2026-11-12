@@ -1213,10 +1213,6 @@ msgstr "Ein Durchlauf läuft bereits."
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "Der Durchlauf endet nach der aktuellen App, also kann nichts mehr dazukommen."
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "Der alte Updater läuft. Beende oder schließe zuerst seine Dialoge."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."

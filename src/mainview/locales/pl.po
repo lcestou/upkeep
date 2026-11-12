@@ -1249,10 +1249,6 @@ msgstr "Przebieg już trwa."
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "Przebieg kończy się po bieżącej aplikacji, więc nic więcej nie może do niego dołączyć."
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "Działa stary program aktualizujący. Najpierw dokończ lub zamknij jego okna."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."

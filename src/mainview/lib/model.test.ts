@@ -460,7 +460,7 @@ describe("what the components read and write", () => {
 		expect(m.prior).toEqual({});
 	});
 
-	test("the queue lists the run's apps with the old script's last, and Open shows the inspector app", async () => {
+	test("the queue lists the run's apps, and Open shows the inspector app", async () => {
 		const m = await started();
 		m.select("fd");
 		expect(m.openApp?.key).toBe("fd");

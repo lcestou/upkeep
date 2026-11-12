@@ -27,7 +27,7 @@ export function checkSource(spec: AppSpec, ctx: KindCtx): Promise<Checked | null
 	return spec.check ? checkBuilt(spec, ctx) : checkRelease(spec, ctx, false);
 }
 
-/** Semver order when both sides are semver, so prereleases compare in full; the old script's order otherwise. */
+/** Semver order when both sides are semver, so prereleases compare in full; `isNewer`'s number-by-number order otherwise. */
 function newer(installed: string | null, latest: string): boolean {
 	if (installed === null) return false;
 	try {

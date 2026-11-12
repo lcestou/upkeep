@@ -1,5 +1,5 @@
 import { copyFileSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import type {
 	AppSpec,
 	AppState,
@@ -77,11 +77,6 @@ export type EngineDeps = {
 	fetch: FetchLike;
 	run: Run;
 	now: () => Date;
-	/**
-	 * The first owner's old updater, retired: its lock file and its process name. While its login run still holds the
-	 * lock, a run would race it over the same apps, so Install waits. Without it there is nothing to wait for.
-	 */
-	oldLock?: { file: string; name: string };
 	/** The app's version, shown in Settings. */
 	version?: string;
 	procRoot?: string;
@@ -133,7 +128,6 @@ export const REASON_CHECKING = MESSAGES.reasonChecking();
 export const REASON_BUSY = MESSAGES.reasonBusy();
 export const REASON_NOTHING = MESSAGES.reasonNothing();
 export const REASON_STOPPING = MESSAGES.reasonStopping();
-export const REASON_OLD = MESSAGES.reasonOld();
 
 /**
  * Whether a copy still running after an update is worth a restart prompt. A desktop app, a package or a service is;
@@ -311,25 +305,6 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	const specOf = (key: string) => specs.find((s) => s.key === key);
-
-	/**
-	 * True while the old updater's lock names a live process of that updater: its login run may be updating the same
-	 * apps. A pid reused by another program does not count.
-	 */
-	function oldUpdaterRunning(): boolean {
-		const lock = deps.oldLock;
-		if (!lock) return false;
-		try {
-			const pid = readFileSync(lock.file, "utf8").trim();
-			if (!/^\d+$/.test(pid)) return false;
-			// The program itself or the script an interpreter runs (its first argument that is not an option, as in
-			// bash -x <script>), named exactly so; a mention further on, as in a tail of its log, does not count.
-			const [prog = "", ...rest] = readFileSync(join(deps.procRoot ?? "/proc", pid, "cmdline"), "utf8").split("\0");
-			return [prog, rest.find((a) => !a.startsWith("-")) ?? ""].some((a) => basename(a) === lock.name);
-		} catch {
-			return false;
-		}
-	}
 
 	function kindCtx(key: string, overrides: Partial<KindCtx> = {}): KindCtx {
 		return {
@@ -632,10 +607,6 @@ export function createEngine(deps: EngineDeps): Engine {
 		const queue = [...pick];
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
 		if (!claimLock(paths, process.pid, deps.procRoot)) return { started: false, reason: REASON_BUSY };
-		if (oldUpdaterRunning()) {
-			releaseLock(paths);
-			return { started: false, reason: REASON_OLD };
-		}
 		runQueue = queue;
 		// A retry keeps the first pass's order on screen, so the rows it shows do not move.
 		runBase = retry ? (run.queue ?? []) : [];
@@ -710,11 +681,6 @@ export function createEngine(deps: EngineDeps): Engine {
 		const history: HistoryRow[] = [];
 		for (const [i, spec] of queue.entries()) {
 			if (run.stopping) {
-				backToReady(queue.slice(i));
-				break;
-			}
-			if (oldUpdaterRunning()) {
-				say(null, REASON_OLD);
 				backToReady(queue.slice(i));
 				break;
 			}

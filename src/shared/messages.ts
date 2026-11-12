@@ -97,8 +97,6 @@ export const MESSAGES = {
 	reasonNothing: () => `Nothing to install.`,
 	/** engine.ts */
 	reasonStopping: () => `The run stops after the current app, so nothing more can join it.`,
-	/** engine.ts */
-	reasonOld: () => `The old updater is running. Finish or close its dialogs first.`,
 	/** engine.ts. {0} restore point version */
 	interruptedRestoreFromRow: (v0: Value) => `An update was interrupted. Restore ${v0} from this row.`,
 	/** engine.ts. {0} app name (or key when the app left the list) */

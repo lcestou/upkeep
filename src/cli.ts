@@ -26,7 +26,7 @@ export const USAGE = [
 
 type Out = (line: string) => void;
 
-/** One line per app, in the OK / UPDATE / BROKEN / SKIP shapes the old updater's --check used, so muscle memory still reads it. */
+/** One line per app, as OK, UPDATE, BROKEN or SKIP first, so a script or a glance reads the state from the first word. */
 export function checkLine(a: AppState): string {
 	switch (a.status) {
 		case "fresh":

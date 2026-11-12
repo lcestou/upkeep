@@ -51,7 +51,6 @@ export const ENGINE_COPY = {
 	reasonBusy: () => `A run is already in progress.`,
 	reasonNothing: () => `Nothing to install.`,
 	reasonStopping: () => `The run stops after the current app, so nothing more can join it.`,
-	reasonOld: () => `The old updater is running. Finish or close its dialogs first.`,
 	interruptedRestoreFromRow: (v0: string) => `An update was interrupted. Restore ${v0} from this row.`,
 	interruptedCheckStarts: (v0: string) => `An update was interrupted. Check that ${v0} still starts.`,
 	noUpdateToInstall: (v0: string) => `${v0} has no update to install. Check again.`,
