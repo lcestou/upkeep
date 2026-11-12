@@ -187,6 +187,8 @@ test("input: a repo, a github.com link, a file path, or neither", () => {
 		repo: "gitlab.com/inkscape/inkscape",
 	});
 	expect(readInput("https://gitlab.com/g/sub/tool/blob/main/README.md")).toEqual({ repo: "gitlab.com/g/sub/tool" });
+	// A group named like a route word is still a group.
+	expect(readInput("https://gitlab.com/o/tags/proj")).toEqual({ repo: "gitlab.com/o/tags/proj" });
 	expect(readInput(" https://github.com/zen-browser/desktop/releases/tag/1.24.1b ")).toEqual({
 		repo: "zen-browser/desktop",
 	});

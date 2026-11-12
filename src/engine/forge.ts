@@ -253,8 +253,9 @@ export async function linksRelease(page: string, pattern: string, opts: ReleaseO
 		return version ? [{ asset: a, version }] : [];
 	});
 	if (matched.length === 0) return { failure: "http", detail: MESSAGES.linksNoMatch(page, pattern) };
-	// A prerelease (2.10rc1 reads 2.10rc) compares equal to its release, so stable versions are chosen among first.
-	const stable = matched.filter((m) => /^[0-9.]+$/.test(m.version));
+	// A prerelease (tool-2.10rc1, tool-1.3.0-rc1) compares equal to its release, so files named as one are left out
+	// when anything else matches. A letter alone is no prerelease: tmux's 3.6a is a release.
+	const stable = matched.filter((m) => !/(\d|[-._~])(rc|alpha|beta|pre|preview)\d*/i.test(m.asset.name));
 	const pool = stable.length > 0 ? stable : matched;
 	let version = opts.tag ?? pool[0]?.version ?? "";
 	if (opts.tag === undefined) for (const m of pool) if (isNewer(version, m.version)) version = m.version;

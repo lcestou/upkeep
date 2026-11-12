@@ -260,6 +260,17 @@ test("links: a release wins over a prerelease of the same number, whatever the p
 	const r = ok(await linksRelease("https://example.org/dl/", "^tool-[0-9.a-z]+\\.tar\\.gz$", opts(fetch)));
 	expect(r.version).toBe("2.10");
 	expect(r.assets.map((a) => a.name)).toEqual(["tool-2.10.tar.gz"]);
+	// A dash prerelease is one too; a letter alone (tmux 3.6a) is a release and wins over 3.5.
+	const dash = `<a href="tool-1.3.0-rc1.tar.gz">a</a> <a href="tool-1.2.0.tar.gz">b</a>`;
+	const fetchDash: FetchLike = async () => new Response(dash, { status: 200 });
+	expect(ok(await linksRelease("https://example.org/dl/", "^tool-.+\\.tar\\.gz$", opts(fetchDash))).version).toBe(
+		"1.2.0",
+	);
+	const tmux = `<a href="tmux-3.5.tar.gz">a</a> <a href="tmux-3.6a.tar.gz">b</a>`;
+	const fetchTmux: FetchLike = async () => new Response(tmux, { status: 200 });
+	expect(ok(await linksRelease("https://example.org/dl/", "^tmux-.+\\.tar\\.gz$", opts(fetchTmux))).version).toBe(
+		"3.6a",
+	);
 	expect(pageLinks(html, "https://example.org/dl/").map((a) => a.url)).toContain(
 		"https://example.org/dl/dl?f=tool-2.9.tar.gz&x=1",
 	);

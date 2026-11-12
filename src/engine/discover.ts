@@ -89,8 +89,11 @@ export function readInput(
 	const forge = hosts.get(host);
 	const kind = hostKind(host) ?? forge;
 	if (kind === undefined) return null;
-	// Newer GitLab links mark the web part with "-"; older ones go straight to tree/, blob/, releases or tags.
-	const end = parts.findIndex((p) => ["-", "tree", "blob", "releases", "tags", "commits"].includes(p));
+	// Newer GitLab links mark the web part with "-"; older ones go straight to tree/, blob/, releases or tags. A group
+	// and a project come first, so a route word counts only from the third part on.
+	const end = parts.findIndex(
+		(p, i) => p === "-" || (i >= 2 && ["tree", "blob", "releases", "tags", "commits"].includes(p)),
+	);
 	const path = (kind === "gitlab" ? parts.slice(0, end === -1 ? parts.length : end) : parts.slice(0, 2))
 		.join("/")
 		.replace(/\.git$/, "");
