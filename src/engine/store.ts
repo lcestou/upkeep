@@ -143,7 +143,7 @@ function lockAbandoned(lock: string): boolean {
  * anyway: a lost race costs one setting, and a refused write would cost it too. Two processes taking over the same
  * dead holder's lock in the same instant can both run; that needs a crash and a race together.
  */
-function withStateLock<T>(paths: Paths, fn: () => T): T {
+export function withStateLock<T>(paths: Paths, fn: () => T): T {
 	const lock = `${stateFile(paths)}.lock`;
 	const until = Date.now() + STATE_LOCK_WAIT_MS;
 	let held = false;

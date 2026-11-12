@@ -58,6 +58,7 @@
 				"src/engine/manifest.ts",
 				"src/engine/github.ts",
 				"src/engine/store.ts",
+				"src/engine/transfer.ts",
 				"src/engine/extras/state.ts",
 				"src/engine/backup.ts",
 				"src/engine/kinds/plugins.ts",
