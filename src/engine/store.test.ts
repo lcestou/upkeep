@@ -131,6 +131,8 @@ test("inflight marker round trip", () => {
 		JSON.stringify({ key: "fd", dest: "/h/fd", files: ["/h/fd", 3, "/h/fdx"] }),
 	);
 	expect(readInflight(t.paths)).toEqual({ key: "fd", dest: "/h/fd", backupVersion: null, files: ["/h/fd", "/h/fdx"] });
+	writeFileSync(join(t.paths.state, "inflight.json"), JSON.stringify({ key: "fd", dest: "/h/fd", files: [123] }));
+	expect(readInflight(t.paths)).toEqual({ key: "fd", dest: "/h/fd", backupVersion: null });
 	clearInflight(t.paths);
 	expect(readInflight(t.paths)).toBeNull();
 });

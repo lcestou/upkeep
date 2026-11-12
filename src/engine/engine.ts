@@ -1,5 +1,5 @@
 import { copyFileSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import type {
 	AppSpec,
 	AppState,
@@ -275,8 +275,15 @@ export function createEngine(deps: EngineDeps): Engine {
 		// One temp per installed file: an archive with several programs writes one beside each. The marker names them,
 		// so this holds after the app left the list; an older marker without them falls back to the table.
 		const spec = specs.find((s) => s.key === leftover.key);
-		const files = leftover.files ?? (spec ? installedFiles(spec, leftover.dest) : [leftover.dest]);
-		for (const f of new Set([leftover.dest, ...files])) rmSync(`${f}.upkeep-new`, { force: true });
+		// Only files beside dest: the marker is a file on disk, and recovery touches nothing anywhere else.
+		const beside = leftover.files?.filter((f) => dirname(f) === dirname(leftover.dest));
+		const files = beside?.length ? beside : spec ? installedFiles(spec, leftover.dest) : [leftover.dest];
+		for (const f of new Set([leftover.dest, ...files]))
+			try {
+				rmSync(`${f}.upkeep-new`, { force: true });
+			} catch {
+				// A root-owned leftover (a sudo install) is not ours to delete; the next install writes over it.
+			}
 		clearInflight(paths);
 		releaseLock(paths);
 	}

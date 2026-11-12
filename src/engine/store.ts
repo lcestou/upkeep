@@ -231,7 +231,9 @@ export function readInflight(paths: Paths): Inflight | null {
 			dest: v.dest,
 			backupVersion: typeof v.backupVersion === "string" ? v.backupVersion : null,
 		};
-		if (Array.isArray(v.files)) marker.files = v.files.filter((f): f is string => typeof f === "string");
+		// A list with no path left in it says nothing, so recovery falls back to the table.
+		const files = Array.isArray(v.files) ? v.files.filter((f): f is string => typeof f === "string") : [];
+		if (files.length > 0) marker.files = files;
 		// A tree that does not read cleanly is dropped; the rest of the marker still counts.
 		const tree = v.tree === undefined ? undefined : treeOf(v.tree);
 		if (tree) marker.tree = tree;

@@ -509,10 +509,24 @@ test("recovery of an archive app already cut from the list clears every bin's te
 	// The app is gone from the list; only the marker knows its bins.
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST.replace(/\[apps\.fd\][\s\S]*?auto = true\n/, ""));
 	const files = [join(bin, "fd"), join(bin, "fd-extra")];
-	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1", files });
+	// A path elsewhere in the marker is not trusted; a temp copy that cannot be deleted does not stop the start.
+	const elsewhere = join(t.dir, "elsewhere");
+	const locked = join(bin, "locked");
+	mkdirSync(locked, { recursive: true });
+	writeFileSync(join(locked, "x.upkeep-new"), "root's");
+	writeFileSync(`${elsewhere}.upkeep-new`, "not ours");
+	writeInflight(t.paths, {
+		key: "fd",
+		dest: join(bin, "fd"),
+		backupVersion: "10.5.1",
+		files: [...files, elsewhere, join(locked, "x")],
+	});
 	for (const f of files) writeFileSync(`${f}.upkeep-new`, "half");
+	chmodSync(locked, 0o555);
 	createEngine(d);
+	chmodSync(locked, 0o755);
 	expect(files.map((f) => existsSync(`${f}.upkeep-new`))).toEqual([false, false]);
+	expect(existsSync(`${elsewhere}.upkeep-new`)).toBe(true);
 	expect(readInflight(t.paths)).toBeNull();
 });
 
