@@ -779,6 +779,7 @@ test("a release with no file for this machine gets a source build drafted from i
 test("a drafted CMake build installs under /usr/local with sudo, and says when its tool is missing", async () => {
 	releases["o/thing"] = { tag_name: "v2.0", assets: [] };
 	roots["o/thing"] = { "CMakeLists.txt": "", "README.md": "" };
+	onPath.sudo = "/usr/bin/sudo";
 	const s = (await suggest("o/thing", ctx().c)).suggestions[0];
 	expect(s?.spec.build?.[0]).toBe("cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local");
 	expect(s?.spec.sudo).toBe(true);

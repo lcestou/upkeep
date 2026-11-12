@@ -27,7 +27,7 @@ const SYSTEMS: { file: string; tools: string[]; build: string[]; system: boolean
 	{ file: "go.mod", tools: ["go"], build: ["GOBIN=$HOME/.local/bin go install ./..."], system: false },
 	{
 		file: "meson.build",
-		tools: ["meson", "ninja"],
+		tools: ["meson", "ninja", "sudo"],
 		build: [
 			"meson setup build --buildtype=release --prefix=/usr/local",
 			"meson compile -C build",
@@ -37,7 +37,7 @@ const SYSTEMS: { file: string; tools: string[]; build: string[]; system: boolean
 	},
 	{
 		file: "CMakeLists.txt",
-		tools: ["cmake"],
+		tools: ["cmake", "sudo"],
 		build: [
 			"cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local",
 			"cmake --build build -j$(nproc)",
@@ -45,15 +45,20 @@ const SYSTEMS: { file: string; tools: string[]; build: string[]; system: boolean
 		],
 		system: true,
 	},
-	{ file: "configure", tools: ["make"], build: ["./configure", ...MAKE], system: true },
-	{ file: "autogen.sh", tools: ["autoreconf", "make"], build: ["sh autogen.sh", "./configure", ...MAKE], system: true },
+	{ file: "configure", tools: ["make", "sudo"], build: ["./configure", ...MAKE], system: true },
+	{
+		file: "autogen.sh",
+		tools: ["autoreconf", "make", "sudo"],
+		build: ["sh autogen.sh", "./configure", ...MAKE],
+		system: true,
+	},
 	{
 		file: "configure.ac",
-		tools: ["autoreconf", "make"],
+		tools: ["autoreconf", "make", "sudo"],
 		build: ["autoreconf -fi", "./configure", ...MAKE],
 		system: true,
 	},
-	{ file: "Makefile", tools: ["make"], build: MAKE, system: true },
+	{ file: "Makefile", tools: ["make", "sudo"], build: MAKE, system: true },
 ];
 
 /** The program a Cargo.toml builds: its first [[bin]] name, else its package name; null when neither is there. */
@@ -66,7 +71,7 @@ export function cargoBin(text: string): string | null {
 			section = head[1]?.trim() ?? "";
 			continue;
 		}
-		const name = /^\s*name\s*=\s*"([^"]+)"/.exec(line)?.[1];
+		const name = /^\s*name\s*=\s*(?:"([^"]+)"|'([^']+)')/.exec(line)?.slice(1).find(Boolean);
 		if (!name) continue;
 		if (section === "bin") return name;
 		if (section === "package") pkg ??= name;
