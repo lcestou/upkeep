@@ -59,7 +59,6 @@
 		next.click();
 	}
 
-	/** Sends a settings change and shows what the main process saved; a request that fails leaves the old values on screen. */
 	/** What the last Export or Import did, in place of the help line; null shows the help. */
 	let note = $state<string | null>(null);
 
@@ -77,6 +76,7 @@
 		else if (r?.problems?.length) note = setupFailed(r.problems.join(" "));
 	}
 
+	/** Sends a settings change and shows what the main process saved; a request that fails leaves the old values on screen. */
 	async function set(patch: Partial<Settings>) {
 		const next = await model.send("setSettings", patch);
 		if (!next) return;

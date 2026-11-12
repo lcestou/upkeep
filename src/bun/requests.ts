@@ -116,7 +116,7 @@ export function upkeepRequests(
 			return { path: picked.find((p) => p !== "") ?? null };
 		},
 		exportSetup: async () => {
-			const [dir] = (await desktop.pickFolder(deps.paths.home)).filter((p) => p !== "");
+			const dir = (await desktop.pickFolder(deps.paths.home)).find((p) => p !== "");
 			if (!dir) return { ok: false };
 			const day = deps.now().toISOString().slice(0, 10);
 			const file = join(dir, `upkeep-settings-${day}.json`);
@@ -128,7 +128,7 @@ export function upkeepRequests(
 			}
 		},
 		importSetup: async () => {
-			const [file] = (await desktop.pickFile(deps.paths.home)).filter((p) => p !== "");
+			const file = (await desktop.pickFile(deps.paths.home)).find((p) => p !== "");
 			if (!file) return { ok: false };
 			let text: string;
 			try {

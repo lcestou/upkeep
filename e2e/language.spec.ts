@@ -70,7 +70,20 @@ test("the language list closes on Escape and on a click elsewhere, and keeps the
 	await expect(pick).toBeFocused();
 	await expect(pick).toHaveText("Same as the system");
 	await pick.click();
+	await page.keyboard.press("Tab");
+	await expect(page.getByTestId("setting-language-list")).toHaveCount(0);
+	await expect(pick).toBeFocused();
+	await pick.click();
 	await page.getByTestId("setting-language-label").click();
+	await expect(page.getByTestId("setting-language-list")).toHaveCount(0);
+	// Scrolling Settings under the open list closes it; scrolling the list itself does not.
+	await pick.click();
+	await page.getByTestId("setting-language-list").evaluate((el) => {
+		el.scrollTop = 60;
+		el.dispatchEvent(new Event("scroll"));
+	});
+	await expect(page.getByTestId("setting-language-list")).toHaveCount(1);
+	await page.getByTestId("settings").evaluate((el) => el.dispatchEvent(new Event("scroll")));
 	await expect(page.getByTestId("setting-language-list")).toHaveCount(0);
 });
 

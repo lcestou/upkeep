@@ -3,8 +3,8 @@
 The Language choice in Settings: a button that opens a list drawn by the page, not the desktop's own menu. GTK sets a
 native select's menu so the chosen item sits over the box, so a list of eleven ran off the window with scroll arrows
 and empty space; this list opens below the button (above it when there is no room) and scrolls inside itself.
-It is a listbox: the arrows, Home and End move, Enter or Space picks, Escape or a click elsewhere closes, and focus
-returns to the button. Each language is named in itself and marked with its own `lang`.
+It is a listbox: the arrows, Home and End move, Enter or Space picks, Escape, Tab or a click elsewhere closes, and
+focus returns to the button. Each language is named in itself and marked with its own `lang`.
 -->
 <script lang="ts">
 	import { LANGUAGES, type LanguageSetting } from "../../shared/languages";
@@ -22,9 +22,9 @@ returns to the button. Each language is named in itself and marked with its own 
 	} = $props();
 
 	// $derived: the "Same as the system" label follows a language switch.
-	const options = $derived([
-		{ v: "system" as LanguageSetting, label: TEXT.languageSystem, lang: undefined },
-		...LANGUAGES.map((l) => ({ v: l.code as LanguageSetting, label: l.name, lang: l.code })),
+	const options: { v: LanguageSetting; label: string; lang: string | undefined }[] = $derived([
+		{ v: "system", label: TEXT.languageSystem, lang: undefined },
+		...LANGUAGES.map((l) => ({ v: l.code, label: l.name, lang: l.code })),
 	]);
 	const shown = $derived(options.find((o) => o.v === value) ?? options[0]);
 
@@ -76,7 +76,7 @@ returns to the button. Each language is named in itself and marked with its own 
 		}
 	}
 
-	/** Moves through the list, picks, or closes it. Tab closes it and lets focus go on. */
+	/** Moves through the list, picks, or closes it; Escape and Tab close it with focus back on the button. */
 	function onlist(e: KeyboardEvent) {
 		const last = options.length - 1;
 		const to = new Map([
@@ -93,10 +93,12 @@ returns to the button. Each language is named in itself and marked with its own 
 			e.preventDefault();
 			const o = options[active];
 			if (o) pick(o.v);
-		} else if (e.key === "Escape") {
+		} else if (e.key === "Escape" || e.key === "Tab") {
+			// Tab too: the list leaves the page before the browser would move focus, so focus goes back to the button,
+			// as a native select keeps it.
 			e.preventDefault();
 			hide();
-		} else if (e.key === "Tab") open = false;
+		}
 	}
 
 	/** A press anywhere outside the button and the list closes it, as a menu does. */
@@ -108,6 +110,8 @@ returns to the button. Each language is named in itself and marked with its own 
 </script>
 
 <svelte:window onpointerdown={outside} onresize={() => (open = false)} />
+<!-- The list is fixed to the window, so a scroll of the page under it closes it; a scroll inside the list does not. -->
+<svelte:document onscrollcapture={(e) => (open = open && e.target === list)} />
 
 <button
 	bind:this={button}
