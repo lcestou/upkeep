@@ -186,35 +186,73 @@ async function measureAll(roots: string[]): Promise<Sig> {
 /** A path the delete would not touch: a link out, another folder, another file system. Its message is the sentence. */
 class Refused extends Error {}
 
+/** The fields of an lstat that say which entry a path names, and what kind it is. */
+type Seen = Awaited<ReturnType<typeof lstat>>;
+
+/**
+ * Throws Refused unless path still names the entry first saw: same device and inode, still a directory or still not
+ * one, still a link or still not one, and the real folder holding it still at or below realRoot. Called right before
+ * each readdir, unlink and rmdir, so a folder swapped for a link, or a parent swapped for one, is caught there.
+ */
+export async function stillBelow(path: string, first: Seen, realRoot: string): Promise<void> {
+	const now = await lstat(path);
+	const parent = await realpath(dirname(path));
+	if (
+		now.dev !== first.dev ||
+		now.ino !== first.ino ||
+		now.isDirectory() !== first.isDirectory() ||
+		now.isSymbolicLink() !== first.isSymbolicLink() ||
+		(parent !== realRoot && !insideRoot(realRoot, parent))
+	)
+		throw new Refused(MESSAGES.cleanRefusedPath(path));
+}
+
 /**
  * Deletes path and everything below it without following a link: a link is removed itself and its target stays. A
  * directory on another device than dev (a mount point) is left with everything in it, so the folder holding it is not
- * empty and its rmdir throws. Throws on the first entry it cannot delete.
+ * empty and its rmdir throws. Throws on the first entry it cannot delete. Each readdir, unlink and rmdir comes right
+ * after stillBelow, which narrows the race with a swap to the gap between that check and the call. The gap remains:
+ * Bun has no openat or unlinkat on a held folder handle, so a process of the same user that swaps a folder for a link
+ * in that gap can still steer one call. Nothing of another user can, since it cannot write in the person's folders.
  */
-export async function removeTree(path: string, dev: number): Promise<void> {
-	const st = await lstat(path);
-	if (st.dev !== dev) throw new Refused(MESSAGES.cleanRefusedPath(path));
-	if (!st.isDirectory()) return unlink(path);
+export async function removeTree(path: string, dev: number, realRoot: string): Promise<void> {
+	const first = await lstat(path);
+	if (first.dev !== dev) throw new Refused(MESSAGES.cleanRefusedPath(path));
+	await stillBelow(path, first, realRoot);
+	if (!first.isDirectory()) return unlink(path);
 	for (const name of await readdir(path))
 		// oxlint-disable-next-line no-await-in-loop -- one entry at a time is the point: the first failure stops the delete
-		await removeTree(join(path, name), dev);
+		await removeTree(join(path, name), dev, realRoot);
+	await stillBelow(path, first, realRoot);
 	await rmdir(path);
 }
 
 /**
- * Deletes one path below root, after checking it three ways: by name it lies below root; the real folder holding it
- * lies below root's real folder, so no linked folder on the way leads out; and it sits on root's own device. root
- * itself must be a real folder, not a link. Returns a failure sentence, or null.
+ * Whether removeBelow may delete path, checked three ways: by name it lies below root; the real folder holding it
+ * (real) lies below root's real folder, so no linked folder on the way leads out; and it sits on root's own device,
+ * so a mount below root is never entered. root itself must be a real folder, not a link.
  */
+export function admits(
+	root: { path: string; real: string; st: Pick<Seen, "dev" | "isDirectory"> },
+	path: { path: string; real: string; st: Pick<Seen, "dev"> },
+): boolean {
+	return (
+		root.st.isDirectory() &&
+		insideRoot(root.path, path.path) &&
+		insideRoot(root.real, path.real) &&
+		path.st.dev === root.st.dev
+	);
+}
+
+/** Deletes one path below root when admits allows it, never following a link. Returns a failure sentence, or null. */
 export async function removeBelow(root: string, path: string): Promise<string | null> {
 	try {
 		const top = await lstat(root);
 		const realRoot = await realpath(root);
 		const real = join(await realpath(dirname(path)), basename(path));
 		const st = await lstat(path);
-		if (!top.isDirectory() || !insideRoot(root, path) || !insideRoot(realRoot, real) || st.dev !== top.dev)
-			return MESSAGES.cleanRefusedPath(path);
-		await removeTree(path, top.dev);
+		if (!admits({ path: root, real: realRoot, st: top }, { path, real, st })) return MESSAGES.cleanRefusedPath(path);
+		await removeTree(path, top.dev, realRoot);
 		return null;
 	} catch (err) {
 		if (err instanceof Refused) return err.message;
@@ -288,12 +326,17 @@ function commandTarget(
 	};
 }
 
-/** "40.8M", "901.9 MB", "1.2G" as bytes; base is 1024 for journalctl, 1000 for Flatpak. null when it reads as neither. */
+/**
+ * "40.8M", "901.9 MB", "1.2G" as bytes; base is 1024 for journalctl, 1000 for Flatpak. null when it reads as neither,
+ * or as no finite number.
+ */
 export function parseSize(text: string, base: number): number | null {
 	const m = /([\d.]+)\s*([kKMGT]?)i?B?/.exec(text);
 	if (!m?.[1]) return null;
 	const power = ["", "K", "M", "G", "T"].indexOf((m[2] ?? "").toUpperCase());
-	return Math.round(Number(m[1]) * base ** Math.max(0, power));
+	const n = Number(m[1]);
+	// "1.2.3" matches the digits-and-dots run but is no number; NaN would pass a caller's ?? 0 into the total.
+	return Number.isFinite(n) ? Math.round(n * base ** Math.max(0, power)) : null;
 }
 
 /** Dotted version of a dashed one: 580-159-03 to 580.159.03. */
@@ -374,7 +417,8 @@ async function trash(ctx: CleanupCtx): Promise<Found> {
  */
 async function leftovers(ctx: CleanupCtx): Promise<Found> {
 	const backups = join(ctx.paths.data, "backups");
-	const keys = await readdir(backups).catch(() => []);
+	// Restore points under a relative data folder are not looked in: candidates skips any root that is not absolute.
+	const keys = isAbsolute(backups) ? await readdir(backups).catch(() => []) : [];
 	const dirs = [...new Set([...ctx.leftoverDirs, ...keys.map((k) => join(backups, k))])];
 	const parts: CleanupPart[] = [];
 	const targets: [string, Target][] = [];
@@ -475,6 +519,9 @@ async function autoremove(ctx: CleanupCtx): Promise<Found> {
 
 type GlRuntime = { ref: string; installation: string; bytes: number };
 
+/** A runtime's part id: the same ref can be installed for the user and for the system, and each is its own part. */
+const glId = (g: GlRuntime) => `${g.installation}:${g.ref}`;
+
 /**
  * NVIDIA GL runtimes for driver versions no longer in use: a ref is offered only when its version matches neither
  * dpkg's GL libraries nor the loaded module. With no driver found at all, none is offered, since nothing says which one
@@ -497,15 +544,15 @@ async function flatpakGl(ctx: CleanupCtx): Promise<Found> {
 	if (stale.length === 0) return null;
 	const targets: [string, Target][] = stale.map((g) => {
 		const measure = async () => {
-			const now = (await staleGl(ctx)).find((x) => x.ref === g.ref);
-			return { bytes: now?.bytes ?? 0, key: now ? `${now.ref}:${now.bytes}` : "" };
+			const now = (await staleGl(ctx)).find((x) => glId(x) === glId(g));
+			return { bytes: now?.bytes ?? 0, key: now ? `${glId(now)}:${now.bytes}` : "" };
 		};
 		const scope = g.installation === "user" ? "--user" : "--system";
 		const argv = ["flatpak", "uninstall", scope, "-y", "--noninteractive", g.ref];
 		const action = scope === "--system" ? "org.freedesktop.Flatpak.runtime-uninstall" : undefined;
-		return [targetKey("flatpak-gl", g.ref), commandTarget(ctx, argv, measure, `${g.ref}:${g.bytes}`, action)];
+		return [targetKey("flatpak-gl", glId(g)), commandTarget(ctx, argv, measure, `${glId(g)}:${g.bytes}`, action)];
 	});
-	const parts = stale.map((g) => ({ id: g.ref, label: g.ref, bytes: g.bytes, ticked: true }));
+	const parts = stale.map((g) => ({ id: glId(g), label: g.ref, bytes: g.bytes, ticked: true }));
 	return { item: item("flatpak-gl", "safe", parts, { undo: "redownload" }), targets };
 }
 
@@ -597,31 +644,40 @@ async function handBackups(ctx: CleanupCtx): Promise<Found> {
 	return count === 0 ? null : shown("hand-backups", bytes, { count });
 }
 
-/** Every candidate in the order the tab lists them. */
+/**
+ * The candidate when dir is absolute, else none: a relative XDG folder would be read against wherever Upkeep was
+ * started from, so what lives there is left out.
+ */
+const at = (dir: string, c: () => Promise<Found>) => (isAbsolute(dir) ? [c] : []);
+
+/** Every candidate in the order the tab lists them, leaving out any whose folder is not an absolute path. */
 function candidates(ctx: CleanupCtx): (() => Promise<Found>)[] {
 	const d = dirsOf(ctx.paths);
-	const dev = ctx.devCaches ? (["uv", "bun", "npm", "pip"] as const).map((id) => () => devCache(ctx, id)) : [];
+	const dev = ctx.devCaches
+		? (["uv", "bun", "npm", "pip"] as const).flatMap((id) => at(DEV_CACHES[id].dir(d), () => devCache(ctx, id)))
+		: [];
 	return [
-		() => thumbnails(ctx),
-		() => trash(ctx),
+		...at(d.cache, () => thumbnails(ctx)),
+		...at(d.data, () => trash(ctx)),
 		() => leftovers(ctx),
 		() => aptCache(ctx),
 		() => flatpakGl(ctx),
-		() => restorePoints(ctx),
+		...at(ctx.paths.data, () => restorePoints(ctx)),
 		() => autoremove(ctx),
 		...dev,
 		() => tmp(ctx),
 		() => journal(ctx),
 		() => kernels(ctx),
 		() => timeshift(ctx),
-		() =>
+		...at(d.cache, () =>
 			shownTrees(
 				"browser",
 				BROWSER_CACHES.map((b) => join(d.cache, b)),
 			),
-		() => shownTrees("playwright", [join(d.cache, PLAYWRIGHT)]),
+		),
+		...at(d.cache, () => shownTrees("playwright", [join(d.cache, PLAYWRIGHT)])),
 		() => handBackups(ctx),
-		() => shownTrees("upkeep-cache", [ctx.paths.cache]),
+		...at(ctx.paths.cache, () => shownTrees("upkeep-cache", [ctx.paths.cache])),
 	];
 }
 

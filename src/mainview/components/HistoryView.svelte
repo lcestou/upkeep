@@ -9,7 +9,14 @@
 
 	let { model }: { model: Model } = $props();
 
-	const STATUS = { updated: "done", failed: "failed", rolled_back: "rolled_back", restored: "held", cleaned: "done" } as const;
+	const STATUS = {
+		updated: "done",
+		failed: "failed",
+		rolled_back: "rolled_back",
+		restored: "held",
+		cleaned: "done",
+		skipped: "held",
+	} as const;
 	// $derived: the labels follow a language switch.
 	const RESULT = $derived({
 		updated: TEXT.updated,
@@ -17,6 +24,7 @@
 		rolled_back: TEXT.rolledBack,
 		restored: TEXT.restored,
 		cleaned: CLEAN.cleaned,
+		skipped: CLEAN.state.skipped,
 	} as const);
 
 	/** A Cleanup row's key is cleanup:<id>; its name is the item's, in the language shown. Any other row keeps its own. */
@@ -187,6 +195,10 @@
 	.r-failed .result,
 	.r-rolled_back .result {
 		color: var(--fail);
+	}
+	/* Left alone on purpose: neither done nor failed. */
+	.r-skipped .result {
+		color: var(--text-2);
 	}
 	.dur {
 		justify-self: end;

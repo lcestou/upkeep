@@ -15,7 +15,7 @@ import { stamp } from "../engine";
 import { isAbsolute } from "node:path";
 import { expandHome, type Paths } from "../paths";
 import { killGroup, type Run } from "../run";
-import { appendHistory, claimLock, openRunLog, releaseLock, type RunLog } from "../store";
+import { appendHistory, claimLock, openRunLog, readInflight, releaseLock, type RunLog } from "../store";
 import { clean, measureCandidates, type Measured, needsTyping, review, TYPE_WORD } from "./cleanup";
 import { installable, outcomesAfter, planSteps, preflight, runSteps } from "./install";
 import { loadExtras, updateExtras } from "./state";
@@ -280,18 +280,33 @@ export function createExtras(deps: ExtrasDeps): Extras {
 
 	/**
 	 * The cleanup itself, once the lock is held: each picked item's parts deleted in turn, one history row per item, the
-	 * lock given back under this owner only, then a fresh measure so the sizes show what is left.
+	 * lock given back under this owner only, then a fresh measure so the sizes show what is left. A measure or command
+	 * that throws ends the run: every item not finished by then is marked failed with the error's text, and still gets
+	 * its history row, so the tab never stays on Cleaning and the run never rejects.
 	 */
 	async function cleanRun(picks: CleanupPick[], m: Measured, log: RunLog, runId: string) {
 		const started = Date.now();
 		const say = (text: string) => log.write({ at: deps.now().toISOString(), key: "cleanup", text });
 		try {
-			const outcomes = await clean(picks, m, cleanupCtx(say), (o) => {
-				const last = cleanup.last;
-				if (!last) return;
-				cleanup = { ...cleanup, last: { ...last, outcomes: last.outcomes.map((x) => (x.id === o.id ? o : x)) } };
-				emit();
-			});
+			let outcomes: CleanupOutcome[];
+			try {
+				outcomes = await clean(picks, m, cleanupCtx(say), (o) => {
+					const last = cleanup.last;
+					if (!last) return;
+					cleanup = { ...cleanup, last: { ...last, outcomes: last.outcomes.map((x) => (x.id === o.id ? o : x)) } };
+					emit();
+				});
+			} catch (err) {
+				const detail = err instanceof Error ? err.message : String(err);
+				say(`Cleanup stopped: ${detail}`);
+				outcomes = structuredClone(cleanup.last?.outcomes ?? []);
+				for (const o of outcomes)
+					if (o.status === "queued" || o.status === "working") {
+						o.status = "failed";
+						o.detail = detail;
+					}
+				if (cleanup.last) cleanup = { ...cleanup, last: { ...cleanup.last, outcomes } };
+			}
 			const at = deps.now().toISOString();
 			const ms = Date.now() - started;
 			const rows: HistoryRow[] = outcomes.map((o) => ({
@@ -299,7 +314,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 				name: o.id,
 				from: null,
 				to: null,
-				result: o.status === "done" ? "cleaned" : "failed",
+				result: o.status === "done" ? "cleaned" : o.status === "skipped" ? "skipped" : "failed",
 				detail: o.detail,
 				ms,
 				runId,
@@ -308,6 +323,8 @@ export function createExtras(deps: ExtrasDeps): Extras {
 				freed: o.freed,
 			}));
 			appendHistory(deps.paths, rows);
+		} catch (err) {
+			say(`Cleanup history not written: ${err instanceof Error ? err.message : String(err)}`);
 		} finally {
 			child = null;
 			log.close();
@@ -420,6 +437,12 @@ export function createExtras(deps: ExtrasDeps): Extras {
 				return refuseCleanup(MESSAGES.cleanTypeFirst(TYPE_WORD));
 			if (!claimLock(deps.paths, process.pid, deps.procRoot, CLEANUP_OWNER))
 				return refuseCleanup(MESSAGES.reasonBusy());
+			// With the lock held no install runs, so a marker left is an interrupted one: its restore point and temp
+			// copies are what recovery puts back, and none of them may go before it is finished.
+			if (readInflight(deps.paths)) {
+				releaseLock(deps.paths, process.pid, CLEANUP_OWNER);
+				return refuseCleanup(MESSAGES.reasonUnrecovered());
+			}
 			const now = deps.now();
 			const runId = `${stamp(now)}-cleanup`;
 			let log: RunLog;

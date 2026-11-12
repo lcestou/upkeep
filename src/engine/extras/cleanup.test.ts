@@ -10,12 +10,14 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import { realpathSync, renameSync } from "node:fs";
 import { MESSAGES } from "../../shared/messages";
 import type { CleanupItem } from "../../shared/types";
 import type { ProcessResult } from "../run";
-import { claimLock, readHistory, releaseLock } from "../store";
+import { claimLock, readHistory, releaseLock, writeInflight } from "../store";
 import { ok, strictRun, tempHome } from "../testkit";
 import {
+	admits,
 	APT_CACHE_SIZES,
 	AUTOREMOVE_SIM,
 	clean,
@@ -27,9 +29,11 @@ import {
 	measureCandidates as measure,
 	measureTree,
 	parseSize,
+	removeBelow,
 	removeTree,
 	review,
 	RUNNING_KERNEL,
+	stillBelow,
 	TIMESHIFT_SNAPSHOTS,
 	TMP_SIZE,
 } from "./cleanup";
@@ -144,7 +148,7 @@ test("the symlink canary: a link inside the root is removed itself, and what it 
 test("the same-device rule: a tree on another device than the root's is left whole", async () => {
 	const file = put(join(t.dir, "cache", "thumbnails", "normal", "a.png"), 10);
 	const dev = lstatSync(file).dev;
-	const err = await removeTree(join(t.dir, "cache", "thumbnails", "normal"), dev + 1).catch((e: Error) => e);
+	const err = await removeTree(join(t.dir, "cache", "thumbnails", "normal"), dev + 1, t.dir).catch((e: Error) => e);
 	expect(err).toBeInstanceOf(Error);
 	expect(existsSync(file)).toBe(true);
 });
@@ -234,7 +238,9 @@ test("old NVIDIA GL runtimes: only versions neither dpkg nor the module uses, re
 	});
 	const ctx = ctxOf(run);
 	const m = await measure(ctx);
-	expect(itemOf(m.items, "flatpak-gl")?.parts).toEqual([{ id: ref, label: ref, bytes: 901_900_000, ticked: true }]);
+	expect(itemOf(m.items, "flatpak-gl")?.parts).toEqual([
+		{ id: `system:${ref}`, label: ref, bytes: 901_900_000, ticked: true },
+	]);
 	await clean(pickAll(m.items), m, ctx, () => undefined);
 	const order = calls.map((c) => c.argv[0]).filter((a) => a === "pkcheck" || a === "flatpak");
 	expect(order.slice(-3)).toEqual(["pkcheck", "flatpak", "flatpak"]);
@@ -446,4 +452,183 @@ test("turning developer caches on or off measures again", async () => {
 	// Nothing runs, so a quit that cannot wait has nothing to end.
 	x.stopSystem();
 	expect(x.installing()).toBe(false);
+});
+
+test("an interrupted update's marker refuses the whole cleanup, deletes nothing and gives the lock back", async () => {
+	const point = put(join(t.paths.data, "backups", "fd", "10.5.1", "fd"), 70);
+	const { run } = box();
+	const x = extrasOn(run);
+	x.measureCleanup();
+	await x.idle();
+	const picks = pickAll(x.snapshot().cleanup.items);
+	expect(picks.map((p) => p.id)).toEqual(["restore-points"]);
+	const { commands } = x.reviewCleanup(picks);
+	writeInflight(t.paths, { key: "fd", dest: join(t.dir, "home", "bin", "fd"), backupVersion: "10.5.1" });
+	expect(x.runCleanup(picks, commands)).toEqual({ started: false, reason: MESSAGES.reasonUnrecovered() });
+	await x.idle();
+	expect(existsSync(point)).toBe(true);
+	expect(existsSync(join(t.paths.state, "run.lock"))).toBe(false);
+	expect(x.snapshot().cleanup.last?.refused).toBe(MESSAGES.reasonUnrecovered());
+});
+
+test("a folder swapped for a link, or a parent swapped for a link out, fails the re-check before the next call", async () => {
+	const root = join(t.dir, "cache", "thumbnails");
+	const outside = join(t.dir, "outside");
+	const dir = join(root, "normal");
+	put(join(dir, "a.png"), 3);
+	put(join(outside, "b.png"), 3);
+	const realRoot = realpathSync(root);
+	const firstDir = lstatSync(dir);
+	await stillBelow(dir, firstDir, realRoot);
+	renameSync(dir, join(root, "moved"));
+	symlinkSync(outside, dir);
+	expect(await stillBelow(dir, firstDir, realRoot).catch((e: Error) => e.message)).toBe(MESSAGES.cleanRefusedPath(dir));
+	// A real folder put in its place is not the folder first seen either.
+	const xl = join(root, "x-large");
+	mkdirSync(xl);
+	const firstXl = lstatSync(xl);
+	renameSync(xl, join(root, "x-large-moved"));
+	mkdirSync(xl);
+	expect(await stillBelow(xl, firstXl, realRoot).catch((e: Error) => e.message)).toBe(MESSAGES.cleanRefusedPath(xl));
+	// The same file reached through a parent that now leads out: the inode matches, the parent does not.
+	const sub = join(root, "large");
+	put(join(sub, "c.png"), 3);
+	linkSync(join(sub, "c.png"), join(outside, "c.png"));
+	const firstFile = lstatSync(join(sub, "c.png"));
+	renameSync(sub, join(root, "large-moved"));
+	symlinkSync(outside, sub);
+	expect(lstatSync(join(sub, "c.png")).ino).toBe(firstFile.ino);
+	expect(await stillBelow(join(sub, "c.png"), firstFile, realRoot).catch((e: Error) => e.message)).toBe(
+		MESSAGES.cleanRefusedPath(join(sub, "c.png")),
+	);
+});
+
+test("removeTree re-checks each entry against the real root: a tree outside it is refused and left whole", async () => {
+	const file = put(join(t.dir, "elsewhere", "keep", "a.txt"), 4);
+	mkdirSync(thumbs(), { recursive: true });
+	const dev = lstatSync(file).dev;
+	const err = await removeTree(join(t.dir, "elsewhere", "keep"), dev, realpathSync(thumbs())).catch((e: Error) => e);
+	expect(err).toBeInstanceOf(Error);
+	expect(existsSync(file)).toBe(true);
+});
+
+test("a root that is itself a link is refused, and so is a path through a linked folder; nothing is deleted", async () => {
+	const outside = join(t.dir, "outside");
+	const canary = put(join(outside, "canary.txt"), 7);
+	const linkRoot = join(t.dir, "cache", "linked");
+	mkdirSync(join(t.dir, "cache"), { recursive: true });
+	symlinkSync(outside, linkRoot);
+	expect(await removeBelow(linkRoot, join(linkRoot, "canary.txt"))).toBe(
+		MESSAGES.cleanRefusedPath(join(linkRoot, "canary.txt")),
+	);
+	put(join(thumbs(), "normal", "a.png"), 1);
+	symlinkSync(outside, join(thumbs(), "normal", "via"));
+	const through = join(thumbs(), "normal", "via", "canary.txt");
+	expect(await removeBelow(thumbs(), through)).toBe(MESSAGES.cleanRefusedPath(through));
+	expect(readFileSync(canary, "utf8")).toBe("xxxxxxx");
+});
+
+test("admits holds a path to the root's own device: one on another device is refused even when it lies below", () => {
+	const dir = { dev: 1, isDirectory: () => true };
+	const root = { path: "/r", real: "/r", st: dir };
+	expect(admits(root, { path: "/r/a", real: "/r/a", st: { dev: 1 } })).toBe(true);
+	expect(admits(root, { path: "/r/a", real: "/r/a", st: { dev: 2 } })).toBe(false);
+	expect(admits(root, { path: "/r/a", real: "/x/a", st: { dev: 1 } })).toBe(false);
+	expect(
+		admits({ ...root, st: { dev: 1, isDirectory: () => false } }, { path: "/r/a", real: "/r/a", st: { dev: 1 } }),
+	).toBe(false);
+});
+
+test("the same GL runtime installed for the user and for the system is two parts, each uninstalled from its own", async () => {
+	put(join(t.dir, "proc", "driver", "nvidia", "version"), 0);
+	const ref = "org.freedesktop.Platform.GL.nvidia-580-159-03/x86_64/1.4";
+	const list = [
+		"org.freedesktop.Platform.GL.nvidia-580-159-03\tx86_64\t1.4\tsystem\t901.9 MB",
+		"org.freedesktop.Platform.GL.nvidia-580-159-03\tx86_64\t1.4\tuser\t800 MB",
+	].join("\n");
+	const { run, calls } = box({
+		[FLATPAK_RUNTIME_SIZES.join(" ")]: ok(list),
+		[DRIVER_GL.join(" ")]: ok("ii\t580.178.04-0ubuntu0.24.04.1\n"),
+		"pkcheck --action-id org.freedesktop.Flatpak.runtime-uninstall --process 4242": ok(),
+		[`flatpak uninstall --system -y --noninteractive ${ref}`]: ok(),
+		[`flatpak uninstall --user -y --noninteractive ${ref}`]: ok(),
+	});
+	const ctx = ctxOf(run);
+	const m = await measure(ctx);
+	expect(itemOf(m.items, "flatpak-gl")?.parts.map((p) => [p.id, p.bytes])).toEqual([
+		[`system:${ref}`, 901_900_000],
+		[`user:${ref}`, 800_000_000],
+	]);
+	expect(review(pickAll(m.items), m).commands).toEqual([
+		["flatpak", "uninstall", "--system", "-y", "--noninteractive", ref],
+		["flatpak", "uninstall", "--user", "-y", "--noninteractive", ref],
+	]);
+	await clean(pickAll(m.items), m, ctx, () => undefined);
+	expect(calls.filter((c) => c.argv[1] === "uninstall").map((c) => c.argv[2])).toEqual(["--system", "--user"]);
+});
+
+test("a measure that throws mid-run marks what is left failed with its text, writes History and leaves Cleanup idle", async () => {
+	put(join(thumbs(), "normal", "a.png"), 300);
+	let sizes = 0;
+	const { run } = box({
+		[APT_CACHE_SIZES.join(" ")]: () => {
+			sizes += 1;
+			if (sizes > 1) throw new Error("find vanished");
+			return ok("1000\n");
+		},
+		"sudo -n true": ok(),
+	});
+	const x = extrasOn(run);
+	x.measureCleanup();
+	await x.idle();
+	const picks = pickAll(x.snapshot().cleanup.items);
+	const { commands } = x.reviewCleanup(picks);
+	expect(x.runCleanup(picks, commands)).toEqual({ started: true });
+	await x.idle();
+	expect(x.snapshot().cleanup.last?.outcomes).toEqual([
+		{ id: "thumbnails", status: "done", freed: 300 },
+		{ id: "apt-cache", status: "failed", freed: 0, detail: "find vanished" },
+	]);
+	expect(readHistory(t.paths, 10).map((r) => [r.key, r.result, r.detail])).toEqual([
+		["cleanup:apt-cache", "failed", "find vanished"],
+		["cleanup:thumbnails", "cleaned", undefined],
+	]);
+	expect(x.installing()).toBe(false);
+	expect(existsSync(join(t.paths.state, "run.lock"))).toBe(false);
+});
+
+test("an item left alone on purpose is a skip in History, not a failure", async () => {
+	const { run } = box({
+		[APT_CACHE_SIZES.join(" ")]: ok("1000\n"),
+		"sudo -n true": { code: 1, stdout: "", stderr: "sudo: a password is required", timedOut: false },
+	});
+	const x = extrasOn(run);
+	x.measureCleanup();
+	await x.idle();
+	const picks = pickAll(x.snapshot().cleanup.items);
+	expect(x.runCleanup(picks, x.reviewCleanup(picks).commands)).toEqual({ started: true });
+	await x.idle();
+	expect(readHistory(t.paths, 10).map((r) => [r.key, r.result, r.detail])).toEqual([
+		["cleanup:apt-cache", "skipped", MESSAGES.cleanSudo()],
+	]);
+});
+
+test("a cache or data folder given as a relative path is never looked in", async () => {
+	put(join(t.dir, "rel", "thumbnails", "normal", "a.png"), 300);
+	put(join(t.dir, "rel", "Trash", "files", "old.txt"), 40);
+	put(join(t.dir, "rel", "upkeep", "backups", "fd", "1.0", "fd"), 70);
+	const { run } = box();
+	const back = process.cwd();
+	process.chdir(t.dir);
+	try {
+		const paths = { ...t.paths, cache: join("rel", "upkeep"), data: join("rel", "upkeep") };
+		const m = await measure(ctxOf(run, { paths }));
+		expect(m.items.map((i) => i.id)).toEqual([]);
+	} finally {
+		process.chdir(back);
+	}
+});
+
+test("a size that reads as no finite number is no size", () => {
+	expect(parseSize("1.2.3 GB", 1000)).toBeNull();
 });

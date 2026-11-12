@@ -130,6 +130,7 @@ const RESULT_TEXT = {
 	rolled_back: "Rolled back",
 	restored: "Restored",
 	cleaned: "Cleaned",
+	skipped: "Skipped",
 } as const;
 
 /**
