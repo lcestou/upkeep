@@ -71,8 +71,8 @@ export type EngineDeps = {
 	recoverWaitMs?: number;
 	/** Asks a process to quit for Restart now. Default SIGTERM; tests pass a recorder. */
 	signal?: (pid: number) => void;
-	/** Starts an app again for Restart now, detached. Tests pass a recorder so nothing real starts. */
-	launch?: (argv: string[]) => void;
+	/** Starts an app again for Restart now, detached; null once started, else why not. Tests pass a recorder so nothing real starts. */
+	launch?: (argv: string[]) => Promise<string | null>;
 	paths: Paths;
 	seedManifest: string;
 	/** The folder of tested tables Add app looks in first, one file per app. Without it Add app only guesses. */
@@ -328,6 +328,8 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	/** Kinds whose running process is watched for a restart; command and legacy only give advice. */
 	const WATCHED = new Set(["appimage", "archive", "file", "deb", "source"]);
+	/** Apps whose Restart now is under way. */
+	const restarting = new Set<string>();
 
 	/**
 	 * Whether the app still runs a process from before its install. The entry goes once none does:
@@ -966,6 +968,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (run.phase === "installing") return { ok: false, detail: REASON_BUSY };
 			const spec = specOf(key);
 			if (!spec) return { ok: false, detail: `No app ${key}.` };
+			// The pane and the group can both ask; a second relaunch would start the app twice.
+			if (restarting.has(key)) return { ok: false, detail: `${spec.name} is already restarting.` };
+			restarting.add(key);
 			say(key, `Restarting ${spec.name}`);
 			const r = await restartApp(spec, destOf(spec, { paths }), {
 				run: deps.run,
@@ -973,7 +978,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				signal: deps.signal ?? terminate,
 				launch: deps.launch ?? launchDetached,
 				pollMs: deps.pollMs ?? 200,
-			});
+			}).finally(() => restarting.delete(key));
 			say(key, r.ok ? `Restarted ${spec.name}` : (r.detail ?? ""));
 			if (!r.ok) return r;
 			updateState(paths, (s) => {

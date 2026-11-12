@@ -155,7 +155,7 @@ test("relaunch needs dest, and an AppImage's needs process too; restart is a lis
 		].join("\n"),
 	);
 	const { apps, errors } = loadManifest(file);
-	expect(errors).toEqual(["nodest: relaunch needs dest", "noproc: relaunch needs process for an AppImage"]);
+	expect(errors).toEqual(["nodest: relaunch needs dest", "noproc: relaunch needs process"]);
 	expect(apps.map((a) => [a.key, a.restart ?? a.relaunch])).toEqual([
 		["svc", ["systemctl", "restart", "svc"]],
 		["zen", true],

@@ -90,10 +90,9 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 			return `${key}: asset is not a valid regular expression`;
 		}
 	}
-	// Relaunch starts dest again, and an AppImage's own processes run from its mount, so only process finds them.
+	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.
 	if (spec.relaunch && !spec.dest) return `${key}: relaunch needs dest`;
-	if (spec.relaunch && spec.kind === "appimage" && !spec.process)
-		return `${key}: relaunch needs process for an AppImage`;
+	if (spec.relaunch && !spec.process) return `${key}: relaunch needs process`;
 	if (spec.kind === "source") {
 		const refused = liftSource(key, table, spec);
 		if (refused) return refused;

@@ -1029,4 +1029,9 @@ test("Restart now runs the table's restart and drops the app's waiting restart; 
 	expect(readFileSync(mark, "utf8")).toBe("yes\n");
 	expect(claude()?.restartToApply).toBe(false);
 	expect(await engine.restartApp("nope")).toEqual({ ok: false, detail: "No app nope." });
+	// Two asks at once (the pane and the group): the second is refused, so nothing restarts twice.
+	script(join(bin, "claude-restart"), "sleep 0.3");
+	const first = engine.restartApp("claude");
+	expect(await engine.restartApp("claude")).toEqual({ ok: false, detail: "Claude Code is already restarting." });
+	expect(await first).toEqual({ ok: true });
 });

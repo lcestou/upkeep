@@ -51,7 +51,7 @@ export type AppSpec = {
 	process?: string;
 	/** argv that restarts the app, offered as Restart now once an update waits on a restart, e.g. ["systemctl", "restart", "rustdesk"] for a service. */
 	restart?: string[];
-	/** A desktop app Upkeep may close and open again from dest to finish an update. An AppImage also needs process. */
+	/** A desktop app Upkeep may close and open again from dest to finish an update. Needs process, which names what to close. */
 	relaunch?: boolean;
 	/** The background run installs this app without asking. */
 	auto?: boolean;

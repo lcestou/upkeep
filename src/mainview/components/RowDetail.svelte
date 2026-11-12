@@ -131,6 +131,9 @@
 		} finally {
 			restarting = false;
 		}
+		// The button leaves with the reminder; keep focus inside the pane.
+		await tick();
+		if (!restartNote) document.querySelector<HTMLElement>('[data-testid="inspector-close"]')?.focus();
 	}
 
 	/** Restores a saved version of this app. The result line is kept (failure text included) and takes focus, and the row is scrolled into view because it moves to Held back. */

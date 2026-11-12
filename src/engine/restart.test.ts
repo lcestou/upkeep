@@ -34,7 +34,7 @@ const app = (extra: Partial<AppSpec>): AppSpec => ({ key: "app", name: "App", ki
 test("a restart argv is run, and its failure or a sudo password prompt is said plainly", async () => {
 	let answer = OK;
 	const { run, calls } = recordingRun(t.paths, () => answer);
-	const ctx = { run, signal: terminate, launch: () => {}, pollMs: 10 };
+	const ctx = { run, signal: terminate, launch: async () => null, pollMs: 10 };
 	const spec = app({ restart: ["systemctl", "restart", "app"] });
 	expect(await restartApp(spec, "", ctx)).toEqual({ ok: true });
 	expect(calls[0]?.argv).toEqual(["systemctl", "restart", "app"]);
@@ -56,7 +56,12 @@ test("relaunch asks the app to quit, waits until it has, then starts dest again"
 	const launched: string[][] = [];
 	const { run } = recordingRun(t.paths, () => OK);
 	const spec = app({ relaunch: true, dest, process: name });
-	const r = await restartApp(spec, dest, { run, signal: terminate, launch: (a) => launched.push(a), pollMs: 10 });
+	const r = await restartApp(spec, dest, {
+		run,
+		signal: terminate,
+		launch: async (a) => (launched.push(a), null),
+		pollMs: 10,
+	});
 	expect(r).toEqual({ ok: true });
 	expect(launched).toEqual([[dest]]);
 	expect(runningPids({ kind: "file", process: name })).toEqual([]);
@@ -67,7 +72,13 @@ test("an app that will not quit is left running and never started twice", async 
 	const launched: string[][] = [];
 	const { run } = recordingRun(t.paths, () => OK);
 	const spec = app({ relaunch: true, dest, process: name });
-	const ctx = { run, signal: () => {}, launch: (a: string[]) => launched.push(a), pollMs: 10, closeMs: 50 };
+	const ctx = {
+		run,
+		signal: () => {},
+		launch: async (a: string[]) => (launched.push(a), null),
+		pollMs: 10,
+		closeMs: 50,
+	};
 	expect(await restartApp(spec, dest, ctx)).toEqual({
 		ok: false,
 		detail: "App did not close. Close it, then open it again.",
@@ -78,10 +89,26 @@ test("an app that will not quit is left running and never started twice", async 
 
 test("terminate ignores a pid that has gone, and launch starts argv on its own", async () => {
 	expect(() => terminate(2 ** 22 + 7)).not.toThrow();
-	launchDetached([]);
+	expect(await launchDetached([])).toBe("nothing to start");
+	expect(await launchDetached([join(t.dir, "missing")])).toContain("ENOENT");
 	const mark = join(t.dir, "launched");
-	launchDetached(["bash", "-c", `echo yes > "${mark}"`]);
+	expect(await launchDetached(["bash", "-c", `echo yes > "${mark}"`])).toBeNull();
 	// oxlint-disable-next-line no-await-in-loop -- polling until the file shows up is the point
 	for (let i = 0; i < 50 && !(await Bun.file(mark).exists()); i++) await Bun.sleep(20);
 	expect(await Bun.file(mark).text()).toBe("yes\n");
+});
+
+test("an app that closed but cannot be started again says so", async () => {
+	const dest = await startApp();
+	const { run } = recordingRun(t.paths, () => OK);
+	const spec = app({ relaunch: true, dest, process: name });
+	const ctx = { run, signal: terminate, launch: async () => "spawn x ENOENT", pollMs: 10 };
+	expect(await restartApp(spec, dest, ctx)).toEqual({
+		ok: false,
+		detail: "App closed, but could not be started again: spawn x ENOENT",
+	});
+	expect(await restartApp(app({ relaunch: true, dest }), dest, ctx)).toEqual({
+		ok: false,
+		detail: "App's table does not say how to restart it.",
+	});
 });
