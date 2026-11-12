@@ -8,6 +8,7 @@ Exemptions, all in `.oxlintrc.json` under `overrides`:
   - `src/engine/manifest.ts` (the person's `apps.toml`)
   - `src/engine/github.ts` (GitHub's API)
   - `src/engine/store.ts` (`state.json`)
+  - `src/engine/transfer.ts` (an export file handed to `upkeep import`, possibly from another machine or an agent)
   - `src/engine/extras/state.ts` (the extras settings file)
   - `src/engine/backup.ts` (a restore point's `meta.json`)
   - `src/engine/kinds/plugins.ts` (Claude Code's plugin registry and its `claude plugin update --json` answers)

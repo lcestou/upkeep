@@ -1,11 +1,27 @@
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { AppState, EngineEvent } from "./shared/types";
+import type { AppState, EngineEvent, Suggestion } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
+import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
-import { formatLogLine, readInflight } from "./engine/store";
+import { claimLock, formatLogLine, readInflight, releaseLock } from "./engine/store";
+import { exportSetup, importSetup } from "./engine/transfer";
 
-export const USAGE = "Usage: upkeep check|install|restore|history|recover";
+export const USAGE = [
+	"Usage: upkeep <command> [--json]",
+	"  check                  check every app; one line each",
+	"  install <key>...|--all|--auto",
+	"  restore <key> [version]",
+	"  history                the last 200 runs",
+	"  recover                finish or undo an interrupted built update",
+	"  list                   the apps in apps.toml",
+	"  add <name|owner/repo|link|file>",
+	"  remove <key>           take an app off the list; the app stays installed",
+	"  export [file]          settings and app list as one JSON file (stdout without a file)",
+	"  import <file>          replace settings and app list from an export; the old files are kept as .bak",
+	"--json prints one JSON value per line instead of text.",
+].join("\n");
 
 type Out = (line: string) => void;
 
@@ -88,15 +104,21 @@ async function restore(
 	deps: EngineDeps,
 	key: string,
 	version: string | undefined,
+	json: boolean,
 	out: Out,
 ): Promise<number> {
 	const v = version ?? listBackups(deps.paths, key)[0]?.version;
 	if (!v) {
-		out(`No restore point for ${key}.`);
+		out(
+			json
+				? JSON.stringify({ key, ok: false, detail: `No restore point for ${key}.` })
+				: `No restore point for ${key}.`,
+		);
 		return 1;
 	}
 	const r = await engine.restore(key, v);
-	out(r.ok ? `Restored ${v}.` : (r.detail ?? "Restore failed."));
+	if (json) out(JSON.stringify({ key, version: v, ...r }));
+	else out(r.ok ? `Restored ${v}.` : (r.detail ?? "Restore failed."));
 	return r.ok ? 0 : 1;
 }
 
@@ -106,8 +128,13 @@ const RESULT_TEXT = { updated: "Updated", failed: "Failed", rolled_back: "Rolled
  * Finishes or undoes a built update an interrupted run left behind, one line per app. Exits 0 when every app was
  * put back or there was nothing to do, 1 when one could not be put back or another Upkeep's run holds the lock.
  */
-async function recover(engine: Engine, paths: EngineDeps["paths"], out: Out): Promise<number> {
+async function recover(engine: Engine, paths: EngineDeps["paths"], json: boolean, out: Out): Promise<number> {
 	const done = await engine.recover();
+	if (json) {
+		const busy = done.length === 0 && readInflight(paths)?.tree;
+		out(JSON.stringify({ busy: Boolean(busy), apps: done }));
+		return busy || !done.every((r) => r.ok) ? 1 : 0;
+	}
 	// recover() answers nothing both when there is nothing to do and when another process's run holds the lock.
 	if (done.length === 0 && readInflight(paths)?.tree) {
 		out("Another Upkeep run is in progress. Try again when it ends.");
@@ -120,14 +147,105 @@ async function recover(engine: Engine, paths: EngineDeps["paths"], out: Out): Pr
 }
 
 /** Prints the last 200 runs, in the order the engine returns them. Always exits 0. */
-function history(engine: Engine, out: Out): number {
+function history(engine: Engine, json: boolean, out: Out): number {
 	const rows = engine.history(200);
+	if (json) {
+		for (const r of rows) out(JSON.stringify(r));
+		return 0;
+	}
 	if (rows.length === 0) out("No runs yet.");
 	for (const r of rows)
 		out(
 			`${r.at} ${r.name} ${r.from ?? "?"} to ${r.to ?? "?"} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}`,
 		);
 	return 0;
+}
+
+/** The apps in apps.toml, read without a check: one line each, or one JSON object each. Problems in the file are named. */
+function list(deps: EngineDeps, json: boolean, out: Out): number {
+	const { apps, errors } = loadManifest(ensureManifest(deps.paths, deps.seedManifest));
+	for (const a of apps) out(json ? JSON.stringify(a) : `${a.key}  ${a.name}  ${a.kind}${a.repo ? `  ${a.repo}` : ""}`);
+	for (const e of errors) out(json ? JSON.stringify({ problem: e }) : `apps.toml: ${e}`);
+	return errors.length > 0 ? 1 : 0;
+}
+
+/**
+ * The suggestion `add` may write without asking: suggest() answers at most one, and it counts when it is sure (a
+ * repo, a link, a file that names its source) or comes from the catalogue. A repo guessed from a file's name is not.
+ */
+export function pickSure(suggestions: Suggestion[]): Suggestion | null {
+	const [found] = suggestions;
+	return found && (found.confidence === "sure" || found.source === "catalogue") ? found : null;
+}
+
+/**
+ * Adds one app the way Add app does, from a catalogue name, a repo, a link or a file. Only a sure match is added: a
+ * file whose repo was only guessed from its name is named and not added, so an agent never adds the wrong app.
+ */
+async function add(engine: Engine, input: string, json: boolean, out: Out): Promise<number> {
+	const { suggestions, problem } = await engine.suggest(input);
+	const pick = pickSure(suggestions);
+	if (!pick) {
+		const [found] = suggestions;
+		const reason =
+			problem ??
+			(found
+				? `${input} looks like ${found.spec.repo ?? found.spec.name}, but that is a guess; add the repo by name.`
+				: `Nothing found for ${input}.`);
+		if (json) out(JSON.stringify({ added: [], problem: reason, candidate: found?.spec ?? null }));
+		else out(reason);
+		return 1;
+	}
+	const r = await engine.addApps([pick.spec]);
+	if (json) out(JSON.stringify(r));
+	else {
+		for (const k of r.added) out(`Added ${k}.`);
+		for (const p of r.problems) out(`${p.key}: ${p.detail}`);
+	}
+	return r.added.length > 0 ? 0 : 1;
+}
+
+/** Takes an app off the list. The app itself, its files and its restore points stay. */
+async function remove(engine: Engine, key: string, json: boolean, out: Out): Promise<number> {
+	const r = await engine.removeApp(key);
+	if (json) out(JSON.stringify({ key, ...r }));
+	else out(r.ok ? `Removed ${key}.` : (r.detail ?? `Could not remove ${key}.`));
+	return r.ok ? 0 : 1;
+}
+
+/** Writes the setup as one JSON file, or to stdout when no file is named. */
+function exportTo(deps: EngineDeps, file: string | undefined, out: Out): number {
+	const text = `${JSON.stringify(exportSetup(deps.paths, deps.seedManifest, deps.now()), null, "\t")}\n`;
+	if (file === undefined) out(text.trimEnd());
+	else {
+		writeFileSync(file, text);
+		out(`Exported to ${file}.`);
+	}
+	return 0;
+}
+
+/** Replaces the setup from an export, holding the run lock so no install runs while the files change. */
+function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): number {
+	let text: string;
+	try {
+		text = readFileSync(file, "utf8");
+	} catch (err) {
+		out(`Could not read ${file}: ${err instanceof Error ? err.message : String(err)}`);
+		return 1;
+	}
+	if (!claimLock(deps.paths)) {
+		out("An Upkeep run is in progress. Try again when it ends.");
+		return 1;
+	}
+	try {
+		const r = importSetup(deps.paths, deps.seedManifest, text);
+		if (json) out(JSON.stringify(r));
+		else if (r.ok) out(`Imported ${r.apps} apps. The old apps.toml and state.json are kept beside them as .bak.`);
+		else for (const p of r.problems) out(p);
+		return r.ok ? 0 : 1;
+	} finally {
+		releaseLock(deps.paths);
+	}
 }
 
 /** Runs one command line. Returns the exit code. */
@@ -138,9 +256,14 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 	if (cmd === "check" && args.length === 0) return check(createEngine(deps), json, out);
 	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out);
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
-		return restore(createEngine(deps), deps, args[0], args[1], out);
-	if (cmd === "history" && args.length === 0) return history(createEngine(deps), out);
-	if (cmd === "recover" && args.length === 0) return recover(createEngine(deps), deps.paths, out);
+		return restore(createEngine(deps), deps, args[0], args[1], json, out);
+	if (cmd === "history" && args.length === 0) return history(createEngine(deps), json, out);
+	if (cmd === "recover" && args.length === 0) return recover(createEngine(deps), deps.paths, json, out);
+	if (cmd === "list" && args.length === 0) return list(deps, json, out);
+	if (cmd === "add" && args.length === 1 && args[0]) return add(createEngine(deps), args[0], json, out);
+	if (cmd === "remove" && args.length === 1 && args[0]) return remove(createEngine(deps), args[0], json, out);
+	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], out);
+	if (cmd === "import" && args.length === 1 && args[0]) return importFrom(deps, args[0], json, out);
 	out(USAGE);
 	return 2;
 }

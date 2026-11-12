@@ -401,9 +401,21 @@ export function relift(s: AppSpec): Relifted {
 
 /** Reads apps.toml. A bad table is left out and named in errors; the rest still load. */
 export function loadManifest(file: string): { apps: AppSpec[]; errors: string[] } {
+	let text: string;
+	try {
+		text = readFileSync(file, "utf8");
+	} catch (err) {
+		return { apps: [], errors: [`${file}: ${err instanceof Error ? err.message : String(err)}`] };
+	}
+	return parseManifest(text, file);
+}
+
+/** An apps.toml's text read as apps; `label` names it in errors. The same rules as loadManifest, which reads with it. */
+export function parseManifest(text: string, label: string): { apps: AppSpec[]; errors: string[] } {
+	const file = label;
 	let doc: unknown;
 	try {
-		doc = Bun.TOML.parse(readFileSync(file, "utf8"));
+		doc = Bun.TOML.parse(text);
 	} catch (err) {
 		return { apps: [], errors: [`${file}: ${err instanceof Error ? err.message : String(err)}`] };
 	}

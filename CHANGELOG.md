@@ -4,6 +4,7 @@
 
 First version.
 
+- The command line can now do everything the window does: `list`, `add`, `remove`, and `export` and `import` of the settings and app list as one file to carry to another machine. Every command answers in JSON with `--json`, so a script or an agent can manage Upkeep without editing files.
 - The window, the tray and the notifications come in ten languages: English, Chinese (Simplified), Spanish, Portuguese (Brazil), German, French, Italian, Polish, Russian and Japanese. Upkeep follows the desktop's language, or the one picked under **Language** in Settings, and switches at once. Counts use each language's own plural forms, and dates its own order.
 - One window lists every app with its installed and latest version, its size and its restore point. Tick what you want and press Install once. Nothing asks a question after that.
 - Each app shows its own progress through download, back up, install and verify.
