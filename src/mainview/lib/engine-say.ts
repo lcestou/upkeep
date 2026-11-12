@@ -99,9 +99,45 @@ export function match(text: string, depth = 0): { id: MessageId; values: string[
  */
 export function say(text: string | null | undefined, depth = 0): string {
 	if (!text) return text ?? "";
+	// A whole line of several sentences is cut first: a template ending in "{0}." would otherwise swallow the rest.
+	const parts = depth === 0 ? sentencesOf(text) : [text];
+	// Each piece is shorter than the line, so this ends, and each keeps the full depth for its own values.
+	if (parts.length > 1) return parts.map((p) => say(p)).join(" ");
 	const found = depth < 3 ? match(text) : null;
 	if (!found) return text;
 	// SAFETY: ENGINE_COPY has a function for every id, taking as many string values as the template matched.
 	const fn = ENGINE_COPY[found.id] as (...v: string[]) => string;
 	return fn(...found.values.map((v) => say(v, depth + 1)));
+}
+
+/**
+ * A line of several engine sentences joined by spaces, as Add app's "why" is, cut into the sentences it was built from.
+ * A cut where every piece is a template wins over reading the whole line as one, since a template ending in "{0}."
+ * would otherwise swallow the sentences after it. A line no such cut covers stays one piece, so a tool's own output is
+ * never cut up.
+ */
+export function sentencesOf(text: string): string[] {
+	// shortcut: the cut tries a template at every full stop, so its cost grows with the square of the sentences; a
+	// long line (a history detail with many) is read whole instead. Upgrade to a single left-to-right pass if one matters.
+	if (text.length > 4000 || (text.match(/\. /g)?.length ?? 0) > 40) return [text];
+	return cover(text, new Map()) ?? [text];
+}
+
+/** The shortest-first cut of text into templates at ". ", or null when none covers it; memo holds tails already tried. */
+function cover(text: string, memo: Map<string, string[] | null>): string[] | null {
+	const known = memo.get(text);
+	if (known !== undefined) return known;
+	let found: string[] | null = null;
+	for (const m of text.matchAll(/\. /g)) {
+		const end = m.index + 1;
+		const head = text.slice(0, end);
+		const rest = match(head) ? cover(text.slice(end + 1), memo) : null;
+		if (rest) {
+			found = [head, ...rest];
+			break;
+		}
+	}
+	found ??= match(text) ? [text] : null;
+	memo.set(text, found);
+	return found;
 }

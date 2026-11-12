@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { MESSAGES, type MessageId } from "../../shared/messages";
-import { match, say } from "./engine-say";
+import { match, say, sentencesOf } from "./engine-say";
 import { ENGINE_COPY } from "./engine-text";
 
 const ids = Object.keys(MESSAGES) as MessageId[];
@@ -63,5 +63,32 @@ test("a sentence nested many times over is read in bounded time", () => {
 	const text = `${"Could not restore x: ".repeat(30000)}end`;
 	const started = performance.now();
 	expect(match(text)?.id).toBe("couldNotRestoreFile");
+	expect(performance.now() - started).toBeLessThan(250);
+});
+
+test("a line of several engine sentences, as Add app's why is, is read sentence by sentence", () => {
+	const parts = [
+		MESSAGES.matchedAsset("fd.tar.gz"),
+		MESSAGES.itInstalls("fd"),
+		MESSAGES.nothingInstalledAt("~/.local/bin/fd"),
+	];
+	expect(sentencesOf(parts.join(" "))).toEqual(parts);
+	// A sentence with a full stop inside is one template, not two.
+	expect(sentencesOf(MESSAGES.refusedNothingChanged("disk full"))).toEqual([
+		MESSAGES.refusedNothingChanged("disk full"),
+	]);
+	// Text no template starts is left whole.
+	expect(sentencesOf("cp: cannot stat. No such file")).toEqual(["cp: cannot stat. No such file"]);
+	expect(say(parts.join(" "))).toBe(parts.join(" "));
+});
+
+test("at the top, a line that is several templates is cut even when one template could swallow it whole", () => {
+	const line = `${MESSAGES.noApp("x")} ${MESSAGES.itInstalls("y")}`;
+	expect(match(line)?.id).toBe("noApp");
+	expect(sentencesOf(line)).toEqual([MESSAGES.noApp("x"), MESSAGES.itInstalls("y")]);
+	// Many matched sentences stay quick: past the cap the line is read whole.
+	const many = Array.from({ length: 400 }, () => MESSAGES.noApp("x")).join(" ");
+	const started = performance.now();
+	say(many);
 	expect(performance.now() - started).toBeLessThan(250);
 });
