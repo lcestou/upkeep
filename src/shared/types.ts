@@ -352,6 +352,11 @@ export type Requests = {
 	openTool: { params: { what: "update-manager" }; response: { ok: boolean } };
 };
 
+/** One answer per request, each taking that request's params: the main process's and the fixture's. */
+export type RequestHandlers = {
+	[K in keyof Requests]: (p: Requests[K]["params"]) => Requests[K]["response"] | Promise<Requests[K]["response"]>;
+};
+
 /** The surface the view programs against. The Electrobun bridge and the dev fixture both implement it. */
 export type Bridge = {
 	request<K extends keyof Requests>(name: K, params: Requests[K]["params"]): Promise<Requests[K]["response"]>;

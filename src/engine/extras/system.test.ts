@@ -423,3 +423,34 @@ test("apt rows carry the arch in their id, and only kernels and the driver itsel
 		"xorg-x11-drv-nvidia-libs": "package",
 	});
 });
+
+test("turned off and on during a check, only the newer check's answer lands", async () => {
+	updateExtras(t.paths, { system: "show" });
+	// The first check's Mint list waits on a gate and comes back empty; the second answers at once from the fixture.
+	let releaseFirst: (() => void) | undefined;
+	let first = true;
+	const { run } = strictRun((argv) => {
+		const key = argv.join(" ");
+		if (key === MINT_LIST.join(" ") && first) {
+			first = false;
+			return new Promise<ProcessResult>((r) => {
+				releaseFirst = () => r(ok(""));
+			});
+		}
+		const hit = FIXTURES.find(([a]) => a.join(" ") === key);
+		return hit ? ok(fx(hit[1])) : undefined;
+	});
+	const x = createExtras(deps(run));
+	expect(x.snapshot().system.phase).toBe("checking");
+	x.setSettings({ system: "off" });
+	x.setSettings({ system: "show" });
+	await Bun.sleep(20);
+	// The second check has answered; the first, released now, must not replace its rows or its phase.
+	expect(x.snapshot().system.rows.filter((r) => r.source === "apt").length).toBeGreaterThan(0);
+	releaseFirst?.();
+	await x.idle();
+	// The overtaken check is no longer the one idle() waits on: give it time to settle.
+	await Bun.sleep(20);
+	expect(x.snapshot().system.phase).toBe("idle");
+	expect(x.snapshot().system.rows.filter((r) => r.source === "apt").length).toBeGreaterThan(0);
+});
