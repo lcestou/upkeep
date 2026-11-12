@@ -24,6 +24,7 @@ const offState = (): SystemState => ({
 	checkedAt: null,
 	problem: null,
 	glMissing: null,
+	packages: null,
 });
 
 /**

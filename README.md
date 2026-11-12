@@ -177,7 +177,7 @@ Changing the frame or the corners rebuilds the window, which takes a moment.
 
 ### System updates
 
-The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, and on Linux Mint the packages its Update Manager would install (security, kernel and driver updates marked as such). They sit in a folded `System` group at the end of the list. On Linux Mint its header has a button that opens Update Manager; on other systems the group says that package updates are listed on Linux Mint only, and shows the Flatpak ones.
+The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, and the packages the system's package manager would install (security, kernel and driver updates marked as such). The packages come from the first list the system has: Linux Mint's Update Manager (`mintupdate-cli list`), else `apt list --upgradable`, `dnf check-update`, or pacman (`checkupdates`, else `pacman -Qu`). None needs root. apt and `pacman -Qu` read the system's last refresh; dnf and `checkupdates` may fetch fresh metadata into a cache of their own. They sit in a folded `System` group at the end of the list, whose subline names the source. On Linux Mint its header has a button that opens Update Manager.
 
 The group is off until you turn on **Show system updates** in Settings, under Extras. Upkeep only reads these lists. It installs none of them, because system packages need root and Update Manager already installs them with its own checks. For the same reason the tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
 
@@ -193,7 +193,7 @@ Upkeep is developed on Linux Mint 22 (Cinnamon, X11) and has only been run there
 | Window buttons on the desktop's side | Cinnamon or GNOME settings; elsewhere they sit on the right, and Settings can move them |
 | Rounded corners | a compositing window manager |
 | System group, Flatpak rows | Flatpak |
-| System group, package rows | Linux Mint's Update Manager (`mintupdate-cli`) |
+| System group, package rows | Linux Mint's Update Manager, apt, dnf or pacman |
 
 A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its GitHub repo or a file.
 

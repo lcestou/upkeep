@@ -72,7 +72,15 @@ test("an extras event is never dropped and never overtakes the row updates sent 
 		type: "extras",
 		extras: {
 			settings: { system: "show" },
-			system: { mode: "show", phase: "idle", rows: [], checkedAt: null, problem: null, glMissing: null },
+			system: {
+				mode: "show",
+				phase: "idle",
+				rows: [],
+				checkedAt: null,
+				problem: null,
+				glMissing: null,
+				packages: null,
+			},
 		},
 	};
 	c.push(app("fd", 10));

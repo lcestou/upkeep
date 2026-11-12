@@ -14,6 +14,14 @@ import {
 	FLATPAK_UPDATES,
 	glMissing,
 	MINT_LIST,
+	APT_LIST,
+	DNF_LIST,
+	PACMAN_CHECK,
+	PACMAN_LIST,
+	RPM_VERSIONS,
+	parseAptList,
+	parseDnfList,
+	parsePacmanList,
 	parseFlatpakUpdates,
 	parseMintList,
 	parseSourceVersions,
@@ -151,9 +159,95 @@ test("one source missing names the command; the other still lists", async () => 
 	expect(r.problem).toEqual({ code: "missing", command: FLATPAK_UPDATES.join(" ") });
 	expect(r.rows.every((x) => x.source === "apt")).toBe(true);
 	expect(r.rows).toHaveLength(7);
-	const noMint = await checkSystem(box(new Map([[MINT_LIST.join(" "), missing]])));
+	// No package list at all: Update Manager's missing command stands for them, said quietly by the view.
+	const none = new Map([MINT_LIST, APT_LIST, DNF_LIST, PACMAN_CHECK, PACMAN_LIST].map((c) => [c.join(" "), missing]));
+	const noMint = await checkSystem(box(none));
 	expect(noMint.problem).toEqual({ code: "missing", command: "mintupdate-cli list" });
+	expect(noMint.packages).toBeNull();
 	expect(noMint.rows.map((x) => x.source)).toEqual(["flatpak", "flatpak", "flatpak"]);
+});
+
+test("without Update Manager the first package list installed answers: apt, then dnf, then pacman", async () => {
+	const without = (...gone: string[][]) => new Map(gone.map((c) => [c.join(" "), missing]));
+	const apt = await checkSystem(box(new Map([...without(MINT_LIST), [APT_LIST.join(" "), ok(fx("apt-list.txt"))]])));
+	expect(apt.packages).toBe("apt");
+	expect(apt.problem).toBeNull();
+	expect(
+		apt.rows.filter((r) => r.source === "apt").map((r) => [r.name, r.type, r.installed, r.latest, r.note]),
+	).toEqual([
+		["distro-info", "package", "1.7build1", "1.7ubuntu0.1", undefined],
+		["libsoup-3.0-0", "security", "3.4.4-5ubuntu0.10", "3.4.4-5ubuntu0.11", undefined],
+		["linux-image-generic", "kernel", "6.8.0-147.147", "6.8.0-149.149", "update-manager-only"],
+		["nvidia-driver-580", "driver", "580.178.04-0ubuntu1", "580.182.02-0ubuntu1", "update-manager-only"],
+	]);
+	// dnf check-update exits 100 when it lists updates; rpm gives the installed versions.
+	const dnf = await checkSystem(
+		box(
+			new Map([
+				...without(MINT_LIST, APT_LIST),
+				[DNF_LIST.join(" "), { code: 100, stdout: fx("dnf-list.txt"), stderr: "", timedOut: false }],
+				[
+					RPM_VERSIONS.join(" "),
+					ok("firefox.x86_64\t145.0-2.fc43\nglibc.i686\t2.42-1.fc43\nglibc.x86_64\t2.42-1.fc43.1\n"),
+				],
+			]),
+		),
+	);
+	expect(dnf.packages).toBe("dnf");
+	expect(dnf.rows.filter((r) => r.source === "dnf").map((r) => [r.id, r.type, r.installed, r.latest])).toEqual([
+		["dnf:firefox.x86_64", "package", "145.0-2.fc43", "146.0-1.fc43"],
+		["dnf:glibc.x86_64", "package", "2.42-1.fc43.1", "2.42-2.fc43"],
+		["dnf:glibc.i686", "package", "2.42-1.fc43", "2.42-2.fc43"],
+		["dnf:python3-some-really-long-package-name-for-testing.noarch", "package", null, "3.13.1-1.fc43"],
+		["dnf:kernel-core.x86_64", "kernel", null, "6.17.8-300.fc43"],
+		["dnf:akmod-nvidia.x86_64", "driver", null, "3:580.105.08-1.fc43"],
+		["dnf:nvidia-settings.x86_64", "package", null, "3:580.105.08-1.fc43"],
+	]);
+	// No checkupdates: pacman -Qu, which exits 1 when there is nothing.
+	const pac = await checkSystem(
+		box(
+			new Map([
+				...without(MINT_LIST, APT_LIST, DNF_LIST, PACMAN_CHECK),
+				[PACMAN_LIST.join(" "), ok(fx("pacman-list.txt"))],
+			]),
+		),
+	);
+	expect(pac.packages).toBe("pacman");
+	// The ignored package is left out; linux-firmware and nvidia-settings are plain packages.
+	expect(pac.rows.filter((r) => r.source === "pacman").map((r) => [r.name, r.type, r.installed, r.latest])).toEqual([
+		["firefox", "package", "145.0-1", "146.0-1"],
+		["linux", "kernel", "6.17.7.arch1-1", "6.17.8.arch1-1"],
+		["linux-firmware", "package", "20251021-1", "20251111-1"],
+		["nvidia-utils", "driver", "580.95.05-1", "580.105.08-1"],
+		["nvidia-settings", "package", "580.95.05-1", "580.105.08-1"],
+	]);
+	const quiet = await checkSystem(
+		box(
+			new Map([
+				...without(MINT_LIST, APT_LIST, DNF_LIST),
+				[PACMAN_CHECK.join(" "), { code: 2, stdout: "", stderr: "", timedOut: false }],
+			]),
+		),
+	);
+	expect([quiet.packages, quiet.problem, quiet.rows.filter((r) => r.source === "pacman")]).toEqual([
+		"pacman",
+		null,
+		[],
+	]);
+	// A list that is there but fails is a failed problem named by its own command, and lists nothing.
+	const broken = await checkSystem(
+		box(
+			new Map([
+				...without(MINT_LIST),
+				[APT_LIST.join(" "), { code: 100, stdout: "", stderr: "E: lock", timedOut: false }],
+			]),
+		),
+	);
+	expect(broken.problem).toEqual({ code: "failed", command: "apt list --upgradable", detail: "E: lock" });
+	expect(broken.rows.filter((r) => r.source === "apt")).toEqual([]);
+	expect(parseAptList("Listing...\n")).toEqual([]);
+	expect(parseDnfList("", new Map())).toEqual([]);
+	expect(parsePacmanList("error: no database\n")).toEqual([]);
 });
 
 test("a timeout or a failing command is a failed problem with the first line of stderr", async () => {
@@ -203,7 +297,7 @@ test("mode off runs nothing at all", async () => {
 	const x = createExtras(deps(run));
 	expect(x.snapshot()).toEqual({
 		settings: { system: "off" },
-		system: { mode: "off", phase: "off", rows: [], checkedAt: null, problem: null, glMissing: null },
+		system: { mode: "off", phase: "off", rows: [], checkedAt: null, problem: null, glMissing: null, packages: null },
 	});
 	expect(x.checkSystem()).toEqual({ started: false });
 	await x.idle();
@@ -241,6 +335,7 @@ test("shown: it checks at start, again when asked, never twice at once, and turn
 		checkedAt: null,
 		problem: null,
 		glMissing: null,
+		packages: null,
 	});
 	expect(loadExtras(t.paths)).toEqual({ system: "off" });
 });
@@ -285,5 +380,46 @@ test("a check that throws is a failed problem with its message, and the area goe
 		phase: "idle",
 		rows: [],
 		problem: { code: "failed", command: "", detail: "runner died" },
+	});
+});
+
+test("apt rows carry the arch in their id, and only kernels and the driver itself get the restart note", () => {
+	const multi = parseAptList(
+		"libc6/noble-updates 2.39-1 amd64 [upgradable from: 2.38]\nlibc6/noble-updates 2.39-1 i386 [upgradable from: 2.38]\n",
+	);
+	expect(multi.map((r) => r.id)).toEqual(["apt:libc6.amd64", "apt:libc6.i386"]);
+	const typed = (names: string[]) =>
+		Object.fromEntries(parsePacmanList(names.map((n) => `${n} 1 -> 2`).join("\n")).map((r) => [r.name, r.type]));
+	expect(
+		typed([
+			"linux-cachyos",
+			"linux-rt-lts",
+			"linux-zen-headers",
+			"kernel-devel",
+			"linux-firmware",
+			"linux-api-headers",
+		]),
+	).toEqual({
+		"linux-cachyos": "kernel",
+		"linux-rt-lts": "kernel",
+		"linux-zen-headers": "kernel",
+		"kernel-devel": "kernel",
+		"linux-firmware": "package",
+		"linux-api-headers": "package",
+	});
+	expect(
+		typed([
+			"nvidia-open-dkms",
+			"libnvidia-gl-580",
+			"lib32-nvidia-utils",
+			"nvidia-cuda-toolkit",
+			"xorg-x11-drv-nvidia-libs",
+		]),
+	).toEqual({
+		"nvidia-open-dkms": "driver",
+		"libnvidia-gl-580": "driver",
+		"lib32-nvidia-utils": "driver",
+		"nvidia-cuda-toolkit": "package",
+		"xorg-x11-drv-nvidia-libs": "package",
 	});
 });

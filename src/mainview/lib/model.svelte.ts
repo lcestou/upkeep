@@ -453,6 +453,7 @@ export class Model {
 				checkedAt: on ? (system?.checkedAt ?? null) : null,
 				problem: on ? (system?.problem ?? null) : null,
 				glMissing: on ? (system?.glMissing ?? null) : null,
+				packages: on ? (system?.packages ?? null) : null,
 			},
 		};
 	}
