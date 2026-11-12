@@ -31,5 +31,5 @@ First version.
 - The list opens with what the last check found and refreshes in place. On the first machine 28 of 32 apps report in under two seconds.
 - "Restart to apply" stays on a row until the old copy of the app is no longer running.
 - `check`, `install`, `restore` and `history` from the command line, through `bun run cli`.
-- An optional, read-only System group lists the system's own pending updates without installing any: Flatpak apps and runtimes anywhere, and packages where Linux Mint's Update Manager is installed.
+- An optional, read-only System group lists the system's own pending updates without installing any: Flatpak apps and runtimes anywhere, and packages from Linux Mint's Update Manager, or else from apt, dnf or pacman.
 - Every app is updated by Upkeep itself; the first owner's `lutechi-updater` script is no longer run. While its own login run holds its lock, Install waits.

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SYS, glLine, noMint, systemAbsent, systemChecked, systemProblem } from "../lib/copy";
+	import { PACKAGES_FROM, SYS, glLine, systemAbsent, systemChecked, systemProblem } from "../lib/copy";
 	import { relativeTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import Glyph from "./Glyph.svelte";
@@ -36,13 +36,14 @@
 	});
 
 	const sys = $derived(model.extras?.system ?? null);
-	const mint = $derived(!noMint(sys?.problem ?? null));
+	// Only Linux Mint's Update Manager has a window to open; the other package lists are commands.
+	const mint = $derived(sys?.packages === "mint");
 	const checking = $derived(sys?.phase === "checking");
 	const sub = $derived(
 		systemChecked(
 			checking ? null : sys?.checkedAt ? relativeTime(sys.checkedAt, now) : null,
 			checking,
-			mint ? "Update Manager" : "Flatpak",
+			sys?.packages ? PACKAGES_FROM[sys.packages] : "Flatpak",
 		),
 	);
 	// A tool this system does not have is not a fault: one quiet line, no warning glyph.

@@ -1,0 +1,7 @@
+
+firefox.x86_64                     146.0-1.fc43               updates
+kernel-core.x86_64                 6.17.8-300.fc43            updates
+akmod-nvidia.x86_64                3:580.105.08-1.fc43        rpmfusion-nonfree-updates
+Obsoleting Packages
+grub2-tools.x86_64                 1:2.12-40.fc43             updates
+    grub2-tools.x86_64             1:2.12-38.fc43             @updates

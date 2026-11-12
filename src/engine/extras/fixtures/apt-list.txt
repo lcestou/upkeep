@@ -1,0 +1,5 @@
+Listing...
+distro-info/noble-updates 1.7ubuntu0.1 amd64 [upgradable from: 1.7build1]
+libsoup-3.0-0/noble-updates,noble-security 3.4.4-5ubuntu0.11 amd64 [upgradable from: 3.4.4-5ubuntu0.10]
+linux-image-generic/noble-updates 6.8.0-149.149 amd64 [upgradable from: 6.8.0-147.147]
+nvidia-driver-580/noble-updates 580.182.02-0ubuntu1 amd64 [upgradable from: 580.178.04-0ubuntu1]

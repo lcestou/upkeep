@@ -1,7 +1,7 @@
 // The fixture's half of the System group: rows shaped like the engine's checkSystem output on the owner's machine.
 import type { SystemRow, SystemState } from "../../shared/types";
 
-export type SystemVariant = "off" | "show" | "checking" | "empty" | "missing" | "failed" | "gl";
+export type SystemVariant = "off" | "show" | "checking" | "empty" | "missing" | "failed" | "gl" | "apt";
 
 /** Builds an apt row. Nothing is running, and the note is only set when the caller passes one. */
 const apt = (
@@ -48,6 +48,7 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 		checkedAt,
 		problem: null,
 		glMissing: null,
+		packages: "mint",
 	};
 	switch (variant) {
 		case "off":
@@ -59,7 +60,14 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 		case "empty":
 			return { ...base, rows: [] };
 		case "missing":
-			return { ...base, rows: [...FLATPAK_ROWS], problem: { code: "missing", command: "mintupdate-cli list" } };
+			return {
+				...base,
+				rows: [...FLATPAK_ROWS],
+				problem: { code: "missing", command: "mintupdate-cli list" },
+				packages: null,
+			};
+		case "apt":
+			return { ...base, rows: [...APT_ROWS.map((r) => ({ ...r, note: undefined })), ...FLATPAK_ROWS], packages: "apt" };
 		case "failed":
 			return {
 				...base,

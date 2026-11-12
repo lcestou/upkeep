@@ -29,6 +29,7 @@ const system = (mode: SystemState["mode"], n: number): SystemState => ({
 	checkedAt: null,
 	problem: null,
 	glMissing: null,
+	packages: "mint",
 });
 
 test("shown system updates add one menu line before the divider, opening the window", () => {
