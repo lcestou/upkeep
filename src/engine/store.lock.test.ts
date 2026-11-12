@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, mkdirSync, utimesSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadState, updateState } from "./store";
 import { tempHome } from "./testkit";
@@ -30,12 +30,11 @@ for (let i = 0; i < 40; i++) updateState(paths, (s) => { s.hold["${name}-" + i] 
 	expect(existsSync(join(t.paths.state, "state.json.lock"))).toBe(false);
 });
 
-test("a lock left by a process that died is taken over, and released after", () => {
+test("a lock left by a process that died is taken over at once, and released after", () => {
 	mkdirSync(t.paths.state, { recursive: true });
 	const lock = join(t.paths.state, "state.json.lock");
-	writeFileSync(lock, "99999");
-	const old = new Date(Date.now() - 60_000);
-	utimesSync(lock, old, old);
+	// A pid far above any live one: its holder is gone, however fresh the file.
+	writeFileSync(lock, "999999999");
 	const started = Date.now();
 	updateState(t.paths, (s) => {
 		s.hold.zen = true;
@@ -43,4 +42,37 @@ test("a lock left by a process that died is taken over, and released after", () 
 	expect(Date.now() - started).toBeLessThan(1000);
 	expect(loadState(t.paths).hold).toEqual({ zen: true });
 	expect(existsSync(lock)).toBe(false);
+});
+
+test("a live holder's lock is waited for, never taken; a pidless old one is; and no lock at all still writes", () => {
+	mkdirSync(t.paths.state, { recursive: true });
+	const lock = join(t.paths.state, "state.json.lock");
+	// This test process is alive: its lock is waited out (2 s), not removed, and the change still goes through.
+	writeFileSync(lock, String(process.pid));
+	const started = Date.now();
+	updateState(t.paths, (s) => {
+		s.hold.a = true;
+	});
+	expect(Date.now() - started).toBeGreaterThanOrEqual(1900);
+	expect(existsSync(lock)).toBe(true);
+	expect(loadState(t.paths).hold.a).toBe(true);
+	// An old lock with no pid in it counts as left behind.
+	writeFileSync(lock, "");
+	const old = new Date(Date.now() - 60_000);
+	utimesSync(lock, old, old);
+	updateState(t.paths, (s) => {
+		s.hold.b = true;
+	});
+	expect(existsSync(lock)).toBe(false);
+	// A folder where no lock can be made: the change is attempted without one, and fails as a write there would.
+	const ro = tempHome("state-ro");
+	mkdirSync(ro.paths.state, { recursive: true });
+	chmodSync(ro.paths.state, 0o555);
+	expect(() =>
+		updateState(ro.paths, (s) => {
+			s.hold.c = true;
+		}),
+	).toThrow();
+	chmodSync(ro.paths.state, 0o755);
+	ro.cleanup();
 });

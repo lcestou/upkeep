@@ -103,33 +103,54 @@ export function writeAtomic(file: string, text: string): void {
 	renameSync(tmp, file);
 }
 
-/** How long a writer waits for another's lock, and how old a lock is before it counts as left by a process that died. */
+/** How long a writer waits for another's lock, and how old a lock with no readable pid is before it counts as left behind. */
 const STATE_LOCK_WAIT_MS = 2000;
 const STATE_LOCK_STALE_MS = 10_000;
 
+/** The pid a lock file holds, or null when it is gone or holds none. */
+function lockPid(lock: string): number | null {
+	try {
+		const pid = readFileSync(lock, "utf8").trim();
+		return /^\d+$/.test(pid) ? Number(pid) : null;
+	} catch {
+		return null;
+	}
+}
+
 /**
- * Runs fn holding state.json.lock, created exclusively, so the window and the command line never read, change and
- * write the file at the same time and lose each other's change. A lock older than STATE_LOCK_STALE_MS was left by a
- * process that died and is taken over. When the wait runs out, fn runs anyway: a lost race costs one setting, a
- * refused write would cost it too.
+ * True when the lock was left by a process that is gone: its pid has no /proc entry. A lock with no readable pid
+ * counts as left behind only once it is older than STATE_LOCK_STALE_MS. A slow but live holder is never taken over.
+ */
+function lockAbandoned(lock: string): boolean {
+	const pid = lockPid(lock);
+	if (pid !== null) return !existsSync(join("/proc", String(pid)));
+	try {
+		return Date.now() - statSync(lock).mtimeMs > STATE_LOCK_STALE_MS;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Runs fn holding state.json.lock, created exclusively with this process's pid, so the window and the command line
+ * never read, change and write the file at the same time and lose each other's change. A lock whose holder died is
+ * taken over. When the lock cannot be made at all (a full disk, a read-only folder) or the wait runs out, fn runs
+ * anyway: a lost race costs one setting, and a refused write would cost it too. Two processes taking over the same
+ * dead holder's lock in the same instant can both run; that needs a crash and a race together.
  */
 function withStateLock<T>(paths: Paths, fn: () => T): T {
 	const lock = `${stateFile(paths)}.lock`;
 	const until = Date.now() + STATE_LOCK_WAIT_MS;
 	let held = false;
-	while (!held) {
+	for (;;) {
 		try {
 			writeFileSync(lock, String(process.pid), { flag: "wx" });
 			held = true;
-		} catch {
-			let age = 0;
-			try {
-				age = Date.now() - statSync(lock).mtimeMs;
-			} catch {
-				// gone between the two calls: try again at once
-				continue;
-			}
-			if (age > STATE_LOCK_STALE_MS) rmSync(lock, { force: true });
+			break;
+		} catch (err) {
+			// SAFETY: writeFileSync throws an ErrnoException, which carries the code.
+			if ((err as NodeJS.ErrnoException).code !== "EEXIST") break;
+			if (lockAbandoned(lock)) rmSync(lock, { force: true });
 			else if (Date.now() > until) break;
 			else Bun.sleepSync(10);
 		}
@@ -137,7 +158,8 @@ function withStateLock<T>(paths: Paths, fn: () => T): T {
 	try {
 		return fn();
 	} finally {
-		if (held) rmSync(lock, { force: true });
+		// Only our own: a lock another process holds now is never removed here.
+		if (held && lockPid(lock) === process.pid) rmSync(lock, { force: true });
 	}
 }
 
