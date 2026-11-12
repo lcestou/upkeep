@@ -2,7 +2,7 @@
 
 One window for the apps the package manager misses. It checks every app in a list, shows what is pending with the old and new version, and installs what you tick with one press. Each app shows its own progress, nothing asks a question once the run starts, and the version that was replaced is kept so a bad update can be put back.
 
-It covers AppImages, binaries from GitHub release archives, single-file binaries, .deb files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
+It covers AppImages, binaries from GitHub release archives, single-file binaries, .deb and .rpm files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
 
 Linux first: built on Linux Mint and supported on the main x86_64 desktop distributions (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
 
@@ -152,7 +152,7 @@ Steps and paths may use `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`
 ## What an install does
 
 1. **Download** to `~/.cache/upkeep/dl`. The size must equal what GitHub lists, and the SHA-256 must match the asset's digest when the release has one. A `json:` source lists neither: its download is trusted as the vendor's own answer, over https only, the way its own updater would trust it, and must be at least 1 MiB. The verify probe and the restore point catch a bad one.
-2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. A `.deb` keeps the installed version's package, taken from that version's GitHub release, and goes back with `dpkg -i`. A self-updating app keeps one when its table has `restore`, a command with `{version}` (and `{tag}`) that installs a given version, such as `["bun", "add", "-g", "wrangler@{version}"]`. A source app with `dir` or `stage` keeps its checkout's commit, the files its table names and the files it replaces; one built in a fresh clone keeps none. "Restore points to keep" in Settings applies to all of them.
+2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. A `.deb` keeps the installed version's package, taken from that version's GitHub release, and goes back with `dpkg -i`; an `.rpm` does the same through `rpm -U --oldpackage`. A self-updating app keeps one when its table has `restore`, a command with `{version}` (and `{tag}`) that installs a given version, such as `["bun", "add", "-g", "wrangler@{version}"]`. A source app with `dir` or `stage` keeps its checkout's commit, the files its table names and the files it replaces; one built in a fresh clone keeps none. "Restore points to keep" in Settings applies to all of them.
 3. **Install.** The new file is written beside the old one and renamed into place, so a running copy keeps working and a full disk leaves the old file whole. A running app is not closed. Its row says "Restart to apply". When its table has `restart` or `relaunch`, its pane offers Restart now and the "Restart to finish" group a button that restarts every such app; one that would close a window asks first, since unsaved work in it is lost.
 4. **Verify.** The version probe runs again. If the new copy will not start, the restore point goes back and the row says so.
 
@@ -215,6 +215,7 @@ Upkeep is developed and used daily on Linux Mint 22 (Cinnamon, X11). Nothing in 
 | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | AppImage, archive, single-file and source apps, self-updating tools | any x86_64 Linux; `gh` for a GitHub token is optional                                   |
 | `.deb` apps                                                         | dpkg, so Debian, Ubuntu, Mint and their relatives                                       |
+| `.rpm` apps                                                         | rpm on a system without dpkg, so Fedora, openSUSE, AlmaLinux and their relatives       |
 | The window                                                          | WebKitGTK 4.1                                                                           |
 | Window buttons on the desktop's side                                | Cinnamon or GNOME settings; elsewhere they sit on the right, and Settings can move them |
 | Rounded corners                                                     | a compositing window manager                                                            |

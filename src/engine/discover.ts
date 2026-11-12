@@ -81,7 +81,8 @@ const OTHER_ARCH =
 // An asset that names this machine outright beats one that names no architecture.
 const THIS_MACHINE = /x86_64|x86-64|amd64|x64|64-?bit/i;
 const SIDE_FILE = /\.(sha256|sha512|sig|asc|zsync|sbom|json|txt|pem|minisig)$/i;
-const OTHER_PACKAGE = /\.(apk|pacman|flatpak|snap)$/i;
+// A source rpm installs only its sources into rpmbuild, never the program.
+const OTHER_PACKAGE = /\.(apk|pacman|flatpak|snap|src\.rpm)$/i;
 const UNOPENED = /\.(tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
 const TRIPLE = /x86_64-unknown-linux-(gnu|musl)$/i;
 

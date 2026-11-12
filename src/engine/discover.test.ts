@@ -753,10 +753,18 @@ test("a .deb is offered only where dpkg is: without it, a release of only a .deb
 });
 
 test("an .rpm is offered only where rpm is, and wins over a .deb when only rpm is on PATH", async () => {
-	releases["o/rpmonly"] = { tag_name: "v1.0", assets: [{ name: "rpmonly-1.0.x86_64.rpm", size: 1 }] };
+	releases["o/rpmonly"] = {
+		tag_name: "v1.0",
+		// A source rpm sits beside the binary one in many releases and is never offered.
+		assets: [
+			{ name: "rpmonly-1.0.src.rpm", size: 1 },
+			{ name: "rpmonly-1.0.x86_64.rpm", size: 1 },
+		],
+	};
 	onPath = { rpm: "/usr/bin/rpm" };
 	const got = (await suggest("o/rpmonly", ctx().c)).suggestions[0];
 	expect(got?.spec.kind).toBe("rpm");
+	expect(got?.alternatives).toEqual([]);
 	expect(got?.spec.sudo).toBe(true);
 	expect(got?.spec.dest).toBe("/usr/bin/rpmonly");
 	onPath = {};
