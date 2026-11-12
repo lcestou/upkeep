@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import Electrobun, { BrowserWindow, Tray, Utils } from "electrobun/main";
 import pkg from "../../package.json";
 import { createEngine } from "../engine/engine";
@@ -193,8 +193,14 @@ const engine = createEngine(deps);
 // An update cut off by a crash or a power cut is finished or undone before the first check.
 void engine.recover();
 // The system updates list: same paths and runner, its own state, never awaited by the engine's check.
-// The background run below never installs system updates: only the window's confirmed press does.
-const extras = createExtras({ paths: deps.paths, run: deps.run, now: deps.now });
+// The background run below never installs system updates and never cleans: only the window's confirmed press does.
+const extras = createExtras({
+	paths: deps.paths,
+	run: deps.run,
+	now: deps.now,
+	// Cleanup looks for Upkeep's own leftovers beside each installed app.
+	leftoverDirs: () => [...new Set(engine.snapshot().apps.flatMap((a) => (a.dest ? [dirname(a.dest)] : [])))],
+});
 // The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
 const launcher = join(import.meta.dir, "../../../bin/launcher");
 const appIcon = join(import.meta.dir, "../../appIcon.png");
