@@ -12,7 +12,7 @@ import { ENGINE_COPY } from "./engine-text";
 const MARK = (i: number) => `\u{E000}${i}\u{E001}`;
 
 /** A template as a pattern, with the fixed text between its values for a quick check before the pattern runs. */
-type Pattern = { id: MessageId; re: RegExp; order: number[]; pieces: string[] };
+type Pattern = { id: MessageId; re: RegExp; order: number[]; pieces: string[]; fixed: number };
 
 /** A RegExp source that matches the text literally. */
 const literal = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -70,9 +70,16 @@ function couldBe(text: string, pieces: string[]): boolean {
 	return at <= text.length - last.length;
 }
 
-/** The template a text was written from, with its values in the template's own order; null when none fits. */
+/**
+ * The template a text was written from, with its values in the template's own order; null when none fits. Two
+ * templates can fit with the same fixed letters, such as "{0}. Nothing was changed." and "{0} Nothing was changed.":
+ * the one that reads more of its values back as engine sentences wins, so a wrapped sentence keeps its full stop and
+ * is worded too.
+ */
 export function match(text: string): { id: MessageId; values: string[] } | null {
+	let best: { id: MessageId; values: string[]; fixed: number; nested: number } | null = null;
 	for (const s of patterns()) {
+		if (best && s.fixed < best.fixed) break;
 		if (!couldBe(text, s.pieces)) continue;
 		const m = s.re.exec(text);
 		if (!m) continue;
@@ -80,9 +87,11 @@ export function match(text: string): { id: MessageId; values: string[] } | null 
 		s.order.forEach((slot, k) => {
 			values[slot] = m[k + 1] ?? "";
 		});
-		return { id: s.id, values };
+		// Each value is shorter than the text, so this ends.
+		const nested = values.filter((v) => v && v !== text && match(v)).length;
+		if (!best || nested > best.nested) best = { id: s.id, values, fixed: s.fixed, nested };
 	}
-	return null;
+	return best && { id: best.id, values: best.values };
 }
 
 /**

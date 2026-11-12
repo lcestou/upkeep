@@ -1890,3 +1890,7 @@ msgstr "{0}：其导入前的副本为 {1}"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: written by this import, and could not be removed"
 msgstr "{0}：由本次导入写入，且无法删除"
+
+#: src/mainview/lib/engine-text.ts
+msgid "An Upkeep run is in progress. Try again when it ends."
+msgstr "Upkeep 正在运行。请在运行结束后重试。"

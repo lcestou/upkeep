@@ -48,3 +48,12 @@ test("a long tool output that is no engine sentence is turned away quickly, not 
 	expect(say(junk)).toBe(junk);
 	expect(performance.now() - started).toBeLessThan(250);
 });
+
+test("of two templates that fit alike, the one that reads its value back as an engine sentence wins", () => {
+	const wrapped = MESSAGES.busySayNothingChanged(MESSAGES.noApp("fd"));
+	expect(match(wrapped)).toEqual({ id: "busySayNothingChanged", values: [MESSAGES.noApp("fd")] });
+	expect(match(MESSAGES.refusedNothingChanged("disk full"))).toEqual({
+		id: "refusedNothingChanged",
+		values: ["disk full"],
+	});
+});

@@ -1890,3 +1890,7 @@ msgstr "{0}：読み込み前のコピーは {1} です"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: written by this import, and could not be removed"
 msgstr "{0}：この読み込みで書き込まれ、削除できませんでした"
+
+#: src/mainview/lib/engine-text.ts
+msgid "An Upkeep run is in progress. Try again when it ends."
+msgstr "Upkeep の実行中です。終わってからもう一度お試しください。"

@@ -1926,3 +1926,7 @@ msgstr "{0}: la sua copia precedente è {1}"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: written by this import, and could not be removed"
 msgstr "{0}: scritto da questa importazione, e non è stato possibile rimuoverlo"
+
+#: src/mainview/lib/engine-text.ts
+msgid "An Upkeep run is in progress. Try again when it ends."
+msgstr "È in corso una sessione di Upkeep. Riprova quando sarà finita."

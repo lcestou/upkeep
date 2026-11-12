@@ -195,4 +195,5 @@ export const ENGINE_COPY = {
 	importSomeNotPutBack: (v0: string) => `${v0} Some files could not be put back:`,
 	importCopyFromBefore: (v0: string, v1: string) => `${v0}: its copy from before is ${v1}`,
 	importCreatedNotRemoved: (v0: string) => `${v0}: written by this import, and could not be removed`,
+	importDuringRun: () => `An Upkeep run is in progress. Try again when it ends.`,
 } satisfies Record<MessageId, (...values: string[]) => string>;

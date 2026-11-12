@@ -379,6 +379,8 @@ export const MESSAGES = {
 	importCopyFromBefore: (v0: Value, v1: Value) => `${v0}: its copy from before is ${v1}`,
 	/** transfer.ts. {0} file path */
 	importCreatedNotRemoved: (v0: Value) => `${v0}: written by this import, and could not be removed`,
+	/** requests.ts and cli.ts: an import refused because a run holds the lock */
+	importDuringRun: () => `An Upkeep run is in progress. Try again when it ends.`,
 } satisfies Record<string, (...values: Value[]) => string>;
 
 export type MessageId = keyof typeof MESSAGES;
