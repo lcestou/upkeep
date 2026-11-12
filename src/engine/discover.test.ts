@@ -1269,9 +1269,21 @@ test("on arm64 a file's name loses its arm suffix too, and a file naming arm64 b
 	expect(bareName("tool-linux-x86_64.AppImage")).toBe("tool");
 	const asset = (name: string) => ({ name, url: "", size: 1, digest: null });
 	const names = machineAssets(
-		[asset("tool-arm64-armv7-bundle.tar.gz"), asset("tool-linux-arm64.tar.gz"), asset("tool-i686-arm64.tar.gz")],
+		[
+			asset("tool-arm64-armv7-bundle.tar.gz"),
+			asset("tool-linux-arm64.tar.gz"),
+			asset("tool-i686-arm64.tar.gz"),
+			asset("tool-x86_64-arm64-universal.tar.gz"),
+			// armv8 is arm64 itself, and x64 inside a word names nothing.
+			asset("other-linux-aarch64-armv8.tar.gz"),
+			asset("third-arm64-x64ffmpeg.tar.gz"),
+		],
 		[],
 		"aarch64",
 	).candidates.map((c) => c.asset.name);
-	expect(names).toEqual(["tool-linux-arm64.tar.gz"]);
+	expect(names.toSorted()).toEqual([
+		"other-linux-aarch64-armv8.tar.gz",
+		"third-arm64-x64ffmpeg.tar.gz",
+		"tool-linux-arm64.tar.gz",
+	]);
 });

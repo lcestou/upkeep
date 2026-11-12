@@ -166,8 +166,9 @@ const forArch = (name: string, arch: Arch) =>
 		? (ARM.test(name) && !NOT_ARM64.test(name.replace(ARM, ""))) || ANY_ARCH.test(name)
 		: !OTHER_ARCH.test(name);
 /** Another architecture's token, read with the arm64 name taken out: a file naming arm64 and armv7 is no arm64 build. */
+// Whole tokens only: armv8 is arm64 itself, and "x64" or "x86" inside a longer word names no architecture.
 const NOT_ARM64 =
-	/armv|arm-|armhf|armel|i[3-6]86|ia32|32-?bit|x86|amd64|x64|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
+	/armv[4-7]|armhf|armel|i[3-6]86|ia32|(?:^|[-_.])(?:x86_64|x86-64|amd64|x64|x86)(?:$|[-_.])|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
 
 /** The release's assets that run on Linux on arch, best first; prefer puts kinds that match what is on disk ahead. */
 export function machineAssets(assets: Asset[], prefer: AppKind[] = [], arch: Arch = "x86_64") {
