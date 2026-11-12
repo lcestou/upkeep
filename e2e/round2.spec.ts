@@ -154,9 +154,10 @@ test("the filter: Clear filter, ArrowDown to the first row, Enter opens the firs
 test("disabled pane actions during a run say why", async ({ page }) => {
 	await load(page, "fixture&speed=1");
 	await page.getByTestId("install").click();
-	// Picked during the run, the pane stays on fd; picked before, it follows the run to the app installing now.
-	await page.getByTestId("open-fd").click();
-	await expect(page.getByTestId("hold-fd")).toHaveAttribute("title", "Wait for the run to finish.");
+	// An app outside the run, picked during it so the pane stays on it: its actions wait, and say why.
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-bat").click();
+	await expect(page.getByTestId("hold-bat")).toHaveAttribute("title", "Wait for the run to finish.");
 });
 
 test("the checking dot pulses no lower than 0.85", async ({ page }) => {
