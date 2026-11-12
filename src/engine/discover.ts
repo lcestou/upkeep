@@ -162,7 +162,12 @@ function rank(c: Candidate): number {
  * every architecture, so an unnamed x86_64 build is never installed on an arm64 machine.
  */
 const forArch = (name: string, arch: Arch) =>
-	arch === "aarch64" ? ARM.test(name) || ANY_ARCH.test(name) : !OTHER_ARCH.test(name);
+	arch === "aarch64"
+		? (ARM.test(name) && !NOT_ARM64.test(name.replace(ARM, ""))) || ANY_ARCH.test(name)
+		: !OTHER_ARCH.test(name);
+/** Another architecture's token, read with the arm64 name taken out: a file naming arm64 and armv7 is no arm64 build. */
+const NOT_ARM64 =
+	/armv|arm-|armhf|armel|i[3-6]86|ia32|32-?bit|x86|amd64|x64|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
 
 /** The release's assets that run on Linux on arch, best first; prefer puts kinds that match what is on disk ahead. */
 export function machineAssets(assets: Asset[], prefer: AppKind[] = [], arch: Arch = "x86_64") {
@@ -652,7 +657,7 @@ export function bareName(file: string): string {
 	let n = (file.split("/").at(-1) ?? file).replace(/\.appimage$/i, "");
 	for (let prev = ""; prev !== n;) {
 		prev = n;
-		n = n.replace(/[-_.](x86_64|amd64|linux)$/i, "").replace(/[-_.]?v?\d+(\.\d+)+[a-z0-9._-]*$/i, "");
+		n = n.replace(/[-_.](x86_64|amd64|aarch64|arm64|linux)$/i, "").replace(/[-_.]?v?\d+(\.\d+)+[a-z0-9._-]*$/i, "");
 	}
 	return n;
 }

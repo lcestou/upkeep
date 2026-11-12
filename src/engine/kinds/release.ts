@@ -368,7 +368,9 @@ async function oldPackage(
 	const tag = target.tag.replace(target.version, from);
 	const release = await releaseOf(spec, ctx, tag);
 	if (isFailure(release)) return { problem: `${tag}: ${release.detail}` };
-	const pattern = assetFor(spec, ctx.arch) ?? "";
+	const pattern = assetFor(spec, ctx.arch);
+	// An empty pattern would match every asset of the release.
+	if (pattern === undefined) return { problem: `${spec.key} has no asset pattern for ${ctx.arch}.` };
 	const picked = pickAsset(release, pattern);
 	if (!picked) return { problem: `the ${tag} release has no package matching ${pattern}.` };
 	if (picked.count > 1) return { problem: `more than one ${tag} asset matches ${pattern}.` };

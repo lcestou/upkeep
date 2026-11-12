@@ -1262,3 +1262,16 @@ test("on aarch64 an app added by repo keeps its pattern as asset_aarch64, named 
 	expect(spec?.asset).toBeUndefined();
 	expect(spec && tomlTable(spec)).toContain("asset_aarch64 = '^fd-.*-aarch64-unknown-linux-gnu\\.tar\\.gz$'");
 });
+
+test("on arm64 a file's name loses its arm suffix too, and a file naming arm64 beside another arch is no arm64 build", () => {
+	expect(bareName("/home/owner/bin/tool-linux-arm64.AppImage")).toBe("tool");
+	expect(bareName("rustdesk-aarch64.AppImage")).toBe("rustdesk");
+	expect(bareName("tool-linux-x86_64.AppImage")).toBe("tool");
+	const asset = (name: string) => ({ name, url: "", size: 1, digest: null });
+	const names = machineAssets(
+		[asset("tool-arm64-armv7-bundle.tar.gz"), asset("tool-linux-arm64.tar.gz"), asset("tool-i686-arm64.tar.gz")],
+		[],
+		"aarch64",
+	).candidates.map((c) => c.asset.name);
+	expect(names).toEqual(["tool-linux-arm64.tar.gz"]);
+});
