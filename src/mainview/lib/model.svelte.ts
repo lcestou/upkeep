@@ -206,14 +206,12 @@ export class Model {
 		}),
 	);
 	failedKeys: string[] = $derived(this.run.results.filter((r) => r.result !== "updated").map((r) => r.key));
-	/** The apps in this run in the engine's order: native kinds in list order, then the old script's, with apps added during the run in their place. */
+	/** The apps in this run in the engine's order: list order, with apps added during the run after them. */
 	queue: AppState[] = $derived(
 		this.run.phase === "installing" || this.run.phase === "summary"
 			? this.#inRunOrder(
 					"run",
-					this.apps
-						.filter((a) => IN_RUN.has(a.status))
-						.toSorted((a, b) => Number(a.kind === "legacy") - Number(b.kind === "legacy")),
+					this.apps.filter((a) => IN_RUN.has(a.status)),
 				)
 			: [],
 	);

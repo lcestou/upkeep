@@ -2,19 +2,11 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
-import {
-	createEngine,
-	type EngineDeps,
-	REASON_BUSY,
-	REASON_CHECKING,
-	REASON_NOTHING,
-	REASON_OLD,
-	REASON_STOPPING,
-} from "./engine";
+import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD, REASON_STOPPING } from "./engine";
 import type { FetchLike } from "./github";
 import { readMeta, takePoint } from "./backup";
 import { loadManifest } from "./manifest";
-import { claimLock, loadState, readInflight, readRunLog, updateState, writeInflight } from "./store";
+import { claimLock, loadState, readInflight, updateState, writeInflight } from "./store";
 import { realRun, recordingRun, script, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -63,23 +55,16 @@ update = ["~/.local/bin/claude-up"]
 auto = true
 note = "Open sessions keep the old version until restarted."
 
-[apps.cursor]
-name = "Cursor"
-kind = "legacy"
-legacy_key = "cursor"
-legacy_name = "Cursor"
-
 [apps.plugins]
 name = "Claude Code plugins"
-kind = "legacy"
-legacy_key = "claude-plugins"
-versionless = true
+kind = "claude-plugins"
 auto = true
 
 [apps.strata]
 name = "Strata"
 kind = "manual"
-legacy_name = "strata"
+check = ["~/.local/bin/strata-version"]
+latest = "github:o/strata"
 run = "strata-update"
 `;
 
@@ -120,29 +105,6 @@ const fakeFetch: FetchLike = async (url) => {
 	return new Response("missing", { status: 404 });
 };
 
-function oldScript(): string {
-	const state = join(t.dir, "old-state");
-	writeFileSync(state, "2.0.1");
-	return script(
-		join(t.dir, "lutechi-updater"),
-		`case "$1" in
---check)
-	read -r cur < "${state}"
-	if [ "$cur" = "2.1.0" ]; then echo "  OK:     Cursor $cur"; else echo "  UPDATE: Cursor $cur -> 2.1.0"; fi
-	echo "  UPDATE: strata 0.2.10 -> 0.2.13 (run: strata-update)"
-	;;
-cursor)
-	echo 2.1.0 > "${state}"
-	echo "[x] Successfully updated Cursor to 2.1.0" >> "${join(t.dir, "old.log")}"
-	;;
-claude-plugins)
-	echo "[x] claude plugin a@b is up to date" >> "${join(t.dir, "old.log")}"
-	;;
-esac
-exit 0`,
-	);
-}
-
 async function deps(): Promise<EngineDeps> {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
 	bin = join(t.paths.home, ".local/bin");
@@ -151,7 +113,17 @@ async function deps(): Promise<EngineDeps> {
 	script(join(bin, "bat"), 'echo "bat 0.26.1"');
 	const claudeState = join(t.dir, "claude-version");
 	writeFileSync(claudeState, "2.1.322");
-	script(join(bin, "claude"), `read -r v < "${claudeState}"; echo "$v (Claude Code)"`);
+	// claude answers its plugin commands as Claude Code would, and --version from the state file.
+	script(
+		join(bin, "claude"),
+		`if [ "$1" = plugin ]; then [ "$2" = update ] && echo '{"updateOutcome":"up_to_date"}'; exit 0; fi; read -r v < "${claudeState}"; echo "$v (Claude Code)"`,
+	);
+	mkdirSync(join(t.paths.home, ".claude/plugins"), { recursive: true });
+	writeFileSync(
+		join(t.paths.home, ".claude/plugins/installed_plugins.json"),
+		JSON.stringify({ plugins: { "a@b": [{ scope: "user" }] } }),
+	);
+	script(join(bin, "strata-version"), 'echo "strata 0.2.10"');
 	script(join(bin, "claude-up"), `echo 2.1.400 > "${claudeState}"`);
 	releases = {
 		"o/boom": { tag: "v1.1.0", assets: {} },
@@ -160,6 +132,7 @@ async function deps(): Promise<EngineDeps> {
 			assets: { "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz": await tarball("fd", 'echo "fd 10.5.2"') },
 		},
 		"sharkdp/bat": { tag: "v0.26.1", assets: { "bat-x86_64-unknown-linux-gnu.tar.gz": bytes("x") } },
+		"o/strata": { tag: "v0.2.13", assets: {} },
 	};
 	// boom's release lists an asset whose download is missing, so its install throws.
 	releases["o/boom"] = { tag: "v1.1.0", assets: { boom: bytes("never served") } };
@@ -173,9 +146,7 @@ async function deps(): Promise<EngineDeps> {
 			url === "https://dl.test/o/boom/boom" ? new Response("gone", { status: 404 }) : fakeFetch(url, init),
 		run,
 		now: () => new Date(),
-		oldScript: oldScript(),
-		oldLock: join(t.dir, "lutechi-updater.lock"),
-		oldLog: join(t.dir, "old.log"),
+		oldLock: { file: join(t.dir, "lutechi-updater.lock"), name: "lutechi-updater" },
 		procRoot: proc,
 		retryMs: 1,
 		pollMs: 10,
@@ -194,7 +165,7 @@ function statuses(engine: ReturnType<typeof createEngine>): Record<string, strin
 	return Object.fromEntries(engine.snapshot().apps.map((a) => [a.key, a.status]));
 }
 
-test("check: native and legacy apps land in manifest order, absent apps are left out", async () => {
+test("check: apps land in manifest order, absent apps are left out", async () => {
 	const engine = createEngine(await deps());
 	const events: EngineEvent[] = [];
 	engine.subscribe((e) => events.push(e));
@@ -204,7 +175,6 @@ test("check: native and legacy apps land in manifest order, absent apps are left
 		fd: "ready",
 		bat: "fresh",
 		claude: "ready",
-		cursor: "ready",
 		plugins: "fresh",
 		strata: "manual",
 	});
@@ -226,7 +196,7 @@ test("check: native and legacy apps land in manifest order, absent apps are left
 	).toBe(true);
 	expect(events.findLast((e) => e.type === "run")).toMatchObject({ run: { phase: "idle" } });
 	expect(events.at(-1)?.type).toBe("meta");
-	expect(engine.readyKeys(false)).toEqual(["boom", "fd", "claude", "cursor"]);
+	expect(engine.readyKeys(false)).toEqual(["boom", "fd", "claude"]);
 	expect(engine.readyKeys(true)).toEqual(["fd", "claude", "plugins"]);
 });
 
@@ -250,7 +220,7 @@ test("a check pressed while an install is starting does not run beside it", asyn
 test("one app's exception fails that app and the run continues", async () => {
 	const engine = createEngine(await deps());
 	await engine.check();
-	const r = await engine.install(["boom", "fd", "claude", "cursor", "plugins", "bat", "strata"]);
+	const r = await engine.install(["boom", "fd", "claude", "plugins", "bat", "strata"]);
 	expect(r).toEqual({ started: true });
 	await engine.idle();
 	const snap = engine.snapshot();
@@ -259,7 +229,6 @@ test("one app's exception fails that app and the run continues", async () => {
 		["boom", "failed"],
 		["fd", "updated"],
 		["claude", "updated"],
-		["cursor", "updated"],
 		["plugins", "updated"],
 	]);
 	expect(snap.run.results[0]?.detail).toBe("Download failed: the server answered 404.");
@@ -267,7 +236,6 @@ test("one app's exception fails that app and the run continues", async () => {
 		boom: "failed",
 		fd: "done",
 		claude: "done",
-		cursor: "done",
 		bat: "fresh",
 		strata: "manual",
 	});
@@ -275,11 +243,9 @@ test("one app's exception fails that app and the run continues", async () => {
 	expect(claude).toMatchObject({ installed: "2.1.400", restartToApply: true });
 	expect(snap.apps.find((a) => a.key === "fd")?.restorePoints.map((p) => p.version)).toEqual(["10.5.1"]);
 	const history = engine.history(10);
-	expect(history.map((h) => h.key)).toEqual(["plugins", "cursor", "claude", "fd", "boom"]);
+	expect(history.map((h) => h.key)).toEqual(["plugins", "claude", "fd", "boom"]);
 	const runId = history[0]?.runId ?? "";
-	expect(
-		engine.runLog(runId).some((l) => l.key === "cursor" && l.text === "old: [x] Successfully updated Cursor to 2.1.0"),
-	).toBe(true);
+	expect(engine.runLog(runId).some((l) => l.key === "plugins" && l.text === "a@b is up to date")).toBe(true);
 	expect(readFileSync(join(t.paths.state, "logs", `${runId}.log`), "utf8")).toContain("[fd] Downloading");
 	engine.dismissSummary();
 	expect(engine.snapshot().run.phase).toBe("idle");
@@ -522,19 +488,6 @@ test("an install whose setup throws is refused, puts its rows back, and releases
 	expect(lockHeld()).toBe(false);
 });
 
-test("a legacy app whose install throws is in the results as failed", async () => {
-	const engine = createEngine(await deps());
-	await engine.check();
-	rmSync(join(t.paths.cache, "shim"), { recursive: true, force: true });
-	writeFileSync(join(t.paths.cache, "shim"), ""); // prepareShims cannot make its directory
-	await engine.install(["cursor"]);
-	await engine.idle();
-	expect(engine.snapshot().run.results.map((r) => [r.key, r.result])).toEqual([["cursor", "failed"]]);
-	expect(statuses(engine).cursor).toBe("failed");
-	const log = readRunLog(t.paths, engine.snapshot().run.id ?? "").map((l) => l.text);
-	expect(log.some((l) => l.startsWith("failed: "))).toBe(true);
-});
-
 test("recovery clears the half-written file beside every bin of an archive, not only the first", async () => {
 	const d = await deps();
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST.replace('bins = ["fd"]', 'bins = ["fd", "fd-extra"]'));
@@ -555,49 +508,6 @@ test("a second engine leaves another process's install in progress alone", async
 	expect(readInflight(t.paths)).toEqual({ key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
 	expect(existsSync(join(bin, "fd.upkeep-new"))).toBe(true);
 	expect(readFileSync(join(t.paths.state, "run.lock"), "utf8")).toBe("4242 5555");
-});
-
-test("a check whose old updater did not finish keeps the legacy rows' last versions", async () => {
-	const d = await deps();
-	const engine = createEngine(d);
-	await engine.check();
-	expect(engine.snapshot().apps.find((a) => a.key === "cursor")).toMatchObject({ installed: "2.0.1", status: "ready" });
-	script(d.oldScript, "exit 2");
-	await engine.check();
-	expect(engine.snapshot().apps.find((a) => a.key === "cursor")).toMatchObject({
-		installed: "2.0.1",
-		latest: "2.1.0",
-		status: "problem",
-		detail: "The old updater's check did not finish.",
-	});
-});
-
-test("a legacy app whose script has ended waits for the verdict check in stage verify", async () => {
-	const engine = createEngine(await deps());
-	await engine.check();
-	const seen: [string | undefined, number | null | undefined][] = [];
-	engine.subscribe((e) => {
-		if (e.type === "app" && e.app.key === "cursor" && e.app.status === "working")
-			seen.push([e.app.stage, e.app.stagePct]);
-	});
-	await engine.install(["cursor"]);
-	await engine.idle();
-	expect(seen.at(-1)).toEqual(["verify", null]);
-	expect(seen.some(([, p]) => p === 100)).toBe(false);
-	expect(statuses(engine).cursor).toBe("done");
-});
-
-test("every legacy failure writes its reason to the run log", async () => {
-	const d = await deps();
-	const engine = createEngine(d);
-	await engine.check();
-	script(d.oldScript, 'case "$1" in --check) echo "  UPDATE: Cursor 2.0.1 -> 2.1.0";; esac');
-	await engine.install(["cursor"]);
-	await engine.idle();
-	const id = engine.snapshot().run.id ?? "";
-	expect(readRunLog(t.paths, id).map((l) => l.text)).toContain(
-		"failed: The old script did not finish this update. See the log.",
-	);
 });
 
 const rg = (extra: Partial<AppSpec> = {}): AppSpec => ({
@@ -754,15 +664,7 @@ test("removing an app cuts its table, drops its row live, and keeps its files an
 	expect(engine.snapshot().apps.some((a) => a.key === "bat")).toBe(false);
 	const file = join(t.paths.config, "apps.toml");
 	expect(readFileSync(file, "utf8")).not.toContain("[apps.bat]");
-	expect(loadManifest(file).apps.map((a) => a.key)).toEqual([
-		"boom",
-		"fd",
-		"gone",
-		"claude",
-		"cursor",
-		"plugins",
-		"strata",
-	]);
+	expect(loadManifest(file).apps.map((a) => a.key)).toEqual(["boom", "fd", "gone", "claude", "plugins", "strata"]);
 	expect(existsSync(join(bin, "bat"))).toBe(true);
 });
 
@@ -853,122 +755,6 @@ test("a corrupt rows file starts empty, and an app gone from the manifest is not
 	expect(again.snapshot().apps.some((a) => a.key === "fd")).toBe(true);
 });
 
-/** A seed list of old-script apps; `pra` and `tg` carry check and latest, `curs` does not. */
-async function portedDeps(withOld: boolean): Promise<EngineDeps & { marks: string }> {
-	const d = await deps();
-	const marks = join(t.dir, "old-runs");
-	const ver = join(t.dir, "pra-ver");
-	writeFileSync(ver, "2.1.322");
-	script(join(bin, "pra-version"), `cat "${ver}"`);
-	script(join(bin, "tg-version"), "exit 127");
-	const seed = join(t.dir, "ported.toml");
-	writeFileSync(
-		seed,
-		`[apps.pra]
-name = "pr-agent"
-kind = "legacy"
-legacy_key = "pr-agent"
-legacy_name = "pr-agent"
-check = ["~/.local/bin/pra-version"]
-latest = "npm:@anthropic-ai/claude-code"
-
-[apps.tg]
-name = "claude-code-telegram"
-kind = "manual"
-legacy_name = "claude-code-telegram"
-run = "uv tool install"
-check = ["~/.local/bin/tg-version"]
-latest = "npm:@anthropic-ai/claude-code"
-
-[apps.strata]
-name = "Strata"
-kind = "manual"
-legacy_name = "strata"
-run = "strata-update"
-check = ["~/.local/bin/strata-version"]
-latest = "npm:@anthropic-ai/claude-code"
-
-[apps.plugins]
-name = "Claude Code plugins"
-kind = "legacy"
-legacy_key = "claude-plugins"
-versionless = true
-${
-	withOld
-		? `
-[apps.cursor]
-name = "Cursor"
-kind = "legacy"
-legacy_key = "cursor"
-legacy_name = "Cursor"
-`
-		: ""
-}`,
-	);
-	script(join(bin, "strata-version"), 'echo "strata 0.2.10"');
-	// The old script records every call; its --check also prints a pr-agent line the engine must ignore.
-	const old = script(
-		join(t.dir, "lutechi-updater-ported"),
-		`echo "$1" >> "${marks}"
-case "$1" in
---check) echo "  OK:     pr-agent 9.9.9"; echo "  UPDATE: Cursor 2.0.1 -> 2.1.0" ;;
-pr-agent) printf 2.1.400 > "${ver}"; echo "[x] pr-agent updated" >> "${join(t.dir, "old.log")}" ;;
-esac
-exit 0`,
-	);
-	return { ...d, seedManifest: seed, oldScript: old, marks };
-}
-
-const runsOf = (marks: string) => (existsSync(marks) ? readFileSync(marks, "utf8").trim().split("\n") : []);
-
-test("old-script apps with check and latest are looked up natively, and the old --check is not run for them", async () => {
-	const d = await portedDeps(false);
-	const engine = createEngine(d);
-	await engine.check();
-	expect(runsOf(d.marks)).toEqual([]);
-	const row = (k: string) => engine.snapshot().apps.find((a) => a.key === k);
-	expect(row("pra")).toMatchObject({ kind: "legacy", installed: "2.1.322", latest: "2.1.400", status: "ready" });
-	// A manual app with an update stays manual, and one whose check is not there is left out.
-	expect(row("strata")).toMatchObject({ kind: "manual", installed: "0.2.10", status: "manual" });
-	expect(row("tg")).toBeUndefined();
-	expect(row("plugins")).toMatchObject({ status: "fresh" });
-	// Install still goes through the old script, and the verdict comes from the native lookup.
-	await engine.install(["pra"]);
-	await engine.idle();
-	expect(runsOf(d.marks)).toEqual(["pr-agent"]);
-	expect(row("pra")).toMatchObject({ status: "done", installed: "2.1.400" });
-});
-
-test("a mixed list runs both paths: the old --check only answers for the apps it alone checks", async () => {
-	const d = await portedDeps(true);
-	const engine = createEngine(d);
-	await engine.check();
-	expect(runsOf(d.marks)).toEqual(["--check"]);
-	const row = (k: string) => engine.snapshot().apps.find((a) => a.key === k);
-	expect(row("cursor")).toMatchObject({ installed: "2.0.1", latest: "2.1.0", status: "ready" });
-	expect(row("pra")).toMatchObject({ installed: "2.1.322", latest: "2.1.400" });
-	// Installing only the ported app needs no second --check, even with Cursor still on the old script.
-	await engine.install(["pra"]);
-	await engine.idle();
-	expect(runsOf(d.marks)).toEqual(["--check", "pr-agent"]);
-	expect(row("pra")).toMatchObject({ status: "done", installed: "2.1.400" });
-});
-
-test("a native check of an old-script app that fails is a problem with a sentence, not a hang", async () => {
-	const d = await portedDeps(false);
-	script(join(bin, "pra-version"), "echo nothing here");
-	const slow = script(join(bin, "strata-version"), "sleep 30");
-	const engine = createEngine({ ...d, fetch: async () => new Response("", { status: 503 }) });
-	const t0 = Date.now();
-	await engine.check();
-	expect(Date.now() - t0).toBeLessThan(20_000);
-	const row = (k: string) => engine.snapshot().apps.find((a) => a.key === k);
-	expect(row("pra")).toMatchObject({ status: "problem" });
-	expect(row("pra")?.detail).toMatch(/\.$/);
-	expect(row("strata")).toMatchObject({ status: "problem" });
-	expect(slow).toBeDefined();
-}, 30_000);
-
 test("the rows cache carries a built row's commits and ahead, at most 30", async () => {
 	const d = await deps();
 	const first = createEngine(d);
@@ -1044,18 +830,18 @@ test("Restart now runs the table's restart and drops the app's waiting restart; 
 	expect(await first).toEqual({ ok: true });
 });
 
-test("an app ticked during a run joins it after the apps waiting and before the old script's", async () => {
+test("an app ticked during a run joins it after the apps waiting", async () => {
 	const engine = createEngine(await deps());
 	await engine.check();
-	expect(await engine.install(["fd", "cursor"])).toEqual({ started: true });
-	expect(engine.snapshot().run.queue).toEqual(["fd", "cursor"]);
+	expect(await engine.install(["fd"])).toEqual({ started: true });
+	expect(engine.snapshot().run.queue).toEqual(["fd"]);
 	expect(await engine.install(["claude", "fd"])).toEqual({ started: true });
-	expect(engine.snapshot().run).toMatchObject({ queue: ["fd", "claude", "cursor"], total: 3 });
+	expect(engine.snapshot().run).toMatchObject({ queue: ["fd", "claude"], total: 2 });
 	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("queued");
 	// Nothing new to add: already in the run, or not ready.
 	expect(await engine.install(["claude", "bat"])).toEqual({ started: false, reason: REASON_NOTHING });
 	await engine.idle();
-	expect(engine.snapshot().run.results.map((r) => r.key)).toEqual(["fd", "claude", "cursor"]);
+	expect(engine.snapshot().run.results.map((r) => r.key)).toEqual(["fd", "claude"]);
 	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.installed).toBe("2.1.400");
 });
 
@@ -1069,29 +855,15 @@ test("once Stop after current is pending nothing more joins the run", async () =
 	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("ready");
 });
 
-test("an app ticked once the run's loop is over, during the old script's last check, is refused and stays ready", async () => {
+test("a retry keeps the first pass's order on screen, with an app added during it after it", async () => {
 	const engine = createEngine(await deps());
 	await engine.check();
-	const late: { asked?: ReturnType<typeof engine.install> } = {};
-	engine.subscribe((e) => {
-		if (e.type === "log" && e.line.text === "Checking the old script's apps once more")
-			late.asked = engine.install(["claude"]);
-	});
-	await engine.install(["cursor"]);
+	await engine.install(["boom", "fd", "plugins"]);
 	await engine.idle();
-	expect(await late.asked).toEqual({ started: false, reason: REASON_BUSY });
-	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("ready");
-});
-
-test("a retry keeps the first pass's order on screen, with an app added during it placed where it runs", async () => {
-	const engine = createEngine(await deps());
-	await engine.check();
-	await engine.install(["boom", "fd", "cursor"]);
-	await engine.idle();
-	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "cursor"]);
+	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "plugins"]);
 	expect(await engine.install(["boom"])).toEqual({ started: true });
 	expect(await engine.install(["claude"])).toEqual({ started: true });
-	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "claude", "cursor"]);
+	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "plugins", "claude"]);
 	await engine.idle();
 });
 

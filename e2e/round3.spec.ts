@@ -279,7 +279,7 @@ test("an app that can have a restore point but has none reads none yet", async (
 	await load(page);
 	await page.getByTestId("group-fresh-toggle").click();
 	await expect(page.getByTestId("none-yet-zoxide")).toHaveText("none yet");
-	await expect(page.getByTestId("none-yet-cursor")).toHaveCount(0);
+	await expect(page.getByTestId("none-yet-claude-plugins")).toHaveCount(0);
 	await expect(page.getByTestId("none-yet-wrangler")).toHaveCount(0);
 	await expect(page.getByTestId("row-wrangler").locator(".restore")).toHaveText("None");
 	await expect(page.getByTestId("row-wrangler").locator(".restore .sr-only")).toHaveCount(1);
@@ -446,15 +446,6 @@ test("a duplicate repo's card carries its own name, and the no-build and unknown
 	await expect(list.locator('input[type="checkbox"]')).toHaveCount(0);
 	await expect(page.getByTestId("scan-add")).toHaveCount(0);
 	await expect(page.getByTestId("paste-repo-mytool")).toBeVisible();
-});
-
-// 23. No sentence says "old script"; a legacy app's pane names lutechi-updater.
-test("a legacy app's pane says Upkeep hands it to lutechi-updater, and never old script", async ({ page }) => {
-	await load(page);
-	await page.getByTestId("open-cursor").click();
-	await expect(page.getByTestId("no-restore")).toHaveText("Upkeep hands this one to lutechi-updater.");
-	await expect(page.getByTestId("detail-cursor")).not.toContainText(/old script/i);
-	await expect(page.getByTestId("detail-cursor")).not.toContainText(/updater script/);
 });
 
 // 24. The checking dot measures 3:1 or better at its pulse's low point on the row's ground.

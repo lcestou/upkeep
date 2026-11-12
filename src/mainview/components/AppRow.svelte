@@ -33,7 +33,7 @@
 	const noVersions = $derived(app.installed === null && app.latest === null && !app.versionless);
 	// During a run only the working row and a failure burn at full colour; the rest of the run steps back.
 	const back = $derived(inRun && (app.status === "queued" || app.status === "done"));
-	const chip = $derived(app.kind === "legacy" ? CHIP.runningLegacy : CHIP.running);
+	const chip = CHIP.running;
 	const statusWord = $derived(fresh && !app.restartToApply ? "" : statusText(app));
 </script>
 

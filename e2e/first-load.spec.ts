@@ -39,12 +39,8 @@ test("group names and the restore column", async ({ page }) => {
 		"title",
 		"In use now. The update applies when you restart it.",
 	);
-	await expect(page.getByTestId("row-cursor").getByTestId("chip-running")).toHaveAttribute(
-		"title",
-		"In use now. Updating closes it and opens it again.",
-	);
 	await expect(page.getByTestId("row-wrangler").locator(".kind")).toHaveText("Updates itself");
-	await expect(page.getByTestId("row-cursor").locator(".kind")).toHaveText("Updater script");
+	await expect(page.getByTestId("row-cursor").locator(".kind")).toHaveText("AppImage");
 });
 
 test("Check again runs a check with a loading bar and ends Checked just now", async ({ page }) => {

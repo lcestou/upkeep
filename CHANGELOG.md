@@ -6,7 +6,7 @@ First version.
 
 - One window lists every app with its installed and latest version, its size and its restore point. Tick what you want and press Install once. Nothing asks a question after that.
 - Each app shows its own progress through download, back up, install and verify.
-- During a run, ticking a Ready app adds it to the run, after the apps waiting and before the ones the old script updates, as a download manager would. The Installing group lists apps in the order they run, and an app's pane keeps its log on the newest line in a box of its own, so the pane no longer shifts as lines arrive.
+- During a run, ticking a Ready app adds it to the end of the run, as a download manager would. The Installing group lists apps in the order they run, and an app's pane keeps its log on the newest line in a box of its own, so the pane no longer shifts as lines arrive.
 - Deleting an old build or restore point no longer freezes the window: it is moved aside at once and deleted in the background. Checking whether an app is running no longer reads the memory of a process stuck on a closing AppImage, which could stall the window for minutes.
 - A new version that will not start is replaced by the copy taken before it. .deb apps now keep the installed version's package as a restore point, and self-updating tools keep one when their table says how to install a given version (wrangler and claude-code-telegram in the catalogue do).
 - Downloads are checked against the size and SHA-256 that GitHub lists.
@@ -31,4 +31,4 @@ First version.
 - "Restart to apply" stays on a row until the old copy of the app is no longer running.
 - `check`, `install`, `restore` and `history` from the command line, through `bun run cli`.
 - An optional, read-only System group lists the system's own pending updates without installing any: Flatpak apps and runtimes anywhere, and packages where Linux Mint's Update Manager is installed.
-- Apps not yet ported run through the old `lutechi-updater` script with its dialogs answered for it.
+- Every app is updated by Upkeep itself; the first owner's `lutechi-updater` script is no longer run. While its own login run holds its lock, Install waits.

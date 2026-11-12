@@ -8,7 +8,7 @@ export type Paths = {
 	state: string;
 	/** history.jsonl and backups/. */
 	data: string;
-	/** Release responses, downloads in flight, source clones, shims. All safe to delete. */
+	/** Release responses, downloads in flight, source clones, the trash. All safe to delete. */
 	cache: string;
 	/** The single-instance socket. */
 	socket: string;

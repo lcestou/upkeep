@@ -6,7 +6,6 @@ export type AppKind =
 	| "source" // built from a git checkout or a clone of the release tag, with the steps in its table
 	| "command" // a tool that updates itself with its own command
 	| "claude-plugins" // every plugin in Claude Code's registry, through claude plugin update
-	| "legacy" // delegated to the old lutechi-updater script
 	| "manual"; // tracked only; the owner runs the update
 
 /** One table in apps.toml. Paths may start with ~/. */
@@ -38,13 +37,7 @@ export type AppSpec = {
 	update?: string[];
 	/** A command app: puts {version} (and {tag}) back, e.g. ["npm", "i", "-g", "pkg@{version}"]; it makes a restore point possible. */
 	restore?: string[];
-	/** legacy and manual: the name the old script prints in --check for this app. */
-	legacy_name?: string;
-	/** legacy: the argument the old script takes for this app. */
-	legacy_key?: string;
-	/** legacy: true when the old script prints no --check line and the app checks itself when run.
-	 * Such an app is always "fresh" in the list, is never counted as an update, runs in every
-	 * background run when auto is set, and can be run from its row with "Run now". */
+	/** claude-plugins: no version to show. Always "fresh", never counted as an update, runs in every background run when auto is set, and has "Run now" on its row. */
 	versionless?: boolean;
 	/** manual: the command the owner runs. */
 	run?: string;
@@ -185,7 +178,7 @@ export type AppState = {
 	restartToApply: boolean;
 	/** Newest first. Empty when none. */
 	restorePoints: RestorePoint[];
-	/** False for deb, source, command, legacy and manual. */
+	/** False for a source build with no dir or stage, a command with no restore argv, Claude Code's plugins and a manual app. */
 	canRestore: boolean;
 	/** The table says how to restart it (restart or relaunch), so a waiting restart offers Restart now. */
 	canRestart?: boolean;

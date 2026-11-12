@@ -44,7 +44,7 @@ test("every catalogue table keeps to what a catalogue app may do", () => {
 	const broken: string[] = [];
 	for (const a of apps) {
 		for (const f of Object.keys(a)) if (!FIELDS.has(f as keyof AppSpec)) broken.push(`${a.key}: field ${f}`);
-		if (a.kind === "legacy" || a.kind === "manual") broken.push(`${a.key}: kind ${a.kind}`);
+		if (a.kind === "manual") broken.push(`${a.key}: kind ${a.kind}`);
 		if (a.sudo && a.kind !== "deb" && a.kind !== "source" && !a.dest?.startsWith("/"))
 			broken.push(`${a.key}: sudo for an install inside home`);
 		for (const [f, c] of commands(a)) if (DANGER.test(c)) broken.push(`${a.key}: ${f} runs ${c}`);

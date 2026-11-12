@@ -46,8 +46,9 @@ test("a kind with no restore point says why in the pane", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("open-wrangler").click();
 	await expect(page.getByTestId("no-restore")).toHaveText("It updates itself, and its table has no restore command.");
-	await page.getByTestId("open-cursor").click();
-	await expect(page.getByTestId("no-restore")).toHaveText("Upkeep hands this one to lutechi-updater.");
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-claude-plugins").click();
+	await expect(page.getByTestId("no-restore")).toHaveText("Claude Code keeps no older plugin to go back to.");
 });
 
 test("release notes are rendered: headings, lists and code, no markdown marks", async ({ page }) => {

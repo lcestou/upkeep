@@ -11,23 +11,10 @@ const KINDS: readonly AppKind[] = [
 	"source",
 	"command",
 	"claude-plugins",
-	"legacy",
 	"manual",
 ];
 
-const STRING_FIELDS = [
-	"name",
-	"repo",
-	"asset",
-	"dest",
-	"meta_path",
-	"latest",
-	"legacy_name",
-	"legacy_key",
-	"run",
-	"process",
-	"note",
-] as const;
+const STRING_FIELDS = ["name", "repo", "asset", "dest", "meta_path", "latest", "run", "process", "note"] as const;
 const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore", "restart"] as const;
 const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch"] as const;
 // Process names that many programs share: relaunch closes every process with its name, so it refuses these.
@@ -55,8 +42,8 @@ const MOVES = ["ff", "reset", "detach"] as const;
 
 type Field = keyof AppSpec;
 
-/** The fields a kind refuses to load without, beyond name. A versionless legacy app needs no legacy_name. */
-function required(kind: AppKind, versionless: boolean): Field[] {
+/** The fields a kind refuses to load without, beyond name. */
+function required(kind: AppKind): Field[] {
 	switch (kind) {
 		case "appimage":
 			// repo, or a latest that carries its own download: lift checks that one of the two is there.
@@ -74,10 +61,9 @@ function required(kind: AppKind, versionless: boolean): Field[] {
 		case "claude-plugins":
 			// Everything it needs is Claude Code's own registry.
 			return [];
-		case "legacy":
-			return versionless ? ["legacy_key"] : ["legacy_key", "legacy_name"];
 		case "manual":
-			return ["legacy_name", "run"];
+			// Tracked only: Upkeep checks it and the owner runs the update.
+			return ["check", "latest", "run"];
 	}
 }
 
@@ -110,7 +96,7 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 		if (typeof v !== "boolean") return `${key}: ${f} must be true or false`;
 		spec[f] = v;
 	}
-	const needed: Field[] = ["name", ...required(spec.kind, spec.versionless === true)];
+	const needed: Field[] = ["name", ...required(spec.kind)];
 	for (const f of needed) {
 		const v = spec[f];
 		if (v === undefined || v === "" || (Array.isArray(v) && v.length === 0))
@@ -123,10 +109,9 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 			return `${key}: asset is not a valid regular expression`;
 		}
 	}
-	// Only these two install with no version to compare; on any other kind the row would be picked and fail every run.
+	// Only it installs with no version to compare; on any other kind the row would be picked and fail every run.
 	if (spec.kind === "claude-plugins") spec.versionless = true;
-	else if (spec.versionless && spec.kind !== "legacy")
-		return `${key}: versionless is only for kinds legacy and claude-plugins`;
+	else if (spec.versionless) return `${key}: versionless is only for kind claude-plugins`;
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest)
 		return `${key}: repo or latest is required for kind appimage`;
 	// Only an AppImage installs the download a json: answer names; any other kind would read it as a GitHub repo.

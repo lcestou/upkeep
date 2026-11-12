@@ -19,7 +19,6 @@ export const KIND_LABEL = {
 	source: "Source build",
 	command: "Updates itself",
 	"claude-plugins": "Plugins",
-	legacy: "Updater script",
 	manual: "By hand",
 } satisfies Record<AppKind, string>;
 
@@ -56,7 +55,6 @@ export const COLUMN = {
 
 export const CHIP = {
 	running: { text: "In use", title: "In use now. The update applies when you restart it." },
-	runningLegacy: { text: "In use", title: "In use now. Updating closes it and opens it again." },
 	root: { text: "Root", title: "Installs with sudo." },
 	auto: { text: "Auto", title: "Installed without asking when Upkeep checks in the background." },
 } as const;
@@ -159,7 +157,6 @@ export const NO_RESTORE = {
 	source: "Built in a fresh clone, so there is no restore point.",
 	command: "It updates itself, and its table has no restore command.",
 	"claude-plugins": "Claude Code keeps no older plugin to go back to.",
-	legacy: "Upkeep hands this one to lutechi-updater.",
 } satisfies Record<AppKind, string | undefined>;
 
 /** A row's version cell when nothing is installed, read in place of "to". */

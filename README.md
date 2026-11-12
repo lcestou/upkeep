@@ -76,8 +76,7 @@ bins = ["fd"]
 | `source` | a checkout or a clone of the release tag, built with your steps, restarted and tested | `build`, `check` or `dest`, `repo` or `latest` |
 | `command` | a tool that updates itself | `check`, `latest`, `update`, and `restore` for a restore point |
 | `claude-plugins` | every plugin in Claude Code's registry, through `claude plugin update` (versionless: it runs on Run now and in background runs when `auto` is set) | nothing beyond `name` |
-| `legacy` | handed to the old `lutechi-updater` script | `legacy_key`, and `legacy_name` unless the table is `versionless` |
-| `manual` | tracked only, you run the update | `legacy_name`, `run` |
+| `manual` | tracked only: checked like a self-updating tool, and you run the update | `check`, `latest`, `run` |
 
 Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo, `.desktop` or `.json` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`, `restart` (a command that restarts the app, such as `["systemctl", "restart", "rustdesk"]` for a service; `systemctl` asks for a password through the desktop's own prompt when it needs one) and `relaunch = true` (Upkeep may close the app and start `dest` again; it needs `process`, the name of the process it closes, which must be the app's own: the top processes with that name are asked to quit and their children go with them, so an interpreter's name such as `python` or `node` is refused).
 
@@ -154,9 +153,7 @@ Root steps use `sudo -n`. If sudo wants a password the app fails with a message 
 
 ## The old script
 
-`legacy` and `manual` apps still go through `~/.local/bin/lutechi-updater`. Upkeep runs it with stand-ins for `zenity`, `notify-send` and `curl` first in its `PATH`, so its dialogs are answered, its progress bars become progress in the window, and its GitHub lookups use your `gh` token. Upkeep never edits that script, and it refuses to install anything while the script holds its own lock.
-
-A `legacy` or `manual` app whose table carries `check` and `latest` is looked up by Upkeep itself, at the same time as the rest. The others wait for one run of the old script's `--check`, which takes 8 to 15 seconds here, and until it answers their rows show what the last check found.
+Upkeep replaced the first owner's `lutechi-updater` script and no longer runs it. While that script's own login run still holds its lock (`/tmp/lutechi-updater.lock`), Install waits, so the two never update the same app at once. On any other machine the lock never exists.
 
 ## Build and install
 
@@ -197,7 +194,6 @@ Upkeep is developed on Linux Mint 22 (Cinnamon, X11) and has only been run there
 | Rounded corners | a compositing window manager |
 | System group, Flatpak rows | Flatpak |
 | System group, package rows | Linux Mint's Update Manager (`mintupdate-cli`) |
-| Apps of kind `legacy` | the first owner's own script; nothing in the catalogue or a new list uses it |
 
 A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its GitHub repo or a file.
 

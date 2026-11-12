@@ -37,8 +37,7 @@ The update manager your desktop ships with, for everything it cannot see. One li
 ## Capabilities and Constraints
 
 - Kinds of app: AppImage, binary from a release archive, single-file binary, .deb, source build (a checkout updated in place, built beside the live copy, restarted and tested), self-updating tool, plugin set, notify-only.
-- The old script stays installed and is the engine for the kinds not yet ported.
-- The owner's commands `lutechi-updater --check`, `--list` and `lutechi-updater <app>` must keep working until he retires them.
+- Every app is ported (2026-11-12): Upkeep no longer runs the old script. It stays on disk until the owner retires its login entry and timer, and Upkeep waits on its lock while its own run holds it.
 - Apps are added in the window: paste a GitHub repo or link, choose or drop a file, or scan the computer. A scan never runs what it finds. Removing an app takes it off the list and uninstalls nothing.
 - No prompt may appear after Install is pressed.
 - This is a production machine. An update that cannot be verified is rolled back.

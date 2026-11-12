@@ -175,16 +175,12 @@ const SEEDS: Seed[] = [
 	{
 		key: "cursor",
 		name: "Cursor",
-		kind: "legacy",
+		kind: "appimage",
 		installed: "3.29.9",
 		latest: "3.29.15",
 		status: "ready",
-		running: true,
-		note: "lutechi-updater closes Cursor to update it.",
-		stages: [
-			["install", 85],
-			["verify", 15],
-		],
+		dest: "~/.local/bin/cursor.appimage",
+		restarts: "relaunch",
 	},
 	{
 		key: "dsh",
@@ -194,8 +190,8 @@ const SEEDS: Seed[] = [
 		run: "lutechi-updater dsh",
 		note: "Never installed unattended. lutechi-updater asks, stops dsh-web, smoke-tests and rolls back.",
 	},
-	{ key: "pr-agent", name: "pr-agent", kind: "legacy", installed: "0.48.2", auto: true },
-	{ key: "headroom", name: "headroom", kind: "legacy", installed: "0.9.1", auto: true },
+	{ key: "pr-agent", name: "pr-agent", kind: "command", installed: "0.48.2", auto: true },
+	{ key: "headroom", name: "headroom", kind: "command", installed: "0.9.1", auto: true },
 	{
 		key: "claude-code-telegram",
 		name: "claude-code-telegram",
@@ -206,12 +202,12 @@ const SEEDS: Seed[] = [
 	{
 		key: "claude-plugins",
 		name: "Claude Code plugins",
-		kind: "legacy",
+		kind: "claude-plugins",
 		installed: null,
 		versionless: true,
 		auto: true,
 	},
-	{ key: "omp-plugins", name: "omp plugins", kind: "legacy", installed: null, versionless: true, auto: true },
+	{ key: "omp-ponytail", name: "omp plugin ponytail", kind: "command", installed: "5.3.3", auto: true },
 	{ key: "whisper", name: "whisper.cpp", kind: "manual", installed: "1.8.2", run: "lutechi-updater whisper" },
 	{
 		key: "llama",
@@ -276,10 +272,6 @@ const DEFAULT_STAGES = {
 		["verify", 15],
 	],
 	"claude-plugins": [["install", 100]],
-	legacy: [
-		["install", 85],
-		["verify", 15],
-	],
 	manual: [],
 } satisfies Record<AppKind, [Stage, number][]>;
 
@@ -291,7 +283,6 @@ const CAN_RESTORE = {
 	source: false,
 	command: false,
 	"claude-plugins": false,
-	legacy: false,
 	manual: false,
 } satisfies Record<AppKind, boolean>;
 
@@ -719,7 +710,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		for (const { id, weight } of app.stages) {
 			const ms = (total * weight) / 100;
 			const steps = Math.max(2, Math.round(ms / 80));
-			const measured = id === "download" || app.kind === "legacy";
+			const measured = id === "download";
 			log(runId, key, stageLog(app, id));
 			for (let i = 0; i <= steps; i++) {
 				const current = get(key);
@@ -758,7 +749,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			stage: undefined,
 			stagePct: undefined,
 			detail: undefined,
-			restartToApply: after.running && app.kind !== "legacy",
+			restartToApply: after.running,
 			restorePoints,
 		});
 		return { key, name: app.name, from, to, result: "updated", ms };
@@ -834,16 +825,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		setRun({ phase: "summary", currentKey: null, results });
 	}
 
-	/** The engine's addToRun: ready apps go after the native apps waiting, old-script apps last. */
+	/** The engine's addToRun: ready apps go after the apps waiting. */
 	function joinRun(order: string[], keys: string[]): Requests["install"]["response"] {
 		if (run.stopping)
 			return { started: false, reason: "The run stops after the current app, so nothing more can join it." };
 		const add = keys.filter((k) => !order.includes(k) && get(k)?.status === "ready");
 		if (add.length === 0) return { started: false, reason: "Nothing to install." };
-		const firstLegacy = order.findIndex((k) => get(k)?.kind === "legacy");
-		const native = add.filter((k) => get(k)?.kind !== "legacy");
-		order.splice(firstLegacy < 0 ? order.length : Math.max(firstLegacy, run.index), 0, ...native);
-		order.push(...add.filter((k) => get(k)?.kind === "legacy"));
+		order.push(...add);
 		for (const k of add) {
 			const app = get(k);
 			if (app) put({ ...app, status: "queued", detail: undefined });
@@ -853,9 +841,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	}
 
 	function queueRank(key: string): number {
-		const i = apps.findIndex((a) => a.key === key);
-		const app = apps[i];
-		return (app?.kind === "legacy" ? 1000 : 0) + i;
+		return apps.findIndex((a) => a.key === key);
 	}
 
 	async function runCheck(keys?: string[]) {
@@ -1143,7 +1129,7 @@ function stageLog(app: AppState, stage: Stage): string {
 		case "build":
 			return "Running the build steps.";
 		case "install":
-			return app.kind === "legacy" ? `Running lutechi-updater ${app.key}.` : `Installing ${app.latest ?? ""}.`;
+			return `Installing ${app.latest ?? ""}.`;
 		case "verify":
 			return "Probing the new version.";
 	}
