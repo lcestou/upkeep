@@ -89,7 +89,8 @@ async function install(engine: Engine, args: string[], json: boolean, out: Out):
 	const r = await engine.install(keys);
 	if (!r.started) {
 		off();
-		out(r.reason ?? "Nothing to install.");
+		const reason = r.reason ?? "Nothing to install.";
+		out(json ? JSON.stringify({ started: false, reason }) : reason);
 		return 1;
 	}
 	await engine.idle();
@@ -234,26 +235,27 @@ function exportTo(deps: EngineDeps, file: string | undefined, json: boolean, out
 	return 0;
 }
 
+/** Says why a command did nothing, as text or as {"ok": false, "problems"} under --json. Always exit code 1. */
+function refuse(problem: string, json: boolean, out: Out): number {
+	out(json ? JSON.stringify({ ok: false, problems: [problem] }) : problem);
+	return 1;
+}
+
 /** Replaces the setup from an export, holding the run lock so no install runs while the files change. */
 function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): number {
 	let text: string;
 	try {
 		text = readFileSync(file, "utf8");
 	} catch (err) {
-		out(`Could not read ${file}: ${err instanceof Error ? err.message : String(err)}`);
-		return 1;
+		return refuse(`Could not read ${file}: ${err instanceof Error ? err.message : String(err)}`, json, out);
 	}
 	let mine: boolean;
 	try {
 		mine = claimLock(deps.paths);
 	} catch (err) {
-		out(`Could not take the run lock: ${err instanceof Error ? err.message : String(err)}`);
-		return 1;
+		return refuse(`Could not take the run lock: ${err instanceof Error ? err.message : String(err)}`, json, out);
 	}
-	if (!mine) {
-		out("An Upkeep run is in progress. Try again when it ends.");
-		return 1;
-	}
+	if (!mine) return refuse("An Upkeep run is in progress. Try again when it ends.", json, out);
 	try {
 		const r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
 		if (json) out(JSON.stringify(r));

@@ -98,6 +98,9 @@ test("install exits 1 when nothing could be installed, and a bad command line is
 	const out: string[] = [];
 	expect(await main(["install", "bat"], deps(), (l) => out.push(l))).toBe(1);
 	expect(out.at(-1)).toBe("Nothing to install.");
+	const json: string[] = [];
+	expect(await main(["install", "bat", "--json"], deps(), (l) => json.push(l))).toBe(1);
+	expect(JSON.parse(json.at(-1) ?? "{}")).toEqual({ started: false, reason: "Nothing to install." });
 	const d = deps();
 	const usage = await Promise.all(
 		[[], ["frobnicate"], ["install"], ["restore"], ["check", "extra"]].map(async (argv) => {
@@ -281,6 +284,9 @@ test("import refuses a file that is not an export, or whose list does not load, 
 	const missing: string[] = [];
 	expect(await main(["import", join(t.dir, "absent.json")], d, (l) => missing.push(l))).toBe(1);
 	expect(missing[0]).toStartWith("Could not read ");
+	const missingJson: string[] = [];
+	expect(await main(["import", join(t.dir, "absent.json"), "--json"], d, (l) => missingJson.push(l))).toBe(1);
+	expect(JSON.parse(missingJson[0] ?? "{}")).toMatchObject({ ok: false });
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
 });
 
@@ -293,6 +299,12 @@ test("import waits for no run: with another Upkeep's run holding the lock it ref
 	const out: string[] = [];
 	expect(await main(["import", file], d, (l) => out.push(l))).toBe(1);
 	expect(out).toEqual(["An Upkeep run is in progress. Try again when it ends."]);
+	const json: string[] = [];
+	expect(await main(["import", file, "--json"], d, (l) => json.push(l))).toBe(1);
+	expect(JSON.parse(json[0] ?? "{}")).toEqual({
+		ok: false,
+		problems: ["An Upkeep run is in progress. Try again when it ends."],
+	});
 	releaseLock(t.paths, process.ppid);
 });
 
