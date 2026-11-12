@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD } from "./engine";
 import type { FetchLike } from "./github";
+import { readMeta, takePoint } from "./backup";
 import { loadManifest } from "./manifest";
 import { claimLock, loadState, readInflight, readRunLog, updateState, writeInflight } from "./store";
 import { realRun, recordingRun, script, tempHome } from "./testkit";
@@ -978,4 +979,27 @@ test("the rows cache carries a built row's commits and ahead, at most 30", async
 	expect(row?.ahead).toBe(569);
 	expect(row?.commits).toHaveLength(30);
 	expect(row?.commits?.[0]).toEqual({ sha: "s0", title: "t0" });
+});
+
+test("a self-updating tool's restore before any check writes the tag the way the point it puts back kept it", async () => {
+	const d = await deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		MANIFEST.replace(
+			'update = ["~/.local/bin/claude-up"]',
+			'update = ["~/.local/bin/claude-up"]\nrestore = ["~/.local/bin/claude-pin", "{version}"]',
+		),
+	);
+	script(join(bin, "claude-pin"), `echo "$1" > "${join(t.dir, "claude-version")}"`);
+	takePoint(t.paths, { key: "claude" }, "2.1.300", {
+		command: ["~/.local/bin/claude-pin", "2.1.300"],
+		tag: "v2.1.300",
+	});
+	const engine = createEngine(d);
+	expect(await engine.restore("claude", "2.1.300")).toEqual({ ok: true });
+	expect(readFileSync(join(t.dir, "claude-version"), "utf8")).toBe("2.1.300\n");
+	expect(readMeta(join(t.paths.data, "backups/claude/2.1.322"))).toMatchObject({
+		command: ["~/.local/bin/claude-pin", "2.1.322"],
+		tag: "v2.1.322",
+	});
 });

@@ -885,10 +885,14 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 				// A .deb's undo would need its package downloaded again, so its restore keeps no point of what it replaces.
 				if (canRestore(spec) && current && current !== version && spec.kind === "command" && spec.restore) {
-					// shortcut: with no check this session the tag is the bare version, wrong for "v"-tagged tools until the first check.
-					const tag = tagOf(checked.get(key)?.target, current);
+					// The tag's form comes from this session's check, else from the point being put back, which kept its own tag.
+					const back = readMeta(join(backupDir(paths, key), version));
+					const tag = tagOf(
+						checked.get(key)?.target ?? (back?.tag ? { tag: back.tag, version: back.version } : undefined),
+						current,
+					);
 					const command = spec.restore.map((a) => fill(a, { version: current ?? "", tag }));
-					takePoint(paths, spec, current, { command }, deps.now().toISOString());
+					takePoint(paths, spec, current, { command, tag }, deps.now().toISOString());
 				} else if (canRestore(spec) && current && current !== version && spec.kind !== "deb") {
 					const files = installedFiles(spec, destOf(spec, { paths })).filter((f) => existsSync(f));
 					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString());

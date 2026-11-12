@@ -15,7 +15,7 @@ import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
 import { download, verifyAsset } from "../download";
 import { fetchRelease, isFailure, pickAsset } from "../github";
 import { expandHome } from "../paths";
-import { probeAppImageMeta, probeVersion, type ProbeResult } from "../probe";
+import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
 import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { isRunning } from "../running";
 import { clearInflight, writeInflight } from "../store";
@@ -52,8 +52,10 @@ export function installedFiles(spec: AppSpec, dest: string): string[] {
 	return (spec.bins ?? []).map((b) => join(dirname(dest), basename(b)));
 }
 
-/** Reads the installed version from the AppImage metadata when the table names one, else by running the dest with its version args. */
+/** Reads the installed version: a command app by its check argv, else from the AppImage metadata when the table names one, else by running the dest with its version args. */
 export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult> {
+	// A command app has no dest: its own check argv is what reads its version.
+	if (spec.kind === "command") return probeCommand(spec.check ?? [], { run: ctx.run });
 	const dest = destOf(spec, ctx);
 	if (spec.meta_path) return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run });
 	return probeVersion(dest, spec.version_args ?? ["--version"], { run: ctx.run });

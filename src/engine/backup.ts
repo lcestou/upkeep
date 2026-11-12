@@ -23,6 +23,8 @@ export type BackupMeta = {
 	deb?: boolean;
 	/** A command app's point: no files, only the argv that puts this version back. */
 	command?: string[];
+	/** The tag that argv was filled with, so a later point of another version writes its tag the same way. */
+	tag?: string;
 	tree?: {
 		/** The app's table as it was at the run, so recovery and restore never depend on a later edit. */
 		spec: AppSpec;
@@ -63,7 +65,7 @@ export function takePoint(
 	paths: Paths,
 	spec: Pick<AppSpec, "key">,
 	version: string,
-	how: { deb: string } | { command: string[] },
+	how: { deb: string } | { command: string[]; tag?: string },
 	at = new Date().toISOString(),
 ): RestorePoint {
 	const dir = join(backupDir(paths, spec.key), pointName(version));
@@ -77,7 +79,10 @@ export function takePoint(
 			copyFileSync(how.deb, join(tmp, name));
 			meta.files.push({ name, dest: "", mode: "644" });
 			meta.deb = true;
-		} else meta.command = how.command;
+		} else {
+			meta.command = how.command;
+			meta.tag = how.tag;
+		}
 		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
 		rmSync(dir, { recursive: true, force: true });
 		renameSync(tmp, dir);
