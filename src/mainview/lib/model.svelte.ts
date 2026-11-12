@@ -133,16 +133,20 @@ export class Model {
 		GROUP_ORDER.map((id) => ({
 			id,
 			label: id === "run" ? runLabel(this.run.phase) : GROUP_LABEL[id],
-			apps: this.#inRunOrder(
+			apps: this.#ordered(
 				id,
 				this.shown.filter((a) => groupOf(a, this.prior[a.key]) === id),
 			),
 		})).filter((g) => g.apps.length > 0),
 	);
-	/** The run's group lists its apps in the order they run, which the engine gives; other groups keep list order. */
-	#inRunOrder(id: GroupId, apps: AppState[]): AppState[] {
+	/**
+	 * The run's group lists its apps in the order they run, which the engine gives. Every other group is alphabetical
+	 * by name, so an app is easy to find; History says which ones changed lately.
+	 */
+	#ordered(id: GroupId, apps: AppState[]): AppState[] {
 		const order = this.run.queue;
-		if (id !== "run" || !order) return apps;
+		if (id !== "run" || !order)
+			return apps.toSorted((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 		const at = (k: string) => {
 			const i = order.indexOf(k);
 			return i < 0 ? order.length : i;
@@ -213,7 +217,7 @@ export class Model {
 	/** The apps in this run in the engine's order: list order, with apps added during the run after them. */
 	queue: AppState[] = $derived(
 		this.run.phase === "installing" || this.run.phase === "summary"
-			? this.#inRunOrder(
+			? this.#ordered(
 					"run",
 					this.apps.filter((a) => IN_RUN.has(a.status)),
 				)
