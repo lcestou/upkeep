@@ -1003,3 +1003,30 @@ test("a self-updating tool's restore before any check writes the tag the way the
 		tag: "v2.1.322",
 	});
 });
+
+test("Restart now runs the table's restart and drops the app's waiting restart; a failure keeps it", async () => {
+	const d = await deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		MANIFEST.replace(
+			'update = ["~/.local/bin/claude-up"]',
+			'update = ["~/.local/bin/claude-up"]\nrestart = ["~/.local/bin/claude-restart"]',
+		),
+	);
+	const mark = join(t.dir, "restarted");
+	script(join(bin, "claude-restart"), `echo yes > "${mark}"`);
+	const engine = createEngine(d);
+	await engine.check(["claude"]);
+	await engine.install(["claude"]);
+	await engine.idle();
+	const claude = () => engine.snapshot().apps.find((a) => a.key === "claude");
+	expect(claude()).toMatchObject({ restartToApply: true, canRestart: true, closes: false });
+	script(join(bin, "claude-restart"), "exit 4");
+	expect(await engine.restartApp("claude")).toEqual({ ok: false, detail: "~/.local/bin/claude-restart exited 4." });
+	expect(claude()?.restartToApply).toBe(true);
+	script(join(bin, "claude-restart"), `echo yes > "${mark}"`);
+	expect(await engine.restartApp("claude")).toEqual({ ok: true });
+	expect(readFileSync(mark, "utf8")).toBe("yes\n");
+	expect(claude()?.restartToApply).toBe(false);
+	expect(await engine.restartApp("nope")).toEqual({ ok: false, detail: "No app nope." });
+});

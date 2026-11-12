@@ -61,6 +61,7 @@ import {
 	stageWeights,
 	updateState,
 } from "./store";
+import { launchDetached, restartApp, terminate } from "./restart";
 import { isNewer } from "./version";
 
 export type EngineDeps = {
@@ -68,6 +69,10 @@ export type EngineDeps = {
 	kill?: (pid: number, procRoot: string) => void;
 	/** The pause after that kill. Default 2 s. */
 	recoverWaitMs?: number;
+	/** Asks a process to quit for Restart now. Default SIGTERM; tests pass a recorder. */
+	signal?: (pid: number) => void;
+	/** Starts an app again for Restart now, detached. Tests pass a recorder so nothing real starts. */
+	launch?: (argv: string[]) => void;
 	paths: Paths;
 	seedManifest: string;
 	/** The folder of tested tables Add app looks in first, one file per app. Without it Add app only guesses. */
@@ -98,6 +103,8 @@ export type Engine = {
 	stopAfterCurrent(): void;
 	dismissSummary(): void;
 	restore(key: string, version: string): Promise<{ ok: boolean; detail?: string }>;
+	/** Restarts an app whose table says how, and drops its waiting restart once that worked. Refused during a run. */
+	restartApp(key: string): Promise<{ ok: boolean; detail?: string }>;
 	setSkip(key: string, version: string | null): void;
 	setHold(key: string, held: boolean): void;
 	setAuto(key: string, auto: boolean): void;
@@ -381,6 +388,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			restartToApply: restartFlag(spec),
 			restorePoints: restorable ? listBackups(paths, spec.key) : [],
 			canRestore: restorable,
+			canRestart: Boolean(spec.restart?.length || spec.relaunch),
+			closes: !spec.restart?.length && spec.relaunch === true,
 			auto: state.auto[spec.key] ?? spec.auto ?? false,
 			sudo: spec.sudo === true,
 			versionless: spec.versionless === true,
@@ -952,6 +961,30 @@ export function createEngine(deps: EngineDeps): Engine {
 				else s.skip[key] = version;
 			});
 			refresh(key);
+		},
+		async restartApp(key) {
+			if (run.phase === "installing") return { ok: false, detail: REASON_BUSY };
+			const spec = specOf(key);
+			if (!spec) return { ok: false, detail: `No app ${key}.` };
+			say(key, `Restarting ${spec.name}`);
+			const r = await restartApp(spec, destOf(spec, { paths }), {
+				run: deps.run,
+				procRoot: deps.procRoot,
+				signal: deps.signal ?? terminate,
+				launch: deps.launch ?? launchDetached,
+				pollMs: deps.pollMs ?? 200,
+			});
+			say(key, r.ok ? `Restarted ${spec.name}` : (r.detail ?? ""));
+			if (!r.ok) return r;
+			updateState(paths, (s) => {
+				delete s.restart[key];
+			});
+			const a = apps.get(key);
+			if (a) {
+				a.restartToApply = false;
+				emitApp(a);
+			}
+			return r;
 		},
 		setHold(key, held) {
 			updateState(paths, (s) => {

@@ -24,13 +24,17 @@ const FIELDS = new Set<keyof AppSpec>([
 	"update",
 	"build",
 	"restore",
+	"restart",
+	"relaunch",
 ]);
+// A catalogue app may restart only its own service, through systemctl, which asks for a password itself.
+const RESTART = /^systemctl (--user )?restart [\w@.-]+$/;
 const DANGER =
 	/\b(curl|wget|nc|ncat|socat|eval|base64|xxd)\b|\/dev\/(tcp|udp)|\|\s*(ba|z|da)?sh\b|\brm\s+-\S*r|\bchmod\s+[0-7]*[2467][0-7]{3}\b|\bsudo\b(?! make install$)/;
 
 /** Every command string a table can make Upkeep run, with the field it came from. */
 const commands = (a: AppSpec): [string, string][] =>
-	(["check", "update", "build", "version_args", "restore"] as const).flatMap((f) =>
+	(["check", "update", "build", "version_args", "restore", "restart"] as const).flatMap((f) =>
 		(a[f] ?? []).map((c): [string, string] => [f, c]),
 	);
 
@@ -44,6 +48,7 @@ test("every catalogue table keeps to what a catalogue app may do", () => {
 		if (a.sudo && a.kind !== "deb" && a.kind !== "source" && !a.dest?.startsWith("/"))
 			broken.push(`${a.key}: sudo for an install inside home`);
 		for (const [f, c] of commands(a)) if (DANGER.test(c)) broken.push(`${a.key}: ${f} runs ${c}`);
+		if (a.restart && !RESTART.test(a.restart.join(" "))) broken.push(`${a.key}: restart runs ${a.restart.join(" ")}`);
 	}
 	expect(broken).toEqual([]);
 });
@@ -61,4 +66,8 @@ test("the policy catches what it is for", () => {
 		expect(DANGER.test(bad)).toBe(true);
 	for (const fine of ["sudo make install", "make -j$(nproc)", "./configure", "claude update", "uv tool list"])
 		expect(DANGER.test(fine)).toBe(false);
+	for (const ok of ["systemctl restart rustdesk", "systemctl --user restart dsh-web"])
+		expect(RESTART.test(ok)).toBe(true);
+	for (const bad of ["systemctl stop rustdesk", "systemctl restart a; rm x", "sudo systemctl restart x"])
+		expect(RESTART.test(bad)).toBe(false);
 });

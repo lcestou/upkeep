@@ -321,6 +321,21 @@ export const removeAsk = (name: string) => `Remove ${name} from the list? The ap
 /** Notice after an app was removed from the list. */
 export const removedNote = (name: string) => `Removed ${name}.`;
 
+/** Restart now, for an app whose table says how to restart it. */
+export const RESTART = {
+	now: "Restart now",
+	yes: "Restart",
+	notNow: "Not now",
+} as const;
+/** The question before Upkeep closes apps to reopen them; unsaved work is the cost. */
+export const restartAsk = (names: string[]) =>
+	`${names.join(", ")} will close and reopen. Unsaved work in ${names.length === 1 ? "it" : "them"} is lost.`;
+/** The Restart to finish group's button: restarts every app in it whose table says how. */
+export const restartAllLabel = (names: string[]) =>
+	names.length === 1 ? `Restart ${names[0]} now` : `Restart ${names.length} apps now`;
+/** Notice after a restart worked. */
+export const restartedNote = (names: string[]) => `Restarted ${names.join(", ")}.`;
+
 /** The built-in window frame and About. */
 export const WIN = {
 	close: "Close",

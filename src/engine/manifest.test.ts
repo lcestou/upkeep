@@ -118,6 +118,50 @@ test("an invalid table is left out and reported, the rest load", () => {
 	]);
 });
 
+test("relaunch needs dest, and an AppImage's needs process too; restart is a list", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(
+		file,
+		[
+			"[apps.nodest]",
+			'name = "No dest"',
+			'kind = "command"',
+			'check = ["x", "--version"]',
+			'latest = "npm:x"',
+			'update = ["x", "up"]',
+			"relaunch = true",
+			"[apps.noproc]",
+			'name = "No proc"',
+			'kind = "appimage"',
+			'repo = "a/b"',
+			'asset = "x"',
+			'dest = "~/x.AppImage"',
+			"relaunch = true",
+			"[apps.svc]",
+			'name = "Svc"',
+			'kind = "deb"',
+			'repo = "a/b"',
+			'asset = "x"',
+			'dest = "/usr/bin/svc"',
+			'restart = ["systemctl", "restart", "svc"]',
+			"[apps.zen]",
+			'name = "Zen"',
+			'kind = "appimage"',
+			'repo = "a/b"',
+			'asset = "x"',
+			'dest = "~/zen.AppImage"',
+			'process = "zen"',
+			"relaunch = true",
+		].join("\n"),
+	);
+	const { apps, errors } = loadManifest(file);
+	expect(errors).toEqual(["nodest: relaunch needs dest", "noproc: relaunch needs process for an AppImage"]);
+	expect(apps.map((a) => [a.key, a.restart ?? a.relaunch])).toEqual([
+		["svc", ["systemctl", "restart", "svc"]],
+		["zen", true],
+	]);
+});
+
 test("a file that is not TOML is one error and no apps", () => {
 	const file = join(dir, "apps.toml");
 	writeFileSync(file, "[apps.x\nname = ");

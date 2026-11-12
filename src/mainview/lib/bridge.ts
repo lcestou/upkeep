@@ -12,7 +12,7 @@ const VARIANTS: FixtureVariant[] = ["default", "empty", "checking", "problems", 
 const SYSTEM_VARIANTS: SystemVariant[] = ["off", "show", "checking", "empty", "missing", "failed", "gl"];
 
 // Requests that wait on real work (a download, a restore, a scan) get five minutes; the engine has its own step limits.
-const LONG: ReadonlySet<string> = new Set(["restore", "install", "suggest", "scan", "addApps"]);
+const LONG: ReadonlySet<string> = new Set(["restore", "restartApp", "install", "suggest", "scan", "addApps"]);
 const SHORT_MS = 15_000;
 const LONG_MS = 300_000;
 

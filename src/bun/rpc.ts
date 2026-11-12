@@ -101,6 +101,7 @@ export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, hooks: WindowH
 				scan: () => engine.scan(),
 				addApps: ({ specs }) => engine.addApps(specs),
 				removeApp: ({ key }) => engine.removeApp(key),
+				restartApp: ({ key }) => engine.restartApp(key),
 				pickFile: async () => {
 					const picked = await Utils.openFileDialog({
 						startingFolder: deps.paths.home,

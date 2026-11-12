@@ -8,6 +8,7 @@
 	import { flip } from "svelte/animate";
 	import AppRow from "./AppRow.svelte";
 	import Mark from "./Mark.svelte";
+	import RestartAll from "./RestartAll.svelte";
 	import SystemGroup from "./SystemGroup.svelte";
 
 	let { model }: { model: Model } = $props();
@@ -296,6 +297,7 @@
 								<span class="count mono" data-testid="count-{item.group.id}">{item.group.apps.length}</span>
 							{/if}
 						</div>
+						{#if item.group.id === "restart"}<RestartAll apps={item.group.apps} {model} />{/if}
 					{/if}
 				</div>
 			{/each}

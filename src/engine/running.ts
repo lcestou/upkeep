@@ -38,6 +38,15 @@ export function isRunning(
 	return matching(spec, procRoot, selfPid, true).length > 0;
 }
 
+/** Every pid isRunning would count, for closing an app before it is started again. */
+export function runningPids(
+	spec: Pick<AppSpec, "kind" | "dest" | "process">,
+	procRoot = "/proc",
+	selfPid = process.pid,
+): number[] {
+	return matching(spec, procRoot, selfPid, false);
+}
+
 /** The pids isRunning counts; first stops at the first one. */
 function matching(
 	spec: Pick<AppSpec, "kind" | "dest" | "process">,

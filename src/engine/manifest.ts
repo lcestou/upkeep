@@ -18,8 +18,8 @@ const STRING_FIELDS = [
 	"process",
 	"note",
 ] as const;
-const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore"] as const;
-const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing"] as const;
+const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore", "restart"] as const;
+const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch"] as const;
 // Read only for kind source.
 const SOURCE_STRINGS = ["dir", "stage"] as const;
 const SOURCE_LISTS = ["commit", "prune", "needs", "keep", "hold", "undo", "check_built"] as const;
@@ -90,6 +90,10 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 			return `${key}: asset is not a valid regular expression`;
 		}
 	}
+	// Relaunch starts dest again, and an AppImage's own processes run from its mount, so only process finds them.
+	if (spec.relaunch && !spec.dest) return `${key}: relaunch needs dest`;
+	if (spec.relaunch && spec.kind === "appimage" && !spec.process)
+		return `${key}: relaunch needs process for an AppImage`;
 	if (spec.kind === "source") {
 		const refused = liftSource(key, table, spec);
 		if (refused) return refused;

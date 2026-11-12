@@ -78,7 +78,7 @@ bins = ["fd"]
 | `legacy` | handed to the old `lutechi-updater` script | `legacy_key`, and `legacy_name` unless the table is `versionless` |
 | `manual` | tracked only, you run the update | `legacy_name`, `run` |
 
-Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo or `.desktop` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`.
+Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo or `.desktop` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`, `restart` (a command that restarts the app, such as `["systemctl", "restart", "rustdesk"]` for a service; `systemctl` asks for a password through the desktop's own prompt when it needs one) and `relaunch = true` (Upkeep may close the app and start `dest` again; an AppImage also needs `process`).
 
 `asset` is a regular expression matched against the release's asset names. If it matches more than one, the app is listed under "Needs a look" until you narrow it. Anchor it with `^` when a project ships several variants.
 
@@ -135,7 +135,7 @@ Steps and paths may use `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`
 
 1. **Download** to `~/.cache/upkeep/dl`. The size must equal what GitHub lists, and the SHA-256 must match the asset's digest when the release has one.
 2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. A `.deb` keeps the installed version's package, taken from that version's GitHub release, and goes back with `dpkg -i`. A self-updating app keeps one when its table has `restore`, a command with `{version}` (and `{tag}`) that installs a given version, such as `["bun", "add", "-g", "wrangler@{version}"]`. A source app with `dir` or `stage` keeps its checkout's commit, the files its table names and the files it replaces; one built in a fresh clone keeps none. "Restore points to keep" in Settings applies to all of them.
-3. **Install.** The new file is written beside the old one and renamed into place, so a running copy keeps working and a full disk leaves the old file whole. A running app is not closed. Its row says "Restart to apply".
+3. **Install.** The new file is written beside the old one and renamed into place, so a running copy keeps working and a full disk leaves the old file whole. A running app is not closed. Its row says "Restart to apply". When its table has `restart` or `relaunch`, its pane offers Restart now and the "Restart to finish" group a button that restarts every such app; one that would close a window asks first, since unsaved work in it is lost.
 4. **Verify.** The version probe runs again. If the new copy will not start, the restore point goes back and the row says so.
 
 Root steps use `sudo -n`. If sudo wants a password the app fails with a message and nothing is changed.

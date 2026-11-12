@@ -12,6 +12,9 @@
 		releasedLabel,
 		removeAsk,
 		removedNote,
+		RESTART,
+		restartAsk,
+		restartedNote,
 		restoreLabel,
 		restoredText,
 		skipLabel,
@@ -102,6 +105,34 @@
 		setTimeout(() => (copied = false), 2000);
 	}
 
+	let askingRestart = $state(false);
+	let restarting = $state(false);
+	let restartNote = $state<string | null>(null);
+	let restartNotNow = $state<HTMLButtonElement | null>(null);
+
+	/** Restart now: a desktop app that would close asks first, with focus on Not now. */
+	async function askRestart() {
+		if (!app.closes) return restartNow();
+		askingRestart = true;
+		await tick();
+		restartNotNow?.focus();
+	}
+
+	/** Restarts the app. Success says so in the notice, since the button leaves with the reminder; a failure stays here. */
+	async function restartNow() {
+		askingRestart = false;
+		restarting = true;
+		restartNote = null;
+		const name = app.name;
+		try {
+			const res = await model.send("restartApp", { key: app.key });
+			if (res?.ok) model.flash("notice", restartedNote([name]));
+			else restartNote = res?.detail ?? null;
+		} finally {
+			restarting = false;
+		}
+	}
+
 	/** Restores a saved version of this app. The result line is kept (failure text included) and takes focus, and the row is scrolled into view because it moves to Held back. */
 	async function restore(version: string) {
 		busy = true;
@@ -164,6 +195,35 @@
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
 		{#if app.detail}<p class="sentence" data-testid="pane-detail">{app.detail}</p>{/if}
+		{#if app.restartToApply && app.canRestart}
+			<div class="restart-now">
+				{#if askingRestart}
+					<div class="confirm" role="group" aria-labelledby="restart-ask-{app.key}">
+						<p id="restart-ask-{app.key}" data-testid="restart-ask">{restartAsk([app.name])}</p>
+						<div class="confirm-buttons">
+							<button type="button" class="btn small" data-testid="restart-confirm" onclick={restartNow}>{RESTART.yes}</button>
+							<button
+								type="button"
+								class="btn small"
+								data-testid="restart-cancel"
+								bind:this={restartNotNow}
+								onclick={() => (askingRestart = false)}>{RESTART.notNow}</button
+							>
+						</div>
+					</div>
+				{:else}
+					<button
+						type="button"
+						class="btn small"
+						data-testid="restart-now-{app.key}"
+						disabled={inRun || restarting}
+						title={inRun ? ADD.waitRun : undefined}
+						onclick={askRestart}>{RESTART.now}</button
+					>
+				{/if}
+				{#if restartNote}<p class="sentence" role="status" data-testid="restart-result">{restartNote}</p>{/if}
+			</div>
+		{/if}
 		{#if failed}
 			<div>
 				<button

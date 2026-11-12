@@ -19,6 +19,9 @@ import {
 	rateText,
 	removeAsk,
 	removedNote,
+	restartAllLabel,
+	restartAsk,
+	restartedNote,
 	restartLine,
 	restoreLabel,
 	restoredText,
@@ -216,4 +219,12 @@ test("only a missing Update Manager counts as no Mint", () => {
 
 test("the GPU line names the runtime version", () => {
 	expect(glLine("580.1")).toContain("NVIDIA 580.1 runtime");
+});
+
+test("restart copy: one app or several, and what closing costs", () => {
+	expect(restartAsk(["Zen Browser"])).toBe("Zen Browser will close and reopen. Unsaved work in it is lost.");
+	expect(restartAsk(["Zen", "Lutris"])).toBe("Zen, Lutris will close and reopen. Unsaved work in them is lost.");
+	expect(restartAllLabel(["RustDesk"])).toBe("Restart RustDesk now");
+	expect(restartAllLabel(["RustDesk", "Zen"])).toBe("Restart 2 apps now");
+	expect(restartedNote(["RustDesk", "Zen"])).toBe("Restarted RustDesk, Zen.");
 });
