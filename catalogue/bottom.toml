@@ -1,0 +1,7 @@
+[apps.bottom]
+name = "bottom"
+kind = "archive"
+repo = "ClementTsang/bottom"
+asset = '^bottom_x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/btm"
+bins = ["btm"]

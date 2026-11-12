@@ -1,0 +1,6 @@
+[apps.chezmoi]
+name = "chezmoi"
+kind = "file"
+repo = "twpayne/chezmoi"
+asset = '^chezmoi-linux-amd64$'
+dest = "~/.local/bin/chezmoi"

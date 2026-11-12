@@ -1,0 +1,7 @@
+[apps.eza]
+name = "eza"
+kind = "archive"
+repo = "eza-community/eza"
+asset = '^eza_x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/eza"
+bins = ["eza"]

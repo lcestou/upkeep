@@ -1,0 +1,7 @@
+[apps.k9s]
+name = "k9s"
+kind = "archive"
+repo = "derailed/k9s"
+asset = '^k9s_Linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/k9s"
+bins = ["k9s"]

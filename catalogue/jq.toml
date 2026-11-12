@@ -1,0 +1,6 @@
+[apps.jq]
+name = "jq"
+kind = "file"
+repo = "jqlang/jq"
+asset = '^jq-linux-amd64$'
+dest = "~/.local/bin/jq"

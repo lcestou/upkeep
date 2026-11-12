@@ -1,0 +1,6 @@
+[apps.neovim]
+name = "Neovim"
+kind = "appimage"
+repo = "neovim/neovim"
+asset = '^nvim-linux-x86_64\.appimage$'
+dest = "~/.local/bin/nvim"

@@ -1,0 +1,7 @@
+[apps.btop]
+name = "btop"
+kind = "archive"
+repo = "aristocratos/btop"
+asset = '^btop-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/btop"
+bins = ["btop"]

@@ -1,0 +1,7 @@
+[apps.lazygit]
+name = "lazygit"
+kind = "archive"
+repo = "jesseduffield/lazygit"
+asset = '^lazygit_[0-9.]+_linux_x86_64\.tar\.gz$'
+dest = "~/.local/bin/lazygit"
+bins = ["lazygit"]

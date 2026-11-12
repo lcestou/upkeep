@@ -4,6 +4,7 @@
 
 First version.
 
+- The catalogue Add app looks in first has 25 more apps: ripgrep, lazygit, bottom, btop, eza, dust, duf, delta, hyperfine, pastel, GitHub CLI, glow, lazydocker, k9s, Zellij, Atuin, croc, just, xh, Difftastic, jq, yq, chezmoi, Neovim and Helix.
 - The System group also lists pending updates of Cinnamon's applets, desklets, extensions and themes (the spices Update Manager shows), and of Snaps where snapd is installed.
 - The window's groups (Ready to install, Fresh and the rest) list their apps alphabetically by name, not in the order they were added. The group for a run in progress still lists apps in the order they install.
 - Apps that ship an `.rpm` on GitHub install, update and roll back through `rpm`, as `.deb` apps do through `dpkg`. Add app offers an `.rpm` only on a system without `dpkg`.

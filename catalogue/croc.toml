@@ -1,0 +1,7 @@
+[apps.croc]
+name = "croc"
+kind = "archive"
+repo = "schollz/croc"
+asset = '^croc_v[0-9.]+_Linux-64bit\.tar\.gz$'
+dest = "~/.local/bin/croc"
+bins = ["croc"]

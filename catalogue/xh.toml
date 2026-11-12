@@ -1,0 +1,7 @@
+[apps.xh]
+name = "xh"
+kind = "archive"
+repo = "ducaale/xh"
+asset = '^xh-v[0-9.]+-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/xh"
+bins = ["xh"]
