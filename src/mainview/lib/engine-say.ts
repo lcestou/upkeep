@@ -100,8 +100,42 @@ export function match(text: string, depth = 0): { id: MessageId; values: string[
 export function say(text: string | null | undefined, depth = 0): string {
 	if (!text) return text ?? "";
 	const found = depth < 3 ? match(text) : null;
-	if (!found) return text;
+	if (!found)
+		return depth === 0
+			? sentencesOf(text)
+					.map((p) => (p === text ? p : say(p)))
+					.join(" ")
+			: text;
 	// SAFETY: ENGINE_COPY has a function for every id, taking as many string values as the template matched.
 	const fn = ENGINE_COPY[found.id] as (...v: string[]) => string;
 	return fn(...found.values.map((v) => say(v, depth + 1)));
+}
+
+/**
+ * A line of several engine sentences joined by spaces, as Add app's "why" is, cut into the sentences it was built from.
+ * A cut where every piece is a template wins over reading the whole line as one, since a template ending in "{0}."
+ * would otherwise swallow the sentences after it. A line no such cut covers stays one piece, so a tool's own output is
+ * never cut up.
+ */
+export function sentencesOf(text: string): string[] {
+	return cover(text, new Map()) ?? [text];
+}
+
+/** The shortest-first cut of text into templates at ". ", or null when none covers it; memo holds tails already tried. */
+function cover(text: string, memo: Map<string, string[] | null>): string[] | null {
+	const known = memo.get(text);
+	if (known !== undefined) return known;
+	let found: string[] | null = null;
+	for (const m of text.matchAll(/\. /g)) {
+		const end = m.index + 1;
+		const head = text.slice(0, end);
+		const rest = match(head) ? cover(text.slice(end + 1), memo) : null;
+		if (rest) {
+			found = [head, ...rest];
+			break;
+		}
+	}
+	found ??= match(text) ? [text] : null;
+	memo.set(text, found);
+	return found;
 }
