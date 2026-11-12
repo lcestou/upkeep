@@ -3,5 +3,6 @@ name = "Lutris"
 kind = "deb"
 repo = "lutris/lutris"
 asset = 'lutris_.*_all\.deb$'
+asset_aarch64 = 'lutris_.*_all\.deb$'
 dest = "/usr/games/lutris"
 sudo = true

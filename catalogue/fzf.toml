@@ -3,5 +3,6 @@ name = "fzf"
 kind = "archive"
 repo = "junegunn/fzf"
 asset = 'linux_amd64\.tar\.gz$'
+asset_aarch64 = 'linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/fzf"
 bins = ["fzf"]

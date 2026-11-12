@@ -3,5 +3,6 @@ name = "rtk"
 kind = "archive"
 repo = "rtk-ai/rtk"
 asset = '^rtk-oss-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^rtk-oss-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/rtk"
 bins = ["rtk"]

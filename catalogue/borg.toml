@@ -3,4 +3,5 @@ name = "BorgBackup"
 kind = "file"
 repo = "borgbackup/borg"
 asset = 'borg-linux-glibc235-x86_64-gh$'
+asset_aarch64 = 'borg-linux-glibc235-arm64-gh$'
 dest = "~/.local/bin/borg"

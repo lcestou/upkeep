@@ -3,4 +3,5 @@ name = "Neovim"
 kind = "appimage"
 repo = "neovim/neovim"
 asset = '^nvim-linux-x86_64\.appimage$'
+asset_aarch64 = '^nvim-linux-arm64\.appimage$'
 dest = "~/.local/bin/nvim"

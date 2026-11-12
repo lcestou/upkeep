@@ -3,6 +3,7 @@ name = "RustDesk"
 kind = "deb"
 repo = "rustdesk/rustdesk"
 asset = '^rustdesk-[0-9.]+-x86_64\.deb$'
+asset_aarch64 = '^rustdesk-[0-9.]+-aarch64\.deb$'
 dest = "/usr/bin/rustdesk"
 sudo = true
 restart = ["systemctl", "restart", "rustdesk"]
