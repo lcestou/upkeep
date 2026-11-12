@@ -50,7 +50,8 @@ function str(v: unknown): string {
 /** The top-level "version" of a JSON text, never one nested deeper; undefined when it is not JSON or has none. */
 export function jsonVersion(text: string): string | undefined {
 	try {
-		return str(record(JSON.parse(text)).version).trim() || undefined;
+		// A file saved with a byte-order mark is still JSON to the app that wrote it.
+		return str(record(JSON.parse(text.replace(/^\uFEFF/, ""))).version).trim() || undefined;
 	} catch {
 		return undefined;
 	}

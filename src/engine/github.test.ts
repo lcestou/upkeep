@@ -301,4 +301,5 @@ test("a json: answer that is not JSON is the source's failure, not the network's
 	});
 	expect(jsonVersion('{"engines": {"version": "1"}, "version": " 2.0 "}')).toBe("2.0");
 	expect(jsonVersion("not json")).toBeUndefined();
+	expect(jsonVersion('\uFEFF{"version": "3.29.9"}')).toBe("3.29.9");
 });
