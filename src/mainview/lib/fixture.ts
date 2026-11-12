@@ -623,6 +623,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		keepBackups: 1,
 		notify: true,
 		checkAtLogin: false,
+		checkEvery: "6h",
 		frame: opts.frame ?? "own",
 		buttons: "auto",
 		corners: opts.corners ?? "rounded",

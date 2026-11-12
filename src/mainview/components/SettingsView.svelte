@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Settings } from "../../shared/types";
-	import { SYS, TEXT, WIN, rateText, versionText } from "../lib/copy";
+	import { CHECK_EVERY, SYS, TEXT, WIN, rateText, versionText } from "../lib/copy";
 	import { LOCKUP_SVG } from "../lib/brand";
 	import type { Model } from "../lib/model.svelte";
 
@@ -73,6 +73,22 @@
 				data-testid="setting-login"
 				onchange={(e) => set({ checkAtLogin: e.currentTarget.checked })}
 			/>
+		</label>
+		<label class="row">
+			<span class="text" data-testid="setting-check-every-label">{TEXT.checkEvery}</span>
+			<select
+				value={model.settings.checkEvery}
+				data-testid="setting-check-every"
+				onchange={(e) => {
+					const v = e.currentTarget.value;
+					const picked = CHECK_EVERY.find((o) => o.v === v);
+					if (picked) set({ checkEvery: picked.v });
+				}}
+			>
+				{#each CHECK_EVERY as o (o.v)}
+					<option value={o.v}>{o.label}</option>
+				{/each}
+			</select>
 		</label>
 		<label class="row">
 			<span class="text">{TEXT.keepBackups}</span>

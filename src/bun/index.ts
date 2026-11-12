@@ -11,6 +11,7 @@ import { syncAutostart } from "./autostart";
 import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
 import { isDevBuild, playDevScript } from "./dev-script";
+import { startSchedule } from "./schedule";
 import { claimInstance, releaseInstance } from "./instance";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
@@ -274,6 +275,12 @@ const toView = createCoalescer((event: EngineEvent) => {
 	if (win) rpc.send.event(event);
 });
 let phase: RunPhase = "idle";
+// Checks on the owner's schedule for as long as Upkeep runs; any check, pressed or scheduled, restarts the wait.
+const schedule = startSchedule({
+	every: () => engine.snapshot().settings.checkEvery,
+	idle: () => phase === "idle",
+	check: () => void engine.check(),
+});
 
 // Through the same coalescer as the engine's events: a non-row event flushes pending rows first, so order holds.
 extras.subscribe((event) => {
@@ -290,6 +297,8 @@ engine.subscribe((event) => {
 	const before = phase;
 	phase = event.run.phase;
 	refreshTray();
+	// A finished check or a dismissed run both just looked at every app: the schedule's wait starts again.
+	if (phase === "idle" && (before === "checking" || before === "summary")) schedule.checked();
 	if (before === "checking" && phase === "idle") announceReady();
 	if (before === "installing" && phase === "summary") {
 		// With no window to read the summary in, say it once and clear it.

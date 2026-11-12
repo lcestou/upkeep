@@ -1,3 +1,4 @@
+import { DEFAULT_SETTINGS } from "../store";
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
@@ -43,7 +44,7 @@ function ctx(answers: Record<string, string | null>) {
 		run,
 		fetch: fakeFetch,
 		token: null,
-		settings: { keepBackups: 1, notify: true, checkAtLogin: false } as KindCtx["settings"],
+		settings: DEFAULT_SETTINGS,
 		log: () => {},
 		stage: () => {},
 	};

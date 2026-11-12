@@ -3,7 +3,7 @@ import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node
 import { dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import type { RunOpts, ProcessResult } from "../run";
-import { type Inflight, readInflight } from "../store";
+import { DEFAULT_SETTINGS, type Inflight, readInflight } from "../store";
 import { ok, strictRun, tempHome } from "../testkit";
 import { type Built, prepareBuilt, rootArgvs, SUDO_REFUSED } from "./built";
 import type { KindCtx } from "./context";
@@ -95,7 +95,7 @@ function ctx(run: KindCtx["run"]): KindCtx {
 		run,
 		fetch: async () => new Response("", { status: 404 }),
 		token: null,
-		settings: { keepBackups: 1, notify: true, checkAtLogin: false } as KindCtx["settings"],
+		settings: DEFAULT_SETTINGS,
 		log: () => {},
 		stage: () => {},
 		procRoot: proc,

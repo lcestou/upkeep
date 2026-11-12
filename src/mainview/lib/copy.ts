@@ -1,5 +1,14 @@
 // Every string a person reads, pasted from the plan's copy table (F5).
-import type { AppKind, AppState, RunResult, RunState, Stage, SystemRow, SystemState } from "../../shared/types";
+import type {
+	AppKind,
+	AppState,
+	RunResult,
+	RunState,
+	Settings,
+	Stage,
+	SystemRow,
+	SystemState,
+} from "../../shared/types";
 import { formatBytes, plural } from "./format";
 
 export const KIND_LABEL = {
@@ -99,6 +108,7 @@ export const TEXT = {
 	startAtLogin: "Start at login",
 	startAtLoginHint: "Opens in the tray and checks for updates.",
 	keepBackups: "Restore points to keep",
+	checkEvery: "Check for updates",
 	appList: "App list",
 	openManifest: "Open apps.toml",
 } as const;
@@ -387,3 +397,10 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 /** The NVIDIA runtime warning; the version is the one the driver needs. */
 export const glLine = (version: string) =>
 	`Flatpak apps cannot use the GPU until the NVIDIA ${version} runtime is installed. A Flatpak update installs it.`;
+
+/** The "Check for updates" choices, in the order Settings lists them. */
+export const CHECK_EVERY = [
+	{ v: "6h", label: "Every 6 hours" },
+	{ v: "daily", label: "Once a day" },
+	{ v: "ask", label: "Only when I ask" },
+] as const satisfies readonly { v: Settings["checkEvery"]; label: string }[];

@@ -7,7 +7,7 @@ import type { FetchLike } from "./github";
 import { installBuilt, restoreBuilt, SUDO_REFUSED } from "./kinds/built";
 import { loadManifest } from "./manifest";
 import type { RunOpts, ProcessResult } from "./run";
-import { readInflight, writeInflight } from "./store";
+import { DEFAULT_SETTINGS, readInflight, writeInflight } from "./store";
 import { ok, strictRun, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -153,7 +153,7 @@ const kindCtx = (box: ReturnType<typeof fakeBox>) => ({
 	run: box.run,
 	fetch: box.fetch,
 	token: null,
-	settings: { keepBackups: 1, notify: true, checkAtLogin: false } as never,
+	settings: DEFAULT_SETTINGS,
 	log: () => {},
 	stage: () => {},
 	procRoot: proc,

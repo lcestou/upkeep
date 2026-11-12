@@ -221,6 +221,23 @@ test("check: native and legacy apps land in manifest order, absent apps are left
 	expect(engine.readyKeys(true)).toEqual(["fd", "claude", "plugins"]);
 });
 
+test("a check pressed while an install is starting does not run beside it", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	const phases: string[] = [];
+	engine.subscribe((e) => {
+		if (e.type === "run") phases.push(e.run.phase);
+	});
+	const started = engine.install(["fd"]);
+	// recover() is still pending here: the schedule's or a hand Check must wait, not start a second run.
+	const pressed = engine.check();
+	expect(await started).toEqual({ started: true });
+	await pressed;
+	await engine.idle();
+	expect(phases).not.toContain("checking");
+	expect(engine.snapshot().run.phase).toBe("summary");
+});
+
 test("one app's exception fails that app and the run continues", async () => {
 	const engine = createEngine(await deps());
 	await engine.check();
@@ -373,6 +390,7 @@ test("settings and auto are kept in state", async () => {
 		keepBackups: 3,
 		notify: false,
 		checkAtLogin: false,
+		checkEvery: "6h",
 		frame: "own",
 		buttons: "auto",
 		corners: "rounded",

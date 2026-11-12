@@ -62,7 +62,15 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		skip: {},
 		hold: {},
 		auto: {},
-		settings: { keepBackups: 1, notify: true, checkAtLogin: false, frame: "own", buttons: "auto", corners: "rounded" },
+		settings: {
+			keepBackups: 1,
+			notify: true,
+			checkAtLogin: false,
+			checkEvery: "6h",
+			frame: "own",
+			buttons: "auto",
+			corners: "rounded",
+		},
 		notified: "",
 		restart: {},
 	});
