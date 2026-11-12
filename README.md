@@ -1,10 +1,53 @@
-# Upkeep
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/lockup-horizontal-dark.svg">
+    <img src="assets/brand/lockup-horizontal-light.svg" alt="Upkeep" width="320">
+  </picture>
+</h1>
+
+<p align="center">
+  <strong>One window for the apps the package manager misses</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Linux-2f7d32?style=flat&logo=linux&logoColor=white" alt="Linux" />
+  <img src="https://img.shields.io/badge/arch-x86__64%20%7C%20aarch64-555?style=flat" alt="x86_64 and aarch64" />
+  <img src="https://img.shields.io/badge/built%20with-Electrobun%202-1f6feb?style=flat" alt="Electrobun 2" />
+  <img src="https://img.shields.io/badge/view-Svelte%205-ff3e00?style=flat&logo=svelte&logoColor=white" alt="Svelte 5" />
+  <img src="https://img.shields.io/badge/language-TypeScript-3178c6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/runtime-Bun-f472b6?style=flat&logo=bun&logoColor=white" alt="Bun" />
+  <img src="https://img.shields.io/badge/license-GPL--3.0-blue?style=flat" alt="GPL-3.0 or later" />
+</p>
+
+---
 
 One window for the apps the package manager misses. It checks every app in a list, shows what is pending with the old and new version, and installs what you tick with one press. Each app shows its own progress, nothing asks a question once the run starts, and the version that was replaced is kept so a bad update can be put back.
 
 It covers AppImages, binaries from release archives on GitHub, GitLab, Codeberg or a download page, single-file binaries, .deb and .rpm files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
 
 Linux first: built on Linux Mint and supported on the main x86_64 and aarch64 (arm64) desktop distributions (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
+
+## Tour
+
+<p><img src="docs/media/updates.png" width="720" alt="The Updates tab: four apps ready to install with old and new versions, three tracked by hand, one that needs a look, and the fd detail pane with its restore point and release notes"></p>
+
+Every app in your list, checked at once. Ready updates are ticked, apps you update yourself show the command you use, and anything Upkeep could not read says why. The pane on the right has the release notes, the restore points, and Skip, Hold and Install automatically for that app.
+
+<p><img src="docs/media/run.png" width="720" alt="A run in progress: Zen Browser downloading 37 of 109 MB, three more apps queued, each with its restore point"></p>
+
+One press installs everything ticked, one app at a time. Each row shows its own step and progress, and the version it replaces is kept as a restore point before anything changes.
+
+<p><img src="docs/media/add.png" width="720" alt="Add an app: BurntSushi/ripgrep typed in, and a suggestion card naming the release file, where it installs and why"></p>
+
+Add an app by name, repo, link or file, or scan the computer for programs Upkeep can follow. The suggestion says which release file fits this machine, where it will go and what it found already installed, and nothing is added until you press Add.
+
+<p><img src="docs/media/history.png" width="720" alt="History: three past runs, one with Ghostty rolled back to 1.3.0 because it would not start after the update"></p>
+
+History keeps every run. An update that fails its check is rolled back to the version it replaced, and the row says what happened.
+
+<p><img src="docs/media/cleanup.png" width="720" alt="The Cleanup tab: thumbnails, leftover copies, downloaded packages and old Flatpak NVIDIA runtimes, each with its size, and a Review 2.4 GB button"></p>
+
+Cleanup, off until you turn it on, measures caches and leftovers and deletes only what you tick, after one more look at the total.
 
 ## Run it
 
