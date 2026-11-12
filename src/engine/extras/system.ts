@@ -411,14 +411,17 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 			spiceProblem ??= {
 				code: "failed",
 				command: spiceList(type).join(" "),
-				detail: r.stdout.trim().split("\n")[0] ?? "",
+				// The window says it could not read the Cinnamon list, so the updater's own lead-in is dropped.
+				detail: (r.stdout.trim().split("\n")[0] ?? "").replace(/^Cinnamon updates failed:\s*/, ""),
 			};
 	}
 	if (ok(snapUpdates))
 		rows.push(...parseSnapList(snapUpdates?.stdout ?? "", ok(snapInstalled) ? (snapInstalled?.stdout ?? "") : ""));
 	return {
 		rows,
-		problem: mintProblem ?? flatpakProblem ?? spiceProblem,
+		// A tool this system lacks is said quietly in the window, so a real failure elsewhere goes first.
+		problem:
+			[mintProblem, flatpakProblem, spiceProblem].find((p) => p?.code === "failed") ?? mintProblem ?? flatpakProblem,
 		glMissing: ok(gl) && ok(runtimes) ? glMissing(gl?.stdout ?? "", runtimes?.stdout ?? "") : null,
 		packages: pkg?.packages ?? null,
 	};

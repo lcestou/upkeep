@@ -577,12 +577,14 @@ test("a spice with no new version, or not an object, gives no row; one without a
 test("the spice updater's own failure, printed with exit 0, is a failed read, not an empty list", async () => {
 	const answers = new Map<string, ProcessResult>([
 		[spiceList("applet").join(" "), ok("Cinnamon updates failed: could not reach the server\n")],
+		// Without Flatpak, its quiet "not installed" must not hide the spice failure.
+		[FLATPAK_UPDATES.join(" "), missing],
 	]);
 	const r = await checkSystem({ run: box(answers).run });
 	expect(r.problem).toEqual({
 		code: "failed",
 		command: spiceList("applet").join(" "),
-		detail: "Cinnamon updates failed: could not reach the server",
+		detail: "could not reach the server",
 	});
 	expect(r.rows.some((x) => x.source === "apt")).toBe(true);
 });
