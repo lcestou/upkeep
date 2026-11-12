@@ -26,7 +26,7 @@ import {
 	rootNames,
 } from "./github";
 import { isPackage, PACKAGE_TOOL } from "./kinds/package";
-import { listTools, toolSpec } from "./managers";
+import { listTools, toolSpec, toolKey } from "./managers";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
 import type { Run } from "./run";
@@ -795,8 +795,7 @@ async function managedSuggestions(ctx: DiscoverCtx): Promise<Suggestion[]> {
 	const out: Suggestion[] = [];
 	const seen = new Set<string>();
 	for (const tool of await listTools(ctx.run, ctx.paths.home)) {
-		// A scoped npm name (@scope/pkg) keys as scope-pkg, not -scope-pkg.
-		const key = keyOf(tool.name.replace(/^@/, ""));
+		const key = toolKey(tool.name);
 		const spec = toolSpec(tool, key);
 		if (!spec || seen.has(key)) continue;
 		const tracked = ctx.specs.some(

@@ -1671,11 +1671,6 @@ msgstr "{0}：kind appimage には repo か latest が必要です"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags: or json:"
-msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json: のいずれかで始まる必要があります"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: a json: latest is only for kind appimage"
 msgstr "{0}：json: の latest は kind appimage 専用です"
 
@@ -1944,3 +1939,8 @@ msgstr "Cinnamon"
 #: src/mainview/lib/engine-text.ts
 msgid "Installed with {0}. Upkeep updates it the same way."
 msgstr "{0} でインストールされています。Upkeep は同じ方法で更新します。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:"
+msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json:、crates: のいずれかで始まる必要があります"

@@ -17,6 +17,7 @@ import type {
 import { MESSAGES } from "../shared/messages";
 import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
+import { managedSpecs } from "./managers";
 import { type FetchLike, githubToken, type Rate } from "./github";
 import { checkClaudePlugins, installClaudePlugins } from "./kinds/plugins";
 import { checkCommand, installCommand, tagOf } from "./kinds/command";
@@ -1001,8 +1002,12 @@ export function createEngine(deps: EngineDeps): Engine {
 			const file = ensureManifest(paths, deps.seedManifest);
 			const added: string[] = [];
 			const problems: { key: string; detail: string }[] = [];
+			// A command table that is not the catalogue's is checked against the tool managers' own records, read again here.
+			const managed = list.some((s) => s.kind === "command" && !catalogue.apps.some((c) => c.key === s.key))
+				? await managedSpecs(deps.run, paths.home)
+				: [];
 			for (const s of list) {
-				const detail = writeApp(file, s);
+				const detail = writeApp(file, s, managed);
 				if (detail) problems.push({ key: s.key, detail });
 				else added.push(s.key);
 			}
@@ -1092,11 +1097,12 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/** Appends one app's table to apps.toml, or says why not. The written table must read back as the same spec. */
-	function writeApp(file: string, s: AppSpec): string | null {
-		// A kind the window cannot work out (a command, a source build) is written only as the catalogue tested it: the
-		// card may rename it or move its dest, but its steps, check and update are the catalogue's, never a caller's.
-		const entry = catalogue.apps.find((c) => c.key === s.key);
-		const tested = entry !== undefined && Bun.deepEquals({ ...entry, name: s.name, dest: s.dest }, s);
+	function writeApp(file: string, s: AppSpec, managed: AppSpec[] = []): string | null {
+		// A kind the window cannot work out (a command, a source build) is written only as the catalogue tested it, or as
+		// a tool manager's records make it: the card may rename it or move its dest, but its steps, check and update are
+		// the catalogue's or the manager's, never a caller's.
+		const same = (e: AppSpec | undefined) => e !== undefined && Bun.deepEquals({ ...e, name: s.name, dest: s.dest }, s);
+		const tested = same(catalogue.apps.find((c) => c.key === s.key)) || same(managed.find((m) => m.key === s.key));
 		if (!ADDABLE.has(s.kind) && !tested) return MESSAGES.kindNotAddable(s.key);
 		const { key } = s;
 		const relifted = relift(s);

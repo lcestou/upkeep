@@ -192,7 +192,7 @@ test("the check scripts print the installed version when run against fake manage
 	expect((await exec(toolSpec({ ...git, name: "gone" }, "k")?.check ?? [])).code).toBe(127);
 });
 
-test("listTools asks each manager, reads uv receipts and cargo's file, and a missing or failing manager gives nothing", async () => {
+test("listTools asks each manager, reads uv receipts and cargo's file; a missing manager gives nothing, and npm's list counts even when npm ls exits 1 on a peer warning", async () => {
 	const uvDir = join(t.paths.home, ".local/share/uv/tools");
 	await Bun.write(join(uvDir, "pr-agent/uv-receipt.toml"), fixture("uv-receipt-pr-agent.toml"));
 	await Bun.write(join(uvDir, "yt-dlp/uv-receipt.toml"), `[tool]\nrequirements = [{ name = "yt-dlp" }]\n`);
@@ -213,6 +213,7 @@ test("listTools asks each manager, reads uv receipts and cargo's file, and a mis
 	expect(tools.map((x) => `${x.manager}:${x.name}:${x.version}`)).toEqual([
 		"uv:yt-dlp:2026.8.19",
 		"uv:pr-agent:0.49.0",
+		"npm:x:1",
 		"cargo:ripgrep:14.1.0",
 	]);
 	expect(calls.map((c) => c.argv)).toEqual([

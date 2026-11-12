@@ -41,7 +41,7 @@ const PIPX_LIST = ["pipx", "list", "--json"];
 const NPM_LIST = ["npm", "ls", "-g", "--json", "--depth=0"];
 
 /** Prints the version uv lists for the tool named $1. */
-const UV_CHECK = `uv tool list 2>/dev/null | awk -v n="$1" '$1==n{print $2}' | sed 's/^v//' | head -1`;
+const UV_CHECK = `v=$(uv tool list 2>/dev/null | awk -v n="$1" '$1==n{print $2}' | sed 's/^v//' | head -1); [ -n "$v" ] || exit 127; echo "$v"`;
 /** Prints the git tag a uv tool was installed at, without a leading v; falls back to what uv lists. Exits 127 when the tool is gone. */
 const UV_REV_CHECK =
 	`f="$HOME/.local/share/uv/tools/$1/uv-receipt.toml"; [ -f "$f" ] || exit 127; ` +
@@ -49,11 +49,11 @@ const UV_REV_CHECK =
 	`[ -n "$v" ] || v=$(uv tool list 2>/dev/null | awk -v n="$1" '$1==n{print $2}' | sed 's/^v//'); ` +
 	`[ -n "$v" ] || exit 127; echo "$v"`;
 /** Prints the version pipx lists for the venv named $1. */
-const PIPX_CHECK = `pipx list --short 2>/dev/null | awk -v n="$1" '$1==n{print $2}' | head -1`;
+const PIPX_CHECK = `v=$(pipx list --short 2>/dev/null | awk -v n="$1" '$1==n{print $2}' | head -1); [ -n "$v" ] || exit 127; echo "$v"`;
 /** Prints the version in the package.json of the global npm package named $1. */
 const NPM_CHECK = `f="$(npm root -g 2>/dev/null)/$1/package.json"; [ -f "$f" ] || exit 127; grep -m1 -oP '"version":\\s*"\\K[^"]+' "$f"`;
 /** Prints the version cargo lists for the crate named $1; its program lines are indented and skipped. */
-const CARGO_CHECK = `cargo install --list 2>/dev/null | awk -v n="$1" '/^[^ ]/ && $1==n{v=$2; sub(/^v/,"",v); sub(/:$/,"",v); print v; exit}'`;
+const CARGO_CHECK = `v=$(cargo install --list 2>/dev/null | awk -v n="$1" '/^[^ ]/ && $1==n{v=$2; sub(/^v/,"",v); sub(/:$/,"",v); print v; exit}'); [ -n "$v" ] || exit 127; echo "$v"`;
 
 /** A check argv that runs script with the tool name as its $1. */
 const shCheck = (script: string, name: string) => ["sh", "-c", script, "sh", name];
@@ -204,10 +204,13 @@ export function toolSpec(tool: Tool, key: string): AppSpec | null {
 	return { ...base, check: shCheck(CARGO_CHECK, name), latest: `crates:${name}`, update: argv, restore: argv };
 }
 
-/** What a manager's list printed when it ran cleanly; empty when the manager is missing, fails or times out. */
+/**
+ * What a manager's list printed; empty when the manager is missing (127) or times out. Any other exit keeps the output,
+ * since npm ls exits 1 on a peer or extraneous warning and still prints the full list; a parser reads what it can.
+ */
 async function listed(run: Run, argv: string[]): Promise<string> {
 	const r = await run(argv, { timeoutMs: 10_000 });
-	return r.code === 0 && !r.timedOut ? r.stdout : "";
+	return r.code === 127 || r.timedOut ? "" : r.stdout;
 }
 
 /** A file's text, or empty when it cannot be read. */
@@ -222,6 +225,22 @@ function read(path: string): string {
 /** Tools of a manager whose records carry nothing beyond a name and a version. */
 const bare = (manager: Manager, tools: { name: string; version: string }[]): Tool[] =>
 	tools.map((t) => ({ manager, ...t, extras: "", python: null, repo: null }));
+
+/**
+ * The command table for every tool the managers report, keyed as the scan keys them (a scoped npm name drops its @).
+ * The engine writes a command table from the window only when it equals one of these, so a caller cannot slip in
+ * commands of its own.
+ */
+export async function managedSpecs(run: Run, home: string): Promise<AppSpec[]> {
+	return (await listTools(run, home)).flatMap((t) => toolSpec(t, toolKey(t.name)) ?? []);
+}
+
+/** A tool's key in apps.toml, as the scan makes it: lower case, a scoped npm name without its @, the rest dashes. */
+export const toolKey = (name: string) =>
+	name
+		.replace(/^@/, "")
+		.toLowerCase()
+		.replace(/[^a-z0-9-]/g, "-");
 
 /**
  * Every tool the four managers report, in uv, pipx, npm, cargo order. A manager that is missing or fails gives
