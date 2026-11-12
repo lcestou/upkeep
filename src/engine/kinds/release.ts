@@ -211,7 +211,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 
 		const existed = new Set(targets.filter((f) => existsSync(f)));
 		const running = isRunning({ ...spec, dest }, ctx.procRoot);
-		writeInflight(ctx.paths, { key: spec.key, dest, backupVersion });
+		writeInflight(ctx.paths, { key: spec.key, dest, backupVersion, files: targets });
 		clock.start("install");
 		if (spec.kind === "appimage" || spec.kind === "file") {
 			const mode = existsSync(dest) ? statSync(dest).mode & 0o777 : 0o755;

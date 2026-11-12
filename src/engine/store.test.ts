@@ -125,6 +125,14 @@ test("inflight marker round trip", () => {
 	expect(readInflight(t.paths)).toBeNull();
 	writeInflight(t.paths, { key: "zen", dest: "/h/zen", backupVersion: "1.0" });
 	expect(readInflight(t.paths)).toEqual({ key: "zen", dest: "/h/zen", backupVersion: "1.0" });
+	// The files an install writes beside are kept; anything in that list that is not a path is dropped.
+	writeFileSync(
+		join(t.paths.state, "inflight.json"),
+		JSON.stringify({ key: "fd", dest: "/h/fd", files: ["/h/fd", 3, "/h/fdx"] }),
+	);
+	expect(readInflight(t.paths)).toEqual({ key: "fd", dest: "/h/fd", backupVersion: null, files: ["/h/fd", "/h/fdx"] });
+	writeFileSync(join(t.paths.state, "inflight.json"), JSON.stringify({ key: "fd", dest: "/h/fd", files: [123] }));
+	expect(readInflight(t.paths)).toEqual({ key: "fd", dest: "/h/fd", backupVersion: null });
 	clearInflight(t.paths);
 	expect(readInflight(t.paths)).toBeNull();
 });

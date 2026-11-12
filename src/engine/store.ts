@@ -181,6 +181,8 @@ export type Inflight = {
 	key: string;
 	dest: string;
 	backupVersion: string | null;
+	/** Every file the install writes beside (an archive's bins), so recovery finds each temp copy even after the app left the list. */
+	files?: string[];
 	tree?: {
 		step: "pause" | "build" | "stopping" | "placing" | "starting" | "verify";
 		/** The build step running now, so recovery can end its tree first. */
@@ -229,6 +231,9 @@ export function readInflight(paths: Paths): Inflight | null {
 			dest: v.dest,
 			backupVersion: typeof v.backupVersion === "string" ? v.backupVersion : null,
 		};
+		// A list with no path left in it says nothing, so recovery falls back to the table.
+		const files = Array.isArray(v.files) ? v.files.filter((f): f is string => typeof f === "string") : [];
+		if (files.length > 0) marker.files = files;
 		// A tree that does not read cleanly is dropped; the rest of the marker still counts.
 		const tree = v.tree === undefined ? undefined : treeOf(v.tree);
 		if (tree) marker.tree = tree;
