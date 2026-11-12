@@ -2,7 +2,7 @@
 
 One window for the apps the package manager misses. It checks every app in a list, shows what is pending with the old and new version, and installs what you tick with one press. Each app shows its own progress, nothing asks a question once the run starts, and the version that was replaced is kept so a bad update can be put back.
 
-It covers AppImages, binaries from GitHub release archives, single-file binaries, .deb and .rpm files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
+It covers AppImages, binaries from release archives on GitHub, GitLab, Codeberg or a download page, single-file binaries, .deb and .rpm files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
 
 Linux first: built on Linux Mint and supported on the main x86_64 desktop distributions (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
 
@@ -35,7 +35,7 @@ bun run cli restore fd            # put back the newest restore point
 bun run cli history
 bun run cli recover               # finish or undo an update that was interrupted
 bun run cli list                  # the apps in apps.toml, without a check
-bun run cli add sharkdp/fd        # add an app: a catalogue name, owner/repo, a github.com link or a file
+bun run cli add sharkdp/fd        # add an app: a catalogue name, a repo, a GitHub, GitLab or Codeberg link, or a file
 bun run cli remove fd             # take it off the list; the app itself stays installed
 bun run cli export upkeep.json    # settings and app list as one file (to stdout without a name)
 bun run cli import upkeep.json    # replace them from such a file
@@ -60,7 +60,7 @@ There is no network API on purpose: the command line already does everything the
 Press **Add app** in the window. There are five ways in:
 
 - **Type an app's name**, such as `fd` or `Zen Browser`. Apps in Upkeep's catalogue come with a table that has been used for real: the asset pattern, where it installs, how to read its version. Upkeep still looks up today's release. A repo or link of a catalogue app finds the same table.
-- **Paste** a GitHub `owner/repo` or any github.com link to the project. Upkeep reads the latest release, picks the asset that runs on this machine, works out the kind, and for an archive opens it to see which programs it holds (ripgrep ships `rg`, not `ripgrep`). If the app is already installed it finds it and reads its version. A `.deb` is offered only where `dpkg` is installed, and an `.rpm` only where `rpm` is installed and `dpkg` is not, so a Debian system with the rpm tool never gets packages outside dpkg's records. When nothing in the release runs on this machine, Upkeep reads the repo's build file at the release tag (`Cargo.toml`, `go.mod`, `meson.build`, `CMakeLists.txt`, `configure`, `autogen.sh`, `configure.ac` or a `Makefile`) and drafts a source build: Cargo and Go install into `~/.local/bin`, the others into `/usr/local` with sudo. The draft is marked as a guess and shows every step it will run. It says so when the build tool is not installed, and nothing runs until you add it.
+- **Paste** a repo or a link to the project: GitHub's `owner/repo` or any github.com link, `gitlab.com/group/name` or a gitlab.com link, `codeberg.org/owner/name` or a codeberg.org link. A link to a self-hosted GitLab, Gitea or Forgejo is read once a table in the list already names that host with its `forge`. Upkeep reads the latest release, picks the asset that runs on this machine, works out the kind, and for an archive opens it to see which programs it holds (ripgrep ships `rg`, not `ripgrep`). If the app is already installed it finds it and reads its version. A `.deb` is offered only where `dpkg` is installed, and an `.rpm` only where `rpm` is installed and `dpkg` is not, so a Debian system with the rpm tool never gets packages outside dpkg's records. When nothing in the release runs on this machine and the repo is on GitHub, Upkeep reads the repo's build file at the release tag (`Cargo.toml`, `go.mod`, `meson.build`, `CMakeLists.txt`, `configure`, `autogen.sh`, `configure.ac` or a `Makefile`) and drafts a source build: Cargo and Go install into `~/.local/bin`, the others into `/usr/local` with sudo. The draft is marked as a guess and shows every step it will run. It says so when the build tool is not installed, and nothing runs until you add it. A repo on GitLab, Codeberg or a self-hosted forge gets no drafted build; write its `source` table by hand.
 - **Choose a file** or **drop a file** on the window. An AppImage that names its own release source is matched for certain. Otherwise Upkeep searches by name and marks the result as a guess to check.
 - **Scan this computer.** It looks through `~/.local/bin`, `~/Applications` and `~/bin` for compiled programs and AppImages that are not in the list. It never runs what it finds. A guess is only offered when a well-known project has exactly that name and a release for this machine. Everything else is listed with "Could not tell where it comes from", and you paste the repo. The scan also asks uv, pipx, npm and cargo what they installed and offers each tool, not already in the list, as one that updates itself through that manager. Typing a tool's name in Add app finds it the same way.
 
@@ -86,17 +86,38 @@ bins = ["fd"]
 
 | Kind             | What it installs                                                                                                                                               | Needs                                                          |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `appimage`       | one AppImage from a GitHub release, or from a vendor's update API that answers a version and a download (`latest = "json:<url>"`, https only in the catalogue) | `repo` or `latest`, `asset`, `dest`                            |
-| `archive`        | binaries inside a release `.tar.gz` or `.zip`                                                                                                                  | `repo`, `asset`, `dest`, `bins`                                |
-| `file`           | a binary that is itself the release asset                                                                                                                      | `repo`, `asset`, `dest`                                        |
-| `deb`            | a `.deb` from a release, through `dpkg -i`                                                                                                                     | `repo`, `asset`, `dest`                                        |
-| `rpm`            | a `.rpm` from a release, through `rpm -U --oldpackage`                                                                                                                     | `repo`, `asset`, `dest`                                        |
+| `appimage`       | one AppImage from a release, or from a vendor's update API that answers a version and a download (`latest = "json:<url>"`, https only in the catalogue) | `repo` or `latest`, `asset`, `dest`                            |
+| `archive`        | binaries inside a release `.tar.gz` or `.zip`                                                                                                                  | `repo` or `latest`, `asset`, `dest`, `bins`                    |
+| `file`           | a binary that is itself the release asset                                                                                                                      | `repo` or `latest`, `asset`, `dest`                            |
+| `deb`            | a `.deb` from a release, through `dpkg -i`                                                                                                                     | `repo` or `latest`, `asset`, `dest`                            |
+| `rpm`            | a `.rpm` from a release, through `rpm -U --oldpackage`                                                                                                                     | `repo` or `latest`, `asset`, `dest`                            |
 | `source`         | a checkout or a clone of the release tag, built with your steps, restarted and tested                                                                          | `build`, `check` or `dest`, `repo` or `latest`                 |
 | `command`        | a tool that updates itself                                                                                                                                     | `check`, `latest`, `update`, and `restore` for a restore point |
 | `claude-plugins` | every plugin in Claude Code's registry, through `claude plugin update` (versionless: it runs on Run now and in background runs when `auto` is set)             | nothing beyond `name`                                          |
 | `manual`         | tracked only: checked like a self-updating tool, and you run the update                                                                                        | `check`, `latest`, `run`                                       |
 
 Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo, `.desktop` or `.json` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`, `restart` (a command that restarts the app, such as `["systemctl", "restart", "rustdesk"]` for a service; `systemctl` asks for a password through the desktop's own prompt when it needs one) and `relaunch = true` (Upkeep may close the app and start `dest` again; it needs `process`, the name of the process it closes, which must be the app's own: the top processes with that name are asked to quit and their children go with them, so an interpreter's name such as `python` or `node` is refused).
+
+`repo` says where the releases are:
+
+- `owner/name` is a GitHub repo, as every table before forges had it.
+- `gitlab.com/group/name` is a GitLab project, with as many groups as it has (`gitlab.com/group/sub/name`). Its files are the release's links, each named by the file it points at.
+- `codeberg.org/owner/name` is a Codeberg repo, read through the Gitea and Forgejo API.
+- Any other host needs `forge = "gitlab"` or `forge = "gitea"` (Gitea and Forgejo), such as `repo = "git.example.org/me/tool"` with `forge = "gitea"`. Only such a repo may carry `forge`.
+
+Upkeep's GitHub token goes to GitHub only. GitLab lists no size or checksum for a release file, so its download must be at least 1 MiB, as a `json:` one must; Gitea and Forgejo list the size. A source build clones from the same host. `commit` compares commits on GitHub only, so it needs a GitHub repo.
+
+An `appimage`, `archive`, `file`, `deb` or `rpm` app whose project publishes no releases can read a plain download page instead: `latest = "links:https://example.org/downloads/"` in place of `repo`. Upkeep reads the page's links, resolves each against the page, matches `asset` against the file name each one points at, and takes the newest version a matching name holds (2.10 is newer than 2.9). Only https pages and links are read, and like a GitLab file each download must be at least 1 MiB. A `.deb` or `.rpm` keeps its restore point from the same page, when it still lists the installed version.
+
+```toml
+[apps.hello]
+name = "GNU Hello"
+kind = "archive"
+latest = "links:https://ftp.gnu.org/gnu/hello/"
+asset = '^hello-[0-9.]+\.tar\.gz$'
+dest = "~/.local/bin/hello"
+bins = ["hello"]
+```
 
 `asset` is a regular expression matched against the release's asset names. If it matches more than one, the app is listed under "Needs a look" until you narrow it. Anchor it with `^` when a project ships several variants.
 
@@ -151,8 +172,8 @@ Steps and paths may use `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`
 
 ## What an install does
 
-1. **Download** to `~/.cache/upkeep/dl`. The size must equal what GitHub lists, and the SHA-256 must match the asset's digest when the release has one. A `json:` source lists neither: its download is trusted as the vendor's own answer, over https only, the way its own updater would trust it, and must be at least 1 MiB. The verify probe and the restore point catch a bad one.
-2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. A `.deb` keeps the installed version's package, taken from that version's GitHub release, and goes back with `dpkg -i`; an `.rpm` does the same through `rpm -U --oldpackage`. A self-updating app keeps one when its table has `restore`, a command with `{version}` (and `{tag}`) that installs a given version, such as `["bun", "add", "-g", "wrangler@{version}"]`. A source app with `dir` or `stage` keeps its checkout's commit, the files its table names and the files it replaces; one built in a fresh clone keeps none. "Restore points to keep" in Settings applies to all of them.
+1. **Download** to `~/.cache/upkeep/dl`. The size must equal what the release lists, and the SHA-256 must match the asset's digest when the release has one. A `json:` source, a GitLab release and a `links:` page list neither: such a download is trusted as the publisher's own answer, over https only, the way its own updater would trust it, and must be at least 1 MiB. The verify probe and the restore point catch a bad one.
+2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. A `.deb` keeps the installed version's package, taken from that version's release (or its `links:` page), and goes back with `dpkg -i`; an `.rpm` does the same through `rpm -U --oldpackage`. A self-updating app keeps one when its table has `restore`, a command with `{version}` (and `{tag}`) that installs a given version, such as `["bun", "add", "-g", "wrangler@{version}"]`. A source app with `dir` or `stage` keeps its checkout's commit, the files its table names and the files it replaces; one built in a fresh clone keeps none. "Restore points to keep" in Settings applies to all of them.
 3. **Install.** The new file is written beside the old one and renamed into place, so a running copy keeps working and a full disk leaves the old file whole. A running app is not closed. Its row says "Restart to apply". When its table has `restart` or `relaunch`, its pane offers Restart now and the "Restart to finish" group a button that restarts every such app; one that would close a window asks first, since unsaved work in it is lost.
 4. **Verify.** The version probe runs again. If the new copy will not start, the restore point goes back and the row says so.
 
@@ -237,7 +258,7 @@ Upkeep supports the desktop distributions below and the ones built on them. Each
 
 Not supported: immutable systems (SteamOS, Bazzite, Fedora Silverblue), NixOS, and musl systems such as Alpine. Not yet tried on a supported system: Wayland sessions and the tray on desktops other than Cinnamon.
 
-A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its GitHub repo or a file.
+A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its repo (GitHub, GitLab or Codeberg) or a file.
 
 ## Develop
 
