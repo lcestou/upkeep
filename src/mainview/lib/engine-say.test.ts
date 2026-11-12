@@ -57,3 +57,11 @@ test("of two templates that fit alike, the one that reads its value back as an e
 		values: ["disk full"],
 	});
 });
+
+test("a sentence nested many times over is read in bounded time", () => {
+	// Uncapped, every "Could not restore" inside the value was read again: about 3 s at this size, then a stack overflow.
+	const text = `${"Could not restore x: ".repeat(30000)}end`;
+	const started = performance.now();
+	expect(match(text)?.id).toBe("couldNotRestoreFile");
+	expect(performance.now() - started).toBeLessThan(250);
+});

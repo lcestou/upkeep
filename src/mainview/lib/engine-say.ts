@@ -74,9 +74,9 @@ function couldBe(text: string, pieces: string[]): boolean {
  * The template a text was written from, with its values in the template's own order; null when none fits. Two
  * templates can fit with the same fixed letters, such as "{0}. Nothing was changed." and "{0} Nothing was changed.":
  * the one that reads more of its values back as engine sentences wins, so a wrapped sentence keeps its full stop and
- * is worded too.
+ * is worded too. That look goes two values deep at most, so a text that nests over and over costs no more.
  */
-export function match(text: string): { id: MessageId; values: string[] } | null {
+export function match(text: string, depth = 0): { id: MessageId; values: string[] } | null {
 	let best: { id: MessageId; values: string[]; fixed: number; nested: number } | null = null;
 	for (const s of patterns()) {
 		if (best && s.fixed < best.fixed) break;
@@ -87,8 +87,7 @@ export function match(text: string): { id: MessageId; values: string[] } | null 
 		s.order.forEach((slot, k) => {
 			values[slot] = m[k + 1] ?? "";
 		});
-		// Each value is shorter than the text, so this ends.
-		const nested = values.filter((v) => v && v !== text && match(v)).length;
+		const nested = depth < 2 ? values.filter((v) => v && v !== text && match(v, depth + 1)).length : 0;
 		if (!best || nested > best.nested) best = { id: s.id, values, fixed: s.fixed, nested };
 	}
 	return best && { id: best.id, values: best.values };
