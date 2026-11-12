@@ -157,6 +157,7 @@ export async function restoreBackup(
 	if (!meta) return { ok: false, detail: `No restore point ${version}.` };
 	if (meta.command) {
 		const r = await run(meta.command, { timeoutMs: 600_000 });
+		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		return r.code === 0 ? { ok: true } : { ok: false, detail: `${meta.command.join(" ")} exited ${r.code}.` };
 	}
 	if (meta.deb) {

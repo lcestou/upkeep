@@ -16,7 +16,7 @@ import type {
 import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { type FetchLike, githubToken, type Rate } from "./github";
-import { checkCommand, installCommand } from "./kinds/command";
+import { checkCommand, installCommand, tagOf } from "./kinds/command";
 import { fill } from "./kinds/tree";
 import {
 	type Checked,
@@ -885,7 +885,9 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 				// A .deb's undo would need its package downloaded again, so its restore keeps no point of what it replaces.
 				if (canRestore(spec) && current && current !== version && spec.kind === "command" && spec.restore) {
-					const command = spec.restore.map((a) => fill(a, { version: current ?? "", tag: current ?? "" }));
+					// shortcut: with no check this session the tag is the bare version, wrong for "v"-tagged tools until the first check.
+					const tag = tagOf(checked.get(key)?.target, current);
+					const command = spec.restore.map((a) => fill(a, { version: current ?? "", tag }));
 					takePoint(paths, spec, current, { command }, deps.now().toISOString());
 				} else if (canRestore(spec) && current && current !== version && spec.kind !== "deb") {
 					const files = installedFiles(spec, destOf(spec, { paths })).filter((f) => existsSync(f));

@@ -260,7 +260,19 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			const r = await ctx.run(asRoot(["dpkg", "-i", dl], true), { timeoutMs: 600_000, onLine: (l) => ctx.log(l) });
 			if (sudoNeedsPassword(r))
 				return finish({ result: "failed", installed: target.from, detail: SUDO_PASSWORD, restartToApply: false });
-			if (r.code !== 0) throw new StepError(`dpkg could not install ${asset.name}. See the log.`);
+			if (r.code !== 0) {
+				// dpkg can leave the new package half unpacked, so the point goes back in.
+				const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
+				if (back?.ok)
+					return finish({
+						result: "rolled_back",
+						installed: backupVersion,
+						detail: `dpkg could not install ${asset.name}. Restored ${backupVersion}.`,
+						restartToApply: false,
+					});
+				if (back) ctx.log(`Restore failed: ${back.detail ?? ""}`);
+				throw new StepError(`dpkg could not install ${asset.name}. See the log.`);
+			}
 		}
 
 		clock.start("verify");
@@ -311,6 +323,7 @@ async function oldDeb(spec: AppSpec, target: Target, ctx: KindCtx): Promise<{ fi
 	if (isFailure(release)) return { problem: `${tag}: ${release.detail}` };
 	const picked = pickAsset(release, spec.asset ?? "");
 	if (!picked) return { problem: `the ${tag} release has no .deb matching ${spec.asset ?? ""}.` };
+	if (picked.count > 1) return { problem: `more than one ${tag} asset matches ${spec.asset ?? ""}.` };
 	// A folder of its own, so the point keeps the package under the name it was released with.
 	const file = join(ctx.paths.cache, "dl", `${spec.key}-old`, picked.asset.name);
 	try {
@@ -344,6 +357,12 @@ async function rollBack(
 				restartToApply: false,
 			};
 		ctx.log(`Restore failed: ${r.detail ?? ""}`);
+		return {
+			result: "failed",
+			installed: target.from,
+			detail: `Would not start after the update, and putting ${point} back failed. See the log.`,
+			restartToApply: false,
+		};
 	}
 	return {
 		result: "failed",

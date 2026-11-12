@@ -350,6 +350,52 @@ test("install: sudo that wants a password fails plainly", async () => {
 	expect(readInflight(t.paths)).toBeNull();
 });
 
+test("install: a deb that dpkg refuses gets the installed version's package back", async () => {
+	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
+	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.deb": new Uint8Array([9, 9, 9]) } };
+	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });
+	const { run } = recordingRun(t.paths, (argv) => {
+		if (argv[2] !== "dpkg") return undefined;
+		return (argv[4] ?? "").includes("1.4.2") ? ok() : { code: 1, stdout: "", stderr: "dpkg: error", timedOut: false };
+	});
+	const c = ctx(run);
+	const outcome = await installRelease(rustdesk(dest), await checkAndTarget(rustdesk(dest), c), c);
+	expect(outcome).toMatchObject({
+		result: "rolled_back",
+		installed: "1.4.2",
+		detail: "dpkg could not install rustdesk-1.4.3-x86_64.deb. Restored 1.4.2.",
+	});
+	oldRelease = null;
+});
+
+test("install: a deb whose point cannot go back says so, and an ambiguous old release keeps no point", async () => {
+	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
+	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.deb": new Uint8Array([9]) } };
+	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });
+	const { run } = recordingRun(t.paths, (argv) => {
+		if (argv[2] !== "dpkg") return undefined;
+		script(dest, "exit 1");
+		return (argv[4] ?? "").includes("1.4.2") ? { code: 1, stdout: "", stderr: "", timedOut: false } : ok();
+	});
+	const c = ctx(run);
+	expect(await installRelease(rustdesk(dest), await checkAndTarget(rustdesk(dest), c), c)).toMatchObject({
+		result: "failed",
+		detail: "Would not start after the update, and putting 1.4.2 back failed. See the log.",
+	});
+	script(dest, 'echo "1.4.2"');
+	oldRelease = {
+		tag: "1.4.2",
+		files: {
+			"rustdesk-1.4.2-x86_64.deb": new Uint8Array([9]),
+			"rustdesk-1.4.2-sciter-x86_64.deb": new Uint8Array([8]),
+		},
+	};
+	rmSync(join(t.paths.data, "backups"), { recursive: true, force: true });
+	await installRelease(rustdesk(dest), await checkAndTarget(rustdesk(dest), c), c);
+	expect(lines.some((l) => l.startsWith("No restore point: more than one 1.4.2 asset matches"))).toBe(true);
+	oldRelease = null;
+});
+
 const BIN_UV = () => join(t.paths.home, ".local/bin");
 const SUDO = { code: 1, stdout: "", stderr: "sudo: a password is required", timedOut: false };
 

@@ -51,6 +51,14 @@ export async function checkCommand(spec: AppSpec, ctx: KindCtx): Promise<Checked
 }
 
 /**
+ * The tag of version, written the way target's tag is: "v2.1.400" for 2.1.400 gives "v2.1.322" for 2.1.322.
+ * A tag that does not hold its version gives the bare version, which is wrong for a tool whose tags carry a prefix.
+ */
+export function tagOf(target: Pick<Target, "tag" | "version"> | undefined, version: string): string {
+	return target?.tag.includes(target.version) ? target.tag.replace(target.version, version) : version;
+}
+
+/**
  * Runs the tool's own update command, then checks the version moved. {tag} and {version} in its argv are filled in;
  * it runs without a shell, so a tag can only ever be one argument. With a restore argv in its table, the installed
  * version is a restore point first, and a tool that will not start after the update gets it back.
@@ -60,9 +68,9 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 	let point: string | null = null;
 	if (spec.restore?.length && target.from) {
 		clock.start("backup");
-		// The installed version's tag, as the new one is written: "v2.1.400" for 2.1.400 gives "v2.1.322".
-		const tag = target.tag.includes(target.version) ? target.tag.replace(target.version, target.from) : target.from;
-		const command = spec.restore.map((a) => fill(a, { version: target.from ?? "", tag }));
+		const command = spec.restore.map((a) =>
+			fill(a, { version: target.from ?? "", tag: tagOf(target, target.from ?? "") }),
+		);
 		takePoint(ctx.paths, spec, target.from, { command }, (ctx.now?.() ?? new Date()).toISOString());
 		point = target.from;
 		ctx.log(`Restore point ${target.from} taken`);
@@ -91,7 +99,9 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 			installed: target.from,
 			detail: point
 				? `Would not start after the update, and putting ${point} back failed. See the log.`
-				: "Would not start after the update. Its table has no restore command.",
+				: spec.restore?.length
+					? "Would not start after the update. No restore point: the installed version was not known."
+					: "Would not start after the update. Its table has no restore command.",
 			restartToApply: false,
 			stages,
 		};

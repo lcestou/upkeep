@@ -210,7 +210,7 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 	const which = opts.tag === undefined ? "latest" : `tags/${encodeURIComponent(opts.tag)}`;
 	const cacheFile = join(
 		opts.cacheDir,
-		`${repo.replace("/", "__")}${opts.tag === undefined ? "" : `@${opts.tag.replace(/[^A-Za-z0-9._+-]/g, "_")}`}.json`,
+		`${repo.replace("/", "__")}${opts.tag === undefined ? "" : `@${encodeURIComponent(opts.tag)}`}.json`,
 	);
 	const cached = readCache(cacheFile);
 	const headers: Record<string, string> = { Accept: "application/vnd.github+json", "User-Agent": "upkeep" };
