@@ -19,10 +19,11 @@ export interface Entry {
 	forms?: string[];
 }
 
-/** The text of a `msgid` or `msgstr`, which a `.po` file may wrap over several quoted lines. */
+/** The text of a `msgid` or `msgstr`, which a `.po` file may wrap over several quoted lines, with its backslash escapes read. */
 function unquote(lines: string): string {
 	const quoted = [...lines.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(([, text]) => text);
-	return quoted.join("").replaceAll("\\n", "\n").replaceAll('\\"', '"').replaceAll("\\\\", "\\");
+	// One pass, so an escaped backslash followed by an n stays a backslash and an n, never a line break.
+	return quoted.join("").replace(/\\(.)/g, (_, c: string) => (c === "n" ? "\n" : c));
 }
 
 /**

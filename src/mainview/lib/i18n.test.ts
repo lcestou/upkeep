@@ -55,3 +55,8 @@ for (const { code } of LANGUAGES.filter((l) => l.code !== "en")) {
 		expect(problems).toEqual([]);
 	});
 }
+
+test("the catalog reader reads escapes in one pass: an escaped backslash before n is not a line break", () => {
+	const [entry] = parseCatalog('header\n\nmsgid "a \\\\n b \\"q\\"\\nc"\nmsgstr "x"\n');
+	expect(entry?.english).toBe('a \\n b "q"\nc');
+});
