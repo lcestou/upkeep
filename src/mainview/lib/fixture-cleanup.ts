@@ -1,4 +1,4 @@
-// The fixture's half of the Cleanup tab: items shaped like the engine's measure on the owner's machine, and a fake
+// The fixture's half of the Cleanup tab: items shaped like the engine's measure on a real machine, and a fake
 // review and delete. Nothing here touches a file or runs a command.
 import type { CleanupId, CleanupItem, CleanupPick } from "../../shared/types";
 
@@ -29,7 +29,7 @@ function item(
 const shown = (id: CleanupId, bytes: number | null, info?: CleanupItem["info"]): CleanupItem =>
 	info ? { ...item(id, "shown", []), bytes, info } : { ...item(id, "shown", []), bytes };
 
-/** What the fake measure finds, sized from the owner's machine on 2026-11-12. devCaches adds the uv cache. */
+/** What the fake measure finds, sized from a real machine. devCaches adds the uv cache. */
 export function fixtureCleanupItems(devCaches: boolean): CleanupItem[] {
 	const dev = devCaches
 		? [

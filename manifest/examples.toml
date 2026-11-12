@@ -1,4 +1,4 @@
-# Apps built from source, as the first owner's machine runs them. They name his folders and services, so
+# Apps built from source, as one machine runs them. They name that machine's folders and services, so
 # they are not in the catalogue; they are here as worked examples of every field a source table takes
 # (README, "Apps built from source"). Copy one into ~/.config/upkeep/apps.toml and change its paths.
 
@@ -39,7 +39,7 @@ pause = [
 	{ name = "strata-watchdog.timer", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.timer"], stop = ["systemctl", "--user", "stop", "strata-watchdog.timer"], start = ["systemctl", "--user", "start", "strata-watchdog.timer"] },
 	{ name = "strata-watchdog.service", active = ["systemctl", "--user", "is-active", "--quiet", "strata-watchdog.service"], stop = ["systemctl", "--user", "stop", "strata-watchdog.service"] },
 ]
-note = "Updating restarts the llama-server services that are running. To judge whether these commits matter for this setup, run /llama in a Claude session."
+note = "Updating restarts the llama-server services that are running."
 
 [[apps.llama.serve]]
 name = "llama-server"
@@ -53,7 +53,7 @@ wait_s = 120
 [[apps.llama.serve.test]]
 name = "a short generation"
 url = "http://127.0.0.1:8080/completion"
-body = '{"model":"lutechi-llm","prompt":"Write a Python function that reverses a linked list.","n_predict":200,"cache_prompt":false}'
+body = '{"model":"local-llm","prompt":"Write a Python function that reverses a linked list.","n_predict":200,"cache_prompt":false}'
 expect = '"predicted_n"'
 timeout_s = 120
 
@@ -175,14 +175,14 @@ wait_s = 300
 [[apps.strata.serve.test]]
 name = "a cold generation"
 url = "http://127.0.0.1:8080/v1/chat/completions"
-body = '{"model":"lutechi-llm","messages":[{"role":"user","content":"Write a Python function that reverses a linked list."}],"max_tokens":300,"reasoning_effort":"none"}'
+body = '{"model":"local-llm","messages":[{"role":"user","content":"Write a Python function that reverses a linked list."}],"max_tokens":300,"reasoning_effort":"none"}'
 expect = '"completion_tokens"'
 timeout_s = 120
 
 [[apps.strata.serve.test]]
 name = "a warm generation"
 url = "http://127.0.0.1:8080/v1/chat/completions"
-body = '{"model":"lutechi-llm","messages":[{"role":"user","content":"Write a Python function that reverses a linked list."}],"max_tokens":300,"reasoning_effort":"none"}'
+body = '{"model":"local-llm","messages":[{"role":"user","content":"Write a Python function that reverses a linked list."}],"max_tokens":300,"reasoning_effort":"none"}'
 expect = '"completion_tokens"'
 timeout_s = 120
 

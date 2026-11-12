@@ -149,7 +149,7 @@ components:
 
 # Design System: Upkeep
 
-This file records the view as built on `feat/2026-11-10-first-build`. Every value below was read from the source named in its section. Where the code and the direction it was built to part ways, the code is recorded and the difference is noted in one line.
+This file records the view as built. Every value below was read from the source named in its section. Where the code and the direction it was built to part ways, the code is recorded and the difference is noted in one line.
 
 ## Overview
 
@@ -266,7 +266,7 @@ Sources: `app.css`, `App.svelte`, `HeaderBar.svelte`, `AppList.svelte`, `LogDraw
 
 Sources: `app.css`, `App.svelte`, the component styles. Corners are small and practical. Controls and fields take 6 px (`--radius`), checkboxes, inline code and focus rings on rows 4 px, chips are a 9 px pill on an 18 px height, the tab and segment tracks 8 px with 6 px pills inside, add-pane cards 8 px, Settings sheets 10 px, the drop veil 12 px. Window buttons are 28 px circles.
 
-The window itself rounds to 8 px (`--window-radius`) to match the owner's Mint-Y theme. Rounding needs a see-through window, and the desktop draws no shadow under a see-through window, so a rounded Upkeep window has no shadow; Settings says so ("A rounded window has no shadow from the desktop."). The shell is clipped with `clip-path` as well as the radius so fixed layers stay inside the corners. With its own frame and not maximised, the page draws a 1 px `line` edge inside the window. Square corners and maximised windows have no radius and keep the desktop's shadow.
+The window itself rounds to 8 px (`--window-radius`) to match Linux Mint's Mint-Y theme. Rounding needs a see-through window, and the desktop draws no shadow under a see-through window, so a rounded Upkeep window has no shadow; Settings says so ("A rounded window has no shadow from the desktop."). The shell is clipped with `clip-path` as well as the radius so fixed layers stay inside the corners. With its own frame and not maximised, the page draws a 1 px `line` edge inside the window. Square corners and maximised windows have no radius and keep the desktop's shadow.
 
 Bands are 4 px solid stripes on the row's left edge. Status glyphs are 16 px line drawings, 1.6 px stroke, round caps.
 
@@ -359,7 +359,7 @@ Sources: `lib/brand.ts`, `components/Mark.svelte`, `components/Glyph.svelte`, `a
 - The leaf (`ui-leaf.svg`, the mark's own leaf, upright) is the fresh and done glyph.
 - About in Settings shows the horizontal dark lockup at 40 px tall: the mark on its sun tile (`#f4d340`, mark `#0a1711`) beside the UPKEEP wordmark in `#f0f1e8`.
 - App icons: a sun tile with the dark drawing. 16, 22, 24 and 32 px use the hand-placed pixel sprout; 48 and 64 px a refitted mark on the 256 grid; 256 and 512 px the mark on a 224 px tile with a 48 px radius and a 1 px `#debb32` edge.
-- Tray: the shipping pictures are the light drawings at 44 px (`tray-light-44`, rendered by `scripts/tray-icons.ts`), shown at 22 on the owner's 2x panel. States are idle, working, failed, a count badge with a knocked-out digit from 1 to 9, and 9+. The plant sits left of centre to leave the badge its corner; idle has no badge, so its plant is centred. The 22 px masters and the dark drawings are kept in `assets/brand` but not shipped.
+- Tray: the shipping pictures are the light drawings at 44 px (`tray-light-44`, rendered by `scripts/tray-icons.ts`), shown at 22 on a 2x panel. States are idle, working, failed, a count badge with a knocked-out digit from 1 to 9, and 9+. The plant sits left of centre to leave the badge its corner; idle has no badge, so its plant is centred. The 22 px masters and the dark drawings are kept in `assets/brand` but not shipped.
 
 ### Focus and keyboard
 Sources: `App.svelte`, `AppList.svelte`, `HeaderBar.svelte`, `e2e/keyboard.spec.ts`, `e2e/a11y.spec.ts`.
@@ -416,7 +416,7 @@ Code differences from the contract:
 - **Do** put every new string in `copy.ts` with a `data-testid`, and change the spec with the string.
 
 ### Don't:
-- **Don't** add a light theme or read the system scheme: the webview reports light on the owner's dark desktop, so the scheme is fixed to dark (`e2e/scheme.spec.ts`).
+- **Don't** add a light theme or read the system scheme: the system webview can report light on a dark desktop, so the scheme is fixed to dark (`e2e/scheme.spec.ts`).
 - **Don't** use CSS subgrid for the ledger: WebKitGTK 2.52 does not re-resolve a subgrid's tracks when a row's content changes. Pass the shared track variables instead.
 - **Don't** carry status by colour alone, and don't use rust for failure.
 - **Don't** add scroll snap to the list: it pulled a row the keyboard had just brought into view back under the edge.

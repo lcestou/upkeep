@@ -1,4 +1,4 @@
-// The fixture's half of the System group: rows shaped like the engine's checkSystem output on the owner's machine.
+// The fixture's half of the System group: rows shaped like the engine's checkSystem output on a real machine.
 import type { SystemOutcome, SystemRow, SystemState } from "../../shared/types";
 
 /** install: installing is switched on. refuse: the same, and the fake install is refused by its sudo check. */
@@ -63,7 +63,7 @@ export const SPICE_ROWS: SystemRow[] = [
 	},
 ];
 
-/** The System group for a variant. The base is the owner's machine with every row; each variant drops rows, sets the phase or adds a problem to match its name. */
+/** The System group for a variant. The base is a real machine's list with every row; each variant drops rows, sets the phase or adds a problem to match its name. */
 export function systemFor(variant: SystemVariant, checkedAt: string): SystemState {
 	const base: SystemState = {
 		mode: "show",

@@ -70,7 +70,7 @@ function box(over: Map<string, ProcessResult | Promise<ProcessResult>> = new Map
 	});
 }
 
-test("parsers read the real output saved from this box", () => {
+test("parsers read real output saved from a Linux Mint machine", () => {
 	expect(parseMintList(fx("mint-list.txt"))).toEqual([
 		{ type: "package", source: "google-chrome-stable", version: "157.0.8103.50-1" },
 		{ type: "security", source: "libgphoto2", version: "2.5.31-2.1ubuntu1.2" },
@@ -110,7 +110,7 @@ test("parsers read the real output saved from this box", () => {
 			running: false,
 		},
 	]);
-	// Only "ii" driver lines count, and this box has the runtime for its driver.
+	// Only "ii" driver lines count, and the machine has the runtime for its driver.
 	expect(glMissing(fx("dpkg-gl.txt"), fx("flatpak-runtimes.txt"))).toBeNull();
 	expect(glMissing("un \t\nii \t590.44.01-0ubuntu1\n", fx("flatpak-runtimes.txt"))).toBe("590.44.01");
 	expect(glMissing("un \t\nrc \t570.1-1\n", "")).toBeNull();

@@ -11,7 +11,7 @@ test("a built app's pane lists the commits it is behind by, capped, with the res
 	await expect(items.first()).toContainText("cd959bae9");
 	await expect(page.getByTestId("commits-more-llama")).toHaveText("All 569 on GitHub (539 not shown)");
 	// The note names the skill that weighs the commits.
-	await expect(page.getByTestId("detail-llama")).toContainText("run /llama in a Claude session");
+	await expect(page.getByTestId("detail-llama")).toContainText("restarts the llama-server services");
 });
 
 test("a list with every commit shown has no All line", async ({ page }) => {

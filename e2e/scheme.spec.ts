@@ -1,6 +1,6 @@
 import { expect, load, test } from "./helpers";
 
-// The system webview reports a light scheme on the owner's dark desktop; the window must stay dark regardless.
+// The system webview can report a light scheme on a dark desktop; the window must stay dark regardless.
 test.use({ colorScheme: "light" });
 
 test("a light system scheme still renders the dark window", async ({ page }) => {
