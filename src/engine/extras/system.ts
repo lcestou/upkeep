@@ -11,7 +11,7 @@ export const MINT_LIST = ["mintupdate-cli", "list"];
 // system's last refresh, while dnf and checkupdates may fetch fresh metadata into a cache of their own.
 export const APT_LIST = ["apt", "list", "--upgradable"];
 export const DNF_LIST = ["dnf", "-q", "check-update"];
-export const RPM_VERSIONS = ["rpm", "-qa", "--qf", "%{NAME}\t%{VERSION}-%{RELEASE}\n"];
+export const RPM_VERSIONS = ["rpm", "-qa", "--qf", "%{NAME}.%{ARCH}\t%{VERSION}-%{RELEASE}\n"];
 // pacman-contrib's checkupdates reads a copy of the sync database; plain pacman -Qu is the fallback without it.
 export const PACMAN_CHECK = ["checkupdates"];
 export const PACMAN_LIST = ["pacman", "-Qu"];
@@ -128,19 +128,18 @@ function aptRows(list: string, sources: Map<string, string>): SystemRow[] {
 
 /**
  * A kernel or a GPU driver, by its package name on any of the four package systems; it needs a restart. Only the
- * driver and its kernel module count, never a tool beside them (nvidia-settings, nvidia-container-toolkit), and
- * linux-firmware is a package.
+ * driver, its kernel module and its GL libraries count, never a tool beside them (nvidia-settings, the CUDA or
+ * container toolkits), and linux-firmware is a package. A kernel flavour not named here reads as a package.
  */
 function typeOf(name: string): SystemRow["type"] | null {
-	if (
-		/^(linux-(image|headers|modules|generic|signed)|kernel($|-core|-modules)|linux(-lts|-zen|-hardened|-rt)?$)/.test(
-			name,
-		)
-	)
-		return "kernel";
-	const driver = /^(nvidia(-driver|-dkms|-open|-lts|-utils|-kernel)?(-|$)|a?kmod-nvidia|xorg-x11-drv-nvidia($|-))/;
-	if (driver.test(name) && !/settings|container|prime/.test(name)) return "driver";
-	return null;
+	// Debian's linux-image-*, Fedora's kernel-*, Arch's linux and its flavours, each with its headers.
+	const kernel =
+		/^(linux-(image|headers|modules|generic|signed)|kernel($|-(core|modules|modules-extra|devel|headers)$)|linux(-(lts|zen|hardened|rt|rt-lts|cachyos))?(-headers)?$)/;
+	if (kernel.test(name)) return "kernel";
+	// The driver, its kernel module and its GL libraries; never nvidia-settings, the CUDA or container toolkits.
+	const driver =
+		/^(nvidia(-(driver|dkms|open|lts|utils|kernel|graphics-drivers|firmware)(-|$)|-?\d|$)|lib32-nvidia-utils$|libnvidia-gl-\d|a?kmod-nvidia$|xorg-x11-drv-nvidia$)/;
+	return driver.test(name) ? "driver" : null;
 }
 
 /** A row for a package list other than Update Manager's; kernels and drivers get the restart note. */
@@ -158,12 +157,18 @@ function packageRow(
 	return row;
 }
 
-/** apt list --upgradable: "name/suite,... version arch [upgradable from: old]"; a -security suite marks a security fix. */
+/**
+ * apt list --upgradable: "name/suite,... version arch [upgradable from: old]"; a -security suite marks a security
+ * fix, and the arch goes in the id.
+ */
 export function parseAptList(stdout: string): SystemRow[] {
 	const rows: SystemRow[] = [];
 	for (const l of lines(stdout)) {
-		const m = /^([^/\s]+)\/(\S+)\s+(\S+)\s+\S+(?:\s+\[upgradable from: ([^\]]+)\])?/.exec(l);
-		if (m) rows.push(packageRow("apt", m[1] ?? "", m[4] ?? null, m[3] ?? "", (m[2] ?? "").includes("-security")));
+		const m = /^([^/\s]+)\/(\S+)\s+(\S+)\s+(\S+)(?:\s+\[upgradable from: ([^\]]+)\])?/.exec(l);
+		if (!m) continue;
+		const [, name = "", suites = "", version = "", arch = "", from] = m;
+		// A multiarch package is listed once per arch (libc6 for amd64 and i386), so the arch is in the id.
+		rows.push(packageRow("apt", name, from ?? null, version, suites.includes("-security"), `apt:${name}.${arch}`));
 	}
 	return rows;
 }
@@ -172,7 +177,7 @@ export function parseAptList(stdout: string): SystemRow[] {
  * dnf check-update: "name.arch  version  repo" per line, the arch cut off the name and kept in the id, since a
  * multilib package (glibc.x86_64 and glibc.i686) is listed once per arch. A name too long for its column is wrapped:
  * it stands alone, and its version and repo follow on the next, indented line. It stops at "Obsoleting Packages",
- * which lists replacements, not updates. installed is name to version from rpm.
+ * which lists replacements, not updates. installed is name.arch to version from rpm, so each arch shows its own.
  */
 export function parseDnfList(stdout: string, installed: Map<string, string>): SystemRow[] {
 	const rows: SystemRow[] = [];
@@ -187,7 +192,7 @@ export function parseDnfList(stdout: string, installed: Map<string, string>): Sy
 		const m = /^(\S+)\.([^.\s]+)\s+(\S+)\s+\S+$/.exec(l);
 		if (!m) continue;
 		const [, name = "", arch = "", version = ""] = m;
-		rows.push(packageRow("dnf", name, installed.get(name) ?? null, version, false, `dnf:${name}.${arch}`));
+		rows.push(packageRow("dnf", name, installed.get(`${name}.${arch}`) ?? null, version, false, `dnf:${name}.${arch}`));
 	}
 	return rows;
 }
