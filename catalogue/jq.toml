@@ -3,4 +3,5 @@ name = "jq"
 kind = "file"
 repo = "jqlang/jq"
 asset = '^jq-linux-amd64$'
+asset_aarch64 = '^jq-linux-arm64$'
 dest = "~/.local/bin/jq"

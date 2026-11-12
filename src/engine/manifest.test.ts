@@ -60,6 +60,7 @@ test("the catalogue loads 48 apps, one per file, none of them installing without
 		kind: "archive",
 		repo: "sharkdp/fd",
 		asset: "x86_64-unknown-linux-gnu\\.tar\\.gz$",
+		asset_aarch64: "aarch64-unknown-linux-gnu\\.tar\\.gz$",
 		dest: "~/.local/bin/fd",
 		bins: ["fd"],
 	});
@@ -467,4 +468,34 @@ test("a GitHub repo written with its host is kept as owner/name, the form every 
 	expect(one('kind = "file"', 'asset = "x"', 'dest = "~/x"', 'repo = "github.com/sharkdp/fd"')).toMatchObject({
 		repo: "sharkdp/fd",
 	});
+});
+
+test("asset_aarch64: either pattern satisfies a release kind, each must compile, and it is written back as a literal", () => {
+	const base = ['kind = "file"', 'repo = "o/r"', 'dest = "~/x"'];
+	const arm = one(...base, "asset_aarch64 = 'arm64$'");
+	expect(arm).toMatchObject({ asset_aarch64: "arm64$" });
+	expect(arm).not.toHaveProperty("asset");
+	expect(one(...base, "asset = 'amd64$'", "asset_aarch64 = 'arm64$'")).toMatchObject({
+		asset: "amd64$",
+		asset_aarch64: "arm64$",
+	});
+	expect(one(...base)).toBe("x: asset is required for kind file");
+	expect(one(...base, "asset = 'amd64$'", "asset_aarch64 = '(arm'")).toBe(
+		"x: asset_aarch64 is not a valid regular expression",
+	);
+	expect(one(...base, "asset_aarch64 = 7")).toBe("x: asset_aarch64 must be a string");
+	// A links: page needs a pattern for some machine; one for aarch64 alone is enough to load.
+	expect(
+		one('kind = "file"', 'latest = "links:https://example.org/d/"', "asset_aarch64 = 'arm64$'", 'dest = "~/x"'),
+	).toMatchObject({
+		latest: "links:https://example.org/d/",
+	});
+	if (typeof arm === "string" || arm === undefined) throw new Error(String(arm));
+	expect(tomlTable(arm)).toBe(`[apps.x]
+name = "X"
+kind = "file"
+repo = "o/r"
+asset_aarch64 = 'arm64$'
+dest = "~/x"
+`);
 });

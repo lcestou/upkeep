@@ -3,6 +3,7 @@ name = "k9s"
 kind = "archive"
 repo = "derailed/k9s"
 asset = '^k9s_Linux_amd64\.tar\.gz$'
+asset_aarch64 = '^k9s_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/k9s"
 bins = ["k9s"]
 # k9s has no --version flag; "version -s" prints "Version v0.50.x" first.

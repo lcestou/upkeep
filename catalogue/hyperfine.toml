@@ -3,5 +3,6 @@ name = "hyperfine"
 kind = "archive"
 repo = "sharkdp/hyperfine"
 asset = '^hyperfine-v[0-9.]+-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^hyperfine-v[0-9.]+-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/hyperfine"
 bins = ["hyperfine"]

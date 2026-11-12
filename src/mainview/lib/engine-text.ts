@@ -120,6 +120,7 @@ export const ENGINE_COPY = {
 	sourceGivesNoDownload: (v0: string) => `${v0} gives a version but no download.`,
 	latestTagNotTracked: (v0: string) => `The latest tag ${v0} is not a tracked version.`,
 	rebuildFixes: () => `Will not start. A rebuild against the current libraries fixes it.`,
+	noAssetForArch: (v0: string, v1: string) => `The table for ${v0} names no release file for ${v1} machines.`,
 	noAssetMatches: (v0: string) => `No release asset matches ${v0}.`,
 	severalAssetsMatch: (v0: string, v1: string) =>
 		`More than one release asset matches ${v0}: ${v1}. Narrow the pattern in apps.toml.`,
@@ -156,7 +157,7 @@ export const ENGINE_COPY = {
 	liftMustBeList: (v0: string, v1: string) => `${v0}: ${v1} must be a list of strings`,
 	liftMustBeBool: (v0: string, v1: string) => `${v0}: ${v1} must be true or false`,
 	liftRequiredForKind: (v0: string, v1: string, v2: string) => `${v0}: ${v1} is required for kind ${v2}`,
-	liftAssetNotRegex: (v0: string) => `${v0}: asset is not a valid regular expression`,
+	liftAssetNotRegex: (v0: string, v1: string) => `${v0}: ${v1} is not a valid regular expression`,
 	liftVersionlessOnly: (v0: string) => `${v0}: versionless is only for kind claude-plugins`,
 	liftAppimageRepoOrLatest: (v0: string) => `${v0}: repo or latest is required for kind appimage`,
 	liftLatestScheme: (v0: string) =>

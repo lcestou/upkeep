@@ -17,7 +17,18 @@ const KINDS: readonly AppKind[] = [
 	"manual",
 ];
 
-const STRING_FIELDS = ["name", "repo", "asset", "dest", "meta_path", "latest", "run", "process", "note"] as const;
+const STRING_FIELDS = [
+	"name",
+	"repo",
+	"asset",
+	"asset_aarch64",
+	"dest",
+	"meta_path",
+	"latest",
+	"run",
+	"process",
+	"note",
+] as const;
 const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore", "restart"] as const;
 const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch"] as const;
 // Process names that many programs share: relaunch closes every process with its name, so it refuses these.
@@ -103,16 +114,13 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	}
 	const needed: Field[] = ["name", ...required(spec.kind)];
 	for (const f of needed) {
-		const v = spec[f];
+		// A pattern for either architecture is enough: the other one's machines are told so at check.
+		const v = f === "asset" ? (spec.asset ?? spec.asset_aarch64) : spec[f];
 		if (v === undefined || v === "" || (Array.isArray(v) && v.length === 0))
 			return MESSAGES.liftRequiredForKind(key, f, spec.kind);
 	}
-	if (spec.asset !== undefined) {
-		try {
-			RegExp(spec.asset);
-		} catch {
-			return MESSAGES.liftAssetNotRegex(key);
-		}
+	for (const f of ["asset", "asset_aarch64"] as const) {
+		if (!validPattern(spec[f])) return MESSAGES.liftAssetNotRegex(key, f);
 	}
 	// Only it installs with no version to compare; on any other kind the row would be picked and fail every run.
 	if (spec.kind === "claude-plugins") spec.versionless = true;
@@ -127,7 +135,8 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	if (spec.latest?.startsWith("json:") && spec.kind !== "appimage") return MESSAGES.liftJsonOnlyAppimage(key);
 	if (spec.latest?.startsWith("links:")) {
 		if (!RELEASE_KINDS.has(spec.kind)) return MESSAGES.liftLinksKinds(key);
-		if (!spec.asset || !/^links:https:\/\/[^/\s]+/.test(spec.latest)) return MESSAGES.liftLinksPage(key);
+		if (!(spec.asset ?? spec.asset_aarch64) || !/^links:https:\/\/[^/\s]+/.test(spec.latest))
+			return MESSAGES.liftLinksPage(key);
 	}
 	if (RELEASE_KINDS.has(spec.kind) && spec.kind !== "appimage" && !spec.repo && !spec.latest?.startsWith("links:"))
 		return MESSAGES.liftRepoOrLinks(key, spec.kind);
@@ -523,7 +532,7 @@ const ORDER: (keyof AppSpec)[] = [
 /** A TOML basic string: backslash, quote and newline escaped. Other control characters pass through unescaped. */
 const basic = (v: string) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
 
-/** An [apps.<key>] table holding only the fields the spec has. asset is a literal string when it can be. */
+/** An [apps.<key>] table holding only the fields the spec has. An asset pattern is a literal string when it can be. */
 export function tomlTable(spec: AppSpec): string {
 	const lines = [`[apps.${spec.key}]`];
 	for (const f of ORDER) {
@@ -534,7 +543,7 @@ export function tomlTable(spec: AppSpec): string {
 		else if (Array.isArray(v)) {
 			// SAFETY: ORDER holds only string, list-of-string and boolean fields, so an array here is a list of strings.
 			text = `[${(v as string[]).map(basic).join(", ")}]`;
-		} else if (f === "asset" && !v.includes("'") && !v.includes("\n")) text = `'${v}'`;
+		} else if ((f === "asset" || f === "asset_aarch64") && !v.includes("'") && !v.includes("\n")) text = `'${v}'`;
 		else text = basic(String(v));
 		lines.push(`${f} = ${text}`);
 	}

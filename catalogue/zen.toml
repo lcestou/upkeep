@@ -3,6 +3,7 @@ name = "Zen Browser"
 kind = "appimage"
 repo = "zen-browser/desktop"
 asset = 'x86_64\.AppImage$'
+asset_aarch64 = 'aarch64\.AppImage$'
 dest = "~/.local/bin/zen-browser.AppImage"
 process = "zen"
 relaunch = true

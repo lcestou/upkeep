@@ -3,5 +3,6 @@ name = "glow"
 kind = "archive"
 repo = "charmbracelet/glow"
 asset = '^glow_[0-9.]+_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^glow_[0-9.]+_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/glow"
 bins = ["glow"]

@@ -1646,11 +1646,6 @@ msgstr "{0}：kind {2} 需要 {1}"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: asset is not a valid regular expression"
-msgstr "{0}：asset 不是有效的正则表达式"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: versionless is only for kind claude-plugins"
 msgstr "{0}：versionless 仅用于 kind claude-plugins"
 
@@ -2456,3 +2451,13 @@ msgstr "无法删除 {0}：{1}"
 #: src/mainview/lib/engine-text.ts
 msgid "Left {0} alone: it is not inside the folder being cleaned."
 msgstr "未动 {0}：它不在正在清理的文件夹内。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "The table for {0} names no release file for {1} machines."
+msgstr "{0} 的表中没有适用于 {1} 机器的发布文件。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} is not a valid regular expression"
+msgstr "{0}：{1} 不是有效的正则表达式"

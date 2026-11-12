@@ -956,3 +956,17 @@ test("a tool the scan found is added as its manager's records make it; the same 
 	});
 	expect(await engine.addApps([{ ...spec, name: "Cow" }])).toEqual({ added: ["cowsay"], problems: [] });
 });
+
+test("the machine's architecture reaches both the check and Add app", async () => {
+	const engine = createEngine({ ...(await deps()), arch: "aarch64" });
+	await engine.check(["fd"]);
+	expect(fdRow(engine)).toMatchObject({
+		status: "problem",
+		detail: "The table for fd names no release file for aarch64 machines.",
+	});
+	// fd's release in this test ships an x86_64 build only, which an arm64 machine is never offered.
+	expect(await engine.suggest("sharkdp/fd")).toEqual({
+		suggestions: [],
+		problem: "No asset of sharkdp/fd's latest release runs on this machine.",
+	});
+});

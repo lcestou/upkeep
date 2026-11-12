@@ -12,6 +12,7 @@ import {
 import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { AppKind, AppSpec, Suggestion } from "../shared/types";
+import { type Arch, assetField, assetFor } from "./arch";
 import { download, verifyAsset } from "./download";
 import { draftFor } from "./draft";
 import { type ForgeKind, forgeOf, forgeRelease, hostKind, hostOf } from "./forge";
@@ -47,6 +48,8 @@ export type DiscoverCtx = {
 	usrLocal?: string;
 	/** The pause between two name searches during a scan. Default 300 ms. */
 	searchGapMs?: number;
+	/** The machine's architecture, which decides the release files offered. Default x86_64. */
+	arch?: Arch;
 };
 
 export const BAD_INPUT = MESSAGES.badInput();
@@ -119,6 +122,11 @@ const OTHER_ARCH =
 	/arm64|aarch64|armv|arm-|armhf|armel|i[3-6]86|ia32|32-?bit|x86-32|x86(?![_-]64)|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
 // An asset that names this machine outright beats one that names no architecture.
 const THIS_MACHINE = /x86_64|x86-64|amd64|x64|64-?bit/i;
+// An aarch64 build always says so: a release names its x86_64 build only by leaving the architecture out. A Debian
+// package calls it arm64, an rpm aarch64.
+const ARM = /aarch64|arm64/i;
+// A package built for every architecture (a script, Python): it names none and runs on both.
+const ANY_ARCH = /[_.](all|noarch)\.(deb|rpm)$/i;
 const SIDE_FILE = /\.(sha256|sha512|sig|asc|zsync|sbom|json|txt|pem|minisig)$/i;
 // A source rpm installs only its sources into rpmbuild, never the program.
 const OTHER_PACKAGE = /\.(apk|pacman|flatpak|snap|src\.rpm)$/i;
@@ -148,19 +156,33 @@ function rank(c: Candidate): number {
 	return c.kind === "file" ? 4 : 5;
 }
 
-/** The release's assets that run on Linux x86_64, best first; prefer puts kinds that match what is on disk ahead. */
-export function machineAssets(assets: Asset[], prefer: AppKind[] = []) {
+/**
+ * Whether a release file built for some architecture runs on arch. On x86_64 a name that names no architecture counts,
+ * since that is how most releases ship it; on aarch64 only a name that says aarch64 or arm64, or a package built for
+ * every architecture, so an unnamed x86_64 build is never installed on an arm64 machine.
+ */
+const forArch = (name: string, arch: Arch) =>
+	arch === "aarch64"
+		? (ARM.test(name) && !NOT_ARM64.test(name.replace(ARM, ""))) || ANY_ARCH.test(name)
+		: !OTHER_ARCH.test(name);
+/** Another architecture's token, read with the arm64 name taken out: a file naming arm64 and armv7 is no arm64 build. */
+// Whole tokens only: armv8 is arm64 itself, and "x64" or "x86" inside a longer word names no architecture.
+const NOT_ARM64 =
+	/armv[4-7]|armhf|armel|i[3-6]86|ia32|(?:^|[-_.])(?:x86_64|x86-64|amd64|x64|x86)(?:$|[-_.])|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
+
+/** The release's assets that run on Linux on arch, best first; prefer puts kinds that match what is on disk ahead. */
+export function machineAssets(assets: Asset[], prefer: AppKind[] = [], arch: Arch = "x86_64") {
 	const candidates: Candidate[] = [];
 	let unopened = false;
 	for (const asset of assets) {
 		const name = asset.name;
-		if (OTHER_SYSTEM.test(name) || OTHER_ARCH.test(name) || SIDE_FILE.test(name) || OTHER_PACKAGE.test(name)) continue;
+		if (OTHER_SYSTEM.test(name) || !forArch(name, arch) || SIDE_FILE.test(name) || OTHER_PACKAGE.test(name)) continue;
 		const kind = kindOf(name);
 		if (kind === "unopened") unopened = true;
 		else if (kind) candidates.push({ asset, kind });
 	}
 	const preferred = (c: Candidate) => (prefer.includes(c.kind) ? 0 : 1);
-	const named = (c: Candidate) => (THIS_MACHINE.test(c.asset.name) ? 0 : 1);
+	const named = (c: Candidate) => ((arch === "aarch64" ? ARM : THIS_MACHINE).test(c.asset.name) ? 0 : 1);
 	// Within a rank the shortest name is the plain build; variants add words (sciter, unattended, musl).
 	const sorted = candidates.toSorted(
 		(a, b) =>
@@ -220,7 +242,7 @@ export function stem(asset: string, release: Pick<Release, "tag" | "version">): 
 		.filter((v): v is string => Boolean(v))
 		.toSorted((a, b) => b.length - a.length);
 	for (const v of versions) s = s.split(v).join("-");
-	s = s.replace(/x86[_-]64|amd64|x64/gi, "-");
+	s = s.replace(/x86[_-]64|amd64|x64|aarch64|arm64/gi, "-");
 	return s
 		.split(/[-_.\s]+/)
 		.filter((t) => t && !NOISE.has(t.toLowerCase()) && !/^v?\d+$/i.test(t))
@@ -349,7 +371,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	// An app is named after what it ships: the shortest stem of its builds, since variants add words
 	// ("rustdesk-unsigned"). A stem too short to mean anything falls back to the repo.
 	const shippedBy = (c: Candidate | undefined) => (c ? stem(c.asset.name, release) : "");
-	const stems = machineAssets(release.assets)
+	const stems = machineAssets(release.assets, [], ctx.arch)
 		.candidates.map((c) => shippedBy(c).toLowerCase())
 		.filter((x) => x.length >= 2)
 		.toSorted((x, y) => x.length - y.length);
@@ -363,7 +385,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	else if (image) prefer = ["appimage"];
 	// A program outside the home directory came from a package.
 	else if (onPath) prefer = onPath.startsWith(`${home}/`) ? ["archive", "file"] : ["deb", "rpm"];
-	const { candidates, unopened } = machineAssets(release.assets, prefer);
+	const { candidates, unopened } = machineAssets(release.assets, prefer, ctx.arch);
 	// A package installs only through the system's own package tool. dpkg marks a Debian system: a .deb needs it, and
 	// an .rpm is refused there even when the rpm tool is installed, since its files would sit outside dpkg's records.
 	// A file on disk never takes a package, so a scan runs nothing for it.
@@ -440,7 +462,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		installs = MESSAGES.itInstalls(bins.map(baseOf).join(", "));
 		if (found.more) installs += MESSAGES.archiveHoldsMore(found.more, MAX_BINS);
 	}
-	const spec: AppSpec = { key, name, kind, repo, asset: pattern, dest: tilde(dest, home) };
+	const spec: AppSpec = { key, name, kind, repo, [assetField(ctx.arch)]: pattern, dest: tilde(dest, home) };
 	if (opts.forge) spec.forge = opts.forge;
 	if (bins) spec.bins = bins;
 	if (isPackage(kind) || rootDest) spec.sudo = true;
@@ -636,7 +658,7 @@ export function bareName(file: string): string {
 	let n = (file.split("/").at(-1) ?? file).replace(/\.appimage$/i, "");
 	for (let prev = ""; prev !== n;) {
 		prev = n;
-		n = n.replace(/[-_.](x86_64|amd64|linux)$/i, "").replace(/[-_.]?v?\d+(\.\d+)+[a-z0-9._-]*$/i, "");
+		n = n.replace(/[-_.](x86_64|amd64|aarch64|arm64|linux)$/i, "").replace(/[-_.]?v?\d+(\.\d+)+[a-z0-9._-]*$/i, "");
 	}
 	return n;
 }
@@ -796,7 +818,8 @@ function inCatalogue(input: string, catalogue: AppSpec[], hosts: ReadonlyMap<str
 
 /**
  * A catalogue table as a suggestion, sure and taken as written. A release kind still asks GitHub for today's release
- * and asset (asset is the picker's choice, else the table's pattern); a source or command table needs no lookup.
+ * and asset (asset is the picker's choice, else the table's pattern); a source or command table needs no lookup. A
+ * release table with no pattern for this machine's architecture is refused rather than given another arch's file.
  */
 async function fromCatalogue(
 	entry: AppSpec,
@@ -804,6 +827,10 @@ async function fromCatalogue(
 	asset?: string,
 ): Promise<{ suggestions: Suggestion[]; problem?: string }> {
 	const sure = { source: "catalogue" as const, confidence: "sure" as const, why: CATALOGUE_WHY };
+	const pattern = assetFor(entry, ctx.arch);
+	// A table tested on one architecture says nothing about the other's files: no pattern for this one, no offer.
+	if (RELEASE_KINDS.has(entry.kind) && pattern === undefined)
+		return { suggestions: [], problem: MESSAGES.noAssetForArch(entry.name, ctx.arch ?? "x86_64") };
 	if (!entry.repo || !RELEASE_KINDS.has(entry.kind)) {
 		const s: Suggestion = { spec: entry, installed: null, latest: null, asset: null, alternatives: [], ...sure };
 		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = MESSAGES.alreadyInList(entry.name);
@@ -811,7 +838,7 @@ async function fromCatalogue(
 	}
 	// An asset the person picked is a name; the table's own asset is a pattern.
 	const r = await fromRepo(entry.repo, ctx, {
-		...(asset ? { asset } : { pattern: entry.asset }),
+		...(asset ? { asset } : { pattern }),
 		versionArgs: entry.version_args,
 		forge: entry.forge,
 	});
@@ -819,7 +846,8 @@ async function fromCatalogue(
 	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
 	if (r.suggestion.spec.kind === "source") return { suggestions: [r.suggestion] };
 	// A picked asset is kept as the pattern fromRepo made of its name, with the version a wildcard, so it still matches next release.
-	const spec: AppSpec = { ...entry, asset: asset ? (r.suggestion.spec.asset ?? entry.asset) : entry.asset };
+	const field = assetField(ctx.arch);
+	const spec: AppSpec = { ...entry, [field]: asset ? (r.suggestion.spec[field] ?? pattern) : pattern };
 	// Nothing at the table's dest yet: the app lands in Ready to install, as one added by repo does.
 	if (entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home))) spec.install_if_missing = true;
 	// A picked file whose name could not be made a pattern says so, as Add app does for a repo.

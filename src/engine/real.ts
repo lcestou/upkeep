@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { machineArch } from "./arch";
 import type { EngineDeps } from "./engine";
 import { paths } from "./paths";
 import { createRunner } from "./run";
@@ -22,6 +23,7 @@ export function realDeps(
 		fetch: (url, init) => fetch(url, init),
 		run: createRunner(p.home, join(p.cache, "tmp"), env.PATH ?? "/usr/local/bin:/usr/bin:/bin"),
 		now: () => new Date(),
+		arch: machineArch(process.arch),
 		oldLock: { file: "/tmp/lutechi-updater.lock", name: "lutechi-updater" },
 	};
 }

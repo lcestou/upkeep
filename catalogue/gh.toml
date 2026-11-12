@@ -3,5 +3,6 @@ name = "GitHub CLI"
 kind = "archive"
 repo = "cli/cli"
 asset = '^gh_[0-9.]+_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^gh_[0-9.]+_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gh"
 bins = ["gh"]

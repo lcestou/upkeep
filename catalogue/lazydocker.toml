@@ -3,5 +3,6 @@ name = "lazydocker"
 kind = "archive"
 repo = "jesseduffield/lazydocker"
 asset = '^lazydocker_[0-9.]+_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^lazydocker_[0-9.]+_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/lazydocker"
 bins = ["lazydocker"]

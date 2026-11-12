@@ -13,6 +13,7 @@ const FIELDS = new Set<keyof AppSpec>([
 	"kind",
 	"repo",
 	"asset",
+	"asset_aarch64",
 	"dest",
 	"bins",
 	"version_args",

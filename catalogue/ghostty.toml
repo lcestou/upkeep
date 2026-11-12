@@ -3,5 +3,6 @@ name = "Ghostty Terminal"
 kind = "appimage"
 repo = "pkgforge-dev/ghostty-appimage"
 asset = 'x86_64\.AppImage$'
+asset_aarch64 = 'aarch64\.AppImage$'
 dest = "~/.local/bin/ghostty.appimage"
 process = "ghostty"

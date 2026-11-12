@@ -4,7 +4,7 @@ One window for the apps the package manager misses. It checks every app in a lis
 
 It covers AppImages, binaries from release archives on GitHub, GitLab, Codeberg or a download page, single-file binaries, .deb and .rpm files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
 
-Linux first: built on Linux Mint and supported on the main x86_64 desktop distributions (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
+Linux first: built on Linux Mint and supported on the main x86_64 and aarch64 (arm64) desktop distributions (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
 
 ## Run it
 
@@ -64,6 +64,8 @@ Press **Add app** in the window. There are five ways in:
 - **Choose a file** or **drop a file** on the window. An AppImage that names its own release source is matched for certain. Otherwise Upkeep searches by name and marks the result as a guess to check.
 - **Scan this computer.** It looks through `~/.local/bin`, `~/Applications` and `~/bin` for compiled programs and AppImages that are not in the list. It never runs what it finds. A guess is only offered when a well-known project has exactly that name and a release for this machine. Everything else is listed with "Could not tell where it comes from", and you paste the repo. The scan also asks uv, pipx, npm and cargo what they installed and offers each tool, not already in the list, as one that updates itself through that manager. Typing a tool's name in Add app finds it the same way.
 
+On an arm64 (aarch64) machine Add app offers only release files whose names say `aarch64` or `arm64` (a `.deb` calls it arm64, an `.rpm` aarch64), and packages built for every architecture (`_all.deb`, `.noarch.rpm`). A file that names no architecture is an x86_64 build there, as releases ship it, and is left out. A catalogue app whose table has no `asset_aarch64` is not offered on arm64, and Add app says so.
+
 Each suggestion shows the name, the asset, where it will be installed, and one sentence on how it was worked out. You can change the name and the path before adding. An app that is not installed yet lands in Ready to install.
 
 A program that the system's package manager owns (say `/usr/bin/rg` from apt) is left alone. Upkeep keeps its own copy in `~/.local/bin`, which comes first on the PATH.
@@ -121,6 +123,15 @@ bins = ["hello"]
 
 `asset` is a regular expression matched against the release's asset names. If it matches more than one, the app is listed under "Needs a look" until you narrow it. Anchor it with `^` when a project ships several variants.
 
+`asset` is the pattern for an x86_64 machine. `asset_aarch64` is the same for an aarch64 (arm64) machine, and a table needs one of the two:
+
+```toml
+asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = 'aarch64-unknown-linux-gnu\.tar\.gz$'
+```
+
+Upkeep reads the machine's architecture once at start and uses only that machine's pattern. An app added on an arm64 machine is written with `asset_aarch64`. A list moved to a machine of the other architecture (Export and Import) keeps its tables, and an app whose table has no pattern for that machine shows "The table for … names no release file for … machines." instead of installing another architecture's file. Add the missing pattern by hand to fix it.
+
 ## Apps built from source
 
 A `source` app with `dir` updates a checkout you already have, and one with only `stage` builds into that folder (dsh's table installs an npm prefix there); with neither, the release tag is cloned into the cache. The build runs while the live copy keeps serving. Only after it passes does Upkeep stop what must stop, swap the new build in, start it again, prove that a new process answers, and run the tests. When anything after the stop fails, the restore point goes back and the old version is started. If Upkeep itself is killed half way, `bun run cli recover` (or the next Install) finishes or undoes the update.
@@ -168,7 +179,7 @@ Steps and paths may use `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`
 
 ## The catalogue
 
-`catalogue/` holds one file per app, `catalogue/<key>.toml`, each with the single `[apps.<key>]` table Add app writes when someone picks that app. To add an app, write its table the way it works on your machine, name the file after its key, and open a pull request; a unit test loads every file, so a broken one fails the gate. Apps built from source, which name a person's own folders and services, stay out of the catalogue: `manifest/examples.toml` shows them instead. No catalogue table sets `auto`.
+`catalogue/` holds one file per app, `catalogue/<key>.toml`, each with the single `[apps.<key>]` table Add app writes when someone picks that app. To add an app, write its table the way it works on your machine, name the file after its key, and open a pull request; a unit test loads every file, so a broken one fails the gate. A table carries `asset_aarch64` when the release has an arm64 build of the same kind, and a test holds each pattern, for either machine, to exactly one file of the release saved in `src/engine/fixtures/catalogue-assets.json`. Apps built from source, which name a person's own folders and services, stay out of the catalogue: `manifest/examples.toml` shows them instead. No catalogue table sets `auto`.
 
 ## What an install does
 
@@ -200,7 +211,7 @@ Upkeep replaced the first owner's `lutechi-updater` script and no longer runs it
 bun run build
 ```
 
-This writes `artifacts/linux-x64-Upkeep-Setup.tar.gz`. Unpack it and run `./installer`. It needs no root and puts the app under `~/.local/share/dev.afk.upkeep/stable/` with a menu entry. The launcher is `~/.local/share/dev.afk.upkeep/stable/app/bin/launcher`. To remove it, run `~/.local/share/dev.afk.upkeep/stable/uninstall --quiet`.
+This writes `artifacts/linux-x64-Upkeep-Setup.tar.gz` on an x86_64 machine. The arm64 build of Upkeep is built the same way on an arm64 machine, and its file name names that platform instead. Unpack it and run `./installer`. It needs no root and puts the app under `~/.local/share/dev.afk.upkeep/stable/` with a menu entry. The launcher is `~/.local/share/dev.afk.upkeep/stable/app/bin/launcher`. To remove it, run `~/.local/share/dev.afk.upkeep/stable/uninstall --quiet`.
 
 "Start at login" in Settings writes `~/.config/autostart/upkeep.desktop` and turning it off removes the file.
 
@@ -268,7 +279,7 @@ Upkeep is developed and used daily on Linux Mint 22 (Cinnamon, X11). Nothing in 
 
 | Part                                                                | Needs                                                                                   |
 | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| AppImage, archive, single-file and source apps, self-updating tools | any x86_64 Linux; `gh` for a GitHub token is optional                                   |
+| AppImage, archive, single-file and source apps, self-updating tools | any x86_64 or aarch64 (arm64) Linux; `gh` for a GitHub token is optional                |
 | `.deb` apps                                                         | dpkg, so Debian, Ubuntu, Mint and their relatives                                       |
 | `.rpm` apps                                                         | rpm on a system without dpkg, so Fedora, openSUSE, AlmaLinux and their relatives        |
 | The window                                                          | WebKitGTK 4.1                                                                           |
@@ -290,7 +301,7 @@ Upkeep supports the desktop distributions below and the ones built on them. Each
 | Arch Linux                        | CachyOS, EndeavourOS, Manjaro              | pacman (`checkupdates`, else `pacman -Qu`) |
 | openSUSE Tumbleweed and Leap 16.0 | Slowroll                                   | zypper                                     |
 
-Not supported: immutable systems (SteamOS, Bazzite, Fedora Silverblue), NixOS, and musl systems such as Alpine. Not yet tried on a supported system: Wayland sessions and the tray on desktops other than Cinnamon.
+Not supported: immutable systems (SteamOS, Bazzite, Fedora Silverblue), NixOS, and musl systems such as Alpine. Not yet tried on a supported system: Wayland sessions, the tray on desktops other than Cinnamon, and arm64 machines (the engine picks arm64 files, tested against real release lists, but no arm64 build of Upkeep has run yet).
 
 A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its repo (GitHub, GitLab or Codeberg) or a file.
 
