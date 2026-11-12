@@ -648,10 +648,6 @@ msgid "Add an app"
 msgstr "Eine App hinzufügen"
 
 #: src/mainview/lib/copy.ts
-msgid "App name, GitHub repo, link or file"
-msgstr "App-Name, GitHub-Repo, Link oder Datei"
-
-#: src/mainview/lib/copy.ts
 msgid "fd, or owner/repo"
 msgstr "fd oder owner/repo"
 
@@ -666,10 +662,6 @@ msgstr "Aktualisiert mit"
 #: src/mainview/lib/copy.ts
 msgid "Finding"
 msgstr "Wird gesucht"
-
-#: src/mainview/lib/copy.ts
-msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
-msgstr "Gib den Namen einer App ein, füge ein Repo wie sharkdp/fd oder einen github.com-Link ein, oder zieh eine Datei irgendwo in dieses Fenster."
 
 #: src/mainview/lib/copy.ts
 msgid "Choose a file"
@@ -1159,11 +1151,6 @@ msgstr "Das Anfragelimit von GitHub ist aufgebraucht. Versuch es erneut, wenn es
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
 msgstr "GitHub antwortete {0} für {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr "Unklar, woher {0} stammt. Füge das GitHub-Repo ein, um es hinzuzufügen."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
@@ -2017,3 +2004,16 @@ msgstr "{0}: ein links:-latest braucht eine https-Seite und ein asset-Muster"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
 msgstr "{0}: ein links:-latest gibt es nur für kind appimage, archive, file, deb und rpm"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, repo, link or file"
+msgstr "App-Name, Repo, Link oder Datei"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a GitHub, GitLab or Codeberg link, or drop a file anywhere on this window."
+msgstr "Gib den Namen einer App ein, füge ein Repo wie sharkdp/fd oder einen GitHub-, GitLab- oder Codeberg-Link ein, oder zieh eine Datei irgendwo in dieses Fenster."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
+msgstr "Unklar, woher {0} stammt. Füge das Repo oder einen Link ein, um es hinzuzufügen."

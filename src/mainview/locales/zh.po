@@ -635,10 +635,6 @@ msgid "Add an app"
 msgstr "添加应用"
 
 #: src/mainview/lib/copy.ts
-msgid "App name, GitHub repo, link or file"
-msgstr "应用名称、GitHub 仓库、链接或文件"
-
-#: src/mainview/lib/copy.ts
 msgid "fd, or owner/repo"
 msgstr "fd 或 owner/repo"
 
@@ -653,10 +649,6 @@ msgstr "更新命令"
 #: src/mainview/lib/copy.ts
 msgid "Finding"
 msgstr "正在查找"
-
-#: src/mainview/lib/copy.ts
-msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
-msgstr "输入应用名称，粘贴 sharkdp/fd 这样的仓库或 github.com 链接，或把文件拖放到此窗口的任意位置。"
 
 #: src/mainview/lib/copy.ts
 msgid "Choose a file"
@@ -1141,11 +1133,6 @@ msgstr "GitHub 的请求次数已用完。请在重置后再试。"
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
 msgstr "GitHub 对 {1} 返回了 {0}。"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr "无法判断 {0} 的来源。粘贴它的 GitHub 仓库即可添加。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
@@ -1999,3 +1986,16 @@ msgstr "{0}：links: 类型的 latest 需要 https 页面和 asset 模式"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
 msgstr "{0}：links: 类型的 latest 仅用于 kind appimage、archive、file、deb 和 rpm"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, repo, link or file"
+msgstr "应用名称、仓库、链接或文件"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a GitHub, GitLab or Codeberg link, or drop a file anywhere on this window."
+msgstr "输入应用名称，粘贴 sharkdp/fd 这样的仓库或 GitHub、GitLab、Codeberg 链接，或把文件拖放到此窗口的任意位置。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
+msgstr "无法判断 {0} 的来源。粘贴它的仓库或链接即可添加。"

@@ -97,7 +97,7 @@ const unknown = (path: string): Suggestion => {
 		path,
 		confidence: "guess",
 		why: "",
-		problem: `Could not tell where ${base} comes from. Paste its GitHub repo to add it.`,
+		problem: `Could not tell where ${base} comes from. Paste its repo or link to add it.`,
 	};
 };
 

@@ -674,10 +674,6 @@ msgid "Add an app"
 msgstr "Dodaj aplikację"
 
 #: src/mainview/lib/copy.ts
-msgid "App name, GitHub repo, link or file"
-msgstr "Nazwa aplikacji, repozytorium GitHub, link lub plik"
-
-#: src/mainview/lib/copy.ts
 msgid "fd, or owner/repo"
 msgstr "fd albo owner/repo"
 
@@ -692,10 +688,6 @@ msgstr "Aktualizuje się przez"
 #: src/mainview/lib/copy.ts
 msgid "Finding"
 msgstr "Szukanie"
-
-#: src/mainview/lib/copy.ts
-msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
-msgstr "Wpisz nazwę aplikacji, wklej repozytorium, np. sharkdp/fd, albo link github.com, lub upuść plik w dowolnym miejscu tego okna."
 
 #: src/mainview/lib/copy.ts
 msgid "Choose a file"
@@ -1195,11 +1187,6 @@ msgstr "Limit zapytań GitHub jest wyczerpany. Spróbuj ponownie po jego odnowie
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
 msgstr "GitHub odpowiedział {0} dla {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr "Nie wiadomo, skąd pochodzi {0}. Wklej jego repozytorium GitHub, aby go dodać."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
@@ -2053,3 +2040,16 @@ msgstr "{0}: latest typu links: wymaga strony https i wzorca asset"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
 msgstr "{0}: latest typu links: jest tylko dla kind appimage, archive, file, deb i rpm"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, repo, link or file"
+msgstr "Nazwa aplikacji, repozytorium, link lub plik"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a GitHub, GitLab or Codeberg link, or drop a file anywhere on this window."
+msgstr "Wpisz nazwę aplikacji, wklej repozytorium, np. sharkdp/fd, albo link z GitHuba, GitLaba lub Codeberga, lub upuść plik w dowolnym miejscu tego okna."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
+msgstr "Nie wiadomo, skąd pochodzi {0}. Wklej jego repozytorium lub link, aby go dodać."

@@ -160,7 +160,11 @@ function liftRepo(key: string, table: Record<string, unknown>, spec: AppSpec): s
 	if (spec.forge && (host === null || hostKind(host) !== undefined)) return MESSAGES.liftForgeOnlySelfHosted(key);
 	if (spec.repo === undefined) return null;
 	if (host !== null && hostKind(host) === undefined && !spec.forge) return MESSAGES.liftForgeNeeded(key, host);
-	return forgeOf(spec.repo, spec.forge) ? null : MESSAGES.liftRepoForm(key);
+	const f = forgeOf(spec.repo, spec.forge);
+	if (!f) return MESSAGES.liftRepoForm(key);
+	// github.com/owner/name is kept as owner/name: every GitHub call builds /repos/<owner>/<name> from it.
+	if (f.kind === "github") spec.repo = f.path;
+	return null;
 }
 
 /** An empty string is false, so a blank field counts as missing. */

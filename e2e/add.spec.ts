@@ -93,7 +93,7 @@ test("scan, add the two sure ones, the failed one stays with its reason", async 
 	await expect(list.locator("h3")).toHaveText("Found 6 apps not in the list");
 	await expect(page.getByTestId("scan-tick-obsidian")).toBeChecked();
 	await expect(page.getByTestId("scan-tick-btop")).toBeChecked();
-	await expect(list).toContainText("Could not tell where mytool comes from. Paste its GitHub repo to add it.");
+	await expect(list).toContainText("Could not tell where mytool comes from. Paste its repo or link to add it.");
 	await expect(page.getByTestId("scan-add")).toHaveText("Add 2 apps");
 	await page.getByTestId("scan-none").click();
 	await expect(page.getByTestId("scan-add")).toBeDisabled();

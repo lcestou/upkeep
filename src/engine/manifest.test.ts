@@ -462,3 +462,9 @@ test("a commit compare needs a GitHub repo", () => {
 	expect(one(...src, 'repo = "tmux/tmux"')).toMatchObject({ repo: "tmux/tmux" });
 	expect(one(...src, 'repo = "gitlab.com/g/p"')).toBe("x: commit needs a GitHub repo");
 });
+
+test("a GitHub repo written with its host is kept as owner/name, the form every GitHub call builds its path from", () => {
+	expect(one('kind = "file"', 'asset = "x"', 'dest = "~/x"', 'repo = "github.com/sharkdp/fd"')).toMatchObject({
+		repo: "sharkdp/fd",
+	});
+});

@@ -674,10 +674,6 @@ msgid "Add an app"
 msgstr "Добавить приложение"
 
 #: src/mainview/lib/copy.ts
-msgid "App name, GitHub repo, link or file"
-msgstr "Название, репозиторий GitHub, ссылка или файл"
-
-#: src/mainview/lib/copy.ts
 msgid "fd, or owner/repo"
 msgstr "fd или owner/repo"
 
@@ -692,10 +688,6 @@ msgstr "Обновляется командой"
 #: src/mainview/lib/copy.ts
 msgid "Finding"
 msgstr "Поиск"
-
-#: src/mainview/lib/copy.ts
-msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
-msgstr "Введите название приложения, вставьте репозиторий вроде sharkdp/fd или ссылку на github.com либо перетащите файл в любое место окна."
 
 #: src/mainview/lib/copy.ts
 msgid "Choose a file"
@@ -1195,11 +1187,6 @@ msgstr "Лимит запросов к GitHub исчерпан. Попробуй
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
 msgstr "GitHub ответил {0} на {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr "Не удалось определить, откуда взят {0}. Чтобы добавить его, вставьте его репозиторий GitHub."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
@@ -2053,3 +2040,16 @@ msgstr "{0}: latest вида links: требует страницу https и ш�
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
 msgstr "{0}: latest вида links: только для kind appimage, archive, file, deb и rpm"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, repo, link or file"
+msgstr "Название, репозиторий, ссылка или файл"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a GitHub, GitLab or Codeberg link, or drop a file anywhere on this window."
+msgstr "Введите название приложения, вставьте репозиторий вроде sharkdp/fd или ссылку на GitHub, GitLab или Codeberg либо перетащите файл в любое место этого окна."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
+msgstr "Не удалось определить, откуда взят {0}. Чтобы добавить его, вставьте его репозиторий или ссылку."

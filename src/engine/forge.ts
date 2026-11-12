@@ -192,6 +192,21 @@ export async function forgeRelease(
 // An <a> tag's href, in double, single or no quotes.
 const HREF = /<a\s[^>]*?href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/gi;
 
+/** The character references an href can carry (&amp;, &#38;, &#x26; and the like), decoded; anything else is left. */
+function decodeEntities(s: string): string {
+	const named: Record<string, string> = { amp: "&", quot: '"', apos: "'", lt: "<", gt: ">" };
+	return s.replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (all, e: string) => {
+		const code =
+			e.startsWith("#x") || e.startsWith("#X")
+				? Number.parseInt(e.slice(2), 16)
+				: e.startsWith("#")
+					? Number(e.slice(1))
+					: Number.NaN;
+		if (Number.isInteger(code) && code > 0 && code < 0x110000) return String.fromCodePoint(code);
+		return named[e.toLowerCase()] ?? all;
+	});
+}
+
 /**
  * The download links of a web page, each resolved against the page's own address (after redirects) and named by the
  * file it points at. Only https links that name a file are kept; a link listed twice is kept once.
@@ -201,7 +216,7 @@ export function pageLinks(html: string, page: string): Asset[] {
 	const seen = new Set<string>();
 	const out: Asset[] = [];
 	for (const m of html.matchAll(HREF)) {
-		const raw = (m[1] ?? m[2] ?? m[3] ?? "").replaceAll("&amp;", "&");
+		const raw = decodeEntities(m[1] ?? m[2] ?? m[3] ?? "");
 		const at = httpsUrl(raw, page);
 		const name = at ? fileName(at) : "";
 		if (!at || !name || seen.has(at.href)) continue;
@@ -238,8 +253,11 @@ export async function linksRelease(page: string, pattern: string, opts: ReleaseO
 		return version ? [{ asset: a, version }] : [];
 	});
 	if (matched.length === 0) return { failure: "http", detail: MESSAGES.linksNoMatch(page, pattern) };
-	let version = opts.tag ?? matched[0]?.version ?? "";
-	if (opts.tag === undefined) for (const m of matched) if (isNewer(version, m.version)) version = m.version;
+	// A prerelease (2.10rc1 reads 2.10rc) compares equal to its release, so stable versions are chosen among first.
+	const stable = matched.filter((m) => /^[0-9.]+$/.test(m.version));
+	const pool = stable.length > 0 ? stable : matched;
+	let version = opts.tag ?? pool[0]?.version ?? "";
+	if (opts.tag === undefined) for (const m of pool) if (isNewer(version, m.version)) version = m.version;
 	const assets = matched.filter((m) => m.version === version).map((m) => m.asset);
 	if (assets.length === 0) return { failure: "http", detail: MESSAGES.linksNoMatch(page, pattern) };
 	return { tag: version, version, url: page, publishedAt: "", notes: "", assets };

@@ -635,10 +635,6 @@ msgid "Add an app"
 msgstr "アプリを追加"
 
 #: src/mainview/lib/copy.ts
-msgid "App name, GitHub repo, link or file"
-msgstr "アプリ名、GitHub リポジトリ、リンク、ファイル"
-
-#: src/mainview/lib/copy.ts
 msgid "fd, or owner/repo"
 msgstr "fd、または owner/repo"
 
@@ -653,10 +649,6 @@ msgstr "更新コマンド"
 #: src/mainview/lib/copy.ts
 msgid "Finding"
 msgstr "検索中"
-
-#: src/mainview/lib/copy.ts
-msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
-msgstr "アプリ名を入力するか、sharkdp/fd のようなリポジトリや github.com のリンクを貼り付けるか、このウィンドウのどこかにファイルをドロップしてください。"
 
 #: src/mainview/lib/copy.ts
 msgid "Choose a file"
@@ -1141,11 +1133,6 @@ msgstr "GitHub のリクエスト上限に達しました。リセット後に�
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
 msgstr "GitHub が {1} に対して {0} を返しました。"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr "{0} の入手元がわかりませんでした。追加するには GitHub リポジトリを貼り付けてください。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
@@ -1999,3 +1986,16 @@ msgstr "{0}：links: の latest には https のページと asset パターン�
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
 msgstr "{0}：links: の latest は kind appimage、archive、file、deb、rpm 専用です"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, repo, link or file"
+msgstr "アプリ名、リポジトリ、リンク、ファイル"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a GitHub, GitLab or Codeberg link, or drop a file anywhere on this window."
+msgstr "アプリ名を入力するか、sharkdp/fd のようなリポジトリや GitHub・GitLab・Codeberg のリンクを貼り付けるか、このウィンドウのどこかにファイルをドロップしてください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
+msgstr "{0} の入手元がわかりませんでした。追加するにはリポジトリかリンクを貼り付けてください。"

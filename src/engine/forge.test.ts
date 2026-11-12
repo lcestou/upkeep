@@ -253,3 +253,14 @@ test("links: hrefs resolve against the page, plain http and pages without a file
 		"https://cdn.example.org/app-1.4.AppImage?x=1&y=2",
 	]);
 });
+
+test("links: a release wins over a prerelease of the same number, whatever the page's order; entities in hrefs decode", async () => {
+	const html = `<a href="tool-2.10rc1.tar.gz">rc</a> <a href="tool-2.10.tar.gz">stable</a> <a href="dl?f=tool-2.9.tar.gz&#38;x=1">old</a>`;
+	const fetch: FetchLike = async () => new Response(html, { status: 200 });
+	const r = ok(await linksRelease("https://example.org/dl/", "^tool-[0-9.a-z]+\\.tar\\.gz$", opts(fetch)));
+	expect(r.version).toBe("2.10");
+	expect(r.assets.map((a) => a.name)).toEqual(["tool-2.10.tar.gz"]);
+	expect(pageLinks(html, "https://example.org/dl/").map((a) => a.url)).toContain(
+		"https://example.org/dl/dl?f=tool-2.9.tar.gz&x=1",
+	);
+});

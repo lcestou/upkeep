@@ -182,6 +182,11 @@ function elf(file: string, opts: { image?: boolean; zsync?: string; size?: numbe
 
 test("input: a repo, a github.com link, a file path, or neither", () => {
 	expect(readInput("sharkdp/fd")).toEqual({ repo: "sharkdp/fd" });
+	// An older GitLab link goes straight to tree/ or blob/ without the "-" marker.
+	expect(readInput("https://gitlab.com/inkscape/inkscape/tree/master")).toEqual({
+		repo: "gitlab.com/inkscape/inkscape",
+	});
+	expect(readInput("https://gitlab.com/g/sub/tool/blob/main/README.md")).toEqual({ repo: "gitlab.com/g/sub/tool" });
 	expect(readInput(" https://github.com/zen-browser/desktop/releases/tag/1.24.1b ")).toEqual({
 		repo: "zen-browser/desktop",
 	});
@@ -498,7 +503,7 @@ test("from a file: a name search hit is a guess, a miss keeps the path", async (
 	const miss = await suggest(odd, ctx().c);
 	expect(miss.suggestions[0]).toMatchObject({
 		path: odd,
-		problem: "Could not tell where oddtool comes from. Paste its GitHub repo to add it.",
+		problem: "Could not tell where oddtool comes from. Paste its repo or link to add it.",
 	});
 });
 
@@ -541,7 +546,7 @@ test("scan skips listed apps, symlinks, scripts and leftovers, and never runs wh
 	const { c, calls } = ctx(specs);
 	const r = await scan(c);
 	expect(r.suggestions.map((s) => [s.path, s.problem ?? null])).toEqual([
-		[join(bin, "oddtool"), "Could not tell where oddtool comes from. Paste its GitHub repo to add it."],
+		[join(bin, "oddtool"), "Could not tell where oddtool comes from. Paste its repo or link to add it."],
 		[join(bin, "zen.AppImage"), null],
 	]);
 	expect(r.suggestions.every((s) => s.installed === null && s.source === "scan")).toBe(true);

@@ -89,7 +89,8 @@ export function readInput(
 	const forge = hosts.get(host);
 	const kind = hostKind(host) ?? forge;
 	if (kind === undefined) return null;
-	const end = parts.indexOf("-");
+	// Newer GitLab links mark the web part with "-"; older ones go straight to tree/, blob/, releases or tags.
+	const end = parts.findIndex((p) => ["-", "tree", "blob", "releases", "tags", "commits"].includes(p));
 	const path = (kind === "gitlab" ? parts.slice(0, end === -1 ? parts.length : end) : parts.slice(0, 2))
 		.join("/")
 		.replace(/\.git$/, "");

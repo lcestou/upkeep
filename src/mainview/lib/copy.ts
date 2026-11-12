@@ -533,7 +533,7 @@ export const ADD = {
 		return "Add an app";
 	},
 	get label() {
-		return "App name, GitHub repo, link or file";
+		return "App name, repo, link or file";
 	},
 	get placeholder() {
 		// @wc-include
@@ -549,7 +549,7 @@ export const ADD = {
 		return "Finding";
 	},
 	get hint() {
-		return "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window.";
+		return "Type an app's name, paste a repo such as sharkdp/fd or a GitHub, GitLab or Codeberg link, or drop a file anywhere on this window.";
 	},
 	get pick() {
 		return "Choose a file";

@@ -661,10 +661,6 @@ msgid "Add an app"
 msgstr "Ajouter une application"
 
 #: src/mainview/lib/copy.ts
-msgid "App name, GitHub repo, link or file"
-msgstr "Nom d'application, dépôt GitHub, lien ou fichier"
-
-#: src/mainview/lib/copy.ts
 msgid "fd, or owner/repo"
 msgstr "fd, ou owner/repo"
 
@@ -679,10 +675,6 @@ msgstr "Se met à jour avec"
 #: src/mainview/lib/copy.ts
 msgid "Finding"
 msgstr "Recherche"
-
-#: src/mainview/lib/copy.ts
-msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
-msgstr "Tapez le nom d'une application, collez un dépôt comme sharkdp/fd ou un lien github.com, ou déposez un fichier n'importe où dans cette fenêtre."
 
 #: src/mainview/lib/copy.ts
 msgid "Choose a file"
@@ -1177,11 +1169,6 @@ msgstr "La limite de requêtes de GitHub est atteinte. Réessayez après sa réi
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
 msgstr "GitHub a répondu {0} pour {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr "Impossible de savoir d'où vient {0}. Collez son dépôt GitHub pour l'ajouter."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
@@ -2035,3 +2022,16 @@ msgstr "{0} : un latest links: demande une page https et un motif asset"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
 msgstr "{0} : un latest links: est réservé aux kinds appimage, archive, file, deb et rpm"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, repo, link or file"
+msgstr "Nom d'application, dépôt, lien ou fichier"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a GitHub, GitLab or Codeberg link, or drop a file anywhere on this window."
+msgstr "Tapez le nom d'une application, collez un dépôt comme sharkdp/fd ou un lien GitHub, GitLab ou Codeberg, ou déposez un fichier n'importe où dans cette fenêtre."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
+msgstr "Impossible de savoir d'où vient {0}. Collez son dépôt ou un lien pour l'ajouter."

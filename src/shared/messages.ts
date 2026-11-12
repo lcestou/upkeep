@@ -67,7 +67,7 @@ export const MESSAGES = {
 	/** discover.ts. {0} HTTP status; {1} searched name (bare file name), not a repo */
 	githubAnsweredSearch: (v0: Value, v1: Value) => `GitHub answered ${v0} for ${v1}.`,
 	/** discover.ts. {0} file base name */
-	unknownSource: (v0: Value) => `Could not tell where ${v0} comes from. Paste its GitHub repo to add it.`,
+	unknownSource: (v0: Value) => `Could not tell where ${v0} comes from. Paste its repo or link to add it.`,
 	/** discover.ts. {0} input as typed (558) or the expanded path (568) */
 	noFileAt: (v0: Value) => `There is no file at ${v0}.`,
 	/** discover.ts. {0} file base name */
