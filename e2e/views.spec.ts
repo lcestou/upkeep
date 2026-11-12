@@ -47,3 +47,19 @@ test("the Log drawer fills during a run and History gains the run", async ({ pag
 	await page.getByTestId("tab-history").click();
 	await expect(page.getByTestId("history").locator("section").first()).toContainText("3 updated, 1 failed");
 });
+
+test("Check for updates offers every 6 hours, once a day or only when asked, and keeps the choice", async ({
+	page,
+}) => {
+	await load(page);
+	await page.getByTestId("tab-settings").click();
+	await expect(page.getByTestId("setting-check-every-label")).toHaveText("Check for updates");
+	const every = page.getByTestId("setting-check-every");
+	await expect(every).toHaveValue("6h");
+	await expect(every.locator("option")).toHaveText(["Every 6 hours", "Once a day", "Only when I ask"]);
+	await every.selectOption("ask");
+	await expect(every).toHaveValue("ask");
+	await page.getByTestId("tab-updates").click();
+	await page.getByTestId("tab-settings").click();
+	await expect(page.getByTestId("setting-check-every")).toHaveValue("ask");
+});

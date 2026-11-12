@@ -373,6 +373,7 @@ test("settings and auto are kept in state", async () => {
 		keepBackups: 3,
 		notify: false,
 		checkAtLogin: false,
+		checkEvery: "6h",
 		frame: "own",
 		buttons: "auto",
 		corners: "rounded",

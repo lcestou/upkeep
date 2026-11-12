@@ -227,6 +227,8 @@ export type Settings = {
 	keepBackups: number;
 	notify: boolean;
 	checkAtLogin: boolean;
+	/** How often Upkeep checks on its own while it runs, in the window or the tray. */
+	checkEvery: "6h" | "daily" | "ask";
 	/** "own": Upkeep draws its title bar inside its header. "system": the desktop's window frame. */
 	frame: "own" | "system";
 	/** Which side the window buttons sit on when the frame is Upkeep's own. "auto" follows the desktop. */

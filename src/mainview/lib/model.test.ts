@@ -84,6 +84,7 @@ describe("events", () => {
 				keepBackups: 1,
 				notify: true,
 				checkAtLogin: false,
+				checkEvery: "6h",
 				frame: "own",
 				buttons: "auto",
 				corners: "rounded",

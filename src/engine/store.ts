@@ -30,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	keepBackups: 1,
 	notify: true,
 	checkAtLogin: false,
+	checkEvery: "6h",
 	frame: "own",
 	buttons: "auto",
 	corners: "rounded",
@@ -42,6 +43,10 @@ function clampSettings(s: Partial<Settings>): Settings {
 		keepBackups: Math.min(5, Math.max(1, Number.isFinite(keep) ? Math.round(keep) : 1)),
 		notify: typeof s.notify === "boolean" ? s.notify : DEFAULT_SETTINGS.notify,
 		checkAtLogin: typeof s.checkAtLogin === "boolean" ? s.checkAtLogin : DEFAULT_SETTINGS.checkAtLogin,
+		checkEvery:
+			s.checkEvery === "daily" || s.checkEvery === "ask" || s.checkEvery === "6h"
+				? s.checkEvery
+				: DEFAULT_SETTINGS.checkEvery,
 		frame: s.frame === "system" || s.frame === "own" ? s.frame : DEFAULT_SETTINGS.frame,
 		buttons:
 			s.buttons === "left" || s.buttons === "right" || s.buttons === "auto" ? s.buttons : DEFAULT_SETTINGS.buttons,
