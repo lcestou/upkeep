@@ -49,6 +49,10 @@ export type AppSpec = {
 	run?: string;
 	/** Exact process name for the running check when the path match cannot see it. */
 	process?: string;
+	/** argv that restarts the app, offered as Restart now once an update waits on a restart, e.g. ["systemctl", "restart", "rustdesk"] for a service. */
+	restart?: string[];
+	/** A desktop app Upkeep may close and open again from dest to finish an update. Needs process, which names what to close. */
+	relaunch?: boolean;
 	/** The background run installs this app without asking. */
 	auto?: boolean;
 	/** One line shown in the row's details. */
@@ -182,6 +186,10 @@ export type AppState = {
 	restorePoints: RestorePoint[];
 	/** False for deb, source, command, legacy and manual. */
 	canRestore: boolean;
+	/** The table says how to restart it (restart or relaunch), so a waiting restart offers Restart now. */
+	canRestart?: boolean;
+	/** relaunch: Restart now closes the app's windows, so it asks first. */
+	closes?: boolean;
 	auto: boolean;
 	sudo: boolean;
 	versionless: boolean;
@@ -337,6 +345,7 @@ export type Requests = {
 	scan: { params: Record<string, never>; response: { suggestions: Suggestion[] } };
 	addApps: { params: { specs: AppSpec[] }; response: { added: string[]; problems: { key: string; detail: string }[] } };
 	removeApp: { params: { key: string }; response: { ok: boolean; detail?: string } };
+	restartApp: { params: { key: string }; response: { ok: boolean; detail?: string } };
 	pickFile: { params: Record<string, never>; response: { path: string | null } };
 	extras: { params: Record<string, never>; response: ExtrasSnapshot };
 	setExtras: { params: Partial<ExtrasSettings>; response: ExtrasSettings };

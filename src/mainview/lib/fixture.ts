@@ -48,6 +48,8 @@ type Seed = {
 	publishedDaysAgo?: number;
 	/** Read in place of CAN_RESTORE for the kind: a source row with dir or stage keeps a restore point. */
 	canRestore?: boolean;
+	/** How the table restarts the app: relaunch closes and reopens it, restart runs an argv. */
+	restarts?: "relaunch" | "restart";
 	commits?: { sha: string; title: string }[];
 	ahead?: number;
 };
@@ -70,6 +72,7 @@ const SEEDS: Seed[] = [
 		running: true,
 		dest: "~/.local/bin/zen-browser.AppImage",
 		restore: ["1.23.4b"],
+		restarts: "relaunch",
 		stages: [
 			["download", 72],
 			["backup", 8],
@@ -315,6 +318,8 @@ function toApp(seed: Seed): AppState {
 		restartToApply: false,
 		restorePoints: restore.map((version, i) => ({ version, at: iso(NOW - (12 + i * 20) * DAY) })),
 		canRestore: seed.canRestore ?? CAN_RESTORE[seed.kind],
+		canRestart: seed.restarts !== undefined,
+		closes: seed.restarts === "relaunch",
 		commits: seed.commits,
 		ahead: seed.ahead,
 		auto: seed.auto ?? false,
@@ -894,6 +899,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				results: [],
 				retry: false,
 			});
+			return { ok: true };
+		},
+		restartApp: ({ key }) => {
+			const app = get(key);
+			if (!app || run.phase === "installing") return { ok: false, detail: "A run is in progress." };
+			put({ ...app, restartToApply: false });
+			log(`restart-${Date.now()}`, key, `Restarted ${app.name}.`);
 			return { ok: true };
 		},
 		restore: ({ key, version }) => {

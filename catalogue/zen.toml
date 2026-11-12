@@ -5,3 +5,4 @@ repo = "zen-browser/desktop"
 asset = 'x86_64\.AppImage$'
 dest = "~/.local/bin/zen-browser.AppImage"
 process = "zen"
+relaunch = true

@@ -8,7 +8,7 @@ First version.
 - Each app shows its own progress through download, back up, install and verify.
 - A new version that will not start is replaced by the copy taken before it. .deb apps now keep the installed version's package as a restore point, and self-updating tools keep one when their table says how to install a given version (wrangler and claude-code-telegram in the catalogue do).
 - Downloads are checked against the size and SHA-256 that GitHub lists.
-- A running app is not closed. Its file is replaced and the row says "Restart to apply".
+- A running app is not closed. Its file is replaced and the row says "Restart to apply". An app whose table says how (a service's `systemctl restart`, or a desktop app Upkeep may close and reopen) can be restarted from its pane or from the "Restart to finish" group. Zen Browser and RustDesk in the catalogue can.
 - An app built from source shows, in its pane, the commits it is behind by, newest first, and its row shows a Build stage while it builds.
 - llama.cpp, Strata, ComfyUI, whisper.cpp, dsh and claude-code-telegram are updated by Upkeep itself, with restore points. Each builds while the running copy keeps serving, is swapped in only once the build passes, and is restarted and tested; anything that fails after the stop puts the old version back.
 - `recover` from the command line finishes or undoes an update that was interrupted.
