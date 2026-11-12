@@ -320,3 +320,7 @@ The window's text is translated with [wuchale](https://wuchale.dev): almost all 
 The identity (app icon, mark, wordmark, tray drawings) is in `assets/brand`. `bun run tray-icons` renders the tray pictures and the launcher icon from it.
 
 `PRODUCT.md` is the product record and `DESIGN.md` the visual system.
+
+## License
+
+Upkeep is free software under the GNU General Public License, version 3 or any later version. See `LICENSE`. Anyone may use, change and share it; a changed copy that is given to others has to come with its source under the same license.
