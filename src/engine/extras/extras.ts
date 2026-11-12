@@ -409,8 +409,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 		},
 		runCleanup(picks, commands, typed) {
 			if (!settings.cleanup) return { started: false, reason: MESSAGES.cleanNothing() };
-			if (cleanup.phase === "cleaning" || installingNow)
-				return { started: false, reason: MESSAGES.reasonBusy() };
+			if (cleanup.phase === "cleaning" || installingNow) return { started: false, reason: MESSAGES.reasonBusy() };
 			if (cleanup.phase === "measuring" || !measured) return refuseCleanup(MESSAGES.cleanListChanged());
 			const m = measured;
 			const r = review(picks, m);
