@@ -1093,10 +1093,6 @@ msgid "Could not restore {0}: {1}"
 msgstr "Não foi possível restaurar {0}: {1}"
 
 #: src/mainview/lib/engine-text.ts
-msgid "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path."
-msgstr "Informe o nome de um app, um repositório do GitHub como owner/name, um link do github.com ou o caminho de um arquivo."
-
-#: src/mainview/lib/engine-text.ts
 msgid "From Upkeep's catalogue of tested apps."
 msgstr "Do catálogo de apps testados do Upkeep."
 
@@ -1976,7 +1972,66 @@ msgstr "Cinnamon"
 msgid "Installed with {0}. Upkeep updates it the same way."
 msgstr "Instalado com {0}. O Upkeep o atualiza da mesma forma."
 
+#: src/mainview/lib/engine-text.ts
+msgid "Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path."
+msgstr "Informe o nome de um app, um repositório como owner/name ou gitlab.com/group/name, um link do GitHub, GitLab ou Codeberg, ou o caminho de um arquivo."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} sent no release for {1}."
+msgstr "{0} não enviou nenhuma versão para {1}."
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:"
-msgstr "{0}: latest precisa começar com npm:, pypi:, github:, npm-tags:, json: ou crates:"
+msgid "{0}'s request limit is used up. Try again after it resets."
+msgstr "O limite de requisições de {0} acabou. Tente de novo depois que ele zerar."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} answered {1} for {2}."
+msgstr "{0} respondeu {1} para {2}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} lists no download matching {1}."
+msgstr "{0} não lista nenhum download que corresponda a {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:"
+msgstr "{0}: latest precisa começar com npm:, pypi:, github:, npm-tags:, json:, crates: ou links:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name"
+msgstr "{0}: repo precisa ser owner/name no GitHub, ou host/owner/name como gitlab.com/group/name ou codeberg.org/owner/name"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge must say gitlab or gitea for a repo on {1}"
+msgstr "{0}: forge precisa dizer gitlab ou gitea para um repositório em {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge must be gitlab or gitea"
+msgstr "{0}: forge precisa ser gitlab ou gitea"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge is only for a repo on a host other than github.com, gitlab.com or codeberg.org"
+msgstr "{0}: forge só vale para um repositório em um host diferente de github.com, gitlab.com ou codeberg.org"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: repo or a links: latest is required for kind {1}"
+msgstr "{0}: repo ou um latest links: é obrigatório para kind {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a links: latest needs an https page and an asset pattern"
+msgstr "{0}: um latest links: precisa de uma página https e de um padrão asset"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
+msgstr "{0}: um latest links: só vale para kind appimage, archive, file, deb e rpm"

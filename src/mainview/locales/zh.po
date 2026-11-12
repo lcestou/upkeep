@@ -1057,10 +1057,6 @@ msgid "Could not restore {0}: {1}"
 msgstr "无法还原 {0}：{1}"
 
 #: src/mainview/lib/engine-text.ts
-msgid "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path."
-msgstr "请输入应用名称、GitHub 仓库（如 owner/name）、github.com 链接或文件路径。"
-
-#: src/mainview/lib/engine-text.ts
 msgid "From Upkeep's catalogue of tested apps."
 msgstr "来自 Upkeep 的已测试应用目录。"
 
@@ -1940,7 +1936,66 @@ msgstr "Cinnamon"
 msgid "Installed with {0}. Upkeep updates it the same way."
 msgstr "通过 {0} 安装。Upkeep 用同样的方式更新它。"
 
+#: src/mainview/lib/engine-text.ts
+msgid "Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path."
+msgstr "请输入应用名称、仓库（如 owner/name 或 gitlab.com/group/name）、GitHub、GitLab 或 Codeberg 链接，或文件路径。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} sent no release for {1}."
+msgstr "{0} 没有返回 {1} 的发行版。"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:"
-msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags:、json: 或 crates: 开头"
+msgid "{0}'s request limit is used up. Try again after it resets."
+msgstr "{0} 的请求次数已用完。请在重置后再试。"
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} answered {1} for {2}."
+msgstr "{0} 对 {2} 返回了 {1}。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} lists no download matching {1}."
+msgstr "{0} 上没有与 {1} 匹配的下载。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:"
+msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags:、json:、crates: 或 links: 开头"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name"
+msgstr "{0}：repo 必须是 GitHub 上的 owner/name，或 host/owner/name，如 gitlab.com/group/name 或 codeberg.org/owner/name"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge must say gitlab or gitea for a repo on {1}"
+msgstr "{0}：{1} 上的仓库必须在 forge 中写明 gitlab 或 gitea"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge must be gitlab or gitea"
+msgstr "{0}：forge 必须是 gitlab 或 gitea"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge is only for a repo on a host other than github.com, gitlab.com or codeberg.org"
+msgstr "{0}：forge 仅用于 github.com、gitlab.com 和 codeberg.org 以外主机上的仓库"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: repo or a links: latest is required for kind {1}"
+msgstr "{0}：kind {1} 需要 repo 或 links: 类型的 latest"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a links: latest needs an https page and an asset pattern"
+msgstr "{0}：links: 类型的 latest 需要 https 页面和 asset 模式"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
+msgstr "{0}：links: 类型的 latest 仅用于 kind appimage、archive、file、deb 和 rpm"

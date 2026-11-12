@@ -1057,10 +1057,6 @@ msgid "Could not restore {0}: {1}"
 msgstr "{0} を復元できませんでした：{1}"
 
 #: src/mainview/lib/engine-text.ts
-msgid "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path."
-msgstr "アプリ名、owner/name 形式の GitHub リポジトリ、github.com のリンク、またはファイルのパスを入力してください。"
-
-#: src/mainview/lib/engine-text.ts
 msgid "From Upkeep's catalogue of tested apps."
 msgstr "Upkeep のテスト済みアプリのカタログから。"
 
@@ -1940,7 +1936,66 @@ msgstr "Cinnamon"
 msgid "Installed with {0}. Upkeep updates it the same way."
 msgstr "{0} でインストールされています。Upkeep は同じ方法で更新します。"
 
+#: src/mainview/lib/engine-text.ts
+msgid "Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path."
+msgstr "アプリ名、owner/name や gitlab.com/group/name 形式のリポジトリ、GitHub・GitLab・Codeberg のリンク、またはファイルのパスを入力してください。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} sent no release for {1}."
+msgstr "{0} から {1} のリリースが返されませんでした。"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:"
-msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json:、crates: のいずれかで始まる必要があります"
+msgid "{0}'s request limit is used up. Try again after it resets."
+msgstr "{0} のリクエスト上限に達しました。リセット後にもう一度試してください。"
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} answered {1} for {2}."
+msgstr "{0} が {2} に対して {1} を返しました。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} lists no download matching {1}."
+msgstr "{0} には {1} に一致するダウンロードがありません。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:"
+msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json:、crates:、links: のいずれかで始まる必要があります"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name"
+msgstr "{0}：repo は GitHub の owner/name か、gitlab.com/group/name や codeberg.org/owner/name のような host/owner/name である必要があります"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge must say gitlab or gitea for a repo on {1}"
+msgstr "{0}：{1} 上のリポジトリには forge に gitlab か gitea を指定する必要があります"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge must be gitlab or gitea"
+msgstr "{0}：forge は gitlab か gitea である必要があります"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge is only for a repo on a host other than github.com, gitlab.com or codeberg.org"
+msgstr "{0}：forge は github.com、gitlab.com、codeberg.org 以外のホスト上のリポジトリ専用です"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: repo or a links: latest is required for kind {1}"
+msgstr "{0}：kind {1} には repo か links: の latest が必要です"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a links: latest needs an https page and an asset pattern"
+msgstr "{0}：links: の latest には https のページと asset パターンが必要です"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
+msgstr "{0}：links: の latest は kind appimage、archive、file、deb、rpm 専用です"
