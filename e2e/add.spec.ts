@@ -138,6 +138,25 @@ test("drop a file URI anywhere on the window", async ({ page }) => {
 	await expect(page.getByTestId("suggestion-obsidian")).toBeVisible();
 });
 
+test("drop a file in the real window: WebKitGTK gives its address only as link text in text/html", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	const fire = (type: string) =>
+		page.evaluate((t) => {
+			// As WebKitGTK delivers a dragged file: an empty uri list, no files, the address as the text of a bare <a>.
+			const data = new DataTransfer();
+			data.setData(
+				"text/html",
+				'<a style="caret-color: rgb(0, 0, 0); color: rgb(0, 0, 0);">file:///home/owner/Downloads/Obsidian-1.9.4.AppImage</a>',
+			);
+			document.body.dispatchEvent(new DragEvent(t, { dataTransfer: data, bubbles: true, cancelable: true }));
+		}, type);
+	await fire("dragenter");
+	await fire("drop");
+	await expect(page.getByTestId("add-pane")).toBeVisible();
+	await expect(page.getByTestId("add-input")).toHaveValue(PICKED);
+	await expect(page.getByTestId("suggestion-obsidian")).toBeVisible();
+});
+
 test("Remove asks in place, Keep is the default and Escape keeps", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("open-fd").click();

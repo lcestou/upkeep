@@ -64,7 +64,19 @@
 	let depth = 0;
 	/** True for a drag that holds a file, a link or text, the three things the add pane accepts. */
 	const carries = (e: DragEvent) =>
-		[...(e.dataTransfer?.types ?? [])].some((t) => t === "Files" || t === "text/uri-list" || t === "text/plain");
+		[...(e.dataTransfer?.types ?? [])].some(
+			(t) => t === "Files" || t === "text/uri-list" || t === "text/plain" || t === "text/html",
+		);
+	/**
+	 * The address in dropped HTML. WebKitGTK, the real window's webview, keeps a dropped file's file:// address out of
+	 * text/uri-list and files; it hands it over only in text/html, as the text of an <a> with no href (seen in the real
+	 * window, 2026-11-12). A link's href, when there is one, wins over its text.
+	 */
+	function linkIn(html: string | undefined): string | undefined {
+		if (!html) return undefined;
+		const doc = new DOMParser().parseFromString(html, "text/html");
+		return doc.querySelector("a")?.getAttribute("href") || doc.body.textContent?.trim() || undefined;
+	}
 	/** Shows the drop veil on the first enter; `depth` counts nested enters so child elements do not flicker it off. */
 	function ondragenter(e: DragEvent) {
 		if (!carries(e)) return;
@@ -89,7 +101,7 @@
 		veil = false;
 		const data = e.dataTransfer;
 		const uri = data?.getData("text/uri-list").split(/\r?\n/).find((l) => l && !l.startsWith("#"));
-		const text = uri ?? data?.getData("text/plain").trim();
+		const text = uri ?? linkIn(data?.getData("text/html")) ?? data?.getData("text/plain").trim();
 		if (text) {
 			const path = text.startsWith("file://") ? decodeURIComponent(text.replace(/^file:\/\//, "")) : text;
 			model?.openAdd(path);
