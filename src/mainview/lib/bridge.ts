@@ -2,7 +2,7 @@ import type { Bridge, EngineEvent, Requests } from "../../shared/types";
 import type { FixtureVariant } from "./fixture";
 import type { SystemVariant } from "./fixture-system";
 
-// The main process declares the same schema in src/bun/rpc.ts.
+// The main process binds this schema in src/bun/rpc.ts; its answers live in src/bun/requests.ts.
 export type UpkeepRPC = {
 	bun: { requests: Requests; messages: Record<string, never> };
 	webview: { requests: Record<string, never>; messages: { event: EngineEvent } };

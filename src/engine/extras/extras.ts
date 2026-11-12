@@ -37,6 +37,8 @@ export function createExtras(deps: ExtrasDeps): Extras {
 	let settings = loadExtras(deps.paths);
 	let system: SystemState = settings.system === "show" ? { ...offState(), mode: "show", phase: "idle" } : offState();
 	let running: Promise<void> = Promise.resolve();
+	// Bumped by each check and by turning the group off: only the newest check's answer may land.
+	let generation = 0;
 
 	const snapshot = (): ExtrasSnapshot => structuredClone({ settings, system });
 	const emit = () => {
@@ -50,19 +52,24 @@ export function createExtras(deps: ExtrasDeps): Extras {
 		}
 	};
 
-	/** Not started when the area is off or a check already runs. The check reports through emit, never by throwing. */
+	/**
+	 * Not started when the area is off or a check already runs. The check reports through emit, never by throwing.
+	 * A check overtaken by a newer one, or by the group being turned off (and maybe on again), drops its answer.
+	 */
 	function check() {
 		if (system.mode !== "show" || system.phase === "checking") return { started: false };
 		system = { ...system, phase: "checking" };
 		emit();
+		generation += 1;
+		const mine = generation;
+		const current = () => mine === generation && system.mode === "show";
 		running = checkSystem({ run: deps.run })
 			.then((found) => {
-				// Turned off while it ran: drop what it found.
-				if (system.mode !== "show") return;
+				if (!current()) return;
 				system = { ...system, ...found, phase: "idle", checkedAt: deps.now().toISOString() };
 			})
 			.catch((err: Error) => {
-				if (system.mode !== "show") return;
+				if (!current()) return;
 				const detail = err instanceof Error ? err.message : String(err);
 				system = { ...system, phase: "idle", problem: { code: "failed", command: "", detail } };
 			})
@@ -79,6 +86,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 		setSettings(patch) {
 			settings = updateExtras(deps.paths, patch);
 			if (settings.system === "off") {
+				generation += 1;
 				system = offState();
 				emit();
 			} else if (system.mode === "off") {

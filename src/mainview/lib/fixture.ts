@@ -9,6 +9,7 @@ import type {
 	HistoryRow,
 	LogLine,
 	Requests,
+	RequestHandlers,
 	RunResult,
 	RunState,
 	Settings,
@@ -493,11 +494,6 @@ declare global {
 	var upkeepSysOps: string[] | undefined;
 }
 
-/** One answer per request, each taking that request's params. */
-type Handlers = {
-	[K in keyof Requests]: (p: Requests[K]["params"]) => Requests[K]["response"] | Promise<Requests[K]["response"]>;
-};
-
 /** How each built row's scripted run ends in the built variant: the starred sentences of plan 5 E. */
 type BuiltEnd = { result: "failed" | "rolled_back"; detail: (from: string | null) => string };
 const BUILT_ENDS = {
@@ -865,7 +861,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		emit({ type: "meta", rate, checkedAt, settings });
 	}
 
-	const handlers: Handlers = {
+	const handlers: RequestHandlers = {
 		snapshot: () =>
 			({
 				apps: clone(apps),
