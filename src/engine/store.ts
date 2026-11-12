@@ -64,8 +64,9 @@ function obj<T>(v: unknown): Record<string, T> {
 const stateFile = (paths: Paths) => join(paths.state, "state.json");
 
 /**
- * Never throws: a missing or unreadable file gives defaults, and an unreadable one is first copied beside it, to
- * state.json.unreadable or, when that is taken, a name with the time, so a second bad file never replaces the first.
+ * Never throws: a missing or unreadable file gives defaults, and an unreadable one is first copied beside it as
+ * state.json.unreadable-<hash of its bytes>. It is read on almost every request, so the same bad file is kept once,
+ * and a different bad file never replaces it.
  */
 export function loadState(paths: Paths): State {
 	let raw: Record<string, unknown> = {};
@@ -77,8 +78,9 @@ export function loadState(paths: Paths): State {
 		// SAFETY: readFileSync throws an ErrnoException; JSON.parse's SyntaxError has no code, which reads as not ENOENT.
 		if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
 			try {
-				const keep = `${file}.unreadable`;
-				copyFileSync(file, existsSync(keep) ? `${keep}-${Date.now()}` : keep);
+				const hash = new Bun.CryptoHasher("sha256").update(readFileSync(file)).digest("hex").slice(0, 12);
+				const keep = `${file}.unreadable-${hash}`;
+				if (!existsSync(keep)) copyFileSync(file, keep);
 			} catch {
 				// nothing to keep, or nowhere to keep it
 			}

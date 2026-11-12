@@ -337,7 +337,12 @@
 					type="checkbox"
 					checked={app.auto}
 					data-testid="auto-{app.key}"
-					onchange={(e) => model.send("setAuto", { key: app.key, auto: e.currentTarget.checked })}
+					onchange={async (e) => {
+						const box = e.currentTarget;
+						const res = await model.send("setAuto", { key: app.key, auto: box.checked });
+						// Refused (the app left the list meanwhile): the box goes back to what the engine holds.
+						if (!res?.ok) box.checked = app.auto;
+					}}
 				/>
 				{TEXT.installAuto}
 			</label>

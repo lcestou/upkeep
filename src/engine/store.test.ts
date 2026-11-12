@@ -202,9 +202,12 @@ test("an unreadable state.json is kept beside it, and a second one never replace
 	mkdirSync(t.paths.state, { recursive: true });
 	writeFileSync(file, "{ first");
 	expect(loadState(t.paths).settings).toEqual(DEFAULT_SETTINGS);
+	// Read again and again, as every request does: still one copy.
+	loadState(t.paths);
+	loadState(t.paths);
 	writeFileSync(file, "{ second");
 	loadState(t.paths);
 	const kept = readdirSync(t.paths.state).filter((n) => n.startsWith("state.json.unreadable"));
 	expect(kept.length).toBe(2);
-	expect(readFileSync(join(t.paths.state, "state.json.unreadable"), "utf8")).toBe("{ first");
+	expect(kept.map((n) => readFileSync(join(t.paths.state, n), "utf8")).toSorted()).toEqual(["{ first", "{ second"]);
 });
