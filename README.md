@@ -186,7 +186,7 @@ Root steps use `sudo -n`. If sudo wants a password the app fails with a message 
 | `~/.config/upkeep/apps.toml`          | the app list                                                                      |
 | `~/.local/state/upkeep/state.json`    | skipped versions, held apps, settings                                             |
 | `~/.local/state/upkeep/logs/`         | one log per run, the newest 50                                                    |
-| `~/.local/share/upkeep/history.jsonl` | every install, append-only                                                        |
+| `~/.local/share/upkeep/history.jsonl` | every install and cleanup, append-only                                            |
 | `~/.local/share/upkeep/backups/`      | restore points                                                                    |
 | `~/.cache/upkeep/`                    | release lookups, downloads, source clones, the last check's rows. Safe to delete. |
 
@@ -240,6 +240,27 @@ Kernel and driver rows never get a tick: both need a restart, and a driver updat
 Install first shows the commands it will run, each as typed, and says which need administrator rights. Nothing runs until you confirm. Then, before any of them, Upkeep checks that sudo works without a password, that nothing holds dpkg's lock, that polkit lets Flatpak update without a dialog, that Update Manager's list is still the one you saw, and that a dry run (`mintupdate-cli upgrade -d`, no root) names no kernel or NVIDIA package. If any check fails, nothing runs and the group says why. Packages go first, then Flatpak, Snap and Cinnamon. Each row shows its state while it runs; afterwards the list is read again, a row that is gone is installed and one still listed is failed. Results go to History and the run log.
 
 A System install holds the same lock as an app install, so the two never run together. Closing the window or choosing Quit in the tray waits for it to finish. A background run at login never installs system updates.
+
+### Cleanup
+
+**Show Cleanup** in Settings, under Extras, adds a Cleanup tab between History and Settings. It is off by default. The tab measures a fixed list of caches and leftovers, never a folder you point it at, and deletes only what you tick and then confirm.
+
+| Item | Measured as | Deleted by | Default |
+| --- | --- | --- | --- |
+| Thumbnails | `~/.cache/thumbnails` (normal, large, x-large, xx-large, fail) | Upkeep, in-process | ticked |
+| Trash | `~/.local/share/Trash` files and info; listed only when it holds something | Upkeep, in-process | ticked |
+| Upkeep's leftover copies | `<file>.upkeep-new`, `-tmp` or `-gone` beside an installed app or a restore point, listed only when the live file exists | Upkeep, in-process | ticked when older than the live file; a copy newer than it starts unticked and says so |
+| Downloaded packages | the `.deb` files in `/var/cache/apt/archives` | `sudo -n apt-get clean` | ticked |
+| Old NVIDIA runtimes for Flatpak | `org.freedesktop.Platform.GL.nvidia-*` runtimes whose version matches neither dpkg's `libnvidia-gl-*` nor the loaded kernel module | `flatpak uninstall --system -y --noninteractive <ref>`, after `pkcheck` | ticked |
+| Restore points | each version under `~/.local/share/upkeep/backups/` | Upkeep, in-process | unticked |
+| Packages nothing needs | the `Remv` lines of `apt-get -s autoremove`; listed only when there are any | `sudo -n env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y`, after you type `remove` | unticked |
+| uv, bun, npm and pip caches | their cache folders, only with **Include developer caches** on and the tool on PATH | `uv cache clean`, `bun pm cache rm`, `npm cache clean --force`, `pip cache purge` | unticked |
+
+These are measured and shown with a sentence, never deleted: `/tmp` (the system empties it at boot and after 30 days), the journal, old kernels (the running and newest one named; remove them in Update Manager), Timeshift snapshots, browser caches, Playwright's browsers, `.bak` and `.backup` copies beside your apps, and Upkeep's own cache. Hugging Face models are never listed.
+
+Sizes count only files with one hard link, so a figure is what deleting gives back: uv's cache shares most of its files with installed tools, and shows that much smaller than `du`. Measuring walks the folders a batch at a time, so the window stays responsive while a large cache is read.
+
+Review opens a sheet with what is ticked, the total, what cannot be undone and every command it runs, as typed; its button names the total ("Delete 2.4 GB"). Nothing runs before that button. Then, for each part: it is measured again, and skipped with "Skipped: changed since you reviewed it." if its size or time moved; a file is deleted only after `lstat`, only below the item's own folder, never through a link (a link is removed, its target stays) and never on another file system. Root items need sudo without a password and are skipped otherwise. A cleanup holds the same run lock as an install, so it never runs during one and never deletes a restore point an install is using. Closing the window or Quit waits for it. Each item's result goes to History, and a background run never cleans.
 
 ## Which Linux
 
