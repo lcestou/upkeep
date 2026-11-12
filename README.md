@@ -36,7 +36,7 @@ bun run cli history
 bun run cli recover               # finish or undo an update that was interrupted
 ```
 
-`check` exits 0 unless the old updater's own check did not finish. `install` exits 0 when every app it ran ended updated.
+`check` exits 0; an app it could not check is a SKIP line, not a failure. `install` exits 0 when every app it ran ended updated.
 
 ## Adding an app
 

@@ -187,8 +187,8 @@ const SEEDS: Seed[] = [
 		name: "dsh",
 		kind: "manual",
 		installed: "0.1.7",
-		run: "lutechi-updater dsh",
-		note: "Never installed unattended. lutechi-updater asks, stops dsh-web, smoke-tests and rolls back.",
+		run: "dsh-update",
+		note: "Never installed unattended. dsh-update asks, stops dsh-web, smoke-tests and rolls back.",
 	},
 	{ key: "pr-agent", name: "pr-agent", kind: "command", installed: "0.48.2", auto: true },
 	{ key: "headroom", name: "headroom", kind: "command", installed: "0.9.1", auto: true },
@@ -197,7 +197,7 @@ const SEEDS: Seed[] = [
 		name: "claude-code-telegram",
 		kind: "manual",
 		installed: "1.6.0",
-		run: "lutechi-updater claude-code-telegram",
+		run: "uv tool install --reinstall claude-code-telegram",
 	},
 	{
 		key: "claude-plugins",
@@ -208,7 +208,7 @@ const SEEDS: Seed[] = [
 		auto: true,
 	},
 	{ key: "omp-ponytail", name: "omp plugin ponytail", kind: "command", installed: "5.3.3", auto: true },
-	{ key: "whisper", name: "whisper.cpp", kind: "manual", installed: "1.8.2", run: "lutechi-updater whisper" },
+	{ key: "whisper", name: "whisper.cpp", kind: "manual", installed: "1.8.2", run: "whisper-update" },
 	{
 		key: "llama",
 		name: "llama.cpp",

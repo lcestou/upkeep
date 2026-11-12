@@ -1,5 +1,5 @@
 import { copyFileSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import type {
 	AppSpec,
 	AppState,
@@ -287,9 +287,10 @@ export function createEngine(deps: EngineDeps): Engine {
 		if (!lock) return false;
 		try {
 			const pid = readFileSync(lock.file, "utf8").trim();
-			return (
-				/^\d+$/.test(pid) && readFileSync(join(deps.procRoot ?? "/proc", pid, "cmdline"), "utf8").includes(lock.name)
-			);
+			if (!/^\d+$/.test(pid)) return false;
+			// The program itself or the script an interpreter runs: argv 0 or 1 named exactly so, never a mention further on.
+			const argv = readFileSync(join(deps.procRoot ?? "/proc", pid, "cmdline"), "utf8").split("\0");
+			return argv.slice(0, 2).some((a) => basename(a) === lock.name);
 		} catch {
 			return false;
 		}
