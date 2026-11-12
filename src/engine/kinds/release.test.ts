@@ -336,6 +336,39 @@ test("install: a deb keeps the installed version's package as its point, and a n
 	oldRelease = null;
 });
 
+const rustdeskRpm = (dest: string): AppSpec => ({ ...rustdesk(dest), kind: "rpm", asset: "x86_64\\.rpm$" });
+
+test("install: an rpm goes through sudo -n rpm -U --oldpackage, keeps a point marked rpm, and a refusal restores it", async () => {
+	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
+	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.rpm": new Uint8Array([9, 9, 9]) } };
+	publish("1.4.3", { "rustdesk-1.4.3-x86_64.rpm": new Uint8Array([1, 2, 3]) });
+	const { run, calls } = recordingRun(t.paths, (argv) => {
+		if (argv[2] !== "rpm") return undefined;
+		return (argv[5] ?? "").includes("1.4.2") ? ok() : { code: 1, stdout: "", stderr: "rpm: error", timedOut: false };
+	});
+	const c = ctx(run);
+	const outcome = await installRelease(rustdeskRpm(dest), await checkAndTarget(rustdeskRpm(dest), c), c);
+	expect(outcome).toMatchObject({
+		result: "rolled_back",
+		installed: "1.4.2",
+		detail: "rpm could not install rustdesk-1.4.3-x86_64.rpm. Restored 1.4.2.",
+	});
+	const rpms = calls.filter((x) => x.argv[2] === "rpm").map((x) => x.argv);
+	expect(rpms[0]).toEqual([
+		"sudo",
+		"-n",
+		"rpm",
+		"-U",
+		"--oldpackage",
+		join(t.paths.cache, "dl/rustdesk-rustdesk-1.4.3-x86_64.rpm"),
+	]);
+	expect(rpms).toHaveLength(2);
+	const meta = JSON.parse(readFileSync(join(t.paths.data, "backups/rustdesk/1.4.2/meta.json"), "utf8"));
+	expect(meta.rpm).toBe(true);
+	expect(meta.deb).toBeUndefined();
+	oldRelease = null;
+});
+
 test("install: sudo that wants a password fails plainly", async () => {
 	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
 	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });

@@ -252,6 +252,8 @@ test("the asset filter keeps what runs on Linux x86_64, best first, on three rea
 		["rustdesk-1.5.1-x86_64.AppImage", "appimage"],
 		["rustdesk-1.5.1-unsigned.tar.gz", "archive"],
 		["rustdesk-1.5.1-x86_64.deb", "deb"],
+		["rustdesk-1.5.1-0.x86_64.rpm", "rpm"],
+		["rustdesk-1.5.1-0.x86_64-suse.rpm", "rpm"],
 		["rustdesk-1.5.1-x86_64-sciter.deb", "deb"],
 		["rustdesk-unattended-wayland-1.5.1-x86_64.deb", "deb"],
 	]);
@@ -748,6 +750,30 @@ test("a .deb is offered only where dpkg is: without it, a release of only a .deb
 	expect((await suggest("o/debonly", ctx().c)).problem).toBe(
 		"No asset of o/debonly's latest release runs on this machine.",
 	);
+});
+
+test("an .rpm is offered only where rpm is, and wins over a .deb when only rpm is on PATH", async () => {
+	releases["o/rpmonly"] = { tag_name: "v1.0", assets: [{ name: "rpmonly-1.0.x86_64.rpm", size: 1 }] };
+	onPath = { rpm: "/usr/bin/rpm" };
+	const got = (await suggest("o/rpmonly", ctx().c)).suggestions[0];
+	expect(got?.spec.kind).toBe("rpm");
+	expect(got?.spec.sudo).toBe(true);
+	expect(got?.spec.dest).toBe("/usr/bin/rpmonly");
+	onPath = {};
+	expect((await suggest("o/rpmonly", ctx().c)).problem).toBe(
+		"No asset of o/rpmonly's latest release runs on this machine.",
+	);
+	releases["o/both"] = {
+		tag_name: "v1.0",
+		assets: [
+			{ name: "both_1.0_amd64.deb", size: 1 },
+			{ name: "both-1.0.x86_64.rpm", size: 1 },
+		],
+	};
+	onPath = { rpm: "/usr/bin/rpm" };
+	expect((await suggest("o/both", ctx().c)).suggestions[0]?.spec.kind).toBe("rpm");
+	onPath = { dpkg: "/usr/bin/dpkg" };
+	expect((await suggest("o/both", ctx().c)).suggestions[0]?.spec.kind).toBe("deb");
 });
 
 test("a release with no file for this machine gets a source build drafted from its Cargo.toml, as a guess", async () => {

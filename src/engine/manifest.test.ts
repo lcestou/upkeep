@@ -111,7 +111,7 @@ test("an invalid table is left out and reported, the rest load", () => {
 		"noasset: asset is required for kind appimage",
 		"nobins: bins is required for kind archive",
 		"cmd: update is required for kind command",
-		"leg: kind is not one of appimage, archive, file, deb, source, command, claude-plugins, manual",
+		"leg: kind is not one of appimage, archive, file, deb, rpm, source, command, claude-plugins, manual",
 		"man: run is required for kind manual",
 	]);
 });
@@ -385,4 +385,21 @@ test("a catalogue file must hold one table named like the file; a broken one is 
 	expect(apps.map((a) => a.key)).toEqual(["good"]);
 	expect(errors).toEqual(["catalogue/wrong.toml: must hold exactly one table, [apps.wrong]"]);
 	expect(loadCatalogue(join(dir, "missing"))).toEqual({ apps: [], errors: [] });
+});
+
+test("an rpm table loads with repo, asset and dest, and is refused without an asset as a deb is", () => {
+	const file = join(dir, "apps.toml");
+	const row = (key: string, kind: string, asset: boolean) =>
+		[
+			`[apps.${key}]`,
+			`name = "${key}"`,
+			`kind = "${kind}"`,
+			'repo = "a/b"',
+			...(asset ? ['asset = "x"'] : []),
+			`dest = "/usr/bin/${key}"`,
+		].join("\n");
+	writeFileSync(file, [row("good", "rpm", true), row("bad", "rpm", false), row("old", "deb", false)].join("\n"));
+	const { apps, errors } = loadManifest(file);
+	expect(apps.map((a) => a.key)).toEqual(["good"]);
+	expect(errors).toEqual(["bad: asset is required for kind rpm", "old: asset is required for kind deb"]);
 });

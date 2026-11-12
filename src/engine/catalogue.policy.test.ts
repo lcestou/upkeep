@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import type { AppSpec } from "../shared/types";
+import { isPackage } from "./kinds/package";
 import { loadCatalogue } from "./manifest";
 
 // Every catalogue table is run on other people's machines after one review, so the gate holds it to what a
@@ -45,7 +46,7 @@ test("every catalogue table keeps to what a catalogue app may do", () => {
 	for (const a of apps) {
 		for (const f of Object.keys(a)) if (!FIELDS.has(f as keyof AppSpec)) broken.push(`${a.key}: field ${f}`);
 		if (a.kind === "manual") broken.push(`${a.key}: kind ${a.kind}`);
-		if (a.sudo && a.kind !== "deb" && a.kind !== "source" && !a.dest?.startsWith("/"))
+		if (a.sudo && !isPackage(a.kind) && a.kind !== "source" && !a.dest?.startsWith("/"))
 			broken.push(`${a.key}: sudo for an install inside home`);
 		for (const [f, c] of commands(a)) if (DANGER.test(c)) broken.push(`${a.key}: ${f} runs ${c}`);
 		if (a.restart && !RESTART.test(a.restart.join(" "))) broken.push(`${a.key}: restart runs ${a.restart.join(" ")}`);

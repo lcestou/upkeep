@@ -25,6 +25,9 @@ export const KIND_LABEL = {
 	get deb() {
 		return ".deb";
 	},
+	get rpm() {
+		return ".rpm";
+	},
 	get source() {
 		return "Source build";
 	},
@@ -361,6 +364,7 @@ export const NO_RESTORE = {
 	file: undefined,
 	manual: undefined,
 	deb: undefined,
+	rpm: undefined,
 	get source() {
 		return "Built in a fresh clone, so there is no restore point.";
 	},

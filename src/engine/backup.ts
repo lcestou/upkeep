@@ -13,6 +13,7 @@ import { basename, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { AppSpec, RestorePoint } from "../shared/types";
 import { dropTree } from "./drop";
+import { isPackage, PACKAGE_TOOL, type PackageKind, packageInstall } from "./kinds/package";
 import type { Paths } from "./paths";
 import { asRoot, installAside, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
 
@@ -21,8 +22,10 @@ export type BackupMeta = {
 	at: string;
 	files: { name: string; dest: string; mode: string }[];
 	sudo: boolean;
-	/** A .deb point: its one file is the old version's package, put back with dpkg -i. */
+	/** A .deb point: its one file is the old version's package, put back with dpkg -i. Older points on disk carry this. */
 	deb?: boolean;
+	/** An .rpm point: its one file is the old version's package, put back with rpm -U --oldpackage. */
+	rpm?: boolean;
 	/** A command app's point: no files, only the argv that puts this version back. */
 	command?: string[];
 	/** The tag that argv was filled with, so a later point of another version writes its tag the same way. */
@@ -60,14 +63,14 @@ export function pointName(version: string): string {
 }
 
 /**
- * A point for an app whose files are not Upkeep's to copy: a .deb (pass the old version's package as deb) or a
+ * A point for an app whose files are not Upkeep's to copy: a .deb or .rpm (pass the kind and the old version's package) or a
  * command app (pass the argv that installs this version again as command). Built aside and renamed in, as takeBackup's.
  */
 export function takePoint(
 	paths: Paths,
 	spec: Pick<AppSpec, "key">,
 	version: string,
-	how: { deb: string } | { command: string[]; tag?: string },
+	how: { package: PackageKind; file: string } | { command: string[]; tag?: string },
 	at = new Date().toISOString(),
 ): RestorePoint {
 	const dir = join(backupDir(paths, spec.key), pointName(version));
@@ -76,11 +79,11 @@ export function takePoint(
 	mkdirSync(tmp, { recursive: true });
 	try {
 		const meta: BackupMeta = { version, at, files: [], sudo: false };
-		if ("deb" in how) {
-			const name = basename(how.deb);
-			copyFileSync(how.deb, join(tmp, name));
+		if ("package" in how) {
+			const name = basename(how.file);
+			copyFileSync(how.file, join(tmp, name));
 			meta.files.push({ name, dest: "", mode: "644" });
-			meta.deb = true;
+			meta[how.package] = true;
 		} else {
 			meta.command = how.command;
 			meta.tag = how.tag;
@@ -167,11 +170,14 @@ export async function restoreBackup(
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		return r.code === 0 ? { ok: true } : { ok: false, detail: MESSAGES.commandExited(meta.command.join(" "), r.code) };
 	}
-	if (meta.deb) {
-		const deb = join(dir, meta.files[0]?.name ?? "");
-		const r = await run(asRoot(["dpkg", "-i", deb], true), { timeoutMs: 600_000 });
+	const kind = meta.deb ? "deb" : meta.rpm ? "rpm" : null;
+	if (kind && isPackage(kind)) {
+		const file = join(dir, meta.files[0]?.name ?? "");
+		const r = await run(asRoot(packageInstall(kind, file), true), { timeoutMs: 600_000 });
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
-		return r.code === 0 ? { ok: true } : { ok: false, detail: MESSAGES.dpkgCouldNotPutBack(version) };
+		return r.code === 0
+			? { ok: true }
+			: { ok: false, detail: MESSAGES.packageCouldNotPutBack(PACKAGE_TOOL[kind], version) };
 	}
 	for (const f of meta.files) {
 		// oxlint-disable-next-line no-await-in-loop -- files go back one at a time so a failure stops the rest

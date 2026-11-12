@@ -21,6 +21,7 @@ import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { isRunning } from "../running";
 import { clearInflight, writeInflight } from "../store";
 import { isNewer } from "../version";
+import { isPackage, PACKAGE_TOOL, packageInstall } from "./package";
 import {
 	type Checked,
 	fromRelease,
@@ -31,18 +32,15 @@ import {
 	type Target,
 } from "./context";
 
-/** The tool a .deb installs with; Add app offers a .deb only where it is on PATH. */
-export const DEB_TOOL = "dpkg";
-
 /**
- * Whether an install of this app keeps a restore point. A file kind copies its files; a .deb keeps the installed
+ * Whether an install of this app keeps a restore point. A file kind copies its files; a .deb or .rpm keeps the installed
  * version's package from its GitHub release; a command app needs its table's restore argv; a source app keeps one
  * only with a dir or stage (one built in a fresh clone runs make install, which writes many files).
  */
 export function canRestore(spec: Pick<AppSpec, "kind" | "dir" | "stage" | "restore">): boolean {
 	if (spec.kind === "source") return Boolean(spec.dir || spec.stage);
 	if (spec.kind === "command") return (spec.restore?.length ?? 0) > 0;
-	return spec.kind === "appimage" || spec.kind === "archive" || spec.kind === "file" || spec.kind === "deb";
+	return spec.kind === "appimage" || spec.kind === "archive" || spec.kind === "file" || isPackage(spec.kind);
 }
 
 /** The app's dest with a leading ~ expanded to the home in paths; an app with no dest gives an empty path. */
@@ -164,7 +162,7 @@ function resolved(p: string): string {
 	}
 }
 
-/** Downloads, backs up, installs and verifies one appimage, archive, file or deb app. */
+/** Downloads, backs up, installs and verifies one appimage, archive, file, deb or rpm app. */
 export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const asset = target.asset;
 	if (!asset) throw new Error(MESSAGES.noReleaseAssetFor(spec.name));
@@ -193,12 +191,18 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		verifyAsset(got, asset);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}`);
 
-		if (restorable && spec.kind === "deb" && target.from) {
+		if (restorable && isPackage(spec.kind) && target.from) {
 			clock.start("backup");
-			const old = await oldDeb(spec, target, ctx);
+			const old = await oldPackage(spec, target, ctx);
 			if ("problem" in old) ctx.log(`No restore point: ${old.problem}`);
 			else {
-				takePoint(ctx.paths, spec, target.from, { deb: old.file }, (ctx.now?.() ?? new Date()).toISOString());
+				takePoint(
+					ctx.paths,
+					spec,
+					target.from,
+					{ package: spec.kind, file: old.file },
+					(ctx.now?.() ?? new Date()).toISOString(),
+				);
 				rmSync(dirname(old.file), { recursive: true, force: true });
 				backupVersion = target.from;
 				ctx.log(`Restore point ${target.from} taken`);
@@ -274,26 +278,30 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				if (!existed.has(to)) added.push(to);
 				ctx.log(`Installed ${name} to ${to}`);
 			}
-		} else if (spec.kind === "deb") {
-			const r = await ctx.run(asRoot([DEB_TOOL, "-i", dl], true), { timeoutMs: 600_000, onLine: (l) => ctx.log(l) });
+		} else if (isPackage(spec.kind)) {
+			const tool = PACKAGE_TOOL[spec.kind];
+			const r = await ctx.run(asRoot(packageInstall(spec.kind, dl), true), {
+				timeoutMs: 600_000,
+				onLine: (l) => ctx.log(l),
+			});
 			if (sudoNeedsPassword(r))
 				return finish({ result: "failed", installed: target.from, detail: SUDO_PASSWORD, restartToApply: false });
 			if (r.code !== 0) {
-				// dpkg can leave the new package half unpacked, so the point goes back in.
+				// The tool can leave the new package half unpacked, so the point goes back in.
 				const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
 				if (back?.ok)
 					return finish({
 						result: "rolled_back",
 						installed: backupVersion,
-						detail: MESSAGES.dpkgRestored(asset.name, String(backupVersion)),
+						detail: MESSAGES.packageRestored(tool, asset.name, String(backupVersion)),
 						restartToApply: false,
 					});
-				if (!back) throw new StepError(MESSAGES.dpkgSeeLog(asset.name));
+				if (!back) throw new StepError(MESSAGES.packageSeeLog(tool, asset.name));
 				ctx.log(`Restore failed: ${back.detail ?? ""}`);
 				return finish({
 					result: "failed",
 					installed: await installedNow(spec, ctx),
-					detail: MESSAGES.dpkgPutBackFailed(asset.name, String(backupVersion)),
+					detail: MESSAGES.packagePutBackFailed(tool, asset.name, String(backupVersion)),
 					restartToApply: false,
 				});
 			}
@@ -328,11 +336,15 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 }
 
 /**
- * The installed version's .deb, from the release whose tag is the new one's with the installed version in its place
+ * The installed version's package, from the release whose tag is the new one's with the installed version in its place
  * ("v1.5.3" for 1.5.3 gives "v1.5.1" for 1.5.1), matched with the app's own asset pattern and checked like any
  * download. A tag that does not hold the version, a missing release or no matching asset is a problem, never a throw.
  */
-async function oldDeb(spec: AppSpec, target: Target, ctx: KindCtx): Promise<{ file: string } | { problem: string }> {
+async function oldPackage(
+	spec: AppSpec,
+	target: Target,
+	ctx: KindCtx,
+): Promise<{ file: string } | { problem: string }> {
 	const from = target.from ?? "";
 	if (!target.tag.includes(target.version)) return { problem: `${target.tag} does not name its version.` };
 	const tag = target.tag.replace(target.version, from);
@@ -346,7 +358,7 @@ async function oldDeb(spec: AppSpec, target: Target, ctx: KindCtx): Promise<{ fi
 	});
 	if (isFailure(release)) return { problem: `${tag}: ${release.detail}` };
 	const picked = pickAsset(release, spec.asset ?? "");
-	if (!picked) return { problem: `the ${tag} release has no .deb matching ${spec.asset ?? ""}.` };
+	if (!picked) return { problem: `the ${tag} release has no package matching ${spec.asset ?? ""}.` };
 	if (picked.count > 1) return { problem: `more than one ${tag} asset matches ${spec.asset ?? ""}.` };
 	// A folder of its own, so the point keeps the package under the name it was released with.
 	const file = join(ctx.paths.cache, "dl", `${spec.key}-old`, picked.asset.name);
