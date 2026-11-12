@@ -103,7 +103,7 @@ export function writeAtomic(file: string, text: string): void {
 	renameSync(tmp, file);
 }
 
-/** How long a writer waits for another's lock, and how old a lock with no readable pid is before it counts as left behind. */
+/** How long a writer waits for another's lock, and how old a lock is before it counts as left behind whatever its pid. */
 const STATE_LOCK_WAIT_MS = 2000;
 const STATE_LOCK_STALE_MS = 10_000;
 
@@ -118,17 +118,19 @@ function lockPid(lock: string): number | null {
 }
 
 /**
- * True when the lock was left by a process that is gone: its pid has no /proc entry. A lock with no readable pid
- * counts as left behind only once it is older than STATE_LOCK_STALE_MS. A slow but live holder is never taken over.
+ * True when the lock was left behind: its holder's pid has no /proc entry, or the lock is older than
+ * STATE_LOCK_STALE_MS whatever its pid. The change it guards takes milliseconds, so a holder that old is gone, and a
+ * pid reused since a crash cannot keep a dead lock alive. A lock that vanished is not abandoned: the next try makes one.
  */
 function lockAbandoned(lock: string): boolean {
-	const pid = lockPid(lock);
-	if (pid !== null) return !existsSync(join("/proc", String(pid)));
+	let age: number;
 	try {
-		return Date.now() - statSync(lock).mtimeMs > STATE_LOCK_STALE_MS;
+		age = Date.now() - statSync(lock).mtimeMs;
 	} catch {
 		return false;
 	}
+	const pid = lockPid(lock);
+	return age > STATE_LOCK_STALE_MS || (pid !== null && !existsSync(join("/proc", String(pid))));
 }
 
 /**
@@ -149,9 +151,14 @@ function withStateLock<T>(paths: Paths, fn: () => T): T {
 			break;
 		} catch (err) {
 			// SAFETY: writeFileSync throws an ErrnoException, which carries the code.
-			if ((err as NodeJS.ErrnoException).code !== "EEXIST") break;
-			if (lockAbandoned(lock)) rmSync(lock, { force: true });
-			else if (Date.now() > until) break;
+			if ((err as NodeJS.ErrnoException).code !== "EEXIST" || Date.now() > until) break;
+			if (lockAbandoned(lock))
+				try {
+					rmSync(lock, { force: true });
+				} catch {
+					// Not ours to remove (a directory, a permission): go on without the lock.
+					break;
+				}
 			else Bun.sleepSync(10);
 		}
 	}

@@ -56,9 +56,14 @@ test("a live holder's lock is waited for, never taken; a pidless old one is; and
 	expect(Date.now() - started).toBeGreaterThanOrEqual(1900);
 	expect(existsSync(lock)).toBe(true);
 	expect(loadState(t.paths).hold.a).toBe(true);
-	// An old lock with no pid in it counts as left behind.
-	writeFileSync(lock, "");
+	// An old lock counts as left behind even when its pid is alive again (reused after a crash), and so does a pidless one.
 	const old = new Date(Date.now() - 60_000);
+	utimesSync(lock, old, old);
+	updateState(t.paths, (s) => {
+		s.hold.reused = true;
+	});
+	expect(existsSync(lock)).toBe(false);
+	writeFileSync(lock, "");
 	utimesSync(lock, old, old);
 	updateState(t.paths, (s) => {
 		s.hold.b = true;
@@ -75,4 +80,14 @@ test("a live holder's lock is waited for, never taken; a pidless old one is; and
 	).toThrow();
 	chmodSync(ro.paths.state, 0o755);
 	ro.cleanup();
+});
+
+test("a lock that cannot be removed is gone around, and the change still goes through", () => {
+	mkdirSync(join(t.paths.state, "state.json.lock"), { recursive: true });
+	const old = new Date(Date.now() - 60_000);
+	utimesSync(join(t.paths.state, "state.json.lock"), old, old);
+	updateState(t.paths, (s) => {
+		s.hold.dir = true;
+	});
+	expect(loadState(t.paths).hold.dir).toBe(true);
 });
