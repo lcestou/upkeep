@@ -1,5 +1,6 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import type { AppKind, AppSpec, Serve, Service, Test } from "../shared/types";
 import type { Paths } from "./paths";
 
@@ -75,56 +76,54 @@ export function isRecord(v: unknown): v is Record<string, unknown> {
 /** One [apps.<key>] table checked and lifted into an AppSpec, or the reason it is refused. */
 export function lift(key: string, table: Record<string, unknown>): AppSpec | string {
 	const kind = KINDS.find((k) => k === table.kind);
-	if (kind === undefined) return `${key}: kind is not one of ${KINDS.join(", ")}`;
+	if (kind === undefined) return MESSAGES.liftKindNotOneOf(key, KINDS.join(", "));
 	const spec: AppSpec = { key, name: "", kind };
 	for (const f of STRING_FIELDS) {
 		const v = table[f];
 		if (v === undefined) continue;
-		if (typeof v !== "string") return `${key}: ${f} must be a string`;
+		if (typeof v !== "string") return MESSAGES.liftMustBeString(key, f);
 		spec[f] = v;
 	}
 	for (const f of LIST_FIELDS) {
 		const v = table[f];
 		if (v === undefined) continue;
 		if (!Array.isArray(v) || !v.every((x): x is string => typeof x === "string"))
-			return `${key}: ${f} must be a list of strings`;
+			return MESSAGES.liftMustBeList(key, f);
 		spec[f] = v;
 	}
 	for (const f of BOOL_FIELDS) {
 		const v = table[f];
 		if (v === undefined) continue;
-		if (typeof v !== "boolean") return `${key}: ${f} must be true or false`;
+		if (typeof v !== "boolean") return MESSAGES.liftMustBeBool(key, f);
 		spec[f] = v;
 	}
 	const needed: Field[] = ["name", ...required(spec.kind)];
 	for (const f of needed) {
 		const v = spec[f];
 		if (v === undefined || v === "" || (Array.isArray(v) && v.length === 0))
-			return `${key}: ${f} is required for kind ${spec.kind}`;
+			return MESSAGES.liftRequiredForKind(key, f, spec.kind);
 	}
 	if (spec.asset !== undefined) {
 		try {
 			RegExp(spec.asset);
 		} catch {
-			return `${key}: asset is not a valid regular expression`;
+			return MESSAGES.liftAssetNotRegex(key);
 		}
 	}
 	// Only it installs with no version to compare; on any other kind the row would be picked and fail every run.
 	if (spec.kind === "claude-plugins") spec.versionless = true;
-	else if (spec.versionless) return `${key}: versionless is only for kind claude-plugins`;
-	if (spec.kind === "appimage" && !spec.repo && !spec.latest)
-		return `${key}: repo or latest is required for kind appimage`;
+	else if (spec.versionless) return MESSAGES.liftVersionlessOnly(key);
+	if (spec.kind === "appimage" && !spec.repo && !spec.latest) return MESSAGES.liftAppimageRepoOrLatest(key);
 	// A source the check cannot read fails here, at load, not later at every check.
 	if (spec.latest !== undefined && !/^(npm|pypi|github|npm-tags|json):./.test(spec.latest))
-		return `${key}: latest must start with npm:, pypi:, github:, npm-tags: or json:`;
+		return MESSAGES.liftLatestScheme(key);
 	// Only an AppImage installs the download a json: answer names; any other kind would read it as a GitHub repo.
-	if (spec.latest?.startsWith("json:") && spec.kind !== "appimage")
-		return `${key}: a json: latest is only for kind appimage`;
+	if (spec.latest?.startsWith("json:") && spec.kind !== "appimage") return MESSAGES.liftJsonOnlyAppimage(key);
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.
-	if (spec.relaunch && !spec.dest) return `${key}: relaunch needs dest`;
-	if (spec.relaunch && !spec.process) return `${key}: relaunch needs process`;
+	if (spec.relaunch && !spec.dest) return MESSAGES.liftRelaunchNeedsDest(key);
+	if (spec.relaunch && !spec.process) return MESSAGES.liftRelaunchNeedsProcess(key);
 	if (spec.relaunch && SHARED_NAMES.has(spec.process ?? ""))
-		return `${key}: relaunch would close every ${spec.process ?? ""} process; give process the app's own name`;
+		return MESSAGES.liftRelaunchShared(key, spec.process ?? "");
 	if (spec.kind === "source") {
 		const refused = liftSource(key, table, spec);
 		if (refused) return refused;
@@ -254,13 +253,12 @@ function unsafeSourcePath(key: string, spec: AppSpec): string | null {
 		for (const raw of spec[field] ?? []) {
 			const p = tidy(raw);
 			const inside = rooted(p) ? scope !== null && within(p, scope) : dir !== null && p !== ".";
-			if (!inside || p.split("/").includes("..")) return `${key}: ${field} must stay inside dir`;
+			if (!inside || p.split("/").includes("..")) return MESSAGES.liftInsideDir(key, field);
 		}
 	const kept = new Set((spec.keep ?? []).map(tidy));
 	// After a verified update the held copy is deleted; keep is then the only old copy a later restore has.
-	if ((spec.hold ?? []).some((h) => !kept.has(tidy(h)))) return `${key}: every hold path must also be in keep`;
-	if ((spec.place ?? []).some((pl) => dirname(tidy(pl.to)) === "~"))
-		return `${key}: place to cannot be a folder directly in the home directory`;
+	if ((spec.hold ?? []).some((h) => !kept.has(tidy(h)))) return MESSAGES.liftHoldInKeep(key);
+	if ((spec.place ?? []).some((pl) => dirname(tidy(pl.to)) === "~")) return MESSAGES.liftPlaceInHome(key);
 	if (stage !== null) {
 		const live = [dir, ...(spec.place ?? []).map((pl) => tidy(pl.to))].filter((x): x is string => x !== null);
 		if (
@@ -271,7 +269,7 @@ function unsafeSourcePath(key: string, spec: AppSpec): string | null {
 			(!rooted(stage) && dir === null) ||
 			live.some((l) => l === stage || within(l, stage))
 		)
-			return `${key}: stage cannot be the home directory or the live copy`;
+			return MESSAGES.liftStageUnsafe(key);
 	}
 	return null;
 }
@@ -281,25 +279,25 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	for (const f of SOURCE_STRINGS) {
 		const v = table[f];
 		if (v === undefined) continue;
-		if (typeof v !== "string") return `${key}: ${f} must be a string`;
+		if (typeof v !== "string") return MESSAGES.liftMustBeString(key, f);
 		spec[f] = v;
 	}
 	for (const f of SOURCE_LISTS) {
 		const v = table[f];
 		if (v === undefined) continue;
 		if (!Array.isArray(v) || !v.every((x): x is string => typeof x === "string"))
-			return `${key}: ${f} must be a list of strings`;
+			return MESSAGES.liftMustBeList(key, f);
 		spec[f] = v;
 	}
-	if (!spec.check && !spec.dest) return `${key}: check or dest is required for kind source`;
-	if (!spec.repo && !spec.latest) return `${key}: repo or latest is required for kind source`;
+	if (!spec.check && !spec.dest) return MESSAGES.liftSourceCheckOrDest(key);
+	if (!spec.repo && !spec.latest) return MESSAGES.liftSourceRepoOrLatest(key);
 	if (table.move !== undefined) {
 		const move = MOVES.find((m) => m === table.move);
-		if (move === undefined) return `${key}: move must be ff, reset or detach`;
-		if (spec.dir === undefined) return `${key}: move needs dir`;
+		if (move === undefined) return MESSAGES.liftMoveValues(key);
+		if (spec.dir === undefined) return MESSAGES.liftMoveNeedsDir(key);
 		spec.move = move;
 	}
-	if (spec.commit && !spec.repo) return `${key}: commit needs a GitHub repo`;
+	if (spec.commit && !spec.repo) return MESSAGES.liftCommitNeedsRepo(key);
 
 	// Lists of tables: each entry is checked, then lifted with only the keys it may carry.
 	const each = <F extends TableList>(
@@ -308,13 +306,13 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	): Item<F>[] | string | undefined => {
 		const v = table[field];
 		if (v === undefined) return undefined;
-		if (!Array.isArray(v)) return `${key}: ${field} entry 1 needs to be a table`;
+		if (!Array.isArray(v)) return MESSAGES.liftEntryNotTable(key, field);
 		const out: Item<F>[] = [];
 		for (const [i, e] of v.entries()) {
 			const r = isRecord(e) ? lift1(e) : { missing: "to be a table" };
-			if (r === "pattern") return `${key}: ${field} entry ${i + 1} has an invalid pattern`;
+			if (r === "pattern") return MESSAGES.liftEntryBadPattern(key, field, i + 1);
 			if (typeof r === "object" && r !== null && "missing" in r)
-				return `${key}: ${field} entry ${i + 1} needs ${r.missing}`;
+				return MESSAGES.liftEntryNeeds(key, field, i + 1, r.missing);
 			// SAFETY: r is neither "pattern" nor a { missing } object, and no lifted entry type has a missing field.
 			out.push(r as Item<F>);
 		}
@@ -349,7 +347,7 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	});
 	if (Array.isArray(table.busy)) {
 		const i = table.busy.findIndex((e) => isRecord(e) && e.when !== undefined && e.when !== "stopped");
-		if (i >= 0 && typeof busy !== "string") return `${key}: busy entry ${i + 1} when must be stopped`;
+		if (i >= 0 && typeof busy !== "string") return MESSAGES.liftBusyWhen(key, i + 1);
 	}
 	const pause = each("pause", (e) => liftService(e, false));
 	const test = each("test", liftTest);
@@ -377,7 +375,7 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	});
 	for (const r of [record, config, place, busy, pause, test, serve]) if (typeof r === "string") return r;
 	const typo = unknownPlaceholder(table);
-	if (typo) return `${key}: unknown placeholder {${typo.name}} in ${typo.field}`;
+	if (typo) return MESSAGES.liftUnknownPlaceholder(key, typo.name, typo.field);
 	// The loop above returned every string, so each list is an array or absent.
 	if (Array.isArray(record)) spec.record = record;
 	if (Array.isArray(config)) spec.config = config;
@@ -425,12 +423,12 @@ export function parseManifest(text: string, label: string): { apps: AppSpec[]; e
 	if (tables === undefined)
 		return isRecord(doc) && Object.keys(doc).length === 0
 			? { apps: [], errors: [] }
-			: { apps: [], errors: [`${file}: no [apps.<key>] tables`] };
-	if (!isRecord(tables)) return { apps: [], errors: [`${file}: apps is not a table of [apps.<key>] tables`] };
+			: { apps: [], errors: [MESSAGES.manifestNoAppsTables(file)] };
+	if (!isRecord(tables)) return { apps: [], errors: [MESSAGES.manifestAppsNotTable(file)] };
 	const apps: AppSpec[] = [];
 	const errors: string[] = [];
 	for (const [key, table] of Object.entries(tables)) {
-		const result = isRecord(table) ? lift(key, table) : `${key}: is not a table`;
+		const result = isRecord(table) ? lift(key, table) : MESSAGES.manifestEntryNotTable(key);
 		if (typeof result === "string") errors.push(result);
 		else apps.push(result);
 	}

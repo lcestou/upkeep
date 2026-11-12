@@ -1,3 +1,4 @@
+import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, Settings, Stage } from "../../shared/types";
 import type { Asset, FetchLike, Rate, Release } from "../github";
 import type { Paths } from "../paths";
@@ -5,7 +6,7 @@ import { type ProbeResult, readProbe, stripEscapes } from "../probe";
 import type { Run } from "../run";
 
 /** Install and every other restore wait until the interrupted update is put back: its marker is the only record of it. */
-export const REASON_UNRECOVERED = "An update was interrupted and could not be put back. Restore it from its row first.";
+export const REASON_UNRECOVERED = MESSAGES.reasonUnrecovered();
 
 /** What a kind needs from the engine. Every path and process goes through here so tests pass temp dirs and fakes. */
 export type KindCtx = {
@@ -90,8 +91,8 @@ export function stageClock(ctx: KindCtx) {
 
 /** The sentence for a probe that found the app but read no version: a broken one will not start, any other shows the probe's own detail. */
 export function probeProblem(name: string, dest: string, probe: Exclude<ProbeResult, { version: string }>): string {
-	if (probe.state === "broken") return `${name} will not start (${dest}).`;
-	return `Version probe failed${probe.detail ? `: ${probe.detail}` : "."}`;
+	if (probe.state === "broken") return MESSAGES.willNotStart(name, dest);
+	return probe.detail ? MESSAGES.versionProbeFailedWithDetail(probe.detail) : MESSAGES.versionProbeFailed();
 }
 
 /**
@@ -108,7 +109,7 @@ export async function readInstalled(
 	if (out.code === 127) return null;
 	const first = stripEscapes(out.stdout).split("\n")[0]?.trim() ?? "";
 	let probe = readProbe(out.code, out.stdout);
-	if ("version" in probe && !first) probe = { state: "unknown", detail: "The version probe printed nothing." };
+	if ("version" in probe && !first) probe = { state: "unknown", detail: MESSAGES.versionProbePrintedNothing() };
 	return { probe, installed: "version" in probe ? first : null };
 }
 

@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { open } from "node:fs/promises";
 import { dirname } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import type { Asset, FetchLike } from "./github";
 
 export type DownloadOpts = {
@@ -44,7 +45,7 @@ async function attempt(
 		const res = await opts.fetch(url, { signal: ctl.signal, redirect: "follow" });
 		// An answer of any status is not a network error, so it is not retried.
 		started.any = true;
-		if (!res.ok || !res.body) throw new Error(`Download failed: the server answered ${res.status}.`);
+		if (!res.ok || !res.body) throw new Error(MESSAGES.downloadHttpFailed(res.status));
 		const length = Number(res.headers.get("content-length"));
 		const total = length > 0 ? length : null;
 		const hasher = new Bun.CryptoHasher("sha256");
@@ -68,7 +69,7 @@ async function attempt(
 		await fh.sync();
 		return { bytes, sha256: hasher.digest("hex") };
 	} catch (err) {
-		if (stalled) throw new Stalled("Download stalled.");
+		if (stalled) throw new Stalled(MESSAGES.downloadStalled());
 		throw err;
 	} finally {
 		await fh.close();
@@ -100,11 +101,10 @@ export const MIN_UNLISTED_BYTES = 1024 * 1024;
  */
 export function verifyAsset(result: DownloadResult, asset: Pick<Asset, "size" | "digest">): void {
 	if (asset.size > 0 && result.bytes !== asset.size)
-		throw new Error(`Download is ${result.bytes} bytes, expected ${asset.size}.`);
-	if (asset.size === 0 && result.bytes < MIN_UNLISTED_BYTES)
-		throw new Error(`Download is ${result.bytes} bytes, too small to be a release.`);
+		throw new Error(MESSAGES.downloadSizeMismatch(result.bytes, asset.size));
+	if (asset.size === 0 && result.bytes < MIN_UNLISTED_BYTES) throw new Error(MESSAGES.downloadTooSmall(result.bytes));
 	if (asset.digest) {
 		const want = asset.digest.replace(/^sha256:/, "").toLowerCase();
-		if (want !== result.sha256) throw new Error("Checksum does not match the release.");
+		if (want !== result.sha256) throw new Error(MESSAGES.checksumMismatch());
 	}
 }

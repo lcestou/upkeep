@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { isFailure, latestFromSource } from "../github";
 import { probeCommand } from "../probe";
@@ -89,7 +90,7 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 			return {
 				result: "rolled_back",
 				installed: point,
-				detail: `Would not start after the update. Restored ${point}.`,
+				detail: MESSAGES.wouldNotStartRestored(String(point)),
 				restartToApply: false,
 				stages,
 			};
@@ -98,10 +99,10 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 			result: "failed",
 			installed: target.from,
 			detail: point
-				? `Would not start after the update, and putting ${point} back failed. See the log.`
+				? MESSAGES.wouldNotStartPutBackFailed(point)
 				: spec.restore?.length
-					? "Would not start after the update. No restore point: the installed version was not known."
-					: "Would not start after the update. Its table has no restore command.",
+					? MESSAGES.wouldNotStartNoVersionKnown()
+					: MESSAGES.wouldNotStartNoRestoreCommand(),
 			restartToApply: false,
 			stages,
 		};
@@ -110,11 +111,11 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 		return {
 			result: "failed",
 			installed: after.version,
-			detail: `Still at ${after.version} after the update command.`,
+			detail: MESSAGES.stillAtAfterCommand(after.version),
 			restartToApply: false,
 			stages,
 		};
 	if (point) prune(ctx.paths, spec.key, ctx.settings.keepBackups);
-	const detail = after.version !== target.version ? `Reports ${after.version}.` : undefined;
+	const detail = after.version !== target.version ? MESSAGES.reportsVersion(after.version) : undefined;
 	return { result: "done", installed: after.version, detail, restartToApply: spec.note !== undefined, stages };
 }

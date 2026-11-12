@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { MESSAGES } from "../shared/messages";
 import type { AppSpec } from "../shared/types";
 import { isRunning, topPids } from "./running";
 import { type Run, sudoNeedsPassword } from "./run";
@@ -30,7 +31,7 @@ export function terminate(pid: number): void {
  */
 export function launchDetached(argv: string[]): Promise<string | null> {
 	const [cmd, ...args] = argv;
-	if (!cmd) return Promise.resolve("nothing to start");
+	if (!cmd) return Promise.resolve(MESSAGES.nothingToStart());
 	return new Promise((resolve) => {
 		const child = spawn(cmd, args, { detached: true, stdio: "ignore" });
 		child.once("error", (err) => resolve(err.message));
@@ -55,23 +56,19 @@ export async function restartApp(
 ): Promise<{ ok: boolean; detail?: string }> {
 	if (spec.restart?.length) {
 		const r = await ctx.run(spec.restart, { timeoutMs: 120_000 });
-		if (sudoNeedsPassword(r))
-			return { ok: false, detail: `sudo needs a password here. Restart ${spec.name} yourself.` };
-		return r.code === 0 ? { ok: true } : { ok: false, detail: `${spec.restart.join(" ")} exited ${r.code}.` };
+		if (sudoNeedsPassword(r)) return { ok: false, detail: MESSAGES.restartSudoPassword(spec.name) };
+		return r.code === 0 ? { ok: true } : { ok: false, detail: MESSAGES.commandExited(spec.restart.join(" "), r.code) };
 	}
-	if (!spec.relaunch || !dest || !spec.process)
-		return { ok: false, detail: `${spec.name}'s table does not say how to restart it.` };
+	if (!spec.relaunch || !dest || !spec.process) return { ok: false, detail: MESSAGES.noRestartHow(spec.name) };
 	const who = { kind: spec.kind, process: spec.process };
 	// Only the top processes: each one's children quit with it.
 	for (const pid of topPids(who, ctx.procRoot)) ctx.signal(pid);
 	const until = Date.now() + (ctx.closeMs ?? 15_000);
 	while (isRunning(who, ctx.procRoot)) {
-		if (Date.now() > until) return { ok: false, detail: `${spec.name} did not close. Close it, then open it again.` };
+		if (Date.now() > until) return { ok: false, detail: MESSAGES.didNotClose(spec.name) };
 		// oxlint-disable-next-line no-await-in-loop -- polling until the app has quit is the point
 		await Bun.sleep(ctx.pollMs);
 	}
 	const failed = await ctx.launch([dest]);
-	return failed
-		? { ok: false, detail: `${spec.name} closed, but could not be started again: ${failed}` }
-		: { ok: true };
+	return failed ? { ok: false, detail: MESSAGES.closedNotStarted(spec.name, failed) } : { ok: true };
 }

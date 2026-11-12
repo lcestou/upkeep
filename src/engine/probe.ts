@@ -1,3 +1,4 @@
+import { MESSAGES } from "../shared/messages";
 import { jsonVersion } from "./github";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
@@ -25,7 +26,7 @@ export function stripEscapes(text: string): string {
 export function readProbe(code: number, output: string): ProbeResult {
 	if (code !== 0 && BROKEN.test(output)) return { state: "broken", detail: output.split("\n")[0]?.trim() ?? "" };
 	const text = stripEscapes(output);
-	if (!text.trim()) return { state: "unknown", detail: "The version probe printed nothing." };
+	if (!text.trim()) return { state: "unknown", detail: MESSAGES.versionProbePrintedNothing() };
 	const version = extractVersion(text);
 	return version ? { version } : { state: "unknown", detail: text.split("\n")[0]?.trim() ?? "" };
 }
@@ -68,9 +69,9 @@ export async function probeAppImageMeta(file: string, metaPath: string, opts: Me
 			// oxlint-disable-next-line no-await-in-loop -- polling for the mount point
 			await Bun.sleep(opts.pollMs ?? 500);
 		}
-		if (!proc || !mountDir) return { state: "unknown", detail: `${file} never reported a mount point.` };
+		if (!proc || !mountDir) return { state: "unknown", detail: MESSAGES.neverReportedMount(file) };
 		const meta = findCaseless(join(mountDir, metaPath));
-		if (!meta) return { state: "unknown", detail: `${metaPath} is missing inside ${file}.` };
+		if (!meta) return { state: "unknown", detail: MESSAGES.metaMissing(metaPath, file) };
 		const text = readFileSync(meta, "utf8");
 		const version = metaPath.endsWith(".json")
 			? jsonVersion(text)
@@ -78,7 +79,7 @@ export async function probeAppImageMeta(file: string, metaPath: string, opts: Me
 					? /^X-AppImage-Version=(.*)$/m.exec(text)
 					: /release version="([^"]+)"/.exec(text)
 				)?.[1]?.trim();
-		return version ? { version } : { state: "unknown", detail: `${metaPath} names no version.` };
+		return version ? { version } : { state: "unknown", detail: MESSAGES.metaNoVersion(metaPath) };
 	} catch (err) {
 		return { state: "unknown", detail: err instanceof Error ? err.message : String(err) };
 	} finally {

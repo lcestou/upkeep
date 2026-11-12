@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { MESSAGES } from "../../shared/messages";
 import { isRecord } from "../manifest";
 import { type Checked, type KindCtx, type Outcome, stageClock } from "./context";
 
@@ -108,14 +109,14 @@ export async function installClaudePlugins(ctx: KindCtx): Promise<Outcome> {
 		return {
 			result: "failed",
 			installed: null,
-			detail: `Could not update ${failed.join(", ")}. See the log.`,
+			detail: MESSAGES.couldNotUpdatePlugins(failed.join(", ")),
 			restartToApply: false,
 			stages,
 		};
 	return {
 		result: "done",
 		installed: null,
-		detail: updated > 0 ? `Updated ${updated}. New sessions pick them up.` : undefined,
+		detail: updated > 0 ? MESSAGES.pluginsUpdated(updated) : undefined,
 		restartToApply: false,
 		stages,
 	};

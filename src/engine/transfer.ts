@@ -1,5 +1,6 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import type { ExtrasSettings, Settings } from "../shared/types";
 import { loadExtras, updateExtras } from "./extras/state";
 import { ensureManifest, isRecord, parseManifest } from "./manifest";
@@ -64,11 +65,11 @@ export function importSetup(
 	try {
 		doc = JSON.parse(text);
 	} catch (err) {
-		return { ok: false, problems: [`not JSON: ${err instanceof Error ? err.message : String(err)}`] };
+		return { ok: false, problems: [MESSAGES.importNotJson(err instanceof Error ? err.message : String(err))] };
 	}
-	if (!isRecord(doc)) return { ok: false, problems: ["not an Upkeep export: the file is not an object"] };
-	if (doc.upkeep !== 1) return { ok: false, problems: ['not an Upkeep export this version reads: no "upkeep": 1'] };
-	if (typeof doc.apps !== "string") return { ok: false, problems: ['the export has no "apps" text'] };
+	if (!isRecord(doc)) return { ok: false, problems: [MESSAGES.importNotObject()] };
+	if (doc.upkeep !== 1) return { ok: false, problems: [MESSAGES.importWrongVersion()] };
+	if (typeof doc.apps !== "string") return { ok: false, problems: [MESSAGES.importNoApps()] };
 	const list = parseManifest(doc.apps, "apps");
 	if (list.errors.length > 0) return { ok: false, problems: list.errors };
 	const keys = new Set(list.apps.map((a) => a.key));
@@ -106,12 +107,12 @@ export function importSetup(
 			updateExtras(paths, doc.extras as Partial<ExtrasSettings>);
 		}
 	} catch (err) {
-		const why = `could not write: ${err instanceof Error ? err.message : String(err)}.`;
+		const why = MESSAGES.importCouldNotWrite(err instanceof Error ? err.message : String(err));
 		const stuck = rollBack(paths, kept, absent);
 		return {
 			ok: false,
 			problems:
-				stuck.length === 0 ? [`${why} Nothing was changed.`] : [`${why} Some files could not be put back:`, ...stuck],
+				stuck.length === 0 ? [MESSAGES.busySayNothingChanged(why)] : [MESSAGES.importSomeNotPutBack(why), ...stuck],
 		};
 	}
 	return { ok: true, apps: list.apps.length, kept: kept.map(([, copy]) => copy) };
@@ -131,14 +132,14 @@ function rollBack(paths: Paths, kept: [string, string][], absent: string[]): str
 			if (f === state) withStateLock(paths, put);
 			else put();
 		} catch {
-			stuck.push(`${f}: its copy from before is ${copy}`);
+			stuck.push(MESSAGES.importCopyFromBefore(f, copy));
 		}
 	}
 	for (const f of absent) {
 		try {
 			rmSync(f, { force: true });
 		} catch {
-			stuck.push(`${f}: written by this import, and could not be removed`);
+			stuck.push(MESSAGES.importCreatedNotRemoved(f));
 		}
 	}
 	return stuck;
