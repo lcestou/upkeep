@@ -191,10 +191,14 @@ test("without Update Manager the first package list installed answers: apt, then
 		),
 	);
 	expect(dnf.packages).toBe("dnf");
-	expect(dnf.rows.filter((r) => r.source === "dnf").map((r) => [r.name, r.type, r.installed, r.latest])).toEqual([
-		["firefox", "package", "145.0-2.fc43", "146.0-1.fc43"],
-		["kernel-core", "kernel", null, "6.17.8-300.fc43"],
-		["akmod-nvidia", "driver", null, "3:580.105.08-1.fc43"],
+	expect(dnf.rows.filter((r) => r.source === "dnf").map((r) => [r.id, r.type, r.installed, r.latest])).toEqual([
+		["dnf:firefox.x86_64", "package", "145.0-2.fc43", "146.0-1.fc43"],
+		["dnf:glibc.x86_64", "package", null, "2.42-2.fc43"],
+		["dnf:glibc.i686", "package", null, "2.42-2.fc43"],
+		["dnf:python3-some-really-long-package-name-for-testing.noarch", "package", null, "3.13.1-1.fc43"],
+		["dnf:kernel-core.x86_64", "kernel", null, "6.17.8-300.fc43"],
+		["dnf:akmod-nvidia.x86_64", "driver", null, "3:580.105.08-1.fc43"],
+		["dnf:nvidia-settings.x86_64", "package", null, "3:580.105.08-1.fc43"],
 	]);
 	// No checkupdates: pacman -Qu, which exits 1 when there is nothing.
 	const pac = await checkSystem(
@@ -206,10 +210,13 @@ test("without Update Manager the first package list installed answers: apt, then
 		),
 	);
 	expect(pac.packages).toBe("pacman");
+	// The ignored package is left out; linux-firmware and nvidia-settings are plain packages.
 	expect(pac.rows.filter((r) => r.source === "pacman").map((r) => [r.name, r.type, r.installed, r.latest])).toEqual([
 		["firefox", "package", "145.0-1", "146.0-1"],
 		["linux", "kernel", "6.17.7.arch1-1", "6.17.8.arch1-1"],
+		["linux-firmware", "package", "20251021-1", "20251111-1"],
 		["nvidia-utils", "driver", "580.95.05-1", "580.105.08-1"],
+		["nvidia-settings", "package", "580.95.05-1", "580.105.08-1"],
 	]);
 	const quiet = await checkSystem(
 		box(

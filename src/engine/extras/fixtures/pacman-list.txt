@@ -1,3 +1,6 @@
 firefox 145.0-1 -> 146.0-1
 linux 6.17.7.arch1-1 -> 6.17.8.arch1-1
+linux-firmware 20251021-1 -> 20251111-1
 nvidia-utils 580.95.05-1 -> 580.105.08-1
+nvidia-settings 580.95.05-1 -> 580.105.08-1
+steam 1.0.0.84-1 -> 1.0.0.85-1 [ignored]

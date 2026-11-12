@@ -7,7 +7,8 @@ export type SystemCheck = Pick<SystemState, "rows" | "problem" | "glMissing" | "
 
 /** The read-only commands. None needs root; none changes anything. */
 export const MINT_LIST = ["mintupdate-cli", "list"];
-// The package lists tried in turn when Linux Mint's is not installed; each reads its own cache, none refreshes it.
+// The package lists tried in turn when Linux Mint's is not installed. None needs root; apt and pacman -Qu read the
+// system's last refresh, while dnf and checkupdates may fetch fresh metadata into a cache of their own.
 export const APT_LIST = ["apt", "list", "--upgradable"];
 export const DNF_LIST = ["dnf", "-q", "check-update"];
 export const RPM_VERSIONS = ["rpm", "-qa", "--qf", "%{NAME}\t%{VERSION}-%{RELEASE}\n"];
@@ -125,11 +126,20 @@ function aptRows(list: string, sources: Map<string, string>): SystemRow[] {
 	});
 }
 
-/** A kernel or a GPU driver, by its package name on any of the four package systems; it needs a restart. */
+/**
+ * A kernel or a GPU driver, by its package name on any of the four package systems; it needs a restart. Only the
+ * driver and its kernel module count, never a tool beside them (nvidia-settings, nvidia-container-toolkit), and
+ * linux-firmware is a package.
+ */
 function typeOf(name: string): SystemRow["type"] | null {
-	if (/^(linux-(image|headers|modules|generic|signed)|kernel($|-)|linux(-lts|-zen|-hardened)?$)/.test(name))
+	if (
+		/^(linux-(image|headers|modules|generic|signed)|kernel($|-core|-modules)|linux(-lts|-zen|-hardened|-rt)?$)/.test(
+			name,
+		)
+	)
 		return "kernel";
-	if (/nvidia/.test(name)) return "driver";
+	const driver = /^(nvidia(-driver|-dkms|-open|-lts|-utils|-kernel)?(-|$)|a?kmod-nvidia|xorg-x11-drv-nvidia($|-))/;
+	if (driver.test(name) && !/settings|container|prime/.test(name)) return "driver";
 	return null;
 }
 
@@ -140,9 +150,10 @@ function packageRow(
 	installed: string | null,
 	latest: string,
 	security = false,
+	id = `${source}:${name}`,
 ): SystemRow {
 	const type = typeOf(name) ?? (security ? "security" : "package");
-	const row: SystemRow = { id: `${source}:${name}`, source, name, type, installed, latest, running: false };
+	const row: SystemRow = { id, source, name, type, installed, latest, running: false };
 	if (type === "kernel" || type === "driver") row.note = "update-manager-only";
 	return row;
 }
@@ -158,23 +169,34 @@ export function parseAptList(stdout: string): SystemRow[] {
 }
 
 /**
- * dnf check-update: "name.arch  version  repo" per line, the arch cut off the name, until an "Obsoleting Packages"
- * section, which lists replacements, not updates. installed is name to version from rpm.
+ * dnf check-update: "name.arch  version  repo" per line, the arch cut off the name and kept in the id, since a
+ * multilib package (glibc.x86_64 and glibc.i686) is listed once per arch. A name too long for its column is wrapped:
+ * it stands alone, and its version and repo follow on the next, indented line. It stops at "Obsoleting Packages",
+ * which lists replacements, not updates. installed is name to version from rpm.
  */
 export function parseDnfList(stdout: string, installed: Map<string, string>): SystemRow[] {
 	const rows: SystemRow[] = [];
-	for (const l of lines(stdout)) {
+	const all = lines(stdout);
+	for (let i = 0; i < all.length; i++) {
+		let l = all[i] ?? "";
 		if (/^Obsoleting/i.test(l)) break;
-		const m = /^(\S+)\.[^.\s]+\s+(\S+)\s+\S+$/.exec(l);
-		if (m) rows.push(packageRow("dnf", m[1] ?? "", installed.get(m[1] ?? "") ?? null, m[2] ?? ""));
+		if (/^\S+\.[^.\s]+$/.test(l) && /^\s+\S+\s+\S+$/.test(all[i + 1] ?? "")) {
+			i += 1;
+			l = `${l} ${(all[i] ?? "").trim()}`;
+		}
+		const m = /^(\S+)\.([^.\s]+)\s+(\S+)\s+\S+$/.exec(l);
+		if (!m) continue;
+		const [, name = "", arch = "", version = ""] = m;
+		rows.push(packageRow("dnf", name, installed.get(name) ?? null, version, false, `dnf:${name}.${arch}`));
 	}
 	return rows;
 }
 
-/** checkupdates and pacman -Qu: "name old -> new" per line. */
+/** checkupdates and pacman -Qu: "name old -> new" per line. A package pacman.conf ignores is not pending, so it is left out. */
 export function parsePacmanList(stdout: string): SystemRow[] {
 	const rows: SystemRow[] = [];
 	for (const l of lines(stdout)) {
+		if (l.endsWith("[ignored]")) continue;
 		const m = /^(\S+)\s+(\S+)\s+->\s+(\S+)/.exec(l);
 		if (m) rows.push(packageRow("pacman", m[1] ?? "", m[2] ?? null, m[3] ?? ""));
 	}
@@ -214,8 +236,8 @@ async function listWith(
 
 /**
  * The first package list this system has: Linux Mint's Update Manager, then apt, dnf and pacman (checkupdates, else
- * pacman -Qu). Each is tried only when the one before it is not installed. None of them needs root or refreshes a
- * cache, so the lists are as fresh as the system's own last refresh. Null when none is installed.
+ * pacman -Qu). Each is tried only when the one before it is not installed. None needs root. Null when none is
+ * installed.
  */
 async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null> {
 	const opts = { timeoutMs: 60_000 };

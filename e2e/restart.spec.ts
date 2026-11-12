@@ -8,6 +8,8 @@ async function updateZen(page: Page) {
 	await expect(sentence(page)).toHaveText(/updated/, { timeout: 20_000 });
 	await page.getByTestId("done").click();
 	await expect(page.getByTestId("restart-line")).toHaveText("Restart Zen Browser to finish.");
+	// The list settles once the run's group has gone; a click before that can land mid-reflow.
+	await expect(page.getByTestId("group-run")).toHaveCount(0);
 }
 
 test("the pane's Restart now asks before closing a desktop app, and Not now keeps the reminder", async ({ page }) => {
