@@ -362,7 +362,7 @@ async function jsonRelease(url: string, opts: ReleaseOpts): Promise<{ version: s
 }
 
 /**
- * A latest version from a source string: "npm:<pkg>", "pypi:<pkg>", "github:<owner>/<repo>", "npm-tags:<pkg>" or
+ * A latest version from a source string: "npm:<pkg>", "pypi:<pkg>", "crates:<crate>", "github:<owner>/<repo>", "npm-tags:<pkg>" or
  * "json:<url>" (an object with "version" and "downloadUrl"; an AppImage takes it in place of repo).
  */
 export async function latestFromSource(
@@ -404,11 +404,16 @@ export async function latestFromSource(
 			? `https://registry.npmjs.org/${name}/latest`
 			: scheme === "pypi"
 				? `https://pypi.org/pypi/${name}/json`
-				: null;
+				: scheme === "crates"
+					? `https://crates.io/api/v1/crates/${name}`
+					: null;
 	if (!url) return { failure: "http", detail: MESSAGES.unknownVersionSource(source) };
 	let body: unknown;
 	try {
-		const res = await opts.fetch(url, { headers: { Accept: "application/json" } });
+		// crates.io refuses a request that names no client.
+		const headers: Record<string, string> = { Accept: "application/json" };
+		if (scheme === "crates") headers["User-Agent"] = "upkeep";
+		const res = await opts.fetch(url, { headers });
 		if (!res.ok) return { failure: "http", detail: MESSAGES.urlAnswered(url, res.status) };
 		body = await res.json();
 	} catch (err) {
@@ -419,6 +424,8 @@ export async function latestFromSource(
 	}
 	const b = record(body);
 	const info = record(b.info);
-	const version = str(scheme === "npm" ? b.version : info.version);
+	const version = str(
+		scheme === "npm" ? b.version : scheme === "crates" ? record(b.crate).max_stable_version : info.version,
+	);
 	return version ? { version } : { failure: "http", detail: MESSAGES.urlSentNoVersion(url) };
 }

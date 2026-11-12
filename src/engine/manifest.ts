@@ -117,7 +117,7 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	else if (spec.versionless) return MESSAGES.liftVersionlessOnly(key);
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest) return MESSAGES.liftAppimageRepoOrLatest(key);
 	// A source the check cannot read fails here, at load, not later at every check.
-	if (spec.latest !== undefined && !/^(npm|pypi|github|npm-tags|json):./.test(spec.latest))
+	if (spec.latest !== undefined && !/^(npm|pypi|github|npm-tags|json|crates):./.test(spec.latest))
 		return MESSAGES.liftLatestScheme(key);
 	// Only an AppImage installs the download a json: answer names; any other kind would read it as a GitHub repo.
 	if (spec.latest?.startsWith("json:") && spec.kind !== "appimage") return MESSAGES.liftJsonOnlyAppimage(key);

@@ -237,7 +237,9 @@ test("a latest whose source the check cannot read is refused at load", () => {
 			'update = ["x", "up"]',
 		].join("\n"),
 	);
-	expect(loadManifest(file).errors).toEqual(["x: latest must start with npm:, pypi:, github:, npm-tags: or json:"]);
+	expect(loadManifest(file).errors).toEqual([
+		"x: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:",
+	]);
 });
 
 test("a file that is not TOML is one error and no apps", () => {

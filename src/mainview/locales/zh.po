@@ -1671,11 +1671,6 @@ msgstr "{0}：kind appimage 需要 repo 或 latest"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags: or json:"
-msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags: 或 json: 开头"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: a json: latest is only for kind appimage"
 msgstr "{0}：json: 类型的 latest 仅用于 kind appimage"
 
@@ -1939,3 +1934,13 @@ msgstr "Snap"
 #: src/mainview/lib/copy.ts
 msgid "Cinnamon"
 msgstr "Cinnamon"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Installed with {0}. Upkeep updates it the same way."
+msgstr "通过 {0} 安装。Upkeep 用同样的方式更新它。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:"
+msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags:、json: 或 crates: 开头"

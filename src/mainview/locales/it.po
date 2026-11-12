@@ -1707,11 +1707,6 @@ msgstr "{0}: repo o latest è obbligatorio per kind appimage"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags: or json:"
-msgstr "{0}: latest deve iniziare con npm:, pypi:, github:, npm-tags: o json:"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: a json: latest is only for kind appimage"
 msgstr "{0}: un latest json: vale solo per kind appimage"
 
@@ -1975,3 +1970,13 @@ msgstr "Snap"
 #: src/mainview/lib/copy.ts
 msgid "Cinnamon"
 msgstr "Cinnamon"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Installed with {0}. Upkeep updates it the same way."
+msgstr "Installato con {0}. Upkeep lo aggiorna allo stesso modo."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:"
+msgstr "{0}: latest deve iniziare con npm:, pypi:, github:, npm-tags:, json: o crates:"

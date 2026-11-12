@@ -4,6 +4,7 @@
 
 First version.
 
+- Scan this computer also finds the tools uv, pipx, npm and cargo installed and offers each as an app that updates through that manager; typing a tool's name in Add app finds it too. A tool from crates.io can have its latest version checked.
 - Add app's line on how it worked out each suggestion shows in the chosen language; it is several sentences, and only a single one was translated before.
 - Dropping a file on the window opens Add app with it. In the real window the drop did nothing, because the desktop's web view passes a dropped file's address only as link text.
 - A catalogue app that is not installed yet lands in Ready to install when added, and Add app opens the release file its table names. An archive whose top folder shares the program's name (btop) installs, and a version line that starts with a commit hash (lazygit) reads the real version.

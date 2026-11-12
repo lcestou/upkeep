@@ -1,5 +1,14 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { chmodSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+	chmodSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	symlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../shared/types";
 import {
@@ -34,6 +43,8 @@ let searches: Record<string, { name: string; full_name: string; stargazers_count
 let fetched: string[] = [];
 let onPath: Record<string, string> = {};
 let lines: string[] = [];
+/** What each tool manager's list prints in a test; a manager with no entry is not installed. */
+let managers: Record<string, string> = {};
 /** A repo's root at its release tag, by repo: the names in it and the text of the files a draft reads. */
 let roots: Record<string, Record<string, string>> = {};
 /** Asset bodies the fake download server serves; the release then lists their real size and digest. */
@@ -65,6 +76,7 @@ async function archive(files: Record<string, string>, zip = false): Promise<Uint
 beforeEach(async () => {
 	t = tempHome("discover");
 	bodies = {};
+	managers = {};
 	for (const libc of ["gnu", "musl"]) {
 		const top = `fd-v10.5.2-x86_64-unknown-linux-${libc}`;
 		// oxlint-disable-next-line no-await-in-loop -- both archives share one temp tree
@@ -131,6 +143,10 @@ const fakeFetch: FetchLike = async (url) => {
 function ctx(specs: AppSpec[] = []) {
 	// which is answered from a fake PATH; everything else runs for real on temp files only.
 	const rec = recordingRun(t.paths, (argv) => {
+		if (argv[0] === "uv" || argv[0] === "pipx" || argv[0] === "npm") {
+			const out = managers[argv[0]];
+			return out === undefined ? { code: 127, stdout: "", stderr: "", timedOut: false } : ok(out);
+		}
 		if (argv[0] !== "which") return undefined;
 		const p = onPath[argv[1] ?? ""];
 		return p ? ok(`${p}\n`) : { code: 1, stdout: "", stderr: "", timedOut: false };
@@ -532,6 +548,117 @@ test("a rate-limited search stops the scan with what it has", async () => {
 	expect(lines).toContain("GitHub's request limit is used up. Try again after it resets.");
 });
 
+/** Gives the temp home a uv tool, the way uv lays it out. */
+function uvTool(name: string, receipt: string) {
+	const dir = join(t.paths.home, ".local/share/uv/tools", name);
+	mkdirSync(dir, { recursive: true });
+	writeFileSync(join(dir, "uv-receipt.toml"), receipt);
+}
+
+test("scan offers what uv, pipx, npm and cargo installed, as command tables that update through them", async () => {
+	managers.uv = "pr-agent v0.49.0\n- pr-agent\nyt-dlp v2026.8.19\n- yt-dlp\n";
+	uvTool("pr-agent", readFileSync(join(import.meta.dir, "fixtures/uv-receipt-pr-agent.toml"), "utf8"));
+	uvTool("yt-dlp", `[tool]\nrequirements = [{ name = "yt-dlp" }]\n`);
+	managers.pipx = JSON.stringify({
+		venvs: {
+			black: { metadata: { main_package: { package: "black", package_version: "24.8.0", package_or_url: "black" } } },
+		},
+	});
+	managers.npm = JSON.stringify({ dependencies: { npm: { version: "11.0.0" }, "@scope/Pkg": { version: "1.2.3" } } });
+	mkdirSync(join(t.paths.home, ".cargo"), { recursive: true });
+	writeFileSync(
+		join(t.paths.home, ".cargo/.crates2.json"),
+		JSON.stringify({
+			installs: { "ripgrep 14.1.0 (registry+https://github.com/rust-lang/crates.io-index)": { bins: ["rg"] } },
+		}),
+	);
+	const { c, calls } = ctx();
+	const r = await scan(c);
+	expect(
+		r.suggestions.map((x) => [x.spec.key, x.installed, x.latest, x.source, x.confidence, x.why, x.problem ?? null]),
+	).toEqual([
+		["pr-agent", "0.49.0", null, "scan", "sure", "Installed with uv. Upkeep updates it the same way.", null],
+		["yt-dlp", "2026.8.19", null, "scan", "sure", "Installed with uv. Upkeep updates it the same way.", null],
+		["black", "24.8.0", null, "scan", "sure", "Installed with pipx. Upkeep updates it the same way.", null],
+		["scope-pkg", "1.2.3", null, "scan", "sure", "Installed with npm. Upkeep updates it the same way.", null],
+		["ripgrep", "14.1.0", null, "scan", "sure", "Installed with cargo. Upkeep updates it the same way.", null],
+	]);
+	const prAgent = r.suggestions[0]?.spec;
+	expect(prAgent).toEqual({
+		key: "pr-agent",
+		name: "pr-agent",
+		kind: "command",
+		check: expect.any(Array),
+		latest: "github:The-PR-Agent/pr-agent",
+		update: [
+			"uv",
+			"tool",
+			"install",
+			"--reinstall",
+			"--python",
+			"3.12",
+			"pr-agent[github] @ git+https://github.com/The-PR-Agent/pr-agent@{tag}",
+		],
+		restore: [
+			"uv",
+			"tool",
+			"install",
+			"--reinstall",
+			"--python",
+			"3.12",
+			"pr-agent[github] @ git+https://github.com/The-PR-Agent/pr-agent@{tag}",
+		],
+	});
+	expect(r.suggestions[1]?.spec.update).toEqual(["uv", "tool", "install", "--reinstall", "yt-dlp=={version}"]);
+	expect(r.suggestions[2]?.spec.update).toEqual(["pipx", "install", "--force", "black=={version}"]);
+	expect(r.suggestions[3]?.spec).toMatchObject({
+		name: "@scope/Pkg",
+		latest: "npm:@scope/Pkg",
+		update: ["npm", "install", "-g", "@scope/Pkg@{version}"],
+	});
+	expect(r.suggestions[4]?.spec).toMatchObject({
+		latest: "crates:ripgrep",
+		update: ["cargo", "install", "--locked", "ripgrep@{version}"],
+	});
+	// The scan only asks each manager for its list; it never runs a tool the managers installed.
+	expect(calls.map((x) => x.argv.slice(0, 2).join(" "))).toEqual(["uv tool", "pipx list", "npm ls"]);
+});
+
+test("scan leaves out manager tools the list already tracks, by key, process, check, update or latest", async () => {
+	managers.uv = "pr-agent v0.49.0\nyt-dlp v1.0\nhttpie v3.0\nruff v0.5.0\nblack v1.0\nfree v1.0\n";
+	for (const n of ["pr-agent", "yt-dlp", "httpie", "ruff", "black", "free"])
+		uvTool(n, `[tool]\nrequirements = [{ name = "${n}" }]\n`);
+	const specs: AppSpec[] = [
+		{ key: "pr-agent", name: "pr-agent", kind: "command", check: ["pr-agent", "--version"] },
+		{ key: "dl", name: "Downloader", kind: "command", check: ["sh", "-c", "uv tool list | grep yt-dlp"] },
+		{ key: "http", name: "HTTPie", kind: "manual", process: "httpie" },
+		{ key: "r", name: "R", kind: "command", check: ["x"], latest: "pypi:ruff" },
+		{ key: "b", name: "B", kind: "command", check: ["x"], update: ["pipx", "install", "--force", "black==1"] },
+	];
+	const r = await scan(ctx(specs).c);
+	expect(r.suggestions.map((x) => x.spec.key)).toEqual(["free"]);
+});
+
+test("a tool whose name has a shell character is not offered", async () => {
+	managers.npm = JSON.stringify({ dependencies: { "x;rm": { version: "1.0.0" }, "$(id)": { version: "1.0.0" } } });
+	expect((await scan(ctx().c)).suggestions).toEqual([]);
+});
+
+test("a manager that is missing gives nothing, and a name Add app is given finds the tool a manager installed", async () => {
+	expect((await scan(ctx().c)).suggestions).toEqual([]);
+	managers.pipx = JSON.stringify({
+		venvs: {
+			black: { metadata: { main_package: { package: "black", package_version: "24.8.0", package_or_url: "black" } } },
+		},
+	});
+	const r = await suggest("Black", ctx().c);
+	expect(r.problem).toBeUndefined();
+	expect(r.suggestions.map((x) => [x.spec.key, x.installed, x.source])).toEqual([["black", "24.8.0", "scan"]]);
+	expect(await suggest("blackish", ctx().c)).toEqual({ suggestions: [], problem: BAD_INPUT });
+	const listed = ctx([{ key: "black", name: "black", kind: "command" }]).c;
+	expect(await suggest("black", listed)).toEqual({ suggestions: [], problem: BAD_INPUT });
+});
+
 const rel = (tag: string, version: string) => ({ tag, version });
 
 test("an app is named after what it ships", () => {
@@ -651,7 +778,7 @@ test("an archive with no program in it is refused, and a scan never opens one", 
 	const r = await scan(c);
 	expect(r.suggestions[0]?.spec.bins).toEqual(["ripgrep"]);
 	expect(fetched.some((u) => u.startsWith("https://dl.test/"))).toBe(false);
-	expect(calls).toEqual([]);
+	expect(calls.filter((x) => !["uv", "pipx", "npm"].includes(x.argv[0] ?? ""))).toEqual([]);
 });
 
 test("examples: what the owner gets for six repos", async () => {
@@ -938,4 +1065,18 @@ test("a catalogue table: no matching release file is a problem, a picked file ke
 	const rec = ctx();
 	await suggest("pick", { ...rec.c, catalogue: [{ ...entry, asset: "linux\\.tar\\.gz$" }] });
 	expect(rec.calls.some((x) => x.argv[0] === bin && x.argv[1] === "version" && x.argv[2] === "-s")).toBe(true);
+});
+
+test("a crate cargo installed into a scanned folder is offered once, as cargo's table; an npm name does not hide a program", async () => {
+	elf(join(t.paths.home, ".local/bin/freeze"));
+	await Bun.write(
+		join(t.paths.home, ".cargo/.crates2.json"),
+		JSON.stringify({
+			installs: { "freeze 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)": { bins: ["freeze"] } },
+		}),
+	);
+	expect((await scan(ctx().c)).suggestions.map((x) => [x.spec.key, x.spec.kind])).toEqual([["freeze", "command"]]);
+	rmSync(join(t.paths.home, ".cargo"), { recursive: true });
+	managers.npm = JSON.stringify({ dependencies: { freeze: { version: "1.0.0" } } });
+	expect((await scan(ctx().c)).suggestions.map((x) => x.spec.kind).toSorted()).toEqual(["command", "file"]);
 });

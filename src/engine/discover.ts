@@ -26,6 +26,7 @@ import {
 	rootNames,
 } from "./github";
 import { isPackage, PACKAGE_TOOL } from "./kinds/package";
+import { listTools, toolSpec, toolKey } from "./managers";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
 import type { Run } from "./run";
@@ -714,7 +715,12 @@ export async function suggest(
 	const entry = inCatalogue(input, ctx.catalogue ?? []);
 	if (entry) return fromCatalogue(entry, ctx, asset);
 	const what = readInput(input);
-	if (!what) return { suggestions: [], problem: BAD_INPUT };
+	if (!what) {
+		// A bare name that is not in the catalogue may still be a tool one of the managers installed.
+		const text = input.trim().toLowerCase();
+		const tools = (await managedSuggestions(ctx)).filter((s) => s.spec.name.toLowerCase() === text);
+		return tools.length > 0 ? { suggestions: tools } : { suggestions: [], problem: BAD_INPUT };
+	}
 	if ("repo" in what) {
 		const r = await fromRepo(what.repo, ctx, { asset });
 		return "problem" in r ? { suggestions: [], problem: r.problem } : { suggestions: [r.suggestion] };
@@ -776,7 +782,46 @@ async function fromCatalogue(
 	return { suggestions: [{ ...r.suggestion, spec, ...sure, why }] };
 }
 
-/** Installed AppImages and binaries that are not in the list. Nothing found is ever run. */
+/** Whether one argument of a table names the tool: as a whole word, so "yt-dlp" is not found inside "yt-dlp-extra". */
+const mentions = (arg: string, name: string) =>
+	new RegExp(`(^|[^A-Za-z0-9._-])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[^A-Za-z0-9._-])`).test(arg);
+
+/**
+ * One suggestion for each tool a manager (uv, pipx, npm, cargo) installed that the list does not track yet: by key, by
+ * the process name, by a check or update that names the tool, or by a latest source for the same package. The
+ * manager's own record names the source, so each is sure. The latest version is left for the check after adding.
+ */
+async function managedSuggestions(ctx: DiscoverCtx): Promise<Suggestion[]> {
+	const out: Suggestion[] = [];
+	const seen = new Set<string>();
+	for (const tool of await listTools(ctx.run, ctx.paths.home)) {
+		const key = toolKey(tool.name);
+		const spec = toolSpec(tool, key);
+		if (!spec || seen.has(key)) continue;
+		const tracked = ctx.specs.some(
+			(s) =>
+				s.key === key ||
+				s.process?.toLowerCase() === key ||
+				s.latest === spec.latest ||
+				[...(s.check ?? []), ...(s.update ?? [])].some((a) => mentions(a, tool.name)),
+		);
+		if (tracked) continue;
+		seen.add(key);
+		out.push({
+			spec,
+			installed: tool.version,
+			latest: null,
+			asset: null,
+			alternatives: [],
+			source: "scan",
+			confidence: "sure",
+			why: MESSAGES.installedWith(tool.manager),
+		});
+	}
+	return out;
+}
+
+/** Installed AppImages and binaries that are not in the list, and the tools uv, pipx, npm and cargo installed. Nothing found is ever run. */
 export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[] }> {
 	const home = ctx.paths.home;
 	const listed = new Set<string>();
@@ -826,5 +871,10 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 			break;
 		}
 	}
-	return { suggestions };
+	// cargo can put a crate's program in a scanned folder (cargo install --root ~/.local): its manager's table wins,
+	// being sure, and the program is not offered twice. Only cargo: uv, pipx and npm leave scripts or links the scan
+	// skips, so a program of the same name there is another app.
+	const managed = await managedSuggestions(ctx);
+	const keys = new Set(managed.filter((m) => m.spec.update?.[0] === "cargo").map((m) => m.spec.key));
+	return { suggestions: [...suggestions.filter((x) => !keys.has(x.spec.key)), ...managed] };
 }

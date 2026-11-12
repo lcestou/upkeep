@@ -1,0 +1,8 @@
+[tool]
+requirements = [
+	{ name = "pr-agent", extras = [
+		"github",
+	], git = "https://github.com/The-PR-Agent/pr-agent?rev=v0.50.0" },
+]
+python = "3.12"
+entrypoints = [{ name = "pr-agent", install-path = "/home/owner/.local/bin/pr-agent", from = "pr-agent" }]

