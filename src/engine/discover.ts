@@ -668,10 +668,10 @@ async function fromCatalogue(
 export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[] }> {
 	const home = ctx.paths.home;
 	const listed = new Set<string>();
-	// Apps with no dest in the list (the old script's, the owner's by-hand ones) are known by name only.
+	// Apps with no dest in the list (self-updating tools, by-hand ones) are known by name only.
 	const known = new Set<string>();
 	for (const s of ctx.specs) {
-		for (const n of [s.key, s.legacy_key, s.process]) if (n) known.add(n.toLowerCase());
+		for (const n of [s.key, s.process]) if (n) known.add(n.toLowerCase());
 		if (!s.dest) continue;
 		const dest = expandHome(s.dest, home);
 		listed.add(dest);

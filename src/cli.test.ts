@@ -61,14 +61,12 @@ function deps(): EngineDeps {
 		fetch: fakeFetch,
 		run,
 		now: () => new Date(),
-		oldScript: join(t.dir, "no-old-script"),
-		oldLock: join(t.dir, "lock"),
-		oldLog: join(t.dir, "old.log"),
+		oldLock: { file: join(t.dir, "lock"), name: "lutechi-updater" },
 		procRoot: join(t.dir, "proc"),
 	};
 }
 
-test("check prints the old script's line shapes", async () => {
+test("check prints one line per app in the OK, UPDATE, BROKEN and SKIP shapes", async () => {
 	const out: string[] = [];
 	expect(await main(["check"], deps(), (l) => out.push(l))).toBe(0);
 	expect(out.toSorted()).toEqual(["  OK:     bat 0.26.1", "  UPDATE: BorgBackup 1.4.1 -> 1.4.2"]);
@@ -123,26 +121,6 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 		"  SKIP:   tmux GitHub answered 404 for a/b.",
 	);
 	expect(checkLine({ ...base, status: "fresh", versionless: true })).toBe("  OK:     tmux");
-});
-
-test("check exits 1 when the old updater's check did not finish, and 0 otherwise", async () => {
-	const d = deps();
-	writeFileSync(
-		join(t.dir, "seed.toml"),
-		`${MANIFEST}
-[apps.cursor]
-name = "Cursor"
-kind = "legacy"
-legacy_key = "cursor"
-legacy_name = "Cursor"
-`,
-	);
-	d.oldScript = script(join(t.dir, "lutechi-updater"), "exit 2");
-	const out: string[] = [];
-	expect(await main(["check"], d, (l) => out.push(l))).toBe(1);
-	expect(out).toContain("  SKIP:   Cursor The old updater's check did not finish.");
-	script(d.oldScript, 'echo "  OK:     Cursor 2.1.0"');
-	expect(await main(["check"], d, () => {})).toBe(0);
 });
 
 test("recover with another Upkeep's run holding the lock says so and exits 1, leaving the marker", async () => {

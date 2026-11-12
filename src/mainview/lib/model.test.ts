@@ -48,7 +48,7 @@ describe("first load", () => {
 	test("versionless apps are fresh and never ticked", async () => {
 		const m = await started();
 		const plugins = m.apps.filter((a) => a.versionless);
-		expect(plugins.length).toBe(2);
+		expect(plugins.length).toBe(1);
 		for (const a of plugins) {
 			expect(a.status).toBe("fresh");
 			expect(m.ticked.has(a.key)).toBe(false);

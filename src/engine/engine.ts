@@ -1,5 +1,5 @@
 import { copyFileSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import type {
 	AppSpec,
 	AppState,
@@ -28,16 +28,6 @@ import {
 	readInstalled,
 	type Target,
 } from "./kinds/context";
-import {
-	checkLegacy,
-	installLegacy,
-	legacyVerdict,
-	CHECK_INCOMPLETE,
-	type LegacyCtx,
-	type LegacyRun,
-	oldUpdaterRunning,
-	sweepShims,
-} from "./kinds/legacy";
 import { canRestore, checkRelease, destOf, installedFiles, installRelease, probeInstalled } from "./kinds/release";
 import { recoverTree, restoreBuilt } from "./kinds/built";
 import { checkSource, installSource } from "./kinds/source";
@@ -83,9 +73,11 @@ export type EngineDeps = {
 	fetch: FetchLike;
 	run: Run;
 	now: () => Date;
-	oldScript: string;
-	oldLock: string;
-	oldLog: string;
+	/**
+	 * The first owner's old updater, retired: its lock file and its process name. While its login run still holds the
+	 * lock, a run would race it over the same apps, so Install waits. Without it there is nothing to wait for.
+	 */
+	oldLock?: { file: string; name: string };
 	/** The app's version, shown in Settings. */
 	version?: string;
 	procRoot?: string;
@@ -94,7 +86,7 @@ export type EngineDeps = {
 	/** Test overrides for waits inside kinds. */
 	stallMs?: number;
 	retryMs?: number;
-	lockWaitMs?: number;
+	/** How often Restart now looks whether the app has quit. Default 200 ms. */
 	pollMs?: number;
 };
 
@@ -134,8 +126,6 @@ export const REASON_NOTHING = "Nothing to install.";
 export const REASON_STOPPING = "The run stops after the current app, so nothing more can join it.";
 export const REASON_OLD = "The old updater is running. Finish or close its dialogs first.";
 
-const NATIVE = new Set(["appimage", "archive", "file", "deb", "source", "command", "claude-plugins"]);
-
 /** Runs fn with at most n in flight at once. */
 function limiter(n: number): <T>(fn: () => Promise<T>) => Promise<T> {
 	let active = 0;
@@ -161,15 +151,6 @@ function stamp(d: Date): string {
 	return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${rand}`;
 }
 
-/**
- * True when the app's version is looked up by Upkeep itself. An old-script app joins once its table
- * carries `check` and `latest`; it is still installed through the old script.
- */
-export function checksNatively(spec: AppSpec): boolean {
-	if (NATIVE.has(spec.kind)) return true;
-	return (spec.kind === "legacy" || spec.kind === "manual") && (spec.check?.length ?? 0) > 0 && Boolean(spec.latest);
-}
-
 /** Every kind not named here is checked against a GitHub release. Null when the app is not installed, which the kind has already logged as skipped. */
 function checkOne(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 	switch (spec.kind) {
@@ -178,7 +159,6 @@ function checkOne(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 		case "claude-plugins":
 			return Promise.resolve(checkClaudePlugins(ctx));
 		case "command":
-		case "legacy":
 		case "manual":
 			return checkCommand(spec, ctx);
 		default:
@@ -272,7 +252,6 @@ export function createEngine(deps: EngineDeps): Engine {
 	const catalogue = deps.catalogueDir ? loadCatalogue(deps.catalogueDir) : { apps: [], errors: [] };
 	for (const e of catalogue.errors) say(null, e);
 
-	sweepShims(paths, deps.procRoot);
 	sweepTrash(paths);
 
 	// An install that never reached its verify: say so on that row once it is checked.
@@ -300,7 +279,26 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	const specOf = (key: string) => specs.find((s) => s.key === key);
 
-	function kindCtx(key: string, overrides: Partial<KindCtx> = {}): LegacyCtx {
+	/**
+	 * True while the old updater's lock names a live process of that updater: its login run may be updating the same
+	 * apps. A pid reused by another program does not count.
+	 */
+	function oldUpdaterRunning(): boolean {
+		const lock = deps.oldLock;
+		if (!lock) return false;
+		try {
+			const pid = readFileSync(lock.file, "utf8").trim();
+			if (!/^\d+$/.test(pid)) return false;
+			// The program itself or the script an interpreter runs (its first argument that is not an option, as in
+			// bash -x <script>), named exactly so; a mention further on, as in a tail of its log, does not count.
+			const [prog = "", ...rest] = readFileSync(join(deps.procRoot ?? "/proc", pid, "cmdline"), "utf8").split("\0");
+			return [prog, rest.find((a) => !a.startsWith("-")) ?? ""].some((a) => basename(a) === lock.name);
+		} catch {
+			return false;
+		}
+	}
+
+	function kindCtx(key: string, overrides: Partial<KindCtx> = {}): KindCtx {
 		return {
 			paths,
 			run: deps.run,
@@ -324,16 +322,11 @@ export function createEngine(deps: EngineDeps): Engine {
 			now: deps.now,
 			stallMs: deps.stallMs,
 			retryMs: deps.retryMs,
-			oldScript: deps.oldScript,
-			oldLock: deps.oldLock,
-			oldLog: deps.oldLog,
-			lockWaitMs: deps.lockWaitMs,
-			pollMs: deps.pollMs,
 			...overrides,
 		};
 	}
 
-	/** Kinds whose running process is watched for a restart; command and legacy only give advice. */
+	/** Kinds whose running process is watched for a restart; a command only gives advice. */
 	const WATCHED = new Set(["appimage", "archive", "file", "deb", "source"]);
 	/** Apps whose Restart now is under way. */
 	const restarting = new Set<string>();
@@ -341,18 +334,8 @@ export function createEngine(deps: EngineDeps): Engine {
 	let runQueue: AppSpec[] | null = null;
 	/** A retry's first-pass order, which the order on screen keeps. */
 	let runBase: string[] = [];
-	/**
-	 * The order the view shows: a retry's first pass as it was, with what this pass adds placed as it runs, native
-	 * apps before the first old-script app and old-script apps last.
-	 */
-	const shownOrder = (queue: AppSpec[]) => {
-		const extra = queue.filter((s) => !runBase.includes(s.key));
-		const out = [...runBase];
-		const firstLegacy = out.findIndex((k) => specOf(k)?.kind === "legacy");
-		const native = extra.filter((s) => s.kind !== "legacy").map((s) => s.key);
-		out.splice(firstLegacy < 0 ? out.length : firstLegacy, 0, ...native);
-		return [...out, ...extra.filter((s) => s.kind === "legacy").map((s) => s.key)];
-	};
+	/** The order the view shows: a retry's first pass as it was, then what this pass adds, in the order it runs. */
+	const shownOrder = (queue: AppSpec[]) => [...runBase, ...queue.map((s) => s.key).filter((k) => !runBase.includes(k))];
 
 	/**
 	 * Whether the app still runs a process from before its install. The entry goes once none does:
@@ -462,13 +445,6 @@ export function createEngine(deps: EngineDeps): Engine {
 		emitApp(app);
 	}
 
-	/** A check that did not finish keeps the row's last known versions. */
-	function keepVersions(key: string, c: Checked): Checked {
-		if (c.detail !== CHECK_INCOMPLETE) return c;
-		const prev = apps.get(key);
-		return { ...c, installed: prev?.installed ?? null, latest: prev?.latest ?? null };
-	}
-
 	async function doCheck(keys?: string[]): Promise<void> {
 		const list = loadSpecs().filter((s) => !keys || keys.includes(s.key));
 		run = {
@@ -501,48 +477,23 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.index += 1;
 			emitRun();
 		};
-		const native = list.filter(checksNatively);
-		const old = list.filter((s) => !checksNatively(s));
-		const nativeWork = native.map(async (spec) => {
-			let c: Checked | null;
-			try {
-				c = await checkOne(spec, kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
-			} catch (err) {
-				c = {
-					installed: null,
-					latest: null,
-					status: "problem",
-					detail: err instanceof Error ? err.message : String(err),
-				};
-			}
-			accept(spec, c, history);
-			done();
-		});
-		const legacyWork =
-			old.length === 0
-				? Promise.resolve()
-				: checkLegacy(old, kindCtx(""), (key, c) => {
-						const spec = specOf(key);
-						if (spec && c) {
-							accept(spec, keepVersions(key, c), history);
-							done();
-						}
-					}).then((all) => {
-						for (const [key, c] of all) {
-							const spec = specOf(key);
-							if (spec && !c) {
-								accept(spec, null, history);
-								done();
-							}
-							// Read once the old script and its probes have ended, so they never count as the app.
-							const a = apps.get(key);
-							if (spec && a && c) {
-								a.running = runningNow(spec);
-								emitApp(a);
-							}
-						}
-					});
-		await Promise.all([...nativeWork, legacyWork]);
+		await Promise.all(
+			list.map(async (spec) => {
+				let c: Checked | null;
+				try {
+					c = await checkOne(spec, kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
+				} catch (err) {
+					c = {
+						installed: null,
+						latest: null,
+						status: "problem",
+						detail: err instanceof Error ? err.message : String(err),
+					};
+				}
+				accept(spec, c, history);
+				done();
+			}),
+		);
 		checkedAt = deps.now().toISOString();
 		rememberRows(list, checkedAt);
 		log?.close();
@@ -574,7 +525,6 @@ export function createEngine(deps: EngineDeps): Engine {
 				return installCommand(spec, target, ctx);
 			case "claude-plugins":
 				return installClaudePlugins(ctx);
-			case "legacy":
 			case "manual":
 				throw new Error(`${spec.name} cannot be installed here.`);
 			default:
@@ -594,9 +544,9 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/**
-	 * Adds ready apps to the run under way, as a download manager does: each goes after the apps already waiting and
-	 * before the old script's, which always run last. An app already in the run is left where it is. Refused once
-	 * Stop after current is pending, since the run is about to end.
+	 * Adds ready apps to the run under way, as a download manager does: each goes after the apps already waiting. An
+	 * app already in the run is left where it is. Refused once Stop after current is pending, since the run is about
+	 * to end.
 	 */
 	function addToRun(keys: string[]): Requests["install"]["response"] {
 		const queue = runQueue;
@@ -606,11 +556,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const wanted = new Set(keys);
 		const add = specs.filter((s) => wanted.has(s.key) && !inRun.has(s.key) && apps.get(s.key)?.status === "ready");
 		if (add.length === 0) return { started: false, reason: REASON_NOTHING };
-		// Before the first old-script app, but never before the next app to run (index counts from 1).
-		const firstLegacy = queue.findIndex((s) => s.kind === "legacy");
-		const native = add.filter((s) => s.kind !== "legacy");
-		queue.splice(firstLegacy < 0 ? queue.length : Math.max(firstLegacy, run.index), 0, ...native);
-		queue.push(...add.filter((s) => s.kind === "legacy"));
+		queue.push(...add);
 		for (const s of add) {
 			const a = apps.get(s.key);
 			if (a) {
@@ -639,10 +585,10 @@ export function createEngine(deps: EngineDeps): Engine {
 			const a = apps.get(s.key);
 			return wanted.has(s.key) && a && (a.status === "ready" || a.versionless);
 		});
-		const queue = [...pick.filter((s) => s.kind !== "legacy"), ...pick.filter((s) => s.kind === "legacy")];
+		const queue = [...pick];
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
 		if (!claimLock(paths, process.pid, deps.procRoot)) return { started: false, reason: REASON_BUSY };
-		if (oldUpdaterRunning(kindCtx(""))) {
+		if (oldUpdaterRunning()) {
 			releaseLock(paths);
 			return { started: false, reason: REASON_OLD };
 		}
@@ -718,13 +664,12 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	async function doRun(queue: AppSpec[]): Promise<void> {
 		const history: HistoryRow[] = [];
-		const legacyRuns = new Map<string, { run: LegacyRun; before: string | null; started: number; ended: number }>();
 		for (const [i, spec] of queue.entries()) {
 			if (run.stopping) {
 				backToReady(queue.slice(i));
 				break;
 			}
-			if (oldUpdaterRunning(kindCtx(spec.key))) {
+			if (oldUpdaterRunning()) {
 				say(null, REASON_OLD);
 				backToReady(queue.slice(i));
 				break;
@@ -740,37 +685,6 @@ export function createEngine(deps: EngineDeps): Engine {
 			emitApp(app);
 			const started = Date.now();
 			say(spec.key, `Updating ${spec.name}${from ? ` from ${from}` : ""}${app.latest ? ` to ${app.latest}` : ""}`);
-			if (spec.kind === "legacy") {
-				// oxlint-disable-next-line no-await-in-loop -- one app at a time is the point of the queue
-				const lr = await installLegacy(spec, kindCtx(spec.key)).catch((err: Error): LegacyRun => ({
-					failed: err instanceof Error ? err.message : String(err),
-					oldLines: [],
-				}));
-				if (lr.failed) {
-					finishApp(app, { result: "failed", installed: from, detail: lr.failed, restartToApply: false });
-					say(spec.key, `failed: ${lr.failed}`);
-					const ms = Date.now() - started;
-					const result: RunResult = {
-						key: spec.key,
-						name: spec.name,
-						from,
-						to: app.latest,
-						result: "failed",
-						detail: lr.failed,
-						ms,
-					};
-					run.results.push(result);
-					history.push({ ...result, runId: run.id ?? "", at: deps.now().toISOString(), stages: { install: ms } });
-					emitRun();
-				} else {
-					// The script has ended: the row waits for the run's one verdict check.
-					app.stage = "verify";
-					app.stagePct = null;
-					emitApp(app);
-					legacyRuns.set(spec.key, { run: lr, before: from, started, ended: Date.now() });
-				}
-				continue;
-			}
 			let outcome: Outcome;
 			try {
 				// oxlint-disable-next-line no-await-in-loop -- one app at a time is the point of the queue
@@ -814,52 +728,6 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 		// The loop is over: an app added from here on would never run, so the run takes no more.
 		runQueue = null;
-		if (legacyRuns.size > 0) {
-			say(null, "Checking the old script's apps once more");
-			run = { ...run, currentKey: null };
-			emitRun();
-			const checkStart = Date.now();
-			const legacySpecs = specs.filter((s) => (s.kind === "legacy" || s.kind === "manual") && !checksNatively(s));
-			const ran = [...legacyRuns.keys()].map(specOf).filter((s): s is AppSpec => s !== undefined);
-			// The old script's --check only for what it alone can answer; the rest is looked up here, side by side.
-			const [old, mine] = await Promise.all([
-				ran.some((s) => !checksNatively(s) && !s.versionless)
-					? checkLegacy(legacySpecs, kindCtx("")).catch(() => new Map<string, Checked | null>())
-					: Promise.resolve(new Map<string, Checked | null>()),
-				Promise.all(
-					ran
-						.filter(checksNatively)
-						.map(async (s) => [s.key, await checkOne(s, kindCtx(s.key)).catch(() => null)] as const),
-				),
-			]);
-			const after = new Map<string, Checked | null>([...old, ...mine]);
-			for (const [key, lr] of legacyRuns) {
-				const spec = specOf(key);
-				const app = apps.get(key);
-				if (!spec || !app) continue;
-				const v = legacyVerdict(spec, lr.before, after.get(key), lr.run);
-				finishApp(app, v);
-				if (v.result !== "done") say(key, `${v.result}: ${v.detail ?? ""}`);
-				const c = after.get(key);
-				if (c) checked.set(key, c);
-				const result: RunResult = {
-					key,
-					name: spec.name,
-					from: lr.before,
-					to: v.result === "done" ? v.installed : app.latest,
-					result: resultOf(v.result),
-					detail: v.detail,
-					ms: Date.now() - lr.started,
-				};
-				run.results.push(result);
-				history.push({
-					...result,
-					runId: run.id ?? "",
-					at: deps.now().toISOString(),
-					stages: { install: lr.ended - lr.started, verify: Date.now() - checkStart },
-				});
-			}
-		}
 		appendHistory(paths, run.retry ? history.map((h) => ({ ...h, retry: true })) : history);
 		say(null, `Run finished: ${run.results.filter((r) => r.result === "updated").length} updated`);
 		log?.close();

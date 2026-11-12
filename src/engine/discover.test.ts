@@ -498,7 +498,7 @@ test("scan skips a file named after an app the list tracks without a dest", asyn
 	elf(join(bin, "Strata"));
 	elf(join(bin, "cursory"));
 	const specs: AppSpec[] = [
-		{ key: "cursor", name: "Cursor", kind: "legacy", legacy_key: "cursor" },
+		{ key: "cursor", name: "Cursor", kind: "command", check: ["cursor", "--version"] },
 		{ key: "strata-engine", name: "Strata", kind: "manual", process: "strata" },
 	];
 	const r = await scan(ctx(specs).c);

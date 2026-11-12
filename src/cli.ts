@@ -2,7 +2,6 @@ import { join } from "node:path";
 import type { AppState, EngineEvent } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
-import { CHECK_INCOMPLETE } from "./engine/kinds/legacy";
 import { realDeps } from "./engine/real";
 import { formatLogLine, readInflight } from "./engine/store";
 
@@ -10,7 +9,7 @@ export const USAGE = "Usage: upkeep check|install|restore|history|recover";
 
 type Out = (line: string) => void;
 
-/** The old script's --check line shapes, so the two can be compared line for line. */
+/** One line per app, in the OK / UPDATE / BROKEN / SKIP shapes the old updater's --check used, so muscle memory still reads it. */
 export function checkLine(a: AppState): string {
 	switch (a.status) {
 		case "fresh":
@@ -41,7 +40,7 @@ function eventLine(e: EngineEvent): string | null {
 	return null;
 }
 
-/** Prints one line per app as its check ends. Exits 1 only when the old updater's check did not finish; problems alone exit 0. */
+/** Prints one line per app as its check ends. Problems are lines, not a failed check: it exits 0. */
 async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	const printed = new Set<string>();
 	const off = engine.subscribe((e) => {
@@ -52,8 +51,7 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	await engine.check();
 	await engine.idle();
 	off();
-	// The old updater's check not finishing is a failed check, not a list of problems.
-	return engine.snapshot().apps.some((a) => a.status === "problem" && a.detail === CHECK_INCOMPLETE) ? 1 : 0;
+	return 0;
 }
 
 /** Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. Exits 0 only when every result is "updated". */

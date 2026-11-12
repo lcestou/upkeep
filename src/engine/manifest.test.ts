@@ -95,25 +95,23 @@ test("an invalid table is left out and reported, the rest load", () => {
 			"[apps.leg]",
 			'name = "Leg"',
 			'kind = "legacy"',
-			'legacy_key = "leg"',
-			"[apps.legv]",
-			'name = "Leg v"',
-			'kind = "legacy"',
-			'legacy_key = "legv"',
-			"versionless = true",
+			"[apps.cc]",
+			'name = "Plugins"',
+			'kind = "claude-plugins"',
 			"[apps.man]",
 			'name = "Man"',
 			'kind = "manual"',
-			'legacy_name = "man"',
+			'check = ["man", "--version"]',
+			'latest = "npm:man"',
 		].join("\n"),
 	);
 	const { apps, errors } = loadManifest(file);
-	expect(apps.map((a) => a.key)).toEqual(["good", "legv"]);
+	expect(apps.map((a) => a.key)).toEqual(["good", "cc"]);
 	expect(errors).toEqual([
 		"noasset: asset is required for kind appimage",
 		"nobins: bins is required for kind archive",
 		"cmd: update is required for kind command",
-		"leg: legacy_name is required for kind legacy",
+		"leg: kind is not one of appimage, archive, file, deb, source, command, claude-plugins, manual",
 		"man: run is required for kind manual",
 	]);
 });
@@ -204,7 +202,7 @@ test("an AppImage needs repo, or a latest that carries its download", () => {
 	expect(apps.map((a) => a.key)).toEqual(["cursor"]);
 });
 
-test("versionless is for the old script's apps and Claude Code's plugins only, and the plugins row always is", () => {
+test("versionless is for Claude Code's plugins only, and the plugins row always is", () => {
 	const file = join(dir, "apps.toml");
 	writeFileSync(
 		file,
@@ -212,7 +210,8 @@ test("versionless is for the old script's apps and Claude Code's plugins only, a
 			"[apps.man]",
 			'name = "Man"',
 			'kind = "manual"',
-			'legacy_name = "man"',
+			'check = ["man", "--version"]',
+			'latest = "npm:man"',
 			'run = "man-up"',
 			"versionless = true",
 			"[apps.cc]",
@@ -221,7 +220,7 @@ test("versionless is for the old script's apps and Claude Code's plugins only, a
 		].join("\n"),
 	);
 	const { apps, errors } = loadManifest(file);
-	expect(errors).toEqual(["man: versionless is only for kinds legacy and claude-plugins"]);
+	expect(errors).toEqual(["man: versionless is only for kind claude-plugins"]);
 	expect(apps).toEqual([{ key: "cc", name: "Claude Code plugins", kind: "claude-plugins", versionless: true }]);
 });
 

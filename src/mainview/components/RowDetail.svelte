@@ -58,7 +58,7 @@
 	const care = $derived(CARE[app.status]);
 	const failed = $derived(app.status === "failed" || app.status === "rolled_back");
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
-	const chip = $derived(app.kind === "legacy" ? CHIP.runningLegacy : CHIP.running);
+	const chip = CHIP.running;
 	const notes = $derived(app.notes ? parseNotes(app.notes) : []);
 	let asking = $state(false);
 	let keepBtn = $state<HTMLButtonElement | null>(null);

@@ -16,8 +16,6 @@ export type RunOpts = {
 	merge?: boolean;
 	/** Called with the child's pid right after it starts, so a marker can record what is running. */
 	onStart?: (pid: number) => void;
-	/** Put in front of the runner's PATH, for the shim directory. */
-	pathPrefix?: string;
 };
 
 export type ProcessResult = { code: number; stdout: string; stderr: string; timedOut: boolean };
@@ -30,7 +28,7 @@ export type Started = {
 	stop(): Promise<void>;
 };
 
-export type StartOpts = { pathPrefix?: string; stopMs?: number };
+export type StartOpts = { stopMs?: number };
 
 /**
  * Every process the engine starts goes through one of these, so tests can pass a recording fake.
@@ -96,11 +94,7 @@ export function killTree(pid: number, procRoot = "/proc"): void {
 export function createRunner(home: string, tmpDir: string, basePath: string): Run {
 	const path = [join(home, ".local/bin"), join(home, ".bun/bin"), basePath].filter(Boolean).join(":");
 	let seq = 0;
-	const envFor = (prefix?: string, extra?: Record<string, string>) => ({
-		...process.env,
-		PATH: prefix ? `${prefix}:${path}` : path,
-		...extra,
-	});
+	const envFor = (extra?: Record<string, string>) => ({ ...process.env, PATH: path, ...extra });
 	const start = (argv: string[], opts: StartOpts = {}): Started => {
 		mkdirSync(tmpDir, { recursive: true });
 		seq += 1;
@@ -110,7 +104,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		try {
 			proc = Bun.spawn(
 				asRootArgv(argv).map((a) => expandHome(a, home)),
-				{ env: envFor(opts.pathPrefix), stdin: "ignore", stdout: fd, stderr: "ignore" },
+				{ env: envFor(), stdin: "ignore", stdout: fd, stderr: "ignore" },
 			);
 		} catch {
 			// output() stays empty, so the caller sees a process that said nothing
@@ -142,7 +136,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 	};
 	const run = async (argv: string[], opts: RunOpts = {}): Promise<ProcessResult> => {
 		const cmd = asRootArgv(argv).map((a) => expandHome(a, home));
-		const env = envFor(opts.pathPrefix, opts.env);
+		const env = envFor(opts.env);
 		const stream = opts.onLine !== undefined;
 		let outFile = "";
 		let errFile = "";

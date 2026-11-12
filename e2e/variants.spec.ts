@@ -34,6 +34,6 @@ test("?fixture=many renders 60 apps and scrolls", async ({ page }) => {
 	await expect(page.locator('[data-testid^="row-"]')).toHaveCount(60);
 	const list = page.getByTestId("app-list");
 	expect(await list.evaluate((el) => el.scrollHeight > el.clientHeight * 2)).toBe(true);
-	await page.getByTestId("open-omp-plugins-2").scrollIntoViewIfNeeded();
-	await expect(page.getByTestId("open-omp-plugins-2")).toBeInViewport();
+	await page.getByTestId("open-omp-ponytail-2").scrollIntoViewIfNeeded();
+	await expect(page.getByTestId("open-omp-ponytail-2")).toBeInViewport();
 });

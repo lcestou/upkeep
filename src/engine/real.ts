@@ -4,7 +4,8 @@ import { paths } from "./paths";
 import { createRunner } from "./run";
 
 /**
- * The real box: XDG directories, the owner's PATH, the old script where it lives.
+ * The real box: XDG directories, the owner's PATH, and the first owner's retired updater's lock, which Install waits
+ * on while that updater's own login run still holds it. On any other machine the lock never exists.
  * The seed manifest's and the catalogue's locations differ between the command line and the bundled app, so the
  * caller names both.
  */
@@ -21,8 +22,6 @@ export function realDeps(
 		fetch: (url, init) => fetch(url, init),
 		run: createRunner(p.home, join(p.cache, "tmp"), env.PATH ?? "/usr/local/bin:/usr/bin:/bin"),
 		now: () => new Date(),
-		oldScript: join(p.home, ".local/bin/lutechi-updater"),
-		oldLock: "/tmp/lutechi-updater.lock",
-		oldLog: join(p.home, ".local/share/lutechi-updater.log"),
+		oldLock: { file: "/tmp/lutechi-updater.lock", name: "lutechi-updater" },
 	};
 }

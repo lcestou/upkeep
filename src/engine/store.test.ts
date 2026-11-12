@@ -183,10 +183,7 @@ test("stage weights come from the last update with an 8 point floor, or the kind
 	expect(stageWeights([], "x", "deb").map((s) => s.weight)).toEqual([50, 40, 10]);
 	expect(stageWeights([], "x", "source").map((s) => s.weight)).toEqual([10, 80, 10]);
 	expect(stageWeights([], "x", "command").map((s) => s.weight)).toEqual([85, 15]);
-	expect(stageWeights([], "x", "legacy")).toEqual([
-		{ id: "install", weight: 85 },
-		{ id: "verify", weight: 15 },
-	]);
+	expect(stageWeights([], "x", "claude-plugins")).toEqual([{ id: "install", weight: 100 }]);
 	expect(stageWeights([], "x", "manual")).toEqual([]);
 	const history = [
 		row("fd", "3", "failed", { download: 1, backup: 1, install: 1, verify: 1 }),
