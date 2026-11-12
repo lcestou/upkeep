@@ -774,6 +774,12 @@ test("an .rpm is offered only where rpm is, and wins over a .deb when only rpm i
 	expect((await suggest("o/both", ctx().c)).suggestions[0]?.spec.kind).toBe("rpm");
 	onPath = { dpkg: "/usr/bin/dpkg" };
 	expect((await suggest("o/both", ctx().c)).suggestions[0]?.spec.kind).toBe("deb");
+	// A Debian system with the rpm tool installed still takes the .deb, and an .rpm-only release runs nothing there.
+	onPath = { dpkg: "/usr/bin/dpkg", rpm: "/usr/bin/rpm" };
+	expect((await suggest("o/both", ctx().c)).suggestions[0]?.spec.kind).toBe("deb");
+	expect((await suggest("o/rpmonly", ctx().c)).problem).toBe(
+		"No asset of o/rpmonly's latest release runs on this machine.",
+	);
 });
 
 test("a release with no file for this machine gets a source build drafted from its Cargo.toml, as a guess", async () => {

@@ -316,14 +316,15 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	// A program outside the home directory came from a package.
 	else if (onPath) prefer = onPath.startsWith(`${home}/`) ? ["archive", "file"] : ["deb", "rpm"];
 	const { candidates, unopened } = machineAssets(release.assets, prefer);
-	// A package needs its tool (dpkg, rpm): on a system without it, that package is no file this machine can
-	// install. Each tool is looked up once, and a file on disk never takes a package, so a scan runs nothing for it.
+	// A package installs only through the system's own package tool. dpkg marks a Debian system: a .deb needs it, and
+	// an .rpm is refused there even when the rpm tool is installed, since its files would sit outside dpkg's records.
+	// A file on disk never takes a package, so a scan runs nothing for it.
 	const missing = new Set<string>();
-	if (!opts.file) {
-		for (const kind of new Set(candidates.map((c) => c.kind).filter(isPackage))) {
-			// oxlint-disable-next-line no-await-in-loop -- at most two lookups, one after the other
-			if ((await which(ctx, PACKAGE_TOOL[kind])) === null) missing.add(kind);
-		}
+	const packages = new Set(candidates.map((c) => c.kind).filter(isPackage));
+	if (!opts.file && packages.size > 0) {
+		const dpkg = (await which(ctx, PACKAGE_TOOL.deb)) !== null;
+		if (!dpkg) missing.add("deb");
+		if (packages.has("rpm") && (dpkg || (await which(ctx, PACKAGE_TOOL.rpm)) === null)) missing.add("rpm");
 	}
 	const installable = candidates.filter((c) => !missing.has(c.kind));
 	const usable = opts.file ? installable.filter((c) => prefer.includes(c.kind)) : installable;
