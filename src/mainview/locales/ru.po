@@ -2524,3 +2524,8 @@ msgstr "В таблице {0} нет файла выпуска для компь
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} is not a valid regular expression"
 msgstr "{0}: {1} не является допустимым регулярным выражением"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
+msgstr "Обновлено. Запущенная копия {0} сохраняет старую версию, пока не завершится; новые запуски используют новую."

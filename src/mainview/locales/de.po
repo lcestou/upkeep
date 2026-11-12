@@ -2482,3 +2482,8 @@ msgstr "Die Tabelle für {0} nennt keine Release-Datei für {1}-Rechner."
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} is not a valid regular expression"
 msgstr "{0}: {1} ist kein gültiger regulärer Ausdruck"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
+msgstr "Aktualisiert. Eine laufende Kopie von {0} behält die alte Version, bis sie endet; neue Aufrufe nutzen die neue."

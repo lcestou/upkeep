@@ -2461,3 +2461,8 @@ msgstr "{0} 的表中没有适用于 {1} 机器的发布文件。"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} is not a valid regular expression"
 msgstr "{0}：{1} 不是有效的正则表达式"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
+msgstr "已更新。正在运行的 {0} 副本在退出前仍是旧版本；新的运行会使用新版本。"
