@@ -1057,3 +1057,10 @@ test("a catalogue table: no matching release file is a problem, a picked file ke
 	await suggest("pick", { ...rec.c, catalogue: [{ ...entry, asset: "linux\\.tar\\.gz$" }] });
 	expect(rec.calls.some((x) => x.argv[0] === bin && x.argv[1] === "version" && x.argv[2] === "-s")).toBe(true);
 });
+
+test("a tool a manager installed into a scanned folder is offered once, as the manager's table", async () => {
+	elf(join(t.paths.home, ".local/bin/freeze"));
+	managers.npm = JSON.stringify({ dependencies: { freeze: { version: "1.0.0" } } });
+	const keys = (await scan(ctx().c)).suggestions.map((x) => [x.spec.key, x.spec.kind]);
+	expect(keys).toEqual([["freeze", "command"]]);
+});

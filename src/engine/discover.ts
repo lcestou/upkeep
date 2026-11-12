@@ -871,6 +871,9 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 			break;
 		}
 	}
-	suggestions.push(...(await managedSuggestions(ctx)));
-	return { suggestions };
+	// A manager's tool can also sit as a program in a scanned folder (cargo install --root ~/.local): its manager's
+	// table wins, being sure, and the program is not offered twice.
+	const managed = await managedSuggestions(ctx);
+	const keys = new Set(managed.map((m) => m.spec.key));
+	return { suggestions: [...suggestions.filter((x) => !keys.has(x.spec.key)), ...managed] };
 }
