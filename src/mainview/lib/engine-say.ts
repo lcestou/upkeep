@@ -101,7 +101,8 @@ export function say(text: string | null | undefined, depth = 0): string {
 	if (!text) return text ?? "";
 	// A whole line of several sentences is cut first: a template ending in "{0}." would otherwise swallow the rest.
 	const parts = depth === 0 ? sentencesOf(text) : [text];
-	if (parts.length > 1) return parts.map((p) => say(p, 1)).join(" ");
+	// Each piece is shorter than the line, so this ends, and each keeps the full depth for its own values.
+	if (parts.length > 1) return parts.map((p) => say(p)).join(" ");
 	const found = depth < 3 ? match(text) : null;
 	if (!found) return text;
 	// SAFETY: ENGINE_COPY has a function for every id, taking as many string values as the template matched.
