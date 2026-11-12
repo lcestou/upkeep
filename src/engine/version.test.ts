@@ -19,6 +19,9 @@ test("extractVersion takes the first version-looking run", () => {
 	expect(extractVersion("v1.21.9b (release)")).toBe("1.21.9b");
 	expect(extractVersion("no digits here")).toBeNull();
 	expect(extractVersion("2.1.322 (Claude Code)")).toBe("2.1.322");
+	// A dotted version wins over an earlier hash or bare number; a bare number still counts when nothing is dotted.
+	expect(extractVersion("commit=0fbfd3a, build date=2026-01-02, version=0.66.3, os=linux")).toBe("0.66.3");
+	expect(extractVersion("build 42")).toBe("42");
 });
 
 test("tagVersion drops tags whose version has no dot", () => {

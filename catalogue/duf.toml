@@ -1,0 +1,7 @@
+[apps.duf]
+name = "duf"
+kind = "archive"
+repo = "muesli/duf"
+asset = '^duf_[0-9.]+_linux_x86_64\.tar\.gz$'
+dest = "~/.local/bin/duf"
+bins = ["duf"]

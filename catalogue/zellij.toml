@@ -1,0 +1,7 @@
+[apps.zellij]
+name = "Zellij"
+kind = "archive"
+repo = "zellij-org/zellij"
+asset = '^zellij-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/zellij"
+bins = ["zellij"]

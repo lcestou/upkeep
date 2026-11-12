@@ -1,0 +1,6 @@
+[apps.yq]
+name = "yq"
+kind = "file"
+repo = "mikefarah/yq"
+asset = '^yq_linux_amd64$'
+dest = "~/.local/bin/yq"

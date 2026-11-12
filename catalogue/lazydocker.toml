@@ -1,0 +1,7 @@
+[apps.lazydocker]
+name = "lazydocker"
+kind = "archive"
+repo = "jesseduffield/lazydocker"
+asset = '^lazydocker_[0-9.]+_Linux_x86_64\.tar\.gz$'
+dest = "~/.local/bin/lazydocker"
+bins = ["lazydocker"]

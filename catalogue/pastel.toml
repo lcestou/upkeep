@@ -1,0 +1,7 @@
+[apps.pastel]
+name = "pastel"
+kind = "archive"
+repo = "sharkdp/pastel"
+asset = '^pastel-v[0-9.]+-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/pastel"
+bins = ["pastel"]

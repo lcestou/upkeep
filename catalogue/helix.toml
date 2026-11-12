@@ -1,0 +1,6 @@
+[apps.helix]
+name = "Helix"
+kind = "appimage"
+repo = "helix-editor/helix"
+asset = '^helix-[0-9.]+-x86_64\.AppImage$'
+dest = "~/.local/bin/hx"

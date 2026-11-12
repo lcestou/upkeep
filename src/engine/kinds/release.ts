@@ -251,7 +251,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				const name = basename(bin);
 				const to = join(dirname(dest), name);
 				const direct = join(extract, bin);
-				const src = existsSync(direct) ? direct : findFile(extract, name);
+				// A top folder can share the program's name (btop/bin/btop): only a file at the direct path is the program.
+				const src = existsSync(direct) && statSync(direct).isFile() ? direct : findFile(extract, name);
 				let failed = src === null;
 				let sudoFail = false;
 				if (src) {

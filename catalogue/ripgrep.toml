@@ -1,0 +1,7 @@
+[apps.ripgrep]
+name = "ripgrep"
+kind = "archive"
+repo = "BurntSushi/ripgrep"
+asset = '^ripgrep-[0-9.]+-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/rg"
+bins = ["rg"]

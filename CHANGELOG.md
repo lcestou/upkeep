@@ -4,6 +4,8 @@
 
 First version.
 
+- A catalogue app that is not installed yet lands in Ready to install when added, and Add app opens the release file its table names. An archive whose top folder shares the program's name (btop) installs, and a version line that starts with a commit hash (lazygit) reads the real version.
+- The catalogue Add app looks in first has 25 more apps: ripgrep, lazygit, bottom, btop, eza, dust, duf, delta, hyperfine, pastel, GitHub CLI, glow, lazydocker, k9s, Zellij, Atuin, croc, just, xh, Difftastic, jq, yq, chezmoi, Neovim and Helix.
 - The System group also lists pending updates of Cinnamon's applets, desklets, extensions and themes (the spices Update Manager shows), and of Snaps where snapd is installed.
 - The window's groups (Ready to install, Fresh and the rest) list their apps alphabetically by name, not in the order they were added. The group for a run in progress still lists apps in the order they install.
 - Apps that ship an `.rpm` on GitHub install, update and roll back through `rpm`, as `.deb` apps do through `dpkg`. Add app offers an `.rpm` only on a system without `dpkg`.
@@ -25,7 +27,7 @@ First version.
 - `recover` from the command line finishes or undoes an update that was interrupted.
 - Claude Code's plugins are one row that updates every installed plugin with `claude plugin update`, each in its own scope and project folder, and names the ones that failed. It never accepts a marketplace's command on the person's behalf. `versionless` now loads only on the old script's apps and this row; anywhere else it is refused with the reason, since such a row would fail every run.
 - Add an app by typing its name, pasting its GitHub repo, choosing or dropping a file, or scanning the computer. Remove one from its pane.
-- A catalogue of 23 tested apps (AppImages, release binaries, .deb files, tools that update themselves, two built from source): typing one's name adds its known-good table.
+- A catalogue of 48 tested apps (AppImages, release binaries, .deb files, tools that update themselves, two built from source): typing one's name adds its known-good table.
 - An AppImage can come from a vendor's own update API instead of GitHub (`latest = "json:<url>"`, an answer with a version and a download), which is how Cursor ships; it is in the catalogue. A download whose size nobody listed must be at least 1 MiB, and the version can be read from a `.json` inside the image.
 - Restart now closes a desktop app by its top process only, so an Electron app such as Cursor shuts down cleanly instead of its windows dying one by one.
 - A new list starts empty and says so, with Add app right there.

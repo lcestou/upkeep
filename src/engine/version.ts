@@ -1,6 +1,7 @@
-/** The first version-looking run in the text, as the old script's extract_version found it. */
+/** The first dotted version in the text, else its first number-looking run (the old script took the first run of all). */
 export function extractVersion(text: string): string | null {
-	const match = /[0-9]+(\.[0-9]+)*[a-z]*/.exec(text);
+	// A dotted version wins over an earlier bare number: lazygit prints "commit=0fbfd…, version=0.66.3".
+	const match = /[0-9]+(\.[0-9]+)+[a-z]*/.exec(text) ?? /[0-9]+[a-z]*/.exec(text);
 	return match ? match[0] : null;
 }
 
