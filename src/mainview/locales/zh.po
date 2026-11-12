@@ -1909,3 +1909,8 @@ msgstr "构建需要 {0}，但尚未安装。"
 #: src/mainview/lib/engine-text.ts
 msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
 msgstr "程序名按仓库名取为 {0}；如果构建安装的是其他名称，请修改路径。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
+msgstr "{0} 处的副本在 PATH 中排在前面；构建完成后请将其删除，否则运行的仍是它。"

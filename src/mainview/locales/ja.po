@@ -1909,3 +1909,8 @@ msgstr "ビルドには {0} が必要ですが、インストールされてい�
 #: src/mainview/lib/engine-text.ts
 msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
 msgstr "プログラム名はリポジトリ名から {0} とみなしています。ビルドが別の名前でインストールする場合はパスを変更してください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
+msgstr "{0} にあるコピーが PATH で先に見つかります。ビルドの後で削除してください。そうしないとそちらが動き続けます。"

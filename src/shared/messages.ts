@@ -385,6 +385,9 @@ export const MESSAGES = {
 	/** discover.ts. {0} the program name taken from the repo's name */
 	draftNamedAfterRepo: (v0: Value) =>
 		`It takes the program to be ${v0}, after the repo; change the path if the build installs another name.`,
+	/** discover.ts. {0} the path of a copy in the home folder that PATH finds first */
+	draftOtherCopyFirst: (v0: Value) =>
+		`A copy at ${v0} runs first on your PATH; remove it once the build is in, or it keeps running instead.`,
 	/** discover.ts. {0} the missing build tools, comma-separated */
 	draftNeedsTools: (v0: Value) => `Building it needs ${v0}, which is not installed.`,
 	/** requests.ts and cli.ts: an import refused because a run holds the lock */

@@ -1927,3 +1927,8 @@ msgstr "Building it needs {0}, which is not installed."
 #: src/mainview/lib/engine-text.ts
 msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
 msgstr "It takes the program to be {0}, after the repo; change the path if the build installs another name."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
+msgstr "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."

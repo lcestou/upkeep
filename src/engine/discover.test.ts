@@ -804,7 +804,14 @@ test("a drafted build replaces only the copy where it installs: a stray one else
 	roots["o/thing"] = { "CMakeLists.txt": "" };
 	onPath.cmake = "/usr/bin/cmake";
 	onPath.thing = join(t.paths.home, ".local/bin/thing");
-	expect((await suggest("o/thing", ctx().c)).suggestions[0]?.spec.dest).toBe(join(t.dir, "usr/local/bin/thing"));
+	const s = (await suggest("o/thing", ctx().c)).suggestions[0];
+	expect(s?.spec.dest).toBe(join(t.dir, "usr/local/bin/thing"));
+	// The copy in the home folder runs first on PATH, so the card says to remove it.
+	expect(s?.why).toContain(
+		"A copy at ~/.local/bin/thing runs first on your PATH; remove it once the build is in, or it keeps running instead.",
+	);
+	onPath.thing = "/usr/bin/thing";
+	expect((await suggest("o/thing", ctx().c)).suggestions[0]?.why).not.toContain("runs first on your PATH");
 });
 
 test("a catalogue app with no release file here gets the drafted build as a guess, not its own table as sure", async () => {

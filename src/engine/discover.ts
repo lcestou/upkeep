@@ -430,6 +430,10 @@ async function draftSource(
 	// Only a copy where the build installs is the one it replaces: a stray copy elsewhere would pass the check
 	// after the build while the new one sits unused.
 	const dest = draft.system ? join(usrLocal, "bin", draft.bin) : join(home, ".local/bin", draft.bin);
+	// which prints the copy that runs now. One in the home folder comes before the system folders on PATH, so it
+	// keeps running after the build unless the person removes it (cargo's own ~/.cargo/bin, an old ~/.local/bin copy).
+	const found = await which(ctx, draft.bin);
+	const shadow = found && found !== dest && found.startsWith(`${home}/`) ? found : null;
 	const spec: AppSpec = {
 		key: keyOf(draft.bin),
 		name: appName(draft.bin, repo),
@@ -461,6 +465,7 @@ async function draftSource(
 			opts.found,
 			MESSAGES.draftedFrom(draft.file),
 			draft.named ? null : MESSAGES.draftNamedAfterRepo(draft.bin),
+			shadow ? MESSAGES.draftOtherCopyFirst(tilde(shadow, home)) : null,
 			exists ? MESSAGES.foundInstalledAt(String(spec.dest)) : MESSAGES.nothingInstalledAt(String(spec.dest)),
 		]
 			.filter(Boolean)

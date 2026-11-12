@@ -1945,3 +1945,8 @@ msgstr "La compilation nécessite {0}, qui n'est pas installé."
 #: src/mainview/lib/engine-text.ts
 msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
 msgstr "Le programme est supposé s'appeler {0}, d'après le dépôt ; modifiez le chemin si la compilation installe un autre nom."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
+msgstr "Une copie dans {0} passe en premier dans votre PATH ; supprimez-la une fois la compilation en place, sinon c'est elle qui continue de tourner."

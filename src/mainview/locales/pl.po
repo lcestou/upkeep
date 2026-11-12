@@ -1963,3 +1963,8 @@ msgstr "Do zbudowania potrzeba: {0} – nie jest zainstalowane."
 #: src/mainview/lib/engine-text.ts
 msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
 msgstr "Przyjmuje, że program nazywa się {0}, tak jak repozytorium; zmień ścieżkę, jeśli budowanie instaluje inną nazwę."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
+msgstr "Kopia w {0} jest pierwsza w PATH; usuń ją po zbudowaniu, inaczej to ona będzie dalej uruchamiana."
