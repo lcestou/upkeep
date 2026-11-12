@@ -338,8 +338,18 @@ export function createEngine(deps: EngineDeps): Engine {
 	let runQueue: AppSpec[] | null = null;
 	/** A retry's first-pass order, which the order on screen keeps. */
 	let runBase: string[] = [];
-	/** The order the view shows: a retry's first pass as it was, then what this pass adds. */
-	const shownOrder = (queue: AppSpec[]) => [...runBase, ...queue.map((s) => s.key).filter((k) => !runBase.includes(k))];
+	/**
+	 * The order the view shows: a retry's first pass as it was, with what this pass adds placed as it runs, native
+	 * apps before the first old-script app and old-script apps last.
+	 */
+	const shownOrder = (queue: AppSpec[]) => {
+		const extra = queue.filter((s) => !runBase.includes(s.key));
+		const out = [...runBase];
+		const firstLegacy = out.findIndex((k) => specOf(k)?.kind === "legacy");
+		const native = extra.filter((s) => s.kind !== "legacy").map((s) => s.key);
+		out.splice(firstLegacy < 0 ? out.length : firstLegacy, 0, ...native);
+		return [...out, ...extra.filter((s) => s.kind === "legacy").map((s) => s.key)];
+	};
 
 	/**
 	 * Whether the app still runs a process from before its install. The entry goes once none does:

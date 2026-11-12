@@ -62,7 +62,11 @@
 					disabled={model.run.phase === "checking" || (model.run.phase === "installing" && model.run.stopping)}
 					aria-labelledby="name-{app.key}"
 					data-testid="tick-{app.key}"
-					onchange={() => model.toggle(app.key)}
+					onchange={(e) => {
+						model.toggle(app.key);
+						// During a run a tick asks to join instead of ticking: the box shows the model, not the click.
+						e.currentTarget.checked = model.ticked.has(app.key);
+					}}
 				/>
 			</label>
 		{/if}

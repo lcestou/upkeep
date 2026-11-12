@@ -1082,3 +1082,15 @@ test("an app ticked once the run's loop is over, during the old script's last ch
 	expect(await late.asked).toEqual({ started: false, reason: REASON_BUSY });
 	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("ready");
 });
+
+test("a retry keeps the first pass's order on screen, with an app added during it placed where it runs", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	await engine.install(["boom", "fd", "cursor"]);
+	await engine.idle();
+	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "cursor"]);
+	expect(await engine.install(["boom"])).toEqual({ started: true });
+	expect(await engine.install(["claude"])).toEqual({ started: true });
+	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "claude", "cursor"]);
+	await engine.idle();
+});
