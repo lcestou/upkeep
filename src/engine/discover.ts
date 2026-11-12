@@ -271,8 +271,10 @@ async function which(ctx: DiscoverCtx, bin: string): Promise<string | null> {
 export type RepoOpts = {
 	/** The asset the owner picked. */
 	asset?: string;
-	/** A catalogue table's asset pattern: the release asset it matches is the one picked. */
+	/** A catalogue table's asset pattern: the release asset it matches is the one picked, and none matching is a problem. */
 	pattern?: string;
+	/** Arguments for the version probe on dest, as the table gives them. Default ["--version"]. */
+	versionArgs?: string[];
 	/** A file on disk the suggestion is for: its kind decides the asset, and it is the dest. */
 	file?: { path: string; appimage: boolean };
 	source?: Suggestion["source"];
@@ -332,6 +334,15 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	const installable = candidates.filter((c) => !missing.has(c.kind));
 	const usable = opts.file ? installable.filter((c) => prefer.includes(c.kind)) : installable;
 	const byPattern = opts.pattern ? new RegExp(opts.pattern) : null;
+	// A table whose pattern matches nothing this release ships is not quietly swapped for another file.
+	if (
+		opts.pattern &&
+		byPattern &&
+		!opts.asset &&
+		usable.length > 0 &&
+		!usable.some((c) => byPattern.test(c.asset.name))
+	)
+		return { problem: MESSAGES.noAssetMatches(opts.pattern) };
 	const picked =
 		(opts.asset ? usable.find((c) => c.asset.name === opts.asset) : undefined) ??
 		(byPattern ? usable.find((c) => byPattern.test(c.asset.name)) : undefined) ??
@@ -400,7 +411,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	let installed: string | null = null;
 	// The system's copy is not the one Upkeep keeps, so its version is not "installed".
 	if (exists && opts.probe !== false && !systemCopy) {
-		const p = await probeVersion(dest, ["--version"], { run: ctx.run });
+		const p = await probeVersion(dest, opts.versionArgs ?? ["--version"], { run: ctx.run });
 		if ("version" in p) installed = p.version;
 		else why.push(MESSAGES.couldNotReadVersion());
 	}
@@ -743,13 +754,16 @@ async function fromCatalogue(
 		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = MESSAGES.alreadyInList(entry.name);
 		return { suggestions: [s] };
 	}
-	const pattern = asset ?? entry.asset;
 	// An asset the person picked is a name; the table's own asset is a pattern.
-	const r = await fromRepo(entry.repo, ctx, asset ? { asset } : { pattern });
+	const r = await fromRepo(entry.repo, ctx, {
+		...(asset ? { asset } : { pattern: entry.asset }),
+		versionArgs: entry.version_args,
+	});
 	if ("problem" in r) return { suggestions: [], problem: r.problem };
 	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
 	if (r.suggestion.spec.kind === "source") return { suggestions: [r.suggestion] };
-	const spec: AppSpec = { ...entry, asset: pattern };
+	// A picked asset is kept as the pattern fromRepo made of its name, with the version a wildcard, so it still matches next release.
+	const spec: AppSpec = { ...entry, asset: asset ? (r.suggestion.spec.asset ?? entry.asset) : entry.asset };
 	// Nothing at the table's dest yet: the app lands in Ready to install, as one added by repo does.
 	if (entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home))) spec.install_if_missing = true;
 	return { suggestions: [{ ...r.suggestion, spec, ...sure }] };

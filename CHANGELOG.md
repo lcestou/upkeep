@@ -27,7 +27,7 @@ First version.
 - `recover` from the command line finishes or undoes an update that was interrupted.
 - Claude Code's plugins are one row that updates every installed plugin with `claude plugin update`, each in its own scope and project folder, and names the ones that failed. It never accepts a marketplace's command on the person's behalf. `versionless` now loads only on the old script's apps and this row; anywhere else it is refused with the reason, since such a row would fail every run.
 - Add an app by typing its name, pasting its GitHub repo, choosing or dropping a file, or scanning the computer. Remove one from its pane.
-- A catalogue of 23 tested apps (AppImages, release binaries, .deb files, tools that update themselves, two built from source): typing one's name adds its known-good table.
+- A catalogue of 48 tested apps (AppImages, release binaries, .deb files, tools that update themselves, two built from source): typing one's name adds its known-good table.
 - An AppImage can come from a vendor's own update API instead of GitHub (`latest = "json:<url>"`, an answer with a version and a download), which is how Cursor ships; it is in the catalogue. A download whose size nobody listed must be at least 1 MiB, and the version can be read from a `.json` inside the image.
 - Restart now closes a desktop app by its top process only, so an Electron app such as Cursor shuts down cleanly instead of its windows dying one by one.
 - A new list starts empty and says so, with Add app right there.

@@ -898,3 +898,37 @@ test("a catalogue table stays sure when the release's best file is of another ki
 	// Nothing at the table's dest: it lands in Ready to install.
 	expect(s?.spec.install_if_missing).toBe(true);
 });
+
+test("a catalogue table: no matching release file is a problem, a picked file keeps a version wildcard, and version_args probe", async () => {
+	releases["o/pick"] = {
+		tag_name: "v1.2.0",
+		assets: [
+			{ name: "pick-1.2.0-x86_64.AppImage", size: 1 },
+			{ name: "pick-v1.2.0-x86_64-linux.tar.gz", size: 1 },
+		],
+	};
+	bodies["pick-v1.2.0-x86_64-linux.tar.gz"] = await archive({ "pick/pick": "elf" });
+	const entry: AppSpec = {
+		key: "pick",
+		name: "Pick",
+		kind: "archive",
+		repo: "o/pick",
+		asset: "musl\\.tar\\.gz$",
+		dest: "~/.local/bin/pick",
+		bins: ["pick"],
+		version_args: ["version", "-s"],
+	};
+	const c = { ...ctx().c, catalogue: [entry] };
+	// The table names a musl build this release does not ship: no other file stands in for it.
+	expect((await suggest("pick", c)).problem).toBe("No release asset matches musl\\.tar\\.gz$.");
+	// The person picks the archive in the window: the table keeps a pattern that still matches next release.
+	const picked = (await suggest("pick", c, "pick-v1.2.0-x86_64-linux.tar.gz")).suggestions[0];
+	expect(picked?.spec.asset).not.toContain("1.2.0");
+	expect(new RegExp(picked?.spec.asset ?? "^$").test("pick-v1.3.0-x86_64-linux.tar.gz")).toBe(true);
+	// Installed already: the version probe uses the table's own arguments.
+	const bin = join(t.paths.home, ".local/bin/pick");
+	elf(bin);
+	const rec = ctx();
+	await suggest("pick", { ...rec.c, catalogue: [{ ...entry, asset: "linux\\.tar\\.gz$" }] });
+	expect(rec.calls.some((x) => x.argv[0] === bin && x.argv[1] === "version" && x.argv[2] === "-s")).toBe(true);
+});
