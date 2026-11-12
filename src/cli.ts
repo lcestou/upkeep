@@ -216,11 +216,17 @@ async function remove(engine: Engine, key: string, json: boolean, out: Out): Pro
 /** Writes the setup as one JSON file, or to stdout when no file is named. */
 function exportTo(deps: EngineDeps, file: string | undefined, out: Out): number {
 	const text = `${JSON.stringify(exportSetup(deps.paths, deps.seedManifest, deps.now()), null, "\t")}\n`;
-	if (file === undefined) out(text.trimEnd());
-	else {
-		writeFileSync(file, text);
-		out(`Exported to ${file}.`);
+	if (file === undefined) {
+		out(text.trimEnd());
+		return 0;
 	}
+	try {
+		writeFileSync(file, text);
+	} catch (err) {
+		out(`Could not write ${file}: ${err instanceof Error ? err.message : String(err)}`);
+		return 1;
+	}
+	out(`Exported to ${file}.`);
 	return 0;
 }
 
@@ -233,14 +239,21 @@ function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): nu
 		out(`Could not read ${file}: ${err instanceof Error ? err.message : String(err)}`);
 		return 1;
 	}
-	if (!claimLock(deps.paths)) {
+	let mine: boolean;
+	try {
+		mine = claimLock(deps.paths);
+	} catch (err) {
+		out(`Could not take the run lock: ${err instanceof Error ? err.message : String(err)}`);
+		return 1;
+	}
+	if (!mine) {
 		out("An Upkeep run is in progress. Try again when it ends.");
 		return 1;
 	}
 	try {
-		const r = importSetup(deps.paths, deps.seedManifest, text);
+		const r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
 		if (json) out(JSON.stringify(r));
-		else if (r.ok) out(`Imported ${r.apps} apps. The old apps.toml and state.json are kept beside them as .bak.`);
+		else if (r.ok) out(`Imported ${r.apps} apps. The files it replaced are kept beside them as .pre-import-<time>.`);
 		else for (const p of r.problems) out(p);
 		return r.ok ? 0 : 1;
 	} finally {

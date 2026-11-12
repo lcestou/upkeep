@@ -2,9 +2,9 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ExtrasSettings, Settings } from "../shared/types";
 import { loadExtras, updateExtras } from "./extras/state";
-import { ensureManifest, isRecord, parseManifest, replaceManifest } from "./manifest";
+import { ensureManifest, isRecord, parseManifest } from "./manifest";
 import type { Paths } from "./paths";
-import { loadState, updateState } from "./store";
+import { loadState, updateState, writeAtomic } from "./store";
 
 /**
  * Everything a person set up, in one file to carry to another machine or hand to an agent: the app list as written
@@ -49,15 +49,16 @@ function only<T>(v: unknown, keep: (x: unknown) => x is T): Record<string, T> {
 /**
  * Replaces the setup with the one in an exported file's text, or changes nothing and names every problem. The file
  * is read whole before anything is written: it must be this format's version, and its app list must load with no
- * error, so a broken file never replaces a working list. apps.toml is kept as apps.toml.bak and state.json as
- * state.json.bak. Skips, holds and automatic installs are kept only for apps the new list has; settings and extras
+ * error, so a broken file never replaces a working list. apps.toml, state.json and extras.json are each kept beside
+ * themselves as <file>.pre-import-<time> first, and a write that fails midway puts all three back. Skips, holds and automatic installs are kept only for apps the new list has; settings and extras
  * go through the same checks as the files they land in, so an out-of-range value reads as its default.
  */
 export function importSetup(
 	paths: Paths,
 	seedFile: string,
 	text: string,
-): { ok: true; apps: number } | { ok: false; problems: string[] } {
+	now: Date,
+): { ok: true; apps: number; kept: string[] } | { ok: false; problems: string[] } {
 	let doc: unknown;
 	try {
 		doc = JSON.parse(text);
@@ -72,22 +73,43 @@ export function importSetup(
 	const keys = new Set(list.apps.map((a) => a.key));
 	const mine = <T>(table: Record<string, T>) => Object.fromEntries(Object.entries(table).filter(([k]) => keys.has(k)));
 
-	const manifest = ensureManifest(paths, seedFile);
-	replaceManifest(manifest, doc.apps);
-	const state = join(paths.state, "state.json");
-	if (existsSync(state)) copyFileSync(state, `${state}.bak`);
-	mkdirSync(paths.state, { recursive: true });
-	const settings = isRecord(doc.settings) ? doc.settings : {};
-	updateState(paths, (s) => {
-		// SAFETY: the next loadState clamps every field of settings, so a wrong value reads as its default, never as this.
-		s.settings = { ...s.settings, ...(settings as Partial<Settings>) };
-		s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
-		s.hold = mine(only(doc.hold, (x): x is true => x === true));
-		s.auto = mine(only(doc.auto, (x): x is boolean => typeof x === "boolean"));
-	});
-	if (isRecord(doc.extras)) {
-		// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.
-		updateExtras(paths, doc.extras as Partial<ExtrasSettings>);
+	const stamp = now.toISOString().replace(/[:.]/g, "-");
+	const files = [ensureManifest(paths, seedFile), join(paths.state, "state.json"), join(paths.state, "extras.json")];
+	// Each file that exists is kept as <file>.pre-import-<time>, so every import's starting point survives.
+	const kept: [string, string][] = [];
+	try {
+		mkdirSync(paths.state, { recursive: true });
+		for (const f of files)
+			if (existsSync(f)) {
+				copyFileSync(f, `${f}.pre-import-${stamp}`);
+				kept.push([f, `${f}.pre-import-${stamp}`]);
+			}
+		writeAtomic(files[0] ?? "", doc.apps);
+		const settings = isRecord(doc.settings) ? doc.settings : {};
+		updateState(paths, (s) => {
+			// SAFETY: the next loadState clamps every field of settings, so a wrong value reads as its default, never as this.
+			s.settings = { ...s.settings, ...(settings as Partial<Settings>) };
+			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
+			s.hold = mine(only(doc.hold, (x): x is true => x === true));
+			s.auto = mine(only(doc.auto, (x): x is boolean => typeof x === "boolean"));
+		});
+		if (isRecord(doc.extras)) {
+			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.
+			updateExtras(paths, doc.extras as Partial<ExtrasSettings>);
+		}
+	} catch (err) {
+		// Half an import is worse than none: put back every file that was kept, and say what stopped it.
+		for (const [f, copy] of kept) {
+			try {
+				copyFileSync(copy, f);
+			} catch {
+				// nothing more to do; the kept copy stays beside it
+			}
+		}
+		return {
+			ok: false,
+			problems: [`could not write: ${err instanceof Error ? err.message : String(err)}. Nothing was changed.`],
+		};
 	}
-	return { ok: true, apps: list.apps.length };
+	return { ok: true, apps: list.apps.length, kept: kept.map(([, copy]) => copy) };
 }
