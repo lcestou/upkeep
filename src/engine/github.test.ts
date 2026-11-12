@@ -9,6 +9,7 @@ import {
 	fetchRelease,
 	githubToken,
 	isFailure,
+	jsonVersion,
 	latestFromSource,
 	parseRepoSearch,
 	pickAsset,
@@ -252,4 +253,53 @@ test("a tagged release has a cache file of its own, and two tags never share one
 		"/repos/sharkdp/fd/releases/tags/v1_2",
 	]);
 	expect(readdirSync(dir).toSorted()).toEqual(["sharkdp__fd@v1%2F2.json", "sharkdp__fd@v1_2.json"]);
+});
+
+test("a json: source gives the version and its one download; anything off is a failure, never up to date", async () => {
+	const url = "https://api2.example.test/updates/linux-x64/app";
+	const dl = "https://downloads.example.test/production/abc/linux/x64/Cursor-3.29.15-x86_64.AppImage";
+	expect(
+		await latestFromSource(`json:${url}`, { cacheDir: dir, fetch: answer({ version: "3.29.15", downloadUrl: dl }) }),
+	).toEqual({
+		version: "3.29.15",
+		release: {
+			tag: "3.29.15",
+			version: "3.29.15",
+			url: "",
+			publishedAt: "",
+			notes: "",
+			assets: [{ name: "Cursor-3.29.15-x86_64.AppImage", url: dl, size: 0, digest: null }],
+		},
+	});
+	const none: Failure = { failure: "http", detail: `${url} sent no version.` };
+	const bad = [
+		{ version: "3.29.15" },
+		{ downloadUrl: dl },
+		{ version: "1", downloadUrl: "http://x.test/a" },
+		{ version: "1", downloadUrl: "not a url" },
+		[],
+	];
+	const answers = await Promise.all(
+		bad.map((body) => latestFromSource(`json:${url}`, { cacheDir: dir, fetch: answer(body) })),
+	);
+	expect(answers).toEqual(bad.map(() => none));
+	expect(
+		await latestFromSource(`json:${url}`, { cacheDir: dir, fetch: async () => new Response("", { status: 500 }) }),
+	).toEqual({
+		failure: "http",
+		detail: `${url} answered 500.`,
+	});
+	const offline = await latestFromSource(`json:${url}`, { cacheDir: dir, fetch: down });
+	expect(isFailure(offline) && offline.failure).toBe("network");
+});
+
+test("a json: answer that is not JSON is the source's failure, not the network's", async () => {
+	const url = "https://api.example.test/x";
+	expect(await latestFromSource(`json:${url}`, { cacheDir: dir, fetch: async () => new Response("<html>") })).toEqual({
+		failure: "http",
+		detail: `${url} sent no version.`,
+	});
+	expect(jsonVersion('{"engines": {"version": "1"}, "version": " 2.0 "}')).toBe("2.0");
+	expect(jsonVersion("not json")).toBeUndefined();
+	expect(jsonVersion('\uFEFF{"version": "3.29.9"}')).toBe("3.29.9");
 });

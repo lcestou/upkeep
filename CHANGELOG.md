@@ -15,7 +15,9 @@ First version.
 - llama.cpp, Strata, ComfyUI, whisper.cpp, dsh and claude-code-telegram are updated by Upkeep itself, with restore points. Each builds while the running copy keeps serving, is swapped in only once the build passes, and is restarted and tested; anything that fails after the stop puts the old version back.
 - `recover` from the command line finishes or undoes an update that was interrupted.
 - Add an app by typing its name, pasting its GitHub repo, choosing or dropping a file, or scanning the computer. Remove one from its pane.
-- A catalogue of 22 tested apps (AppImages, release binaries, .deb files, tools that update themselves, two built from source): typing one's name adds its known-good table.
+- A catalogue of 23 tested apps (AppImages, release binaries, .deb files, tools that update themselves, two built from source): typing one's name adds its known-good table.
+- An AppImage can come from a vendor's own update API instead of GitHub (`latest = "json:<url>"`, an answer with a version and a download), which is how Cursor ships; it is in the catalogue. A download whose size nobody listed must be at least 1 MiB, and the version can be read from a `.json` inside the image.
+- Restart now closes a desktop app by its top process only, so an Electron app such as Cursor shuts down cleanly instead of its windows dying one by one.
 - A new list starts empty and says so, with Add app right there.
 - Filter the list by name.
 - Skip one version of an app, hold an app, or mark it to install without asking.

@@ -45,13 +45,13 @@ test("the source-build examples load with no errors", () => {
 	]);
 });
 
-test("the catalogue loads 22 apps, one per file, none of them installing without asking", () => {
+test("the catalogue loads 23 apps, one per file, none of them installing without asking", () => {
 	const { apps, errors } = loadCatalogue(CATALOGUE);
 	expect(errors).toEqual([]);
-	expect(apps.length).toBe(22);
+	expect(apps.length).toBe(23);
 	const counts: Record<string, number> = {};
 	for (const a of apps) counts[a.kind] = (counts[a.kind] ?? 0) + 1;
-	expect(counts).toEqual({ appimage: 3, archive: 9, file: 1, deb: 2, source: 2, command: 5 });
+	expect(counts).toEqual({ appimage: 4, archive: 9, file: 1, deb: 2, source: 2, command: 5 });
 	expect(apps.filter((a) => a.auto)).toEqual([]);
 	const fd = apps.find((a) => a.key === "fd");
 	expect(fd).toEqual({
@@ -172,6 +172,36 @@ test("relaunch needs dest, and an AppImage's needs process too; restart is a lis
 		["svc", ["systemctl", "restart", "svc"]],
 		["zen", true],
 	]);
+});
+
+test("an AppImage needs repo, or a latest that carries its download", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(
+		file,
+		[
+			"[apps.none]",
+			'name = "None"',
+			'kind = "appimage"',
+			'asset = "x"',
+			'dest = "~/n.AppImage"',
+			"[apps.cursor]",
+			'name = "Cursor"',
+			'kind = "appimage"',
+			'latest = "json:https://api.test/x"',
+			'asset = "x"',
+			'dest = "~/c.AppImage"',
+		].join("\n"),
+	);
+	writeFileSync(
+		file,
+		`${readFileSync(file, "utf8")}\n[apps.src]\nname = "Src"\nkind = "source"\nlatest = "json:https://api.test/y"\nbuild = ["make"]\n`,
+	);
+	const { apps, errors } = loadManifest(file);
+	expect(errors).toEqual([
+		"none: repo or latest is required for kind appimage",
+		"src: a json: latest is only for kind appimage",
+	]);
+	expect(apps.map((a) => a.key)).toEqual(["cursor"]);
 });
 
 test("a file that is not TOML is one error and no apps", () => {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { argsRunning, earliestStart, isRunning } from "./running";
+import { argsRunning, earliestStart, isRunning, topPids } from "./running";
 import { tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -121,4 +121,12 @@ test("an exe is matched by where its link points, without following it", () => {
 	expect(isRunning({ kind: "archive", dest }, proc, 9)).toBe(false);
 	fakeProc(601, 1, "fd", ["x"], dest);
 	expect(isRunning({ kind: "archive", dest }, proc, 9)).toBe(true);
+});
+
+test("the top processes are the app's own whose parent is not the app: the ones to ask to quit", () => {
+	fakeProc(700, 1, "cursor", ["/tmp/.mount_c/cursor"]);
+	fakeProc(701, 700, "cursor", ["/tmp/.mount_c/cursor", "--type=renderer"]);
+	fakeProc(702, 701, "cursor", ["/tmp/.mount_c/cursor", "--type=utility"]);
+	fakeProc(710, 1, "cursor", ["/tmp/.mount_c/cursor", "--new-window"]);
+	expect(topPids({ kind: "appimage", process: "cursor" }, proc, 9).toSorted()).toEqual([700, 710]);
 });

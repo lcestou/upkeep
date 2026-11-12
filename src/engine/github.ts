@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import type { Run } from "./run";
 import { tagVersion } from "./version";
 
@@ -45,6 +45,16 @@ export function isFailure<T extends object>(v: T | Failure): v is Failure {
 /** Anything that is not a string reads as empty, so a missing field and a wrong-typed one are the same. */
 function str(v: unknown): string {
 	return typeof v === "string" ? v : "";
+}
+
+/** The top-level "version" of a JSON text, never one nested deeper; undefined when it is not JSON or has none. */
+export function jsonVersion(text: string): string | undefined {
+	try {
+		// A file saved with a byte-order mark is still JSON to the app that wrote it.
+		return str(record(JSON.parse(text.replace(/^\uFEFF/, ""))).version).trim() || undefined;
+	} catch {
+		return undefined;
+	}
 }
 
 /** A JSON value read as a table of fields. Anything that is not an object, null included, reads as an empty one. */
@@ -290,7 +300,46 @@ export async function githubToken(run: Run): Promise<string | null> {
 	return r.code === 0 && token ? token : null;
 }
 
-/** A self-updater's latest version: "npm:<pkg>", "pypi:<pkg>" or "github:<owner>/<repo>". */
+/**
+ * A vendor's own update endpoint that answers {"version", "downloadUrl"} (Cursor's does), as a release with that one
+ * asset. It lists no size and no checksum, so the download is held to a floor instead (download.ts). Only an https
+ * download URL is taken: the answer decides what gets installed.
+ */
+async function jsonRelease(url: string, opts: ReleaseOpts): Promise<{ version: string; release: Release } | Failure> {
+	let res: Response;
+	try {
+		res = await opts.fetch(url, { headers: { Accept: "application/json" } });
+	} catch (err) {
+		return {
+			failure: "network",
+			detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
+		};
+	}
+	if (!res.ok) return { failure: "http", detail: `${url} answered ${res.status}.` };
+	let body: unknown = null;
+	try {
+		body = await res.json();
+	} catch {
+		// not JSON: no version, said below
+	}
+	const b = record(body);
+	const version = str(b.version);
+	const download = str(b.downloadUrl);
+	let at: URL | null = null;
+	try {
+		at = download ? new URL(download) : null;
+	} catch {
+		at = null;
+	}
+	if (!version || !at || at.protocol !== "https:") return { failure: "http", detail: `${url} sent no version.` };
+	const asset = { name: basename(at.pathname), url: at.href, size: 0, digest: null };
+	return { version, release: { tag: version, version, url: "", publishedAt: "", notes: "", assets: [asset] } };
+}
+
+/**
+ * A latest version from a source string: "npm:<pkg>", "pypi:<pkg>", "github:<owner>/<repo>", "npm-tags:<pkg>" or
+ * "json:<url>" (an object with "version" and "downloadUrl"; an AppImage takes it in place of repo).
+ */
 export async function latestFromSource(
 	source: string,
 	opts: ReleaseOpts,
@@ -305,6 +354,7 @@ export async function latestFromSource(
 			? { version: r.version, release: r }
 			: { failure: "http", detail: `${name} has no tracked version tag.` };
 	}
+	if (scheme === "json") return jsonRelease(name, opts);
 	if (scheme === "npm-tags") {
 		const url = `https://registry.npmjs.org/-/package/${name}/dist-tags`;
 		let tags: unknown;

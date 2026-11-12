@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import type { AppSpec } from "../shared/types";
-import { isRunning, runningPids } from "./running";
+import { isRunning, topPids } from "./running";
 import { type Run, sudoNeedsPassword } from "./run";
 
 export type RestartCtx = {
@@ -62,7 +62,8 @@ export async function restartApp(
 	if (!spec.relaunch || !dest || !spec.process)
 		return { ok: false, detail: `${spec.name}'s table does not say how to restart it.` };
 	const who = { kind: spec.kind, process: spec.process };
-	for (const pid of runningPids(who, ctx.procRoot)) ctx.signal(pid);
+	// Only the top processes: each one's children quit with it.
+	for (const pid of topPids(who, ctx.procRoot)) ctx.signal(pid);
 	const until = Date.now() + (ctx.closeMs ?? 15_000);
 	while (isRunning(who, ctx.procRoot)) {
 		if (Date.now() > until) return { ok: false, detail: `${spec.name} did not close. Close it, then open it again.` };

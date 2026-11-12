@@ -128,3 +128,17 @@ test("a probe given no limit is stopped at 10 s", async () => {
 	await probeCommand(["x"], { run });
 	expect(limits).toEqual([10_000, 10_000]);
 });
+
+test("the meta probe reads the version key of a .json inside the image", async () => {
+	const mnt = join(t.dir, "m4");
+	mkdirSync(join(mnt, "usr/share/cursor/resources/app"), { recursive: true });
+	writeFileSync(
+		join(mnt, "usr/share/cursor/resources/app/package.json"),
+		'{"name": "cursor", "engines": {"version": "1.0"}, "version": "3.29.9"}\n',
+	);
+	const img = script(join(t.dir, "t4"), `echo "${mnt}"; coproc { read -r _; }; read -r -t 30 _ <&"\${COPROC[0]}"`);
+	const { run } = recordingRun(t.paths, () => ok());
+	expect(await probeAppImageMeta(img, "usr/share/cursor/resources/app/package.json", { run, pollMs: 20 })).toEqual({
+		version: "3.29.9",
+	});
+});
