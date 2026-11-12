@@ -272,9 +272,10 @@ export function createEngine(deps: EngineDeps): Engine {
 				? `An update was interrupted. Restore ${leftover.backupVersion} from this row.`
 				: `An update was interrupted. Check that ${name} still starts.`,
 		);
-		// One temp per installed file: an archive with several programs writes one beside each.
+		// One temp per installed file: an archive with several programs writes one beside each. The marker names them,
+		// so this holds after the app left the list; an older marker without them falls back to the table.
 		const spec = specs.find((s) => s.key === leftover.key);
-		const files = spec ? installedFiles(spec, leftover.dest) : [leftover.dest];
+		const files = leftover.files ?? (spec ? installedFiles(spec, leftover.dest) : [leftover.dest]);
 		for (const f of new Set([leftover.dest, ...files])) rmSync(`${f}.upkeep-new`, { force: true });
 		clearInflight(paths);
 		releaseLock(paths);

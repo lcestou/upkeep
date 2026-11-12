@@ -504,6 +504,18 @@ test("recovery clears the half-written file beside every bin of an archive, not 
 	expect(["fd", "fd-extra"].map((name) => existsSync(join(bin, `${name}.upkeep-new`)))).toEqual([false, false]);
 });
 
+test("recovery of an archive app already cut from the list clears every bin's temp copy the marker names", async () => {
+	const d = await deps();
+	// The app is gone from the list; only the marker knows its bins.
+	writeFileSync(join(t.dir, "seed.toml"), MANIFEST.replace(/\[apps\.fd\][\s\S]*?auto = true\n/, ""));
+	const files = [join(bin, "fd"), join(bin, "fd-extra")];
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1", files });
+	for (const f of files) writeFileSync(`${f}.upkeep-new`, "half");
+	createEngine(d);
+	expect(files.map((f) => existsSync(`${f}.upkeep-new`))).toEqual([false, false]);
+	expect(readInflight(t.paths)).toBeNull();
+});
+
 test("a second engine leaves another process's install in progress alone", async () => {
 	const d = await deps();
 	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
