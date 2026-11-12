@@ -104,6 +104,7 @@ function ctx(run: Run = realRun(t.paths)): KindCtx {
 			frame: "own",
 			buttons: "auto",
 			corners: "rounded",
+			language: "system",
 		},
 		log: (l) => lines.push(l),
 		stage: (s, p) => stages.push([s, p]),

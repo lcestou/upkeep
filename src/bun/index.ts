@@ -11,6 +11,7 @@ import { syncAutostart } from "./autostart";
 import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
 import { dropStrayIcuData } from "./icu";
+import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/languages";
 import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
 import { claimInstance, releaseInstance } from "./instance";
@@ -201,6 +202,9 @@ function makeRpc() {
 		},
 		chrome,
 		windowOp,
+		// The webview's own list comes from the C locale, which ignores LANGUAGE and falls back to English when the
+		// desktop's locale is not generated; the environment is what the tray reads, so both use it.
+		languages: () => systemLanguages(process.env),
 		extras,
 	});
 }
@@ -208,18 +212,29 @@ let rpc = makeRpc();
 
 const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", template: false, width: 22, height: 22 });
 let shownIcon = "";
+let shownTitle = "";
 let shownMenu = "";
+
+/** The tray's and the notifications' language: the setting, or for "system" the desktop's from the environment. */
+function trayLanguage(): LanguageCode {
+	return resolveLanguage(engine.snapshot().settings.language, systemLanguages(process.env));
+}
 
 /** Redraws the tray icon, title and menu from the engine, touching each only when it changed. */
 function refreshTray(): void {
 	const snapshot = engine.snapshot();
+	const code = trayLanguage();
 	const icon = trayIcon(snapshot);
 	if (icon !== shownIcon) {
 		shownIcon = icon;
 		tray.setImage(`views://tray/${icon}.png`);
-		tray.setTitle(trayTitle(snapshot));
 	}
-	const menu = trayMenu(snapshot, extras.snapshot().system);
+	const title = trayTitle(snapshot, code);
+	if (title !== shownTitle) {
+		shownTitle = title;
+		tray.setTitle(title);
+	}
+	const menu = trayMenu(snapshot, extras.snapshot().system, code);
 	const key = JSON.stringify(menu);
 	if (key !== shownMenu) {
 		shownMenu = key;
@@ -263,15 +278,16 @@ function announceReady(): void {
 		s.notified = fingerprint;
 	});
 	// A visible window already shows the list.
-	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot)));
+	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot), trayLanguage()));
 }
 
 /** Says the outcome of an install with no window to read it: one notice for the updated apps, one per failure. */
 function announceRun(): void {
 	const results = engine.snapshot().run.results;
 	const updated = results.filter((r) => r.result === "updated").map((r) => r.name);
-	if (updated.length > 0) notify(updatedNotice(updated));
-	for (const r of results) if (r.result !== "updated") notify(failedNotice(r.name));
+	const code = trayLanguage();
+	if (updated.length > 0) notify(updatedNotice(updated, code));
+	for (const r of results) if (r.result !== "updated") notify(failedNotice(r.name, code));
 }
 
 // Before the window exists there is nobody to tell; the view asks for a snapshot when it mounts.
@@ -295,7 +311,8 @@ extras.subscribe((event) => {
 engine.subscribe((event) => {
 	toView.push(event);
 	if (event.type !== "run") {
-		if (event.type === "app") refreshTray();
+		// A meta event carries the settings, which may switch the language the tray speaks.
+		if (event.type === "app" || event.type === "meta") refreshTray();
 		return;
 	}
 	const before = phase;

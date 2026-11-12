@@ -1,3 +1,5 @@
+import { language } from "./language.svelte";
+
 const UNITS = ["B", "kB", "MB", "GB", "TB"] as const;
 
 /** Decimal units, as file managers on this desktop show them. */
@@ -21,7 +23,8 @@ const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
 	["year", Number.POSITIVE_INFINITY],
 ];
 
-const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+/** Relative times in the language shown; read at each call, so a language switch shows at once. */
+const rtf = () => new Intl.RelativeTimeFormat(language.locale, { numeric: "auto" });
 
 /**
  * "3 days ago" style text, in whole units counted down: 1 minute 59 seconds is "1 minute ago", never rounded up to 2.
@@ -31,17 +34,29 @@ export function relativeTime(iso: string, now: number = Date.now()): string {
 	const then = Date.parse(iso);
 	if (Number.isNaN(then)) return iso;
 	let value = (then - now) / 1000;
+	// @wc-include
 	if (Math.abs(value) < 60) return "just now";
 	for (const [unit, size] of STEPS) {
-		if (Math.abs(value) < size) return rtf.format(Math.trunc(value), unit);
+		if (Math.abs(value) < size) return rtf().format(Math.trunc(value), unit);
 		value /= size;
 	}
-	return rtf.format(Math.trunc(value), "year");
+	return rtf().format(Math.trunc(value), "year");
 }
 
-/** Picks the singular for exactly one, the plural otherwise (including zero). */
-export function plural(n: number, one: string, many: string): string {
-	return n === 1 ? one : many;
+/** Every plural category, in the order wuchale lists a language's forms. */
+const ORDER: Intl.LDMLPluralRule[] = ["zero", "one", "two", "few", "many", "other"];
+
+/**
+ * The wording a count takes: `plural(3, ["# app", "# apps"])` is "3 apps". Write the two English forms, for one and
+ * for more; `#` stands for the number. wuchale reads a call by this name as one catalog entry with a form for each
+ * plural category of a language, in the order of that catalog's `X-Plurals-Order`, and passes in the language's
+ * forms and its code (svelte-wlm-tools' helper). A form missing for a category falls back to the last one.
+ */
+export function plural(count: number, forms: string[], locale = "en"): string {
+	const rules = new Intl.PluralRules(locale);
+	const categories = ORDER.filter((c) => rules.resolvedOptions().pluralCategories.includes(c));
+	const form = forms[categories.indexOf(rules.select(count))] ?? forms.at(-1) ?? "";
+	return form.replace("#", String(count));
 }
 
 /** Seconds with one decimal under 10 s, whole seconds under a minute, whole minutes after that. */
@@ -56,8 +71,8 @@ export function formatDuration(ms: number): string {
 export function formatRunTime(iso: string): string {
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return iso;
-	const day = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
-	const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+	const day = d.toLocaleDateString(language.locale, { weekday: "short", day: "numeric", month: "short" });
+	const time = d.toLocaleTimeString(language.locale, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 	return `${day}, ${time}`;
 }
 
@@ -65,5 +80,10 @@ export function formatRunTime(iso: string): string {
 export function clockTime(iso: string): string {
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return iso;
-	return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+	return d.toLocaleTimeString(language.locale, {
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hourCycle: "h23",
+	});
 }

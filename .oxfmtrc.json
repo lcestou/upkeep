@@ -1,1 +1,1 @@
-{ "useTabs": true, "printWidth": 120 }
+{ "useTabs": true, "printWidth": 120, "ignorePatterns": ["src/mainview/locales/**"] }

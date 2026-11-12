@@ -20,6 +20,8 @@ export type WindowHooks = {
 	/** Runs after any setting changed, so the login entry and the window frame can follow. */
 	onSettings: () => void;
 	chrome: () => WindowChrome;
+	/** The desktop's languages from the environment, so the window and the tray follow the same list. */
+	languages: () => string[];
 	windowOp: (op: WindowButton) => void;
 	/** The read-only system updates list, beside the engine. */
 	extras: Extras;
@@ -94,6 +96,7 @@ export function upkeepRequests(
 			return { ok: true };
 		},
 		chrome: () => hooks.chrome(),
+		languages: () => hooks.languages(),
 		window: ({ op }) => {
 			hooks.windowOp(op);
 			return { ok: true };

@@ -71,6 +71,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			frame: "own",
 			buttons: "auto",
 			corners: "rounded",
+			language: "system",
 		},
 		notified: "",
 		restart: {},
@@ -94,6 +95,15 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		st.settings.keepBackups = 0;
 	});
 	expect(loadState(t.paths).settings.keepBackups).toBe(1);
+	// A language Upkeep has stays; anything else, such as a hand edit, reads as following the system.
+	updateState(t.paths, (st) => {
+		st.settings.language = "pl";
+	});
+	expect(loadState(t.paths).settings.language).toBe("pl");
+	const edited = JSON.parse(readFileSync(file, "utf8"));
+	edited.settings.language = "ar";
+	writeFileSync(file, JSON.stringify(edited));
+	expect(loadState(t.paths).settings.language).toBe("system");
 	expect(readdirSync(t.paths.state)).toEqual(["state.json"]);
 });
 

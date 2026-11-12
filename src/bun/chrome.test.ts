@@ -10,6 +10,7 @@ const settings: Settings = {
 	frame: "own",
 	buttons: "auto",
 	corners: "rounded",
+	language: "system",
 };
 
 test("button layouts as the desktop writes them", () => {

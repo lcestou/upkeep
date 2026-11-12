@@ -20,8 +20,10 @@
 		"deadcode": "fallow dead-code && bun scripts/dead-svelte.ts",
 		"e2e": "node node_modules/playwright/cli.js test",
 		"tray-icons": "bun scripts/tray-icons.ts",
-		"validate": "bun run prepare:eb && bun run fmt:check && bun run --parallel lint check test:coverage deadcode && bun run build:view && bun run e2e",
-		"validate:quick": "bun run prepare:eb && bun run fmt:check && bun run --parallel lint check test:coverage deadcode && bun run build:view && node node_modules/playwright/cli.js test --only-changed=main --project=chromium --pass-with-no-tests"
+		"i18n": "wuchale --clean",
+		"i18n:check": "bun scripts/i18n/check.ts",
+		"validate": "bun run prepare:eb && bun run fmt:check && bun run i18n:check && bun run --parallel lint check test:coverage deadcode && bun run build:view && bun run e2e",
+		"validate:quick": "bun run prepare:eb && bun run fmt:check && bun run i18n:check && bun run --parallel lint check test:coverage deadcode && bun run build:view && node node_modules/playwright/cli.js test --only-changed=main --project=chromium --pass-with-no-tests"
 	},
 	"devDependencies": {
 		"@fontsource-variable/archivo": "^5.3.0",
@@ -29,6 +31,7 @@
 		"@oxlint/plugins": "1.93.0",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@types/bun": "latest",
+		"@wuchale/svelte": "0.21.4",
 		"electrobun": "2.0.6",
 		"fallow": "^3.42.0",
 		"oxfmt": "^0.78.0",
@@ -37,6 +40,7 @@
 		"svelte": "^5.57.2",
 		"svelte-check": "^4.7.8",
 		"typescript": "^6.0.3",
-		"vite": "^7.3.7"
+		"vite": "^7.3.7",
+		"wuchale": "0.26.7"
 	}
 }

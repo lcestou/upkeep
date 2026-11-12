@@ -11,10 +11,13 @@
 		"svelte.config.js",
 		"src/cli.ts",
 		"scripts/**/*.{ts,mjs}",
-		"tools/oxlint/anti-slop/index.ts"
+		"tools/oxlint/anti-slop/index.ts",
+		// wuchale loads its config by name and its loader through the code it writes into the view.
+		"wuchale.config.js",
+		"src/mainview/locales/*.loader*.js"
 	],
 
-	"ignorePatterns": [".hutch/**"],
+	"ignorePatterns": [".hutch/**", "src/mainview/locales/.wuchale/**", "src/mainview/locales/data.js", "src/mainview/locales/plural.js"],
 
 	// System tools the engine and the drive script start: GNOME's settings reader, Linux Mint's
 	// Update Manager, and iproute2's socket list.

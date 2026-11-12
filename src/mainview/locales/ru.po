@@ -1,0 +1,1062 @@
+msgid ""
+msgstr ""
+"Source-Language: en\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4\n"
+"X-Plurals-Order: one, few, many, other\n"
+
+#: src/mainview/components/HistoryView.svelte
+#: src/mainview/components/SuggestionCard.svelte
+#: src/mainview/components/Versions.svelte
+msgid "to"
+msgstr "→"
+
+#: src/mainview/components/SuggestionCard.svelte
+msgid "Name"
+msgstr "Название"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Binary"
+msgstr "Бинарный файл"
+
+#: src/mainview/lib/copy.ts
+msgid "Source build"
+msgstr "Сборка из исходников"
+
+#: src/mainview/lib/copy.ts
+msgid "Updates itself"
+msgstr "Обновляется само"
+
+#: src/mainview/lib/copy.ts
+msgid "Plugins"
+msgstr "Плагины"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "By hand"
+msgstr "Вручную"
+
+#: src/mainview/lib/copy.ts
+msgid "Download"
+msgstr "Загрузка"
+
+#: src/mainview/lib/copy.ts
+msgid "Back up"
+msgstr "Копия"
+
+#: src/mainview/lib/copy.ts
+msgid "Build"
+msgstr "Сборка"
+
+#: src/mainview/lib/copy.ts
+msgid "Install"
+msgstr "Установка"
+
+#: src/mainview/lib/copy.ts
+msgid "Verify"
+msgstr "Проверка"
+
+#: src/mainview/lib/copy.ts
+msgid "Ready to install"
+msgstr "Готово к установке"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Installing"
+msgstr "Установка"
+
+#: src/mainview/lib/copy.ts
+msgid "This run"
+msgstr "Этот проход"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart to finish"
+msgstr "Нужен перезапуск"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Needs a look"
+msgstr "Требует внимания"
+
+#: src/mainview/lib/copy.ts
+msgid "Held back"
+msgstr "Приостановлено"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Checking"
+msgstr "Проверка"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Fresh"
+msgstr "Актуально"
+
+#: src/mainview/lib/copy.ts
+msgid "App"
+msgstr "Приложение"
+
+#: src/mainview/lib/copy.ts
+msgid "Kind"
+msgstr "Тип"
+
+#: src/mainview/lib/copy.ts
+msgid "Version"
+msgstr "Версия"
+
+#: src/mainview/lib/copy.ts
+msgid "Size"
+msgstr "Размер"
+
+#: src/mainview/lib/copy.ts
+msgid "Restore point"
+msgstr "Откат"
+
+#: src/mainview/lib/copy.ts
+msgid "Status"
+msgstr "Статус"
+
+#: src/mainview/lib/copy.ts
+msgid "In use"
+msgstr "Используется"
+
+#: src/mainview/lib/copy.ts
+msgid "In use now. The update applies when you restart it."
+msgstr "Сейчас используется. Обновление применится после перезапуска."
+
+#: src/mainview/lib/copy.ts
+msgid "Root"
+msgstr "Root"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs with sudo."
+msgstr "Устанавливается через sudo."
+
+#: src/mainview/lib/copy.ts
+msgid "Auto"
+msgstr "Авто"
+
+#: src/mainview/lib/copy.ts
+msgid "Installed without asking when Upkeep checks in the background."
+msgstr "Устанавливается без вопросов, когда Upkeep проверяет обновления в фоне."
+
+#: src/mainview/lib/copy.ts
+msgid "Updates"
+msgstr "Обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "History"
+msgstr "История"
+
+#: src/mainview/lib/copy.ts
+msgid "Settings"
+msgstr "Настройки"
+
+#: src/mainview/lib/copy.ts
+msgid "Check again"
+msgstr "Проверить снова"
+
+#: src/mainview/lib/copy.ts
+msgid "Select all"
+msgstr "Выбрать все"
+
+#: src/mainview/lib/copy.ts
+msgid "Select none"
+msgstr "Снять выбор"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing selected"
+msgstr "Ничего не выбрано"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop after this one"
+msgstr "Остановить после этого"
+
+#: src/mainview/lib/copy.ts
+msgid "Done"
+msgstr "Готово"
+
+#: src/mainview/lib/copy.ts
+msgid "None"
+msgstr "Нет"
+
+#: src/mainview/lib/copy.ts
+msgid "none yet"
+msgstr "пока нет"
+
+#: src/mainview/lib/copy.ts
+msgid "checks itself when run"
+msgstr "проверяет себя при запуске"
+
+#: src/mainview/lib/copy.ts
+msgid "Run now"
+msgstr "Запустить сейчас"
+
+#: src/mainview/lib/copy.ts
+msgid "What changed"
+msgstr "Что изменилось"
+
+#: src/mainview/lib/copy.ts
+msgid "No release notes."
+msgstr "Нет заметок о выпуске."
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Installed at"
+msgstr "Путь установки"
+
+#: src/mainview/lib/copy.ts
+msgid "Source"
+msgstr "Источник"
+
+#: src/mainview/lib/copy.ts
+msgid "Restore points"
+msgstr "Точки восстановления"
+
+#: src/mainview/lib/copy.ts
+msgid "Hold updates"
+msgstr "Приостановить обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "Release hold"
+msgstr "Возобновить обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "Open release page"
+msgstr "Открыть страницу выпуска"
+
+#: src/mainview/lib/copy.ts
+msgid "Install automatically"
+msgstr "Устанавливать автоматически"
+
+#: src/mainview/lib/copy.ts
+msgid "Run it yourself:"
+msgstr "Запустите сами:"
+
+#: src/mainview/lib/copy.ts
+msgid "Copy"
+msgstr "Копировать"
+
+#: src/mainview/lib/copy.ts
+msgid "Copied"
+msgstr "Скопировано"
+
+#: src/mainview/lib/copy.ts
+msgid "Show log"
+msgstr "Показать журнал"
+
+#: src/mainview/lib/copy.ts
+msgid "Log"
+msgstr "Журнал"
+
+#: src/mainview/lib/copy.ts
+msgid "Hide log"
+msgstr "Скрыть журнал"
+
+#: src/mainview/lib/copy.ts
+msgid "Back to list"
+msgstr "Назад к списку"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Retry"
+msgstr "Повторить"
+
+#: src/mainview/lib/copy.ts
+msgid "Filter apps"
+msgstr "Фильтр приложений"
+
+#: src/mainview/lib/copy.ts
+msgid "Clear filter"
+msgstr "Сбросить фильтр"
+
+#: src/mainview/lib/copy.ts
+msgid "Some sizes are not known until they download."
+msgstr "Некоторые размеры станут известны только после загрузки."
+
+#: src/mainview/lib/copy.ts
+msgid "Tick an update to install."
+msgstr "Отметьте обновление для установки."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for the check to finish."
+msgstr "Дождитесь окончания проверки."
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing to install."
+msgstr "Нечего устанавливать."
+
+#: src/mainview/lib/copy.ts
+msgid "Open log file"
+msgstr "Открыть файл журнала"
+
+#: src/mainview/lib/copy.ts
+msgid "No log lines yet."
+msgstr "В журнале пока пусто."
+
+#: src/mainview/lib/copy.ts
+msgid "No runs yet."
+msgstr "Проходов пока не было."
+
+#: src/mainview/lib/copy.ts
+msgid "Updated"
+msgstr "Обновлено"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Failed"
+msgstr "Ошибка"
+
+#: src/mainview/lib/copy.ts
+msgid "Rolled back"
+msgstr "Откачено"
+
+#: src/mainview/lib/copy.ts
+msgid "Restored"
+msgstr "Восстановлено"
+
+#: src/mainview/lib/copy.ts
+msgid "Notify when updates are ready"
+msgstr "Сообщать, когда обновления готовы"
+
+#: src/mainview/lib/copy.ts
+msgid "Start at login"
+msgstr "Запускать при входе"
+
+#: src/mainview/lib/copy.ts
+msgid "Opens in the tray and checks for updates."
+msgstr "Открывается в трее и проверяет обновления."
+
+#: src/mainview/lib/copy.ts
+msgid "Restore points to keep"
+msgstr "Сколько точек восстановления хранить"
+
+#: src/mainview/lib/copy.ts
+msgid "Check for updates"
+msgstr "Проверять обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "App list"
+msgstr "Список приложений"
+
+#: src/mainview/lib/copy.ts
+msgid "Open apps.toml"
+msgstr "Открыть apps.toml"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Restore {0}"
+msgstr "Восстановить {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Skip {0}"
+msgstr "Пропустить {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Stop skipping {0}"
+msgstr "Не пропускать {0}"
+
+#. 0: relative
+#: src/mainview/lib/copy.ts
+msgid "Released {0}"
+msgstr "Выпущено {0}"
+
+#. 0: relative
+#: src/mainview/lib/copy.ts
+msgid "Checked {0}"
+msgstr "Проверено {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Restored {0}."
+msgstr "Восстановлено: {0}."
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping after {0}"
+msgstr "Остановка после {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Retry # failed"
+msgid_plural "Retry # failed"
+msgstr[0] "Повторить неудачные: #"
+msgstr[1] "Повторить неудачные: #"
+msgstr[2] "Повторить неудачные: #"
+msgstr[3] "Повторить неудачные: #"
+
+#. 0: remaining; 1: limit
+#: src/mainview/lib/copy.ts
+msgid "GitHub requests left this hour: {0} of {1}"
+msgstr "Осталось запросов к GitHub в этот час: {0} из {1}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Version {0}"
+msgstr "Версия {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Install updates"
+msgstr "Установить обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "Install # update"
+msgid_plural "Install # updates"
+msgstr[0] "Установить # обновление"
+msgstr[1] "Установить # обновления"
+msgstr[2] "Установить # обновлений"
+msgstr[3] "Установить # обновления"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "at least {0}"
+msgstr "не менее {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "# hidden"
+msgid_plural "# hidden"
+msgstr[0] "скрыто: #"
+msgstr[1] "скрыто: #"
+msgstr[2] "скрыто: #"
+msgstr[3] "скрыто: #"
+
+#: src/mainview/lib/copy.ts
+msgid "# selected"
+msgid_plural "# selected"
+msgstr[0] "выбрано: #"
+msgstr[1] "выбрано: #"
+msgstr[2] "выбрано: #"
+msgstr[3] "выбрано: #"
+
+#: src/mainview/lib/copy.ts
+msgid "Built in a fresh clone, so there is no restore point."
+msgstr "Собирается в чистом клоне, поэтому точки восстановления нет."
+
+#: src/mainview/lib/copy.ts
+msgid "It updates itself, and its table has no restore command."
+msgstr "Обновляется само, а в его таблице нет команды восстановления."
+
+#: src/mainview/lib/copy.ts
+msgid "Claude Code keeps no older plugin to go back to."
+msgstr "Claude Code не хранит старую версию плагина для возврата."
+
+#. 0: latest
+#: src/mainview/lib/copy.ts
+msgid "Not installed. {0} is the latest."
+msgstr "Не установлено. Последняя версия — {0}."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Installed {0}"
+msgstr "Установлена {0}"
+
+#. 0: why
+#: src/mainview/lib/copy.ts
+msgid "Last try failed. {0}"
+msgstr "Прошлая попытка не удалась. {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "# commit since the installed build"
+msgid_plural "# commits since the installed build"
+msgstr[0] "# коммит после установленной сборки"
+msgstr[1] "# коммита после установленной сборки"
+msgstr[2] "# коммитов после установленной сборки"
+msgstr[3] "# коммита после установленной сборки"
+
+#: src/mainview/lib/copy.ts
+msgid "# commit"
+msgid_plural "# commits"
+msgstr[0] "# коммит"
+msgstr[1] "# коммита"
+msgstr[2] "# коммитов"
+msgstr[3] "# коммита"
+
+#. 0: from
+#: src/mainview/lib/copy.ts
+msgid "since {0}"
+msgstr "после {0}"
+
+#. 0: n; 1: n - shown
+#: src/mainview/lib/copy.ts
+msgid "All {0} on GitHub ({1} not shown)"
+msgstr "Все {0} на GitHub (не показано: {1})"
+
+#. 0: names.join(", ")
+#: src/mainview/lib/copy.ts
+msgid "Restart {0} to finish."
+msgstr "Перезапустите {0}, чтобы завершить."
+
+#: src/mainview/lib/copy.ts
+msgid "# more by hand"
+msgid_plural "# more by hand"
+msgstr[0] "ещё # вручную"
+msgstr[1] "ещё # вручную"
+msgstr[2] "ещё # вручную"
+msgstr[3] "ещё # вручную"
+
+#: src/mainview/lib/copy.ts
+msgid "A run is in progress."
+msgstr "Идёт проход."
+
+#: src/mainview/lib/copy.ts
+msgid "Restart pending"
+msgstr "Ждёт перезапуска"
+
+#: src/mainview/lib/copy.ts
+msgid "All # apps are up to date."
+msgid_plural "All # apps are up to date."
+msgstr[0] "Все приложения актуальны: #."
+msgstr[1] "Все приложения актуальны: #."
+msgstr[2] "Все приложения актуальны: #."
+msgstr[3] "Все приложения актуальны: #."
+
+#: src/mainview/lib/copy.ts
+msgid "Add the apps you want Upkeep to keep up to date: type a name such as fd, or paste a GitHub repo."
+msgstr "Добавьте приложения, которые Upkeep будет обновлять: введите название, например fd, или вставьте репозиторий GitHub."
+
+#. 0: text
+#: src/mainview/lib/copy.ts
+msgid "No app matches \"{0}\"."
+msgstr "Нет приложений по запросу «{0}»."
+
+#: src/mainview/lib/copy.ts
+msgid "Ready"
+msgstr "Готово"
+
+#. 0: app.name
+#. 0: app.name
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Restart {0} to finish"
+msgstr "Перезапустите {0}"
+
+#. 0: app.skipped
+#: src/mainview/lib/copy.ts
+msgid "Skipping {0}"
+msgstr "Пропуск {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Held"
+msgstr "Приостановлено"
+
+#: src/mainview/lib/copy.ts
+msgid "Queued"
+msgstr "В очереди"
+
+#. 0: app.installed ?? app.latest ?? ""
+#: src/mainview/lib/copy.ts
+msgid "Updated to {0}"
+msgstr "Обновлено до {0}"
+
+#. 0: app.installed ?? ""
+#: src/mainview/lib/copy.ts
+msgid "Rolled back to {0}"
+msgstr "Откачено до {0}"
+
+#. 0: ((total * pct) / 100 / scale).toFixed(1); 1: whole
+#: src/mainview/lib/copy.ts
+msgid "{0} of {1}"
+msgstr "{0} из {1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Backing up"
+msgstr "Копирование"
+
+#: src/mainview/lib/copy.ts
+msgid "Building"
+msgstr "Сборка"
+
+#: src/mainview/lib/copy.ts
+msgid "Verifying"
+msgstr "Проверка"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloading"
+msgstr "Загрузка"
+
+#. 0: partOf(pct, size)
+#: src/mainview/lib/copy.ts
+msgid "Downloading {0}"
+msgstr "Загрузка {0}"
+
+#. 0: Math.round(pct)
+#: src/mainview/lib/copy.ts
+msgid "Downloading {0}%"
+msgstr "Загрузка {0}%"
+
+#: src/mainview/lib/copy.ts
+msgid "# updated"
+msgid_plural "# updated"
+msgstr[0] "# обновлено"
+msgstr[1] "# обновлено"
+msgstr[2] "# обновлено"
+msgstr[3] "# обновлено"
+
+#: src/mainview/lib/copy.ts
+msgid "# failed"
+msgid_plural "# failed"
+msgstr[0] "# с ошибкой"
+msgstr[1] "# с ошибкой"
+msgstr[2] "# с ошибкой"
+msgstr[3] "# с ошибкой"
+
+#: src/mainview/lib/copy.ts
+msgid "Retry: "
+msgstr "Повтор: "
+
+#. 0: reason
+#: src/mainview/lib/copy.ts
+msgid "Could not write apps.toml: {0}. Nothing was changed."
+msgstr "Не удалось записать apps.toml: {0}. Ничего не изменено."
+
+#. 0: run.index; 1: run.total
+#: src/mainview/lib/copy.ts
+msgid "Checking {0} of {1}"
+msgstr "Проверка: {0} из {1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Retrying"
+msgstr "Повтор"
+
+#. 0: run.retry ? "Retrying" \\: "Installing"; 1: currentName ?? ""; 2: run.index; 3: run.total
+#: src/mainview/lib/copy.ts
+msgid "{0} {1}, {2} of {3}"
+msgstr "{0} {1}, {2} из {3}"
+
+#: src/mainview/lib/copy.ts
+msgid "# not started"
+msgid_plural "# not started"
+msgstr[0] "# не начато"
+msgstr[1] "# не начато"
+msgstr[2] "# не начато"
+msgstr[3] "# не начато"
+
+#: src/mainview/lib/copy.ts
+msgid "No apps yet"
+msgstr "Приложений пока нет"
+
+#: src/mainview/lib/copy.ts
+msgid "# update ready"
+msgid_plural "# updates ready"
+msgstr[0] "# обновление готово"
+msgstr[1] "# обновления готовы"
+msgstr[2] "# обновлений готово"
+msgstr[3] "# обновления готовы"
+
+#: src/mainview/lib/copy.ts
+msgid "# needs a look"
+msgid_plural "# need a look"
+msgstr[0] "# требует внимания"
+msgstr[1] "# требуют внимания"
+msgstr[2] "# требуют внимания"
+msgstr[3] "# требуют внимания"
+
+#: src/mainview/lib/copy.ts
+msgid "Everything is fresh"
+msgstr "Всё актуально"
+
+#: src/mainview/lib/copy.ts
+msgid "Add app"
+msgstr "Добавить приложение"
+
+#: src/mainview/lib/copy.ts
+msgid "Add an app"
+msgstr "Добавить приложение"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, GitHub repo, link or file"
+msgstr "Название, репозиторий GitHub, ссылка или файл"
+
+#: src/mainview/lib/copy.ts
+msgid "fd, or owner/repo"
+msgstr "fd или owner/repo"
+
+#: src/mainview/lib/copy.ts
+msgid "Find"
+msgstr "Найти"
+
+#: src/mainview/lib/copy.ts
+msgid "Updates by running"
+msgstr "Обновляется командой"
+
+#: src/mainview/lib/copy.ts
+msgid "Finding"
+msgstr "Поиск"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
+msgstr "Введите название приложения, вставьте репозиторий вроде sharkdp/fd или ссылку на github.com либо перетащите файл в любое место окна."
+
+#: src/mainview/lib/copy.ts
+msgid "Choose a file"
+msgstr "Выбрать файл"
+
+#: src/mainview/lib/copy.ts
+msgid "Scan this computer"
+msgstr "Просканировать компьютер"
+
+#: src/mainview/lib/copy.ts
+msgid "Scanning"
+msgstr "Сканирование"
+
+#: src/mainview/lib/copy.ts
+msgid "Looking at the latest release"
+msgstr "Смотрим последний выпуск"
+
+#: src/mainview/lib/copy.ts
+msgid "Looking through ~/.local/bin, ~/Applications and ~/bin"
+msgstr "Просматриваем ~/.local/bin, ~/Applications и ~/bin"
+
+#: src/mainview/lib/copy.ts
+msgid "Asset"
+msgstr "Файл"
+
+#: src/mainview/lib/copy.ts
+msgid "Not installed"
+msgstr "Не установлено"
+
+#: src/mainview/lib/copy.ts
+msgid "Add to Upkeep"
+msgstr "Добавить в Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing new found."
+msgstr "Ничего нового не найдено."
+
+#: src/mainview/lib/copy.ts
+msgid "Tick an app to add it."
+msgstr "Отметьте приложение, чтобы добавить его."
+
+#: src/mainview/lib/copy.ts
+msgid "Paste its repo"
+msgstr "Вставьте его репозиторий"
+
+#: src/mainview/lib/copy.ts
+msgid "Drop to add it to Upkeep"
+msgstr "Отпустите, чтобы добавить в Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Could not read where that file is. Use Choose a file."
+msgstr "Не удалось определить, где лежит файл. Используйте «Выбрать файл»."
+
+#: src/mainview/lib/copy.ts
+msgid "That took too long. Try again."
+msgstr "Слишком долго. Попробуйте ещё раз."
+
+#: src/mainview/lib/copy.ts
+msgid "Remove from Upkeep"
+msgstr "Убрать из Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove"
+msgstr "Убрать"
+
+#: src/mainview/lib/copy.ts
+msgid "Keep"
+msgstr "Оставить"
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for the run to finish."
+msgstr "Дождитесь окончания прохода."
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Added {0}."
+msgstr "Добавлено: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Added # app."
+msgid_plural "Added # apps."
+msgstr[0] "Добавлено # приложение."
+msgstr[1] "Добавлено # приложения."
+msgstr[2] "Добавлено # приложений."
+msgstr[3] "Добавлено # приложения."
+
+#: src/mainview/lib/copy.ts
+msgid "Found # app not in the list"
+msgid_plural "Found # apps not in the list"
+msgstr[0] "Найдено # приложение не из списка"
+msgstr[1] "Найдено # приложения не из списка"
+msgstr[2] "Найдено # приложений не из списка"
+msgstr[3] "Найдено # приложения не из списка"
+
+#: src/mainview/lib/copy.ts
+msgid "Add # app"
+msgid_plural "Add # apps"
+msgstr[0] "Добавить # приложение"
+msgstr[1] "Добавить # приложения"
+msgstr[2] "Добавить # приложений"
+msgstr[3] "Добавить # приложения"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Remove {0} from the list? The app itself stays installed."
+msgstr "Убрать {0} из списка? Само приложение останется установленным."
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Removed {0}."
+msgstr "Убрано: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Restart now"
+msgstr "Перезапустить сейчас"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart"
+msgstr "Перезапустить"
+
+#: src/mainview/lib/copy.ts
+msgid "Not now"
+msgstr "Не сейчас"
+
+#. 0: names[0]
+#: src/mainview/lib/copy.ts
+msgid "{0} will close and reopen. Unsaved work in it is lost."
+msgstr "{0} закроется и откроется снова. Несохранённая работа в нём пропадёт."
+
+#. 0: names.join(", ")
+#: src/mainview/lib/copy.ts
+msgid "{0} will close and reopen. Unsaved work in them is lost."
+msgstr "{0} закроются и откроются снова. Несохранённая работа в них пропадёт."
+
+#. 0: names[0]
+#: src/mainview/lib/copy.ts
+msgid "Restart {0} now"
+msgstr "Перезапустить {0} сейчас"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart # apps now"
+msgid_plural "Restart # apps now"
+msgstr[0] "Перезапустить # приложение сейчас"
+msgstr[1] "Перезапустить # приложения сейчас"
+msgstr[2] "Перезапустить # приложений сейчас"
+msgstr[3] "Перезапустить # приложения сейчас"
+
+#. 0: names.join(", ")
+#: src/mainview/lib/copy.ts
+msgid "Restarted {0}."
+msgstr "Перезапущено: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Close"
+msgstr "Закрыть"
+
+#: src/mainview/lib/copy.ts
+msgid "Minimize"
+msgstr "Свернуть"
+
+#: src/mainview/lib/copy.ts
+msgid "Maximize"
+msgstr "Развернуть"
+
+#: src/mainview/lib/copy.ts
+msgid "Restore"
+msgstr "Восстановить"
+
+#: src/mainview/lib/copy.ts
+msgid "Window"
+msgstr "Окно"
+
+#: src/mainview/lib/copy.ts
+msgid "Window frame"
+msgstr "Рамка окна"
+
+#: src/mainview/lib/copy.ts
+msgid "Built in"
+msgstr "Встроенная"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "System"
+msgstr "Системная"
+
+#: src/mainview/lib/copy.ts
+msgid "Built in puts the title bar inside Upkeep's own header. System uses the desktop's."
+msgstr "Встроенная помещает заголовок окна в шапку Upkeep. Системная берёт рамку рабочего стола."
+
+#: src/mainview/lib/copy.ts
+msgid "Window buttons"
+msgstr "Кнопки окна"
+
+#: src/mainview/lib/copy.ts
+msgid "Follow the desktop"
+msgstr "Как на рабочем столе"
+
+#: src/mainview/lib/copy.ts
+msgid "Left"
+msgstr "Слева"
+
+#: src/mainview/lib/copy.ts
+msgid "Right"
+msgstr "Справа"
+
+#: src/mainview/lib/copy.ts
+msgid "Window corners"
+msgstr "Углы окна"
+
+#: src/mainview/lib/copy.ts
+msgid "Rounded"
+msgstr "Скруглённые"
+
+#: src/mainview/lib/copy.ts
+msgid "Square"
+msgstr "Прямые"
+
+#: src/mainview/lib/copy.ts
+msgid "A rounded window has no shadow from the desktop."
+msgstr "У окна со скруглёнными углами нет тени от рабочего стола."
+
+#: src/mainview/lib/copy.ts
+msgid "About"
+msgstr "О программе"
+
+#: src/mainview/lib/copy.ts
+msgid "Keeps the apps your package manager misses up to date."
+msgstr "Обновляет приложения, до которых не дотягивается ваш пакетный менеджер."
+
+#: src/mainview/lib/copy.ts
+msgid "Extras"
+msgstr "Дополнительно"
+
+#: src/mainview/lib/copy.ts
+msgid "Show system updates"
+msgstr "Показывать обновления системы"
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "Показывает ожидающие обновления самой системы: приложения и среды выполнения Flatpak, а также пакеты, которые установил бы пакетный менеджер (Менеджер обновлений в Linux Mint, иначе apt, dnf, pacman или zypper). Не входят в число на значке в трее."
+
+#: src/mainview/lib/copy.ts
+msgid "Open Update Manager"
+msgstr "Открыть Менеджер обновлений"
+
+#: src/mainview/lib/copy.ts
+msgid "No package list Upkeep can read is installed (Update Manager, apt, dnf, pacman or zypper). Flatpak updates still show here."
+msgstr "Не установлено ничего, откуда Upkeep может прочитать список пакетов (Менеджер обновлений, apt, dnf, pacman или zypper). Обновления Flatpak по-прежнему показываются здесь."
+
+#: src/mainview/lib/copy.ts
+msgid "Flatpak is not installed, so only package updates are listed."
+msgstr "Flatpak не установлен, поэтому показаны только обновления пакетов."
+
+#: src/mainview/lib/copy.ts
+msgid "Checking system updates"
+msgstr "Проверка обновлений системы"
+
+#: src/mainview/lib/copy.ts
+msgid "No system updates."
+msgstr "Обновлений системы нет."
+
+#: src/mainview/lib/copy.ts
+msgid "new build"
+msgstr "новая сборка"
+
+#: src/mainview/lib/copy.ts
+msgid "Needs a restart after it installs."
+msgstr "После установки нужна перезагрузка."
+
+#: src/mainview/lib/copy.ts
+msgid "Security"
+msgstr "Безопасность"
+
+#: src/mainview/lib/copy.ts
+msgid "Package"
+msgstr "Пакет"
+
+#: src/mainview/lib/copy.ts
+msgid "Kernel"
+msgstr "Ядро"
+
+#: src/mainview/lib/copy.ts
+msgid "Driver"
+msgstr "Драйвер"
+
+#: src/mainview/lib/copy.ts
+msgid "Flatpak app"
+msgstr "Приложение Flatpak"
+
+#: src/mainview/lib/copy.ts
+msgid "Flatpak runtime"
+msgstr "Среда Flatpak"
+
+#. 0: source
+#: src/mainview/lib/copy.ts
+msgid "From {0}, checking"
+msgstr "Источник: {0}, идёт проверка"
+
+#. 0: source; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "From {0}, checked {1}"
+msgstr "Источник: {0}, проверено {1}"
+
+#. 0: source
+#: src/mainview/lib/copy.ts
+msgid "From {0}"
+msgstr "Источник: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Update Manager"
+msgstr "Менеджер обновлений"
+
+#. 0: problem.command
+#: src/mainview/lib/copy.ts
+msgid "{0} is not installed, so this part of the list is empty."
+msgstr "{0} не установлен, поэтому эта часть списка пуста."
+
+#. 0: version
+#: src/mainview/lib/copy.ts
+msgid "Flatpak apps cannot use the GPU until the NVIDIA {0} runtime is installed. A Flatpak update installs it."
+msgstr "Приложения Flatpak не могут использовать GPU, пока не установлена среда NVIDIA {0}. Её установит обновление Flatpak."
+
+#: src/mainview/lib/copy.ts
+msgid "Every 6 hours"
+msgstr "Каждые 6 часов"
+
+#: src/mainview/lib/copy.ts
+msgid "Once a day"
+msgstr "Раз в день"
+
+#: src/mainview/lib/copy.ts
+msgid "Only when I ask"
+msgstr "Только по запросу"
+
+#. 0: s.toFixed(1)
+#. 0: Math.round(s)
+#: src/mainview/lib/format.ts
+#: src/mainview/lib/format.ts
+msgid "{0} s"
+msgstr "{0} с"
+
+#. 0: Math.round(s / 60)
+#: src/mainview/lib/format.ts
+msgid "{0} min"
+msgstr "{0} мин"
+
+#: src/mainview/lib/format.ts
+msgid "just now"
+msgstr "только что"
+
+#: src/mainview/lib/copy.ts
+msgid "Language"
+msgstr "Язык"
+
+#: src/mainview/lib/copy.ts
+msgid "Same as the system"
+msgstr "Как в системе"
+
+#. 0: source; 1: problem.detail
+#: src/mainview/lib/copy.ts
+msgid "Could not read the {0} list: {1}"
+msgstr "Не удалось прочитать список {0}: {1}"
+
+#. 0: source
+#: src/mainview/lib/copy.ts
+msgid "Could not read the {0} list."
+msgstr "Не удалось прочитать список {0}."

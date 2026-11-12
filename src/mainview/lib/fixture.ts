@@ -621,6 +621,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		frame: opts.frame ?? "own",
 		buttons: "auto",
 		corners: opts.corners ?? "rounded",
+		language: "system",
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",
@@ -1054,6 +1055,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			return { ok: true };
 		},
 		chrome: () => clone(chrome),
+		// The browser's languages stand in for the desktop's, so a spec can set them with its locale.
+		languages: () => [...(globalThis.navigator?.languages ?? [])],
 		window: ({ op }) => {
 			// Recorded so specs can see which window op a control sent.
 			globalThis.upkeepOps?.push(op);

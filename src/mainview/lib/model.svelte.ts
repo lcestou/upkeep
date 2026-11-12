@@ -14,6 +14,7 @@ import type {
 	SystemRow,
 	WindowChrome,
 } from "../../shared/types";
+import { followSetting } from "./language.svelte";
 import { GROUP_LABEL, type GroupId, stateSentence } from "./copy";
 
 export type View = "updates" | "history" | "settings";
@@ -77,6 +78,8 @@ const idleRun = (): RunState => ({
 export class Model {
 	apps = $state<AppState[]>([]);
 	run = $state<RunState>(idleRun());
+	/** The desktop's languages from the main process, most preferred first; empty until start() has them. */
+	desktopLanguages: string[] = [];
 	settings = $state<Settings>({
 		keepBackups: 1,
 		notify: true,
@@ -85,6 +88,7 @@ export class Model {
 		frame: "own",
 		buttons: "auto",
 		corners: "rounded",
+		language: "system",
 	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
 	chrome = $state<WindowChrome | null>(null);
@@ -229,11 +233,13 @@ export class Model {
 		const bridge = this.#bridge;
 		if (!bridge) return;
 		this.#off = bridge.onEvent((e) => this.apply(e));
-		const [snap, chrome, extras] = await Promise.all([
+		const [snap, chrome, extras, languages] = await Promise.all([
 			bridge.request("snapshot", {}),
 			this.send("chrome", {}),
 			this.send("extras", {}),
+			this.send("languages", {}),
 		]);
+		this.desktopLanguages = languages ?? [];
 		this.chrome = chrome;
 		if (extras) this.extras = extras;
 		this.load(snap);
@@ -250,6 +256,7 @@ export class Model {
 		this.apps = snap.apps;
 		this.run = snap.run;
 		this.settings = snap.settings;
+		followSetting(this.settings.language, this.desktopLanguages);
 		this.rate = snap.rate;
 		this.checkedAt = snap.checkedAt;
 		this.version = snap.version;
@@ -318,6 +325,7 @@ export class Model {
 				this.rate = e.rate;
 				this.checkedAt = e.checkedAt;
 				this.settings = e.settings;
+				followSetting(this.settings.language, this.desktopLanguages);
 				return;
 		}
 	}

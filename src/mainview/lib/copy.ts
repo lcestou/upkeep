@@ -12,104 +12,290 @@ import type {
 import { formatBytes, plural } from "./format";
 
 export const KIND_LABEL = {
-	appimage: "AppImage",
-	archive: "Binary",
-	file: "Binary",
-	deb: ".deb",
-	source: "Source build",
-	command: "Updates itself",
-	"claude-plugins": "Plugins",
-	manual: "By hand",
+	get appimage() {
+		// @wc-ignore
+		return "AppImage";
+	},
+	get archive() {
+		return "Binary";
+	},
+	get file() {
+		return "Binary";
+	},
+	get deb() {
+		return ".deb";
+	},
+	get source() {
+		return "Source build";
+	},
+	get command() {
+		return "Updates itself";
+	},
+	get "claude-plugins"() {
+		return "Plugins";
+	},
+	get manual() {
+		return "By hand";
+	},
 } satisfies Record<AppKind, string>;
 
 export const STAGE_NAME = {
-	download: "Download",
-	backup: "Back up",
-	build: "Build",
-	install: "Install",
-	verify: "Verify",
+	get download() {
+		return "Download";
+	},
+	get backup() {
+		return "Back up";
+	},
+	get build() {
+		return "Build";
+	},
+	get install() {
+		return "Install";
+	},
+	get verify() {
+		return "Verify";
+	},
 } satisfies Record<Stage, string>;
 
 export type GroupId = "run" | "restart" | "ready" | "manual" | "problem" | "held" | "checking" | "fresh";
 
 export const GROUP_LABEL = {
-	ready: "Ready to install",
-	installing: "Installing",
-	thisRun: "This run",
-	restart: "Restart to finish",
-	manual: "By hand",
-	problem: "Needs a look",
-	held: "Held back",
-	checking: "Checking",
-	fresh: "Fresh",
+	get ready() {
+		return "Ready to install";
+	},
+	get installing() {
+		return "Installing";
+	},
+	get thisRun() {
+		return "This run";
+	},
+	get restart() {
+		return "Restart to finish";
+	},
+	get manual() {
+		return "By hand";
+	},
+	get problem() {
+		return "Needs a look";
+	},
+	get held() {
+		return "Held back";
+	},
+	get checking() {
+		return "Checking";
+	},
+	get fresh() {
+		return "Fresh";
+	},
 } satisfies Record<Exclude<GroupId, "run"> | "installing" | "thisRun", string>;
 
 export const COLUMN = {
-	app: "App",
-	kind: "Kind",
-	version: "Version",
-	size: "Size",
-	restore: "Restore point",
-	status: "Status",
+	get app() {
+		return "App";
+	},
+	get kind() {
+		return "Kind";
+	},
+	get version() {
+		return "Version";
+	},
+	get size() {
+		return "Size";
+	},
+	get restore() {
+		return "Restore point";
+	},
+	get status() {
+		return "Status";
+	},
 } as const;
 
 export const CHIP = {
-	running: { text: "In use", title: "In use now. The update applies when you restart it." },
-	root: { text: "Root", title: "Installs with sudo." },
-	auto: { text: "Auto", title: "Installed without asking when Upkeep checks in the background." },
+	running: {
+		get text() {
+			return "In use";
+		},
+		get title() {
+			return "In use now. The update applies when you restart it.";
+		},
+	},
+	root: {
+		get text() {
+			return "Root";
+		},
+		get title() {
+			return "Installs with sudo.";
+		},
+	},
+	auto: {
+		get text() {
+			return "Auto";
+		},
+		get title() {
+			return "Installed without asking when Upkeep checks in the background.";
+		},
+	},
 } as const;
 
 export const TEXT = {
-	updates: "Updates",
-	history: "History",
-	settings: "Settings",
-	check: "Check again",
-	selectAll: "Select all",
-	selectNone: "Select none",
-	nothingSelected: "Nothing selected",
-	stop: "Stop after this one",
-	done: "Done",
-	none: "None",
-	noneYet: "none yet",
-	versionless: "checks itself when run",
-	runNow: "Run now",
-	whatChanged: "What changed",
-	noNotes: "No release notes.",
-	installedAt: "Installed at",
-	source: "Source",
-	restorePoints: "Restore points",
-	holdUpdates: "Hold updates",
-	releaseHold: "Release hold",
-	openRelease: "Open release page",
-	installAuto: "Install automatically",
-	runItYourself: "Run it yourself:",
-	copy: "Copy",
-	copied: "Copied",
-	log: "Show log",
-	logTitle: "Log",
-	hideLog: "Hide log",
-	backToList: "Back to list",
-	retry: "Retry",
-	filter: "Filter apps",
-	clearFilter: "Clear filter",
-	sizesUnknown: "Some sizes are not known until they download.",
-	whyTick: "Tick an update to install.",
-	whyChecking: "Wait for the check to finish.",
-	whyNothing: "Nothing to install.",
-	openLog: "Open log file",
-	noLog: "No log lines yet.",
-	noRuns: "No runs yet.",
-	updated: "Updated",
-	failed: "Failed",
-	rolledBack: "Rolled back",
-	restored: "Restored",
-	notify: "Notify when updates are ready",
-	startAtLogin: "Start at login",
-	startAtLoginHint: "Opens in the tray and checks for updates.",
-	keepBackups: "Restore points to keep",
-	checkEvery: "Check for updates",
-	appList: "App list",
-	openManifest: "Open apps.toml",
+	get updates() {
+		return "Updates";
+	},
+	get history() {
+		return "History";
+	},
+	get settings() {
+		return "Settings";
+	},
+	get check() {
+		return "Check again";
+	},
+	get selectAll() {
+		return "Select all";
+	},
+	get selectNone() {
+		return "Select none";
+	},
+	get nothingSelected() {
+		return "Nothing selected";
+	},
+	get stop() {
+		return "Stop after this one";
+	},
+	get done() {
+		return "Done";
+	},
+	get none() {
+		return "None";
+	},
+	get noneYet() {
+		// @wc-include
+		return "none yet";
+	},
+	get versionless() {
+		// @wc-include
+		return "checks itself when run";
+	},
+	get runNow() {
+		return "Run now";
+	},
+	get whatChanged() {
+		return "What changed";
+	},
+	get noNotes() {
+		return "No release notes.";
+	},
+	get installedAt() {
+		return "Installed at";
+	},
+	get source() {
+		return "Source";
+	},
+	get restorePoints() {
+		return "Restore points";
+	},
+	get holdUpdates() {
+		return "Hold updates";
+	},
+	get releaseHold() {
+		return "Release hold";
+	},
+	get openRelease() {
+		return "Open release page";
+	},
+	get installAuto() {
+		return "Install automatically";
+	},
+	get runItYourself() {
+		return "Run it yourself:";
+	},
+	get copy() {
+		return "Copy";
+	},
+	get copied() {
+		return "Copied";
+	},
+	get log() {
+		return "Show log";
+	},
+	get logTitle() {
+		return "Log";
+	},
+	get hideLog() {
+		return "Hide log";
+	},
+	get backToList() {
+		return "Back to list";
+	},
+	get retry() {
+		return "Retry";
+	},
+	get filter() {
+		return "Filter apps";
+	},
+	get clearFilter() {
+		return "Clear filter";
+	},
+	get sizesUnknown() {
+		return "Some sizes are not known until they download.";
+	},
+	get whyTick() {
+		return "Tick an update to install.";
+	},
+	get whyChecking() {
+		return "Wait for the check to finish.";
+	},
+	get whyNothing() {
+		return "Nothing to install.";
+	},
+	get openLog() {
+		return "Open log file";
+	},
+	get noLog() {
+		return "No log lines yet.";
+	},
+	get noRuns() {
+		return "No runs yet.";
+	},
+	get updated() {
+		return "Updated";
+	},
+	get failed() {
+		return "Failed";
+	},
+	get rolledBack() {
+		return "Rolled back";
+	},
+	get restored() {
+		return "Restored";
+	},
+	get notify() {
+		return "Notify when updates are ready";
+	},
+	get startAtLogin() {
+		return "Start at login";
+	},
+	get startAtLoginHint() {
+		return "Opens in the tray and checks for updates.";
+	},
+	get keepBackups() {
+		return "Restore points to keep";
+	},
+	get checkEvery() {
+		return "Check for updates";
+	},
+	get appList() {
+		return "App list";
+	},
+	get language() {
+		return "Language";
+	},
+	get languageSystem() {
+		return "Same as the system";
+	},
+	get openManifest() {
+		return "Open apps.toml";
+	},
 } as const;
 
 /** Button text for a restore point; the version is the one it restores to. */
@@ -127,7 +313,7 @@ export const restoredText = (v: string) => `Restored ${v}.`;
 /** Shown on the Stop button once pressed, while the running app finishes. */
 export const stoppingLabel = (name: string) => `Stopping after ${name}`;
 /** The Retry button when n apps failed; always reads "failed", even for a rolled-back app. */
-export const retryLabel = (n: number) => `Retry ${n} failed`;
+export const retryLabel = (n: number) => plural(n, ["Retry # failed", "Retry # failed"]);
 /** The rate-limit line in Settings. Counts requests, not apps. */
 export const rateText = (remaining: number, limit: number) =>
 	`GitHub requests left this hour: ${remaining} of ${limit}`;
@@ -137,14 +323,19 @@ export const versionText = (v: string) => `Version ${v}`;
 /** Install button text. Zero reads as the generic label, because the button is disabled then. */
 export function installLabel(n: number): string {
 	if (n === 0) return "Install updates";
-	return n === 1 ? "Install 1 update" : `Install ${n} updates`;
+	return plural(n, ["Install # update", "Install # updates"]);
 }
+
+/** A size that is a floor: some ticked app has no known size yet. */
+// @wc-include
+const atLeast = (size: string) => `at least ${size}`;
 
 /** partial: some ticked app has no known size, so the total is a floor. hidden: ticked apps the filter hides. */
 export function selectionText(n: number, bytes: number | null, partial = false, hidden = 0): string {
 	if (n === 0) return TEXT.nothingSelected;
-	const size = bytes === null ? "" : ` · ${partial ? "at least " : ""}${formatBytes(bytes)}`;
-	return `${n} selected${size}${hidden > 0 ? ` · ${hidden} hidden` : ""}`;
+	const size = bytes === null ? "" : ` · ${partial ? atLeast(formatBytes(bytes)) : formatBytes(bytes)}`;
+	const tail = hidden > 0 ? ` · ${plural(hidden, ["# hidden", "# hidden"])}` : "";
+	return `${plural(n, ["# selected", "# selected"])}${size}${tail}`;
 }
 
 /** Why a kind keeps no restore point, said in the pane only. */
@@ -154,9 +345,15 @@ export const NO_RESTORE = {
 	file: undefined,
 	manual: undefined,
 	deb: undefined,
-	source: "Built in a fresh clone, so there is no restore point.",
-	command: "It updates itself, and its table has no restore command.",
-	"claude-plugins": "Claude Code keeps no older plugin to go back to.",
+	get source() {
+		return "Built in a fresh clone, so there is no restore point.";
+	},
+	get command() {
+		return "It updates itself, and its table has no restore command.";
+	},
+	get "claude-plugins"() {
+		return "Claude Code keeps no older plugin to go back to.";
+	},
 } satisfies Record<AppKind, string | undefined>;
 
 /** A row's version cell when nothing is installed, read in place of "to". */
@@ -167,22 +364,33 @@ export const installedText = (v: string) => `Installed ${v}`;
 export const lastTryFailed = (why: string) => `Last try failed. ${why}`;
 /** The pane's heading over a built app's commits; from is the installed build's commit, when it is known. */
 export const commitsHeading = (n: number, from: string | null) =>
-	`${n} ${n === 1 ? "commit" : "commits"} since ${from ?? "the installed build"}`;
+	from === null
+		? plural(n, ["# commit since the installed build", "# commits since the installed build"])
+		: `${plural(n, ["# commit", "# commits"])} ${sinceCommit(from)}`;
+/** The tail of the commits heading when the installed build's commit is known. */
+// @wc-include
+const sinceCommit = (from: string) => `since ${from}`;
 /** The line under a capped commits list. Text, not a link: the pane's release link already opens the project. */
 export const moreCommits = (n: number, shown: number) => `All ${n} on GitHub (${n - shown} not shown)`;
 /** The restart sentence over the list; names are joined with commas and never trimmed. */
 export const restartLine = (names: string[]) => `Restart ${names.join(", ")} to finish.`;
 /** How many apps are updated by hand; the number is not pluralised. */
-export const byHandLine = (n: number) => `${n} more by hand`;
+export const byHandLine = (n: number) => plural(n, ["# more by hand", "# more by hand"]);
 export const RUN_TEXT = {
-	inProgress: "A run is in progress.",
-	retry: "Retry",
-	restartPending: "Restart pending",
+	get inProgress() {
+		return "A run is in progress.";
+	},
+	get retry() {
+		return "Retry";
+	},
+	get restartPending() {
+		return "Restart pending";
+	},
 } as const;
-/** The all-fresh line. n is not pluralised, so a list of one reads "All 1 apps". */
-export const allFreshLine = (n: number) => `All ${n} apps are up to date.`;
+/** The all-fresh line. English reads "All 1 apps" for a list of one; other languages may use their own forms. */
+export const allFreshLine = (n: number) => plural(n, ["All # apps are up to date.", "All # apps are up to date."]);
 /** The list with no apps yet, as a new person first sees it. */
-export const EMPTY_LINE =
+export const emptyLine = () =>
 	"Add the apps you want Upkeep to keep up to date: type a name such as fd, or paste a GitHub repo.";
 /** The empty-filter message; the text is quoted exactly as typed after trimming by the caller. */
 export const noMatch = (text: string) => `No app matches "${text}".`;
@@ -244,7 +452,8 @@ export function workingText(stage: Stage | undefined, pct: number | null | undef
 export function resultCounts(results: readonly { result: RunResult["result"] }[]): string {
 	const ok = results.filter((r) => r.result === "updated").length;
 	const failed = results.filter((r) => r.result === "failed" || r.result === "rolled_back").length;
-	return failed === 0 ? `${ok} updated` : `${ok} updated, ${failed} failed`;
+	const updated = plural(ok, ["# updated", "# updated"]);
+	return failed === 0 ? updated : `${updated}, ${plural(failed, ["# failed", "# failed"])}`;
 }
 
 /** A History run's sentence; a retry says so first. */
@@ -269,52 +478,110 @@ export function stateSentence({ run, ready, problems, currentName, notStarted = 
 	if (run.phase === "checking") return `Checking ${run.index} of ${run.total}`;
 	if (run.phase === "installing")
 		return `${run.retry ? "Retrying" : "Installing"} ${currentName ?? ""}, ${run.index} of ${run.total}`;
-	if (run.phase === "summary") return resultCounts(run.results) + (notStarted > 0 ? `, ${notStarted} not started` : "");
+	if (run.phase === "summary")
+		return (
+			resultCounts(run.results) + (notStarted > 0 ? `, ${plural(notStarted, ["# not started", "# not started"])}` : "")
+		);
 	if (total === 0) return "No apps yet";
-	if (ready > 0) return plural(ready, "1 update ready", `${ready} updates ready`);
-	if (problems > 0) return plural(problems, "1 needs a look", `${problems} need a look`);
+	if (ready > 0) return plural(ready, ["# update ready", "# updates ready"]);
+	if (problems > 0) return plural(problems, ["# needs a look", "# need a look"]);
 	return "Everything is fresh";
 }
 
 /** Add app and Remove from Upkeep, as the add-app view spec writes them. */
 export const ADD = {
-	button: "Add app",
-	title: "Add an app",
-	label: "App name, GitHub repo, link or file",
-	placeholder: "fd, or owner/repo",
-	find: "Find",
-	runs: "Updates by running",
-	finding: "Finding",
-	hint: "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window.",
-	pick: "Choose a file",
-	scan: "Scan this computer",
-	scanning: "Scanning",
-	lookingRelease: "Looking at the latest release",
-	lookingDisk: "Looking through ~/.local/bin, ~/Applications and ~/bin",
-	asset: "Asset",
-	installedAt: "Installed at",
-	notInstalled: "Not installed",
-	add: "Add to Upkeep",
-	nothingNew: "Nothing new found.",
-	tickToAdd: "Tick an app to add it.",
-	pasteRepo: "Paste its repo",
-	drop: "Drop to add it to Upkeep",
-	unreadable: "Could not read where that file is. Use Choose a file.",
-	slow: "That took too long. Try again.",
-	remove: "Remove from Upkeep",
-	removeYes: "Remove",
-	keep: "Keep",
-	waitRun: "Wait for the run to finish.",
+	get button() {
+		return "Add app";
+	},
+	get title() {
+		return "Add an app";
+	},
+	get label() {
+		return "App name, GitHub repo, link or file";
+	},
+	get placeholder() {
+		// @wc-include
+		return "fd, or owner/repo";
+	},
+	get find() {
+		return "Find";
+	},
+	get runs() {
+		return "Updates by running";
+	},
+	get finding() {
+		return "Finding";
+	},
+	get hint() {
+		return "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window.";
+	},
+	get pick() {
+		return "Choose a file";
+	},
+	get scan() {
+		return "Scan this computer";
+	},
+	get scanning() {
+		return "Scanning";
+	},
+	get lookingRelease() {
+		return "Looking at the latest release";
+	},
+	get lookingDisk() {
+		return "Looking through ~/.local/bin, ~/Applications and ~/bin";
+	},
+	get asset() {
+		return "Asset";
+	},
+	get installedAt() {
+		return "Installed at";
+	},
+	get notInstalled() {
+		return "Not installed";
+	},
+	get add() {
+		return "Add to Upkeep";
+	},
+	get nothingNew() {
+		return "Nothing new found.";
+	},
+	get tickToAdd() {
+		return "Tick an app to add it.";
+	},
+	get pasteRepo() {
+		return "Paste its repo";
+	},
+	get drop() {
+		return "Drop to add it to Upkeep";
+	},
+	get unreadable() {
+		return "Could not read where that file is. Use Choose a file.";
+	},
+	get slow() {
+		return "That took too long. Try again.";
+	},
+	get remove() {
+		return "Remove from Upkeep";
+	},
+	get removeYes() {
+		return "Remove";
+	},
+	get keep() {
+		return "Keep";
+	},
+	get waitRun() {
+		return "Wait for the run to finish.";
+	},
 } as const;
 
 /** Notice after one app was added. */
 export const addedOne = (name: string) => `Added ${name}.`;
 /** Notice after a batch of added apps, singular and plural. */
-export const addedMany = (n: number) => (n === 1 ? "Added 1 app." : `Added ${n} apps.`);
+export const addedMany = (n: number) => plural(n, ["Added # app.", "Added # apps."]);
 /** Heading over scan results. */
-export const foundApps = (n: number) => (n === 1 ? "Found 1 app not in the list" : `Found ${n} apps not in the list`);
+export const foundApps = (n: number) => plural(n, ["Found # app not in the list", "Found # apps not in the list"]);
 /** Button text for adding the ticked scan results. */
-export const addApps = (n: number) => (n === 1 ? "Add 1 app" : `Add ${n} apps`);
+export const addApps = (n: number) => plural(n, ["Add # app", "Add # apps"]);
 /** The confirmation question before removing; says the app itself stays installed. */
 export const removeAsk = (name: string) => `Remove ${name} from the list? The app itself stays installed.`;
 /** Notice after an app was removed from the list. */
@@ -322,65 +589,146 @@ export const removedNote = (name: string) => `Removed ${name}.`;
 
 /** Restart now, for an app whose table says how to restart it. */
 export const RESTART = {
-	now: "Restart now",
-	yes: "Restart",
-	notNow: "Not now",
+	get now() {
+		return "Restart now";
+	},
+	get yes() {
+		return "Restart";
+	},
+	get notNow() {
+		return "Not now";
+	},
 } as const;
 /** The question before Upkeep closes apps to reopen them; unsaved work is the cost. */
 export const restartAsk = (names: string[]) =>
-	`${names.join(", ")} will close and reopen. Unsaved work in ${names.length === 1 ? "it" : "them"} is lost.`;
+	names.length === 1
+		? `${names[0]} will close and reopen. Unsaved work in it is lost.`
+		: `${names.join(", ")} will close and reopen. Unsaved work in them is lost.`;
 /** The Restart to finish group's button: restarts every app in it whose table says how. */
 export const restartAllLabel = (names: string[]) =>
-	names.length === 1 ? `Restart ${names[0]} now` : `Restart ${names.length} apps now`;
+	names.length === 1 ? `Restart ${names[0]} now` : plural(names.length, ["Restart # apps now", "Restart # apps now"]);
 /** Notice after a restart worked. */
 export const restartedNote = (names: string[]) => `Restarted ${names.join(", ")}.`;
 
 /** The built-in window frame and About. */
 export const WIN = {
-	close: "Close",
-	minimize: "Minimize",
-	maximize: "Maximize",
-	restore: "Restore",
-	group: "Window",
-	frame: "Window frame",
-	frameOwn: "Built in",
-	frameSystem: "System",
-	frameHelp: "Built in puts the title bar inside Upkeep's own header. System uses the desktop's.",
-	buttons: "Window buttons",
-	buttonsAuto: "Follow the desktop",
-	buttonsLeft: "Left",
-	buttonsRight: "Right",
-	corners: "Window corners",
-	cornersRounded: "Rounded",
-	cornersSquare: "Square",
-	cornersHelp: "A rounded window has no shadow from the desktop.",
-	about: "About",
-	word: "UPKEEP",
-	tagline: "Keeps the apps your package manager misses up to date.",
+	get close() {
+		return "Close";
+	},
+	get minimize() {
+		return "Minimize";
+	},
+	get maximize() {
+		return "Maximize";
+	},
+	get restore() {
+		return "Restore";
+	},
+	get group() {
+		return "Window";
+	},
+	get frame() {
+		return "Window frame";
+	},
+	get frameOwn() {
+		return "Built in";
+	},
+	get frameSystem() {
+		return "System";
+	},
+	get frameHelp() {
+		return "Built in puts the title bar inside Upkeep's own header. System uses the desktop's.";
+	},
+	get buttons() {
+		return "Window buttons";
+	},
+	get buttonsAuto() {
+		return "Follow the desktop";
+	},
+	get buttonsLeft() {
+		return "Left";
+	},
+	get buttonsRight() {
+		return "Right";
+	},
+	get corners() {
+		return "Window corners";
+	},
+	get cornersRounded() {
+		return "Rounded";
+	},
+	get cornersSquare() {
+		return "Square";
+	},
+	get cornersHelp() {
+		return "A rounded window has no shadow from the desktop.";
+	},
+	get about() {
+		return "About";
+	},
+	get word() {
+		return "UPKEEP";
+	},
+	get tagline() {
+		return "Keeps the apps your package manager misses up to date.";
+	},
 } as const;
 
 /** The System group: the system's own pending updates, shown read-only. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */
 export const SYS = {
-	extras: "Extras",
-	setting: "Show system updates",
-	settingHelp:
-		"Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.",
-	group: "System",
-	open: "Open Update Manager",
-	mintOnly:
-		"No package list Upkeep can read is installed (Update Manager, apt, dnf, pacman or zypper). Flatpak updates still show here.",
-	noFlatpak: "Flatpak is not installed, so only package updates are listed.",
-	checking: "Checking system updates",
-	none: "No system updates.",
-	newBuild: "new build",
-	restartNote: "Needs a restart after it installs.",
+	get extras() {
+		return "Extras";
+	},
+	get setting() {
+		return "Show system updates";
+	},
+	get settingHelp() {
+		return "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.";
+	},
+	get group() {
+		return "System";
+	},
+	get open() {
+		return "Open Update Manager";
+	},
+	get mintOnly() {
+		return "No package list Upkeep can read is installed (Update Manager, apt, dnf, pacman or zypper). Flatpak updates still show here.";
+	},
+	get noFlatpak() {
+		return "Flatpak is not installed, so only package updates are listed.";
+	},
+	get checking() {
+		return "Checking system updates";
+	},
+	get none() {
+		return "No system updates.";
+	},
+	get newBuild() {
+		// @wc-include
+		return "new build";
+	},
+	get restartNote() {
+		return "Needs a restart after it installs.";
+	},
 	type: {
-		security: "Security",
-		package: "Package",
-		kernel: "Kernel",
-		driver: "Driver",
-		app: "Flatpak app",
-		runtime: "Flatpak runtime",
+		get security() {
+			return "Security";
+		},
+		get package() {
+			return "Package";
+		},
+		get kernel() {
+			return "Kernel";
+		},
+		get driver() {
+			return "Driver";
+		},
+		get app() {
+			return "Flatpak app";
+		},
+		get runtime() {
+			return "Flatpak runtime";
+		},
 	} satisfies Record<SystemRow["type"], string>,
 } as const;
 
@@ -404,11 +752,21 @@ export function systemAbsent(problem: SystemState["problem"]): string | null {
 
 /** Who answered the System group's package rows, as the subline names it; Flatpak alone when no package list did. */
 export const PACKAGES_FROM = {
-	mint: "Update Manager",
-	apt: "apt",
-	dnf: "dnf",
-	pacman: "pacman",
-	zypper: "zypper",
+	get mint() {
+		return "Update Manager";
+	},
+	get apt() {
+		return "apt";
+	},
+	get dnf() {
+		return "dnf";
+	},
+	get pacman() {
+		return "pacman";
+	},
+	get zypper() {
+		return "zypper";
+	},
 } satisfies Record<NonNullable<SystemState["packages"]>, string>;
 
 /** Sentence for a System list problem. A missing tool says so; a failed read names the source and appends the detail when there is one. */
@@ -417,17 +775,13 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 	const tool = problem.command.split(" ")[0] ?? "";
 	const source =
 		tool === "flatpak"
-			? "Flatpak's"
-			: tool === "apt"
-				? "apt's"
-				: tool === "dnf"
-					? "dnf's"
-					: tool === "checkupdates" || tool === "pacman"
-						? "pacman's"
-						: tool === "zypper"
-							? "zypper's"
-							: "Update Manager's";
-	return problem.detail ? `Could not read ${source} list: ${problem.detail}` : `Could not read ${source} list.`;
+			? "Flatpak"
+			: tool === "apt" || tool === "dnf" || tool === "zypper"
+				? tool
+				: tool === "checkupdates" || tool === "pacman"
+					? "pacman"
+					: PACKAGES_FROM.mint;
+	return problem.detail ? `Could not read the ${source} list: ${problem.detail}` : `Could not read the ${source} list.`;
 }
 
 /** The NVIDIA runtime warning; the version is the one the driver needs. */
@@ -436,7 +790,22 @@ export const glLine = (version: string) =>
 
 /** The "Check for updates" choices, in the order Settings lists them. */
 export const CHECK_EVERY = [
-	{ v: "6h", label: "Every 6 hours" },
-	{ v: "daily", label: "Once a day" },
-	{ v: "ask", label: "Only when I ask" },
+	{
+		v: "6h",
+		get label() {
+			return "Every 6 hours";
+		},
+	},
+	{
+		v: "daily",
+		get label() {
+			return "Once a day";
+		},
+	},
+	{
+		v: "ask",
+		get label() {
+			return "Only when I ask";
+		},
+	},
 ] as const satisfies readonly { v: Settings["checkEvery"]; label: string }[];

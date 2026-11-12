@@ -33,6 +33,7 @@ function ctx(run: Run): KindCtx {
 			frame: "own",
 			buttons: "auto",
 			corners: "rounded",
+			language: "system",
 		},
 		log: (l) => lines.push(l),
 		stage: () => {},

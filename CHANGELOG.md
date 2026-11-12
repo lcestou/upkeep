@@ -4,6 +4,7 @@
 
 First version.
 
+- The window, the tray and the notifications come in ten languages: English, Chinese (Simplified), Spanish, Portuguese (Brazil), German, French, Italian, Polish, Russian and Japanese. Upkeep follows the desktop's language, or the one picked under **Language** in Settings, and switches at once. Counts use each language's own plural forms, and dates its own order.
 - One window lists every app with its installed and latest version, its size and its restore point. Tick what you want and press Install once. Nothing asks a question after that.
 - Each app shows its own progress through download, back up, install and verify.
 - During a run, ticking a Ready app adds it to the end of the run, as a download manager would. The Installing group lists apps in the order they run, and an app's pane keeps its log on the newest line in a box of its own, so the pane no longer shifts as lines arrive.
