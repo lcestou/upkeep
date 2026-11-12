@@ -319,6 +319,9 @@ test("install refuses while checking, with nothing ready, and while the old upda
 	writeFileSync(join(t.dir, "lutechi-updater.lock"), "4321");
 	expect(await engine.install(["fd"])).toEqual({ started: false, reason: REASON_OLD });
 	expect(statuses(engine).fd).toBe("ready");
+	// Run with an interpreter option in front, it still counts.
+	writeFileSync(join(proc, "4321/cmdline"), "/bin/bash\0-x\0/home/u/.local/bin/lutechi-updater\0");
+	expect(await engine.install(["fd"])).toEqual({ started: false, reason: REASON_OLD });
 	// A reused pid that only mentions the updater, as a tail of its log would, does not hold Install back.
 	writeFileSync(join(proc, "4321/cmdline"), "tail\0-f\0/home/u/.local/share/lutechi-updater.log\0");
 	expect(await engine.install(["fd"])).toEqual({ started: true });

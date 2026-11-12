@@ -86,6 +86,7 @@ export type EngineDeps = {
 	/** Test overrides for waits inside kinds. */
 	stallMs?: number;
 	retryMs?: number;
+	/** How often Restart now looks whether the app has quit. Default 200 ms. */
 	pollMs?: number;
 };
 
@@ -288,9 +289,10 @@ export function createEngine(deps: EngineDeps): Engine {
 		try {
 			const pid = readFileSync(lock.file, "utf8").trim();
 			if (!/^\d+$/.test(pid)) return false;
-			// The program itself or the script an interpreter runs: argv 0 or 1 named exactly so, never a mention further on.
-			const argv = readFileSync(join(deps.procRoot ?? "/proc", pid, "cmdline"), "utf8").split("\0");
-			return argv.slice(0, 2).some((a) => basename(a) === lock.name);
+			// The program itself or the script an interpreter runs (its first argument that is not an option, as in
+			// bash -x <script>), named exactly so; a mention further on, as in a tail of its log, does not count.
+			const [prog = "", ...rest] = readFileSync(join(deps.procRoot ?? "/proc", pid, "cmdline"), "utf8").split("\0");
+			return [prog, rest.find((a) => !a.startsWith("-")) ?? ""].some((a) => basename(a) === lock.name);
 		} catch {
 			return false;
 		}
