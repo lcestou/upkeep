@@ -11,20 +11,22 @@ import { ENGINE_COPY } from "./engine-text";
 /** Marks where a value goes when a template is drawn to learn its shape; never in real text. */
 const MARK = (i: number) => `\u{E000}${i}\u{E001}`;
 
-type Shape = { id: MessageId; re: RegExp; order: number[] };
+type Pattern = { id: MessageId; re: RegExp; order: number[] };
 
 /** A RegExp source that matches the text literally. */
 const literal = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** The patterns, once built. */
+let built: Pattern[] | null = null;
 
 /**
  * Every template as a pattern, the most specific first (the most fixed letters), so a short template such as
  * "{0} exited {1}." never takes a sentence a longer one fits. Built once, on first use.
  */
-let shapes: Shape[] | null = null;
-function allShapes(): Shape[] {
-	if (shapes) return shapes;
+function patterns(): Pattern[] {
+	if (built) return built;
 	// SAFETY: Object.keys of the MESSAGES literal is exactly its ids.
-	const built = (Object.keys(MESSAGES) as MessageId[]).map((id) => {
+	const all = (Object.keys(MESSAGES) as MessageId[]).map((id) => {
 		// SAFETY: every template takes its values as strings or numbers and reads only the ones it names.
 		const fn = MESSAGES[id] as (...v: string[]) => string;
 		const drawn = fn(...Array.from({ length: fn.length }, (_, i) => MARK(i)));
@@ -41,14 +43,14 @@ function allShapes(): Shape[] {
 		const fixed = drawn.replace(/\u{E000}\d+\u{E001}/gu, "").replace(/[^\p{L}]/gu, "").length;
 		return { id, re: new RegExp(`^${source}$`, "u"), order, fixed };
 	});
-	built.sort((a, b) => b.fixed - a.fixed);
-	shapes = built;
-	return shapes;
+	all.sort((a, b) => b.fixed - a.fixed);
+	built = all;
+	return built;
 }
 
 /** The template a text was written from, with its values in the template's own order; null when none fits. */
 export function match(text: string): { id: MessageId; values: string[] } | null {
-	for (const s of allShapes()) {
+	for (const s of patterns()) {
 		const m = s.re.exec(text);
 		if (!m) continue;
 		const values: string[] = [];
