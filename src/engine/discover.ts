@@ -131,7 +131,7 @@ const SIDE_FILE = /\.(sha256|sha512|sig|asc|zsync|sbom|json|txt|pem|minisig)$/i;
 // A source rpm installs only its sources into rpmbuild, never the program.
 const OTHER_PACKAGE = /\.(apk|pacman|flatpak|snap|src\.rpm)$/i;
 const UNOPENED = /\.(tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
-const TRIPLE = /(x86_64|aarch64)-unknown-linux-(gnu|musl)$/i;
+const TRIPLE = /x86_64-unknown-linux-(gnu|musl)$/i;
 
 export type Candidate = { asset: Asset; kind: AppKind };
 

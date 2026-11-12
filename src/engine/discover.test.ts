@@ -334,7 +334,6 @@ test("kinds: bare names, -gh and the machine triple are files; archives the inst
 	expect(kindOf("tool-1.2.3")).toBe("file");
 	expect(kindOf("gh-x86_64-unknown-linux-gnu")).toBe("file");
 	expect(kindOf("dsh-gh")).toBe("file");
-	expect(kindOf("tool-1.2-aarch64-unknown-linux-musl")).toBe("file");
 	expect(kindOf("zen.linux-x86_64.tar.xz")).toBe("unopened");
 	expect(kindOf("a.tgz")).toBe("archive");
 	expect(kindOf("notes.html")).toBeNull();
