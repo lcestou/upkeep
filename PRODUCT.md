@@ -38,7 +38,7 @@ The update manager your desktop ships with, for everything it cannot see. One li
 
 - Kinds of app: AppImage, binary from a release archive, single-file binary, .deb, .rpm, source build (a checkout updated in place, built beside the live copy, restarted and tested), self-updating tool, plugin set, notify-only.
 - Every app is ported (2026-11-12): Upkeep no longer runs the old script. It stays on disk until the owner retires its login entry and timer, and Upkeep waits on its lock while its own run holds it.
-- Apps are added in the window: paste a GitHub repo or link, choose or drop a file, or scan the computer. A scan never runs what it finds. Removing an app takes it off the list and uninstalls nothing.
+- Apps are added in the window: paste a repo or link (GitHub, GitLab, Codeberg or a self-hosted forge), choose or drop a file, or scan the computer. A scan never runs what it finds. Removing an app takes it off the list and uninstalls nothing.
 - No prompt may appear after Install is pressed.
 - This is a production machine. An update that cannot be verified is rolled back.
 - Direction set by the owner on 2026-11-11: any Linux first, then any operating system. Today it is built and tested on Linux Mint only. What already works on any x86_64 Linux desktop with WebKitGTK: AppImages, release archives, single files, source builds, self-updating tools, the window and the tray. What is tied to one family today: `.deb` installs need dpkg; package rows in the System group need Linux Mint's Update Manager (Flatpak rows need only Flatpak); the window buttons' side is read from Cinnamon's or GNOME's settings and falls back to the right. Nothing for macOS or Windows exists yet; `notes/research/2026-11-10-other-platforms.md` has the groundwork.

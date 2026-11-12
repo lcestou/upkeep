@@ -16,8 +16,13 @@ export type AppSpec = {
 	key: string;
 	name: string;
 	kind: AppKind;
-	/** owner/repo on GitHub. Required for appimage, archive, file, deb, source. */
+	/**
+	 * Where the releases are: owner/name on GitHub, or host/owner/name on GitLab (gitlab.com/group/sub/name), Codeberg
+	 * or a self-hosted forge. Required for archive, file, deb and rpm unless latest is a links: page.
+	 */
 	repo?: string;
+	/** The forge a repo on a host Upkeep does not know runs: GitLab, or Gitea and Forgejo. */
+	forge?: "gitlab" | "gitea";
 	/** Regular expression matched against release asset names. */
 	asset?: string;
 	/** The installed file the version probe runs. */
@@ -34,7 +39,11 @@ export type AppSpec = {
 	build?: string[];
 	/** command: argv that prints the installed version. */
 	check?: string[];
-	/** command: where the latest version comes from: "npm:<pkg>", "npm-tags:<pkg>", "pypi:<pkg>", "crates:<crate>", "github:<owner>/<repo>" or "json:<url>". */
+	/**
+	 * command: where the latest version comes from: "npm:<pkg>", "npm-tags:<pkg>", "pypi:<pkg>", "crates:<crate>",
+	 * "github:<owner>/<repo>" or "json:<url>". A release kind may take "links:<https page>", whose links matching asset are
+	 * its downloads.
+	 */
 	latest?: string;
 	/** command: argv that performs the update. */
 	update?: string[];

@@ -661,10 +661,6 @@ msgid "Add an app"
 msgstr "Ajouter une application"
 
 #: src/mainview/lib/copy.ts
-msgid "App name, GitHub repo, link or file"
-msgstr "Nom d'application, dépôt GitHub, lien ou fichier"
-
-#: src/mainview/lib/copy.ts
 msgid "fd, or owner/repo"
 msgstr "fd, ou owner/repo"
 
@@ -679,10 +675,6 @@ msgstr "Se met à jour avec"
 #: src/mainview/lib/copy.ts
 msgid "Finding"
 msgstr "Recherche"
-
-#: src/mainview/lib/copy.ts
-msgid "Type an app's name, paste a repo such as sharkdp/fd or a github.com link, or drop a file anywhere on this window."
-msgstr "Tapez le nom d'une application, collez un dépôt comme sharkdp/fd ou un lien github.com, ou déposez un fichier n'importe où dans cette fenêtre."
 
 #: src/mainview/lib/copy.ts
 msgid "Choose a file"
@@ -1093,10 +1085,6 @@ msgid "Could not restore {0}: {1}"
 msgstr "Impossible de restaurer {0} : {1}"
 
 #: src/mainview/lib/engine-text.ts
-msgid "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path."
-msgstr "Indiquez le nom d'une application, un dépôt GitHub comme owner/name, un lien github.com ou un chemin de fichier."
-
-#: src/mainview/lib/engine-text.ts
 msgid "From Upkeep's catalogue of tested apps."
 msgstr "Du catalogue d'applications testées d'Upkeep."
 
@@ -1181,11 +1169,6 @@ msgstr "La limite de requêtes de GitHub est atteinte. Réessayez après sa réi
 #: src/mainview/lib/engine-text.ts
 msgid "GitHub answered {0} for {1}."
 msgstr "GitHub a répondu {0} pour {1}."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "Could not tell where {0} comes from. Paste its GitHub repo to add it."
-msgstr "Impossible de savoir d'où vient {0}. Collez son dépôt GitHub pour l'ajouter."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
@@ -1976,7 +1959,79 @@ msgstr "Cinnamon"
 msgid "Installed with {0}. Upkeep updates it the same way."
 msgstr "Installé avec {0}. Upkeep le met à jour de la même façon."
 
+#: src/mainview/lib/engine-text.ts
+msgid "Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path."
+msgstr "Indiquez le nom d'une application, un dépôt comme owner/name ou gitlab.com/group/name, un lien GitHub, GitLab ou Codeberg, ou un chemin de fichier."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} sent no release for {1}."
+msgstr "{0} n'a envoyé aucune version pour {1}."
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:"
-msgstr "{0} : latest doit commencer par npm:, pypi:, github:, npm-tags:, json: ou crates:"
+msgid "{0}'s request limit is used up. Try again after it resets."
+msgstr "La limite de requêtes de {0} est atteinte. Réessayez après sa réinitialisation."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} answered {1} for {2}."
+msgstr "{0} a répondu {1} pour {2}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} lists no download matching {1}."
+msgstr "{0} ne liste aucun téléchargement correspondant à {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:"
+msgstr "{0} : latest doit commencer par npm:, pypi:, github:, npm-tags:, json:, crates: ou links:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name"
+msgstr "{0} : repo doit être owner/name sur GitHub, ou host/owner/name comme gitlab.com/group/name ou codeberg.org/owner/name"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge must say gitlab or gitea for a repo on {1}"
+msgstr "{0} : forge doit indiquer gitlab ou gitea pour un dépôt sur {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge must be gitlab or gitea"
+msgstr "{0} : forge doit valoir gitlab ou gitea"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: forge is only for a repo on a host other than github.com, gitlab.com or codeberg.org"
+msgstr "{0} : forge est réservé à un dépôt sur un autre hôte que github.com, gitlab.com ou codeberg.org"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: repo or a links: latest is required for kind {1}"
+msgstr "{0} : repo ou un latest links: est requis pour le kind {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a links: latest needs an https page and an asset pattern"
+msgstr "{0} : un latest links: demande une page https et un motif asset"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a links: latest is only for kinds appimage, archive, file, deb and rpm"
+msgstr "{0} : un latest links: est réservé aux kinds appimage, archive, file, deb et rpm"
+
+#: src/mainview/lib/copy.ts
+msgid "App name, repo, link or file"
+msgstr "Nom d'application, dépôt, lien ou fichier"
+
+#: src/mainview/lib/copy.ts
+msgid "Type an app's name, paste a repo such as sharkdp/fd or a GitHub, GitLab or Codeberg link, or drop a file anywhere on this window."
+msgstr "Tapez le nom d'une application, collez un dépôt comme sharkdp/fd ou un lien GitHub, GitLab ou Codeberg, ou déposez un fichier n'importe où dans cette fenêtre."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not tell where {0} comes from. Paste its repo or link to add it."
+msgstr "Impossible de savoir d'où vient {0}. Collez son dépôt ou un lien pour l'ajouter."

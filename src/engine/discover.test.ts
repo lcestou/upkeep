@@ -32,6 +32,8 @@ import fdRelease from "./fixtures/sharkdp_fd.json";
 import lazygitRelease from "./fixtures/jesseduffield_lazygit.json";
 import rustdeskRelease from "./fixtures/rustdesk_rustdesk.json";
 import zenRelease from "./fixtures/zen-browser_desktop.json";
+import codebergRelease from "./fixtures/codeberg_forgejo_forgejo.json";
+import gitlabRelease from "./fixtures/gitlab-org_gitlab-runner.json";
 import type { Asset, FetchLike } from "./github";
 import { ok, realRun, recordingRun, script, tempHome } from "./testkit";
 
@@ -180,6 +182,13 @@ function elf(file: string, opts: { image?: boolean; zsync?: string; size?: numbe
 
 test("input: a repo, a github.com link, a file path, or neither", () => {
 	expect(readInput("sharkdp/fd")).toEqual({ repo: "sharkdp/fd" });
+	// An older GitLab link goes straight to tree/ or blob/ without the "-" marker.
+	expect(readInput("https://gitlab.com/inkscape/inkscape/tree/master")).toEqual({
+		repo: "gitlab.com/inkscape/inkscape",
+	});
+	expect(readInput("https://gitlab.com/g/sub/tool/blob/main/README.md")).toEqual({ repo: "gitlab.com/g/sub/tool" });
+	// A group named like a route word is still a group.
+	expect(readInput("https://gitlab.com/o/tags/proj")).toEqual({ repo: "gitlab.com/o/tags/proj" });
 	expect(readInput(" https://github.com/zen-browser/desktop/releases/tag/1.24.1b ")).toEqual({
 		repo: "zen-browser/desktop",
 	});
@@ -187,9 +196,31 @@ test("input: a repo, a github.com link, a file path, or neither", () => {
 	expect(readInput("/opt/x/tool")).toEqual({ file: "/opt/x/tool" });
 	expect(readInput("~/Applications/a.AppImage")).toEqual({ file: "~/Applications/a.AppImage" });
 	expect(readInput("file:///home/u/a")).toEqual({ file: "file:///home/u/a" });
-	expect(readInput("https://gitlab.com/a/b")).toBeNull();
 	expect(readInput("just words")).toBeNull();
 	expect(readInput("a/b/c")).toBeNull();
+});
+
+test("input: GitLab and Codeberg links and host/owner/name, and a self-hosted forge only once a table names it", () => {
+	expect(readInput("https://gitlab.com/gitlab-org/gitlab-runner/-/releases/v19.3.6")).toEqual({
+		repo: "gitlab.com/gitlab-org/gitlab-runner",
+	});
+	expect(readInput("https://gitlab.com/inkscape/inkscape.git")).toEqual({ repo: "gitlab.com/inkscape/inkscape" });
+	expect(readInput("gitlab.com/group/sub/project")).toEqual({ repo: "gitlab.com/group/sub/project" });
+	expect(readInput("https://codeberg.org/forgejo/forgejo/releases")).toEqual({ repo: "codeberg.org/forgejo/forgejo" });
+	expect(readInput("codeberg.org/forgejo/forgejo")).toEqual({ repo: "codeberg.org/forgejo/forgejo" });
+	expect(readInput("github.com/sharkdp/fd")).toEqual({ repo: "sharkdp/fd" });
+	// A host no table names could run any forge: it is not guessed.
+	expect(readInput("https://git.example.org/me/tool")).toBeNull();
+	const hosts = new Map([["git.example.org", "gitea" as const]]);
+	expect(readInput("https://git.example.org/me/tool/releases", hosts)).toEqual({
+		repo: "git.example.org/me/tool",
+		forge: "gitea",
+	});
+	expect(readInput("git.example.org/me/tool", hosts)).toEqual({ repo: "git.example.org/me/tool", forge: "gitea" });
+	// A Gitea repo is owner/name only, and a GitLab link with no project is not a repo.
+	expect(readInput("codeberg.org/forgejo")).toBeNull();
+	expect(readInput("https://gitlab.com/explore")).toBeNull();
+	expect(readInput("ftp://gitlab.com/a/b")).toBeNull();
 });
 
 test("suggest refuses input that is not a repo, a link or a path", async () => {
@@ -474,7 +505,7 @@ test("from a file: a name search hit is a guess, a miss keeps the path", async (
 	const miss = await suggest(odd, ctx().c);
 	expect(miss.suggestions[0]).toMatchObject({
 		path: odd,
-		problem: "Could not tell where oddtool comes from. Paste its GitHub repo to add it.",
+		problem: "Could not tell where oddtool comes from. Paste its repo or link to add it.",
 	});
 });
 
@@ -517,7 +548,7 @@ test("scan skips listed apps, symlinks, scripts and leftovers, and never runs wh
 	const { c, calls } = ctx(specs);
 	const r = await scan(c);
 	expect(r.suggestions.map((s) => [s.path, s.problem ?? null])).toEqual([
-		[join(bin, "oddtool"), "Could not tell where oddtool comes from. Paste its GitHub repo to add it."],
+		[join(bin, "oddtool"), "Could not tell where oddtool comes from. Paste its repo or link to add it."],
 		[join(bin, "zen.AppImage"), null],
 	]);
 	expect(r.suggestions.every((s) => s.installed === null && s.source === "scan")).toBe(true);
@@ -1079,4 +1110,52 @@ test("a crate cargo installed into a scanned folder is offered once, as cargo's 
 	rmSync(join(t.paths.home, ".cargo"), { recursive: true });
 	managers.npm = JSON.stringify({ dependencies: { freeze: { version: "1.0.0" } } });
 	expect((await scan(ctx().c)).suggestions.map((x) => x.spec.kind).toSorted()).toEqual(["command", "file"]);
+});
+
+test("Add app from a GitLab link, a Codeberg repo and a self-hosted forge a table already names", async () => {
+	const forges: FetchLike = async (url, init) => {
+		fetched.push(url);
+		if (url.startsWith("https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab-runner/"))
+			return Response.json(gitlabRelease);
+		if (url.startsWith("https://codeberg.org/api/v1/repos/forgejo/forgejo/")) return Response.json(codebergRelease);
+		if (url.startsWith("https://git.example.org/api/v1/repos/me/forgejo/")) return Response.json(codebergRelease);
+		if (url.startsWith("https://gitlab.com/api/")) return new Response('{"message":"404 Not Found"}', { status: 404 });
+		return fakeFetch(url, init);
+	};
+	const runner = await suggest("https://gitlab.com/gitlab-org/gitlab-runner/-/releases", { ...ctx().c, fetch: forges });
+	expect(runner.suggestions[0]?.spec).toMatchObject({
+		kind: "file",
+		repo: "gitlab.com/gitlab-org/gitlab-runner",
+		asset: "^gitlab-runner-linux-amd64$",
+		dest: "~/.local/bin/gitlab-runner",
+	});
+	expect(runner.suggestions[0]?.spec.forge).toBeUndefined();
+	const forgejo = await suggest("codeberg.org/forgejo/forgejo", { ...ctx().c, fetch: forges });
+	expect(forgejo.suggestions[0]?.spec).toMatchObject({
+		kind: "file",
+		repo: "codeberg.org/forgejo/forgejo",
+		name: "forgejo",
+	});
+	expect(forgejo.suggestions[0]?.latest).toBe("17.0.1");
+	expect(await suggest("https://gitlab.com/no/such", { ...ctx().c, fetch: forges })).toEqual({
+		suggestions: [],
+		problem: "gitlab.com/no/such has no published release.",
+	});
+	const known: AppSpec = {
+		key: "other",
+		name: "Other",
+		kind: "file",
+		repo: "git.example.org/me/other",
+		forge: "gitea",
+		asset: "x",
+		dest: "~/x",
+	};
+	const own = await suggest("https://git.example.org/me/forgejo", { ...ctx([known]).c, fetch: forges });
+	expect(own.suggestions[0]?.spec).toMatchObject({ repo: "git.example.org/me/forgejo", forge: "gitea" });
+	expect(await suggest("https://git.example.org/me/forgejo", { ...ctx().c, fetch: forges })).toEqual({
+		suggestions: [],
+		problem: BAD_INPUT,
+	});
+	// No GitHub contents listing is asked of another forge: a drafted build is GitHub's alone.
+	expect(fetched.some((u) => u.includes("/contents"))).toBe(false);
 });

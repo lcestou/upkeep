@@ -4,6 +4,7 @@
 
 First version.
 
+- Apps can come from GitLab (gitlab.com or self-hosted), Codeberg and other Gitea or Forgejo hosts, as well as GitHub: a table's `repo` takes `gitlab.com/group/name` or `codeberg.org/owner/name`, and Add app reads links to them. An app whose project publishes no releases can follow a plain download page with `latest = "links:<page>"`.
 - Scan this computer also finds the tools uv, pipx, npm and cargo installed and offers each as an app that updates through that manager; typing a tool's name in Add app finds it too. A tool from crates.io can have its latest version checked.
 - Add app's line on how it worked out each suggestion shows in the chosen language; it is several sentences, and only a single one was translated before.
 - Dropping a file on the window opens Add app with it. In the real window the drop did nothing, because the desktop's web view passes a dropped file's address only as link text.

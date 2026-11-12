@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cutTable, ensureManifest, loadCatalogue, loadManifest, tomlTable } from "./manifest";
+import { cutTable, ensureManifest, loadCatalogue, loadManifest, parseManifest, tomlTable } from "./manifest";
 import { paths } from "./paths";
 
 const SEED = join(import.meta.dir, "../../manifest/apps.toml");
@@ -238,7 +238,7 @@ test("a latest whose source the check cannot read is refused at load", () => {
 		].join("\n"),
 	);
 	expect(loadManifest(file).errors).toEqual([
-		"x: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:",
+		"x: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:",
 	]);
 });
 
@@ -404,4 +404,67 @@ test("an rpm table loads with repo, asset and dest, and is refused without an as
 	const { apps, errors } = loadManifest(file);
 	expect(apps.map((a) => a.key)).toEqual(["good"]);
 	expect(errors).toEqual(["bad: asset is required for kind rpm", "old: asset is required for kind deb"]);
+});
+
+/** The one table's spec, or the one refusal, of an [apps.x] table holding these lines. */
+function one(...lines: string[]) {
+	const r = parseManifest(["[apps.x]", 'name = "X"', ...lines].join("\n"), "apps.toml");
+	return r.errors[0] ?? r.apps[0];
+}
+
+test("repo forms: GitHub's owner/name, a known host, a self-hosted forge that names its forge; anything else is refused", () => {
+	const file = ['kind = "file"', 'asset = "x"', 'dest = "~/x"'];
+	expect(one(...file, 'repo = "sharkdp/fd"')).toMatchObject({ repo: "sharkdp/fd" });
+	expect(one(...file, 'repo = "gitlab.com/group/sub/project"')).toMatchObject({ repo: "gitlab.com/group/sub/project" });
+	expect(one(...file, 'repo = "codeberg.org/forgejo/forgejo"')).toMatchObject({ repo: "codeberg.org/forgejo/forgejo" });
+	const own = one(...file, 'repo = "git.example.org/me/tool"', 'forge = "gitea"');
+	expect(own).toMatchObject({ repo: "git.example.org/me/tool", forge: "gitea" });
+	// Written back, the forge stays beside its repo.
+	if (typeof own === "string" || own === undefined) throw new Error(String(own));
+	expect(tomlTable(own)).toContain('repo = "git.example.org/me/tool"\nforge = "gitea"\n');
+	expect(one(...file, 'repo = "git.example.org/me/tool"')).toBe(
+		"x: forge must say gitlab or gitea for a repo on git.example.org",
+	);
+	expect(one(...file, 'repo = "git.example.org/me/tool"', 'forge = "github"')).toBe("x: forge must be gitlab or gitea");
+	expect(one(...file, 'repo = "gitlab.com/g/p"', 'forge = "gitlab"')).toBe(
+		"x: forge is only for a repo on a host other than github.com, gitlab.com or codeberg.org",
+	);
+	expect(one(...file, 'repo = "o/r"', 'forge = "gitea"')).toBe(
+		"x: forge is only for a repo on a host other than github.com, gitlab.com or codeberg.org",
+	);
+	const form =
+		"x: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name";
+	for (const bad of ["a/b/c", "gitlab.com/one", "codeberg.org/a/b/c", "o/../r", "https://github.com/o/r"])
+		expect(one(...file, `repo = "${bad}"`)).toBe(form);
+	expect(one(...file)).toBe("x: repo or a links: latest is required for kind file");
+});
+
+test("a links: latest is an https page with an asset pattern, on a kind that installs a release file", () => {
+	expect(
+		one(
+			'kind = "archive"',
+			"asset = '^hello-.*\\.tar\\.gz$'",
+			'dest = "~/.local/bin/hello"',
+			'bins = ["hello"]',
+			'latest = "links:https://ftp.gnu.org/gnu/hello/"',
+		),
+	).toMatchObject({ kind: "archive", latest: "links:https://ftp.gnu.org/gnu/hello/" });
+	expect(one('kind = "appimage"', 'dest = "~/x"', 'asset = "x"', 'latest = "links:http://example.org/"')).toBe(
+		"x: a links: latest needs an https page and an asset pattern",
+	);
+	expect(one('kind = "command"', 'check = ["x"]', 'update = ["x"]', 'latest = "links:https://example.org/"')).toBe(
+		"x: a links: latest is only for kinds appimage, archive, file, deb and rpm",
+	);
+});
+
+test("a commit compare needs a GitHub repo", () => {
+	const src = ['kind = "source"', 'build = ["make"]', 'dest = "~/x"', 'commit = ["git", "rev-parse", "HEAD"]'];
+	expect(one(...src, 'repo = "tmux/tmux"')).toMatchObject({ repo: "tmux/tmux" });
+	expect(one(...src, 'repo = "gitlab.com/g/p"')).toBe("x: commit needs a GitHub repo");
+});
+
+test("a GitHub repo written with its host is kept as owner/name, the form every GitHub call builds its path from", () => {
+	expect(one('kind = "file"', 'asset = "x"', 'dest = "~/x"', 'repo = "github.com/sharkdp/fd"')).toMatchObject({
+		repo: "sharkdp/fd",
+	});
 });

@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { Run } from "./run";
 import { tagVersion } from "./version";
@@ -44,7 +44,7 @@ export function isFailure<T extends object>(v: T | Failure): v is Failure {
 }
 
 /** Anything that is not a string reads as empty, so a missing field and a wrong-typed one are the same. */
-function str(v: unknown): string {
+export function str(v: unknown): string {
 	return typeof v === "string" ? v : "";
 }
 
@@ -59,13 +59,16 @@ export function jsonVersion(text: string): string | undefined {
 }
 
 /** A JSON value read as a table of fields. Anything that is not an object, null included, reads as an empty one. */
-function record(v: unknown): Record<string, unknown> {
+export function record(v: unknown): Record<string, unknown> {
 	// SAFETY: v is a non-null object, and reading any key of one gives a value or undefined, never a throw.
 	return typeof v === "object" && v !== null ? (v as Record<string, unknown>) : {};
 }
 
-/** Null when the body has no tag. An asset that is not an object is skipped; a missing field reads as empty. */
-function parseRelease(body: unknown): Release | null {
+/**
+ * Null when the body has no tag. An asset that is not an object is skipped; a missing field reads as empty. Gitea and
+ * Forgejo answer in this same shape, without the digest.
+ */
+export function parseRelease(body: unknown): Release | null {
 	if (typeof body !== "object" || body === null) return null;
 	const b = record(body);
 	const tag = str(b.tag_name);
@@ -103,6 +106,35 @@ function readCache(file: string): Cached | null {
 	} catch {
 		return null;
 	}
+}
+
+/** One answer of a revalidated GET: fromCache when the server said 304 and text is what was cached. */
+export type Revalidated = { res: Response; text: string; fromCache: boolean };
+
+/**
+ * A GET sent with the etag cached in cacheFile, so an unchanged answer costs no budget. A fresh 2xx answer with an
+ * etag is cached through a temp name and a rename; any other answer is returned as it came and never cached. Throws
+ * what fetch throws.
+ */
+export async function revalidate(
+	url: string,
+	cacheFile: string,
+	headers: Record<string, string>,
+	fetch: FetchLike,
+): Promise<Revalidated> {
+	const cached = readCache(cacheFile);
+	const sent = cached ? { ...headers, "If-None-Match": cached.etag } : headers;
+	const res = await fetch(url, { headers: sent });
+	if (res.status === 304 && cached) return { res, text: cached.body, fromCache: true };
+	const text = await res.text();
+	const etag = res.headers.get("etag");
+	if (res.ok && etag) {
+		mkdirSync(dirname(cacheFile), { recursive: true });
+		const tmp = `${cacheFile}.${process.pid}.tmp`;
+		writeFileSync(tmp, JSON.stringify({ etag, body: text }));
+		renameSync(tmp, cacheFile);
+	}
+	return { res, text, fromCache: false };
 }
 
 type RateRead = { hasRate: boolean; remaining: number; resetAt?: string };
@@ -242,38 +274,28 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 		opts.cacheDir,
 		`${repo.replace("/", "__")}${opts.tag === undefined ? "" : `@${encodeURIComponent(opts.tag)}`}.json`,
 	);
-	const cached = readCache(cacheFile);
 	const headers: Record<string, string> = { Accept: "application/vnd.github+json", "User-Agent": "upkeep" };
-	if (cached) headers["If-None-Match"] = cached.etag;
 	if (opts.token && api === GITHUB_API) headers.Authorization = `Bearer ${opts.token}`;
-	let res: Response;
+	let got: Revalidated;
 	try {
-		res = await opts.fetch(`${api}/repos/${repo}/releases/${which}`, { headers });
+		got = await revalidate(`${api}/repos/${repo}/releases/${which}`, cacheFile, headers, opts.fetch);
 	} catch (err) {
 		return {
 			failure: "network",
 			detail: MESSAGES.couldNotReachGithubSearch(err instanceof Error ? err.message : String(err)),
 		};
 	}
-	const rate = readRate(res, opts);
-	if (res.status === 304 && cached) {
-		const r = toRelease(cached.body, repo);
+	const rate = readRate(got.res, opts);
+	if (got.fromCache) {
+		const r = toRelease(got.text, repo);
 		// A corrupt cache would otherwise stick until upstream's etag changes.
 		if (isFailure(r)) rmSync(cacheFile, { force: true });
 		return r;
 	}
-	const text = await res.text();
-	const limited = rateFailure(res, text, rate);
+	const limited = rateFailure(got.res, got.text, rate);
 	if (limited) return limited;
-	if (!res.ok) return { failure: "http", detail: MESSAGES.githubAnsweredSearch(res.status, repo) };
-	const etag = res.headers.get("etag");
-	if (etag) {
-		mkdirSync(opts.cacheDir, { recursive: true });
-		const tmp = `${cacheFile}.${process.pid}.tmp`;
-		writeFileSync(tmp, JSON.stringify({ etag, body: text }));
-		renameSync(tmp, cacheFile);
-	}
-	return toRelease(text, repo);
+	if (!got.res.ok) return { failure: "http", detail: MESSAGES.githubAnsweredSearch(got.res.status, repo) };
+	return toRelease(got.text, repo);
 }
 
 /** A cached or fresh releases/latest body. Text that is not JSON or has no tag is an http failure. */

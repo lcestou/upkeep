@@ -7,6 +7,7 @@ Exemptions, all in `.oxlintrc.json` under `overrides`:
 - **I/O boundaries.** These files read data Upkeep does not own and check it into typed values, so `typeof`, `unknown` and loose dictionaries are allowed there:
   - `src/engine/manifest.ts` (the person's `apps.toml`)
   - `src/engine/github.ts` (GitHub's API)
+  - `src/engine/forge.ts` (GitLab's and Gitea's release APIs, and the links of a download page)
   - `src/engine/managers.ts` (the lists uv, pipx, npm and cargo print of what they installed, and uv's receipts)
   - `src/engine/store.ts` (`state.json`)
   - `src/engine/transfer.ts` (an export file handed to `upkeep import`, possibly from another machine or an agent)

@@ -69,7 +69,7 @@ test("a problem card has no add button, and a bad input says why", async ({ page
 	await page.getByTestId("add-input").fill("just some words");
 	await page.keyboard.press("Enter");
 	await expect(page.getByTestId("add-problem")).toHaveText(
-		"Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.",
+		"Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.",
 	);
 });
 
@@ -93,7 +93,7 @@ test("scan, add the two sure ones, the failed one stays with its reason", async 
 	await expect(list.locator("h3")).toHaveText("Found 6 apps not in the list");
 	await expect(page.getByTestId("scan-tick-obsidian")).toBeChecked();
 	await expect(page.getByTestId("scan-tick-btop")).toBeChecked();
-	await expect(list).toContainText("Could not tell where mytool comes from. Paste its GitHub repo to add it.");
+	await expect(list).toContainText("Could not tell where mytool comes from. Paste its repo or link to add it.");
 	await expect(page.getByTestId("scan-add")).toHaveText("Add 2 apps");
 	await page.getByTestId("scan-none").click();
 	await expect(page.getByTestId("scan-add")).toBeDisabled();
