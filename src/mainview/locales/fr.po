@@ -2503,3 +2503,8 @@ msgstr "La table de {0} n'indique aucun fichier de version pour les machines {1}
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: {1} is not a valid regular expression"
 msgstr "{0} : {1} n'est pas une expression régulière valide"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
+msgstr "Mis à jour. Une copie de {0} qui tournait garde l'ancienne version jusqu'à ce qu'elle se termine ; les nouveaux lancements utilisent la nouvelle."

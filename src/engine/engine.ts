@@ -135,6 +135,15 @@ export const REASON_NOTHING = MESSAGES.reasonNothing();
 export const REASON_STOPPING = MESSAGES.reasonStopping();
 export const REASON_OLD = MESSAGES.reasonOld();
 
+/**
+ * Whether a copy still running after an update is worth a restart prompt. A desktop app, a package or a service is;
+ * a command-line tool (an archive or a single file with no restart command and no relaunch) is not: its running copy
+ * keeps the old version until it exits, every new run already uses the new one, and there is nothing to press.
+ */
+function restartWanted(spec: AppSpec): boolean {
+	return !(spec.kind === "archive" || spec.kind === "file") || spec.restart !== undefined || spec.relaunch === true;
+}
+
 /** Runs fn with at most n in flight at once. */
 function limiter(n: number): <T>(fn: () => Promise<T>) => Promise<T> {
 	let active = 0;
@@ -376,8 +385,10 @@ export function createEngine(deps: EngineDeps): Engine {
 		return false;
 	}
 
+	/** The row's restart flag at load: a running old copy, for an app whose restart is worth a prompt. */
 	function restartFlag(spec: AppSpec): boolean {
-		return WATCHED.has(spec.kind) ? restartNeeded(spec) : (apps.get(spec.key)?.restartToApply ?? false);
+		if (WATCHED.has(spec.kind)) return restartWanted(spec) && restartNeeded(spec);
+		return apps.get(spec.key)?.restartToApply ?? false;
 	}
 
 	function runningNow(spec: AppSpec): boolean {
@@ -721,6 +732,9 @@ export function createEngine(deps: EngineDeps): Engine {
 					stages: {},
 				};
 			}
+			// A command-line tool's running copy needs no restart: the row is updated, and says the old copy runs on.
+			if (outcome.result === "done" && outcome.restartToApply && !restartWanted(spec))
+				outcome = { ...outcome, restartToApply: false, detail: outcome.detail ?? MESSAGES.oldCopyRuns(spec.name) };
 			finishApp(app, outcome);
 			if (outcome.result === "done" && outcome.restartToApply && WATCHED.has(spec.kind)) {
 				const at = deps.now().toISOString();

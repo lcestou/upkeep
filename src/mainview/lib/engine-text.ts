@@ -46,6 +46,8 @@ export const ENGINE_COPY = {
 	downloadTooSmall: (v0: string) => `Download is ${v0} bytes, too small to be a release.`,
 	checksumMismatch: () => `Checksum does not match the release.`,
 	reasonChecking: () => `A check is running.`,
+	oldCopyRuns: (v0: string) =>
+		`Updated. A copy of ${v0} that was running keeps the old version until it exits; new runs use the new one.`,
 	reasonBusy: () => `A run is already in progress.`,
 	reasonNothing: () => `Nothing to install.`,
 	reasonStopping: () => `The run stops after the current app, so nothing more can join it.`,

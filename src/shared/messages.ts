@@ -89,6 +89,9 @@ export const MESSAGES = {
 	/** engine.ts */
 	reasonChecking: () => `A check is running.`,
 	/** engine.ts */
+	/** engine.ts. {0} app name: a command-line tool updated while a copy of it ran */
+	oldCopyRuns: (v0: Value) =>
+		`Updated. A copy of ${v0} that was running keeps the old version until it exits; new runs use the new one.`,
 	reasonBusy: () => `A run is already in progress.`,
 	/** engine.ts */
 	reasonNothing: () => `Nothing to install.`,

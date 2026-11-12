@@ -716,10 +716,20 @@ function fdProcess(pid: number, startSec: number): void {
 }
 
 const fdRow = (engine: ReturnType<typeof createEngine>) => engine.snapshot().apps.find((a) => a.key === "fd");
+/** deps() with fd given a restart command, so a running old copy is worth a reminder (a bare command-line tool's is not). */
+async function depsRestartable(): Promise<EngineDeps> {
+	const d = await deps();
+	const seed = join(t.dir, "seed.toml");
+	writeFileSync(
+		seed,
+		readFileSync(seed, "utf8").replace('repo = "sharkdp/fd"', 'repo = "sharkdp/fd"\nrestart = ["true"]'),
+	);
+	return d;
+}
 const restartEntry = () => JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).restart?.fd;
 
 test("a restart reminder outlives Done and a later check while the old process runs, and clears once it is gone", async () => {
-	const engine = createEngine(await deps());
+	const engine = createEngine(await depsRestartable());
 	fdProcess(500, 1);
 	await engine.check();
 	await engine.install(["fd"]);
@@ -736,7 +746,7 @@ test("a restart reminder outlives Done and a later check while the old process r
 });
 
 test("a restart reminder clears when the only matching process started after the install", async () => {
-	const engine = createEngine(await deps());
+	const engine = createEngine(await depsRestartable());
 	fdProcess(500, 1);
 	await engine.check();
 	await engine.install(["fd"]);
@@ -969,4 +979,21 @@ test("the machine's architecture reaches both the check and Add app", async () =
 		suggestions: [],
 		problem: "No asset of sharkdp/fd's latest release runs on this machine.",
 	});
+});
+
+test("a command-line tool running during its update is updated, with a note, and no restart reminder", async () => {
+	const engine = createEngine(await deps());
+	fdProcess(500, 1);
+	await engine.check();
+	await engine.install(["fd"]);
+	await engine.idle();
+	expect(fdRow(engine)).toMatchObject({
+		status: "done",
+		restartToApply: false,
+		detail: "Updated. A copy of fd that was running keeps the old version until it exits; new runs use the new one.",
+	});
+	// No reminder is written: state.json may not exist at all.
+	expect(existsSync(join(t.paths.state, "state.json")) ? restartEntry() : undefined).toBeUndefined();
+	await engine.check();
+	expect(fdRow(engine)?.restartToApply).toBe(false);
 });
