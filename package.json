@@ -2,8 +2,9 @@
 	"name": "upkeep",
 	"version": "0.1.0",
 	"private": true,
-	"type": "module",
 	"description": "One window for the apps the package manager misses.",
+	"license": "GPL-3.0-or-later",
+	"type": "module",
 	"scripts": {
 		"prepare:eb": "electrobun prepare",
 		"dev": "electrobun prepare && vite build && electrobun dev",
