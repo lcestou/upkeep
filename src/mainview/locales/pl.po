@@ -2171,3 +2171,8 @@ msgstr "Nie udało się ponownie odczytać listy, by sprawdzić, czy się zainst
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. Restart it to use the new version."
 msgstr "Zaktualizowano. Uruchom ponownie, aby używać nowej wersji."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "Próba usunęłaby {0}, więc nic nie zainstalowano. Tę aktualizację może zainstalować Menedżer aktualizacji."

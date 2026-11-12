@@ -2152,3 +2152,8 @@ msgstr "No se pudo volver a leer la lista para ver si se instaló: {0}"
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. Restart it to use the new version."
 msgstr "Actualizada. Reiníciala para usar la nueva versión."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "La prueba eliminaría {0}, así que no se instaló nada. El Gestor de actualizaciones puede instalar esta."

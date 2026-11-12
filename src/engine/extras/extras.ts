@@ -66,6 +66,8 @@ export function createExtras(deps: ExtrasDeps): Extras {
 	let generation = 0;
 	// The pid of the command a System install is running, for a quit that has to end it.
 	let child: number | null = null;
+	/** True from the start of a System install to the end of its finally, whatever the settings say meanwhile. */
+	let installingNow = false;
 
 	/** installable is worked out here, never stored, so it always follows the rows and the switch. */
 	const snapshot = (): ExtrasSnapshot => {
@@ -125,6 +127,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 	 * the engine holds.
 	 */
 	async function install(ids: string[], commands: string[][], log: RunLog, runId: string) {
+		installingNow = true;
 		const steps = planSteps(system.rows, ids, system.packages);
 		const picked = system.rows.filter((r) => steps.some((s) => s.ids.includes(r.id)));
 		const started = Date.now();
@@ -183,6 +186,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			child = null;
 			log.close();
 			releaseLock(deps.paths, process.pid, LOCK_OWNER);
+			installingNow = false;
 			if (system.phase === "installing") system = { ...system, phase: "idle" };
 			emit();
 		}
@@ -195,6 +199,8 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			return () => listeners.delete(listener);
 		},
 		setSettings(patch) {
+			// The group and its install switch stay on while an install runs: off would hide it and let the app quit mid-apt.
+			if (installingNow && (patch.system === "off" || patch.systemInstall === false)) return settings;
 			const was = settings.systemInstall === true;
 			settings = updateExtras(deps.paths, patch);
 			if (settings.system === "off") {
@@ -250,7 +256,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			});
 			return { started: true };
 		},
-		installing: () => system.phase === "installing",
+		installing: () => installingNow,
 		stopSystem() {
 			if (child !== null) killGroup(child);
 		},

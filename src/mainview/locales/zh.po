@@ -2114,3 +2114,8 @@ msgstr "无法重新读取列表来确认是否已安装：{0}"
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. Restart it to use the new version."
 msgstr "已更新。重启它以使用新版本。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "试运行会移除 {0}，因此未安装任何内容。此更新可以通过更新管理器安装。"

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { SystemRow } from "../../shared/types";
@@ -358,4 +358,65 @@ test("installing is off unless switched on, and a lock another run holds is neve
 	expect(existsSync(lock)).toBe(true);
 	await x.idle();
 	expect(existsSync(lock)).toBe(false);
+});
+
+test("Update Manager's own priority updates come with any apt install, since mintupdate-cli ignores -i for them", () => {
+	const rows = [
+		row("apt:perl", "apt", "security"),
+		row("apt:mintupdate", "apt", "package"),
+		row("apt:mint-upgrade-info", "apt", "package"),
+	];
+	const steps = planSteps(rows, ["apt:perl"], "mint");
+	expect(steps[0]?.ids.toSorted()).toEqual(["apt:mint-upgrade-info", "apt:mintupdate", "apt:perl"]);
+	expect(steps[0]?.argv.at(-1)).toBe(GLOBS);
+	// Nothing apt ticked: they do not come along.
+	expect(planSteps(rows, [], "mint")).toEqual([]);
+});
+
+test("a trial run that failed, checked nothing, or removes a package refuses; a sudoers rule refusing fuser is sudo", async () => {
+	const cases: [Map<string, ProcessResult>, string][] = [
+		[
+			new Map([[trialArgv(PERL_IGNORE).join(" "), exit(0, "Inst perl [1] (2)\n", "E: Could not get lock /var/lib/dpkg/lock-frontend")]]),
+			MESSAGES.systemTrialFailed("E: Could not get lock /var/lib/dpkg/lock-frontend"),
+		],
+		[
+			new Map([[trialArgv(PERL_IGNORE).join(" "), ok("NOTE: This is only a simulation!\n")]]),
+			MESSAGES.systemTrialFailed("NOTE: This is only a simulation!"),
+		],
+		[
+			new Map([[trialArgv(PERL_IGNORE).join(" "), ok("Inst perl [1] (2)\nRemv libfoo1 [1]\n")]]),
+			MESSAGES.systemTrialRemoves("libfoo1"),
+		],
+		[new Map([[DPKG_LOCK_CHECK.join(" "), exit(1, "", "sudo: a password is required")]]), MESSAGES.systemSudo()],
+	];
+	for (const [over, refused] of cases) {
+		rmSync(join(t.paths.state), { recursive: true, force: true });
+		const { run, calls } = box(over);
+		// oxlint-disable-next-line no-await-in-loop -- each case is its own install
+		const x = await shown(run);
+		expect(x.installSystem(["apt:perl"], plan(x, ["apt:perl"]))).toEqual({ started: true });
+		// oxlint-disable-next-line no-await-in-loop -- each case is its own install
+		await x.idle();
+		expect(x.snapshot().system.install?.refused).toBe(refused);
+		expect(calls.some((c) => isRootInstall(c.argv))).toBe(false);
+	}
+});
+
+test("while an install runs, the group and its switch cannot be turned off, and it counts as installing to the end", async () => {
+	let release: (() => void) | undefined;
+	const slow = new Promise<ProcessResult>((r) => {
+		release = () => r(ok());
+	});
+	const { run } = box(new Map([[aptArgv(PERL_IGNORE).join(" "), slow]]));
+	const x = await shown(run);
+	expect(x.installSystem(["apt:perl"], plan(x, ["apt:perl"]))).toEqual({ started: true });
+	await Bun.sleep(20);
+	expect(x.installing()).toBe(true);
+	expect(x.setSettings({ system: "off" }).system).toBe("show");
+	expect(x.setSettings({ systemInstall: false }).systemInstall).toBe(true);
+	expect(x.snapshot().system.phase).toBe("installing");
+	release?.();
+	await x.idle();
+	expect(x.installing()).toBe(false);
+	expect(x.setSettings({ system: "off" }).system).toBe("off");
 });

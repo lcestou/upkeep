@@ -432,6 +432,9 @@ export const MESSAGES = {
 	systemTrialNamesRestart: (v0: Value) =>
 		`A trial run would also change ${v0}, which Update Manager installs with a restart, so nothing was installed.`,
 	/** extras/install.ts. {0} the trial run's first line of output, or its exit code */
+	/** install.ts. {0} the packages the trial run would remove, comma-separated */
+	systemTrialRemoves: (v0: Value) =>
+		`The trial run would remove ${v0}, so nothing was installed. Update Manager can install this one.`,
 	systemTrialFailed: (v0: Value) => `The trial run failed, so nothing was installed: ${v0}`,
 	/** extras/install.ts: refused, the list differs from what the person confirmed */
 	systemListChanged: () => `The system's list changed since you looked. Look at it again, then install.`,

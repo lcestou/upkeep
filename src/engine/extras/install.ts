@@ -111,6 +111,10 @@ export const trialArgv = (ignore: string) => [
  */
 export function planSteps(rows: SystemRow[], ids: string[], packages: SystemState["packages"]): Step[] {
 	const ticked = new Set(ids);
+	// mintupdate-cli adds Update Manager's own priority updates before it reads -i, so with any apt row ticked they
+	// install whatever was ticked: they are counted in, so the plan says what will really run.
+	if (rows.some((r) => ticked.has(r.id) && r.source === "apt" && installable(r, packages)))
+		for (const r of rows) if (r.source === "apt" && PRIORITY_SOURCES.has(r.name)) ticked.add(r.id);
 	const picked = rows.filter((r) => ticked.has(r.id) && installable(r, packages));
 	const of = (source: SystemRow["source"]) => picked.filter((r) => r.source === source);
 	const steps: Step[] = [];
@@ -150,6 +154,9 @@ export function planSteps(rows: SystemRow[], ids: string[], packages: SystemStat
 	return steps;
 }
 
+/** Update Manager's own updates, which mintupdate-cli installs before it applies -i (mintupdate-cli.py, checkAPT.py). */
+const PRIORITY_SOURCES = new Set(["mintupdate", "mint-upgrade-info"]);
+
 /** The first non-empty line a command wrote, stderr first; its exit code when it wrote nothing. */
 function firstLine(r: ProcessResult): string {
 	const text = `${r.stderr}\n${r.stdout}`.split("\n").find((l) => l.trim() !== "");
@@ -185,6 +192,8 @@ export async function preflight(steps: Step[], rows: SystemRow[], ctx: InstallCt
 	const apt = steps.find((s) => s.kind === "apt");
 	if (apt) {
 		const lock = await ctx.run(DPKG_LOCK_CHECK, opts);
+		// A sudoers rule can allow true and not fuser: that is sudo asking, not the package system being busy.
+		if (/password is required/i.test(lock.stderr)) return MESSAGES.systemSudo();
 		if (lock.code !== 1 || lock.timedOut || lock.stderr.trim() !== "") return MESSAGES.systemAptBusy();
 	}
 	const flatpak = steps.find((s) => s.kind === "flatpak");
@@ -203,8 +212,15 @@ export async function preflight(steps: Step[], rows: SystemRow[], ctx: InstallCt
 	const ignore = apt.argv.at(-1) ?? "";
 	const trial = await ctx.run(trialArgv(ignore), { timeoutMs: 600_000 });
 	if (bad(trial)) return MESSAGES.systemTrialFailed(firstLine(trial));
+	// mintupdate-cli exits 0 even when apt-get failed: an E: line, or no Inst line at all, means nothing was checked.
+	const error = `${trial.stderr}\n${trial.stdout}`.split("\n").find((l) => l.startsWith("E:"));
+	if (error) return MESSAGES.systemTrialFailed(error);
+	if (!/^Inst /m.test(trial.stdout)) return MESSAGES.systemTrialFailed(firstLine(trial));
 	const named = trialPackages(trial.stdout).filter((p) => RESTART_PACKAGE.test(p));
 	if (named.length > 0) return MESSAGES.systemTrialNamesRestart(named.join(", "));
+	// An update that makes apt remove a package is Update Manager's to confirm, not a ticked row's.
+	const removed = [...trial.stdout.matchAll(/^Remv (\S+)/gm)].map((m) => m[1] ?? "");
+	if (removed.length > 0) return MESSAGES.systemTrialRemoves(removed.join(", "));
 	return null;
 }
 

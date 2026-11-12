@@ -2171,3 +2171,8 @@ msgstr "Не удалось снова прочитать список, чтоб
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. Restart it to use the new version."
 msgstr "Обновлено. Перезапустите, чтобы использовать новую версию."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "Пробный запуск удалил бы {0}, поэтому ничего не установлено. Это обновление можно установить в Менеджере обновлений."

@@ -226,6 +226,8 @@ export const ENGINE_COPY = {
 	systemPolkit: () => `Flatpak would ask for a password here, so nothing was installed.`,
 	systemTrialNamesRestart: (v0: string) =>
 		`A trial run would also change ${v0}, which Update Manager installs with a restart, so nothing was installed.`,
+	systemTrialRemoves: (v0: string) =>
+		`The trial run would remove ${v0}, so nothing was installed. Update Manager can install this one.`,
 	systemTrialFailed: (v0: string) => `The trial run failed, so nothing was installed: ${v0}`,
 	systemListChanged: () => `The system's list changed since you looked. Look at it again, then install.`,
 	systemNothing: () => `None of these is a system update Upkeep installs.`,

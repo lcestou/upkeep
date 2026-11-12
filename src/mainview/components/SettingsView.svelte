@@ -220,7 +220,7 @@
 			<input
 				type="checkbox"
 				checked={model.extras?.settings.system === "show"}
-				disabled={model.extras === null}
+				disabled={model.extras === null || model.extras.system.phase === "installing"}
 				data-testid="setting-system"
 				onchange={(e) => model.setExtras({ system: e.currentTarget.checked ? "show" : "off" })}
 			/>
@@ -232,6 +232,7 @@
 				<input
 					type="checkbox"
 					checked={model.extras.settings.systemInstall === true}
+					disabled={model.extras.system.phase === "installing"}
 					data-testid="setting-system-install"
 					onchange={(e) => model.setExtras({ systemInstall: e.currentTarget.checked })}
 				/>

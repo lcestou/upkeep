@@ -2133,3 +2133,8 @@ msgstr "Die Liste konnte nicht erneut gelesen werden, um zu prüfen, ob es insta
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. Restart it to use the new version."
 msgstr "Aktualisiert. Starte es neu, um die neue Version zu verwenden."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+msgstr "Der Probelauf würde {0} entfernen, deshalb wurde nichts installiert. Die Aktualisierungsverwaltung kann dieses Update installieren."
