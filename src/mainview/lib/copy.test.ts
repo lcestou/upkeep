@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
 import {
+	aboutManifest,
 	ADD,
 	addApps,
 	addedMany,
@@ -12,6 +13,7 @@ import {
 	CHIP,
 	COLUMN,
 	commitsHeading,
+	failedPart,
 	foundApps,
 	glLine,
 	GROUP_LABEL,
@@ -278,4 +280,17 @@ test("every label in the copy tables is words, read through its getter", () => {
 	const labels = [...JSON.stringify(tables).matchAll(/:"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1] ?? "");
 	expect(labels.length).toBeGreaterThan(150);
 	expect(labels.filter((l) => !/\p{L}/u.test(l))).toEqual([]);
+});
+
+test("the summary's failed part and an apps.toml failure are found without matching English words", () => {
+	expect(failedPart([{ result: "updated" }, { result: "failed" }, { result: "rolled_back" }])).toBe("2 failed");
+	expect(failedPart([{ result: "updated" }])).toBeNull();
+	expect(resultCounts([{ result: "updated" }, { result: "failed" }]).split(", ")).toEqual(["1 updated", "1 failed"]);
+	expect(failedPart([{ result: "failed" }])).toBe("1 failed");
+	// The engine's own message and the window's both name the file, in any language.
+	expect(aboutManifest("Could not write fd to apps.toml.")).toBe(true);
+	expect(aboutManifest(tomlWriteFailed("permission denied"))).toBe(true);
+	expect(aboutManifest("無法寫入 apps.toml")).toBe(true);
+	expect(aboutManifest("fd is already in the list.")).toBe(false);
+	expect(aboutManifest(null)).toBe(false);
 });

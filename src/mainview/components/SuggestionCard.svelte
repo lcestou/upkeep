@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppSpec, Suggestion } from "../../shared/types";
-	import { ADD, KIND_LABEL, TEXT, tomlWriteFailed } from "../lib/copy";
+	import { ADD, KIND_LABEL, TEXT, aboutManifest } from "../lib/copy";
 
 	let {
 		suggestion,
@@ -98,7 +98,7 @@
 
 	{#if s.problem || failure}
 		<p class="problem" data-testid="sug-problem">{failure ?? s.problem}</p>
-		{#if onmanifest && failure?.startsWith(tomlWriteFailed("").split(":")[0] ?? "")}<div>
+		{#if onmanifest && aboutManifest(failure)}<div>
 				<button type="button" class="btn small" data-testid="sug-open-manifest" onclick={onmanifest}>{TEXT.openManifest}</button>
 			</div>{/if}
 	{/if}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { byHandLine, checkedTitle, restartLine } from "../lib/copy";
+	import { byHandLine, checkedTitle, failedPart, restartLine } from "../lib/copy";
 	import { relativeTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
@@ -17,6 +17,7 @@
 	// "3 updated, 1 failed": the failed part carries the failure colour.
 	// "3 updated, 1 failed, 2 not started": only the failed part carries the failure colour.
 	const parts = $derived(model.run.phase === "summary" ? model.sentence.split(", ") : null);
+	const failed = $derived(model.run.phase === "summary" ? failedPart(model.run.results) : null);
 	const restart = $derived(model.restarts.map((a) => a.name));
 	const manual = $derived(model.apps.filter((a) => a.status === "manual").length);
 	// Only the app's name may give way: "Installing", ", 1 of 4" and the like stay whole.
@@ -45,7 +46,7 @@
 			<span class="said" class:split={split !== null} in:fade={{ duration: ms(160) }}
 				>{#if split}<span class="fixed">{split.pre}</span><span class="nm">{split.name}</span><span class="fixed"
 						>{split.post}</span
-					>{:else if parts}{#each parts as part, i (i)}{i > 0 ? ", " : ""}{#if part.endsWith(" failed")}<em class="failed"
+					>{:else if parts}{#each parts as part, i (i)}{i > 0 ? ", " : ""}{#if part === failed}<em class="failed"
 								>{part}</em
 							>{:else}{part}{/if}{/each}{:else}{model.sentence}{/if}</span
 			>

@@ -448,12 +448,27 @@ export function workingText(stage: Stage | undefined, pct: number | null | undef
 	}
 }
 
+/** "1 failed", in the language shown; the summary marks the part equal to this with the failure colour. */
+const failedCount = (n: number) => plural(n, ["# failed", "# failed"]);
+
+/** The failed part of a run's summary as resultCounts words it, or null when nothing failed. */
+export function failedPart(results: readonly { result: RunResult["result"] }[]): string | null {
+	const failed = results.filter((r) => r.result === "failed" || r.result === "rolled_back").length;
+	return failed === 0 ? null : failedCount(failed);
+}
+
+/**
+ * Whether a failure is about writing the app list, so the pane can offer to open apps.toml. The file name is the
+ * same in every language and in the engine's own English messages, so it is what is looked for.
+ */
+export const aboutManifest = (failure: string | null | undefined) => Boolean(failure?.includes("apps.toml"));
+
 /** "3 updated, 1 failed": the summary sentence, also the heading count of a run in History. */
 export function resultCounts(results: readonly { result: RunResult["result"] }[]): string {
 	const ok = results.filter((r) => r.result === "updated").length;
 	const failed = results.filter((r) => r.result === "failed" || r.result === "rolled_back").length;
 	const updated = plural(ok, ["# updated", "# updated"]);
-	return failed === 0 ? updated : `${updated}, ${plural(failed, ["# failed", "# failed"])}`;
+	return failed === 0 ? updated : `${updated}, ${failedCount(failed)}`;
 }
 
 /** A History run's sentence; a retry says so first. */
