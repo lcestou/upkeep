@@ -239,4 +239,7 @@ test("a failed package list is named by its own tool", () => {
 	);
 	expect(systemProblem({ code: "failed", command: "checkupdates", detail: "" })).toBe("Could not read pacman's list.");
 	expect(PACKAGES_FROM.pacman).toBe("pacman");
+	expect(systemProblem({ code: "failed", command: "zypper -n -q --no-refresh list-updates", detail: "" })).toBe(
+		"Could not read zypper's list.",
+	);
 });

@@ -137,11 +137,11 @@ function typeOf(name: string): SystemRow["type"] | null {
 	// Debian's linux-image-*, Fedora's kernel-*, openSUSE's kernel-default and its flavours, Arch's linux and its
 	// flavours, each with its headers.
 	const kernel =
-		/^(linux-(image|headers|modules|generic|signed)|kernel($|-(core|modules|modules-extra|devel|headers|default|preempt|longterm)$)|linux(-(lts|zen|hardened|rt|rt-lts|cachyos))?(-headers)?$)/;
+		/^(linux-(image|headers|modules|generic|signed)|kernel($|-(core|modules|modules-extra|devel|headers)$|-(default|preempt|longterm)(-devel)?$)|linux(-(lts|zen|hardened|rt|rt-lts|cachyos))?(-headers)?$)/;
 	if (kernel.test(name)) return "kernel";
 	// The driver, its kernel module and its GL libraries; never nvidia-settings, the CUDA or container toolkits.
 	const driver =
-		/^(nvidia(-(driver|dkms|open|lts|utils|kernel|graphics-drivers|firmware|gl|video)(-|$)|-?\d|$)|lib32-nvidia-utils$|libnvidia-gl-\d|a?kmod-nvidia$|xorg-x11-drv-nvidia$)/;
+		/^(nvidia(-(driver|dkms|open|lts|utils|kernel|graphics-drivers|firmware|gl|video)(-|$)|-?\d|-G\d|$)|lib32-nvidia-utils$|libnvidia-gl-\d|a?kmod-nvidia$|xorg-x11-drv-nvidia$)/;
 	return driver.test(name) ? "driver" : null;
 }
 
@@ -212,15 +212,21 @@ export function parsePacmanList(stdout: string): SystemRow[] {
 }
 
 /**
- * zypper list-updates: a table of "S | Repository | Name | Current Version | Available Version | Arch". The header
- * and its rule are skipped, and the arch goes in the id, as with apt.
+ * zypper list-updates: a table of "S | Repository | Name | Current Version | Available Version | Arch". Rows start
+ * after the "---+---" rule, so a header zypper translated for the locale is never read as a package. The arch goes
+ * in the id, as with apt.
  */
 export function parseZypperList(stdout: string): SystemRow[] {
 	const rows: SystemRow[] = [];
+	let body = false;
 	for (const l of lines(stdout)) {
+		if (/^-+\+/.test(l)) {
+			body = true;
+			continue;
+		}
 		const cells = l.split("|").map((c) => c.trim());
 		const [, , name = "", current = "", available = "", arch = ""] = cells;
-		if (cells.length < 6 || name === "Name" || !name || !available) continue;
+		if (!body || cells.length < 6 || !name || !available) continue;
 		rows.push(packageRow("zypper", name, current || null, available, false, `zypper:${name}.${arch}`));
 	}
 	return rows;

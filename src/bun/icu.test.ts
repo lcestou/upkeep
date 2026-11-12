@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { dlopen, FFIType } from "bun:ffi";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { cEnv, dropStrayIcuData, holdsIcuData } from "./icu";
@@ -26,6 +26,11 @@ test("only a folder with an ICU data file counts as ICU data", () => {
 	expect(holdsIcuData(icu)).toBe(true);
 	// A file named in ICU_DATA is not a folder to list.
 	expect(holdsIcuData(join(icu, "icudt78l.dat"))).toBe(false);
+	// A folder Upkeep cannot list may be someone's own ICU data: it is left alone.
+	const locked = join(dir, "locked");
+	mkdirSync(locked, { mode: 0o000 });
+	expect(holdsIcuData(locked)).toBe(true);
+	chmodSync(locked, 0o700);
 });
 
 test("a stray ICU_DATA is cleared where libc sees it; one that holds data, or none, is left", () => {

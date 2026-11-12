@@ -23,6 +23,7 @@ import {
 	parseAptList,
 	parseDnfList,
 	parsePacmanList,
+	parseZypperList,
 	parseFlatpakUpdates,
 	parseMintList,
 	parseSourceVersions,
@@ -249,12 +250,36 @@ test("without Update Manager the first package list installed answers: apt, then
 		),
 	);
 	expect(zypper.packages).toBe("zypper");
+	expect(zypper.problem).toBeNull();
 	expect(zypper.rows.filter((r) => r.source === "zypper").map((r) => [r.id, r.type, r.installed, r.latest])).toEqual([
 		["zypper:curl.x86_64", "package", "8.14.1-160000.2.2", "8.14.1-160000.9.1"],
 		["zypper:glibc.x86_64", "package", "2.40-160000.2.2", "2.40-160000.7.1"],
 		["zypper:kernel-default.x86_64", "kernel", "6.12.0-160000.5.1", "6.12.0-160000.9.1"],
 		["zypper:nvidia-gl-G06.x86_64", "driver", "580.95.05-1.1", "580.105.08-1.1"],
 		["zypper:libcurl4.x86_64", "package", "8.14.1-160000.2.2", "8.14.1-160000.9.1"],
+	]);
+	// 106: a repository could not be read, and the rest still listed. Any other failure names zypper.
+	const zyp = (r: ProcessResult) =>
+		checkSystem(
+			box(new Map([...without(MINT_LIST, APT_LIST, DNF_LIST, PACMAN_CHECK, PACMAN_LIST), [ZYPPER_LIST.join(" "), r]])),
+		);
+	const skipped = await zyp({ code: 106, stdout: fx("zypper-list.txt"), stderr: "", timedOut: false });
+	expect([skipped.problem, skipped.rows.filter((r) => r.source === "zypper").length]).toEqual([null, 5]);
+	const locked = await zyp({ code: 7, stdout: "", stderr: "System management is locked", timedOut: false });
+	expect(locked.problem).toEqual({
+		code: "failed",
+		command: ZYPPER_LIST.join(" "),
+		detail: "System management is locked",
+	});
+	expect(locked.rows.filter((r) => r.source === "zypper")).toEqual([]);
+	// A header zypper translated is above the rule, so it is never a row; headers and devel packages type right.
+	expect(
+		parseZypperList(
+			"S | Repository | Nom | Version actuelle | Version disponible | Arch\n--+--\nv | oss | kernel-default-devel | 1 | 2 | x86_64\nv | oss | nvidia-G06 | 1 | 2 | x86_64\n",
+		).map((r) => [r.name, r.type]),
+	).toEqual([
+		["kernel-default-devel", "kernel"],
+		["nvidia-G06", "driver"],
 	]);
 	const quiet = await checkSystem(
 		box(
