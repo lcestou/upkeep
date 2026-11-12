@@ -571,7 +571,7 @@ test("scan offers what uv, pipx, npm and cargo installed, as command tables that
 		["pr-agent", "0.49.0", null, "scan", "sure", "Installed with uv. Upkeep updates it the same way.", null],
 		["yt-dlp", "2026.8.19", null, "scan", "sure", "Installed with uv. Upkeep updates it the same way.", null],
 		["black", "24.8.0", null, "scan", "sure", "Installed with pipx. Upkeep updates it the same way.", null],
-		["-scope-pkg", "1.2.3", null, "scan", "sure", "Installed with npm. Upkeep updates it the same way.", null],
+		["scope-pkg", "1.2.3", null, "scan", "sure", "Installed with npm. Upkeep updates it the same way.", null],
 		["ripgrep", "14.1.0", null, "scan", "sure", "Installed with cargo. Upkeep updates it the same way.", null],
 	]);
 	const prAgent = r.suggestions[0]?.spec;

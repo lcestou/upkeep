@@ -795,7 +795,8 @@ async function managedSuggestions(ctx: DiscoverCtx): Promise<Suggestion[]> {
 	const out: Suggestion[] = [];
 	const seen = new Set<string>();
 	for (const tool of await listTools(ctx.run, ctx.paths.home)) {
-		const key = keyOf(tool.name);
+		// A scoped npm name (@scope/pkg) keys as scope-pkg, not -scope-pkg.
+		const key = keyOf(tool.name.replace(/^@/, ""));
 		const spec = toolSpec(tool, key);
 		if (!spec || seen.has(key)) continue;
 		const tracked = ctx.specs.some(
