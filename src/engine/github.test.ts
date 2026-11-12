@@ -303,3 +303,15 @@ test("a json: answer that is not JSON is the source's failure, not the network's
 	expect(jsonVersion("not json")).toBeUndefined();
 	expect(jsonVersion('\uFEFF{"version": "3.29.9"}')).toBe("3.29.9");
 });
+
+test("pickAsset never takes a source rpm, even when a pattern matches only that", () => {
+	const release: Release = {
+		tag: "v1",
+		version: "1",
+		url: "",
+		publishedAt: "",
+		notes: "",
+		assets: [{ name: "x-1.src.rpm", url: "", size: 1, digest: null }],
+	};
+	expect(pickAsset(release, "\\.rpm$")).toBeNull();
+});
