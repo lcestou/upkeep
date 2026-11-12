@@ -31,5 +31,6 @@ First version.
 - The list opens with what the last check found and refreshes in place. On the first machine 28 of 32 apps report in under two seconds.
 - "Restart to apply" stays on a row until the old copy of the app is no longer running.
 - `check`, `install`, `restore` and `history` from the command line, through `bun run cli`.
-- An optional, read-only System group lists the system's own pending updates without installing any: Flatpak apps and runtimes anywhere, and packages from Linux Mint's Update Manager, or else from apt, dnf or pacman.
+- The window no longer comes up blank on openSUSE. The framework's launcher pointed `ICU_DATA` at a folder with no ICU data, which openSUSE's WebKit cannot start a page without; Upkeep clears it when the folder holds none.
+- An optional, read-only System group lists the system's own pending updates without installing any: Flatpak apps and runtimes anywhere, and packages from Linux Mint's Update Manager, or else from apt, dnf, pacman or zypper. On Arch, a `checkupdates` that cannot run (it needs fakeroot) falls back to `pacman -Qu` instead of leaving the list empty.
 - Every app is updated by Upkeep itself; the first owner's `lutechi-updater` script is no longer run. While its own login run holds its lock, Install waits.

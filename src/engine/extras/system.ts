@@ -15,6 +15,8 @@ export const RPM_VERSIONS = ["rpm", "-qa", "--qf", "%{NAME}.%{ARCH}\t%{VERSION}-
 // pacman-contrib's checkupdates reads a copy of the sync database; plain pacman -Qu is the fallback without it.
 export const PACMAN_CHECK = ["checkupdates"];
 export const PACMAN_LIST = ["pacman", "-Qu"];
+// openSUSE: -n never asks, --no-refresh leaves the repositories as the system last refreshed them.
+export const ZYPPER_LIST = ["zypper", "-n", "-q", "--no-refresh", "list-updates"];
 export const SOURCE_VERSIONS = ["dpkg-query", "-W", "-f", "${source:Package}\t${Version}\n"];
 export const FLATPAK_UPDATES = ["flatpak", "remote-ls", "--updates", "--columns=ref,name,version"];
 export const FLATPAK_INSTALLED = ["flatpak", "list", "--columns=ref,name,version"];
@@ -132,19 +134,20 @@ function aptRows(list: string, sources: Map<string, string>): SystemRow[] {
  * container toolkits), and linux-firmware is a package. A kernel flavour not named here reads as a package.
  */
 function typeOf(name: string): SystemRow["type"] | null {
-	// Debian's linux-image-*, Fedora's kernel-*, Arch's linux and its flavours, each with its headers.
+	// Debian's linux-image-*, Fedora's kernel-*, openSUSE's kernel-default and its flavours, Arch's linux and its
+	// flavours, each with its headers.
 	const kernel =
-		/^(linux-(image|headers|modules|generic|signed)|kernel($|-(core|modules|modules-extra|devel|headers)$)|linux(-(lts|zen|hardened|rt|rt-lts|cachyos))?(-headers)?$)/;
+		/^(linux-(image|headers|modules|generic|signed)|kernel($|-(core|modules|modules-extra|devel|headers|default|preempt|longterm)$)|linux(-(lts|zen|hardened|rt|rt-lts|cachyos))?(-headers)?$)/;
 	if (kernel.test(name)) return "kernel";
 	// The driver, its kernel module and its GL libraries; never nvidia-settings, the CUDA or container toolkits.
 	const driver =
-		/^(nvidia(-(driver|dkms|open|lts|utils|kernel|graphics-drivers|firmware)(-|$)|-?\d|$)|lib32-nvidia-utils$|libnvidia-gl-\d|a?kmod-nvidia$|xorg-x11-drv-nvidia$)/;
+		/^(nvidia(-(driver|dkms|open|lts|utils|kernel|graphics-drivers|firmware|gl|video)(-|$)|-?\d|$)|lib32-nvidia-utils$|libnvidia-gl-\d|a?kmod-nvidia$|xorg-x11-drv-nvidia$)/;
 	return driver.test(name) ? "driver" : null;
 }
 
 /** A row for a package list other than Update Manager's; kernels and drivers get the restart note. */
 function packageRow(
-	source: "apt" | "dnf" | "pacman",
+	source: "apt" | "dnf" | "pacman" | "zypper",
 	name: string,
 	installed: string | null,
 	latest: string,
@@ -208,6 +211,21 @@ export function parsePacmanList(stdout: string): SystemRow[] {
 	return rows;
 }
 
+/**
+ * zypper list-updates: a table of "S | Repository | Name | Current Version | Available Version | Arch". The header
+ * and its rule are skipped, and the arch goes in the id, as with apt.
+ */
+export function parseZypperList(stdout: string): SystemRow[] {
+	const rows: SystemRow[] = [];
+	for (const l of lines(stdout)) {
+		const cells = l.split("|").map((c) => c.trim());
+		const [, , name = "", current = "", available = "", arch = ""] = cells;
+		if (cells.length < 6 || name === "Name" || !name || !available) continue;
+		rows.push(packageRow("zypper", name, current || null, available, false, `zypper:${name}.${arch}`));
+	}
+	return rows;
+}
+
 /** A command that did not answer, timed out or exited non-zero is not ok. */
 const ok = (r: ProcessResult | undefined) => r !== undefined && r.code === 0 && !r.timedOut;
 
@@ -240,9 +258,10 @@ async function listWith(
 }
 
 /**
- * The first package list this system has: Linux Mint's Update Manager, then apt, dnf and pacman (checkupdates, else
- * pacman -Qu). Each is tried only when the one before it is not installed. None needs root. Null when none is
- * installed.
+ * The first package list this system has: Linux Mint's Update Manager, then apt, dnf, pacman (checkupdates, else
+ * pacman -Qu) and zypper. Each is tried only when the one before it is not installed. None needs root. Null when none
+ * is installed. A checkupdates that fails (it needs fakeroot, which pacman-contrib does not pull in) falls back to
+ * pacman -Qu, so a working pacman still lists.
  */
 async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null> {
 	const opts = { timeoutMs: 60_000 };
@@ -263,9 +282,17 @@ async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null> {
 	}
 	// checkupdates exits 2 when there is nothing to update; pacman -Qu exits 1 then.
 	const check = await listWith(ctx, PACMAN_CHECK, [0, 2]);
-	const pac = check.missing ? await listWith(ctx, PACMAN_LIST, [0, 1]) : check;
+	const pac = check.missing || check.problem ? await listWith(ctx, PACMAN_LIST, [0, 1]) : check;
 	if (!pac.missing)
 		return { packages: "pacman", rows: pac.problem ? [] : parsePacmanList(pac.stdout), problem: pac.problem };
+	// 106: some repositories could not be read, and the rest still listed.
+	const zypper = await listWith(ctx, ZYPPER_LIST, [0, 106]);
+	if (!zypper.missing)
+		return {
+			packages: "zypper",
+			rows: zypper.problem ? [] : parseZypperList(zypper.stdout),
+			problem: zypper.problem,
+		};
 	return null;
 }
 

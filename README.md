@@ -4,7 +4,7 @@ One window for the apps the package manager misses. It checks every app in a lis
 
 It covers AppImages, binaries from GitHub release archives, single-file binaries, .deb files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
 
-Linux first: built and tested on Linux Mint, and written to run on any x86_64 Linux desktop (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
+Linux first: built on Linux Mint, checked on eight other distributions, and written to run on any x86_64 Linux desktop (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
 
 ## Run it
 
@@ -67,16 +67,16 @@ dest = "~/.local/bin/fd"
 bins = ["fd"]
 ```
 
-| Kind | What it installs | Needs |
-| --- | --- | --- |
-| `appimage` | one AppImage from a GitHub release, or from a vendor's update API that answers a version and a download (`latest = "json:<url>"`, https only in the catalogue) | `repo` or `latest`, `asset`, `dest` |
-| `archive` | binaries inside a release `.tar.gz` or `.zip` | `repo`, `asset`, `dest`, `bins` |
-| `file` | a binary that is itself the release asset | `repo`, `asset`, `dest` |
-| `deb` | a `.deb` from a release, through `dpkg -i` | `repo`, `asset`, `dest` |
-| `source` | a checkout or a clone of the release tag, built with your steps, restarted and tested | `build`, `check` or `dest`, `repo` or `latest` |
-| `command` | a tool that updates itself | `check`, `latest`, `update`, and `restore` for a restore point |
-| `claude-plugins` | every plugin in Claude Code's registry, through `claude plugin update` (versionless: it runs on Run now and in background runs when `auto` is set) | nothing beyond `name` |
-| `manual` | tracked only: checked like a self-updating tool, and you run the update | `check`, `latest`, `run` |
+| Kind             | What it installs                                                                                                                                               | Needs                                                          |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `appimage`       | one AppImage from a GitHub release, or from a vendor's update API that answers a version and a download (`latest = "json:<url>"`, https only in the catalogue) | `repo` or `latest`, `asset`, `dest`                            |
+| `archive`        | binaries inside a release `.tar.gz` or `.zip`                                                                                                                  | `repo`, `asset`, `dest`, `bins`                                |
+| `file`           | a binary that is itself the release asset                                                                                                                      | `repo`, `asset`, `dest`                                        |
+| `deb`            | a `.deb` from a release, through `dpkg -i`                                                                                                                     | `repo`, `asset`, `dest`                                        |
+| `source`         | a checkout or a clone of the release tag, built with your steps, restarted and tested                                                                          | `build`, `check` or `dest`, `repo` or `latest`                 |
+| `command`        | a tool that updates itself                                                                                                                                     | `check`, `latest`, `update`, and `restore` for a restore point |
+| `claude-plugins` | every plugin in Claude Code's registry, through `claude plugin update` (versionless: it runs on Run now and in background runs when `auto` is set)             | nothing beyond `name`                                          |
+| `manual`         | tracked only: checked like a self-updating tool, and you run the update                                                                                        | `check`, `latest`, `run`                                       |
 
 Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo, `.desktop` or `.json` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`, `restart` (a command that restarts the app, such as `["systemctl", "restart", "rustdesk"]` for a service; `systemctl` asks for a password through the desktop's own prompt when it needs one) and `relaunch = true` (Upkeep may close the app and start `dest` again; it needs `process`, the name of the process it closes, which must be the app's own: the top processes with that name are asked to quit and their children go with them, so an interpreter's name such as `python` or `node` is refused).
 
@@ -103,27 +103,27 @@ test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"]
 
 `manifest/examples.toml` holds the long forms: llama.cpp builds into a stage beside the live copy and places one binary, Strata holds its running engine and writes config values, ComfyUI records its Python packages for an offline rollback, and dsh installs a second npm prefix and swaps it in.
 
-| Field | What it does |
-| --- | --- |
-| `dir` | an existing git checkout, moved to the release tag in place |
-| `move` | how `dir` moves: `ff` (fast-forward its branch, the default), `reset` (refused when HEAD is on no remote ref), `detach` |
-| `check` | argv printing the installed version; its first line is taken as written |
-| `commit` | argv printing the commit the installed copy was built from; the row is ready when the release is ahead of it on GitHub, and the pane lists the newest commits |
-| `stage` | a directory the build writes into beside the live copy |
-| `needs` | argv printing the directories the installed copy needs at run time; kept while a restore point names them |
-| `prune` | globs of build directories that may go after a verified update, never one that is live or kept |
-| `keep` | paths in `dir` saved in the restore point and put back by rename on a rollback; a link stays a link |
-| `hold` | directories a running process executes from; moved aside and copied back so it keeps its open files; each must also be in `keep` |
-| `record` | command output saved in the restore point as a file |
-| `build` | shell steps run in `dir` (or the clone) |
-| `check_built` | shell steps that must pass before anything is stopped |
-| `config` | values written into JSON config files after the build: a top-level `key`, or the value after `flag` in an `array` |
-| `place` | files or directories moved into place while services are stopped; the replaced one goes into the restore point |
-| `undo` | shell steps run on a rollback after the files are back |
-| `busy` | what must not be happening: a `process` name or a `run` that exits 0, with the sentence to `say`; `when = "stopped"` checks it only after `serve` has stopped |
-| `pause` | units held off for the whole update, each only when it was running |
-| `serve` | services stopped and started, each with `active`, `stop`, `start`, and optionally `since` (must change, proving a new process), `health`, `status`, `expect`, `wait_s` and its own `test` list |
-| `test` | a command (`run`) or an HTTP POST (`url` and `body`) with `expect`, `fail_on`, `timeout_s` and `required` |
+| Field         | What it does                                                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dir`         | an existing git checkout, moved to the release tag in place                                                                                                                                    |
+| `move`        | how `dir` moves: `ff` (fast-forward its branch, the default), `reset` (refused when HEAD is on no remote ref), `detach`                                                                        |
+| `check`       | argv printing the installed version; its first line is taken as written                                                                                                                        |
+| `commit`      | argv printing the commit the installed copy was built from; the row is ready when the release is ahead of it on GitHub, and the pane lists the newest commits                                  |
+| `stage`       | a directory the build writes into beside the live copy                                                                                                                                         |
+| `needs`       | argv printing the directories the installed copy needs at run time; kept while a restore point names them                                                                                      |
+| `prune`       | globs of build directories that may go after a verified update, never one that is live or kept                                                                                                 |
+| `keep`        | paths in `dir` saved in the restore point and put back by rename on a rollback; a link stays a link                                                                                            |
+| `hold`        | directories a running process executes from; moved aside and copied back so it keeps its open files; each must also be in `keep`                                                               |
+| `record`      | command output saved in the restore point as a file                                                                                                                                            |
+| `build`       | shell steps run in `dir` (or the clone)                                                                                                                                                        |
+| `check_built` | shell steps that must pass before anything is stopped                                                                                                                                          |
+| `config`      | values written into JSON config files after the build: a top-level `key`, or the value after `flag` in an `array`                                                                              |
+| `place`       | files or directories moved into place while services are stopped; the replaced one goes into the restore point                                                                                 |
+| `undo`        | shell steps run on a rollback after the files are back                                                                                                                                         |
+| `busy`        | what must not be happening: a `process` name or a `run` that exits 0, with the sentence to `say`; `when = "stopped"` checks it only after `serve` has stopped                                  |
+| `pause`       | units held off for the whole update, each only when it was running                                                                                                                             |
+| `serve`       | services stopped and started, each with `active`, `stop`, `start`, and optionally `since` (must change, proving a new process), `health`, `status`, `expect`, `wait_s` and its own `test` list |
+| `test`        | a command (`run`) or an HTTP POST (`url` and `body`) with `expect`, `fail_on`, `timeout_s` and `required`                                                                                      |
 
 Steps and paths may use `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`; any other name in braces is refused. A `command` app's `update` may use `{tag}` and `{version}`. A tag or version that is not a plain version name (letters, digits, `.`, `_`, `+`, `-`, starting with a letter or digit) is refused before anything runs. `latest` also takes `npm-tags:<package>`, the highest stable version at or above the installed one, else the highest prerelease. Every path a table removes, renames or copies over is checked where it is used: never the home directory, `dir` itself, or anything above them. `keep`, `hold` and `prune` must stay inside `dir`, also after following the links on the way there. A `place` target is never a folder directly in the home directory, nor Upkeep's own folders. A step that starts with `sudo` gets `-n`, so a password prompt never waits.
 
@@ -142,14 +142,14 @@ Root steps use `sudo -n`. If sudo wants a password the app fails with a message 
 
 ## Where things live
 
-| Path | Holds |
-| --- | --- |
-| `~/.config/upkeep/apps.toml` | the app list |
-| `~/.local/state/upkeep/state.json` | skipped versions, held apps, settings |
-| `~/.local/state/upkeep/logs/` | one log per run, the newest 50 |
-| `~/.local/share/upkeep/history.jsonl` | every install, append-only |
-| `~/.local/share/upkeep/backups/` | restore points |
-| `~/.cache/upkeep/` | release lookups, downloads, source clones, the last check's rows. Safe to delete. |
+| Path                                  | Holds                                                                             |
+| ------------------------------------- | --------------------------------------------------------------------------------- |
+| `~/.config/upkeep/apps.toml`          | the app list                                                                      |
+| `~/.local/state/upkeep/state.json`    | skipped versions, held apps, settings                                             |
+| `~/.local/state/upkeep/logs/`         | one log per run, the newest 50                                                    |
+| `~/.local/share/upkeep/history.jsonl` | every install, append-only                                                        |
+| `~/.local/share/upkeep/backups/`      | restore points                                                                    |
+| `~/.cache/upkeep/`                    | release lookups, downloads, source clones, the last check's rows. Safe to delete. |
 
 ## The old script
 
@@ -177,23 +177,41 @@ Changing the frame or the corners rebuilds the window, which takes a moment.
 
 ### System updates
 
-The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, and the packages the system's package manager would install (security, kernel and driver updates marked as such). The packages come from the first list the system has: Linux Mint's Update Manager (`mintupdate-cli list`), else `apt list --upgradable`, `dnf check-update`, or pacman (`checkupdates`, else `pacman -Qu`). None needs root. apt and `pacman -Qu` read the system's last refresh; dnf and `checkupdates` may fetch fresh metadata into a cache of their own. They sit in a folded `System` group at the end of the list, whose subline names the source. On Linux Mint its header has a button that opens Update Manager.
+The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, and the packages the system's package manager would install (security, kernel and driver updates marked as such). The packages come from the first list the system has: Linux Mint's Update Manager (`mintupdate-cli list`), else `apt list --upgradable`, `dnf check-update`, pacman (`checkupdates`, else `pacman -Qu`), or `zypper list-updates`. None needs root. apt, `pacman -Qu` and zypper read the system's last refresh; dnf and `checkupdates` may fetch fresh metadata into a cache of their own. They sit in a folded `System` group at the end of the list, whose subline names the source. On Linux Mint its header has a button that opens Update Manager.
 
 The group is off until you turn on **Show system updates** in Settings, under Extras. Upkeep only reads these lists. It installs none of them, because system packages need root and Update Manager already installs them with its own checks. For the same reason the tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
 
 ## Which Linux
 
-Upkeep is developed on Linux Mint 22 (Cinnamon, X11) and has only been run there. Nothing in the engine names that system, and this is what each part needs:
+Upkeep is developed and used daily on Linux Mint 22 (Cinnamon, X11). Nothing in the engine names that system, and this is what each part needs:
 
-| Part | Needs |
-| --- | --- |
-| AppImage, archive, single-file and source apps, self-updating tools | any x86_64 Linux; `gh` for a GitHub token is optional |
-| `.deb` apps | dpkg, so Debian, Ubuntu, Mint and their relatives |
-| The window | WebKitGTK 4.1 |
-| Window buttons on the desktop's side | Cinnamon or GNOME settings; elsewhere they sit on the right, and Settings can move them |
-| Rounded corners | a compositing window manager |
-| System group, Flatpak rows | Flatpak |
-| System group, package rows | Linux Mint's Update Manager, apt, dnf or pacman |
+| Part                                                                | Needs                                                                                   |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| AppImage, archive, single-file and source apps, self-updating tools | any x86_64 Linux; `gh` for a GitHub token is optional                                   |
+| `.deb` apps                                                         | dpkg, so Debian, Ubuntu, Mint and their relatives                                       |
+| The window                                                          | WebKitGTK 4.1                                                                           |
+| Window buttons on the desktop's side                                | Cinnamon or GNOME settings; elsewhere they sit on the right, and Settings can move them |
+| Rounded corners                                                     | a compositing window manager                                                            |
+| System group, Flatpak rows                                          | Flatpak                                                                                 |
+| System group, package rows                                          | Linux Mint's Update Manager, apt, dnf, pacman or zypper                                 |
+
+### Tested
+
+On 2026-11-12, release build 0.1.0 was run as a normal user on each system below, in an Incus container (a VM where noted) with a virtual display. "Window" means the window drew its first screen and ran a check. "System rows" means the System group listed the updates the system's own tool showed, with installed and new versions, after a few packages were put back a version on purpose. Flatpak was read on Fedora and on Linux Mint.
+
+| System                                 | Window                                | System rows from                                 |
+| -------------------------------------- | ------------------------------------- | ------------------------------------------------ |
+| Linux Mint 22 (daily use)              | yes                                   | Update Manager                                   |
+| Ubuntu 26.04                           | yes                                   | apt                                              |
+| Debian 13                              | yes                                   | apt                                              |
+| Fedora 45                              | yes                                   | dnf 5                                            |
+| AlmaLinux 10 (VM)                      | starts and checks; not seen on screen | dnf                                              |
+| AlmaLinux 9                            | no: it ships WebKitGTK 4.0, not 4.1   | dnf 4                                            |
+| Arch Linux                             | yes                                   | `checkupdates`, or `pacman -Qu` without fakeroot |
+| openSUSE Tumbleweed (container and VM) | yes                                   | zypper                                           |
+| openSUSE Leap 16.0                     | yes                                   | zypper                                           |
+
+Not tested: Wayland sessions, real GPU drivers (the virtual display has none), the tray on desktops other than Cinnamon, and installing `.deb` apps outside Linux Mint. The command line (`upkeep check`) needs no display and runs wherever Bun does.
 
 A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its GitHub repo or a file.
 

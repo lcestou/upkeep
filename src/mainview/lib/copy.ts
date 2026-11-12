@@ -359,16 +359,16 @@ export const WIN = {
 	tagline: "Keeps the apps your package manager misses up to date.",
 } as const;
 
-/** The System group: the system's own pending updates, shown read-only. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf or pacman. */
+/** The System group: the system's own pending updates, shown read-only. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */
 export const SYS = {
 	extras: "Extras",
 	setting: "Show system updates",
 	settingHelp:
-		"Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf or pacman). Not counted in the tray number.",
+		"Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.",
 	group: "System",
 	open: "Open Update Manager",
 	mintOnly:
-		"No package list Upkeep can read is installed (Update Manager, apt, dnf or pacman). Flatpak updates still show here.",
+		"No package list Upkeep can read is installed (Update Manager, apt, dnf, pacman or zypper). Flatpak updates still show here.",
 	noFlatpak: "Flatpak is not installed, so only package updates are listed.",
 	checking: "Checking system updates",
 	none: "No system updates.",
@@ -408,6 +408,7 @@ export const PACKAGES_FROM = {
 	apt: "apt",
 	dnf: "dnf",
 	pacman: "pacman",
+	zypper: "zypper",
 } satisfies Record<NonNullable<SystemState["packages"]>, string>;
 
 /** Sentence for a System list problem. A missing tool says so; a failed read names the source and appends the detail when there is one. */
@@ -423,7 +424,9 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 					? "dnf's"
 					: tool === "checkupdates" || tool === "pacman"
 						? "pacman's"
-						: "Update Manager's";
+						: tool === "zypper"
+							? "zypper's"
+							: "Update Manager's";
 	return problem.detail ? `Could not read ${source} list: ${problem.detail}` : `Could not read ${source} list.`;
 }
 
