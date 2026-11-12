@@ -63,9 +63,10 @@ test("each install is updated in its own scope and folder, never with -y; one ba
 		"d@m": "not json at all",
 		"e@m": "",
 	};
+	const errs: Record<string, string> = { "e@m": "Error: plugin e@m not found in marketplace\n" };
 	// The marketplace refresh fails, and the updates still run.
 	const { run, calls } = recordingRun(t.paths, (argv) =>
-		argv[2] === "marketplace" ? ok("", 1) : ok(answers[argv[3] ?? ""] ?? ""),
+		argv[2] === "marketplace" ? ok("", 1) : { ...ok(answers[argv[3] ?? ""] ?? ""), stderr: errs[argv[3] ?? ""] ?? "" },
 	);
 	const out = await installClaudePlugins(ctx(run));
 	expect(out).toMatchObject({ result: "failed", detail: "Could not update d@m, e@m. See the log." });
@@ -82,7 +83,7 @@ test("each install is updated in its own scope and folder, never with -y; one ba
 	expect(lines).toContain("a@m is up to date");
 	expect(lines).toContain("b@m updated to 2.0");
 	expect(lines).toContain("d@m update failed: not json at all");
-	expect(lines).toContain("e@m update failed: no output");
+	expect(lines).toContain("e@m update failed: Error: plugin e@m not found in marketplace");
 });
 
 test("every plugin up to date or updated is done, saying how many changed", async () => {

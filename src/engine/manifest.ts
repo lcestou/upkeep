@@ -123,6 +123,10 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 			return `${key}: asset is not a valid regular expression`;
 		}
 	}
+	// Only these two install with no version to compare; on any other kind the row would be picked and fail every run.
+	if (spec.kind === "claude-plugins") spec.versionless = true;
+	else if (spec.versionless && spec.kind !== "legacy")
+		return `${key}: versionless is only for kinds legacy and claude-plugins`;
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest)
 		return `${key}: repo or latest is required for kind appimage`;
 	// Only an AppImage installs the download a json: answer names; any other kind would read it as a GitHub repo.

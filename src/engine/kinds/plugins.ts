@@ -47,9 +47,9 @@ type PluginOutcome = { kind: "up_to_date" | "updated" | "failed"; message: strin
 
 /**
  * The outcome of one claude plugin update --json run, from its last non-empty stdout line: "up_to_date", "updated"
- * with its message, or a failure with the message, the line, or "no output".
+ * with its message, or a failure with the message, the line, stderr's last line, or "no output".
  */
-function outcomeOf(stdout: string): PluginOutcome {
+function outcomeOf(stdout: string, stderr: string): PluginOutcome {
 	const last = stdout.trim().split("\n").findLast(Boolean) ?? "";
 	let o: unknown = null;
 	try {
@@ -61,7 +61,9 @@ function outcomeOf(stdout: string): PluginOutcome {
 	const message = typeof r.message === "string" ? r.message : "";
 	if (r.updateOutcome === "up_to_date") return { kind: "up_to_date", message };
 	if (r.updateOutcome === "updated") return { kind: "updated", message };
-	return { kind: "failed", message: message || last || "no output" };
+	// Claude Code, or a run that could not start, may say why on stderr only.
+	const why = stderr.trim().split("\n").findLast(Boolean) ?? "";
+	return { kind: "failed", message: message || last || why || "no output" };
 }
 
 /**
@@ -87,7 +89,7 @@ export async function installClaudePlugins(ctx: KindCtx): Promise<Outcome> {
 			timeoutMs: STEP_MS,
 			cwd: e.cwd,
 		});
-		const out = outcomeOf(r.stdout);
+		const out = outcomeOf(r.stdout, r.stderr);
 		if (out.kind === "up_to_date") ctx.log(`${e.id} is up to date`);
 		else if (out.kind === "updated") {
 			updated += 1;
