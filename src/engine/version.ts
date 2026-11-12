@@ -1,4 +1,4 @@
-/** The first dotted version in the text, else its first number-looking run (the old script took the first run of all). */
+/** The first dotted version in the text, else its first number-looking run. */
 export function extractVersion(text: string): string | null {
 	// A dotted version wins over an earlier bare number: lazygit prints "commit=0fbfd…, version=0.66.3".
 	const match = /[0-9]+(\.[0-9]+)+[a-z]*/.exec(text) ?? /[0-9]+[a-z]*/.exec(text);
@@ -53,14 +53,14 @@ function sortV(a: string, b: string): number {
 	return 0;
 }
 
-/** True when latest is a later release than installed. Ports version_compare (old line 318). */
+/** True when latest is a later release than installed. Compares number by number, part by part. */
 export function isNewer(installed: string | null, latest: string | null): boolean {
 	if (installed === null || latest === null) return false;
 	if (SENTINELS.has(installed) || SENTINELS.has(latest)) return false;
 	const a = installed.replace(/[a-z]/g, "");
 	const b = latest.replace(/[a-z]/g, "");
 	if (a !== b) {
-		// sort's last-resort byte order decides a -V tie, as it does in the bash pipeline.
+		// sort's last-resort byte order decides a -V tie, as GNU sort does.
 		const cmp = sortV(a, b) || (a < b ? -1 : 1);
 		return cmp < 0;
 	}

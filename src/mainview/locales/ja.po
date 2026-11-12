@@ -1195,10 +1195,6 @@ msgstr "すでに実行中です。"
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "実行は現在のアプリの後で止まるため、これ以上追加できません。"
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "古いアップデーターが動作中です。先にそのダイアログを完了するか閉じてください。"
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."

@@ -1213,10 +1213,6 @@ msgstr "A run is already in progress."
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "The run stops after the current app, so nothing more can join it."
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "The old updater is running. Finish or close its dialogs first."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."

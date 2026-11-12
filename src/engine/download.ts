@@ -91,7 +91,7 @@ export async function download(url: string, file: string, opts: DownloadOpts): P
 	}
 }
 
-/** Below this, a download whose size nobody listed is an error page or a cut, not a release (old script lines 596, 608). */
+/** Below this, a download whose size nobody listed is an error page or a cut, not a release. */
 export const MIN_UNLISTED_BYTES = 1024 * 1024;
 
 /**

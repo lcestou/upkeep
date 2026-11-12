@@ -201,10 +201,6 @@ Root steps use `sudo -n`. If sudo wants a password the app fails with a message 
 | `~/.local/share/upkeep/backups/`      | restore points                                                                    |
 | `~/.cache/upkeep/`                    | release lookups, downloads, source clones, the last check's rows. Safe to delete. |
 
-## The old script
-
-Upkeep replaced the first owner's `lutechi-updater` script and no longer runs it. While that script's own login run still holds its lock (`/tmp/lutechi-updater.lock`), Install waits, so the two never update the same app at once. On any other machine the lock never exists.
-
 ## Build and install
 
 ```sh

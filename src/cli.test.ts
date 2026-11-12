@@ -61,7 +61,6 @@ function deps(): EngineDeps {
 		fetch: fakeFetch,
 		run,
 		now: () => new Date(),
-		oldLock: { file: join(t.dir, "lock"), name: "lutechi-updater" },
 		procRoot: join(t.dir, "proc"),
 	};
 }

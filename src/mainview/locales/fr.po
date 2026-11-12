@@ -1231,10 +1231,6 @@ msgstr "Une passe est déjà en cours."
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "La passe s'arrête après l'application en cours, plus rien ne peut s'y ajouter."
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "L'ancien outil de mise à jour tourne. Terminez ou fermez d'abord ses fenêtres."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."
