@@ -883,10 +883,6 @@ msgid "Show system updates"
 msgstr "システムの更新を表示"
 
 #: src/mainview/lib/copy.ts
-msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
-msgstr "システム自体の保留中の更新を一覧表示します：Flatpak のアプリとランタイム、パッケージマネージャーがインストールするパッケージ（Linux Mint ではアップデートマネージャー、それ以外では apt、dnf、pacman、zypper）。トレイの数には含まれません。"
-
-#: src/mainview/lib/copy.ts
 msgid "Open Update Manager"
 msgstr "アップデートマネージャーを開く"
 
@@ -1914,3 +1910,32 @@ msgstr "{0} で {1} をインストールできませんでした。ログを確
 #: src/mainview/lib/engine-text.ts
 msgid "{0} could not install {1}, and putting {2} back failed. See the log."
 msgstr "{0} で {1} をインストールできず、{2} への復元にも失敗しました。ログを確認してください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "システム自体の保留中の更新を一覧表示します：Flatpak のアプリとランタイム、Snap、Cinnamon のアプレット・デスクレット・拡張機能・テーマ、パッケージマネージャーがインストールするパッケージ（Linux Mint ではアップデートマネージャー、それ以外では apt、dnf、pacman、zypper）。トレイの数には含まれません。"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon applet"
+msgstr "Cinnamon アプレット"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon desklet"
+msgstr "Cinnamon デスクレット"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon extension"
+msgstr "Cinnamon 拡張機能"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon theme"
+msgstr "Cinnamon テーマ"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Snap"
+msgstr "Snap"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon"
+msgstr "Cinnamon"

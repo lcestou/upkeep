@@ -883,10 +883,6 @@ msgid "Show system updates"
 msgstr "显示系统更新"
 
 #: src/mainview/lib/copy.ts
-msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
-msgstr "列出系统自身待安装的更新：Flatpak 应用和运行时，以及包管理器将要安装的软件包（Linux Mint 上为更新管理器，其他系统为 apt、dnf、pacman 或 zypper）。不计入托盘上的数字。"
-
-#: src/mainview/lib/copy.ts
 msgid "Open Update Manager"
 msgstr "打开更新管理器"
 
@@ -1914,3 +1910,32 @@ msgstr "{0} 无法安装 {1}。请查看日志。"
 #: src/mainview/lib/engine-text.ts
 msgid "{0} could not install {1}, and putting {2} back failed. See the log."
 msgstr "{0} 无法安装 {1}，且还原到 {2} 失败。请查看日志。"
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "列出系统自身待安装的更新：Flatpak 应用和运行时、Snap、Cinnamon 的小程序、桌面小部件、扩展和主题，以及包管理器将要安装的软件包（Linux Mint 上为更新管理器，其他系统为 apt、dnf、pacman 或 zypper）。不计入托盘上的数字。"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon applet"
+msgstr "Cinnamon 小程序"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon desklet"
+msgstr "Cinnamon 桌面小部件"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon extension"
+msgstr "Cinnamon 扩展"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon theme"
+msgstr "Cinnamon 主题"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Snap"
+msgstr "Snap"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon"
+msgstr "Cinnamon"

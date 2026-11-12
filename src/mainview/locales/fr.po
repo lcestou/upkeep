@@ -917,10 +917,6 @@ msgid "Show system updates"
 msgstr "Afficher les mises à jour du système"
 
 #: src/mainview/lib/copy.ts
-msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
-msgstr "Liste les mises à jour en attente de votre système : applications et runtimes Flatpak, et les paquets que votre gestionnaire de paquets installerait (Gestionnaire de mises à jour sur Linux Mint, sinon apt, dnf, pacman ou zypper). Non compté dans le nombre de la zone de notification."
-
-#: src/mainview/lib/copy.ts
 msgid "Open Update Manager"
 msgstr "Ouvrir le Gestionnaire de mises à jour"
 
@@ -1950,3 +1946,32 @@ msgstr "{0} n'a pas pu installer {1}. Voir le journal."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} could not install {1}, and putting {2} back failed. See the log."
 msgstr "{0} n'a pas pu installer {1}, et la remise en place de {2} a échoué. Voir le journal."
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "Liste les mises à jour en attente de votre système : applications et runtimes Flatpak, Snaps, applets, desklets, extensions et thèmes de Cinnamon, et les paquets que votre gestionnaire de paquets installerait (Gestionnaire de mises à jour sur Linux Mint, sinon apt, dnf, pacman ou zypper). Non compté dans le nombre de la zone de notification."
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon applet"
+msgstr "Applet Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon desklet"
+msgstr "Desklet Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon extension"
+msgstr "Extension Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon theme"
+msgstr "Thème Cinnamon"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Snap"
+msgstr "Snap"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon"
+msgstr "Cinnamon"

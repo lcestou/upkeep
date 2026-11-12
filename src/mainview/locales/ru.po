@@ -934,10 +934,6 @@ msgid "Show system updates"
 msgstr "Показывать обновления системы"
 
 #: src/mainview/lib/copy.ts
-msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
-msgstr "Показывает ожидающие обновления самой системы: приложения и среды выполнения Flatpak, а также пакеты, которые установил бы пакетный менеджер (Менеджер обновлений в Linux Mint, иначе apt, dnf, pacman или zypper). Не входят в число на значке в трее."
-
-#: src/mainview/lib/copy.ts
 msgid "Open Update Manager"
 msgstr "Открыть Менеджер обновлений"
 
@@ -1968,3 +1964,32 @@ msgstr "{0} не смог установить {1}. Подробности в ж
 #: src/mainview/lib/engine-text.ts
 msgid "{0} could not install {1}, and putting {2} back failed. See the log."
 msgstr "{0} не смог установить {1}, а вернуть {2} не удалось. Подробности в журнале."
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "Показывает ожидающие обновления самой системы: приложения и среды выполнения Flatpak, Snap-пакеты, апплеты, десклеты, расширения и темы Cinnamon, а также пакеты, которые установил бы пакетный менеджер (Менеджер обновлений в Linux Mint, иначе apt, dnf, pacman или zypper). Не входят в число в трее."
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon applet"
+msgstr "Апплет Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon desklet"
+msgstr "Десклет Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon extension"
+msgstr "Расширение Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon theme"
+msgstr "Тема Cinnamon"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Snap"
+msgstr "Snap"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon"
+msgstr "Cinnamon"

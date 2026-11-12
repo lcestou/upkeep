@@ -917,10 +917,6 @@ msgid "Show system updates"
 msgstr "Mostra aggiornamenti di sistema"
 
 #: src/mainview/lib/copy.ts
-msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
-msgstr "Elenca gli aggiornamenti in sospeso del sistema: app e runtime Flatpak, e i pacchetti che il tuo gestore di pacchetti installerebbe (Gestore aggiornamenti su Linux Mint, altrimenti apt, dnf, pacman o zypper). Non contano nel numero dell'area di notifica."
-
-#: src/mainview/lib/copy.ts
 msgid "Open Update Manager"
 msgstr "Apri Gestore aggiornamenti"
 
@@ -1950,3 +1946,32 @@ msgstr "{0} non è riuscito a installare {1}. Vedi il registro."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} could not install {1}, and putting {2} back failed. See the log."
 msgstr "{0} non è riuscito a installare {1} e non è stato possibile ripristinare la {2}. Vedi il registro."
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "Elenca gli aggiornamenti in sospeso del sistema: app e runtime Flatpak, Snap, applet, desklet, estensioni e temi di Cinnamon, e i pacchetti che il tuo gestore di pacchetti installerebbe (Gestore aggiornamenti su Linux Mint, altrimenti apt, dnf, pacman o zypper). Non contano nel numero dell'area di notifica."
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon applet"
+msgstr "Applet di Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon desklet"
+msgstr "Desklet di Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon extension"
+msgstr "Estensione di Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon theme"
+msgstr "Tema di Cinnamon"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Snap"
+msgstr "Snap"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon"
+msgstr "Cinnamon"

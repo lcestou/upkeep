@@ -184,7 +184,8 @@ test("a find that runs out of time says so and gives the field back", async ({ p
 
 test("keyboard only: a, type, Enter, Tab to Add to Upkeep, Enter", async ({ page }) => {
 	await load(page, "fixture&speed=4");
-	await expect(page.getByTestId("open-zen")).toBeFocused();
+	// The first row: groups are alphabetical, so Cursor leads Ready to install.
+	await expect(page.getByTestId("open-cursor")).toBeFocused();
 	await page.keyboard.press("a");
 	await expect(page.getByTestId("add-input")).toBeFocused();
 	await page.keyboard.type("BurntSushi/ripgrep");

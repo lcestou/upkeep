@@ -5,7 +5,7 @@ const focused = (page: import("playwright/test").Page) =>
 
 test("first focus is the list, and Install is at most six Tab presses away", async ({ page }) => {
 	await load(page);
-	expect(await focused(page)).toBe("open-zen");
+	expect(await focused(page)).toBe("open-cursor");
 	let presses = 0;
 	while ((await focused(page)) !== "install" && presses < 10) {
 		await page.keyboard.press("Tab");
@@ -14,7 +14,7 @@ test("first focus is the list, and Install is at most six Tab presses away", asy
 	expect(await focused(page)).toBe("install");
 	expect(presses).toBeLessThanOrEqual(6);
 	// The list is one tab stop: no second row button and no row tick on the way.
-	await page.getByTestId("open-zen").focus();
+	await page.getByTestId("open-cursor").focus();
 	const stops: string[] = [];
 	for (let i = 0; i < presses; i++) {
 		await page.keyboard.press("Tab");
@@ -59,6 +59,6 @@ test("Space ticks the focused row, Enter and Right open it, Left closes it, Home
 	await page.keyboard.press("End");
 	await expect(page.getByTestId("open-lrcget")).toBeFocused();
 	await page.keyboard.press("Home");
-	await expect(page.getByTestId("open-zen")).toBeFocused();
-	await expect(page.getByTestId("tick-zen")).toHaveAttribute("tabindex", "-1");
+	await expect(page.getByTestId("open-cursor")).toBeFocused();
+	await expect(page.getByTestId("tick-cursor")).toHaveAttribute("tabindex", "-1");
 });

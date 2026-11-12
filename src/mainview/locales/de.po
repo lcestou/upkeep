@@ -900,10 +900,6 @@ msgid "Show system updates"
 msgstr "Systemaktualisierungen zeigen"
 
 #: src/mainview/lib/copy.ts
-msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
-msgstr "Listet die ausstehenden Aktualisierungen deines Systems: Flatpak-Apps und -Laufzeiten sowie die Pakete, die dein Paketmanager installieren würde (Aktualisierungsverwaltung unter Linux Mint, sonst apt, dnf, pacman oder zypper). Zählt nicht zur Zahl im Tray."
-
-#: src/mainview/lib/copy.ts
 msgid "Open Update Manager"
 msgstr "Aktualisierungsverwaltung öffnen"
 
@@ -1932,3 +1928,32 @@ msgstr "{0} konnte {1} nicht installieren. Siehe Protokoll."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} could not install {1}, and putting {2} back failed. See the log."
 msgstr "{0} konnte {1} nicht installieren, und {2} ließ sich nicht zurückspielen. Siehe Protokoll."
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "Listet die ausstehenden Aktualisierungen deines Systems: Flatpak-Apps und -Laufzeiten, Snaps, Cinnamons Applets, Desklets, Erweiterungen und Themen sowie die Pakete, die dein Paketmanager installieren würde (Aktualisierungsverwaltung unter Linux Mint, sonst apt, dnf, pacman oder zypper). Zählt nicht zur Zahl im Tray."
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon applet"
+msgstr "Cinnamon-Applet"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon desklet"
+msgstr "Cinnamon-Desklet"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon extension"
+msgstr "Cinnamon-Erweiterung"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon theme"
+msgstr "Cinnamon-Thema"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Snap"
+msgstr "Snap"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon"
+msgstr "Cinnamon"

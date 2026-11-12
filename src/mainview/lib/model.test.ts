@@ -38,10 +38,12 @@ describe("first load", () => {
 		expect(m.tickedBytes).toBeNull();
 	});
 
-	test("groups in plan order with Ready to install first", async () => {
+	test("groups in plan order with Ready to install first, each alphabetical by name whatever the list order", async () => {
 		const m = await started();
 		expect(m.groups.map((g) => g.label)).toEqual(["Ready to install", "By hand", "Needs a look", "Fresh"]);
-		expect(m.groups[0]?.apps.map((a) => a.key)).toEqual(["zen", "fd", "wrangler", "cursor"]);
+		expect(m.groups[0]?.apps.map((a) => a.name)).toEqual(["Cursor", "fd", "wrangler", "Zen Browser"]);
+		const fresh = m.groups.at(-1)?.apps.map((a) => a.name.toLowerCase()) ?? [];
+		expect(fresh).toEqual(fresh.toSorted((a, b) => a.localeCompare(b)));
 		expect(m.apps.length).toBe(32);
 	});
 

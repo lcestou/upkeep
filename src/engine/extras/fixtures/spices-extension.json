@@ -1,0 +1,15 @@
+{
+	"CinnamonBurnMyWindows@klangman": {
+		"author": "klangman",
+		"commit_id": "a8aad5e271e669a778d7d2c3e59ef0676fc26d44",
+		"commit_msg": "CinnamonBurnMyWindows@klangman: Update es.po (#1233)",
+		"description": "Window open/close/minimize/unminimize effects based on the Burn-My-Windows Gnome extension by Schneegans",
+		"link": "https://cinnamon-spices.linuxmint.com/extensions/view/103",
+		"name": "Burn My Windows",
+		"new_version": "2026.11.12",
+		"old_version": "2026.11.11",
+		"size": 2935167,
+		"spice_type": "extension",
+		"uuid": "CinnamonBurnMyWindows@klangman"
+	}
+}

@@ -4,6 +4,8 @@
 
 First version.
 
+- The System group also lists pending updates of Cinnamon's applets, desklets, extensions and themes (the spices Update Manager shows), and of Snaps where snapd is installed.
+- The window's groups (Ready to install, Fresh and the rest) list their apps alphabetically by name, not in the order they were added. The group for a run in progress still lists apps in the order they install.
 - Apps that ship an `.rpm` on GitHub install, update and roll back through `rpm`, as `.deb` apps do through `dpkg`. Add app offers an `.rpm` only on a system without `dpkg`.
 - Add app drafts a source build when nothing in a project's release runs on this computer. It reads the project's build file (Cargo, Go, Meson, CMake, autotools or a Makefile), shows every step as a guess to read before adding, and says when the build tool is missing. A `.deb` is no longer offered on a system without `dpkg`.
 - What the engine reports in the window (a row's problem, why an install or restore failed, what Add app found, why an import was refused) now shows in the language picked, not only the window's own labels.

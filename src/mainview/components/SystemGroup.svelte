@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PACKAGES_FROM, SYS, glLine, systemAbsent, systemChecked, systemProblem } from "../lib/copy";
+	import { SYS, systemSources, glLine, systemAbsent, systemChecked, systemProblem } from "../lib/copy";
 	import { relativeTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import Glyph from "./Glyph.svelte";
@@ -43,7 +43,7 @@
 		systemChecked(
 			checking ? null : sys?.checkedAt ? relativeTime(sys.checkedAt, now) : null,
 			checking,
-			sys?.packages ? PACKAGES_FROM[sys.packages] : "Flatpak",
+			systemSources(sys?.packages ?? null, sys?.rows ?? []),
 		),
 	);
 	// A tool this system does not have is not a fault: one quiet line, no warning glyph.

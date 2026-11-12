@@ -1,4 +1,5 @@
 import type { SystemRow, SystemState } from "../../shared/types";
+import { isRecord } from "../manifest";
 import type { Run, ProcessResult } from "../run";
 
 export type SystemCtx = { run: Run };
@@ -24,6 +25,16 @@ export const FLATPAK_RUNNING = ["flatpak", "ps", "--columns=application"];
 // db:Status-Abbrev, so "un" (never installed) and "rc" (removed) driver packages can be left out.
 export const DRIVER_GL = ["dpkg-query", "-W", "-f", "${db:Status-Abbrev}\t${Version}\n", "libnvidia-gl-*"];
 export const FLATPAK_RUNTIMES = ["flatpak", "list", "--runtime", "--columns=application"];
+// Cinnamon's own spice updater, which Update Manager reads too: it ships with Cinnamon, so any Cinnamon desktop has it.
+// It reads the spices' index from the web into its own cache.
+export const SPICE_TYPES = ["applet", "desklet", "extension", "theme"] as const;
+/** The spice updater's list of pending updates for one spice type, as JSON. */
+export const spiceList = (type: SpiceType) => ["cinnamon-spice-updater", "--list-json", type];
+// Snap: the pending refreshes, and what is installed now for the old version.
+export const SNAP_UPDATES = ["snap", "refresh", "--list"];
+export const SNAP_INSTALLED = ["snap", "list"];
+
+type SpiceType = (typeof SPICE_TYPES)[number];
 
 /** Trailing whitespace is dropped, and so are lines left empty. */
 const lines = (s: string) =>
@@ -232,6 +243,66 @@ export function parseZypperList(stdout: string): SystemRow[] {
 	return rows;
 }
 
+/**
+ * cinnamon-spice-updater --list-json: an object of spices with an update, by uuid, each with name, old_version and
+ * new_version. Null when the text is not that object: the updater prints "Cinnamon updates failed: …" and exits 0
+ * when it cannot fetch the index, and that is a failed read, not an empty list.
+ */
+export function parseSpices(stdout: string, type: SpiceType): SystemRow[] | null {
+	let data: unknown;
+	try {
+		data = JSON.parse(stdout);
+	} catch {
+		return null;
+	}
+	if (!isRecord(data)) return null;
+	return Object.entries(data).flatMap(([uuid, value]) => {
+		if (!isRecord(value) || typeof value.new_version !== "string" || !value.new_version) return [];
+		const name = typeof value.name === "string" && value.name ? value.name : uuid;
+		const installed = typeof value.old_version === "string" && value.old_version ? value.old_version : null;
+		const row: SystemRow = {
+			id: `cinnamon:${type}:${uuid}`,
+			source: "cinnamon",
+			name,
+			type,
+			installed,
+			latest: value.new_version,
+			running: false,
+		};
+		return [row];
+	});
+}
+
+/** A snap table's rows: its lines past the "Name ..." header. */
+const snapBody = (s: string) => lines(s).filter((l, i) => !(i === 0 && l.startsWith("Name")));
+
+/**
+ * snap refresh --list, with snap list for the installed versions: both are tables whose first line is a header
+ * starting "Name", with the name and the version in the first two columns. "All snaps up to date." goes to stderr.
+ */
+export function parseSnapList(updates: string, installed: string): SystemRow[] {
+	const now = new Map(
+		snapBody(installed)
+			.map((l) => l.split(/\s+/))
+			.map(([n = "", v = ""]) => [n, v]),
+	);
+	return snapBody(updates).flatMap((l) => {
+		const [name = "", latest = ""] = l.split(/\s+/);
+		// snapd writes "All snaps up to date." to stderr; a version that says so on stdout still lists nothing.
+		if (!name || !latest || l.startsWith("All snaps")) return [];
+		const row: SystemRow = {
+			id: `snap:${name}`,
+			source: "snap",
+			name,
+			type: "snap",
+			installed: now.get(name) ?? null,
+			latest,
+			running: false,
+		};
+		return [row];
+	});
+}
+
 /** A command that did not answer, timed out or exited non-zero is not ok. */
 const ok = (r: ProcessResult | undefined) => r !== undefined && r.code === 0 && !r.timedOut;
 
@@ -309,13 +380,15 @@ async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null> {
  */
 export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 	const opts = { timeoutMs: 60_000 };
-	const [pkg, [updates, installed, running, gl, runtimes]] = await Promise.all([
+	const [pkg, [updates, installed, running, gl, runtimes], spices, [snapUpdates, snapInstalled]] = await Promise.all([
 		packageList(ctx),
 		Promise.all(
 			[FLATPAK_UPDATES, FLATPAK_INSTALLED, FLATPAK_RUNNING, DRIVER_GL, FLATPAK_RUNTIMES].map((argv) =>
 				ctx.run(argv, opts),
 			),
 		),
+		Promise.all(SPICE_TYPES.map(async (type) => ({ type, r: await ctx.run(spiceList(type), opts) }))),
+		Promise.all([SNAP_UPDATES, SNAP_INSTALLED].map((argv) => ctx.run(argv, opts))),
 	]);
 	const rows: SystemRow[] = [...(pkg?.rows ?? [])];
 	const mintProblem: SystemCheck["problem"] = pkg ? pkg.problem : { code: "missing", command: MINT_LIST.join(" ") };
@@ -328,9 +401,27 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 				ok(running) ? (running?.stdout ?? "") : "",
 			),
 		);
+	// Spices and snaps are listed when their tool answers; a desktop without Cinnamon or a system without snapd says nothing.
+	let spiceProblem: SystemCheck["problem"] = null;
+	for (const { type, r } of spices) {
+		if (!ok(r)) continue;
+		const found = parseSpices(r.stdout, type);
+		if (found) rows.push(...found);
+		else
+			spiceProblem ??= {
+				code: "failed",
+				command: spiceList(type).join(" "),
+				// The window says it could not read the Cinnamon list, so the updater's own lead-in is dropped.
+				detail: (r.stdout.trim().split("\n")[0] ?? "").replace(/^Cinnamon updates failed:\s*/, ""),
+			};
+	}
+	if (ok(snapUpdates))
+		rows.push(...parseSnapList(snapUpdates?.stdout ?? "", ok(snapInstalled) ? (snapInstalled?.stdout ?? "") : ""));
 	return {
 		rows,
-		problem: mintProblem ?? flatpakProblem,
+		// A tool this system lacks is said quietly in the window, so a real failure elsewhere goes first.
+		problem:
+			[mintProblem, flatpakProblem, spiceProblem].find((p) => p?.code === "failed") ?? mintProblem ?? flatpakProblem,
 		glMissing: ok(gl) && ok(runtimes) ? glMissing(gl?.stdout ?? "", runtimes?.stdout ?? "") : null,
 		packages: pkg?.packages ?? null,
 	};
