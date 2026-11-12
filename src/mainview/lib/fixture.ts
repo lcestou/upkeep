@@ -1086,6 +1086,12 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			sysOps.push(`openTool:${what}`);
 			return { ok: true };
 		},
+		// The file dialogs answer at once in the fixture; the real ones are the desktop's.
+		exportSetup: async () => ({ ok: true, file: "/home/you/upkeep-settings-2026-11-12.json" }),
+		importSetup: async () => {
+			emit({ type: "meta", rate, checkedAt, settings });
+			return { ok: true, apps: apps.length };
+		},
 		pickFile: async () => {
 			await sleep(200 / speed);
 			return { path: PICKED };

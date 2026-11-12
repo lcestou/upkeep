@@ -192,6 +192,10 @@ Upkeep draws its own title bar: the header is the drag area, a double click on i
 
 Changing the frame or the corners rebuilds the window, which takes a moment.
 
+### Moving to another computer
+
+**Export** in Settings, beside Open apps.toml, saves the settings and the app list as one file in a folder you pick; **Import** replaces them from such a file and checks again. The command line does the same with `upkeep export` and `upkeep import` (see "For scripts and agents").
+
 ### Languages
 
 The window, the tray menu and the notifications speak English, Chinese (Simplified), Spanish, Portuguese (Brazil), German, French, Italian, Polish, Russian and Japanese. **Language** in Settings follows the desktop's language by default (`LANGUAGE`, then `LC_ALL`, `LC_MESSAGES` and `LANG`), falling back to English, or can be set to any of the ten. The switch shows at once, with no restart. Right-to-left languages are not offered yet.

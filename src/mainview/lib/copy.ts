@@ -293,10 +293,26 @@ export const TEXT = {
 	get languageSystem() {
 		return "Same as the system";
 	},
+	get exportSetup() {
+		return "Export";
+	},
+	get importSetup() {
+		return "Import";
+	},
+	get setupHelp() {
+		return "Export saves the settings and the app list as one file, for another computer or a script. Import replaces them from such a file.";
+	},
 	get openManifest() {
 		return "Open apps.toml";
 	},
 } as const;
+
+/** After Export: the file it wrote. */
+export const exportedNote = (file: string) => `Saved ${file}.`;
+/** After Import: how many apps the new list holds. */
+export const importedNote = (n: number) => plural(n, ["Imported a list of # app.", "Imported a list of # apps."]);
+/** Why an Export or Import did nothing; the reason comes from the engine or the system, so it has no final stop. */
+export const setupFailed = (reason: string) => `Nothing was changed: ${reason}`;
 
 /** Button text for a restore point; the version is the one it restores to. */
 export const restoreLabel = (v: string) => `Restore ${v}`;

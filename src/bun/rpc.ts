@@ -15,6 +15,13 @@ const desktop: Desktop = {
 			canChooseDirectory: false,
 			allowsMultipleSelection: false,
 		}),
+	pickFolder: (startingFolder) =>
+		Utils.openFileDialog({
+			startingFolder,
+			canChooseFiles: false,
+			canChooseDirectory: true,
+			allowsMultipleSelection: false,
+		}),
 	spawnDetached: (argv) => {
 		Bun.spawn(argv, { stdin: "ignore", stdout: "ignore", stderr: "ignore" }).unref();
 	},
