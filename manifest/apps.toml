@@ -1,3 +1,3 @@
 # Your app list: one [apps.<key>] table per app. It starts empty. Add app in the window writes a table here
 # for each app you add, from Upkeep's catalogue of tested apps or worked out from the app's GitHub releases.
-# README, "The app list", lists every field; manifest/examples.toml shows apps built from source.
+# docs/app-list.md lists every field; manifest/examples.toml shows apps built from source.

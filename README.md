@@ -1,322 +1,206 @@
-# Upkeep
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/lockup-horizontal-dark.svg">
+    <img src="assets/brand/lockup-horizontal-light.svg" alt="Upkeep" width="320">
+  </picture>
+</p>
 
-One window for the apps the package manager misses. It checks every app in a list, shows what is pending with the old and new version, and installs what you tick with one press. Each app shows its own progress, nothing asks a question once the run starts, and the version that was replaced is kept so a bad update can be put back.
+<p align="center">
+  <strong>The update manager for the apps your package manager misses</strong>
+</p>
 
-It covers AppImages, binaries from release archives on GitHub, GitLab, Codeberg or a download page, single-file binaries, .deb and .rpm files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
+<p align="center">
+  AppImages, release binaries, .deb and .rpm files, source builds and tools that update themselves.<br>
+  One list, one press to install, and a way back when an update goes wrong.
+</p>
 
-Linux first: built on Linux Mint and supported on the main x86_64 and aarch64 (arm64) desktop distributions (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Linux-f4d340?style=flat&labelColor=0d3324&logo=linux&logoColor=white" alt="Linux" />
+  <img src="https://img.shields.io/badge/arch-x86__64%20%C2%B7%20aarch64-f4d340?style=flat&labelColor=0d3324" alt="x86_64 and aarch64" />
+  <img src="https://img.shields.io/badge/catalogue-48%20apps-f4d340?style=flat&labelColor=0d3324" alt="48 apps in the catalogue" />
+  <img src="https://img.shields.io/badge/languages-10-f4d340?style=flat&labelColor=0d3324" alt="10 languages" />
+  <img src="https://img.shields.io/badge/license-GPL--3.0-f4d340?style=flat&labelColor=0d3324" alt="GPL-3.0 or later" />
+</p>
 
-## Run it
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#tour">Tour</a> ·
+  <a href="#what-it-updates">What it updates</a> ·
+  <a href="#how-an-update-stays-safe">Safety</a> ·
+  <a href="#works-on">Works on</a> ·
+  <a href="#docs">Docs</a>
+</p>
+
+<p align="center">
+  <img src="docs/media/hero.webp" width="820" alt="Upkeep's window: four updates ready with old and new versions, one unticked, Install pressed, three apps downloading, installing and verifying in turn, ending at 3 updated">
+</p>
+
+Your distro's updater keeps its own packages current. Everything you installed yourself stays at the version it had that day: the AppImage from a release page, the binary you dropped in `~/.local/bin`, the tool you built from source. Upkeep checks all of them at once, shows the old and new version of each, and installs what you tick with one press.
+
+## What it does
+
+- **One list, one decision.** Every app is checked together. Tick what you want, press Install and walk away: nothing asks a question once the run starts, and each row shows its own step and progress.
+- **A way back.** The version an update replaces is kept as a restore point. An update that will not start is rolled back on the spot, and any restore point can be put back later from the app's pane.
+- **It works out the details.** Type an app's name, paste a repo or a link, drop a file, or scan the computer. Upkeep finds the release file that fits this machine, where the app is installed and which version you have. 48 apps come ready-made in its catalogue.
+- **It knows where apps come from.** Releases on GitHub, GitLab, Codeberg and self-hosted Gitea or Forgejo, plain download pages, and tools installed with uv, pipx, npm or cargo.
+- **Quiet.** It sits in the tray, can start at login, and shows one count and one notification. No app installs on its own until you mark it automatic.
+- **Extras you switch on.** The system's own updates in the same list (Flatpak, Snap, Cinnamon spices, and packages from Linux Mint's Update Manager, apt, dnf, pacman or zypper) and a Cleanup tab for caches and leftovers. Both are off until you turn them on.
+- **Yours.** No account and no telemetry. Upkeep contacts only the places your apps are released. The app list is one TOML file you can read, edit and move to another computer.
+- **Ten languages**, and a command line with JSON output for scripts.
+
+## Install
+
+Download the installer for your machine from the [latest release](../../releases/latest) (`linux-x64` or `linux-arm64`), then:
+
+```sh
+tar -xzf linux-x64-Upkeep-Setup.tar.gz
+./installer
+```
+
+It needs no root. Upkeep goes under `~/.local/share/dev.afk.upkeep/` with an entry in the menu, and `~/.local/share/dev.afk.upkeep/stable/uninstall --quiet` removes it. The window needs WebKitGTK 4.1, which the supported desktops already have.
+
+The list starts empty. Press **Add app**, or **Scan this computer** to find what is already installed.
+
+<details>
+<summary>Build it from source</summary>
 
 ```sh
 bun install
-bun run dev          # build the view, start the window
+bun run build        # writes artifacts/linux-x64-Upkeep-Setup.tar.gz
 ```
 
-The window opens, checks every app, and lists what it found. Closing the window hides it to the tray. Quit is in the tray menu.
+Unpack that file and run `./installer`. [docs/develop.md](docs/develop.md) has the rest.
 
-To start in the tray with no window, the way a login entry does:
+</details>
 
-```sh
-UPKEEP_BACKGROUND=1 bun run dev
+## Tour
+
+### Read what changed before you install it
+
+<p><img src="docs/media/detail.png" width="760" alt="The Updates tab with fd selected: four apps ready to install, three updated by hand, one that needs a look, and a pane showing fd's restore point, Skip, Hold and Install automatically, and the release notes"></p>
+
+Ready updates are ticked, apps you update yourself show the command you use, and anything Upkeep could not read says why. An app's pane has its release notes and its restore points, and lets you skip one version, hold the app where it is, or let it install on its own from now on.
+
+### Add an app without writing a config
+
+<p><img src="docs/media/add.png" width="760" alt="Add an app with BurntSushi/ripgrep typed in: a card names the release file for this machine, where it will be installed, and how Upkeep worked that out"></p>
+
+Give Upkeep a name, a repo, a link or a file. The card says which release file fits this machine, where it will go and what is already installed, in one plain sentence. Nothing is added until you press Add, and removing an app from the list never uninstalls it.
+
+### See every run, and every rollback
+
+<p><img src="docs/media/history.png" width="760" alt="History: three past runs, one where Ghostty would not start after its update and was restored to 1.3.0"></p>
+
+History keeps each run with what changed and how long it took. When an update fails its check, the row says what happened and which version was put back.
+
+### System updates in the same list
+
+<p><img src="docs/media/system.png" width="760" alt="The System group: eleven pending system updates, among them security packages, a kernel and a driver without tick boxes, Flatpak apps and a Cinnamon extension"></p>
+
+Switch on **Show system updates** and the list gains the computer's own pending updates, read from the system's tools. A second switch lets Upkeep install the ones it safely can: it shows every command first and leaves kernels and drivers to the system's updater.
+
+### Clear what piles up
+
+<p><img src="docs/media/cleanup.png" width="760" alt="The Cleanup tab: thumbnails, leftover copies, downloaded packages and old Flatpak runtimes, each with its size, and a Review 2.4 GB button"></p>
+
+The Cleanup tab measures a fixed list of caches and leftovers, never a folder you point it at. It deletes only what you tick, after a review that names the total and every command it will run.
+
+## What it updates
+
+| You have                                                | Upkeep updates it by                                                              |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| An AppImage                                             | downloading the new one from its release and swapping it in                       |
+| A program from a release archive (`.tar.gz`, `.zip`)    | unpacking the programs the archive holds over the installed ones                  |
+| A single-file binary                                    | replacing the file                                                                |
+| A `.deb` or `.rpm` from a release page                  | installing it through `dpkg` or `rpm`                                             |
+| An app built from source                                | fetching the new tag, running your build steps beside the live copy, then testing |
+| A tool with its own updater (uv, pipx, npm, cargo, bun) | running that updater, and keeping a restore point where it can                    |
+| Claude Code plugins                                     | updating every installed plugin in one row                                        |
+| Something you update yourself                           | tracking it: you see the new version and the command you use                      |
+
+A program your system's package manager owns is left alone. [The app list](docs/app-list.md) has every field a table takes, and [Apps built from source](docs/source-builds.md) has the long form.
+
+## How an update stays safe
+
+```mermaid
+flowchart LR
+  A[Download] --> B[Check size<br>and SHA-256]
+  B --> C[Save a<br>restore point]
+  C --> D[Swap in the<br>new version]
+  D --> E{Does it<br>start?}
+  E -- yes --> F([Updated])
+  E -- no --> G([Rolled back])
 ```
 
-In that mode Upkeep checks, installs the apps marked `auto`, and waits. It sends one notification per new set of pending updates. No app is `auto` until you make it so: nothing in the list that ships with Upkeep is, and an app you add is not. Turn it on per app in its pane, or with `auto = true` in its table.
+- The new file is written beside the old one and renamed into place, so a full disk or a cut connection leaves the old version whole.
+- A running app is not closed. It keeps working, and its row says to restart it when you are ready.
+- Steps that need root use `sudo -n`. Where sudo wants a password the app fails with a message and nothing is changed; Upkeep never asks for one in the middle of a run.
+- An update that was cut off midway is not forgotten: the app's row says so and points at its restore point.
+
+[What an install does](docs/how-an-install-works.md) has each step in full, and where Upkeep keeps its files.
+
+## Works on
+
+Built and used daily on Linux Mint. Each of these was run as a normal user: the window drew, a check ran, and the System group listed what the system's own tool showed.
+
+| Distribution                      | Also covers                                 |
+| --------------------------------- | ------------------------------------------- |
+| Linux Mint 22                     |                                             |
+| Ubuntu 26.04                      | Pop!\_OS, Zorin OS, elementary OS, KDE neon |
+| Debian 13                         | MX Linux                                    |
+| Fedora 45                         | Nobara, Ultramarine                         |
+| Arch Linux                        | CachyOS, EndeavourOS, Manjaro               |
+| openSUSE Tumbleweed and Leap 16.0 | Slowroll                                    |
+
+- **Architectures:** x86_64 and aarch64.
+- **Not supported:** immutable systems (SteamOS, Bazzite, Fedora Silverblue), NixOS, and musl systems such as Alpine.
+- **Not yet tried:** Wayland sessions, the tray on desktops other than Cinnamon, and real arm64 hardware (the arm64 build has only run under emulation).
+- **Planned, not built:** macOS and Windows.
+
+[Which Linux](docs/linux-support.md) says what each part needs.
 
 ## Command line
 
-```sh
-bun run cli check                 # one line per app: OK, UPDATE, SKIP or BROKEN
-bun run cli check --json          # the same as JSON, one app per line
-bun run cli install fd zen        # install named apps
-bun run cli install --all         # everything that is ready
-bun run cli install --auto        # only apps marked auto
-bun run cli restore fd            # put back the newest restore point
-bun run cli history
-bun run cli recover               # finish or undo an update that was interrupted
-bun run cli list                  # the apps in apps.toml, without a check
-bun run cli add sharkdp/fd        # add an app: a catalogue name, a repo, a GitHub, GitLab or Codeberg link, or a file
-bun run cli remove fd             # take it off the list; the app itself stays installed
-bun run cli export upkeep.json    # settings and app list as one file (to stdout without a name)
-bun run cli import upkeep.json    # replace them from such a file
-```
-
-`check` exits 0; an app it could not check is a SKIP line, not a failure. `install` exits 0 when every app it ran ended updated. Every other command exits 0 when it did what was asked and 1 when it did not, and prints why.
-
-### For scripts and agents
-
-Every command takes `--json` and then prints one JSON value per line instead of text: `check` and `list` an app each, `install` each engine event, `history` each run, `export` the document itself on one line (or, writing a file, `{"ok", "file"}`), and `add`, `remove`, `restore`, `recover` and `import` one answer object. An agent can manage Upkeep with these alone and never has to edit a file:
-
-- `add` writes only a sure match: a catalogue app by its name, a repo, a link, or a file that names its source. A file whose repo could only be guessed from its name is named in the answer (`candidate`) and not added; add that repo by name instead.
-- `export` writes one file: `{"upkeep": 1, "exportedAt", "apps", "settings", "skip", "hold", "auto", "extras"}`, where `apps` is `apps.toml` as written, comments included, and `upkeep` is the format's version. Restore points, history and run state stay on the machine.
-- `import` reads the whole file before it writes anything. It refuses a file of another format version and a list with any table that does not load, and refuses while an install runs. It keeps each file it replaces beside it as `<file>.pre-import-<time>`, and if a write fails midway it puts them back and removes any file the import created, or names each file it could not put back and where its copy is. Skips, holds and automatic installs are kept only for apps the new list has; a setting out of range reads as its default.
-
-An open window reads `apps.toml` again at its next check, so a list changed from the command line shows there after Check again. `import` holds the run lock, so it never lands during an install; it can still race an app added in the window at the same moment, and the later write wins.
-
-There is no network API on purpose: the command line already does everything the window does, and a listening socket that can install software would need an owner, a password and its own threat model.
-
-## Adding an app
-
-Press **Add app** in the window. There are five ways in:
-
-- **Type an app's name**, such as `fd` or `Zen Browser`. Apps in Upkeep's catalogue come with a table that has been used for real: the asset pattern, where it installs, how to read its version. Upkeep still looks up today's release. A repo or link of a catalogue app finds the same table.
-- **Paste** a repo or a link to the project: GitHub's `owner/repo` or any github.com link, `gitlab.com/group/name` or a gitlab.com link, `codeberg.org/owner/name` or a codeberg.org link. A link to a self-hosted GitLab, Gitea or Forgejo is read once a table in the list already names that host with its `forge`. Upkeep reads the latest release, picks the asset that runs on this machine, works out the kind, and for an archive opens it to see which programs it holds (ripgrep ships `rg`, not `ripgrep`). If the app is already installed it finds it and reads its version. A `.deb` is offered only where `dpkg` is installed, and an `.rpm` only where `rpm` is installed and `dpkg` is not, so a Debian system with the rpm tool never gets packages outside dpkg's records. When nothing in the release runs on this machine and the repo is on GitHub, Upkeep reads the repo's build file at the release tag (`Cargo.toml`, `go.mod`, `meson.build`, `CMakeLists.txt`, `configure`, `autogen.sh`, `configure.ac` or a `Makefile`) and drafts a source build: Cargo and Go install into `~/.local/bin`, the others into `/usr/local` with sudo. The draft is marked as a guess and shows every step it will run. It says so when the build tool is not installed, and nothing runs until you add it. A repo on GitLab, Codeberg or a self-hosted forge gets no drafted build; write its `source` table by hand.
-- **Choose a file** or **drop a file** on the window. An AppImage that names its own release source is matched for certain. Otherwise Upkeep searches by name and marks the result as a guess to check.
-- **Scan this computer.** It looks through `~/.local/bin`, `~/Applications` and `~/bin` for compiled programs and AppImages that are not in the list. It never runs what it finds. A guess is only offered when a well-known project has exactly that name and a release for this machine. Everything else is listed with "Could not tell where it comes from", and you paste the repo. The scan also asks uv, pipx, npm and cargo what they installed and offers each tool, not already in the list, as one that updates itself through that manager. Typing a tool's name in Add app finds it the same way.
-
-On an arm64 (aarch64) machine Add app offers only release files whose names say `aarch64` or `arm64` (a `.deb` calls it arm64, an `.rpm` aarch64), and packages built for every architecture (`_all.deb`, `.noarch.rpm`). A file that names no architecture is an x86_64 build there, as releases ship it, and is left out. A catalogue app whose table has no `asset_aarch64` is not offered on arm64, and Add app says so.
-
-Each suggestion shows the name, the asset, where it will be installed, and one sentence on how it was worked out. You can change the name and the path before adding. An app that is not installed yet lands in Ready to install.
-
-A program that the system's package manager owns (say `/usr/bin/rg` from apt) is left alone. Upkeep keeps its own copy in `~/.local/bin`, which comes first on the PATH.
-
-**Remove from Upkeep** in an app's pane takes it off the list. It never uninstalls anything.
-
-## The app list
-
-`~/.config/upkeep/apps.toml`. On first run it is copied from `manifest/apps.toml`, which holds no apps, so a new list starts empty and fills from Add app. Adding and removing in the window edits this file, one table at a time, and keeps the previous version as `apps.toml.bak`. You can also edit it by hand. One table per app:
-
-```toml
-[apps.fd]
-name = "fd"
-kind = "archive"
-repo = "sharkdp/fd"
-asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
-dest = "~/.local/bin/fd"
-bins = ["fd"]
-```
-
-| Kind             | What it installs                                                                                                                                        | Needs                                                          |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `appimage`       | one AppImage from a release, or from a vendor's update API that answers a version and a download (`latest = "json:<url>"`, https only in the catalogue) | `repo` or `latest`, `asset`, `dest`                            |
-| `archive`        | binaries inside a release `.tar.gz` or `.zip`                                                                                                           | `repo` or `latest`, `asset`, `dest`, `bins`                    |
-| `file`           | a binary that is itself the release asset                                                                                                               | `repo` or `latest`, `asset`, `dest`                            |
-| `deb`            | a `.deb` from a release, through `dpkg -i`                                                                                                              | `repo` or `latest`, `asset`, `dest`                            |
-| `rpm`            | a `.rpm` from a release, through `rpm -U --oldpackage`                                                                                                  | `repo` or `latest`, `asset`, `dest`                            |
-| `source`         | a checkout or a clone of the release tag, built with your steps, restarted and tested                                                                   | `build`, `check` or `dest`, `repo` or `latest`                 |
-| `command`        | a tool that updates itself                                                                                                                              | `check`, `latest`, `update`, and `restore` for a restore point |
-| `claude-plugins` | every plugin in Claude Code's registry, through `claude plugin update` (versionless: it runs on Run now and in background runs when `auto` is set)      | nothing beyond `name`                                          |
-| `manual`         | tracked only: checked like a self-updating tool, and you run the update                                                                                 | `check`, `latest`, `run`                                       |
-
-Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo, `.desktop` or `.json` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`, `restart` (a command that restarts the app, such as `["systemctl", "restart", "rustdesk"]` for a service; `systemctl` asks for a password through the desktop's own prompt when it needs one) and `relaunch = true` (Upkeep may close the app and start `dest` again; it needs `process`, the name of the process it closes, which must be the app's own: the top processes with that name are asked to quit and their children go with them, so an interpreter's name such as `python` or `node` is refused).
-
-`repo` says where the releases are:
-
-- `owner/name` is a GitHub repo, as every table before forges had it.
-- `gitlab.com/group/name` is a GitLab project, with as many groups as it has (`gitlab.com/group/sub/name`). Its files are the release's links, each named by the file it points at.
-- `codeberg.org/owner/name` is a Codeberg repo, read through the Gitea and Forgejo API.
-- Any other host needs `forge = "gitlab"` or `forge = "gitea"` (Gitea and Forgejo), such as `repo = "git.example.org/me/tool"` with `forge = "gitea"`. Only such a repo may carry `forge`.
-
-Upkeep's GitHub token goes to GitHub only. GitLab lists no size or checksum for a release file, so its download must be at least 1 MiB, as a `json:` one must; Gitea and Forgejo list the size. A source build clones from the same host. `commit` compares commits on GitHub only, so it needs a GitHub repo.
-
-An `appimage`, `archive`, `file`, `deb` or `rpm` app whose project publishes no releases can read a plain download page instead: `latest = "links:https://example.org/downloads/"` in place of `repo`. Upkeep reads the page's links, resolves each against the page, matches `asset` against the file name each one points at, and takes the newest version a matching name holds (2.10 is newer than 2.9). Only https pages and links are read, and like a GitLab file each download must be at least 1 MiB. A `.deb` or `.rpm` keeps its restore point from the same page, when it still lists the installed version.
-
-```toml
-[apps.hello]
-name = "GNU Hello"
-kind = "archive"
-latest = "links:https://ftp.gnu.org/gnu/hello/"
-asset = '^hello-[0-9.]+\.tar\.gz$'
-dest = "~/.local/bin/hello"
-bins = ["hello"]
-```
-
-`asset` is a regular expression matched against the release's asset names. If it matches more than one, the app is listed under "Needs a look" until you narrow it. Anchor it with `^` when a project ships several variants.
-
-`asset` is the pattern for an x86_64 machine. `asset_aarch64` is the same for an aarch64 (arm64) machine, and a table needs one of the two:
-
-```toml
-asset = 'x86_64-unknown-linux-gnu\.tar\.gz$'
-asset_aarch64 = 'aarch64-unknown-linux-gnu\.tar\.gz$'
-```
-
-Upkeep reads the machine's architecture once at start and uses only that machine's pattern. An app added on an arm64 machine is written with `asset_aarch64`. A list moved to a machine of the other architecture (Export and Import) keeps its tables, and an app whose table has no pattern for that machine shows "The table for … names no release file for … machines." instead of installing another architecture's file. Add the missing pattern by hand to fix it.
-
-## Apps built from source
-
-A `source` app with `dir` updates a checkout you already have, and one with only `stage` builds into that folder (dsh's table installs an npm prefix there); with neither, the release tag is cloned into the cache. The build runs while the live copy keeps serving. Only after it passes does Upkeep stop what must stop, swap the new build in, start it again, prove that a new process answers, and run the tests. When anything after the stop fails, the restore point goes back and the old version is started. If Upkeep itself is killed half way, `bun run cli recover` (or the next Install) finishes or undoes the update.
-
-The short form, an app rebuilt in place:
-
-```toml
-[apps.whisper]
-name = "whisper.cpp"
-kind = "source"
-repo = "ggml-org/whisper.cpp"
-dir = "~/whisper.cpp"
-move = "detach"
-check = ["sh", "-c", '''git -C "$HOME/whisper.cpp" describe --tags --abbrev=0 | sed 's/^v//' ''']
-keep = ["build"]
-build = ["cmake --build build -j 6"]
-test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"], timeout_s = 30 }]
-```
-
-`manifest/examples.toml` holds the long forms: llama.cpp builds into a stage beside the live copy and places one binary, Strata holds its running engine and writes config values, ComfyUI records its Python packages for an offline rollback, and dsh installs a second npm prefix and swaps it in.
-
-| Field         | What it does                                                                                                                                                                                   |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dir`         | an existing git checkout, moved to the release tag in place                                                                                                                                    |
-| `move`        | how `dir` moves: `ff` (fast-forward its branch, the default), `reset` (refused when HEAD is on no remote ref), `detach`                                                                        |
-| `check`       | argv printing the installed version; its first line is taken as written                                                                                                                        |
-| `commit`      | argv printing the commit the installed copy was built from; the row is ready when the release is ahead of it on GitHub, and the pane lists the newest commits                                  |
-| `stage`       | a directory the build writes into beside the live copy                                                                                                                                         |
-| `needs`       | argv printing the directories the installed copy needs at run time; kept while a restore point names them                                                                                      |
-| `prune`       | globs of build directories that may go after a verified update, never one that is live or kept                                                                                                 |
-| `keep`        | paths in `dir` saved in the restore point and put back by rename on a rollback; a link stays a link                                                                                            |
-| `hold`        | directories a running process executes from; moved aside and copied back so it keeps its open files; each must also be in `keep`                                                               |
-| `record`      | command output saved in the restore point as a file                                                                                                                                            |
-| `build`       | shell steps run in `dir` (or the clone)                                                                                                                                                        |
-| `check_built` | shell steps that must pass before anything is stopped                                                                                                                                          |
-| `config`      | values written into JSON config files after the build: a top-level `key`, or the value after `flag` in an `array`                                                                              |
-| `place`       | files or directories moved into place while services are stopped; the replaced one goes into the restore point                                                                                 |
-| `undo`        | shell steps run on a rollback after the files are back                                                                                                                                         |
-| `busy`        | what must not be happening: a `process` name or a `run` that exits 0, with the sentence to `say`; `when = "stopped"` checks it only after `serve` has stopped                                  |
-| `pause`       | units held off for the whole update, each only when it was running                                                                                                                             |
-| `serve`       | services stopped and started, each with `active`, `stop`, `start`, and optionally `since` (must change, proving a new process), `health`, `status`, `expect`, `wait_s` and its own `test` list |
-| `test`        | a command (`run`) or an HTTP POST (`url` and `body`) with `expect`, `fail_on`, `timeout_s` and `required`                                                                                      |
-
-Steps and paths may use `{stage}`, `{tag}`, `{version}`, `{point}` and `{needs}`; any other name in braces is refused. A `command` app's `update` may use `{tag}` and `{version}`. A tag or version that is not a plain version name (letters, digits, `.`, `_`, `+`, `-`, starting with a letter or digit) is refused before anything runs. `latest` also takes `npm-tags:<package>`, the highest stable version at or above the installed one, else the highest prerelease. `crates:<crate>` reads crates.io's newest stable version, for a tool installed with `cargo install`. Every path a table removes, renames or copies over is checked where it is used: never the home directory, `dir` itself, or anything above them. `keep`, `hold` and `prune` must stay inside `dir`, also after following the links on the way there. A `place` target is never a folder directly in the home directory, nor Upkeep's own folders. A step that starts with `sudo` gets `-n`, so a password prompt never waits.
-
-## The catalogue
-
-`catalogue/` holds one file per app, `catalogue/<key>.toml`, each with the single `[apps.<key>]` table Add app writes when someone picks that app. To add an app, write its table the way it works on your machine, name the file after its key, and open a pull request; a unit test loads every file, so a broken one fails the gate. A table carries `asset_aarch64` when the release has an arm64 build of the same kind, and a test holds each pattern, for either machine, to exactly one file of the release saved in `src/engine/fixtures/catalogue-assets.json`. Apps built from source, which name a person's own folders and services, stay out of the catalogue: `manifest/examples.toml` shows them instead. No catalogue table sets `auto`.
-
-## What an install does
-
-1. **Download** to `~/.cache/upkeep/dl`. The size must equal what the release lists, and the SHA-256 must match the asset's digest when the release has one. A `json:` source, a GitLab release and a `links:` page list neither: such a download is trusted as the publisher's own answer, over https only, the way its own updater would trust it, and must be at least 1 MiB. The verify probe and the restore point catch a bad one.
-2. **Back up** the files about to be replaced into `~/.local/share/upkeep/backups/<app>/<version>/`. This is the restore point. A `.deb` keeps the installed version's package, taken from that version's release (or its `links:` page), and goes back with `dpkg -i`; an `.rpm` does the same through `rpm -U --oldpackage`. A self-updating app keeps one when its table has `restore`, a command with `{version}` (and `{tag}`) that installs a given version, such as `["bun", "add", "-g", "wrangler@{version}"]`. A source app with `dir` or `stage` keeps its checkout's commit, the files its table names and the files it replaces; one built in a fresh clone keeps none. "Restore points to keep" in Settings applies to all of them.
-3. **Install.** The new file is written beside the old one and renamed into place, so a running copy keeps working and a full disk leaves the old file whole. A running app is not closed. Its row says "Restart to apply". When its table has `restart` or `relaunch`, its pane offers Restart now and the "Restart to finish" group a button that restarts every such app; one that would close a window asks first, since unsaved work in it is lost.
-4. **Verify.** The version probe runs again. If the new copy will not start, the restore point goes back and the row says so.
-
-Root steps use `sudo -n`. If sudo wants a password the app fails with a message and nothing is changed.
-
-## Where things live
-
-| Path                                  | Holds                                                                             |
-| ------------------------------------- | --------------------------------------------------------------------------------- |
-| `~/.config/upkeep/apps.toml`          | the app list                                                                      |
-| `~/.local/state/upkeep/state.json`    | skipped versions, held apps, settings                                             |
-| `~/.local/state/upkeep/logs/`         | one log per run, the newest 50                                                    |
-| `~/.local/share/upkeep/history.jsonl` | every install and cleanup, append-only                                            |
-| `~/.local/share/upkeep/backups/`      | restore points                                                                    |
-| `~/.cache/upkeep/`                    | release lookups, downloads, source clones, the last check's rows. Safe to delete. |
-
-## Build and install
+The engine also runs without the window, from a checkout of this repo:
 
 ```sh
-bun run build
+bun run cli check              # one line per app: OK, UPDATE, SKIP or BROKEN
+bun run cli install fd zen     # install named apps, or --all, or --auto
+bun run cli restore fd         # put back the newest restore point
+bun run cli add sharkdp/fd     # a catalogue name, a repo, a link or a file
+bun run cli export upkeep.json # settings and app list as one file
 ```
 
-This writes `artifacts/linux-x64-Upkeep-Setup.tar.gz` on an x86_64 machine. The arm64 build of Upkeep is built the same way on an arm64 machine, and its file name names that platform instead. Unpack it and run `./installer`. It needs no root and puts the app under `~/.local/share/dev.afk.upkeep/stable/` with a menu entry. The launcher is `~/.local/share/dev.afk.upkeep/stable/app/bin/launcher`. To remove it, run `~/.local/share/dev.afk.upkeep/stable/uninstall --quiet`.
+Every command takes `--json` and prints one JSON value per line, so a script or an agent can manage Upkeep without editing a file. [Command line](docs/command-line.md) has all of them.
 
-"Start at login" in Settings writes `~/.config/autostart/upkeep.desktop` and turning it off removes the file.
+## Docs
 
-## The window
+| Page                                                 | What is in it                                                           |
+| ---------------------------------------------------- | ----------------------------------------------------------------------- |
+| [Adding an app](docs/adding-apps.md)                 | the five ways in, and how Upkeep picks a release file                   |
+| [The app list](docs/app-list.md)                     | `apps.toml`: every kind, every field, where releases can come from      |
+| [Apps built from source](docs/source-builds.md)      | build steps, stages, services to restart, tests, restore points         |
+| [The catalogue](docs/catalogue.md)                   | the ready-made app tables, and how to add one                           |
+| [What an install does](docs/how-an-install-works.md) | download, restore point, install, verify, and where files live          |
+| [The window](docs/window.md)                         | frame, buttons and corners, moving to another computer, languages       |
+| [System updates](docs/system-updates.md)             | what the System group reads and what Upkeep will install                |
+| [Cleanup](docs/cleanup.md)                           | every item it measures and how each is deleted                          |
+| [Which Linux](docs/linux-support.md)                 | what each part needs, and the distributions it was run on               |
+| [Command line](docs/command-line.md)                 | every command, exit codes, JSON output for scripts and agents           |
+| [Develop](docs/develop.md)                           | run from a checkout, build the installer, the checks a change must pass |
 
-Upkeep draws its own title bar: the header is the drag area, a double click on it maximises, and the window buttons sit on the side the desktop uses (read from `org.cinnamon.desktop.wm.preferences button-layout`, then GNOME's key). Settings has three controls for it:
+## Contributing
 
-- **Window frame**: Built in, or System for the desktop's own title bar.
-- **Window buttons**: Follow the desktop, Left or Right.
-- **Window corners**: Rounded or Square. A rounded window is built see-through so its corners can be cut, and the desktop draws no shadow under a see-through window. Square keeps the shadow.
+The quickest way to help is to add an app you use: one small TOML file in `catalogue/`, written the way it works on your machine. A test loads every file, so a broken one cannot get in. [CONTRIBUTING.md](CONTRIBUTING.md) has the steps and the rules a change has to meet.
 
-Changing the frame or the corners rebuilds the window, which takes a moment.
+Found a bug, or an app Upkeep reads wrong? [Open an issue](../../issues) and include the row's message and the log from **Show log**.
 
-### Moving to another computer
-
-**Export** in Settings, beside Open apps.toml, saves the settings and the app list as one file in a folder you pick; **Import** replaces them from such a file and checks again. The command line does the same with `upkeep export` and `upkeep import` (see "For scripts and agents").
-
-### Languages
-
-The window, the tray menu and the notifications speak English, Chinese (Simplified), Spanish, Portuguese (Brazil), German, French, Italian, Polish, Russian and Japanese. **Language** in Settings follows the desktop's language by default (`LANGUAGE`, then `LC_ALL`, `LC_MESSAGES` and `LANG`), falling back to English, or can be set to any of the ten. The switch shows at once, with no restart. What the engine reports (a row's problem, why an install failed, what Add app found) is translated too; a tool's own output, such as a compiler's error line, and the run log stay as the tool printed them. Right-to-left languages are not offered yet.
-
-### System updates
-
-The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, Snaps where snapd is installed (`snap refresh --list`), Cinnamon's applets, desklets, extensions and themes on any Cinnamon desktop (`cinnamon-spice-updater --list-json`, the list Update Manager shows them from), and the packages the system's package manager would install (security, kernel and driver updates marked as such). The packages come from the first list the system has: Linux Mint's Update Manager (`mintupdate-cli list`), else `apt list --upgradable`, `dnf check-update`, pacman (`checkupdates`, else `pacman -Qu`), or `zypper list-updates`. None needs root. apt, `pacman -Qu` and zypper read the system's last refresh; dnf and `checkupdates` may fetch fresh metadata into a cache of their own. They sit in a folded `System` group at the end of the list, whose subline names the source. On Linux Mint its header has a button that opens Update Manager.
-
-The group is off until you turn on **Show system updates** in Settings, under Extras. The tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
-
-A second switch beneath it, **Install system updates from Upkeep**, is off by default and shows only while the list is on. With it off the group stays read-only. With it on, the rows Upkeep can install get a tick box and the group gets an Install button:
-
-- **Packages on Linux Mint**, through Update Manager's own command, as root: `sudo -n mintupdate-cli upgrade -y --keep-configuration -i <list>`. It keeps Mint's rules (dist-upgrade, its blacklist, kernel grouping). `--keep-configuration` is always there, so a config file you edited is never replaced by the package's. `-i` always names the kernel and NVIDIA driver sources (`linux,linux-signed*,linux-meta*,linux-hwe*,nvidia-graphics-drivers-*`) and every package row you did not tick.
-- **Flatpak** refs, through `flatpak update -y --noninteractive <refs>`.
-- **Snaps**, through `sudo -n snap refresh <names>`.
-- **Cinnamon spices**, through `cinnamon-spice-updater --update <type>`. The updater cannot update one spice alone, so a ticked applet installs with every applet that has an update, and the row says so.
-
-Kernel and driver rows never get a tick: both need a restart, and a driver update breaks GPU programs until then, so they stay with Update Manager. Packages from apt, dnf, pacman or zypper without Update Manager stay read-only too; with installing on, each such row names the tool that installs it.
-
-Install first shows the commands it will run, each as typed, and says which need administrator rights. Nothing runs until you confirm. Then, before any of them, Upkeep checks that sudo works without a password, that nothing holds dpkg's lock, that polkit lets Flatpak update without a dialog, that Update Manager's list is still the one you saw, and that a dry run (`mintupdate-cli upgrade -d`, no root) names no kernel or NVIDIA package. If any check fails, nothing runs and the group says why. Packages go first, then Flatpak, Snap and Cinnamon. Each row shows its state while it runs; afterwards the list is read again, a row that is gone is installed and one still listed is failed. Results go to History and the run log.
-
-A System install holds the same lock as an app install, so the two never run together. Closing the window or choosing Quit in the tray waits for it to finish. A background run at login never installs system updates.
-
-### Cleanup
-
-**Show Cleanup** in Settings, under Extras, adds a Cleanup tab between History and Settings. It is off by default. The tab measures a fixed list of caches and leftovers, never a folder you point it at, and deletes only what you tick and then confirm.
-
-| Item                            | Measured as                                                                                                                        | Deleted by                                                                                                                 | Default                                                                                |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Thumbnails                      | `~/.cache/thumbnails` (normal, large, x-large, xx-large, fail)                                                                     | Upkeep, in-process                                                                                                         | ticked                                                                                 |
-| Trash                           | `~/.local/share/Trash` files and info; listed only when it holds something                                                         | Upkeep, in-process                                                                                                         | ticked                                                                                 |
-| Upkeep's leftover copies        | `<file>.upkeep-new`, `-tmp` or `-gone` beside an installed app or a restore point, listed only when the live file exists           | Upkeep, in-process                                                                                                         | ticked when older than the live file; a copy newer than it starts unticked and says so |
-| Downloaded packages             | the `.deb` files in `/var/cache/apt/archives`                                                                                      | `sudo -n apt-get clean`                                                                                                    | ticked                                                                                 |
-| Old NVIDIA runtimes for Flatpak | `org.freedesktop.Platform.GL.nvidia-*` runtimes whose version matches neither dpkg's `libnvidia-gl-*` nor the loaded kernel module | `flatpak uninstall --system -y --noninteractive <ref>` after `pkcheck`, or `--user` for a runtime installed for the person | ticked                                                                                 |
-| Restore points                  | each version under `~/.local/share/upkeep/backups/`                                                                                | Upkeep, in-process                                                                                                         | unticked                                                                               |
-| Packages nothing needs          | the `Remv` lines of `apt-get -s autoremove`; listed only when there are any                                                        | `sudo -n env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y`, after you type `remove`                                | unticked                                                                               |
-| uv, bun, npm and pip caches     | their cache folders, only with **Include developer caches** on and the tool on PATH                                                | `uv cache clean`, `bun pm cache rm`, `npm cache clean --force`, `pip cache purge`                                          | unticked                                                                               |
-
-These are measured and shown with a sentence, never deleted: `/tmp` (the system empties it at boot and after 30 days), the journal, old kernels (the running and newest one named; remove them in Update Manager), Timeshift snapshots, browser caches, Playwright's browsers, `.bak` and `.backup` copies beside your apps, and Upkeep's own cache. Hugging Face models are never listed.
-
-Sizes count only files with one hard link, so a figure is what deleting gives back: uv's cache shares most of its files with installed tools, and shows that much smaller than `du`. Measuring walks the folders a batch at a time, so the window stays responsive while a large cache is read.
-
-Review opens a sheet with what is ticked, the total, what cannot be undone and every command it runs, as typed; its button names the total ("Delete 2.4 GB"). Nothing runs before that button. Then, for each part: it is measured again, and skipped with "Skipped: changed since you reviewed it." if its size or time moved; a file is deleted only after `lstat`, only below the item's own folder, never through a link (a link is removed, its target stays) and never on another file system. Root items need sudo without a password and are skipped otherwise. A cleanup holds the same run lock as an install, so it never runs during one and never deletes a restore point an install is using; while an interrupted update waits to be put back, Cleanup refuses to run at all, since its restore point and temp copies are what recovery needs. Closing the window or Quit waits for it. Each item's result goes to History as cleaned, skipped or failed, and a background run never cleans.
-
-## Which Linux
-
-Upkeep is developed and used daily on Linux Mint 22 (Cinnamon, X11). Nothing in the engine names that system, and this is what each part needs:
-
-| Part                                                                | Needs                                                                                   |
-| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| AppImage, archive, single-file and source apps, self-updating tools | any x86_64 or aarch64 (arm64) Linux; `gh` for a GitHub token is optional                |
-| `.deb` apps                                                         | dpkg, so Debian, Ubuntu, Mint and their relatives                                       |
-| `.rpm` apps                                                         | rpm on a system without dpkg, so Fedora, openSUSE, AlmaLinux and their relatives        |
-| The window                                                          | WebKitGTK 4.1                                                                           |
-| Window buttons on the desktop's side                                | Cinnamon or GNOME settings; elsewhere they sit on the right, and Settings can move them |
-| Rounded corners                                                     | a compositing window manager                                                            |
-| System group, Flatpak rows                                          | Flatpak                                                                                 |
-| System group, package rows                                          | Linux Mint's Update Manager, apt, dnf, pacman or zypper                                 |
-
-### Supported
-
-Upkeep supports the desktop distributions below and the ones built on them. Each was run on 2026-11-12 as a normal user: the window drew and ran a check, and the System group listed the updates the system's own tool showed, with installed and new versions.
-
-| Distribution                      | Also covers                                | System updates read from                   |
-| --------------------------------- | ------------------------------------------ | ------------------------------------------ |
-| Linux Mint 22 (daily use)         |                                            | Update Manager                             |
-| Ubuntu 26.04                      | Pop!_OS, Zorin OS, elementary OS, KDE neon | apt                                        |
-| Debian 13                         | MX Linux                                   | apt                                        |
-| Fedora 45                         | Nobara, Ultramarine                        | dnf                                        |
-| Arch Linux                        | CachyOS, EndeavourOS, Manjaro              | pacman (`checkupdates`, else `pacman -Qu`) |
-| openSUSE Tumbleweed and Leap 16.0 | Slowroll                                   | zypper                                     |
-
-Not supported: immutable systems (SteamOS, Bazzite, Fedora Silverblue), NixOS, and musl systems such as Alpine. Not yet tried on a supported system: Wayland sessions, the tray on desktops other than Cinnamon, and arm64 machines (the engine picks arm64 files, tested against real release lists, but no arm64 build of Upkeep has run yet).
-
-A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its repo (GitHub, GitLab or Codeberg) or a file.
-
-## Develop
-
-```sh
-bun run validate     # format check, lint, types, unit tests, view build, browser specs
-bun run dev:view     # the view alone at http://localhost:5182/?fixture
-bun run e2e          # Playwright over the fixture
-bun run i18n         # extract new strings into the catalogs in src/mainview/locales
-bun run i18n:check   # fails when a catalog is stale or a string is untranslated (part of validate)
-```
-
-The window's text is translated with [wuchale](https://wuchale.dev): almost all of it lives in `src/mainview/lib/copy.ts`, as getters and functions so a language switch shows at once, and each language has a hand-written `.po` catalog. A new or changed string needs its translation in every catalog before the gate passes. The tray's words are a typed table in `src/bun/tray-text.ts`, since Vite never builds the Bun process. The engine writes its sentences through the templates in `src/shared/messages.ts`; the window reads a sentence back against them (`src/mainview/lib/engine-say.ts`) and words the same template from `engine-text.ts`, which the catalogs translate. A test holds the two English versions together, so a changed engine sentence needs its twin in `engine-text.ts` changed with it.
-
-The identity (app icon, mark, wordmark, tray drawings) is in `assets/brand`. `bun run tray-icons` renders the tray pictures and the launcher icon from it.
-
-`PRODUCT.md` is the product record and `DESIGN.md` the visual system.
+Upkeep is built with AI assistance, and contributions from AI coding agents are welcome.
 
 ## License
 
-Upkeep is free software under the GNU General Public License, version 3 or any later version. See `LICENSE`. Anyone may use, change and share it; a changed copy that is given to others has to come with its source under the same license.
+Upkeep is free software under the GNU General Public License, version 3 or any later version. See [LICENSE](LICENSE). Anyone may use, change and share it; a changed copy that is given to others has to come with its source under the same license.
+
+<p align="center">
+  <sub>Built with <a href="https://electrobun.dev">Electrobun</a>, <a href="https://bun.sh">Bun</a>, <a href="https://svelte.dev">Svelte</a> and TypeScript.</sub>
+</p>

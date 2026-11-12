@@ -1,0 +1,3 @@
+# The catalogue
+
+`catalogue/` holds one file per app, `catalogue/<key>.toml`, each with the single `[apps.<key>]` table Add app writes when someone picks that app. To add an app, write its table the way it works on your machine, name the file after its key, and open a pull request; a unit test loads every file, so a broken one fails the gate. A table carries `asset_aarch64` when the release has an arm64 build of the same kind, and a test holds each pattern, for either machine, to exactly one file of the release saved in `src/engine/fixtures/catalogue-assets.json`. Apps built from source, which name a person's own folders and services, stay out of the catalogue: `manifest/examples.toml` shows them instead. No catalogue table sets `auto`.

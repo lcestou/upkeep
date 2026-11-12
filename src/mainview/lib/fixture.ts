@@ -224,7 +224,7 @@ const SEEDS: Seed[] = [
 		installed: "b7712",
 		latest: "b7790",
 		status: "manual",
-		run: "/llama in a Claude session",
+		run: "llama-update",
 	},
 	{
 		key: "strata",
@@ -402,7 +402,7 @@ const BUILT_SEEDS: Seed[] = [
 		ahead: 569,
 		commits: LLAMA_COMMITS,
 		stages: BUILT_STAGES,
-		note: "Updating restarts the llama-server services that are running. To judge whether these commits matter for this setup, run /llama in a Claude session.",
+		note: "Updating restarts the llama-server services that are running.",
 	},
 	{
 		key: "whisper",
@@ -425,7 +425,7 @@ const BUILT_SEEDS: Seed[] = [
 		key: "strata",
 		name: "Strata",
 		kind: "source",
-		repo: "lcestou/strata",
+		repo: "Niko1221/Strata",
 		installed: "0.2.10",
 		latest: "0.2.13",
 		status: "ready",
@@ -617,7 +617,7 @@ export type FixtureOptions = {
 	cleanup?: "on";
 };
 
-// The owner's desktop puts the window buttons on the left: close, maximize, minimize.
+// Cinnamon can put the window buttons on the left: close, maximize, minimize.
 /** The window button order for the side the buttons sit on. */
 const orderFor = (side: "left" | "right"): WindowButton[] =>
 	side === "left" ? ["close", "maximize", "minimize"] : ["minimize", "maximize", "close"];

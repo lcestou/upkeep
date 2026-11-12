@@ -62,7 +62,7 @@ const row = (
 const PERL_IGNORE = `${GLOBS},google-chrome-stable,libgphoto2,libnfs,libsoup3,openjdk-21,openjdk-8`;
 
 /**
- * This box, faked: the check reads the saved outputs; the pre-checks pass; the trial run lists perl only; every
+ * A Linux Mint machine, faked: the check reads the saved outputs; the pre-checks pass; the trial run lists perl only; every
  * install command exits 0. A list read after an install command ran lacks what it installed. over replaces any
  * answer by argv. Anything else throws, so nothing unplanned can reach a real process.
  */
