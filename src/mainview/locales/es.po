@@ -1930,3 +1930,23 @@ msgstr "{0}: lo escribió esta importación y no se pudo quitar"
 #: src/mainview/lib/engine-text.ts
 msgid "An Upkeep run is in progress. Try again when it ends."
 msgstr "Hay una tanda de Upkeep en curso. Inténtalo de nuevo cuando termine."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No file of this release runs on this machine, so Upkeep drafted a source build from its {0}. Read the steps before adding it."
+msgstr "Ningún archivo de esta versión funciona en esta máquina, así que Upkeep preparó una compilación desde el código fuente a partir de su {0}. Lee los pasos antes de añadirla."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Building it needs {0}, which is not installed."
+msgstr "Para compilarla hace falta {0}, que no está instalado."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
+msgstr "Supone que el programa se llama {0}, como el repositorio; cambia la ruta si la compilación instala otro nombre."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
+msgstr "Una copia en {0} va primero en tu PATH; bórrala cuando la compilación esté instalada, o seguirá ejecutándose esa."

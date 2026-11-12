@@ -1894,3 +1894,23 @@ msgstr "{0}：この読み込みで書き込まれ、削除できませんでし
 #: src/mainview/lib/engine-text.ts
 msgid "An Upkeep run is in progress. Try again when it ends."
 msgstr "Upkeep の実行中です。終わってからもう一度お試しください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No file of this release runs on this machine, so Upkeep drafted a source build from its {0}. Read the steps before adding it."
+msgstr "このリリースにはこのマシンで動くファイルがないため、Upkeep が {0} からソースビルドの案を作りました。追加する前に手順を読んでください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Building it needs {0}, which is not installed."
+msgstr "ビルドには {0} が必要ですが、インストールされていません。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
+msgstr "プログラム名はリポジトリ名から {0} とみなしています。ビルドが別の名前でインストールする場合はパスを変更してください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
+msgstr "{0} にあるコピーが PATH で先に見つかります。ビルドの後で削除してください。そうしないとそちらが動き続けます。"

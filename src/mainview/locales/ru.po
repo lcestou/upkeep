@@ -1948,3 +1948,23 @@ msgstr "{0}: записан этим импортом, и удалить его 
 #: src/mainview/lib/engine-text.ts
 msgid "An Upkeep run is in progress. Try again when it ends."
 msgstr "Идёт проход Upkeep. Попробуйте ещё раз, когда он закончится."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No file of this release runs on this machine, so Upkeep drafted a source build from its {0}. Read the steps before adding it."
+msgstr "Ни один файл этого выпуска не работает на этом компьютере, поэтому Upkeep составил сборку из исходников по файлу {0}. Прочитайте шаги, прежде чем добавлять."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Building it needs {0}, which is not installed."
+msgstr "Для сборки нужно: {0} — не установлено."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
+msgstr "Программа считается названной {0}, по имени репозитория; измените путь, если сборка устанавливает другое имя."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "A copy at {0} runs first on your PATH; remove it once the build is in, or it keeps running instead."
+msgstr "Копия в {0} стоит в PATH первой; удалите её после сборки, иначе запускаться будет она."

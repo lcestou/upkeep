@@ -195,5 +195,12 @@ export const ENGINE_COPY = {
 	importSomeNotPutBack: (v0: string) => `${v0} Some files could not be put back:`,
 	importCopyFromBefore: (v0: string, v1: string) => `${v0}: its copy from before is ${v1}`,
 	importCreatedNotRemoved: (v0: string) => `${v0}: written by this import, and could not be removed`,
+	draftedFrom: (v0: string) =>
+		`No file of this release runs on this machine, so Upkeep drafted a source build from its ${v0}. Read the steps before adding it.`,
+	draftNamedAfterRepo: (v0: string) =>
+		`It takes the program to be ${v0}, after the repo; change the path if the build installs another name.`,
+	draftOtherCopyFirst: (v0: string) =>
+		`A copy at ${v0} runs first on your PATH; remove it once the build is in, or it keeps running instead.`,
+	draftNeedsTools: (v0: string) => `Building it needs ${v0}, which is not installed.`,
 	importDuringRun: () => `An Upkeep run is in progress. Try again when it ends.`,
 } satisfies Record<MessageId, (...values: string[]) => string>;

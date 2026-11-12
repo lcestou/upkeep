@@ -379,6 +379,17 @@ export const MESSAGES = {
 	importCopyFromBefore: (v0: Value, v1: Value) => `${v0}: its copy from before is ${v1}`,
 	/** transfer.ts. {0} file path */
 	importCreatedNotRemoved: (v0: Value) => `${v0}: written by this import, and could not be removed`,
+	/** discover.ts. {0} the build file the steps were drafted from, e.g. Cargo.toml */
+	draftedFrom: (v0: Value) =>
+		`No file of this release runs on this machine, so Upkeep drafted a source build from its ${v0}. Read the steps before adding it.`,
+	/** discover.ts. {0} the program name taken from the repo's name */
+	draftNamedAfterRepo: (v0: Value) =>
+		`It takes the program to be ${v0}, after the repo; change the path if the build installs another name.`,
+	/** discover.ts. {0} the path of a copy in the home folder that PATH finds first */
+	draftOtherCopyFirst: (v0: Value) =>
+		`A copy at ${v0} runs first on your PATH; remove it once the build is in, or it keeps running instead.`,
+	/** discover.ts. {0} the missing build tools, comma-separated */
+	draftNeedsTools: (v0: Value) => `Building it needs ${v0}, which is not installed.`,
 	/** requests.ts and cli.ts: an import refused because a run holds the lock */
 	importDuringRun: () => `An Upkeep run is in progress. Try again when it ends.`,
 } satisfies Record<string, (...values: Value[]) => string>;

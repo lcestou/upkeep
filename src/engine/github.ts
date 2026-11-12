@@ -193,6 +193,25 @@ export async function compareRefs(
 	return { status, ahead, commits };
 }
 
+/** The names of the files and folders at a repo's root at ref, as GitHub lists them. */
+export async function rootNames(repo: string, ref: string, opts: ReleaseOpts): Promise<string[] | Failure> {
+	const r = await githubJson(`/repos/${repo}/contents?ref=${encodeURIComponent(ref)}`, opts);
+	if (isFailure(r)) return r;
+	if (r.status !== 200 || !Array.isArray(r.body))
+		return { failure: "http", detail: MESSAGES.githubAnsweredSearch(r.status, repo) };
+	return r.body.map((item) => str(record(item).name)).filter(Boolean);
+}
+
+/** One small text file of a repo at ref, or null when it cannot be read: a draft does without it. */
+export async function repoText(repo: string, path: string, ref: string, opts: ReleaseOpts): Promise<string | null> {
+	const r = await githubJson(`/repos/${repo}/contents/${path}?ref=${encodeURIComponent(ref)}`, opts);
+	if (isFailure(r) || r.status !== 200) return null;
+	const f = record(r.body);
+	return f.encoding === "base64" && typeof f.content === "string"
+		? Buffer.from(f.content, "base64").toString("utf8")
+		: null;
+}
+
 /** Null for an empty list. Throws, as Bun.semver.order does, when a string is not a semver version. */
 const highest = (vs: string[]) => vs.toSorted((a, b) => Bun.semver.order(b, a))[0] ?? null;
 
