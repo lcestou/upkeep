@@ -999,11 +999,16 @@ test("a command-line tool running during its update is updated, with a note, and
 });
 
 test("a reminder saved earlier for a command-line tool is dropped, not shown, while its old copy still runs", async () => {
-	const d = await deps();
+	// As the owner's uv: updated while running, with a reminder saved, and the reminder no longer wanted.
+	const d = await depsRestartable();
 	fdProcess(500, 1);
-	updateState(t.paths, (s) => {
-		s.restart.fd = "2026-11-12T10:00:00.000Z";
-	});
+	const before = createEngine(d);
+	await before.check();
+	await before.install(["fd"]);
+	await before.idle();
+	expect(typeof restartEntry()).toBe("string");
+	const file = join(t.paths.config, "apps.toml");
+	writeFileSync(file, readFileSync(file, "utf8").replace(/^restart = .*\n/m, ""));
 	const engine = createEngine(d);
 	await engine.check();
 	expect(fdRow(engine)?.restartToApply).toBe(false);
