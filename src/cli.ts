@@ -213,20 +213,24 @@ async function remove(engine: Engine, key: string, json: boolean, out: Out): Pro
 	return r.ok ? 0 : 1;
 }
 
-/** Writes the setup as one JSON file, or to stdout when no file is named. */
-function exportTo(deps: EngineDeps, file: string | undefined, out: Out): number {
-	const text = `${JSON.stringify(exportSetup(deps.paths, deps.seedManifest, deps.now()), null, "\t")}\n`;
+/**
+ * Writes the setup as one JSON file, or prints it when no file is named: indented for a person, on one line with
+ * --json. With a file and --json, the answer is {"ok", "file"} or {"ok": false, "problem"}.
+ */
+function exportTo(deps: EngineDeps, file: string | undefined, json: boolean, out: Out): number {
+	const setup = exportSetup(deps.paths, deps.seedManifest, deps.now());
 	if (file === undefined) {
-		out(text.trimEnd());
+		out(json ? JSON.stringify(setup) : JSON.stringify(setup, null, "\t"));
 		return 0;
 	}
 	try {
-		writeFileSync(file, text);
+		writeFileSync(file, `${JSON.stringify(setup, null, "\t")}\n`);
 	} catch (err) {
-		out(`Could not write ${file}: ${err instanceof Error ? err.message : String(err)}`);
+		const problem = `Could not write ${file}: ${err instanceof Error ? err.message : String(err)}`;
+		out(json ? JSON.stringify({ ok: false, problem }) : problem);
 		return 1;
 	}
-	out(`Exported to ${file}.`);
+	out(json ? JSON.stringify({ ok: true, file }) : `Exported to ${file}.`);
 	return 0;
 }
 
@@ -275,7 +279,7 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 	if (cmd === "list" && args.length === 0) return list(deps, json, out);
 	if (cmd === "add" && args.length === 1 && args[0]) return add(createEngine(deps), args[0], json, out);
 	if (cmd === "remove" && args.length === 1 && args[0]) return remove(createEngine(deps), args[0], json, out);
-	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], out);
+	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], json, out);
 	if (cmd === "import" && args.length === 1 && args[0]) return importFrom(deps, args[0], json, out);
 	out(USAGE);
 	return 2;

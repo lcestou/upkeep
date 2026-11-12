@@ -232,6 +232,13 @@ test("export and import carry the list, settings, skips, holds and auto picks, a
 	const stdout: string[] = [];
 	expect(await main(["export"], d, (l) => stdout.push(l))).toBe(0);
 	expect(JSON.parse(stdout.join("\n")).apps).toBe(exported.apps);
+	const line: string[] = [];
+	expect(await main(["export", "--json"], d, (l) => line.push(l))).toBe(0);
+	expect(line).toHaveLength(1);
+	expect(JSON.parse(line[0] ?? "{}").upkeep).toBe(1);
+	const answer: string[] = [];
+	expect(await main(["export", file, "--json"], d, (l) => answer.push(l))).toBe(0);
+	expect(JSON.parse(answer[0] ?? "{}")).toEqual({ ok: true, file });
 
 	// A different machine's setup: only borg, and a skip for an app it does not list.
 	updateState(t.paths, (s) => {
@@ -377,4 +384,7 @@ test("an import that cannot finish puts every file back, and an export to a path
 	const failed: string[] = [];
 	expect(await main(["export", join(t.dir, "no", "such", "dir", "x.json")], d, (l) => failed.push(l))).toBe(1);
 	expect(failed[0]).toStartWith("Could not write ");
+	const failedJson: string[] = [];
+	expect(await main(["export", join(t.dir, "no", "x.json"), "--json"], d, (l) => failedJson.push(l))).toBe(1);
+	expect(JSON.parse(failedJson[0] ?? "{}").ok).toBe(false);
 });
