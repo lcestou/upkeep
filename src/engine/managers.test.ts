@@ -223,3 +223,13 @@ test("listTools asks each manager, reads uv receipts and cargo's file; a missing
 	]);
 	expect(calls.every((c) => c.opts.timeoutMs === 10_000)).toBe(true);
 });
+
+test("a uv tool from a subfolder of a GitHub repo is left out, since its root does not install it", () => {
+	const r = (extra: string) =>
+		parseUvReceipt(`[tool]\nrequirements = [{ name = "x", git = "https://github.com/o/r"${extra} }]\n`, "x");
+	expect(r("")?.repo).toBe("o/r");
+	expect(r(', subdirectory = "pkg"')).toBeNull();
+	expect(
+		parseUvReceipt(`[tool]\nrequirements = [{ name = "x", git = "https://github.com/o/r?subdirectory=pkg" }]\n`, "x"),
+	).toBeNull();
+});

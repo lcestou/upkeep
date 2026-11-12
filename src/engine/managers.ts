@@ -93,7 +93,9 @@ export function parseUvReceipt(text: string, name: string): Pick<Tool, "extras" 
 	if (!isRecord(tool) || !Array.isArray(tool.requirements)) return null;
 	const req = tool.requirements.find((r) => isRecord(r) && typeof r.name === "string" && norm(r.name) === norm(name));
 	if (!isRecord(req)) return null;
-	if (["path", "directory", "url", "editable"].some((k) => req[k] !== undefined)) return null;
+	// A package in a repo's subfolder cannot be installed again from the repo's root, so it is left out.
+	if (["path", "directory", "url", "editable", "subdirectory"].some((k) => req[k] !== undefined)) return null;
+	if (typeof req.git === "string" && req.git.includes("subdirectory")) return null;
 	let repo: string | null = null;
 	if (typeof req.git === "string") {
 		repo = githubRepo(req.git);
