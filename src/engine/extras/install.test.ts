@@ -66,7 +66,7 @@ const PERL_IGNORE = `${GLOBS},google-chrome-stable,libgphoto2,libnfs,libsoup3,op
  * install command exits 0. A list read after an install command ran lacks what it installed. over replaces any
  * answer by argv. Anything else throws, so nothing unplanned can reach a real process.
  */
-function box(over: Map<string, ProcessResult> = new Map()) {
+function box(over: Map<string, ProcessResult | Promise<ProcessResult>> = new Map()) {
 	let installed = false;
 	return strictRun((argv: string[], opts: RunOpts) => {
 		const key = argv.join(" ");
