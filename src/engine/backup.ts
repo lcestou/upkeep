@@ -11,6 +11,7 @@ import {
 } from "node:fs";
 import { basename, join } from "node:path";
 import type { AppSpec, RestorePoint } from "../shared/types";
+import { dropTree } from "./drop";
 import type { Paths } from "./paths";
 import { asRoot, installAside, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
 
@@ -84,7 +85,7 @@ export function takePoint(
 			meta.tag = how.tag;
 		}
 		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
-		rmSync(dir, { recursive: true, force: true });
+		dropTree(dir, paths);
 		renameSync(tmp, dir);
 	} catch (err) {
 		rmSync(tmp, { recursive: true, force: true });
@@ -115,7 +116,7 @@ export function takeBackup(
 			meta.files.push({ name, dest: file, mode: (statSync(file).mode & 0o7777).toString(8) });
 		}
 		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
-		rmSync(dir, { recursive: true, force: true });
+		dropTree(dir, paths);
 		renameSync(tmp, dir);
 	} catch (err) {
 		rmSync(tmp, { recursive: true, force: true });
@@ -142,7 +143,7 @@ export function listBackups(paths: Paths, key: string): RestorePoint[] {
 	const points: RestorePoint[] = [];
 	for (const name of readdirSync(root)) {
 		// A point still being built when the process died. prune removes it.
-		if (name.endsWith(".upkeep-tmp")) continue;
+		if (name.endsWith(".upkeep-tmp") || name.includes(".upkeep-drop.")) continue;
 		const meta = readMeta(join(root, name));
 		if (meta) points.push({ version: meta.version, at: meta.at });
 	}
@@ -188,7 +189,6 @@ export function prune(paths: Paths, key: string, keep: number): void {
 	const root = backupDir(paths, key);
 	if (existsSync(root))
 		for (const name of readdirSync(root))
-			if (name.endsWith(".upkeep-tmp")) rmSync(join(root, name), { recursive: true, force: true });
-	for (const p of listBackups(paths, key).slice(Math.max(1, keep)))
-		rmSync(join(root, p.version), { recursive: true, force: true });
+			if (name.endsWith(".upkeep-tmp") || name.includes(".upkeep-drop.")) dropTree(join(root, name), paths);
+	for (const p of listBackups(paths, key).slice(Math.max(1, keep))) dropTree(join(root, p.version), paths);
 }

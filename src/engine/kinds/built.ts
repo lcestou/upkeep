@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import type { AppSpec, Serve, Service, Test } from "../../shared/types";
 import { listBackups, prune, readMeta } from "../backup";
 import { isRecord } from "../manifest";
+import { dropTree } from "../drop";
 import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
 import { argsRunning } from "../running";
 import { clearInflight, type Inflight, readInflight, startTime, writeInflight } from "../store";
@@ -289,7 +290,7 @@ export async function prepareBuilt(
 			} catch (err) {
 				ctx.log(`Putting the files back failed: ${err instanceof Error ? err.message : String(err)}`);
 			}
-			if (stage) rmSync(stage, { recursive: true, force: true });
+			if (stage) dropTree(stage, ctx.paths);
 		}
 		await startPaused();
 		marker.clear();
@@ -393,7 +394,7 @@ export async function prepareBuilt(
 				cleanup: "revert",
 			});
 	}
-	if (stage) rmSync(stage, { recursive: true, force: true });
+	if (stage) dropTree(stage, ctx.paths);
 	// Steps run in dir; a stage-only table runs them in the home directory, since the stage is theirs to create.
 	const cwd = dir ?? ctx.paths.home;
 	for (const step of spec.build ?? []) {
@@ -505,7 +506,7 @@ function dropHeld(spec: AppSpec, ctx: KindCtx, dir: string | null): void {
 	for (const h of spec.hold ?? []) {
 		const p = resolvePath(h, ctx.paths, dir);
 		if (existsSync(`${p}.upkeep-live`)) renameSync(`${p}.upkeep-live`, `${p}.upkeep-gone`);
-		rmSync(`${p}.upkeep-gone`, { recursive: true, force: true });
+		dropTree(`${p}.upkeep-gone`, ctx.paths);
 	}
 }
 
@@ -549,7 +550,7 @@ async function pruneBuilds(spec: AppSpec, ctx: KindCtx, built: Built): Promise<v
 			}
 			if (kept.has(d) || !lstatSync(d).isDirectory()) continue;
 			ctx.log(`Pruned ${d}`);
-			rmSync(d, { recursive: true, force: true });
+			dropTree(d, ctx.paths);
 		}
 }
 

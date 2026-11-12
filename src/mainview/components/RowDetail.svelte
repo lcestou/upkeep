@@ -40,6 +40,21 @@
 	const inRun = $derived(model.run.phase === "installing");
 	const pending = $derived(app.latest !== null && app.latest !== app.installed && !app.versionless);
 	const lines = $derived(model.log.filter((l) => l.key === app.key));
+	let logEl = $state<HTMLElement | null>(null);
+	// Lines that arrive keep the log on its newest one, unless the reader scrolled up to read an older one.
+	let pinned = true;
+	$effect(() => {
+		const el = logEl;
+		if (!el) return;
+		const onScroll = () => (pinned = el.scrollHeight - el.scrollTop - el.clientHeight < 24);
+		el.addEventListener("scroll", onScroll, { passive: true });
+		return () => el.removeEventListener("scroll", onScroll);
+	});
+	$effect(() => {
+		void lines.length;
+		const el = logEl;
+		if (el && pinned) el.scrollTop = el.scrollHeight;
+	});
 	const care = $derived(CARE[app.status]);
 	const failed = $derived(app.status === "failed" || app.status === "rolled_back");
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
@@ -432,8 +447,10 @@
 		{#if lines.length === 0}
 			<p class="none">{TEXT.noLog}</p>
 		{:else}
-			<ol class="lines mono" data-testid="pane-log">
-				{#each lines.slice(-40) as line, i (i)}
+			<!-- A box of its own height that scrolls, so arriving lines never move the pane around it. A scroll box is a tab stop. -->
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+			<ol class="lines mono" data-testid="pane-log" tabindex="0" aria-label={TEXT.logTitle} bind:this={logEl}>
+				{#each lines.slice(-200) as line, i (i)}
 					<li><time>{clockTime(line.at)}</time> {line.text}</li>
 				{/each}
 			</ol>
@@ -820,6 +837,9 @@
 		color: var(--text-2);
 		white-space: pre-wrap;
 		overflow-wrap: anywhere;
+		max-height: calc(1.6em * 14 + 2 * var(--s2));
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 	time {
 		color: var(--text-3);

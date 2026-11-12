@@ -763,10 +763,17 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	}
 
 	/** keep: results from the pass a retry continues; the engine keeps them in the summary. */
+	/** The run under way's order, which joinRun appends to; null outside a run. */
+	let running: string[] | null = null;
+	/** A retry's first-pass order, kept on screen. */
+	let base: string[] = [];
+
 	async function runQueue(keys: string[], keep: RunResult[] = [], retry = false) {
 		attempts++;
 		const runId = `run-${Date.now()}`;
 		const order = keys.toSorted((a, b) => queueRank(a) - queueRank(b));
+		// As the engine does: any run started from the summary keeps the first pass's order on screen.
+		const fromSummary = run.phase === "summary";
 		for (const key of order) {
 			const app = get(key);
 			if (app) put({ ...app, status: "queued", detail: undefined });
@@ -780,7 +787,11 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			stopping: false,
 			results: keep,
 			retry,
+			// A retry keeps the first pass's order on screen, as the engine does.
+			queue: fromSummary ? [...(run.queue ?? []), ...order.filter((k) => !run.queue?.includes(k))] : [...order],
 		});
+		base = fromSummary ? (run.queue ?? []) : [];
+		running = order;
 		log(runId, null, `Run started: ${order.length} apps.`);
 		const results: RunResult[] = [...keep];
 		for (let i = 0; i < order.length; i++) {
@@ -817,7 +828,26 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const ran = results.filter((r) => !keep.includes(r));
 		history.unshift(...ran.map((r) => Object.assign({}, r, { runId, at, stages: {}, retry: retry || undefined })));
 		log(runId, null, "Run finished.");
+		running = null;
 		setRun({ phase: "summary", currentKey: null, results });
+	}
+
+	/** The engine's addToRun: ready apps go after the native apps waiting, old-script apps last. */
+	function joinRun(order: string[], keys: string[]): Requests["install"]["response"] {
+		if (run.stopping)
+			return { started: false, reason: "The run stops after the current app, so nothing more can join it." };
+		const add = keys.filter((k) => !order.includes(k) && get(k)?.status === "ready");
+		if (add.length === 0) return { started: false, reason: "Nothing to install." };
+		const firstLegacy = order.findIndex((k) => get(k)?.kind === "legacy");
+		const native = add.filter((k) => get(k)?.kind !== "legacy");
+		order.splice(firstLegacy < 0 ? order.length : Math.max(firstLegacy, run.index), 0, ...native);
+		order.push(...add.filter((k) => get(k)?.kind === "legacy"));
+		for (const k of add) {
+			const app = get(k);
+			if (app) put({ ...app, status: "queued", detail: undefined });
+		}
+		setRun({ total: order.length, queue: [...base, ...order.filter((k) => !base.includes(k))] });
+		return { started: true };
 	}
 
 	function queueRank(key: string): number {
@@ -864,7 +894,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		install: ({ keys }) => {
 			if (run.phase === "checking") return { started: false, reason: "A check is running." };
-			if (run.phase === "installing") return { started: false, reason: "A run is already in progress." };
+			if (run.phase === "installing")
+				return running ? joinRun(running, keys) : { started: false, reason: "A run is already in progress." };
 			if (kept) return { started: false, reason: REASON_UNRECOVERED };
 			const ok = keys.filter((k) => {
 				const s = get(k)?.status;

@@ -6,6 +6,7 @@ import type {
 	EngineEvent,
 	HistoryRow,
 	LogLine,
+	Requests,
 	RunResult,
 	RunState,
 	Settings,
@@ -40,6 +41,7 @@ import { canRestore, checkRelease, destOf, installedFiles, installRelease, probe
 import { recoverTree, restoreBuilt } from "./kinds/built";
 import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
+import { dropTree, sweepTrash } from "./drop";
 import { expandHome, type Paths } from "./paths";
 import { killTree, type Run, type RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
@@ -128,6 +130,7 @@ const ADDABLE = new Set(["appimage", "archive", "file", "deb"]);
 export const REASON_CHECKING = "A check is running.";
 export const REASON_BUSY = "A run is already in progress.";
 export const REASON_NOTHING = "Nothing to install.";
+export const REASON_STOPPING = "The run stops after the current app, so nothing more can join it.";
 export const REASON_OLD = "The old updater is running. Finish or close its dialogs first.";
 
 const NATIVE = new Set(["appimage", "archive", "file", "deb", "source", "command"]);
@@ -267,6 +270,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	for (const e of catalogue.errors) say(null, e);
 
 	sweepShims(paths, deps.procRoot);
+	sweepTrash(paths);
 
 	// An install that never reached its verify: say so on that row once it is checked.
 	const interrupted = new Map<string, string>();
@@ -330,6 +334,22 @@ export function createEngine(deps: EngineDeps): Engine {
 	const WATCHED = new Set(["appimage", "archive", "file", "deb", "source"]);
 	/** Apps whose Restart now is under way. */
 	const restarting = new Set<string>();
+	/** The run under way's queue, which addToRun appends to; null outside a run. */
+	let runQueue: AppSpec[] | null = null;
+	/** A retry's first-pass order, which the order on screen keeps. */
+	let runBase: string[] = [];
+	/**
+	 * The order the view shows: a retry's first pass as it was, with what this pass adds placed as it runs, native
+	 * apps before the first old-script app and old-script apps last.
+	 */
+	const shownOrder = (queue: AppSpec[]) => {
+		const extra = queue.filter((s) => !runBase.includes(s.key));
+		const out = [...runBase];
+		const firstLegacy = out.findIndex((k) => specOf(k)?.kind === "legacy");
+		const native = extra.filter((s) => s.kind !== "legacy").map((s) => s.key);
+		out.splice(firstLegacy < 0 ? out.length : firstLegacy, 0, ...native);
+		return [...out, ...extra.filter((s) => s.kind === "legacy").map((s) => s.key)];
+	};
 
 	/**
 	 * Whether the app still runs a process from before its install. The entry goes once none does:
@@ -568,6 +588,38 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 	}
 
+	/**
+	 * Adds ready apps to the run under way, as a download manager does: each goes after the apps already waiting and
+	 * before the old script's, which always run last. An app already in the run is left where it is. Refused once
+	 * Stop after current is pending, since the run is about to end.
+	 */
+	function addToRun(keys: string[]): Requests["install"]["response"] {
+		const queue = runQueue;
+		if (!queue) return { started: false, reason: REASON_BUSY };
+		if (run.stopping) return { started: false, reason: REASON_STOPPING };
+		const inRun = new Set(queue.map((s) => s.key));
+		const wanted = new Set(keys);
+		const add = specs.filter((s) => wanted.has(s.key) && !inRun.has(s.key) && apps.get(s.key)?.status === "ready");
+		if (add.length === 0) return { started: false, reason: REASON_NOTHING };
+		// Before the first old-script app, but never before the next app to run (index counts from 1).
+		const firstLegacy = queue.findIndex((s) => s.kind === "legacy");
+		const native = add.filter((s) => s.kind !== "legacy");
+		queue.splice(firstLegacy < 0 ? queue.length : Math.max(firstLegacy, run.index), 0, ...native);
+		queue.push(...add.filter((s) => s.kind === "legacy"));
+		for (const s of add) {
+			const a = apps.get(s.key);
+			if (a) {
+				a.status = "queued";
+				a.restartToApply = false;
+				emitApp(a);
+			}
+		}
+		say(null, `Added ${add.map((s) => s.name).join(", ")} to the run`);
+		run = { ...run, total: queue.length, queue: shownOrder(queue) };
+		emitRun();
+		return { started: true };
+	}
+
 	/** The body of install() once its phase checks passed; install() holds `starting` around it. */
 	async function startInstall(this: Engine, keys: string[]): Promise<{ started: boolean; reason?: string }> {
 		// A run would write its own marker over the one a failed recovery kept.
@@ -589,8 +641,11 @@ export function createEngine(deps: EngineDeps): Engine {
 			releaseLock(paths);
 			return { started: false, reason: REASON_OLD };
 		}
+		runQueue = queue;
+		// A retry keeps the first pass's order on screen, so the rows it shows do not move.
+		runBase = retry ? (run.queue ?? []) : [];
 		try {
-			rmSync(join(paths.cache, "dl"), { recursive: true, force: true });
+			dropTree(join(paths.cache, "dl"), paths);
 			const id = stamp(deps.now());
 			log = openRunLog(paths, id);
 			run = {
@@ -602,6 +657,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				stopping: false,
 				results: carried,
 				retry,
+				queue: shownOrder(queue),
 			};
 			for (const s of queue) {
 				const a = apps.get(s.key);
@@ -619,6 +675,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			log = null;
 			backToReady(queue);
 			releaseLock(paths);
+			runQueue = null;
 			run = { ...run, phase: "idle", currentKey: null, stopping: false };
 			emitRun();
 			return { started: false, reason: err instanceof Error ? err.message : String(err) };
@@ -646,7 +703,10 @@ export function createEngine(deps: EngineDeps): Engine {
 				run = { ...run, phase: "summary", currentKey: null, stopping: false };
 				emitRun();
 			})
-			.finally(() => releaseLock(paths));
+			.finally(() => {
+				runQueue = null;
+				releaseLock(paths);
+			});
 		busy = p;
 		return { started: true };
 	}
@@ -747,6 +807,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				break;
 			}
 		}
+		// The loop is over: an app added from here on would never run, so the run takes no more.
+		runQueue = null;
 		if (legacyRuns.size > 0) {
 			say(null, "Checking the old script's apps once more");
 			run = { ...run, currentKey: null };
@@ -837,6 +899,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		async install(keys) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
+			if (run.phase === "installing" && runQueue) return addToRun(keys);
 			if (run.phase === "installing" || starting) return { started: false, reason: REASON_BUSY };
 			// Between here and the run's own "installing", recover() may wait on disk: a check started in that gap
 			// (pressed, or the schedule's) would run beside the install, so check() refuses while this is set.

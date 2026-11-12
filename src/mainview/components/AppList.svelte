@@ -102,7 +102,8 @@
 		if (e.key === " ") {
 			// Space ticks the focused row; Enter opens it.
 			e.preventDefault();
-			if (idle) model.toggle(key);
+			// During a run the tick joins the run, as a click does; toggle decides.
+			if (model.run.phase !== "checking") model.toggle(key);
 			return;
 		}
 		if (e.key === "ArrowRight") {

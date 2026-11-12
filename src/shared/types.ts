@@ -231,6 +231,8 @@ export type RunState = {
 	results: RunResult[];
 	/** This run was started from a summary to try the failed apps again. */
 	retry: boolean;
+	/** installing and summary: the run's apps in the order they run, apps added during the run included. */
+	queue?: string[];
 };
 
 export type Settings = {

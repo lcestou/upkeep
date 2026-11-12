@@ -129,9 +129,22 @@ export class Model {
 		GROUP_ORDER.map((id) => ({
 			id,
 			label: id === "run" ? runLabel(this.run.phase) : GROUP_LABEL[id],
-			apps: this.shown.filter((a) => groupOf(a, this.prior[a.key]) === id),
+			apps: this.#inRunOrder(
+				id,
+				this.shown.filter((a) => groupOf(a, this.prior[a.key]) === id),
+			),
 		})).filter((g) => g.apps.length > 0),
 	);
+	/** The run's group lists its apps in the order they run, which the engine gives; other groups keep list order. */
+	#inRunOrder(id: GroupId, apps: AppState[]): AppState[] {
+		const order = this.run.queue;
+		if (id !== "run" || !order) return apps;
+		const at = (k: string) => {
+			const i = order.indexOf(k);
+			return i < 0 ? order.length : i;
+		};
+		return apps.toSorted((a, b) => at(a.key) - at(b.key));
+	}
 	/** The filter as matched: trimmed and lower case; empty means no filter. */
 	get #needle(): string {
 		return this.filter.trim().toLowerCase();
@@ -193,12 +206,15 @@ export class Model {
 		}),
 	);
 	failedKeys: string[] = $derived(this.run.results.filter((r) => r.result !== "updated").map((r) => r.key));
-	/** The apps in this run in the engine's order: native kinds in list order, then the old script's. */
+	/** The apps in this run in the engine's order: native kinds in list order, then the old script's, with apps added during the run in their place. */
 	queue: AppState[] = $derived(
 		this.run.phase === "installing" || this.run.phase === "summary"
-			? this.apps
-					.filter((a) => IN_RUN.has(a.status))
-					.toSorted((a, b) => Number(a.kind === "legacy") - Number(b.kind === "legacy"))
+			? this.#inRunOrder(
+					"run",
+					this.apps
+						.filter((a) => IN_RUN.has(a.status))
+						.toSorted((a, b) => Number(a.kind === "legacy") - Number(b.kind === "legacy")),
+				)
 			: [],
 	);
 
@@ -319,6 +335,11 @@ export class Model {
 	/** Flips the tick of a ready app. Any other status is ignored, so a row that cannot be installed never gets ticked. */
 	toggle(key: string): void {
 		if (this.apps.find((a) => a.key === key)?.status !== "ready") return;
+		// During a run a tick is a request to join it, as in a download manager; the row turns Queued.
+		if (this.run.phase === "installing") {
+			if (!this.run.stopping) void this.#join(key);
+			return;
+		}
 		this.#tick(key, !this.ticked.has(key));
 	}
 
@@ -392,6 +413,17 @@ export class Model {
 			// A run that did start reports itself through events; one that did not leaves the list as it was.
 		} finally {
 			this.starting = false;
+		}
+	}
+
+	/** Asks for one app to join the run under way. Not held by `starting`, so a second quick tick is never dropped. */
+	async #join(key: string): Promise<void> {
+		const bridge = this.#bridge;
+		if (!bridge) return;
+		try {
+			await this.#ask(bridge.request("install", { keys: [key] }));
+		} catch {
+			// The row stays Ready; the refusal, if any, is shown by #ask.
 		}
 	}
 

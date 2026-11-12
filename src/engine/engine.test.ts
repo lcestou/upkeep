@@ -2,7 +2,15 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
-import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD } from "./engine";
+import {
+	createEngine,
+	type EngineDeps,
+	REASON_BUSY,
+	REASON_CHECKING,
+	REASON_NOTHING,
+	REASON_OLD,
+	REASON_STOPPING,
+} from "./engine";
 import type { FetchLike } from "./github";
 import { readMeta, takePoint } from "./backup";
 import { loadManifest } from "./manifest";
@@ -1034,4 +1042,55 @@ test("Restart now runs the table's restart and drops the app's waiting restart; 
 	const first = engine.restartApp("claude");
 	expect(await engine.restartApp("claude")).toEqual({ ok: false, detail: "Claude Code is already restarting." });
 	expect(await first).toEqual({ ok: true });
+});
+
+test("an app ticked during a run joins it after the apps waiting and before the old script's", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	expect(await engine.install(["fd", "cursor"])).toEqual({ started: true });
+	expect(engine.snapshot().run.queue).toEqual(["fd", "cursor"]);
+	expect(await engine.install(["claude", "fd"])).toEqual({ started: true });
+	expect(engine.snapshot().run).toMatchObject({ queue: ["fd", "claude", "cursor"], total: 3 });
+	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("queued");
+	// Nothing new to add: already in the run, or not ready.
+	expect(await engine.install(["claude", "bat"])).toEqual({ started: false, reason: REASON_NOTHING });
+	await engine.idle();
+	expect(engine.snapshot().run.results.map((r) => r.key)).toEqual(["fd", "claude", "cursor"]);
+	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.installed).toBe("2.1.400");
+});
+
+test("once Stop after current is pending nothing more joins the run", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	await engine.install(["fd"]);
+	engine.stopAfterCurrent();
+	expect(await engine.install(["claude"])).toEqual({ started: false, reason: REASON_STOPPING });
+	await engine.idle();
+	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("ready");
+});
+
+test("an app ticked once the run's loop is over, during the old script's last check, is refused and stays ready", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	const late: { asked?: ReturnType<typeof engine.install> } = {};
+	engine.subscribe((e) => {
+		if (e.type === "log" && e.line.text === "Checking the old script's apps once more")
+			late.asked = engine.install(["claude"]);
+	});
+	await engine.install(["cursor"]);
+	await engine.idle();
+	expect(await late.asked).toEqual({ started: false, reason: REASON_BUSY });
+	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("ready");
+});
+
+test("a retry keeps the first pass's order on screen, with an app added during it placed where it runs", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	await engine.install(["boom", "fd", "cursor"]);
+	await engine.idle();
+	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "cursor"]);
+	expect(await engine.install(["boom"])).toEqual({ started: true });
+	expect(await engine.install(["claude"])).toEqual({ started: true });
+	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "claude", "cursor"]);
+	await engine.idle();
 });

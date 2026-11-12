@@ -1,8 +1,9 @@
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import { compareRefs, fetchRelease, isFailure, latestFromSource, type Release } from "../github";
 import { installBuilt } from "./built";
+import { dropTree } from "../drop";
 import { SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { clearInflight, writeInflight } from "../store";
 import { isNewer } from "../version";
@@ -133,7 +134,7 @@ export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx)
 	const log = (l: string) => ctx.log(l);
 
 	clock.start("download");
-	rmSync(dir, { recursive: true, force: true });
+	dropTree(dir, ctx.paths);
 	mkdirSync(join(ctx.paths.cache, "build"), { recursive: true });
 	const url = `https://github.com/${spec.repo}.git`;
 	ctx.log(`git clone --branch ${target.tag} --depth 1 ${url}`);

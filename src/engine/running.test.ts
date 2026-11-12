@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { argsRunning, earliestStart, isRunning } from "./running";
 import { tempHome } from "./testkit";
@@ -99,4 +99,26 @@ test("a process the update was started from counts as busy: only this process an
 	expect(argsRunning("upkeep install app", proc, 9)).toBe(true);
 	fakeProc(70, 9, "node", ["node", "/h/.local/share/app/lib/node_modules/app/bin.js"]);
 	expect(argsRunning("node_modules/app/bin.js", proc, 50)).toBe(false);
+});
+
+test("a process in uninterruptible sleep has no cmdline read, so a stuck FUSE mount cannot hang the scan", () => {
+	fakeProc(500, 1, "cursor", ["/h/.local/bin/cursor.AppImage"]);
+	// A FIFO with no writer blocks whoever opens it, as a cmdline read of a process stuck in a dying mount can.
+	const dir = join(proc, "500");
+	writeFileSync(join(dir, "stat"), "500 (cursor) D 1 1 1 0 -1 0 0 0 0 0 0 0 0 0 20 0 1 0 5555 0 0");
+	rmSync(join(dir, "cmdline"));
+	expect(Bun.spawnSync(["mkfifo", join(dir, "cmdline")]).exitCode).toBe(0);
+	expect(isRunning({ kind: "appimage", dest: "/h/.local/bin/cursor.AppImage", process: "cursor" }, proc, 9)).toBe(true);
+	expect(isRunning({ kind: "appimage", dest: "/h/.local/bin/cursor.AppImage" }, proc, 9)).toBe(false);
+	expect(argsRunning("cursor.AppImage", proc, 9)).toBe(false);
+});
+
+test("an exe is matched by where its link points, without following it", () => {
+	const dest = join(t.dir, "fd");
+	writeFileSync(dest, "");
+	// The link's target does not have to exist: it is compared, never opened.
+	fakeProc(600, 1, "fd", ["fd"], join(t.dir, "gone/fd"));
+	expect(isRunning({ kind: "archive", dest }, proc, 9)).toBe(false);
+	fakeProc(601, 1, "fd", ["x"], dest);
+	expect(isRunning({ kind: "archive", dest }, proc, 9)).toBe(true);
 });
