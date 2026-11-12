@@ -47,6 +47,15 @@ function str(v: unknown): string {
 	return typeof v === "string" ? v : "";
 }
 
+/** The top-level "version" of a JSON text, never one nested deeper; undefined when it is not JSON or has none. */
+export function jsonVersion(text: string): string | undefined {
+	try {
+		return str(record(JSON.parse(text)).version).trim() || undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 /** A JSON value read as a table of fields. Anything that is not an object, null included, reads as an empty one. */
 function record(v: unknown): Record<string, unknown> {
 	// SAFETY: v is a non-null object, and reading any key of one gives a value or undefined, never a throw.
@@ -296,16 +305,21 @@ export async function githubToken(run: Run): Promise<string | null> {
  * download URL is taken: the answer decides what gets installed.
  */
 async function jsonRelease(url: string, opts: ReleaseOpts): Promise<{ version: string; release: Release } | Failure> {
-	let body: unknown;
+	let res: Response;
 	try {
-		const res = await opts.fetch(url, { headers: { Accept: "application/json" } });
-		if (!res.ok) return { failure: "http", detail: `${url} answered ${res.status}.` };
-		body = await res.json();
+		res = await opts.fetch(url, { headers: { Accept: "application/json" } });
 	} catch (err) {
 		return {
 			failure: "network",
 			detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
 		};
+	}
+	if (!res.ok) return { failure: "http", detail: `${url} answered ${res.status}.` };
+	let body: unknown = null;
+	try {
+		body = await res.json();
+	} catch {
+		// not JSON: no version, said below
 	}
 	const b = record(body);
 	const version = str(b.version);

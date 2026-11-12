@@ -1,3 +1,4 @@
+import { jsonVersion } from "./github";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import type { Run } from "./run";
@@ -71,12 +72,12 @@ export async function probeAppImageMeta(file: string, metaPath: string, opts: Me
 		const meta = findCaseless(join(mountDir, metaPath));
 		if (!meta) return { state: "unknown", detail: `${metaPath} is missing inside ${file}.` };
 		const text = readFileSync(meta, "utf8");
-		const match = metaPath.endsWith(".desktop")
-			? /^X-AppImage-Version=(.*)$/m.exec(text)
-			: metaPath.endsWith(".json")
-				? /"version"\s*:\s*"([^"]+)"/.exec(text)
-				: /release version="([^"]+)"/.exec(text);
-		const version = match?.[1]?.trim();
+		const version = metaPath.endsWith(".json")
+			? jsonVersion(text)
+			: (metaPath.endsWith(".desktop")
+					? /^X-AppImage-Version=(.*)$/m.exec(text)
+					: /release version="([^"]+)"/.exec(text)
+				)?.[1]?.trim();
 		return version ? { version } : { state: "unknown", detail: `${metaPath} names no version.` };
 	} catch (err) {
 		return { state: "unknown", detail: err instanceof Error ? err.message : String(err) };

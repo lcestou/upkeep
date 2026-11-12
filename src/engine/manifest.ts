@@ -112,6 +112,9 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	}
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest)
 		return `${key}: repo or latest is required for kind appimage`;
+	// Only an AppImage installs the download a json: answer names; any other kind would read it as a GitHub repo.
+	if (spec.latest?.startsWith("json:") && spec.kind !== "appimage")
+		return `${key}: a json: latest is only for kind appimage`;
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.
 	if (spec.relaunch && !spec.dest) return `${key}: relaunch needs dest`;
 	if (spec.relaunch && !spec.process) return `${key}: relaunch needs process`;

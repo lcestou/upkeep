@@ -9,6 +9,7 @@ import {
 	fetchRelease,
 	githubToken,
 	isFailure,
+	jsonVersion,
 	latestFromSource,
 	parseRepoSearch,
 	pickAsset,
@@ -290,4 +291,14 @@ test("a json: source gives the version and its one download; anything off is a f
 	});
 	const offline = await latestFromSource(`json:${url}`, { cacheDir: dir, fetch: down });
 	expect(isFailure(offline) && offline.failure).toBe("network");
+});
+
+test("a json: answer that is not JSON is the source's failure, not the network's", async () => {
+	const url = "https://api.example.test/x";
+	expect(await latestFromSource(`json:${url}`, { cacheDir: dir, fetch: async () => new Response("<html>") })).toEqual({
+		failure: "http",
+		detail: `${url} sent no version.`,
+	});
+	expect(jsonVersion('{"engines": {"version": "1"}, "version": " 2.0 "}')).toBe("2.0");
+	expect(jsonVersion("not json")).toBeUndefined();
 });

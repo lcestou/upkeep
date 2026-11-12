@@ -192,8 +192,15 @@ test("an AppImage needs repo, or a latest that carries its download", () => {
 			'dest = "~/c.AppImage"',
 		].join("\n"),
 	);
+	writeFileSync(
+		file,
+		`${readFileSync(file, "utf8")}\n[apps.src]\nname = "Src"\nkind = "source"\nlatest = "json:https://api.test/y"\nbuild = ["make"]\n`,
+	);
 	const { apps, errors } = loadManifest(file);
-	expect(errors).toEqual(["none: repo or latest is required for kind appimage"]);
+	expect(errors).toEqual([
+		"none: repo or latest is required for kind appimage",
+		"src: a json: latest is only for kind appimage",
+	]);
 	expect(apps.map((a) => a.key)).toEqual(["cursor"]);
 });
 

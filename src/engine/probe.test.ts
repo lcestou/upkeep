@@ -134,7 +134,7 @@ test("the meta probe reads the version key of a .json inside the image", async (
 	mkdirSync(join(mnt, "usr/share/cursor/resources/app"), { recursive: true });
 	writeFileSync(
 		join(mnt, "usr/share/cursor/resources/app/package.json"),
-		'{\n  "name": "cursor",\n  "version": "3.29.9"\n}\n',
+		'{"name": "cursor", "engines": {"version": "1.0"}, "version": "3.29.9"}\n',
 	);
 	const img = script(join(t.dir, "t4"), `echo "${mnt}"; coproc { read -r _; }; read -r -t 30 _ <&"\${COPROC[0]}"`);
 	const { run } = recordingRun(t.paths, () => ok());
