@@ -4,7 +4,7 @@ One window for the apps the package manager misses. It checks every app in a lis
 
 It covers AppImages, binaries from GitHub release archives, single-file binaries, .deb files, source builds, tools that update themselves, and apps you update by hand and only want tracked.
 
-Linux first: built on Linux Mint, checked on eight other distributions, and written to run on any x86_64 Linux desktop (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
+Linux first: built on Linux Mint and supported on the main x86_64 desktop distributions (see "Which Linux" below). Other operating systems are planned, not built. Built on [Electrobun](https://electrobun.dev) 2 with a Bun main process and a Svelte 5 view. The engine is plain TypeScript and also runs from the command line.
 
 ## Run it
 
@@ -195,23 +195,20 @@ Upkeep is developed and used daily on Linux Mint 22 (Cinnamon, X11). Nothing in 
 | System group, Flatpak rows                                          | Flatpak                                                                                 |
 | System group, package rows                                          | Linux Mint's Update Manager, apt, dnf, pacman or zypper                                 |
 
-### Tested
+### Supported
 
-On 2026-11-12, release build 0.1.0 was run as a normal user on each system below, in an Incus container (a VM where noted) with a virtual display. "Window" means the window drew its first screen and ran a check. "System rows" means the System group listed the updates the system's own tool showed, with installed and new versions, after a few packages were put back a version on purpose. Flatpak was read on Fedora and on Linux Mint.
+Upkeep supports the desktop distributions below and the ones built on them. Each was run on 2026-11-12 as a normal user: the window drew and ran a check, and the System group listed the updates the system's own tool showed, with installed and new versions.
 
-| System                                 | Window                                | System rows from                                 |
-| -------------------------------------- | ------------------------------------- | ------------------------------------------------ |
-| Linux Mint 22 (daily use)              | yes                                   | Update Manager                                   |
-| Ubuntu 26.04                           | yes                                   | apt                                              |
-| Debian 13                              | yes                                   | apt                                              |
-| Fedora 45                              | yes                                   | dnf 5                                            |
-| AlmaLinux 10 (VM)                      | starts and checks; not seen on screen | dnf                                              |
-| AlmaLinux 9                            | no: it ships WebKitGTK 4.0, not 4.1   | dnf 4                                            |
-| Arch Linux                             | yes                                   | `checkupdates`, or `pacman -Qu` without fakeroot |
-| openSUSE Tumbleweed (container and VM) | yes                                   | zypper                                           |
-| openSUSE Leap 16.0                     | yes                                   | zypper                                           |
+| Distribution                      | Also covers                                | System updates read from                   |
+| --------------------------------- | ------------------------------------------ | ------------------------------------------ |
+| Linux Mint 22 (daily use)         |                                            | Update Manager                             |
+| Ubuntu 26.04                      | Pop!_OS, Zorin OS, elementary OS, KDE neon | apt                                        |
+| Debian 13                         | MX Linux                                   | apt                                        |
+| Fedora 45                         | Nobara, Ultramarine                        | dnf                                        |
+| Arch Linux                        | CachyOS, EndeavourOS, Manjaro              | pacman (`checkupdates`, else `pacman -Qu`) |
+| openSUSE Tumbleweed and Leap 16.0 | Slowroll                                   | zypper                                     |
 
-Not tested: Wayland sessions, real GPU drivers (the virtual display has none), the tray on desktops other than Cinnamon, and installing `.deb` apps outside Linux Mint. The command line (`upkeep check`) needs no display and runs wherever Bun does.
+Not supported: immutable systems (SteamOS, Bazzite, Fedora Silverblue), NixOS, and musl systems such as Alpine. Not yet tried on a supported system: Wayland sessions and the tray on desktops other than Cinnamon.
 
 A new list starts empty. Fill it with **Add app**: the catalogue's apps by name, anything else by its GitHub repo or a file.
 
