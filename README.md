@@ -69,7 +69,7 @@ bins = ["fd"]
 
 | Kind | What it installs | Needs |
 | --- | --- | --- |
-| `appimage` | one AppImage from a GitHub release | `repo`, `asset`, `dest` |
+| `appimage` | one AppImage from a GitHub release, or from a vendor's update API that answers a version and a download (`latest = "json:<url>"`, https only in the catalogue) | `repo` or `latest`, `asset`, `dest` |
 | `archive` | binaries inside a release `.tar.gz` or `.zip` | `repo`, `asset`, `dest`, `bins` |
 | `file` | a binary that is itself the release asset | `repo`, `asset`, `dest` |
 | `deb` | a `.deb` from a release, through `dpkg -i` | `repo`, `asset`, `dest` |
@@ -78,7 +78,7 @@ bins = ["fd"]
 | `legacy` | handed to the old `lutechi-updater` script | `legacy_key`, and `legacy_name` unless the table is `versionless` |
 | `manual` | tracked only, you run the update | `legacy_name`, `run` |
 
-Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo or `.desktop` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`, `restart` (a command that restarts the app, such as `["systemctl", "restart", "rustdesk"]` for a service; `systemctl` asks for a password through the desktop's own prompt when it needs one) and `relaunch = true` (Upkeep may close the app and start `dest` again; it needs `process`, the name of the process it closes, which must be the app's own: every process with that name is asked to quit, so an interpreter's name such as `python` or `node` is refused).
+Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo, `.desktop` or `.json` file inside it instead of running it), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`, `restart` (a command that restarts the app, such as `["systemctl", "restart", "rustdesk"]` for a service; `systemctl` asks for a password through the desktop's own prompt when it needs one) and `relaunch = true` (Upkeep may close the app and start `dest` again; it needs `process`, the name of the process it closes, which must be the app's own: the top processes with that name are asked to quit and their children go with them, so an interpreter's name such as `python` or `node` is refused).
 
 `asset` is a regular expression matched against the release's asset names. If it matches more than one, the app is listed under "Needs a look" until you narrow it. Anchor it with `^` when a project ships several variants.
 

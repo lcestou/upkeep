@@ -13,7 +13,7 @@ import { basename, dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
 import { download, verifyAsset } from "../download";
-import { fetchRelease, isFailure, pickAsset } from "../github";
+import { type Failure, fetchRelease, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
 import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
@@ -61,6 +61,24 @@ export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult
 	return probeVersion(dest, spec.version_args ?? ["--version"], { run: ctx.run });
 }
 
+/**
+ * The release a check compares against: GitHub's latest for repo, else what latest names when it carries a download
+ * (a "json:" source). A latest that only gives a version has nothing to install, which is a failure here.
+ */
+async function latestRelease(spec: AppSpec, ctx: KindCtx): Promise<Release | Failure> {
+	const opts = {
+		cacheDir: join(ctx.paths.cache, "github"),
+		token: ctx.token,
+		fetch: ctx.fetch,
+		onRate: ctx.onRate,
+		api: ctx.api,
+	};
+	if (spec.repo || !spec.latest) return fetchRelease(spec.repo ?? "", opts);
+	const r = await latestFromSource(spec.latest, opts);
+	if (isFailure(r)) return r;
+	return r.release ?? { failure: "http", detail: `${spec.latest} gives a version but no download.` };
+}
+
 /** Probes the installed copy and looks up the latest release. Source builds pass needAsset false. */
 export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true): Promise<Checked | null> {
 	const dest = destOf(spec, ctx);
@@ -72,13 +90,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		return null;
 	}
 	const installed = "version" in probe ? probe.version : null;
-	const release = await fetchRelease(spec.repo ?? "", {
-		cacheDir: join(ctx.paths.cache, "github"),
-		token: ctx.token,
-		fetch: ctx.fetch,
-		onRate: ctx.onRate,
-		api: ctx.api,
-	});
+	const release = await latestRelease(spec, ctx);
 	if (isFailure(release)) return { installed, latest: null, status: "problem", detail: release.detail };
 	const base = { ...fromRelease(release) };
 	if (!release.version)

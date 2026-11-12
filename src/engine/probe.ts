@@ -45,13 +45,17 @@ export async function probeCommand(argv: string[], opts: ProbeOpts): Promise<Pro
 
 export type MetaOpts = ProbeOpts & { pollMs?: number; polls?: number; stopMs?: number };
 
-/** For an AppImage with no version flag: mount it, read the metainfo, unmount that exact path (old lines 394 to 429). */
+/**
+ * For an AppImage with no version flag: mount it, read the metainfo, unmount that exact path (old lines 394 to 429).
+ * A .desktop path reads X-AppImage-Version, a .json path its "version" key, anything else a metainfo release line.
+ */
 export async function probeAppImageMeta(file: string, metaPath: string, opts: MetaOpts): Promise<ProbeResult> {
 	if (!existsSync(file)) return { state: "absent" };
 	const proc = opts.run.start?.([file, "--appimage-mount"], { stopMs: opts.stopMs });
 	let mountDir = "";
 	try {
-		const polls = opts.polls ?? 12;
+		// Cursor's ~300 MB image can take 8 s to mount cold (old lines 1933 to 1936).
+		const polls = opts.polls ?? 16;
 		for (let i = 0; i < polls; i++) {
 			// The mount point is the first line of the runtime's own stdout, never a glob of /tmp/.mount_*.
 			const first = (proc?.output().split("\n")[0] ?? "").trim();
@@ -69,7 +73,9 @@ export async function probeAppImageMeta(file: string, metaPath: string, opts: Me
 		const text = readFileSync(meta, "utf8");
 		const match = metaPath.endsWith(".desktop")
 			? /^X-AppImage-Version=(.*)$/m.exec(text)
-			: /release version="([^"]+)"/.exec(text);
+			: metaPath.endsWith(".json")
+				? /"version"\s*:\s*"([^"]+)"/.exec(text)
+				: /release version="([^"]+)"/.exec(text);
 		const version = match?.[1]?.trim();
 		return version ? { version } : { state: "unknown", detail: `${metaPath} names no version.` };
 	} catch (err) {

@@ -69,13 +69,27 @@ export function isRunning(
 	return matching(spec, procRoot, selfPid, true).length > 0;
 }
 
-/** Every pid isRunning would count, for closing an app before it is started again. */
+/** Every pid isRunning would count. */
 export function runningPids(
 	spec: Pick<AppSpec, "kind" | "dest" | "process">,
 	procRoot = "/proc",
 	selfPid = process.pid,
 ): number[] {
 	return matching(spec, procRoot, selfPid, false);
+}
+
+/**
+ * The app's processes whose parent is not one of them: the ones to ask to quit. An Electron app (Cursor) names every
+ * renderer as it names itself, and a renderer told to quit before its main process leaves a crash dialog behind.
+ */
+export function topPids(
+	spec: Pick<AppSpec, "kind" | "dest" | "process">,
+	procRoot = "/proc",
+	selfPid = process.pid,
+): number[] {
+	const all = matching(spec, procRoot, selfPid, false);
+	const set = new Set(all);
+	return all.filter((p) => !set.has(parentOf(p, procRoot) ?? 0));
 }
 
 /** The pids isRunning counts; first stops at the first one. */

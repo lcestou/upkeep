@@ -49,6 +49,8 @@ type Field = keyof AppSpec;
 function required(kind: AppKind, versionless: boolean): Field[] {
 	switch (kind) {
 		case "appimage":
+			// repo, or a latest that carries its own download: lift checks that one of the two is there.
+			return ["asset", "dest"];
 		case "file":
 		case "deb":
 			return ["repo", "asset", "dest"];
@@ -108,6 +110,8 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 			return `${key}: asset is not a valid regular expression`;
 		}
 	}
+	if (spec.kind === "appimage" && !spec.repo && !spec.latest)
+		return `${key}: repo or latest is required for kind appimage`;
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.
 	if (spec.relaunch && !spec.dest) return `${key}: relaunch needs dest`;
 	if (spec.relaunch && !spec.process) return `${key}: relaunch needs process`;

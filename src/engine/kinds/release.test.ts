@@ -560,3 +560,54 @@ test("an absent app the owner added is listed ready and installs with no restore
 	// Once it is there the flag stops mattering.
 	expect((await checkRelease(spec, c))?.status).toBe("fresh");
 });
+
+test("an AppImage whose latest is a json: source checks and installs with no repo", async () => {
+	const api = "https://api2.example.test/updates/linux-x64/app";
+	const dlUrl = "https://downloads.example.test/x/Cursor-3.29.15-x86_64.AppImage";
+	// An AppImage of a size the API never states: above the 1 MiB floor, it installs.
+	const body = new Uint8Array(1024 * 1024 + 10);
+	body.set(bash('echo "cursor 3.29.15"'));
+	const c = {
+		...ctx(),
+		fetch: (async (url: string) =>
+			url === api
+				? Response.json({ version: "3.29.15", downloadUrl: dlUrl })
+				: url === dlUrl
+					? new Response(body)
+					: new Response("", { status: 404 })) as FetchLike,
+	};
+	const dest = script(join(t.paths.home, ".local/bin/cursor.appimage"), 'echo "cursor 3.29.9"');
+	const spec: AppSpec = {
+		key: "cursor",
+		name: "Cursor",
+		kind: "appimage",
+		latest: `json:${api}`,
+		asset: "\\.AppImage$",
+		dest,
+	};
+	const checked = await checkRelease(spec, c);
+	expect(checked).toMatchObject({ installed: "3.29.9", latest: "3.29.15", status: "ready" });
+	expect(checked?.target?.asset?.name).toBe("Cursor-3.29.15-x86_64.AppImage");
+	if (!checked?.target) throw new Error("no target");
+	expect(await installRelease(spec, checked.target, c)).toMatchObject({ result: "done", installed: "3.29.15" });
+	// A cut answer below the floor is refused before anything is replaced.
+	const small = {
+		...c,
+		fetch: (async (url: string) =>
+			url === api
+				? Response.json({ version: "3.29.16", downloadUrl: dlUrl })
+				: new Response(new Uint8Array(500_000))) as FetchLike,
+	};
+	const next = await checkRelease(spec, small);
+	if (!next?.target) throw new Error("no target");
+	// As a size mismatch does, it throws; the engine turns that into a failed row.
+	await expect(installRelease(spec, next.target, small)).rejects.toThrow("too small to be a release");
+	expect(await Bun.file(dest).text()).toContain("cursor 3.29.15");
+	// A latest that gives no download has nothing to install.
+	const versionOnly = { ...spec, latest: "npm:cursor" };
+	const nf = { ...c, fetch: (async () => Response.json({ version: "9.9.9" })) as FetchLike };
+	expect(await checkRelease(versionOnly, nf)).toMatchObject({
+		status: "problem",
+		detail: "npm:cursor gives a version but no download.",
+	});
+});

@@ -136,3 +136,10 @@ test("cancelling the caller's signal ends a download in flight, and it is not re
 	expect(Date.now() - started).toBeLessThan(5000);
 	expect(calls).toBe(1);
 });
+
+test("a download whose size nobody listed must be at least 1 MiB", () => {
+	expect(() => verifyAsset({ bytes: 500_000, sha256: "ab" }, { size: 0, digest: null })).toThrow(
+		"Download is 500000 bytes, too small to be a release.",
+	);
+	expect(() => verifyAsset({ bytes: 1024 * 1024, sha256: "ab" }, { size: 0, digest: null })).not.toThrow();
+});

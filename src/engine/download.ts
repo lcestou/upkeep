@@ -90,10 +90,19 @@ export async function download(url: string, file: string, opts: DownloadOpts): P
 	}
 }
 
-/** Throws when the file is not the asset the release describes. An asset with no digest is checked by size only. */
+/** Below this, a download whose size nobody listed is an error page or a cut, not a release (old script lines 596, 608). */
+export const MIN_UNLISTED_BYTES = 1024 * 1024;
+
+/**
+ * Throws when the file is not the asset the release describes. An asset with no digest is checked by size only, and
+ * one with no listed size (size 0) only by the floor; a truncated download above the floor is caught by the verify
+ * probe and its restore point.
+ */
 export function verifyAsset(result: DownloadResult, asset: Pick<Asset, "size" | "digest">): void {
 	if (asset.size > 0 && result.bytes !== asset.size)
 		throw new Error(`Download is ${result.bytes} bytes, expected ${asset.size}.`);
+	if (asset.size === 0 && result.bytes < MIN_UNLISTED_BYTES)
+		throw new Error(`Download is ${result.bytes} bytes, too small to be a release.`);
 	if (asset.digest) {
 		const want = asset.digest.replace(/^sha256:/, "").toLowerCase();
 		if (want !== result.sha256) throw new Error("Checksum does not match the release.");

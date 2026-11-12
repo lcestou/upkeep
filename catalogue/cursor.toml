@@ -1,0 +1,11 @@
+[apps.cursor]
+name = "Cursor"
+kind = "appimage"
+# Cursor ships only through its own update API, which names the version and the download but no size or checksum.
+latest = "json:https://api2.cursor.sh/updates/api/download/stable/linux-x64/cursor"
+asset = '\.AppImage$'
+dest = "~/.local/bin/cursor.appimage"
+# The `cursor --version` wrapper prints a stale version; the AppImage's own package.json is the truth.
+meta_path = "usr/share/cursor/resources/app/package.json"
+process = "cursor"
+relaunch = true

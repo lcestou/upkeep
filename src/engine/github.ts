@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import type { Run } from "./run";
 import { tagVersion } from "./version";
 
@@ -290,7 +290,41 @@ export async function githubToken(run: Run): Promise<string | null> {
 	return r.code === 0 && token ? token : null;
 }
 
-/** A self-updater's latest version: "npm:<pkg>", "pypi:<pkg>" or "github:<owner>/<repo>". */
+/**
+ * A vendor's own update endpoint that answers {"version", "downloadUrl"} (Cursor's does), as a release with that one
+ * asset. It lists no size and no checksum, so the download is held to a floor instead (download.ts). Only an https
+ * download URL is taken: the answer decides what gets installed.
+ */
+async function jsonRelease(url: string, opts: ReleaseOpts): Promise<{ version: string; release: Release } | Failure> {
+	let body: unknown;
+	try {
+		const res = await opts.fetch(url, { headers: { Accept: "application/json" } });
+		if (!res.ok) return { failure: "http", detail: `${url} answered ${res.status}.` };
+		body = await res.json();
+	} catch (err) {
+		return {
+			failure: "network",
+			detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
+		};
+	}
+	const b = record(body);
+	const version = str(b.version);
+	const download = str(b.downloadUrl);
+	let at: URL | null = null;
+	try {
+		at = download ? new URL(download) : null;
+	} catch {
+		at = null;
+	}
+	if (!version || !at || at.protocol !== "https:") return { failure: "http", detail: `${url} sent no version.` };
+	const asset = { name: basename(at.pathname), url: at.href, size: 0, digest: null };
+	return { version, release: { tag: version, version, url: "", publishedAt: "", notes: "", assets: [asset] } };
+}
+
+/**
+ * A latest version from a source string: "npm:<pkg>", "pypi:<pkg>", "github:<owner>/<repo>", "npm-tags:<pkg>" or
+ * "json:<url>" (an object with "version" and "downloadUrl"; an AppImage takes it in place of repo).
+ */
 export async function latestFromSource(
 	source: string,
 	opts: ReleaseOpts,
@@ -305,6 +339,7 @@ export async function latestFromSource(
 			? { version: r.version, release: r }
 			: { failure: "http", detail: `${name} has no tracked version tag.` };
 	}
+	if (scheme === "json") return jsonRelease(name, opts);
 	if (scheme === "npm-tags") {
 		const url = `https://registry.npmjs.org/-/package/${name}/dist-tags`;
 		let tags: unknown;
