@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, realpathSync } from "node:fs";
+import { readdirSync, readFileSync, readlinkSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../shared/types";
 
@@ -8,6 +8,28 @@ function parentOf(pid: number, procRoot: string): number | null {
 		const stat = readFileSync(join(procRoot, String(pid), "stat"), "utf8");
 		const ppid = Number(stat.slice(stat.lastIndexOf(")") + 2).split(" ")[1]);
 		return ppid > 0 ? ppid : null;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * A process's state letter from /proc/<pid>/stat, or null when it is gone. "D" is uninterruptible sleep: a process
+ * stuck on a dying FUSE mount, whose cmdline read can block the reader until the mount gives up.
+ */
+function stateOf(dir: string): string | null {
+	try {
+		const stat = readFileSync(join(dir, "stat"), "utf8");
+		return stat.slice(stat.lastIndexOf(")") + 2, stat.lastIndexOf(")") + 3) || null;
+	} catch {
+		return null;
+	}
+}
+
+/** Where /proc/<pid>/exe points, read without following it: a stat into a busy FUSE mount can block. Null when gone. */
+function exeOf(dir: string): string | null {
+	try {
+		return readlinkSync(join(dir, "exe"));
 	} catch {
 		return null;
 	}
@@ -76,11 +98,13 @@ function matching(
 		if (!/^\d+$/.test(e) || skip.has(Number(e)) || descends(Number(e))) continue;
 		const dir = join(procRoot, e);
 		let args: string[] = [];
-		try {
-			args = readFileSync(join(dir, "cmdline"), "utf8").split("\0");
-		} catch {
-			// gone, or not ours to read
-		}
+		// A process in uninterruptible sleep is matched by name and exe only.
+		if (stateOf(dir) !== "D")
+			try {
+				args = readFileSync(join(dir, "cmdline"), "utf8").split("\0");
+			} catch {
+				// gone, or not ours to read
+			}
 		if (args.some((a) => PROBE_FLAGS.has(a))) continue;
 		let hit = false;
 		if (spec.process) {
@@ -92,7 +116,7 @@ function matching(
 		}
 		if (!hit && spec.dest) {
 			hit =
-				(destReal !== null && real(join(dir, "exe")) === destReal) ||
+				(destReal !== null && exeOf(dir) === destReal) ||
 				args[0] === spec.dest ||
 				// An AppImage re-execs from its mount; only its FUSE daemon still carries the image path.
 				(spec.kind === "appimage" && args.some((a) => a === spec.dest));
@@ -161,7 +185,7 @@ export function argsRunning(text: string, procRoot = "/proc", selfPid = process.
 				ours = true;
 				break;
 			}
-		if (ours) continue;
+		if (ours || stateOf(join(procRoot, e)) === "D") continue;
 		try {
 			if (
 				readFileSync(join(procRoot, e, "cmdline"), "utf8")

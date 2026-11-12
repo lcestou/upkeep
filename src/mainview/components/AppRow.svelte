@@ -59,7 +59,7 @@
 					type="checkbox"
 					tabindex="-1"
 					checked={model.ticked.has(app.key)}
-					disabled={model.run.phase === "installing" || model.run.phase === "checking"}
+					disabled={model.run.phase === "checking" || (model.run.phase === "installing" && model.run.stopping)}
 					aria-labelledby="name-{app.key}"
 					data-testid="tick-{app.key}"
 					onchange={() => model.toggle(app.key)}
