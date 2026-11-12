@@ -141,7 +141,9 @@ export const REASON_OLD = MESSAGES.reasonOld();
  * keeps the old version until it exits, every new run already uses the new one, and there is nothing to press.
  */
 function restartWanted(spec: AppSpec): boolean {
-	return !(spec.kind === "archive" || spec.kind === "file") || spec.restart !== undefined || spec.relaunch === true;
+	return (
+		!(spec.kind === "archive" || spec.kind === "file") || (spec.restart?.length ?? 0) > 0 || spec.relaunch === true
+	);
 }
 
 /** Runs fn with at most n in flight at once. */
@@ -387,7 +389,15 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	/** The row's restart flag at load: a running old copy, for an app whose restart is worth a prompt. */
 	function restartFlag(spec: AppSpec): boolean {
-		if (WATCHED.has(spec.kind)) return restartWanted(spec) && restartNeeded(spec);
+		if (WATCHED.has(spec.kind) && !restartWanted(spec)) {
+			// A reminder saved before command-line tools stopped getting one: it is dropped, not shown.
+			if (loadState(paths).restart[spec.key])
+				updateState(paths, (s) => {
+					delete s.restart[spec.key];
+				});
+			return false;
+		}
+		if (WATCHED.has(spec.kind)) return restartNeeded(spec);
 		return apps.get(spec.key)?.restartToApply ?? false;
 	}
 
@@ -780,7 +790,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			for (const a of apps.values()) {
 				const spec = specOf(a.key);
 				if (spec && WATCHED.has(spec.kind) && (waiting[a.key] || a.restartToApply))
-					a.restartToApply = restartNeeded(spec);
+					a.restartToApply = restartWanted(spec) && restartNeeded(spec);
 			}
 			const order = new Map(specs.map((s, i) => [s.key, i]));
 			const list = [...apps.values()].toSorted((a, b) => (order.get(a.key) ?? 0) - (order.get(b.key) ?? 0));

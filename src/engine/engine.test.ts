@@ -997,3 +997,16 @@ test("a command-line tool running during its update is updated, with a note, and
 	await engine.check();
 	expect(fdRow(engine)?.restartToApply).toBe(false);
 });
+
+test("a reminder saved earlier for a command-line tool is dropped, not shown, while its old copy still runs", async () => {
+	const d = await deps();
+	fdProcess(500, 1);
+	updateState(t.paths, (s) => {
+		s.restart.fd = "2026-11-12T10:00:00.000Z";
+	});
+	const engine = createEngine(d);
+	await engine.check();
+	expect(fdRow(engine)?.restartToApply).toBe(false);
+	engine.snapshot();
+	expect(restartEntry()).toBeUndefined();
+});
