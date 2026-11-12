@@ -1,0 +1,386 @@
+/**
+ * Every sentence the engine writes that the window can show, one template each. The engine builds its English through
+ * these, so the command line, the history file and the window's English are the same text as before. The window
+ * reads an engine sentence back against these templates (src/mainview/lib/engine-text.ts) and words the matching one
+ * in the language shown, from the catalogs; text that matches none, such as a tool's own output, is shown as it is.
+ *
+ * A template's values are names, versions, paths and raw tool output; a value may itself be a sentence from here,
+ * which the window translates too. Log lines are not here: they stay English. Keep a template's wording and its
+ * twin in engine-text.ts together; a test holds them to the same English.
+ */
+
+/** A value a template puts in its sentence. */
+export type Value = string | number;
+
+export const MESSAGES = {
+	/** backup.ts. {0} version, JSON-quoted (JSON.stringify) */
+	pointNameRefused: (v0: Value) => `${v0} cannot name a restore point`,
+	/** backup.ts. {0} version */
+	noRestorePoint: (v0: Value) => `No restore point ${v0}.`,
+	/** backup.ts. {0} the restore argv joined with spaces; {1} exit code */
+	commandExited: (v0: Value, v1: Value) => `${v0} exited ${v1}.`,
+	/** backup.ts. {0} version */
+	dpkgCouldNotPutBack: (v0: Value) => `dpkg could not put ${v0} back. See the log.`,
+	/** backup.ts. {0} file name in the restore point; {1} raw stderr or stdout of install/mv, trimmed (can be run.ts:279 'size differs after copy') */
+	couldNotRestoreFile: (v0: Value, v1: Value) => `Could not restore ${v0}: ${v1}`,
+	/** discover.ts */
+	badInput: () => `Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.`,
+	/** discover.ts */
+	catalogueWhy: () => `From Upkeep's catalogue of tested apps.`,
+	/** discover.ts. {0} repo owner/name */
+	noPublishedRelease: (v0: Value) => `${v0} has no published release.`,
+	/** discover.ts. {0} release tag */
+	latestNotComparable: (v0: Value) => `The latest tag ${v0} is not a version Upkeep can compare.`,
+	/** discover.ts. {0} repo owner/name */
+	noAssetForMachine: (v0: Value) => `No asset of ${v0}'s latest release runs on this machine.`,
+	/** discover.ts. {0} noAssetForMachine sentence */
+	unopenedArchives: (v0: Value) =>
+		`${v0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet.`,
+	/** discover.ts. {0} program names joined with ', ' (358) or the single bin name (370) */
+	itInstalls: (v0: Value) => `It installs ${v0}.`,
+	/** discover.ts. {0} count of programs found (always more than 6); {1} MAX_BINS (6) */
+	archiveHoldsMore: (v0: Value, v1: Value) => ` The archive holds ${v0} programs; only the first ${v1} are listed.`,
+	/** discover.ts. {0} release asset name */
+	matchedAsset: (v0: Value) => `Matched ${v0} for this machine.`,
+	/** discover.ts. {0} path of the system copy; {1} dest, ~-shortened */
+	systemCopyKept: (v0: Value, v1: Value) =>
+		`A copy at ${v0} comes from the system's packages, so Upkeep will keep its own at ${v1}, which comes first on your PATH.`,
+	/** discover.ts. {0} dest, ~-shortened */
+	foundInstalledAt: (v0: Value) => `Found it installed at ${v0}.`,
+	/** discover.ts. {0} dest, ~-shortened */
+	nothingInstalledAt: (v0: Value) => `Nothing is installed at ${v0} yet, so Install will put it there.`,
+	/** discover.ts */
+	patternNeedsWidening: () => `The pattern is this release's exact asset name and will need widening.`,
+	/** discover.ts */
+	couldNotReadVersion: () => `Could not read the installed version with --version.`,
+	/** discover.ts. {0} app name */
+	alreadyInList: (v0: Value) => `${v0} is already in the list.`,
+	/** discover.ts. {0} asset (archive) name */
+	noProgramInArchive: (v0: Value) => `${v0} holds no program Upkeep can install.`,
+	/** discover.ts. {0} fetch error message (raw) */
+	couldNotReachGithubSearch: (v0: Value) => `Could not reach GitHub: ${v0}`,
+	/** discover.ts */
+	rateLimitSearch: () => `GitHub's request limit is used up. Try again after it resets.`,
+	/** discover.ts. {0} HTTP status; {1} searched name (bare file name), not a repo */
+	githubAnsweredSearch: (v0: Value, v1: Value) => `GitHub answered ${v0} for ${v1}.`,
+	/** discover.ts. {0} file base name */
+	unknownSource: (v0: Value) => `Could not tell where ${v0} comes from. Paste its GitHub repo to add it.`,
+	/** discover.ts. {0} input as typed (558) or the expanded path (568) */
+	noFileAt: (v0: Value) => `There is no file at ${v0}.`,
+	/** discover.ts. {0} file base name */
+	notTrackable: (v0: Value) => `${v0} is not a program Upkeep can track (it is not a compiled binary or an AppImage).`,
+	/** discover.ts */
+	appImageNamesSource: () => `The AppImage names its own release source.`,
+	/** discover.ts. {0} repo owner/name */
+	guessedFromFileName: (v0: Value) => `Guessed from the file name. Check that ${v0} is the right project.`,
+	/** download.ts. {0} HTTP status */
+	downloadHttpFailed: (v0: Value) => `Download failed: the server answered ${v0}.`,
+	/** download.ts */
+	downloadStalled: () => `Download stalled.`,
+	/** download.ts. {0} bytes received; {1} asset size */
+	downloadSizeMismatch: (v0: Value, v1: Value) => `Download is ${v0} bytes, expected ${v1}.`,
+	/** download.ts. {0} bytes received */
+	downloadTooSmall: (v0: Value) => `Download is ${v0} bytes, too small to be a release.`,
+	/** download.ts */
+	checksumMismatch: () => `Checksum does not match the release.`,
+	/** engine.ts */
+	reasonChecking: () => `A check is running.`,
+	/** engine.ts */
+	reasonBusy: () => `A run is already in progress.`,
+	/** engine.ts */
+	reasonNothing: () => `Nothing to install.`,
+	/** engine.ts */
+	reasonStopping: () => `The run stops after the current app, so nothing more can join it.`,
+	/** engine.ts */
+	reasonOld: () => `The old updater is running. Finish or close its dialogs first.`,
+	/** engine.ts. {0} restore point version */
+	interruptedRestoreFromRow: (v0: Value) => `An update was interrupted. Restore ${v0} from this row.`,
+	/** engine.ts. {0} app name (or key when the app left the list) */
+	interruptedCheckStarts: (v0: Value) => `An update was interrupted. Check that ${v0} still starts.`,
+	/** engine.ts. {0} app name */
+	noUpdateToInstall: (v0: Value) => `${v0} has no update to install. Check again.`,
+	/** engine.ts. {0} app name */
+	cannotInstallHere: (v0: Value) => `${v0} cannot be installed here.`,
+	/** engine.ts. {0} error message of the crash (raw) */
+	runStopped: (v0: Value) => `The run stopped: ${v0}`,
+	/** engine.ts. {0} app key */
+	noApp: (v0: Value) => `No app ${v0}.`,
+	/** engine.ts. {0} app name */
+	alreadyRestarting: (v0: Value) => `${v0} is already restarting.`,
+	/** engine.ts. {0} app key */
+	noAppInList: (v0: Value) => `No app ${v0} in the list.`,
+	/** engine.ts. {0} app name; {1} restore point version (empty when none) */
+	interruptedPutBack: (v0: Value, v1: Value) => `An update was interrupted. ${v0} ${v1} was put back.`,
+	/** engine.ts. {0} app key */
+	kindNotAddable: (v0: Value) => `${v0}: kind is not one of appimage, archive, file, deb`,
+	/** engine.ts. {0} dest as written (may start with ~); {1} other app's name */
+	destBelongsTo: (v0: Value, v1: Value) => `${v0} already belongs to ${v1}.`,
+	/** engine.ts. {0} app name */
+	couldNotWriteAppsToml: (v0: Value) => `Could not write ${v0} to apps.toml.`,
+	/** engine.ts. {0} the row's previous failure detail */
+	lastTryFailed: (v0: Value) => `Last try failed. ${v0}`,
+	/** github.ts. {0} API path, e.g. /repos/o/n/compare/a...b?per_page=1 */
+	githubNotJson: (v0: Value) => `GitHub sent an answer for ${v0} that is not JSON.`,
+	/** github.ts. {0} base commit sha or tag; {1} repo owner/name */
+	githubUnknownRef: (v0: Value, v1: Value) => `GitHub does not know ${v0} in ${v1}.`,
+	/** github.ts. {0} repo owner/name */
+	githubNoComparison: (v0: Value) => `GitHub sent no comparison for ${v0}.`,
+	/** github.ts. {0} repo owner/name */
+	githubReleaseNotJson: (v0: Value) => `GitHub sent a release for ${v0} that is not JSON.`,
+	/** github.ts. {0} repo owner/name */
+	githubNoReleaseTag: (v0: Value) => `GitHub sent no release tag for ${v0}.`,
+	/** github.ts. {0} URL; {1} fetch error message (raw) */
+	couldNotReachUrl: (v0: Value, v1: Value) => `Could not reach ${v0}: ${v1}`,
+	/** github.ts. {0} URL; {1} HTTP status */
+	urlAnswered: (v0: Value, v1: Value) => `${v0} answered ${v1}.`,
+	/** github.ts. {0} URL */
+	urlSentNoVersion: (v0: Value) => `${v0} sent no version.`,
+	/** github.ts. {0} repo owner/name from a github: source */
+	noTrackedVersionTag: (v0: Value) => `${v0} has no tracked version tag.`,
+	/** github.ts. {0} installed version */
+	noVersionAtOrAbove: (v0: Value) => `No published version at or above ${v0}.`,
+	/** github.ts. {0} the latest source string as written */
+	unknownVersionSource: (v0: Value) => `Unknown version source ${v0}.`,
+	/** kinds/built.ts */
+	sudoRefused: () => `sudo needs a password here, so nothing was stopped or changed.`,
+	/** kinds/built.ts. {0} resolved place target path */
+	placeTargetInHome: (v0: Value) => `Refused ${v0}: a place target cannot be a folder directly in the home directory`,
+	/** kinds/built.ts. {0} refusal from tree.ts safePath/realOf or built.ts:226 placeFromTo (no stop of its own) */
+	refusedNothingChanged: (v0: Value) => `${v0}. Nothing was changed.`,
+	/** kinds/built.ts. {0} busy entry's say text from apps.toml (written by the table's author) */
+	busySayNothingChanged: (v0: Value) => `${v0} Nothing was changed.`,
+	/** kinds/built.ts. {0} unit name from the table */
+	couldNotStopUnit: (v0: Value) => `Could not stop ${v0}. Nothing was changed.`,
+	/** kinds/built.ts. {0} dir as written in the table */
+	localChanges: (v0: Value) => `${v0} has local changes. Nothing was changed.`,
+	/** kinds/built.ts. {0} dir as written */
+	commitsNotOnGithub: (v0: Value) => `${v0} has commits that are not on GitHub. Nothing was changed.`,
+	/** kinds/built.ts. {0} release tag; {1} dir as written */
+	couldNotFetchTag: (v0: Value, v1: Value) => `Could not fetch ${v0} into ${v1}. Nothing was changed.`,
+	/** kinds/built.ts. {0} error from takeTree: tree.ts refusals, tree.ts:171/188, backup.ts:57, or raw 'cp x: output' / 'git rev-parse: output' */
+	couldNotTakePoint: (v0: Value) => `Could not take a restore point: ${v0}. Nothing was changed.`,
+	/** kinds/built.ts. {0} hold path as written */
+	holdStepFailed: (v0: Value) => `Build step failed: hold ${v0}. Nothing was changed.`,
+	/** kinds/built.ts. {0} dir as written; {1} release tag */
+	cannotMoveWithoutMerge: (v0: Value, v1: Value) => `${v0} cannot move to ${v1} without a merge. Nothing was changed.`,
+	/** kinds/built.ts. {0} the shell step as written in the table */
+	buildStepFailed: (v0: Value) => `Build step failed: ${v0}. Nothing was changed.`,
+	/** kinds/built.ts */
+	checkFailedConfig: () => `The build did not pass its check: config. Nothing was changed.`,
+	/** kinds/built.ts. {0} check_built shell step as written */
+	checkFailedStep: (v0: Value) => `The build did not pass its check: ${v0}. Nothing was changed.`,
+	/** kinds/built.ts */
+	versionCheckLabel: () => `the version check`,
+	/** kinds/built.ts */
+	aTestLabel: () => `a test`,
+	/** kinds/built.ts */
+	oldVersionLabel: () => `the old version`,
+	/** kinds/built.ts. {0} unit name; {1} previous version or 'the old version' */
+	couldNotStopToPutBack: (v0: Value, v1: Value) => `Could not stop ${v0} to put ${v1} back. See the log.`,
+	/** kinds/built.ts. {0} previous version or 'the old version'; {1} unit name, or the app name when the put-back threw */
+	putBackFailedNoAnswer: (v0: Value, v1: Value) =>
+		`Would not start after the update, and putting ${v0} back failed: ${v1} did not answer. See the log.`,
+	/** kinds/built.ts. {0} previous version or 'the old version' */
+	couldNotPlaceFiles: (v0: Value) => `Could not put the new files in place. Restored ${v0}.`,
+	/** kinds/built.ts. {0} previous version (or 'the old version' here) */
+	wouldNotStartRestored: (v0: Value) => `Would not start after the update. Restored ${v0}.`,
+	/** kinds/built.ts. {0} test name, url, first argv word, 'a test', or 'the version check' (719); {1} previous version or 'the old version' */
+	failedTest: (v0: Value, v1: Value) => `Failed its test after the update: ${v0}. Restored ${v1}.`,
+	/** kinds/built.ts */
+	updatedWithoutRestart: () => `Updated without a restart: none of its services was running.`,
+	/** kinds/built.ts. {0} unit name */
+	noAnswerAfterRestore: (v0: Value) => `${v0} did not answer after the restore. See the log.`,
+	/** kinds/command.ts. {0} restore point version */
+	wouldNotStartPutBackFailed: (v0: Value) =>
+		`Would not start after the update, and putting ${v0} back failed. See the log.`,
+	/** kinds/command.ts */
+	wouldNotStartNoVersionKnown: () =>
+		`Would not start after the update. No restore point: the installed version was not known.`,
+	/** kinds/command.ts */
+	wouldNotStartNoRestoreCommand: () => `Would not start after the update. Its table has no restore command.`,
+	/** kinds/command.ts. {0} version */
+	stillAtAfterCommand: (v0: Value) => `Still at ${v0} after the update command.`,
+	/** kinds/command.ts. {0} version the app reports after the update */
+	reportsVersion: (v0: Value) => `Reports ${v0}.`,
+	/** kinds/context.ts */
+	reasonUnrecovered: () => `An update was interrupted and could not be put back. Restore it from its row first.`,
+	/** kinds/context.ts. {0} app name; {1} dest path or the check argv's first word */
+	willNotStart: (v0: Value, v1: Value) => `${v0} will not start (${v1}).`,
+	/** kinds/context.ts. {0} probe detail: raw first line of the program's output, or a probe.ts sentence (versionProbePrintedNothing, neverReportedMount, metaMissing, metaNoVersion) or a raw error */
+	versionProbeFailedWithDetail: (v0: Value) => `Version probe failed: ${v0}`,
+	/** kinds/context.ts */
+	versionProbeFailed: () => `Version probe failed.`,
+	/** kinds/plugins.ts. {0} plugin ids joined with ', ' */
+	couldNotUpdatePlugins: (v0: Value) => `Could not update ${v0}. See the log.`,
+	/** kinds/plugins.ts. {0} count of plugins updated */
+	pluginsUpdated: (v0: Value) => `Updated ${v0}. New sessions pick them up.`,
+	/** kinds/release.ts. {0} latest source string, e.g. npm:pkg */
+	sourceGivesNoDownload: (v0: Value) => `${v0} gives a version but no download.`,
+	/** kinds/release.ts. {0} release tag */
+	latestTagNotTracked: (v0: Value) => `The latest tag ${v0} is not a tracked version.`,
+	/** kinds/release.ts */
+	rebuildFixes: () => `Will not start. A rebuild against the current libraries fixes it.`,
+	/** kinds/release.ts. {0} asset pattern (regex) */
+	noAssetMatches: (v0: Value) => `No release asset matches ${v0}.`,
+	/** kinds/release.ts. {0} asset pattern; {1} matching asset names joined with ', ' */
+	severalAssetsMatch: (v0: Value, v1: Value) =>
+		`More than one release asset matches ${v0}: ${v1}. Narrow the pattern in apps.toml.`,
+	/** kinds/release.ts. {0} app name */
+	noReleaseAssetFor: (v0: Value) => `No release asset for ${v0}.`,
+	/** kinds/release.ts. {0} dest base name */
+	couldNotInstallFile: (v0: Value) => `Could not install ${v0}.`,
+	/** kinds/release.ts. {0} asset name */
+	couldNotExtract: (v0: Value) => `Could not extract ${v0}.`,
+	/** kinds/release.ts. {0} program (bin) name; {1} restore point version */
+	couldNotInstallRestored: (v0: Value, v1: Value) => `Could not install ${v0}. Restored ${v1}.`,
+	/** kinds/release.ts. {0} program (bin) name; {1} restoreBackup detail (backup.ts sentences or run.ts SUDO_PASSWORD) */
+	couldNotInstallRestoreFailed: (v0: Value, v1: Value) => `Could not install ${v0}. Restore failed: ${v1}`,
+	/** kinds/release.ts. {0} program (bin) name */
+	couldNotInstallNoPoint: (v0: Value) => `Could not install ${v0}. No restore point was taken.`,
+	/** kinds/release.ts. {0} asset name; {1} restore point version */
+	dpkgRestored: (v0: Value, v1: Value) => `dpkg could not install ${v0}. Restored ${v1}.`,
+	/** kinds/release.ts. {0} asset name */
+	dpkgSeeLog: (v0: Value) => `dpkg could not install ${v0}. See the log.`,
+	/** kinds/release.ts. {0} asset name; {1} restore point version */
+	dpkgPutBackFailed: (v0: Value, v1: Value) =>
+		`dpkg could not install ${v0}, and putting ${v1} back failed. See the log.`,
+	/** kinds/release.ts. {0} version */
+	stillAtAfterUpdate: (v0: Value) => `Still at ${v0} after the update.`,
+	/** kinds/release.ts */
+	wouldNotStartNoPointTaken: () => `Would not start after the update. No restore point was taken.`,
+	/** kinds/release.ts */
+	wouldNotStartNoPointKind: () => `Would not start after the update. No restore point for this kind.`,
+	/** kinds/source.ts */
+	couldNotReadCommit: () => `Could not read the commit the installed copy was built from.`,
+	/** kinds/source.ts */
+	divergedCommit: () => `Built from a commit that is not on the release's history.`,
+	/** kinds/source.ts. {0} release tag or version */
+	refusedTag: (v0: Value) => `Refused ${v0}: not a plain version name. Nothing was changed.`,
+	/** kinds/source.ts. {0} repo owner/name; {1} release tag */
+	couldNotClone: (v0: Value, v1: Value) => `Could not clone ${v0} at ${v1}.`,
+	/** kinds/source.ts. {0} shell step as written */
+	buildStepTimedOut: (v0: Value) => `Build step timed out: ${v0}`,
+	/** kinds/source.ts. {0} shell step as written */
+	buildStepFailedClone: (v0: Value) => `Build step failed: ${v0}`,
+	/** kinds/tree.ts. {0} path */
+	refusedNotPlain: (v0: Value) => `Refused ${v0}: not a plain absolute path`,
+	/** kinds/tree.ts. {0} path */
+	refusedHoldsMore: (v0: Value) => `Refused ${v0}: it holds more than this table may change`,
+	/** kinds/tree.ts. {0} path */
+	refusedOutside: (v0: Value) => `Refused ${v0}: it is outside what this table may change`,
+	/** kinds/tree.ts. {0} path */
+	refusedLinkOutside: (v0: Value) => `Refused ${v0}: a link inside it leads outside what this table may change`,
+	/** kinds/tree.ts. {0} path */
+	refusedLinkNowhere: (v0: Value) => `Refused ${v0}: a link in it leads nowhere`,
+	/** kinds/tree.ts. {0} record file name */
+	recordNotPlainName: (v0: Value) => `record ${v0}: not a plain file name`,
+	/** kinds/tree.ts. {0} first line of the needs command's output */
+	needsPrintedNothing: (v0: Value) => `needs printed nothing: ${v0}`,
+	/** kinds/tree.ts. {0} restore point directory path */
+	noRestorePointAt: (v0: Value) => `No restore point at ${v0}.`,
+	/** kinds/tree.ts. {0} undo shell step as written */
+	undoStepFailed: (v0: Value) => `Undo step failed: ${v0}`,
+	/** manifest.ts. {0} app key; {1} all kinds joined with ', ' */
+	liftKindNotOneOf: (v0: Value, v1: Value) => `${v0}: kind is not one of ${v1}`,
+	/** manifest.ts. {0} app key; {1} field name */
+	liftMustBeString: (v0: Value, v1: Value) => `${v0}: ${v1} must be a string`,
+	/** manifest.ts. {0} app key; {1} field name */
+	liftMustBeList: (v0: Value, v1: Value) => `${v0}: ${v1} must be a list of strings`,
+	/** manifest.ts. {0} app key; {1} field name */
+	liftMustBeBool: (v0: Value, v1: Value) => `${v0}: ${v1} must be true or false`,
+	/** manifest.ts. {0} app key; {1} field name; {2} kind */
+	liftRequiredForKind: (v0: Value, v1: Value, v2: Value) => `${v0}: ${v1} is required for kind ${v2}`,
+	/** manifest.ts. {0} app key */
+	liftAssetNotRegex: (v0: Value) => `${v0}: asset is not a valid regular expression`,
+	/** manifest.ts. {0} app key */
+	liftVersionlessOnly: (v0: Value) => `${v0}: versionless is only for kind claude-plugins`,
+	/** manifest.ts. {0} app key */
+	liftAppimageRepoOrLatest: (v0: Value) => `${v0}: repo or latest is required for kind appimage`,
+	/** manifest.ts. {0} app key */
+	liftLatestScheme: (v0: Value) => `${v0}: latest must start with npm:, pypi:, github:, npm-tags: or json:`,
+	/** manifest.ts. {0} app key */
+	liftJsonOnlyAppimage: (v0: Value) => `${v0}: a json: latest is only for kind appimage`,
+	/** manifest.ts. {0} app key */
+	liftRelaunchNeedsDest: (v0: Value) => `${v0}: relaunch needs dest`,
+	/** manifest.ts. {0} app key */
+	liftRelaunchNeedsProcess: (v0: Value) => `${v0}: relaunch needs process`,
+	/** manifest.ts. {0} app key; {1} process name */
+	liftRelaunchShared: (v0: Value, v1: Value) =>
+		`${v0}: relaunch would close every ${v1} process; give process the app's own name`,
+	/** manifest.ts. {0} app key; {1} field: keep, hold or prune */
+	liftInsideDir: (v0: Value, v1: Value) => `${v0}: ${v1} must stay inside dir`,
+	/** manifest.ts. {0} app key */
+	liftHoldInKeep: (v0: Value) => `${v0}: every hold path must also be in keep`,
+	/** manifest.ts. {0} app key */
+	liftPlaceInHome: (v0: Value) => `${v0}: place to cannot be a folder directly in the home directory`,
+	/** manifest.ts. {0} app key */
+	liftStageUnsafe: (v0: Value) => `${v0}: stage cannot be the home directory or the live copy`,
+	/** manifest.ts. {0} app key */
+	liftSourceCheckOrDest: (v0: Value) => `${v0}: check or dest is required for kind source`,
+	/** manifest.ts. {0} app key */
+	liftSourceRepoOrLatest: (v0: Value) => `${v0}: repo or latest is required for kind source`,
+	/** manifest.ts. {0} app key */
+	liftMoveValues: (v0: Value) => `${v0}: move must be ff, reset or detach`,
+	/** manifest.ts. {0} app key */
+	liftMoveNeedsDir: (v0: Value) => `${v0}: move needs dir`,
+	/** manifest.ts. {0} app key */
+	liftCommitNeedsRepo: (v0: Value) => `${v0}: commit needs a GitHub repo`,
+	/** manifest.ts. {0} app key; {1} list field (record, config, place, busy, pause, test, serve) */
+	liftEntryNotTable: (v0: Value, v1: Value) => `${v0}: ${v1} entry 1 needs to be a table`,
+	/** manifest.ts. {0} app key; {1} list field; {2} 1-based entry number */
+	liftEntryBadPattern: (v0: Value, v1: Value, v2: Value) => `${v0}: ${v1} entry ${v2} has an invalid pattern`,
+	/** manifest.ts. {0} app key; {1} list field; {2} 1-based entry number; {3} what is missing: one of the fragments listed in notes */
+	liftEntryNeeds: (v0: Value, v1: Value, v2: Value, v3: Value) => `${v0}: ${v1} entry ${v2} needs ${v3}`,
+	/** manifest.ts. {0} app key; {1} 1-based entry number */
+	liftBusyWhen: (v0: Value, v1: Value) => `${v0}: busy entry ${v1} when must be stopped`,
+	/** manifest.ts. {0} app key; {1} placeholder name; {2} field name */
+	liftUnknownPlaceholder: (v0: Value, v1: Value, v2: Value) => `${v0}: unknown placeholder {${v1}} in ${v2}`,
+	/** manifest.ts. {0} file label ('apps' for an import) */
+	manifestNoAppsTables: (v0: Value) => `${v0}: no [apps.<key>] tables`,
+	/** manifest.ts. {0} file label */
+	manifestAppsNotTable: (v0: Value) => `${v0}: apps is not a table of [apps.<key>] tables`,
+	/** manifest.ts. {0} app key */
+	manifestEntryNotTable: (v0: Value) => `${v0}: is not a table`,
+	/** probe.ts */
+	versionProbePrintedNothing: () => `The version probe printed nothing.`,
+	/** probe.ts. {0} AppImage path */
+	neverReportedMount: (v0: Value) => `${v0} never reported a mount point.`,
+	/** probe.ts. {0} meta_path from the table; {1} AppImage path */
+	metaMissing: (v0: Value, v1: Value) => `${v0} is missing inside ${v1}.`,
+	/** probe.ts. {0} meta_path from the table */
+	metaNoVersion: (v0: Value) => `${v0} names no version.`,
+	/** restart.ts */
+	nothingToStart: () => `nothing to start`,
+	/** restart.ts. {0} app name */
+	restartSudoPassword: (v0: Value) => `sudo needs a password here. Restart ${v0} yourself.`,
+	/** restart.ts. {0} app name */
+	noRestartHow: (v0: Value) => `${v0}'s table does not say how to restart it.`,
+	/** restart.ts. {0} app name */
+	didNotClose: (v0: Value) => `${v0} did not close. Close it, then open it again.`,
+	/** restart.ts. {0} app name; {1} spawn error message (raw) or 'nothing to start' */
+	closedNotStarted: (v0: Value, v1: Value) => `${v0} closed, but could not be started again: ${v1}`,
+	/** run.ts */
+	sudoPassword: () => `sudo needs a password here. Run the update from a terminal.`,
+	/** run.ts */
+	sizeDiffersAfterCopy: () => `size differs after copy`,
+	/** transfer.ts. {0} JSON.parse error message (raw) */
+	importNotJson: (v0: Value) => `not JSON: ${v0}`,
+	/** transfer.ts */
+	importNotObject: () => `not an Upkeep export: the file is not an object`,
+	/** transfer.ts */
+	importWrongVersion: () => `not an Upkeep export this version reads: no "upkeep": 1`,
+	/** transfer.ts */
+	importNoApps: () => `the export has no "apps" text`,
+	/** transfer.ts. {0} fs error message (raw) */
+	importCouldNotWrite: (v0: Value) => `could not write: ${v0}.`,
+	/** transfer.ts. {0} importCouldNotWrite sentence */
+	importSomeNotPutBack: (v0: Value) => `${v0} Some files could not be put back:`,
+	/** transfer.ts. {0} file path; {1} path of the .pre-import copy */
+	importCopyFromBefore: (v0: Value, v1: Value) => `${v0}: its copy from before is ${v1}`,
+	/** transfer.ts. {0} file path */
+	importCreatedNotRemoved: (v0: Value) => `${v0}: written by this import, and could not be removed`,
+	/** requests.ts and cli.ts: an import refused because a run holds the lock */
+	importDuringRun: () => `An Upkeep run is in progress. Try again when it ends.`,
+} satisfies Record<string, (...values: Value[]) => string>;
+
+export type MessageId = keyof typeof MESSAGES;

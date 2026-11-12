@@ -4,6 +4,7 @@ import type { Engine, EngineDeps } from "../engine/engine";
 import type { Extras } from "../engine/extras/extras";
 import { claimLock, releaseLock } from "../engine/store";
 import { exportSetup, importSetup } from "../engine/transfer";
+import { MESSAGES } from "../shared/messages";
 import type { RequestHandlers, WindowButton, WindowChrome } from "../shared/types";
 
 /** The newest run log, for "Open log file" when no run is in progress. */
@@ -137,8 +138,7 @@ export function upkeepRequests(
 				return { ok: false, problems: [err instanceof Error ? err.message : String(err)] };
 			}
 			// The same lock an install holds, so an import never lands during a run.
-			if (!claimLock(deps.paths))
-				return { ok: false, problems: ["An Upkeep run is in progress. Try again when it ends."] };
+			if (!claimLock(deps.paths)) return { ok: false, problems: [MESSAGES.importDuringRun()] };
 			let r: ReturnType<typeof importSetup>;
 			try {
 				r = importSetup(deps.paths, deps.seedManifest, text, deps.now());

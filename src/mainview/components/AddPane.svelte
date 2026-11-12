@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { say } from "../lib/engine-say";
 	import type { AppSpec, Suggestion } from "../../shared/types";
 	import { ADD, TEXT, aboutManifest, addApps, addedMany, addedOne, foundApps } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
@@ -230,9 +231,9 @@
 		<p class="status" role="status" data-testid="add-status">
 			{#if busy === "find" || busy === "pick"}{ADD.lookingRelease}{:else if busy === "scan"}{ADD.lookingDisk}{/if}
 		</p>
-		{#if error}<p class="problem" id="add-error" role="alert" data-testid="add-error">{error}</p>{/if}
+		{#if error}<p class="problem" id="add-error" role="alert" data-testid="add-error">{say(error)}</p>{/if}
 		{#if model.dropProblem}<p class="problem" data-testid="drop-problem">{model.dropProblem}</p>{/if}
-		{#if problem}<p class="problem" id="add-problem" role="alert" data-testid="add-problem">{problem}</p>{/if}
+		{#if problem}<p class="problem" id="add-problem" role="alert" data-testid="add-problem">{say(problem)}</p>{/if}
 	</div>
 
 	{#each found as s (s.spec.key + (s.asset?.name ?? ""))}
@@ -272,7 +273,7 @@
 									{#each tilde(s.path ?? "").split("/") as part, i (i)}{i > 0 ? "/" : ""}<wbr />{part}{/each}
 								</span>
 								{#if failures[s.spec.key]}
-									<span class="fail" data-testid="scan-fail-{s.spec.key}">{failures[s.spec.key]}</span>
+									<span class="fail" data-testid="scan-fail-{s.spec.key}">{say(failures[s.spec.key])}</span>
 									{#if aboutManifest(failures[s.spec.key])}<button
 											type="button"
 											class="btn small toml"
@@ -280,7 +281,7 @@
 											onclick={() => model.send("open", { what: "manifest" })}>{TEXT.openManifest}</button
 										>{/if}
 								{:else if s.problem}
-									<span class="why">{s.problem}</span>
+									<span class="why">{say(s.problem)}</span>
 								{:else if s.spec.repo}
 									<span class="latin">{s.spec.repo}</span>
 								{/if}

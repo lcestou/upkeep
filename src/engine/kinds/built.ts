@@ -1,5 +1,6 @@
 import { existsSync, lstatSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, Serve, Service, Test } from "../../shared/types";
 import { listBackups, prune, readMeta } from "../backup";
 import { isRecord } from "../manifest";
@@ -33,7 +34,7 @@ import {
 	type Vars,
 } from "./tree";
 
-export const SUDO_REFUSED = "sudo needs a password here, so nothing was stopped or changed.";
+export const SUDO_REFUSED = MESSAGES.sudoRefused();
 
 const LONG = 30 * 60_000;
 const SERVICE_MS = 120_000;
@@ -222,8 +223,7 @@ function placeFromTo(
 	const { config, data, state, cache, home } = ctx.paths;
 	const to = safePath(at(pl.to), ctx.paths, { dir, not: [config, data, state, cache] });
 	// A place target is moved whole into the restore point and pruned with it later: never a folder of home itself.
-	if (dirname(to) === home)
-		throw new Error(`Refused ${to}: a place target cannot be a folder directly in the home directory`);
+	if (dirname(to) === home) throw new Error(MESSAGES.placeTargetInHome(to));
 	return { src: safePath(at(pl.from), ctx.paths, { dir, under: roots }), to };
 }
 
@@ -261,7 +261,7 @@ export async function prepareBuilt(
 	try {
 		stage = placePaths(spec, ctx, dir, vars);
 	} catch (err) {
-		return { failed: `${err instanceof Error ? err.message : String(err)}. Nothing was changed.` };
+		return { failed: MESSAGES.refusedNothingChanged(err instanceof Error ? err.message : String(err)) };
 	}
 	if (stage) vars.stage = stage;
 	const scope = scopeOf(dir, stage);
@@ -300,7 +300,7 @@ export async function prepareBuilt(
 	clock.start("download");
 	if (!(await sudoAllowed(spec, ctx))) return { failed: SUDO_REFUSED };
 	const first = await busyNow(spec, ctx, false);
-	if (first) return { failed: `${first} Nothing was changed.` };
+	if (first) return { failed: MESSAGES.busySayNothingChanged(first) };
 	// The marker exists before the first pause stop, so a kill from here on is recovered.
 	marker.step("pause");
 	for (const p of spec.pause ?? []) {
@@ -309,21 +309,19 @@ export async function prepareBuilt(
 		// Written before the stop: a kill during or right after it must still find the unit to start again.
 		marker.paused(p.name);
 		// oxlint-disable-next-line no-await-in-loop -- units are held off in table order
-		if (!(await stopService(ctx.run, p))) return fail({ failed: `Could not stop ${p.name}. Nothing was changed.` });
+		if (!(await stopService(ctx.run, p))) return fail({ failed: MESSAGES.couldNotStopUnit(p.name) });
 		paused.push(p);
 	}
 	const second = await busyNow(spec, ctx, false);
-	if (second) return fail({ failed: `${second} Nothing was changed.` });
+	if (second) return fail({ failed: MESSAGES.busySayNothingChanged(second) });
 	if (dir) {
 		const status = await ctx.run(["git", "-C", dir, "status", "--porcelain", "--untracked-files=no"], {
 			timeoutMs: 60_000,
 		});
-		if (status.code !== 0 || status.stdout.trim())
-			return fail({ failed: `${shown} has local changes. Nothing was changed.` });
+		if (status.code !== 0 || status.stdout.trim()) return fail({ failed: MESSAGES.localChanges(shown) });
 		if (spec.move === "reset") {
 			const on = await ctx.run(["git", "-C", dir, "branch", "-r", "--contains", "HEAD"], { timeoutMs: 60_000 });
-			if (on.code !== 0 || !on.stdout.trim())
-				return fail({ failed: `${shown} has commits that are not on GitHub. Nothing was changed.` });
+			if (on.code !== 0 || !on.stdout.trim()) return fail({ failed: MESSAGES.commitsNotOnGithub(shown) });
 		}
 		const fetched = await tracked(
 			ctx.run,
@@ -334,8 +332,7 @@ export async function prepareBuilt(
 				killTree: true,
 			},
 		);
-		if (fetched.code !== 0)
-			return fail({ failed: `Could not fetch ${target.tag} into ${shown}. Nothing was changed.` });
+		if (fetched.code !== 0) return fail({ failed: MESSAGES.couldNotFetchTag(target.tag, shown) });
 	}
 
 	clock.start("backup");
@@ -356,7 +353,7 @@ export async function prepareBuilt(
 	} catch (err) {
 		marker.done();
 		return fail({
-			failed: `Could not take a restore point: ${err instanceof Error ? err.message : String(err)}. Nothing was changed.`,
+			failed: MESSAGES.couldNotTakePoint(err instanceof Error ? err.message : String(err)),
 		});
 	}
 	vars.needs = tree.needs[0] ?? "";
@@ -373,11 +370,11 @@ export async function prepareBuilt(
 			renameSync(p, `${p}.upkeep-live`);
 		} catch (err) {
 			ctx.log(`hold ${h}: ${err instanceof Error ? err.message : String(err)}`);
-			return fail({ failed: `Build step failed: hold ${h}. Nothing was changed.`, cleanup: "revert" });
+			return fail({ failed: MESSAGES.holdStepFailed(h), cleanup: "revert" });
 		}
 		// oxlint-disable-next-line no-await-in-loop -- one tree at a time
 		const r = await tracked(ctx.run, marker, ["cp", "-a", `${p}.upkeep-live`, p], { timeoutMs: LONG, killTree: true });
-		if (r.code !== 0) return fail({ failed: `Build step failed: hold ${h}. Nothing was changed.`, cleanup: "revert" });
+		if (r.code !== 0) return fail({ failed: MESSAGES.holdStepFailed(h), cleanup: "revert" });
 	}
 	if (dir) {
 		const move = spec.move ?? "ff";
@@ -390,7 +387,7 @@ export async function prepareBuilt(
 		const moved = await tracked(ctx.run, marker, argv, { timeoutMs: 120_000, killTree: true });
 		if (moved.code !== 0)
 			return fail({
-				failed: `${shown} cannot move to ${target.tag} without a merge. Nothing was changed.`,
+				failed: MESSAGES.cannotMoveWithoutMerge(shown, target.tag),
 				cleanup: "revert",
 			});
 	}
@@ -405,13 +402,13 @@ export async function prepareBuilt(
 			killTree: true,
 			onLine: (l) => ctx.log(l),
 		});
-		if (r.code !== 0) return fail({ failed: `Build step failed: ${step}. Nothing was changed.`, cleanup: "revert" });
+		if (r.code !== 0) return fail({ failed: MESSAGES.buildStepFailed(step), cleanup: "revert" });
 	}
 	try {
 		applyConfig(spec, ctx, dir);
 	} catch (err) {
 		ctx.log(`config: ${err instanceof Error ? err.message : String(err)}`);
-		return fail({ failed: "The build did not pass its check: config. Nothing was changed.", cleanup: "revert" });
+		return fail({ failed: MESSAGES.checkFailedConfig(), cleanup: "revert" });
 	}
 	for (const step of spec.check_built ?? []) {
 		// oxlint-disable-next-line no-await-in-loop -- checks run in order
@@ -423,7 +420,7 @@ export async function prepareBuilt(
 		});
 		if (r.code !== 0) {
 			ctx.log(firstLine(r.stderr || r.stdout));
-			return fail({ failed: `The build did not pass its check: ${step}. Nothing was changed.`, cleanup: "revert" });
+			return fail({ failed: MESSAGES.checkFailedStep(step), cleanup: "revert" });
 		}
 	}
 	return { dir, stage, point, tree, vars, active, paused, marker, treeCtx };
@@ -438,7 +435,7 @@ export const failedBefore = (target: Target, detail: string): Omit<Outcome, "sta
 });
 
 /** The probe's name when the version did not move. */
-const VERSION_CHECK = "the version check";
+const VERSION_CHECK = MESSAGES.versionCheckLabel();
 
 /** Polls health every 2 s until it answers status (default 200) with expect matching, within wait_s (default 120). */
 async function healthy(svc: Serve, ctx: KindCtx): Promise<boolean> {
@@ -511,7 +508,7 @@ function dropHeld(spec: AppSpec, ctx: KindCtx, dir: string | null): void {
 }
 
 /** The name a test is reported under: its own name, else its url, else its command, else a generic label. */
-const testName = (t: Test) => t.name ?? t.url ?? t.run?.[0] ?? "a test";
+const testName = (t: Test) => t.name ?? t.url ?? t.run?.[0] ?? MESSAGES.aTestLabel();
 
 /**
  * After a verified update: build directories prune names, except what needs prints now (live) and what any kept
@@ -566,7 +563,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	if ("failed" in prepared) return finish(failedBefore(target, prepared.failed));
 	const built = prepared;
 	const { marker, point } = built;
-	const from = target.from ?? "the old version";
+	const from = target.from ?? MESSAGES.oldVersionLabel();
 	const stopped: { svc: Serve; since: string }[] = [];
 
 	const startPaused = async () => {
@@ -607,7 +604,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 				return finish({
 					result: "failed",
 					installed: target.from,
-					detail: `Could not stop ${s.svc.name} to put ${from} back. See the log.`,
+					detail: MESSAGES.couldNotStopToPutBack(s.svc.name, from),
 					restartToApply: false,
 				});
 			}
@@ -642,7 +639,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 			return finish({
 				result: "failed",
 				installed: target.from,
-				detail: `Would not start after the update, and putting ${from} back failed: ${broken} did not answer. See the log.`,
+				detail: MESSAGES.putBackFailedNoAnswer(from, broken),
 				restartToApply: false,
 			});
 		return finish({ result: "rolled_back", installed: target.from, detail, restartToApply: false });
@@ -652,11 +649,11 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	marker.step("stopping");
 	for (const a of built.active) {
 		// oxlint-disable-next-line no-await-in-loop -- services stop in table order
-		if (!(await stopService(ctx.run, a.svc))) return undoStop(`Could not stop ${a.svc.name}. Nothing was changed.`);
+		if (!(await stopService(ctx.run, a.svc))) return undoStop(MESSAGES.couldNotStopUnit(a.svc.name));
 		stopped.push(a);
 	}
 	const busyStopped = await busyNow(spec, ctx, true);
-	if (busyStopped) return undoStop(`${busyStopped} Nothing was changed.`);
+	if (busyStopped) return undoStop(MESSAGES.busySayNothingChanged(busyStopped));
 	marker.step("placing");
 	const rename = ctx.rename ?? renameSync;
 	try {
@@ -679,12 +676,12 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		}
 	} catch (err) {
 		ctx.log(`place: ${err instanceof Error ? err.message : String(err)}`);
-		return rollBack(`Could not put the new files in place. Restored ${from}.`);
+		return rollBack(MESSAGES.couldNotPlaceFiles(from));
 	}
 	marker.step("starting");
 	for (const s of stopped)
 		// oxlint-disable-next-line no-await-in-loop -- services start in table order
-		if (!(await startService(ctx.run, s.svc))) return rollBack(`Would not start after the update. Restored ${from}.`);
+		if (!(await startService(ctx.run, s.svc))) return rollBack(MESSAGES.wouldNotStartRestored(from));
 
 	clock.start("verify");
 	marker.step("verify");
@@ -693,15 +690,15 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 			// A restart counts only when since moved: the old process still answering health proves nothing.
 			// oxlint-disable-next-line no-await-in-loop -- one unit at a time
 			const now = (await ctx.run(asRootArgv(s.svc.since), { timeoutMs: 30_000 })).stdout.trim();
-			if (now === s.since) return rollBack(`Would not start after the update. Restored ${from}.`);
+			if (now === s.since) return rollBack(MESSAGES.wouldNotStartRestored(from));
 		}
 		// oxlint-disable-next-line no-await-in-loop -- one unit at a time
-		if (!(await healthy(s.svc, ctx))) return rollBack(`Would not start after the update. Restored ${from}.`);
+		if (!(await healthy(s.svc, ctx))) return rollBack(MESSAGES.wouldNotStartRestored(from));
 		for (const test of s.svc.test ?? []) {
 			// oxlint-disable-next-line no-await-in-loop -- tests run in order
 			if (await passes(test, ctx, built)) continue;
 			if (test.required === false) ctx.log(`Test did not pass (not required): ${testName(test)}`);
-			else return rollBack(`Failed its test after the update: ${testName(test)}. Restored ${from}.`);
+			else return rollBack(MESSAGES.failedTest(testName(test), from));
 		}
 	}
 	for (const test of spec.test ?? []) {
@@ -710,13 +707,13 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		// oxlint-disable-next-line no-await-in-loop -- tests run in order
 		if (await passes(test, ctx, built)) continue;
 		if (test.required === false) ctx.log(`Test did not pass (not required): ${testName(test)}`);
-		else return rollBack(`Failed its test after the update: ${testName(test)}. Restored ${from}.`);
+		else return rollBack(MESSAGES.failedTest(testName(test), from));
 	}
 	// The version is read as checkBuilt reads it and compared as written: a commit hash is not a version to reshape.
 	const after = await readInstalled(spec, ctx);
 	const installed = after?.installed ?? null;
 	if (installed === null || (installed === target.from && target.from !== target.version))
-		return rollBack(`Failed its test after the update: ${VERSION_CHECK}. Restored ${from}.`);
+		return rollBack(MESSAGES.failedTest(VERSION_CHECK, from));
 	prune(ctx.paths, spec.key, ctx.settings.keepBackups);
 	await pruneBuilds(spec, ctx, built);
 	// Only now: until verify passed, the held copy is what a rollback renames back.
@@ -726,10 +723,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	return finish({
 		result: "done",
 		installed,
-		detail:
-			stopped.length === 0 && (spec.serve?.length ?? 0) > 0
-				? "Updated without a restart: none of its services was running."
-				: undefined,
+		detail: stopped.length === 0 && (spec.serve?.length ?? 0) > 0 ? MESSAGES.updatedWithoutRestart() : undefined,
 		restartToApply: false,
 	});
 }
@@ -845,10 +839,10 @@ export async function restoreBuilt(
 	ctx: KindCtx,
 ): Promise<{ ok: boolean; detail?: string }> {
 	const point = pointOf(ctx.paths, spec.key, version);
-	if (!readMeta(point)?.tree) return { ok: false, detail: `No restore point ${version}.` };
+	if (!readMeta(point)?.tree) return { ok: false, detail: MESSAGES.noRestorePoint(version) };
 	if (!(await sudoAllowed(spec, ctx))) return { ok: false, detail: SUDO_REFUSED };
 	const busy = await busyNow(spec, ctx, false);
-	if (busy) return { ok: false, detail: `${busy} Nothing was changed.` };
+	if (busy) return { ok: false, detail: MESSAGES.busySayNothingChanged(busy) };
 	const dir = spec.dir ? resolvePath(spec.dir, ctx.paths, null) : null;
 	// A failed recovery's marker for this app: its units are down now, so this restore starts them, and an early exit
 	// writes it back instead of clearing it.
@@ -875,7 +869,7 @@ export async function restoreBuilt(
 			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
 			await startPaused();
 			giveBack();
-			return { ok: false, detail: `Could not stop ${p.name}. Nothing was changed.` };
+			return { ok: false, detail: MESSAGES.couldNotStopUnit(p.name) };
 		}
 		paused.push(p);
 	}
@@ -894,20 +888,20 @@ export async function restoreBuilt(
 			// oxlint-disable-next-line no-await-in-loop -- the loop ends here
 			await startPaused();
 			giveBack();
-			return { ok: false, detail: `Could not stop ${s.name}. Nothing was changed.` };
+			return { ok: false, detail: MESSAGES.couldNotStopUnit(s.name) };
 		}
 	marker.step("placing");
 	let detail: string | undefined;
 	try {
 		await restoreTree(point, { paths: ctx.paths, run: ctx.run, log: ctx.log, rename: ctx.rename });
 	} catch (err) {
-		detail = `Could not restore ${version}: ${err instanceof Error ? err.message : String(err)}`;
+		detail = MESSAGES.couldNotRestoreFile(version, err instanceof Error ? err.message : String(err));
 	}
 	marker.step("starting");
 	for (const s of toStart)
 		// oxlint-disable-next-line no-await-in-loop -- in table order
 		if (!((await startService(ctx.run, s)) && (await healthy(s, ctx))))
-			detail ??= `${s.name} did not answer after the restore. See the log.`;
+			detail ??= MESSAGES.noAnswerAfterRestore(s.name);
 	await startPaused();
 	if (detail) return { ok: false, detail };
 	marker.clear();

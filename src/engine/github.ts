@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import type { Run } from "./run";
 import { tagVersion } from "./version";
 
@@ -126,7 +127,7 @@ function rateFailure(res: Response, text: string, rate: RateRead): Failure | nul
 	)
 		return {
 			failure: "rate",
-			detail: "GitHub's request limit is used up. Try again after it resets.",
+			detail: MESSAGES.rateLimitSearch(),
 			resetAt: rate.resetAt,
 		};
 	return null;
@@ -143,7 +144,7 @@ async function githubJson(path: string, opts: ReleaseOpts): Promise<{ status: nu
 	} catch (err) {
 		return {
 			failure: "network",
-			detail: `Could not reach GitHub: ${err instanceof Error ? err.message : String(err)}`,
+			detail: MESSAGES.couldNotReachGithubSearch(err instanceof Error ? err.message : String(err)),
 		};
 	}
 	const text = await res.text();
@@ -152,7 +153,7 @@ async function githubJson(path: string, opts: ReleaseOpts): Promise<{ status: nu
 	try {
 		return { status: res.status, body: res.ok ? JSON.parse(text) : null };
 	} catch {
-		return { failure: "http", detail: `GitHub sent an answer for ${path} that is not JSON.` };
+		return { failure: "http", detail: MESSAGES.githubNotJson(path) };
 	}
 }
 
@@ -171,19 +172,19 @@ export async function compareRefs(
 ): Promise<Comparison | Failure> {
 	const cmp = await githubJson(`/repos/${repo}/compare/${base}...${head}?per_page=1`, opts);
 	if (isFailure(cmp)) return cmp;
-	if (cmp.status === 404) return { failure: "http", detail: `GitHub does not know ${base} in ${repo}.` };
-	if (cmp.status !== 200) return { failure: "http", detail: `GitHub answered ${cmp.status} for ${repo}.` };
+	if (cmp.status === 404) return { failure: "http", detail: MESSAGES.githubUnknownRef(base, repo) };
+	if (cmp.status !== 200) return { failure: "http", detail: MESSAGES.githubAnsweredSearch(cmp.status, repo) };
 	const c = record(cmp.body);
 	const status = c.status;
 	if (status !== "ahead" && status !== "behind" && status !== "identical" && status !== "diverged")
-		return { failure: "http", detail: `GitHub sent no comparison for ${repo}.` };
+		return { failure: "http", detail: MESSAGES.githubNoComparison(repo) };
 	const ahead = typeof c.ahead_by === "number" ? c.ahead_by : 0;
 	if (ahead === 0) return { status, ahead, commits: [] };
 	// Compare lists oldest first and stops at 250; the commits endpoint is newest first.
 	const list = await githubJson(`/repos/${repo}/commits?sha=${head}&per_page=30`, opts);
 	if (isFailure(list)) return list;
 	if (list.status !== 200 || !Array.isArray(list.body))
-		return { failure: "http", detail: `GitHub answered ${list.status} for ${repo}.` };
+		return { failure: "http", detail: MESSAGES.githubAnsweredSearch(list.status, repo) };
 	const commits = list.body.slice(0, Math.min(30, ahead)).map((item) => {
 		const x = record(item);
 		const commit = record(x.commit);
@@ -232,7 +233,7 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 	} catch (err) {
 		return {
 			failure: "network",
-			detail: `Could not reach GitHub: ${err instanceof Error ? err.message : String(err)}`,
+			detail: MESSAGES.couldNotReachGithubSearch(err instanceof Error ? err.message : String(err)),
 		};
 	}
 	const rate = readRate(res, opts);
@@ -245,7 +246,7 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 	const text = await res.text();
 	const limited = rateFailure(res, text, rate);
 	if (limited) return limited;
-	if (!res.ok) return { failure: "http", detail: `GitHub answered ${res.status} for ${repo}.` };
+	if (!res.ok) return { failure: "http", detail: MESSAGES.githubAnsweredSearch(res.status, repo) };
 	const etag = res.headers.get("etag");
 	if (etag) {
 		mkdirSync(opts.cacheDir, { recursive: true });
@@ -262,9 +263,9 @@ function toRelease(text: string, repo: string): Release | Failure {
 	try {
 		body = JSON.parse(text);
 	} catch {
-		return { failure: "http", detail: `GitHub sent a release for ${repo} that is not JSON.` };
+		return { failure: "http", detail: MESSAGES.githubReleaseNotJson(repo) };
 	}
-	return parseRelease(body) ?? { failure: "http", detail: `GitHub sent no release tag for ${repo}.` };
+	return parseRelease(body) ?? { failure: "http", detail: MESSAGES.githubNoReleaseTag(repo) };
 }
 
 /** One repository of a search answer, with the fields discovery decides on. */
@@ -312,10 +313,10 @@ async function jsonRelease(url: string, opts: ReleaseOpts): Promise<{ version: s
 	} catch (err) {
 		return {
 			failure: "network",
-			detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
+			detail: MESSAGES.couldNotReachUrl(url, err instanceof Error ? err.message : String(err)),
 		};
 	}
-	if (!res.ok) return { failure: "http", detail: `${url} answered ${res.status}.` };
+	if (!res.ok) return { failure: "http", detail: MESSAGES.urlAnswered(url, res.status) };
 	let body: unknown = null;
 	try {
 		body = await res.json();
@@ -331,7 +332,7 @@ async function jsonRelease(url: string, opts: ReleaseOpts): Promise<{ version: s
 	} catch {
 		at = null;
 	}
-	if (!version || !at || at.protocol !== "https:") return { failure: "http", detail: `${url} sent no version.` };
+	if (!version || !at || at.protocol !== "https:") return { failure: "http", detail: MESSAGES.urlSentNoVersion(url) };
 	const asset = { name: basename(at.pathname), url: at.href, size: 0, digest: null };
 	return { version, release: { tag: version, version, url: "", publishedAt: "", notes: "", assets: [asset] } };
 }
@@ -352,7 +353,7 @@ export async function latestFromSource(
 		if (isFailure(r)) return r;
 		return r.version
 			? { version: r.version, release: r }
-			: { failure: "http", detail: `${name} has no tracked version tag.` };
+			: { failure: "http", detail: MESSAGES.noTrackedVersionTag(name) };
 	}
 	if (scheme === "json") return jsonRelease(name, opts);
 	if (scheme === "npm-tags") {
@@ -360,19 +361,19 @@ export async function latestFromSource(
 		let tags: unknown;
 		try {
 			const res = await opts.fetch(url, { headers: { Accept: "application/json" } });
-			if (!res.ok) return { failure: "http", detail: `${url} answered ${res.status}.` };
+			if (!res.ok) return { failure: "http", detail: MESSAGES.urlAnswered(url, res.status) };
 			tags = await res.json();
 		} catch (err) {
 			return {
 				failure: "network",
-				detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
+				detail: MESSAGES.couldNotReachUrl(url, err instanceof Error ? err.message : String(err)),
 			};
 		}
 		const pick = pickDistTag(record(tags), opts.installed);
 		if (pick) return { version: pick };
 		return opts.installed
-			? { failure: "http", detail: `No published version at or above ${opts.installed}.` }
-			: { failure: "http", detail: `${url} sent no version.` };
+			? { failure: "http", detail: MESSAGES.noVersionAtOrAbove(opts.installed) }
+			: { failure: "http", detail: MESSAGES.urlSentNoVersion(url) };
 	}
 	const url =
 		scheme === "npm"
@@ -380,20 +381,20 @@ export async function latestFromSource(
 			: scheme === "pypi"
 				? `https://pypi.org/pypi/${name}/json`
 				: null;
-	if (!url) return { failure: "http", detail: `Unknown version source ${source}.` };
+	if (!url) return { failure: "http", detail: MESSAGES.unknownVersionSource(source) };
 	let body: unknown;
 	try {
 		const res = await opts.fetch(url, { headers: { Accept: "application/json" } });
-		if (!res.ok) return { failure: "http", detail: `${url} answered ${res.status}.` };
+		if (!res.ok) return { failure: "http", detail: MESSAGES.urlAnswered(url, res.status) };
 		body = await res.json();
 	} catch (err) {
 		return {
 			failure: "network",
-			detail: `Could not reach ${url}: ${err instanceof Error ? err.message : String(err)}`,
+			detail: MESSAGES.couldNotReachUrl(url, err instanceof Error ? err.message : String(err)),
 		};
 	}
 	const b = record(body);
 	const info = record(b.info);
 	const version = str(scheme === "npm" ? b.version : info.version);
-	return version ? { version } : { failure: "http", detail: `${url} sent no version.` };
+	return version ? { version } : { failure: "http", detail: MESSAGES.urlSentNoVersion(url) };
 }

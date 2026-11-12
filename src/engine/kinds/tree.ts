@@ -11,6 +11,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { basename, dirname, isAbsolute, join, normalize, relative } from "node:path";
+import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { type BackupMeta, backupDir, pointName, readMeta } from "../backup";
 import { expandHome, type Paths } from "../paths";
@@ -53,17 +54,16 @@ export function resolvePath(p: string, paths: Paths, dir: string | null): string
  * placeholder, a glob or an edited table names something else. Returns the path normalized.
  */
 export function safePath(p: string, paths: Paths, o: { dir: string | null; under?: string[]; not?: string[] }): string {
-	if (!isAbsolute(p) || p.split("/").includes("..")) throw new Error(`Refused ${p}: not a plain absolute path`);
+	if (!isAbsolute(p) || p.split("/").includes("..")) throw new Error(MESSAGES.refusedNotPlain(p));
 	const n = normalize(p).replace(/(.)\/+$/, "$1");
 	const covers = (q: string) => q === n || q.startsWith(n === "/" ? "/" : `${n}/`);
 	for (const q of [paths.home, o.dir, ...(o.not ?? [])])
-		if (q && covers(normalize(q))) throw new Error(`Refused ${p}: it holds more than this table may change`);
-	if (o.under && !o.under.some((u) => n === u || n.startsWith(`${u}/`)))
-		throw new Error(`Refused ${p}: it is outside what this table may change`);
+		if (q && covers(normalize(q))) throw new Error(MESSAGES.refusedHoldsMore(p));
+	if (o.under && !o.under.some((u) => n === u || n.startsWith(`${u}/`))) throw new Error(MESSAGES.refusedOutside(p));
 	if (o.under) {
 		const real = join(realOf(dirname(n)), basename(n));
 		if (!o.under.map(realOf).some((u) => real === u || real.startsWith(`${u}/`)))
-			throw new Error(`Refused ${p}: a link inside it leads outside what this table may change`);
+			throw new Error(MESSAGES.refusedLinkOutside(p));
 	}
 	return n;
 }
@@ -80,7 +80,7 @@ function realOf(p: string): string {
 		return join(realpathSync(at), ...rest);
 	} catch {
 		// A dangling link or a loop: nothing safe can be said about where it leads.
-		throw new Error(`Refused ${p}: a link in it leads nowhere`);
+		throw new Error(MESSAGES.refusedLinkNowhere(p));
 	}
 }
 
@@ -168,7 +168,7 @@ export async function takeTree(
 		for (const rec of spec.record ?? []) {
 			// A record is a file in the point itself: never a path, and never a name the point already uses.
 			if (/[/\0]/.test(rec.file) || [".", "..", "", "meta.json", "keep"].includes(rec.file))
-				throw new Error(`record ${rec.file}: not a plain file name`);
+				throw new Error(MESSAGES.recordNotPlainName(rec.file));
 			const argv = rec.run.map((a) => fill(a, { ...o.vars, point: tmp }));
 			// oxlint-disable-next-line no-await-in-loop -- a record may read the one before it
 			const r = await ctx.run(argv, { cwd: dir ?? undefined, timeoutMs: LONG, killTree: true, onStart: ctx.onStart });
@@ -185,7 +185,7 @@ export async function takeTree(
 							.map((l) => l.trim())
 							.filter(Boolean)
 					: [];
-			if (tree.needs.length === 0) throw new Error(`needs printed nothing: ${firstLine(r.stderr || r.stdout)}`);
+			if (tree.needs.length === 0) throw new Error(MESSAGES.needsPrintedNothing(firstLine(r.stderr || r.stdout)));
 		}
 		for (const [i, pl] of (spec.place ?? []).entries()) {
 			const to = resolvePath(fill(pl.to, o.vars), ctx.paths, dir);
@@ -243,7 +243,7 @@ const modeOf = (p: string) => (statSync(p).mode & 0o7777).toString(8);
  */
 async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promise<void> {
 	const meta = readMeta(point);
-	if (!meta?.tree) throw new Error(`No restore point at ${point}.`);
+	if (!meta?.tree) throw new Error(MESSAGES.noRestorePointAt(point));
 	const tree = meta.tree;
 	const rename = ctx.rename ?? renameSync;
 	const dir = tree.dir;
@@ -324,7 +324,7 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 			killTree: true,
 			onStart: ctx.onStart,
 		});
-		if (r.code !== 0) throw new Error(`Undo step failed: ${step}`);
+		if (r.code !== 0) throw new Error(MESSAGES.undoStepFailed(step));
 	}
 	// A finished put-back leaves no marks, so a later restore from this point copies every kept path again.
 	for (const f of readdirSync(point)) if (f.startsWith("hold-done-")) rmSync(join(point, f), { force: true });

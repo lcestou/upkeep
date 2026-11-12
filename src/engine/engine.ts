@@ -14,6 +14,7 @@ import type {
 	Stage,
 	Suggestion,
 } from "../shared/types";
+import { MESSAGES } from "../shared/messages";
 import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { type FetchLike, githubToken, type Rate } from "./github";
@@ -123,11 +124,11 @@ export type Engine = {
 /** The kinds an owner can add from the window. */
 const ADDABLE = new Set(["appimage", "archive", "file", "deb"]);
 
-export const REASON_CHECKING = "A check is running.";
-export const REASON_BUSY = "A run is already in progress.";
-export const REASON_NOTHING = "Nothing to install.";
-export const REASON_STOPPING = "The run stops after the current app, so nothing more can join it.";
-export const REASON_OLD = "The old updater is running. Finish or close its dialogs first.";
+export const REASON_CHECKING = MESSAGES.reasonChecking();
+export const REASON_BUSY = MESSAGES.reasonBusy();
+export const REASON_NOTHING = MESSAGES.reasonNothing();
+export const REASON_STOPPING = MESSAGES.reasonStopping();
+export const REASON_OLD = MESSAGES.reasonOld();
 
 /** Runs fn with at most n in flight at once. */
 function limiter(n: number): <T>(fn: () => Promise<T>) => Promise<T> {
@@ -262,15 +263,14 @@ export function createEngine(deps: EngineDeps): Engine {
 	// Only when this process can claim run.lock: another process's install in progress is not a leftover.
 	const leftover = readInflight(paths);
 	// A built update's marker is only reported here, so check and history stay read-only; recover() acts on it.
-	if (leftover?.tree)
-		interrupted.set(leftover.key, `An update was interrupted. Restore ${leftover.backupVersion ?? ""} from this row.`);
+	if (leftover?.tree) interrupted.set(leftover.key, MESSAGES.interruptedRestoreFromRow(leftover.backupVersion ?? ""));
 	else if (leftover && claimLock(paths, process.pid, deps.procRoot)) {
 		const name = specs.find((s) => s.key === leftover.key)?.name ?? leftover.key;
 		interrupted.set(
 			leftover.key,
 			leftover.backupVersion
-				? `An update was interrupted. Restore ${leftover.backupVersion} from this row.`
-				: `An update was interrupted. Check that ${name} still starts.`,
+				? MESSAGES.interruptedRestoreFromRow(leftover.backupVersion)
+				: MESSAGES.interruptedCheckStarts(name),
 		);
 		// One temp per installed file: an archive with several programs writes one beside each. The marker names them,
 		// so this holds after the app left the list; an older marker without them falls back to the table.
@@ -527,7 +527,7 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	async function installOne(spec: AppSpec): Promise<Outcome> {
 		const target = targets.get(spec.key);
-		if (!target) throw new Error(`${spec.name} has no update to install. Check again.`);
+		if (!target) throw new Error(MESSAGES.noUpdateToInstall(spec.name));
 		const ctx = kindCtx(spec.key);
 		switch (spec.kind) {
 			case "source":
@@ -537,7 +537,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			case "claude-plugins":
 				return installClaudePlugins(ctx);
 			case "manual":
-				throw new Error(`${spec.name} cannot be installed here.`);
+				throw new Error(MESSAGES.cannotInstallHere(spec.name));
 			default:
 				return installRelease(spec, target, ctx);
 		}
@@ -658,7 +658,7 @@ export function createEngine(deps: EngineDeps): Engine {
 						finishApp(a, {
 							result: "failed",
 							installed: a.installed,
-							detail: `The run stopped: ${reason}`,
+							detail: MESSAGES.runStopped(reason),
 							restartToApply: false,
 						});
 				}
@@ -828,7 +828,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		async restore(key, version) {
 			if (run.phase === "installing" || run.phase === "checking") return { ok: false, detail: REASON_BUSY };
 			const spec = specOf(key);
-			if (!spec) return { ok: false, detail: `No app ${key}.` };
+			if (!spec) return { ok: false, detail: MESSAGES.noApp(key) };
 			// Only the app whose recovery failed may be restored; its restore replaces the kept marker.
 			if ((await this.recover()).some((r) => !r.ok && r.key !== key)) return { ok: false, detail: REASON_UNRECOVERED };
 			if (!claimLock(paths, process.pid, deps.procRoot)) return { ok: false, detail: REASON_BUSY };
@@ -916,9 +916,9 @@ export function createEngine(deps: EngineDeps): Engine {
 		async restartApp(key) {
 			if (run.phase === "installing") return { ok: false, detail: REASON_BUSY };
 			const spec = specOf(key);
-			if (!spec) return { ok: false, detail: `No app ${key}.` };
+			if (!spec) return { ok: false, detail: MESSAGES.noApp(key) };
 			// The pane and the group can both ask; a second relaunch would start the app twice.
-			if (restarting.has(key)) return { ok: false, detail: `${spec.name} is already restarting.` };
+			if (restarting.has(key)) return { ok: false, detail: MESSAGES.alreadyRestarting(spec.name) };
 			restarting.add(key);
 			say(key, `Restarting ${spec.name}`);
 			const r = await restartApp(spec, destOf(spec, { paths }), {
@@ -1013,7 +1013,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			const file = ensureManifest(paths, deps.seedManifest);
 			const text = readFileSync(file, "utf8");
 			const cut = cutTable(text, key);
-			if (cut === null) return { ok: false, detail: `No app ${key} in the list.` };
+			if (cut === null) return { ok: false, detail: MESSAGES.noAppInList(key) };
 			replaceManifest(file, cut);
 			loadSpecs();
 			apps.delete(key);
@@ -1046,8 +1046,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				});
 				const version = m.backupVersion ?? "";
 				const sentence = ok
-					? `An update was interrupted. ${spec.name} ${version} was put back.`
-					: `An update was interrupted. Restore ${version} from this row.`;
+					? MESSAGES.interruptedPutBack(spec.name, version)
+					: MESSAGES.interruptedRestoreFromRow(version);
 				interrupted.set(m.key, sentence);
 				const app = apps.get(m.key);
 				if (app) {
@@ -1090,17 +1090,17 @@ export function createEngine(deps: EngineDeps): Engine {
 		// card may rename it or move its dest, but its steps, check and update are the catalogue's, never a caller's.
 		const entry = catalogue.apps.find((c) => c.key === s.key);
 		const tested = entry !== undefined && Bun.deepEquals({ ...entry, name: s.name, dest: s.dest }, s);
-		if (!ADDABLE.has(s.kind) && !tested) return `${s.key}: kind is not one of appimage, archive, file, deb`;
+		if (!ADDABLE.has(s.kind) && !tested) return MESSAGES.kindNotAddable(s.key);
 		const { key } = s;
 		const relifted = relift(s);
 		if ("problem" in relifted) return relifted.problem;
 		const lifted = relifted.spec;
-		if (specs.some((x) => x.key === key)) return `${key} is already in the list.`;
+		if (specs.some((x) => x.key === key)) return MESSAGES.alreadyInList(key);
 		const dest = expandHome(lifted.dest ?? "", paths.home);
 		const owner = specs.find((x) => x.dest && expandHome(x.dest, paths.home) === dest);
-		if (owner) return `${lifted.dest} already belongs to ${owner.name}.`;
+		if (owner) return MESSAGES.destBelongsTo(String(lifted.dest), owner.name);
 		const before = readFileSync(file, "utf8");
-		const failed = `Could not write ${lifted.name} to apps.toml.`;
+		const failed = MESSAGES.couldNotWriteAppsToml(lifted.name);
 		try {
 			replaceManifest(file, `${before.replace(/\n*$/, "\n")}\n${tomlTable(lifted)}`);
 		} catch {
@@ -1161,7 +1161,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			// The row goes back to where it can be tried again, and says why the last try ended. The next check clears it.
 			const why = a.detail;
 			Object.assign(a, resting(spec, { ...c, installed: a.installed }));
-			a.detail = why ? `Last try failed. ${why}` : c.detail;
+			a.detail = why ? MESSAGES.lastTryFailed(why) : c.detail;
 			emitApp(a);
 		}
 	}

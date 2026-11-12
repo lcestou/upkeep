@@ -4,6 +4,7 @@
 
 First version.
 
+- What the engine reports in the window (a row's problem, why an install or restore failed, what Add app found, why an import was refused) now shows in the language picked, not only the window's own labels.
 - Settings has Export and Import beside Open apps.toml, to carry the settings and app list to another computer as one file. The Language choice opens a list drawn inside the window, which no longer runs past its edge with scroll arrows and empty space.
 - With nothing ready, the tray icon's plant is centred instead of leaving an empty space where the count badge goes.
 - The command line can now do everything the window does: `list`, `add`, `remove`, and `export` and `import` of the settings and app list as one file to carry to another machine. Every command answers in JSON with `--json`, so a script or an agent can manage Upkeep without editing files.

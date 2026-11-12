@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { say } from "../lib/engine-say";
 	import type { Settings } from "../../shared/types";
 	import {
 		CHECK_EVERY,
@@ -66,14 +67,14 @@
 	async function exportSetup() {
 		const r = await model.send("exportSetup", {});
 		if (r?.file) note = exportedNote(r.file);
-		else if (r?.problem) note = setupFailed(r.problem);
+		else if (r?.problem) note = setupFailed(say(r.problem));
 	}
 
 	/** Asks for an export and replaces the settings and list from it; the window follows through its events. */
 	async function importSetup() {
 		const r = await model.send("importSetup", {});
 		if (r?.ok) note = importedNote(r.apps ?? 0);
-		else if (r?.problems?.length) note = setupFailed(r.problems.join(" "));
+		else if (r?.problems?.length) note = setupFailed(r.problems.map((p) => say(p)).join(" "));
 	}
 
 	/** Sends a settings change and shows what the main process saved; a request that fails leaves the old values on screen. */

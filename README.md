@@ -198,7 +198,7 @@ Changing the frame or the corners rebuilds the window, which takes a moment.
 
 ### Languages
 
-The window, the tray menu and the notifications speak English, Chinese (Simplified), Spanish, Portuguese (Brazil), German, French, Italian, Polish, Russian and Japanese. **Language** in Settings follows the desktop's language by default (`LANGUAGE`, then `LC_ALL`, `LC_MESSAGES` and `LANG`), falling back to English, or can be set to any of the ten. The switch shows at once, with no restart. Right-to-left languages are not offered yet.
+The window, the tray menu and the notifications speak English, Chinese (Simplified), Spanish, Portuguese (Brazil), German, French, Italian, Polish, Russian and Japanese. **Language** in Settings follows the desktop's language by default (`LANGUAGE`, then `LC_ALL`, `LC_MESSAGES` and `LANG`), falling back to English, or can be set to any of the ten. The switch shows at once, with no restart. What the engine reports (a row's problem, why an install failed, what Add app found) is translated too; a tool's own output, such as a compiler's error line, and the run log stay as the tool printed them. Right-to-left languages are not offered yet.
 
 ### System updates
 
@@ -247,7 +247,7 @@ bun run i18n         # extract new strings into the catalogs in src/mainview/loc
 bun run i18n:check   # fails when a catalog is stale or a string is untranslated (part of validate)
 ```
 
-The window's text is translated with [wuchale](https://wuchale.dev): almost all of it lives in `src/mainview/lib/copy.ts`, as getters and functions so a language switch shows at once, and each language has a hand-written `.po` catalog. A new or changed string needs its translation in every catalog before the gate passes. The tray's words are a typed table in `src/bun/tray-text.ts`, since Vite never builds the Bun process.
+The window's text is translated with [wuchale](https://wuchale.dev): almost all of it lives in `src/mainview/lib/copy.ts`, as getters and functions so a language switch shows at once, and each language has a hand-written `.po` catalog. A new or changed string needs its translation in every catalog before the gate passes. The tray's words are a typed table in `src/bun/tray-text.ts`, since Vite never builds the Bun process. The engine writes its sentences through the templates in `src/shared/messages.ts`; the window reads a sentence back against them (`src/mainview/lib/engine-say.ts`) and words the same template from `engine-text.ts`, which the catalogs translate. A test holds the two English versions together, so a changed engine sentence needs its twin in `engine-text.ts` changed with it.
 
 The identity (app icon, mark, wordmark, tray drawings) is in `assets/brand`. `bun run tray-icons` renders the tray pictures and the launcher icon from it.
 

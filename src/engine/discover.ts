@@ -10,6 +10,7 @@ import {
 	statSync,
 } from "node:fs";
 import { join } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import type { AppKind, AppSpec, Suggestion } from "../shared/types";
 import { download, verifyAsset } from "./download";
 import {
@@ -43,8 +44,8 @@ export type DiscoverCtx = {
 	searchGapMs?: number;
 };
 
-export const BAD_INPUT = "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.";
-export const CATALOGUE_WHY = "From Upkeep's catalogue of tested apps.";
+export const BAD_INPUT = MESSAGES.badInput();
+export const CATALOGUE_WHY = MESSAGES.catalogueWhy();
 
 /** The kinds whose table names a release asset, so a catalogue entry of one is looked up on GitHub for today's release. */
 const RELEASE_KINDS = new Set<AppKind>(["appimage", "archive", "file", "deb"]);
@@ -286,10 +287,10 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	});
 	if (isFailure(release)) {
 		if (release.failure === "http" && release.detail.includes(" 404 "))
-			return { problem: `${repo} has no published release.` };
+			return { problem: MESSAGES.noPublishedRelease(repo) };
 		return { problem: release.detail, rate: release.failure === "rate" };
 	}
-	if (!release.version) return { problem: `The latest tag ${release.tag} is not a version Upkeep can compare.` };
+	if (!release.version) return { problem: MESSAGES.latestNotComparable(release.tag) };
 	const repoName = repo.split("/")[1] ?? repo;
 	const home = ctx.paths.home;
 	// An app is named after what it ships: the shortest stem of its builds, since variants add words
@@ -313,11 +314,9 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	const usable = opts.file ? candidates.filter((c) => prefer.includes(c.kind)) : candidates;
 	const picked = (opts.asset ? usable.find((c) => c.asset.name === opts.asset) : undefined) ?? usable[0];
 	if (!picked) {
-		const problem = `No asset of ${repo}'s latest release runs on this machine.`;
+		const problem = MESSAGES.noAssetForMachine(repo);
 		return {
-			problem: unopened
-				? `${problem} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet.`
-				: problem,
+			problem: unopened ? MESSAGES.unopenedArchives(problem) : problem,
 		};
 	}
 	const kind = picked.kind;
@@ -355,8 +354,8 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		const lead = found.programs.find((p) => baseOf(p) === want) ?? found.programs[0] ?? want;
 		bins = [lead, ...found.programs.filter((p) => p !== lead)];
 		if (!opts.file) dest = place(await which(ctx, baseOf(lead)), baseOf(lead));
-		installs = `It installs ${bins.map(baseOf).join(", ")}.`;
-		if (found.more) installs += ` The archive holds ${found.more} programs; only the first ${MAX_BINS} are listed.`;
+		installs = MESSAGES.itInstalls(bins.map(baseOf).join(", "));
+		if (found.more) installs += MESSAGES.archiveHoldsMore(found.more, MAX_BINS);
 	}
 	const spec: AppSpec = { key, name, kind, repo, asset: pattern, dest: tilde(dest, home) };
 	if (bins) spec.bins = bins;
@@ -366,26 +365,19 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 
 	const why = [
 		opts.found,
-		`Matched ${picked.asset.name} for this machine.`,
-		installs ?? (systemCopy ? `It installs ${bin}.` : null),
+		MESSAGES.matchedAsset(picked.asset.name),
+		installs ?? (systemCopy ? MESSAGES.itInstalls(bin) : null),
 	];
-	if (systemCopy)
-		why.push(
-			`A copy at ${systemCopy} comes from the system's packages, so Upkeep will keep its own at ${spec.dest}, which comes first on your PATH.`,
-		);
+	if (systemCopy) why.push(MESSAGES.systemCopyKept(systemCopy, String(spec.dest)));
 	else if (!opts.file)
-		why.push(
-			exists
-				? `Found it installed at ${spec.dest}.`
-				: `Nothing is installed at ${spec.dest} yet, so Install will put it there.`,
-		);
-	if (widen) why.push("The pattern is this release's exact asset name and will need widening.");
+		why.push(exists ? MESSAGES.foundInstalledAt(String(spec.dest)) : MESSAGES.nothingInstalledAt(String(spec.dest)));
+	if (widen) why.push(MESSAGES.patternNeedsWidening());
 	let installed: string | null = null;
 	// The system's copy is not the one Upkeep keeps, so its version is not "installed".
 	if (exists && opts.probe !== false && !systemCopy) {
 		const p = await probeVersion(dest, ["--version"], { run: ctx.run });
 		if ("version" in p) installed = p.version;
-		else why.push("Could not read the installed version with --version.");
+		else why.push(MESSAGES.couldNotReadVersion());
 	}
 	const suggestion: Suggestion = {
 		spec,
@@ -398,7 +390,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		why: why.filter(Boolean).join(" "),
 	};
 	if (opts.file) suggestion.path = opts.file.path;
-	if (ctx.specs.some((s) => s.key === key)) suggestion.problem = `${name} is already in the list.`;
+	if (ctx.specs.some((s) => s.key === key)) suggestion.problem = MESSAGES.alreadyInList(name);
 	return { suggestion };
 }
 
@@ -423,7 +415,7 @@ export async function programsIn(
 		verifyAsset(await download(asset.url, file, { fetch: ctx.fetch }), asset);
 		const zip = asset.name.toLowerCase().endsWith(".zip");
 		const list = await ctx.run(zip ? ["unzip", "-Z1", file] : ["tar", "tzf", file], { timeoutMs: 60_000 });
-		if (list.code !== 0) return { problem: `${asset.name} holds no program Upkeep can install.` };
+		if (list.code !== 0) return { problem: MESSAGES.noProgramInArchive(asset.name) };
 		const listed = new Set(
 			list.stdout
 				.split("\n")
@@ -434,7 +426,7 @@ export async function programsIn(
 		const x = await ctx.run(zip ? ["unzip", "-q", file, "-d", dir] : ["tar", "xzf", file, "-C", dir], {
 			timeoutMs: 300_000,
 		});
-		if (x.code !== 0) return { problem: `${asset.name} holds no program Upkeep can install.` };
+		if (x.code !== 0) return { problem: MESSAGES.noProgramInArchive(asset.name) };
 		let programs = [...listed].filter((p) => {
 			const full = join(dir, p);
 			try {
@@ -445,7 +437,7 @@ export async function programsIn(
 			}
 		});
 		programs.sort((a, b) => a.split("/").length - b.split("/").length || a.localeCompare(b));
-		if (programs.length === 0) return { problem: `${asset.name} holds no program Upkeep can install.` };
+		if (programs.length === 0) return { problem: MESSAGES.noProgramInArchive(asset.name) };
 		let more = 0;
 		if (programs.length > MAX_BINS) {
 			more = programs.length;
@@ -507,11 +499,13 @@ async function searchRepo(name: string, ctx: DiscoverCtx): Promise<Search> {
 			{ headers },
 		);
 	} catch (err) {
-		return { problem: `Could not reach GitHub: ${err instanceof Error ? err.message : String(err)}`, rate: false };
+		return {
+			problem: MESSAGES.couldNotReachGithubSearch(err instanceof Error ? err.message : String(err)),
+			rate: false,
+		};
 	}
-	if (res.status === 403 || res.status === 429)
-		return { problem: "GitHub's request limit is used up. Try again after it resets.", rate: true };
-	if (!res.ok) return { problem: `GitHub answered ${res.status} for ${name}.`, rate: false };
+	if (res.status === 403 || res.status === 429) return { problem: MESSAGES.rateLimitSearch(), rate: true };
+	if (!res.ok) return { problem: MESSAGES.githubAnsweredSearch(res.status, name), rate: false };
 	let items: RepoHit[] = [];
 	try {
 		items = parseRepoSearch(await res.json());
@@ -540,9 +534,6 @@ function fileProblem(path: string, home: string, problem: string, source: Sugges
 	};
 }
 
-/** The problem line for a file Upkeep cannot trace to a repo; it asks the person for one. */
-const unknownSource = (base: string) => `Could not tell where ${base} comes from. Paste its GitHub repo to add it.`;
-
 /** A suggestion for a file on disk. Never runs it; probe allows the version probe once a repo is known. */
 export async function fromFile(
 	input: string,
@@ -555,7 +546,7 @@ export async function fromFile(
 		try {
 			path = decodeURIComponent(new URL(path).pathname);
 		} catch {
-			return { problem: `There is no file at ${input}.` };
+			return { problem: MESSAGES.noFileAt(input) };
 		}
 	}
 	path = expandHome(path, home);
@@ -565,11 +556,10 @@ export async function fromFile(
 	} catch {
 		// absent
 	}
-	if (!regular) return { problem: `There is no file at ${path}.` };
+	if (!regular) return { problem: MESSAGES.noFileAt(path) };
 	const base = path.split("/").at(-1) ?? path;
 	const start = head(path);
-	if (!isElf(start))
-		return { problem: `${base} is not a program Upkeep can track (it is not a compiled binary or an AppImage).` };
+	if (!isElf(start)) return { problem: MESSAGES.notTrackable(base) };
 	const appimage = isAppImage(start);
 	const source = opts.scan ? "scan" : "file";
 	const file = { path, appimage };
@@ -582,7 +572,7 @@ export async function fromFile(
 		if ("problem" in s) return { suggestion: fileProblem(path, home, s.problem, source), rate: s.rate, searched };
 		if ("none" in s)
 			return {
-				suggestion: fileProblem(path, home, unknownSource(base), source),
+				suggestion: fileProblem(path, home, MESSAGES.unknownSource(base), source),
 				searched,
 			};
 		repo = s.repo;
@@ -592,14 +582,12 @@ export async function fromFile(
 		file,
 		source,
 		confidence: embedded ? "sure" : "guess",
-		found: embedded
-			? "The AppImage names its own release source."
-			: `Guessed from the file name. Check that ${repo} is the right project.`,
+		found: embedded ? MESSAGES.appImageNamesSource() : MESSAGES.guessedFromFileName(repo),
 		probe: !opts.scan,
 	});
 	if ("problem" in r) {
 		// A guessed repo without a release for this machine was not the right guess.
-		const problem = embedded || r.rate ? r.problem : unknownSource(base);
+		const problem = embedded || r.rate ? r.problem : MESSAGES.unknownSource(base);
 		return { suggestion: fileProblem(path, home, problem, source), rate: r.rate, searched };
 	}
 	return { suggestion: r.suggestion, searched };
@@ -655,7 +643,7 @@ async function fromCatalogue(
 	const sure = { source: "catalogue" as const, confidence: "sure" as const, why: CATALOGUE_WHY };
 	if (!entry.repo || !RELEASE_KINDS.has(entry.kind)) {
 		const s: Suggestion = { spec: entry, installed: null, latest: null, asset: null, alternatives: [], ...sure };
-		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = `${entry.name} is already in the list.`;
+		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = MESSAGES.alreadyInList(entry.name);
 		return { suggestions: [s] };
 	}
 	const pattern = asset ?? entry.asset;

@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { MESSAGES } from "./shared/messages";
 import type { AppState, EngineEvent, Suggestion } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
@@ -255,7 +256,7 @@ function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): nu
 	} catch (err) {
 		return refuse(`Could not take the run lock: ${err instanceof Error ? err.message : String(err)}`, json, out);
 	}
-	if (!mine) return refuse("An Upkeep run is in progress. Try again when it ends.", json, out);
+	if (!mine) return refuse(MESSAGES.importDuringRun(), json, out);
 	try {
 		const r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
 		if (json) out(JSON.stringify(r));

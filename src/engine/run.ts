@@ -1,5 +1,6 @@
 import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import { expandHome } from "./paths";
 
 export type RunOpts = {
@@ -255,7 +256,7 @@ export function asRootArgv(argv: string[]): string[] {
 	return ["sudo", "-n", ...argv.slice(1)];
 }
 
-export const SUDO_PASSWORD = "sudo needs a password here. Run the update from a terminal.";
+export const SUDO_PASSWORD = MESSAGES.sudoPassword();
 
 /** True when sudo refused because it would have had to ask for a password. */
 export function sudoNeedsPassword(r: ProcessResult): boolean {
@@ -276,7 +277,7 @@ export async function installAside(
 	const next = `${to}.upkeep-new`;
 	let r = await run(asRoot(["install", "-m", mode, src, next], sudo), { timeoutMs: 120_000 });
 	if (r.code === 0 && !(existsSync(next) && statSync(next).size === statSync(src).size))
-		r = { ...r, code: 1, stderr: "size differs after copy" };
+		r = { ...r, code: 1, stderr: MESSAGES.sizeDiffersAfterCopy() };
 	if (r.code === 0) r = await run(asRoot(["mv", "-f", next, to], sudo), { timeoutMs: 60_000 });
 	if (r.code !== 0 && !sudoNeedsPassword(r)) await run(asRoot(["rm", "-f", next], sudo), { timeoutMs: 60_000 });
 	return r;
