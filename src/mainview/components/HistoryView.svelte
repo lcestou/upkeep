@@ -1,17 +1,32 @@
 <script lang="ts">
 	import { say } from "../lib/engine-say";
-	import type { HistoryRow } from "../../shared/types";
-	import { RUN_TEXT, TEXT, installedText, runSentence } from "../lib/copy";
-	import { formatDuration, formatRunTime } from "../lib/format";
+	import type { CleanupId, HistoryRow } from "../../shared/types";
+	import { CLEAN, RUN_TEXT, TEXT, freedShort, installedText, runSentence } from "../lib/copy";
+	import { formatBytes, formatDuration, formatRunTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { CARE, glyphColor } from "../lib/state";
 	import Glyph from "./Glyph.svelte";
 
 	let { model }: { model: Model } = $props();
 
-	const STATUS = { updated: "done", failed: "failed", rolled_back: "rolled_back", restored: "held" } as const;
+	const STATUS = { updated: "done", failed: "failed", rolled_back: "rolled_back", restored: "held", cleaned: "done" } as const;
 	// $derived: the labels follow a language switch.
-	const RESULT = $derived({ updated: TEXT.updated, failed: TEXT.failed, rolled_back: TEXT.rolledBack, restored: TEXT.restored } as const);
+	const RESULT = $derived({
+		updated: TEXT.updated,
+		failed: TEXT.failed,
+		rolled_back: TEXT.rolledBack,
+		restored: TEXT.restored,
+		cleaned: CLEAN.cleaned,
+	} as const);
+
+	/** A Cleanup row's key is cleanup:<id>; its name is the item's, in the language shown. Any other row keeps its own. */
+	function nameOf(row: HistoryRow): string {
+		const id = row.key.startsWith("cleanup:") ? row.key.slice("cleanup:".length) : "";
+		return isCleanupId(id) ? CLEAN.name[id] : row.name;
+	}
+
+	/** True for an id Cleanup names; a history file from a later version may hold others. */
+	const isCleanupId = (id: string): id is CleanupId => Object.hasOwn(CLEAN.name, id);
 
 	// The newest update of each app that still waits on a restart carries a Restart pending note.
 	const pending = $derived.by(() => {
@@ -52,8 +67,9 @@
 							<Glyph name={CARE[status].glyph} color={glyphColor(status)} />
 							<span class="what">
 								<span class="line">
-									<span class="tag-name">{row.name}</span>
-									{#if row.from === null && row.to}<span class="mono vers" data-testid="history-vers"
+									<span class="tag-name">{nameOf(row)}</span>
+									{#if row.freed !== undefined}<span class="mono vers" data-testid="history-freed">{freedShort(formatBytes(row.freed))}</span
+										>{:else if row.from === null && row.to}<span class="mono vers" data-testid="history-vers"
 											>{installedText(row.to)}</span
 										>{:else}<span class="mono vers" data-testid="history-vers"
 											>{row.from ?? ""} <span class="to">to</span> <span class:struck={row.result !== "updated"}>{row.to ?? ""}</span></span

@@ -4,6 +4,7 @@ import { MESSAGES } from "../../shared/messages";
 import type { CleanupId, CleanupItem, CleanupOutcome, CleanupPart, CleanupPick } from "../../shared/types";
 import type { Paths } from "../paths";
 import type { ProcessResult, Run } from "../run";
+import { SUDO_CHECK } from "./install";
 import { DRIVER_GL } from "./system";
 
 // Cleanup: a fixed list of candidates, each measured by its own rule and deleted by its own step, never a general
@@ -11,8 +12,6 @@ import { DRIVER_GL } from "./system";
 // never through a link and never on another file system. Everything outside the home folder is read or changed only
 // through the runner, with the literal argv lists below, so the review sheet can show them as they run.
 
-/** sudo without a password, or no root part runs. */
-export const SUDO_CHECK = ["sudo", "-n", "true"];
 /** apt's downloaded packages, sized as the person: the folder is readable without root. */
 export const APT_CACHE_SIZES = [
 	"find",

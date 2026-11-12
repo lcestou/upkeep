@@ -4,6 +4,10 @@ import type {
 	AppState,
 	AppStatus,
 	Bridge,
+	CleanupId,
+	CleanupOutcome,
+	CleanupPick,
+	CleanupState,
 	EngineEvent,
 	ExtrasSettings,
 	ExtrasSnapshot,
@@ -22,6 +26,7 @@ import type {
 	WindowChrome,
 } from "../../shared/types";
 import { PICKED, scanResults, suggestFor } from "./fixture-add";
+import { afterClean, fixtureCleanupItems, fixtureReview } from "./fixture-cleanup";
 import { lastTryFailed, tomlWriteFailed } from "./copy";
 import { MESSAGES } from "../../shared/messages";
 import { type SystemVariant, fixtureInstallable, fixtureOutcome, fixturePlan, systemFor } from "./fixture-system";
@@ -608,6 +613,8 @@ export type FixtureOptions = {
 	scan?: "unknown";
 	/** The System group's starting state; off unless asked. */
 	system?: SystemVariant;
+	/** "on" starts with the Cleanup tab switched on. */
+	cleanup?: "on";
 };
 
 // The owner's desktop puts the window buttons on the left: close, maximize, minimize.
@@ -660,14 +667,16 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const sysOps: string[] = [];
 	globalThis.upkeepSysOps = sysOps;
 	const installing = opts.system === "install" || opts.system === "refuse";
+	const systemSettings: ExtrasSettings =
+		!opts.system || opts.system === "off"
+			? { system: "off" }
+			: installing
+				? { system: "show", systemInstall: true }
+				: { system: "show" };
 	let extras: ExtrasSnapshot = {
-		settings:
-			!opts.system || opts.system === "off"
-				? { system: "off" }
-				: installing
-					? { system: "show", systemInstall: true }
-					: { system: "show" },
+		settings: opts.cleanup === "on" ? { ...systemSettings, cleanup: true } : systemSettings,
 		system: systemFor(opts.system ?? "off", iso(Date.now() - 5 * 60_000)),
+		cleanup: { phase: opts.cleanup === "on" ? "idle" : "off", items: [], measuredAt: null, last: null },
 	};
 	/** What the main process sends: the installable ids worked out from the rows, as the engine does, only while installing is on. */
 	const extrasNow = (): ExtrasSnapshot =>
@@ -680,6 +689,64 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		extras = { ...extras, system };
 		emit({ type: "extras", extras: extrasNow() });
 	};
+	const setCleanup = (cleanup: CleanupState) => {
+		extras = { ...extras, cleanup };
+		emit({ type: "extras", extras: extrasNow() });
+	};
+	/** A fake measure: the items land after a moment. Nothing is read from disk. */
+	async function runMeasure() {
+		setCleanup({ ...extras.cleanup, phase: "measuring", items: [] });
+		await sleep(400 / speed);
+		if (!extras.settings.cleanup) return;
+		setCleanup({
+			...extras.cleanup,
+			phase: "idle",
+			items: fixtureCleanupItems(extras.settings.devCaches === true),
+			measuredAt: iso(Date.now()),
+		});
+	}
+	/** A fake delete: each picked item works for a moment and is cleaned, then the list drops what went. Nothing is deleted. */
+	async function runClean(picks: CleanupPick[], ids: CleanupId[]) {
+		const at = iso(Date.now());
+		const sizes = new Map(
+			extras.cleanup.items.map((it) => [
+				it.id,
+				it.parts
+					.filter((p) => picks.some((k) => k.id === it.id && k.partIds.includes(p.id)))
+					.reduce((a, p) => a + p.bytes, 0),
+			]),
+		);
+		const outcomes: CleanupOutcome[] = ids.map((id) => ({ id, status: "queued", freed: 0 }));
+		setCleanup({ ...extras.cleanup, phase: "cleaning", last: { at, outcomes, refused: null } });
+		for (const o of outcomes) {
+			o.status = "working";
+			setCleanup({ ...extras.cleanup, last: { at, outcomes: clone(outcomes), refused: null } });
+			// oxlint-disable-next-line no-await-in-loop -- one item at a time is the point, as the engine cleans them
+			await sleep(300 / speed);
+			o.status = "done";
+			o.freed = sizes.get(o.id) ?? 0;
+		}
+		for (const o of outcomes)
+			history.unshift({
+				key: `cleanup:${o.id}`,
+				name: o.id,
+				from: null,
+				to: null,
+				result: "cleaned",
+				ms: 300,
+				runId: `${at}-cleanup`,
+				at,
+				stages: {},
+				freed: o.freed,
+			});
+		setCleanup({
+			...extras.cleanup,
+			phase: "idle",
+			items: afterClean(extras.cleanup.items, picks),
+			measuredAt: iso(Date.now()),
+			last: { at, outcomes: clone(outcomes), refused: null },
+		});
+	}
 	/**
 	 * A fake System install: the refuse variant is refused by its sudo check; any other runs each ticked row for a
 	 * moment, then libsoup3 stays pending and the rest are installed and leave the list. Nothing real runs.
@@ -1124,15 +1191,22 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		extras: () => extrasNow(),
 		setExtras: (patch) => {
 			const merged = { ...extras.settings, ...patch };
-			// As the engine's clamp: installing is on only while the list is shown.
+			// As the engine's clamp: installing is on only while the list is shown, developer caches only with Cleanup.
 			const next: ExtrasSettings =
 				merged.system !== "show"
 					? { system: "off" }
 					: merged.systemInstall
 						? { system: "show", systemInstall: true }
 						: { system: "show" };
+			if (merged.cleanup) next.cleanup = true;
+			if (merged.cleanup && merged.devCaches) next.devCaches = true;
 			const turnedOn = next.system === "show" && extras.settings.system !== "show";
+			const cleanupWas = extras.settings.cleanup === true;
 			extras = { ...extras, settings: next };
+			if (next.cleanup !== cleanupWas || merged.devCaches !== undefined) {
+				if (!next.cleanup) setCleanup({ phase: "off", items: [], measuredAt: null, last: null });
+				else void runMeasure();
+			}
 			if (next.system === "off") setExtras(systemFor("off", ""));
 			else if (turnedOn) void runSystemCheck();
 			else setExtras(extras.system);
@@ -1147,6 +1221,30 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		openTool: ({ what }) => {
 			sysOps.push(`openTool:${what}`);
 			return { ok: true };
+		},
+		cleanupMeasure: () => {
+			sysOps.push("cleanupMeasure");
+			if (!extras.settings.cleanup || extras.cleanup.phase !== "idle") return { started: false };
+			void runMeasure();
+			return { started: true };
+		},
+		cleanupReview: ({ picks }) => {
+			sysOps.push(`cleanupReview:${picks.map((p) => p.id).join(",")}`);
+			const r = fixtureReview(extras.cleanup.items, picks);
+			return r.parts === 0
+				? { bytes: 0, commands: [], reason: MESSAGES.cleanNothing() }
+				: { bytes: r.bytes, commands: r.commands };
+		},
+		cleanupRun: ({ picks, commands, typed }) => {
+			sysOps.push(`cleanupRun:${picks.map((p) => p.id).join(",")}`);
+			if (extras.cleanup.phase !== "idle") return { started: false, reason: MESSAGES.reasonBusy() };
+			const r = fixtureReview(extras.cleanup.items, picks);
+			if (JSON.stringify(r.commands) !== JSON.stringify(commands))
+				return { started: false, reason: MESSAGES.cleanListChanged() };
+			if (r.items.includes("autoremove") && typed?.trim() !== "remove")
+				return { started: false, reason: MESSAGES.cleanTypeFirst("remove") };
+			void runClean(picks, r.items);
+			return { started: true };
 		},
 		systemPlan: ({ ids }) => {
 			sysOps.push(`systemPlan:${ids.join(",")}`);

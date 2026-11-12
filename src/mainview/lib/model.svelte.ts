@@ -17,7 +17,7 @@ import type {
 import { followSetting } from "./language.svelte";
 import { GROUP_LABEL, type GroupId, stateSentence } from "./copy";
 
-export type View = "updates" | "history" | "settings";
+export type View = "updates" | "history" | "cleanup" | "settings";
 
 export const GROUP_ORDER: GroupId[] = ["run", "ready", "manual", "problem", "held", "checking", "restart", "fresh"];
 
@@ -317,6 +317,8 @@ export class Model {
 				return;
 			case "extras":
 				this.extras = e.extras;
+				// Cleanup switched off while its tab shows: the tab is gone, so Settings, where the switch is, shows.
+				if (this.view === "cleanup" && !e.extras.settings.cleanup) this.view = "settings";
 				return;
 			case "removed": {
 				this.apps = this.apps.filter((a) => a.key !== e.key);
@@ -465,6 +467,7 @@ export class Model {
 		const on = settings.system === "show";
 		this.extras = {
 			settings,
+			cleanup: this.extras?.cleanup ?? { phase: "off", items: [], measuredAt: null, last: null },
 			system: {
 				mode: settings.system,
 				phase: on ? (system?.phase === "idle" && system.mode === "show" ? "idle" : "checking") : "off",

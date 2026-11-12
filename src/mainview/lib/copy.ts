@@ -2,6 +2,8 @@
 import type {
 	AppKind,
 	AppState,
+	CleanupId,
+	CleanupOutcome,
 	RunResult,
 	RunState,
 	Settings,
@@ -948,3 +950,246 @@ export const CHECK_EVERY = [
 		},
 	},
 ] as const satisfies readonly { v: Settings["checkEvery"]; label: string }[];
+
+/** The Cleanup tab: a fixed list of caches and leftovers, each deleted only after it is ticked and reviewed. */
+export const CLEAN = {
+	get tab() {
+		return "Cleanup";
+	},
+	get setting() {
+		return "Show Cleanup";
+	},
+	get settingHelp() {
+		return "Adds a Cleanup tab. It measures caches and leftovers, and deletes only what you tick and then confirm.";
+	},
+	get devSetting() {
+		return "Include developer caches";
+	},
+	get devSettingHelp() {
+		return "The uv, bun, npm and pip download caches. They come back as downloads the next time a build needs them.";
+	},
+	get intro() {
+		return "Upkeep deletes only what you tick, after one more look.";
+	},
+	get measure() {
+		return "Measure again";
+	},
+	get measuring() {
+		return "Measuring";
+	},
+	get notMeasured() {
+		return "Not measured yet.";
+	},
+	get nothing() {
+		return "Nothing to clean.";
+	},
+	get root() {
+		return "Needs administrator";
+	},
+	get newerCopy() {
+		return "This copy is newer than the installed file.";
+	},
+	get tickOne() {
+		return "Tick something to clean.";
+	},
+	get reviewTitle() {
+		return "Delete these?";
+	},
+	get commands() {
+		return "Upkeep runs these commands:";
+	},
+	get back() {
+		return "Back";
+	},
+	get dismiss() {
+		return "Done";
+	},
+	get cleaned() {
+		return "Cleaned";
+	},
+	group: {
+		get safe() {
+			return "Safe to clear";
+		},
+		get choice() {
+			return "Your call";
+		},
+		get shown() {
+			return "Shown only";
+		},
+	},
+	undo: {
+		get regrows() {
+			return "Comes back on its own";
+		},
+		get redownload() {
+			return "Downloads again";
+		},
+		get none() {
+			return "Cannot be undone";
+		},
+	},
+	state: {
+		get queued() {
+			return "Waiting";
+		},
+		get working() {
+			return "Cleaning";
+		},
+		get done() {
+			return "Cleaned";
+		},
+		get skipped() {
+			return "Skipped";
+		},
+		get failed() {
+			return "Failed";
+		},
+	} satisfies Record<CleanupOutcome["status"], string>,
+	name: {
+		get thumbnails() {
+			return "Thumbnails";
+		},
+		get trash() {
+			return "Trash";
+		},
+		get leftovers() {
+			return "Upkeep's leftover copies";
+		},
+		get "restore-points"() {
+			return "Restore points";
+		},
+		get "apt-cache"() {
+			return "Downloaded packages";
+		},
+		get "flatpak-gl"() {
+			return "Old NVIDIA runtimes for Flatpak";
+		},
+		get autoremove() {
+			return "Packages nothing needs";
+		},
+		get uv() {
+			return "uv cache";
+		},
+		get bun() {
+			return "bun cache";
+		},
+		get npm() {
+			return "npm cache";
+		},
+		get pip() {
+			return "pip cache";
+		},
+		get tmp() {
+			return "Temporary files (/tmp)";
+		},
+		get journal() {
+			return "System logs";
+		},
+		get kernels() {
+			return "Old kernels";
+		},
+		get timeshift() {
+			return "Timeshift snapshots";
+		},
+		get browser() {
+			return "Browser caches";
+		},
+		get playwright() {
+			return "Playwright browsers";
+		},
+		get "hand-backups"() {
+			return "Backup copies beside your apps";
+		},
+		get "upkeep-cache"() {
+			return "Upkeep's own cache";
+		},
+	} satisfies Record<CleanupId, string>,
+	what: {
+		get thumbnails() {
+			return "Small previews of pictures and videos. The file manager makes them again when it needs them.";
+		},
+		get trash() {
+			return "Files you deleted in the file manager, in your home folder's Trash.";
+		},
+		get leftovers() {
+			return "Copies Upkeep left beside an app when an install was cut off.";
+		},
+		get "restore-points"() {
+			return "Upkeep's copies of replaced app versions. Deleting one means that version can no longer be put back.";
+		},
+		get "apt-cache"() {
+			return "Package files apt keeps after installing them. apt downloads them again if it needs them.";
+		},
+		get "flatpak-gl"() {
+			return "Flatpak GPU runtimes for NVIDIA driver versions no longer installed.";
+		},
+		get autoremove() {
+			return "Packages apt installed as dependencies that nothing uses now.";
+		},
+		get uv() {
+			return "Downloaded and built Python packages. Tools already installed keep working.";
+		},
+		get bun() {
+			return "Downloaded JavaScript packages for bun.";
+		},
+		get npm() {
+			return "Downloaded JavaScript packages for npm.";
+		},
+		get pip() {
+			return "Downloaded Python packages for pip.";
+		},
+		get tmp() {
+			return "Cleared at every restart, and the system removes anything untouched for 30 days.";
+		},
+		get journal() {
+			return "The system keeps these under the size its journald setting allows.";
+		},
+		get kernels() {
+			return "Remove older ones in Update Manager under View, Linux kernels.";
+		},
+		get timeshift() {
+			return "Timeshift and its own schedule manage these. Delete one from Timeshift.";
+		},
+		get browser() {
+			return "Clear these from the browser's own settings. Deleting them while it runs can break it.";
+		},
+		get playwright() {
+			return "Test browsers that projects pin by version.";
+		},
+		get "hand-backups"() {
+			return "Copies made by hand or by another tool. Upkeep leaves them alone.";
+		},
+		get "upkeep-cache"() {
+			return "Saves GitHub lookups. Upkeep clears its downloads at the start of every run.";
+		},
+	} satisfies Record<CleanupId, string>,
+} as const;
+
+/** A shown kernel item's facts: the running kernel, and the newest when it is another. */
+export const kernelsLine = (running: string, newest: string) =>
+	running === newest ? `Running ${running}.` : `Running ${running}, newest installed ${newest}.`;
+/** A shown Timeshift item's facts. */
+export const snapshotsLine = (count: number, newest: string) =>
+	`${plural(count, ["# snapshot.", "# snapshots."])} ${newestLine(newest)}`;
+/** The newest snapshot, after the count. */
+const newestLine = (newest: string) => `Newest ${newest}.`;
+/** How many hand-made copies a shown item counted. */
+export const copiesLine = (count: number) => plural(count, ["# copy.", "# copies."]);
+/** When the list was last measured. */
+export const measuredLine = (relative: string) => `Measured ${relative}`;
+/** The footer button that opens the review: what the ticks free. */
+export const reviewLabel = (size: string) => `Review ${size}`;
+/** The review sheet's button, naming what it deletes. */
+export const deleteLabel = (size: string) => `Delete ${size}`;
+/** The review sheet's total line. */
+export const totalLine = (size: string) => `${size} in all.`;
+/** The review sheet's line naming what cannot come back. */
+export const finalLine = (names: string[]) =>
+	`Cannot be undone: ${new Intl.ListFormat(language.locale, { type: "conjunction" }).format(names)}.`;
+/** The field label for removing packages; word is the literal word to type, never translated. */
+export const typeLabel = (word: string) => `Type ${word} to also remove packages`;
+/** A finished cleanup's line. */
+export const freedLine = (size: string) => `Freed ${size}.`;
+/** A History row for a cleanup: what it freed. */
+export const freedShort = (size: string) => `${size} freed`;

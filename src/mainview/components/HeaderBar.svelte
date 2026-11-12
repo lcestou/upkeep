@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { TEXT } from "../lib/copy";
+	import { CLEAN, TEXT } from "../lib/copy";
 	import type { Model, View } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
 	import { fade } from "svelte/transition";
@@ -9,10 +9,11 @@
 
 	let { model }: { model: Model } = $props();
 
-	// $derived: the labels follow a language switch.
+	// $derived: the labels follow a language switch, and Cleanup shows only while its switch in Settings is on.
 	const tabs: { id: View; text: string }[] = $derived([
 		{ id: "updates", text: TEXT.updates },
 		{ id: "history", text: TEXT.history },
+		...(model.extras?.settings.cleanup ? [{ id: "cleanup" as const, text: CLEAN.tab }] : []),
 		{ id: "settings", text: TEXT.settings },
 	]);
 	const checking = $derived(model.run.phase === "checking");

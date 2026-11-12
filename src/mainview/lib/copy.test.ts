@@ -1,6 +1,18 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
 import {
+	CLEAN,
+	copiesLine,
+	deleteLabel,
+	finalLine,
+	freedLine,
+	freedShort,
+	kernelsLine,
+	measuredLine,
+	reviewLabel,
+	snapshotsLine,
+	totalLine,
+	typeLabel,
 	aboutManifest,
 	ADD,
 	addApps,
@@ -281,6 +293,24 @@ test("every label in the copy tables is words, read through its getter", () => {
 	const labels = [...JSON.stringify(tables).matchAll(/:"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1] ?? "");
 	expect(labels.length).toBeGreaterThan(150);
 	expect(labels.filter((l) => !/\p{L}/u.test(l))).toEqual([]);
+});
+
+test("Cleanup's labels are words, and its sentences carry their values", () => {
+	const labels = [...JSON.stringify(CLEAN).matchAll(/:"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1] ?? "");
+	expect(labels.length).toBeGreaterThan(60);
+	expect(labels.filter((l) => !/\p{L}/u.test(l))).toEqual([]);
+	expect(kernelsLine("6.8.0-149", "6.8.0-149")).toBe("Running 6.8.0-149.");
+	expect(kernelsLine("6.8.0-147", "6.8.0-149")).toBe("Running 6.8.0-147, newest installed 6.8.0-149.");
+	expect(snapshotsLine(1, "2026-11-12")).toBe("1 snapshot. Newest 2026-11-12.");
+	expect(copiesLine(39)).toBe("39 copies.");
+	expect(measuredLine("2 minutes ago")).toBe("Measured 2 minutes ago");
+	expect(reviewLabel("2.4 GB")).toBe("Review 2.4 GB");
+	expect(deleteLabel("2.4 GB")).toBe("Delete 2.4 GB");
+	expect(totalLine("2.4 GB")).toBe("2.4 GB in all.");
+	expect(finalLine(["Trash", "Restore points"])).toBe("Cannot be undone: Trash and Restore points.");
+	expect(typeLabel("remove")).toBe("Type remove to also remove packages");
+	expect(freedLine("43 MB")).toBe("Freed 43 MB.");
+	expect(freedShort("43 MB")).toBe("43 MB freed");
 });
 
 test("the summary's failed part and an apps.toml failure are found without matching English words", () => {

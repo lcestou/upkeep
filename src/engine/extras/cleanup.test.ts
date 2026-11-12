@@ -383,3 +383,67 @@ test("Cleanup off measures nothing and answers nothing", async () => {
 	await x.idle();
 	expect(x.snapshot().cleanup.items).toEqual([]);
 });
+
+test("while a cleanup's command runs, its pid is kept for a quit, and another cleanup or a System install is refused", async () => {
+	let finish: (r: ProcessResult) => void = () => undefined;
+	const seen = { pid: 0 };
+	let reached: () => void = () => undefined;
+	const atCommand = new Promise<void>((resolve) => {
+		reached = resolve;
+	});
+	const { run } = strictRun((argv, opts) => {
+		const key = argv.join(" ");
+		if (key === APT_CACHE_SIZES.join(" ")) return ok("1000\n");
+		if (key === "sudo -n true") return ok();
+		if (key === "sudo -n apt-get clean") {
+			opts.onStart?.(4_000_000);
+			seen.pid = 4_000_000;
+			reached();
+			return new Promise<ProcessResult>((resolve) => {
+				finish = resolve;
+			});
+		}
+		return MEASURES.has(key) ? missing : undefined;
+	});
+	const x = extrasOn(run);
+	x.measureCleanup();
+	await x.idle();
+	const picks = pickAll(x.snapshot().cleanup.items);
+	const { commands } = x.reviewCleanup(picks);
+	expect(commands).toEqual([["sudo", "-n", "apt-get", "clean"]]);
+	expect(x.runCleanup(picks, commands)).toEqual({ started: true });
+	expect(x.runCleanup(picks, commands)).toEqual({ started: false, reason: MESSAGES.reasonBusy() });
+	expect(x.installSystem([], [])).toMatchObject({ started: false });
+	expect(x.measureCleanup()).toEqual({ started: false });
+	await atCommand;
+	expect(seen.pid).toBe(4_000_000);
+	expect(x.snapshot().cleanup.last?.outcomes).toEqual([{ id: "apt-cache", status: "working", freed: 0 }]);
+	finish(ok());
+	await x.idle();
+	expect(x.installing()).toBe(false);
+	expect(x.snapshot().cleanup.phase).toBe("idle");
+});
+
+test("turning developer caches on or off measures again", async () => {
+	put(join(t.dir, "cache", "uv", "wheel"), 64);
+	const { run } = box({
+		"uv --version": ok("uv"),
+		"bun --version": missing,
+		"npm --version": missing,
+		"pip --version": missing,
+	});
+	const x = extrasOn(run);
+	x.measureCleanup();
+	await x.idle();
+	expect(x.snapshot().cleanup.items.map((i) => i.id)).toEqual([]);
+	expect(x.setSettings({ devCaches: true })).toEqual({ system: "off", cleanup: true, devCaches: true });
+	expect(x.snapshot().cleanup.phase).toBe("measuring");
+	await x.idle();
+	expect(x.snapshot().cleanup.items.map((i) => i.id)).toEqual(["uv"]);
+	x.setSettings({ devCaches: false });
+	await x.idle();
+	expect(x.snapshot().cleanup.items.map((i) => i.id)).toEqual([]);
+	// Nothing runs, so a quit that cannot wait has nothing to end.
+	x.stopSystem();
+	expect(x.installing()).toBe(false);
+});
