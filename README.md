@@ -226,7 +226,20 @@ The window, the tray menu and the notifications speak English, Chinese (Simplifi
 
 The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, Snaps where snapd is installed (`snap refresh --list`), Cinnamon's applets, desklets, extensions and themes on any Cinnamon desktop (`cinnamon-spice-updater --list-json`, the list Update Manager shows them from), and the packages the system's package manager would install (security, kernel and driver updates marked as such). The packages come from the first list the system has: Linux Mint's Update Manager (`mintupdate-cli list`), else `apt list --upgradable`, `dnf check-update`, pacman (`checkupdates`, else `pacman -Qu`), or `zypper list-updates`. None needs root. apt, `pacman -Qu` and zypper read the system's last refresh; dnf and `checkupdates` may fetch fresh metadata into a cache of their own. They sit in a folded `System` group at the end of the list, whose subline names the source. On Linux Mint its header has a button that opens Update Manager.
 
-The group is off until you turn on **Show system updates** in Settings, under Extras. Upkeep only reads these lists. It installs none of them, because system packages need root and Update Manager already installs them with its own checks. For the same reason the tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
+The group is off until you turn on **Show system updates** in Settings, under Extras. The tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
+
+A second switch beneath it, **Install system updates from Upkeep**, is off by default and shows only while the list is on. With it off the group stays read-only. With it on, the rows Upkeep can install get a tick box and the group gets an Install button:
+
+- **Packages on Linux Mint**, through Update Manager's own command, as root: `sudo -n mintupdate-cli upgrade -y --keep-configuration -i <list>`. It keeps Mint's rules (dist-upgrade, its blacklist, kernel grouping). `--keep-configuration` is always there, so a config file you edited is never replaced by the package's. `-i` always names the kernel and NVIDIA driver sources (`linux,linux-signed*,linux-meta*,linux-hwe*,nvidia-graphics-drivers-*`) and every package row you did not tick.
+- **Flatpak** refs, through `flatpak update -y --noninteractive <refs>`.
+- **Snaps**, through `sudo -n snap refresh <names>`.
+- **Cinnamon spices**, through `cinnamon-spice-updater --update <type>`. The updater cannot update one spice alone, so a ticked applet installs with every applet that has an update, and the row says so.
+
+Kernel and driver rows never get a tick: both need a restart, and a driver update breaks GPU programs until then, so they stay with Update Manager. Packages from apt, dnf, pacman or zypper without Update Manager stay read-only too; with installing on, each such row names the tool that installs it.
+
+Install first shows the commands it will run, each as typed, and says which need administrator rights. Nothing runs until you confirm. Then, before any of them, Upkeep checks that sudo works without a password, that nothing holds dpkg's lock, that polkit lets Flatpak update without a dialog, that Update Manager's list is still the one you saw, and that a dry run (`mintupdate-cli upgrade -d`, no root) names no kernel or NVIDIA package. If any check fails, nothing runs and the group says why. Packages go first, then Flatpak, Snap and Cinnamon. Each row shows its state while it runs; afterwards the list is read again, a row that is gone is installed and one still listed is failed. Results go to History and the run log.
+
+A System install holds the same lock as an app install, so the two never run together. Closing the window or choosing Quit in the tray waits for it to finish. A background run at login never installs system updates.
 
 ## Which Linux
 

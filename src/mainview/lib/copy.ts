@@ -711,7 +711,7 @@ export const WIN = {
 	},
 } as const;
 
-/** The System group: the system's own pending updates, shown read-only. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */
+/** The System group: the system's own pending updates, read-only unless installing is switched on. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */
 export const SYS = {
 	get extras() {
 		return "Extras";
