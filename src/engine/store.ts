@@ -103,14 +103,83 @@ export function writeAtomic(file: string, text: string): void {
 	renameSync(tmp, file);
 }
 
-/** Re-reads the file, applies one change, writes it back by rename. The window and the command line may both be running. */
+/** How long a writer waits for another's lock, and how old a lock is before it counts as left behind whatever its pid. */
+const STATE_LOCK_WAIT_MS = 2000;
+const STATE_LOCK_STALE_MS = 10_000;
+
+/** The pid a lock file holds, or null when it is gone or holds none. */
+function lockPid(lock: string): number | null {
+	try {
+		const pid = readFileSync(lock, "utf8").trim();
+		return /^\d+$/.test(pid) ? Number(pid) : null;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * True when the lock was left behind: its holder's pid has no /proc entry, or the lock is older than
+ * STATE_LOCK_STALE_MS whatever its pid. The change it guards takes milliseconds, so a holder that old is gone, and a
+ * pid reused since a crash cannot keep a dead lock alive. A lock that vanished is not abandoned: the next try makes one.
+ */
+function lockAbandoned(lock: string): boolean {
+	let age: number;
+	try {
+		age = Date.now() - statSync(lock).mtimeMs;
+	} catch {
+		return false;
+	}
+	const pid = lockPid(lock);
+	return age > STATE_LOCK_STALE_MS || (pid !== null && !existsSync(join("/proc", String(pid))));
+}
+
+/**
+ * Runs fn holding state.json.lock, created exclusively with this process's pid, so the window and the command line
+ * never read, change and write the file at the same time and lose each other's change. A lock whose holder died is
+ * taken over. When the lock cannot be made at all (a full disk, a read-only folder) or the wait runs out, fn runs
+ * anyway: a lost race costs one setting, and a refused write would cost it too. Two processes taking over the same
+ * dead holder's lock in the same instant can both run; that needs a crash and a race together.
+ */
+function withStateLock<T>(paths: Paths, fn: () => T): T {
+	const lock = `${stateFile(paths)}.lock`;
+	const until = Date.now() + STATE_LOCK_WAIT_MS;
+	let held = false;
+	for (;;) {
+		try {
+			writeFileSync(lock, String(process.pid), { flag: "wx" });
+			held = true;
+			break;
+		} catch (err) {
+			// SAFETY: writeFileSync throws an ErrnoException, which carries the code.
+			if ((err as NodeJS.ErrnoException).code !== "EEXIST" || Date.now() > until) break;
+			if (lockAbandoned(lock))
+				try {
+					rmSync(lock, { force: true });
+				} catch {
+					// Not ours to remove (a directory, a permission): go on without the lock.
+					break;
+				}
+			else Bun.sleepSync(10);
+		}
+	}
+	try {
+		return fn();
+	} finally {
+		// Only our own: a lock another process holds now is never removed here.
+		if (held && lockPid(lock) === process.pid) rmSync(lock, { force: true });
+	}
+}
+
+/** Re-reads the file, applies one change, writes it back by rename, under the state lock: the window and the command line may both be running. */
 export function updateState(paths: Paths, change: (s: State) => void): State {
 	mkdirSync(paths.state, { recursive: true });
-	const s = loadState(paths);
-	change(s);
-	s.settings = clampSettings(s.settings);
-	writeAtomic(stateFile(paths), JSON.stringify(s, null, "\t"));
-	return s;
+	return withStateLock(paths, () => {
+		const s = loadState(paths);
+		change(s);
+		s.settings = clampSettings(s.settings);
+		writeAtomic(stateFile(paths), JSON.stringify(s, null, "\t"));
+		return s;
+	});
 }
 
 /** Field 22 of /proc/<pid>/stat, the start time in clock ticks, or null when the pid is gone. */
