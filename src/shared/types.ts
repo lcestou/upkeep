@@ -34,7 +34,7 @@ export type AppSpec = {
 	build?: string[];
 	/** command: argv that prints the installed version. */
 	check?: string[];
-	/** command: where the latest version comes from: "npm:<pkg>", "pypi:<pkg>" or "github:<owner>/<repo>". */
+	/** command: where the latest version comes from: "npm:<pkg>", "npm-tags:<pkg>", "pypi:<pkg>", "crates:<crate>", "github:<owner>/<repo>" or "json:<url>". */
 	latest?: string;
 	/** command: argv that performs the update. */
 	update?: string[];

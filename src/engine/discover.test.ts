@@ -1,5 +1,14 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { chmodSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+	chmodSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	symlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../shared/types";
 import {
@@ -1058,9 +1067,16 @@ test("a catalogue table: no matching release file is a problem, a picked file ke
 	expect(rec.calls.some((x) => x.argv[0] === bin && x.argv[1] === "version" && x.argv[2] === "-s")).toBe(true);
 });
 
-test("a tool a manager installed into a scanned folder is offered once, as the manager's table", async () => {
+test("a crate cargo installed into a scanned folder is offered once, as cargo's table; an npm name does not hide a program", async () => {
 	elf(join(t.paths.home, ".local/bin/freeze"));
+	await Bun.write(
+		join(t.paths.home, ".cargo/.crates2.json"),
+		JSON.stringify({
+			installs: { "freeze 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)": { bins: ["freeze"] } },
+		}),
+	);
+	expect((await scan(ctx().c)).suggestions.map((x) => [x.spec.key, x.spec.kind])).toEqual([["freeze", "command"]]);
+	rmSync(join(t.paths.home, ".cargo"), { recursive: true });
 	managers.npm = JSON.stringify({ dependencies: { freeze: { version: "1.0.0" } } });
-	const keys = (await scan(ctx().c)).suggestions.map((x) => [x.spec.key, x.spec.kind]);
-	expect(keys).toEqual([["freeze", "command"]]);
+	expect((await scan(ctx().c)).suggestions.map((x) => x.spec.kind).toSorted()).toEqual(["command", "file"]);
 });

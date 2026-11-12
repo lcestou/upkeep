@@ -871,9 +871,10 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 			break;
 		}
 	}
-	// A manager's tool can also sit as a program in a scanned folder (cargo install --root ~/.local): its manager's
-	// table wins, being sure, and the program is not offered twice.
+	// cargo can put a crate's program in a scanned folder (cargo install --root ~/.local): its manager's table wins,
+	// being sure, and the program is not offered twice. Only cargo: uv, pipx and npm leave scripts or links the scan
+	// skips, so a program of the same name there is another app.
 	const managed = await managedSuggestions(ctx);
-	const keys = new Set(managed.map((m) => m.spec.key));
+	const keys = new Set(managed.filter((m) => m.spec.update?.[0] === "cargo").map((m) => m.spec.key));
 	return { suggestions: [...suggestions.filter((x) => !keys.has(x.spec.key)), ...managed] };
 }
