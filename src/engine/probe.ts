@@ -22,7 +22,7 @@ export function stripEscapes(text: string): string {
 }
 // oxlint-enable no-control-regex
 
-/** Reads a version out of probe output, applying the old script's broken rule first (line 299). */
+/** Reads a version out of probe output, after the broken rule: a failed run whose output matches `BROKEN` is a broken install, not a version. */
 export function readProbe(code: number, output: string): ProbeResult {
 	if (code !== 0 && BROKEN.test(output)) return { state: "broken", detail: output.split("\n")[0]?.trim() ?? "" };
 	const text = stripEscapes(output);

@@ -1231,10 +1231,6 @@ msgstr "Ya hay una tanda en curso."
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "La tanda se detiene después de la app actual, así que ya no se puede añadir nada."
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "El actualizador antiguo está en marcha. Termina o cierra sus diálogos primero."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."

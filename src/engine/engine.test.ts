@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
-import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD, REASON_STOPPING } from "./engine";
+import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING } from "./engine";
 import type { FetchLike } from "./github";
 import { readMeta, takePoint } from "./backup";
 import { loadManifest } from "./manifest";
@@ -146,7 +146,6 @@ async function deps(): Promise<EngineDeps> {
 			url === "https://dl.test/o/boom/boom" ? new Response("gone", { status: 404 }) : fakeFetch(url, init),
 		run,
 		now: () => new Date(),
-		oldLock: { file: join(t.dir, "lutechi-updater.lock"), name: "lutechi-updater" },
 		procRoot: proc,
 		retryMs: 1,
 		pollMs: 10,
@@ -308,22 +307,13 @@ test("retry from the summary runs only the failed app again", async () => {
 	expect(engine.snapshot().run.retry).toBe(false);
 });
 
-test("install refuses while checking, with nothing ready, and while the old updater runs", async () => {
+test("install refuses while checking and with nothing ready", async () => {
 	const engine = createEngine(await deps());
 	const checking = engine.check();
 	expect(await engine.install(["fd"])).toEqual({ started: false, reason: REASON_CHECKING });
 	await checking;
 	expect(await engine.install(["bat", "strata"])).toEqual({ started: false, reason: REASON_NOTHING });
-	mkdirSync(join(proc, "4321"));
-	writeFileSync(join(proc, "4321/cmdline"), "/bin/bash\0/home/u/.local/bin/lutechi-updater\0");
-	writeFileSync(join(t.dir, "lutechi-updater.lock"), "4321");
-	expect(await engine.install(["fd"])).toEqual({ started: false, reason: REASON_OLD });
 	expect(statuses(engine).fd).toBe("ready");
-	// Run with an interpreter option in front, it still counts.
-	writeFileSync(join(proc, "4321/cmdline"), "/bin/bash\0-x\0/home/u/.local/bin/lutechi-updater\0");
-	expect(await engine.install(["fd"])).toEqual({ started: false, reason: REASON_OLD });
-	// A reused pid that only mentions the updater, as a tail of its log would, does not hold Install back.
-	writeFileSync(join(proc, "4321/cmdline"), "tail\0-f\0/home/u/.local/share/lutechi-updater.log\0");
 	expect(await engine.install(["fd"])).toEqual({ started: true });
 	await engine.idle();
 });

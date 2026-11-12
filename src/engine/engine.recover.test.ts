@@ -133,7 +133,6 @@ function deps(box: ReturnType<typeof fakeBox>): EngineDeps {
 		fetch: box.fetch,
 		run: box.run,
 		now: () => new Date("2026-11-11T12:00:00Z"),
-		oldLock: { file: join(t.dir, "old.lock"), name: "lutechi-updater" },
 		procRoot: proc,
 		kill: (pid) => box.killed.push(pid),
 		recoverWaitMs: 0,

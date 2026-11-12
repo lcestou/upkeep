@@ -1231,10 +1231,6 @@ msgstr "Já há uma execução em andamento."
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "A execução para depois do app atual, então nada mais pode entrar nela."
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "O atualizador antigo está rodando. Conclua ou feche as janelas dele primeiro."
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."

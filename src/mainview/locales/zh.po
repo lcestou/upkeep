@@ -1195,10 +1195,6 @@ msgstr "已有运行正在进行。"
 msgid "The run stops after the current app, so nothing more can join it."
 msgstr "本次运行将在当前应用之后停止，无法再加入。"
 
-#: src/mainview/lib/engine-text.ts
-msgid "The old updater is running. Finish or close its dialogs first."
-msgstr "旧的更新程序正在运行。请先完成或关闭它的对话框。"
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "An update was interrupted. Restore {0} from this row."
