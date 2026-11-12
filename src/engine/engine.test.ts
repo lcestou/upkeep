@@ -1094,3 +1094,28 @@ test("a retry keeps the first pass's order on screen, with an app added during i
 	expect(engine.snapshot().run.queue).toEqual(["boom", "fd", "claude", "cursor"]);
 	await engine.idle();
 });
+
+test("Claude Code's plugins are a versionless row: fresh, listed for auto runs, and run on request", async () => {
+	const d = await deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		`${MANIFEST}\n[apps.cc]\nname = "Claude Code plugins"\nkind = "claude-plugins"\nversionless = true\nauto = true\n`,
+	);
+	mkdirSync(join(t.paths.home, ".claude/plugins"), { recursive: true });
+	writeFileSync(
+		join(t.paths.home, ".claude/plugins/installed_plugins.json"),
+		JSON.stringify({ plugins: { "a@m": [{ scope: "user" }] } }),
+	);
+	// A stand-in claude on the runner's PATH, so no real Claude Code runs.
+	script(
+		join(bin, "claude"),
+		`[ "$2" = update ] && echo '{"updateOutcome":"updated","message":"a@m updated"}'; exit 0`,
+	);
+	const engine = createEngine(d);
+	await engine.check();
+	expect(engine.snapshot().apps.find((a) => a.key === "cc")).toMatchObject({ status: "fresh", versionless: true });
+	expect(engine.readyKeys(true)).toContain("cc");
+	expect(await engine.install(["cc"])).toEqual({ started: true });
+	await engine.idle();
+	expect(engine.snapshot().run.results.find((r) => r.key === "cc")).toMatchObject({ result: "updated" });
+});

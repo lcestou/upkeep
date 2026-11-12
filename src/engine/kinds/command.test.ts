@@ -189,3 +189,14 @@ test("a restore command with no known installed version takes no point and says 
 	});
 	expect(listBackups(t.paths, "claude")).toEqual([]);
 });
+
+test("the update runs in the home directory, whatever folder Upkeep was started from", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `pwd > "${join(t.dir, "cwd")}"; printf 2.1.400 > ${state}`);
+	await installCommand(
+		claude(["~/.local/bin/claude-up"]),
+		{ from: "2.1.322", version: "2.1.400", tag: "2.1.400" },
+		ctx(),
+	);
+	expect(readFileSync(join(t.dir, "cwd"), "utf8").trim()).toBe(t.paths.home);
+});

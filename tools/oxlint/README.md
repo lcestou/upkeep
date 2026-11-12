@@ -10,6 +10,7 @@ Exemptions, all in `.oxlintrc.json` under `overrides`:
   - `src/engine/store.ts` (`state.json`)
   - `src/engine/extras/state.ts` (the extras settings file)
   - `src/engine/backup.ts` (a restore point's `meta.json`)
+  - `src/engine/kinds/plugins.ts` (Claude Code's plugin registry and its `claude plugin update --json` answers)
   - `src/bun/window-size.ts` (the saved window size)
   - `src/bun/dev-script.ts` (a development build's scripted steps)
 

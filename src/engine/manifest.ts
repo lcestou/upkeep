@@ -3,7 +3,17 @@ import { basename, dirname, join } from "node:path";
 import type { AppKind, AppSpec, Serve, Service, Test } from "../shared/types";
 import type { Paths } from "./paths";
 
-const KINDS: readonly AppKind[] = ["appimage", "archive", "file", "deb", "source", "command", "legacy", "manual"];
+const KINDS: readonly AppKind[] = [
+	"appimage",
+	"archive",
+	"file",
+	"deb",
+	"source",
+	"command",
+	"claude-plugins",
+	"legacy",
+	"manual",
+];
 
 const STRING_FIELDS = [
 	"name",
@@ -61,6 +71,9 @@ function required(kind: AppKind, versionless: boolean): Field[] {
 			return ["build"];
 		case "command":
 			return ["check", "latest", "update"];
+		case "claude-plugins":
+			// Everything it needs is Claude Code's own registry.
+			return [];
 		case "legacy":
 			return versionless ? ["legacy_key"] : ["legacy_key", "legacy_name"];
 		case "manual":

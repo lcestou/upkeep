@@ -75,6 +75,7 @@ bins = ["fd"]
 | `deb` | a `.deb` from a release, through `dpkg -i` | `repo`, `asset`, `dest` |
 | `source` | a checkout or a clone of the release tag, built with your steps, restarted and tested | `build`, `check` or `dest`, `repo` or `latest` |
 | `command` | a tool that updates itself | `check`, `latest`, `update`, and `restore` for a restore point |
+| `claude-plugins` | every plugin in Claude Code's registry, through `claude plugin update` (versionless: it runs on Run now and in background runs when `auto` is set) | nothing beyond `name` |
 | `legacy` | handed to the old `lutechi-updater` script | `legacy_key`, and `legacy_name` unless the table is `versionless` |
 | `manual` | tracked only, you run the update | `legacy_name`, `run` |
 

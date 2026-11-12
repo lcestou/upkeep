@@ -275,6 +275,7 @@ const DEFAULT_STAGES = {
 		["install", 85],
 		["verify", 15],
 	],
+	"claude-plugins": [["install", 100]],
 	legacy: [
 		["install", 85],
 		["verify", 15],
@@ -289,6 +290,7 @@ const CAN_RESTORE = {
 	deb: true,
 	source: false,
 	command: false,
+	"claude-plugins": false,
 	legacy: false,
 	manual: false,
 } satisfies Record<AppKind, boolean>;
