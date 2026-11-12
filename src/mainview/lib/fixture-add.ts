@@ -211,7 +211,8 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 		};
 	return {
 		suggestions: [],
-		problem: "Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.",
+		problem:
+			"Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.",
 	};
 }
 

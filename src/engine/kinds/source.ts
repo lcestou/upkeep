@@ -2,7 +2,8 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
-import { compareRefs, fetchRelease, isFailure, latestFromSource, type Release } from "../github";
+import { cloneUrl, forgeRelease } from "../forge";
+import { compareRefs, isFailure, latestFromSource, type Release } from "../github";
 import { installBuilt } from "./built";
 import { dropTree } from "../drop";
 import { SUDO_PASSWORD, sudoNeedsPassword } from "../run";
@@ -66,7 +67,7 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 		release = l.release;
 		tag = l.release?.tag ?? l.version;
 	} else {
-		const r = await fetchRelease(spec.repo ?? "", opts);
+		const r = await forgeRelease(spec.repo ?? "", spec.forge, opts);
 		if (isFailure(r)) return { installed, latest: null, status: "problem", detail: r.detail };
 		release = r;
 		tag = r.tag;
@@ -136,7 +137,7 @@ export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx)
 	clock.start("download");
 	dropTree(dir, ctx.paths);
 	mkdirSync(join(ctx.paths.cache, "build"), { recursive: true });
-	const url = `https://github.com/${spec.repo}.git`;
+	const url = cloneUrl(spec.repo ?? "", spec.forge);
 	ctx.log(`git clone --branch ${target.tag} --depth 1 ${url}`);
 	const clone = await ctx.run(["git", "clone", "--branch", target.tag, "--depth", "1", url, dir], {
 		timeoutMs: 600_000,

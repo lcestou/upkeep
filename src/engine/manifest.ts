@@ -2,6 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameS
 import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { AppKind, AppSpec, Serve, Service, Test } from "../shared/types";
+import { FORGES, forgeOf, hostKind, hostOf } from "./forge";
 import type { Paths } from "./paths";
 
 const KINDS: readonly AppKind[] = [
@@ -53,9 +54,10 @@ function required(kind: AppKind): Field[] {
 		case "file":
 		case "deb":
 		case "rpm":
-			return ["repo", "asset", "dest"];
+			// repo, or a links: latest: lift checks that one of the two is there.
+			return ["asset", "dest"];
 		case "archive":
-			return ["repo", "asset", "dest", "bins"];
+			return ["asset", "dest", "bins"];
 		case "source":
 			// A checkout row reads its version with check; a clone row probes dest, as tmux and cava do.
 			return ["build"];
@@ -116,21 +118,49 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	if (spec.kind === "claude-plugins") spec.versionless = true;
 	else if (spec.versionless) return MESSAGES.liftVersionlessOnly(key);
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest) return MESSAGES.liftAppimageRepoOrLatest(key);
+	const refused = liftRepo(key, table, spec);
+	if (refused) return refused;
 	// A source the check cannot read fails here, at load, not later at every check.
-	if (spec.latest !== undefined && !/^(npm|pypi|github|npm-tags|json|crates):./.test(spec.latest))
+	if (spec.latest !== undefined && !/^(npm|pypi|github|npm-tags|json|crates|links):./.test(spec.latest))
 		return MESSAGES.liftLatestScheme(key);
 	// Only an AppImage installs the download a json: answer names; any other kind would read it as a GitHub repo.
 	if (spec.latest?.startsWith("json:") && spec.kind !== "appimage") return MESSAGES.liftJsonOnlyAppimage(key);
+	if (spec.latest?.startsWith("links:")) {
+		if (!RELEASE_KINDS.has(spec.kind)) return MESSAGES.liftLinksKinds(key);
+		if (!spec.asset || !/^links:https:\/\/[^/\s]+/.test(spec.latest)) return MESSAGES.liftLinksPage(key);
+	}
+	if (RELEASE_KINDS.has(spec.kind) && spec.kind !== "appimage" && !spec.repo && !spec.latest?.startsWith("links:"))
+		return MESSAGES.liftRepoOrLinks(key, spec.kind);
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.
 	if (spec.relaunch && !spec.dest) return MESSAGES.liftRelaunchNeedsDest(key);
 	if (spec.relaunch && !spec.process) return MESSAGES.liftRelaunchNeedsProcess(key);
 	if (spec.relaunch && SHARED_NAMES.has(spec.process ?? ""))
 		return MESSAGES.liftRelaunchShared(key, spec.process ?? "");
 	if (spec.kind === "source") {
-		const refused = liftSource(key, table, spec);
-		if (refused) return refused;
+		const refusedSource = liftSource(key, table, spec);
+		if (refusedSource) return refusedSource;
 	}
 	return spec;
+}
+
+/** The kinds that install a release file, and so may take their release from a links: page. */
+const RELEASE_KINDS = new Set<AppKind>(["appimage", "archive", "file", "deb", "rpm"]);
+
+/**
+ * Checks repo and forge, setting forge on spec; the reason when refused. A repo on a host Upkeep does not know must
+ * say its forge, and only such a repo may: on github.com, gitlab.com or codeberg.org the host already says it.
+ */
+function liftRepo(key: string, table: Record<string, unknown>, spec: AppSpec): string | null {
+	if (table.forge !== undefined) {
+		const forge = FORGES.find((f) => f === table.forge);
+		if (forge === undefined) return MESSAGES.liftForgeValues(key);
+		spec.forge = forge;
+	}
+	const host = spec.repo === undefined ? null : hostOf(spec.repo);
+	if (spec.forge && (host === null || hostKind(host) !== undefined)) return MESSAGES.liftForgeOnlySelfHosted(key);
+	if (spec.repo === undefined) return null;
+	if (host !== null && hostKind(host) === undefined && !spec.forge) return MESSAGES.liftForgeNeeded(key, host);
+	return forgeOf(spec.repo, spec.forge) ? null : MESSAGES.liftRepoForm(key);
 }
 
 /** An empty string is false, so a blank field counts as missing. */
@@ -299,7 +329,9 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 		if (spec.dir === undefined) return MESSAGES.liftMoveNeedsDir(key);
 		spec.move = move;
 	}
-	if (spec.commit && !spec.repo) return MESSAGES.liftCommitNeedsRepo(key);
+	// The commit compare is GitHub's alone.
+	if (spec.commit && (!spec.repo || forgeOf(spec.repo, spec.forge)?.kind !== "github"))
+		return MESSAGES.liftCommitNeedsRepo(key);
 
 	// Lists of tables: each entry is checked, then lifted with only the keys it may carry.
 	const each = <F extends TableList>(
@@ -477,7 +509,9 @@ export function ensureManifest(paths: Paths, seedFile: string): string {
 const ORDER: (keyof AppSpec)[] = [
 	"name",
 	"kind",
-	...STRING_FIELDS.filter((f) => f !== "name"),
+	"repo",
+	"forge",
+	...STRING_FIELDS.filter((f) => f !== "name" && f !== "repo"),
 	...LIST_FIELDS,
 	...BOOL_FIELDS,
 ];

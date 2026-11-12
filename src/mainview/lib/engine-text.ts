@@ -12,7 +12,8 @@ export const ENGINE_COPY = {
 	commandExited: (v0: string, v1: string) => `${v0} exited ${v1}.`,
 	packageCouldNotPutBack: (v0: string, v1: string) => `${v0} could not put ${v1} back. See the log.`,
 	couldNotRestoreFile: (v0: string, v1: string) => `Could not restore ${v0}: ${v1}`,
-	badInput: () => `Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.`,
+	badInput: () =>
+		`Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.`,
 	catalogueWhy: () => `From Upkeep's catalogue of tested apps.`,
 	noPublishedRelease: (v0: string) => `${v0} has no published release.`,
 	latestNotComparable: (v0: string) => `The latest tag ${v0} is not a version Upkeep can compare.`,
@@ -71,6 +72,10 @@ export const ENGINE_COPY = {
 	urlAnswered: (v0: string, v1: string) => `${v0} answered ${v1}.`,
 	urlSentNoVersion: (v0: string) => `${v0} sent no version.`,
 	noTrackedVersionTag: (v0: string) => `${v0} has no tracked version tag.`,
+	forgeSentNoRelease: (v0: string, v1: string) => `${v0} sent no release for ${v1}.`,
+	forgeRateLimit: (v0: string) => `${v0}'s request limit is used up. Try again after it resets.`,
+	forgeAnswered: (v0: string, v1: string, v2: string) => `${v0} answered ${v1} for ${v2}.`,
+	linksNoMatch: (v0: string, v1: string) => `${v0} lists no download matching ${v1}.`,
 	noVersionAtOrAbove: (v0: string) => `No published version at or above ${v0}.`,
 	unknownVersionSource: (v0: string) => `Unknown version source ${v0}.`,
 	sudoRefused: () => `sudo needs a password here, so nothing was stopped or changed.`,
@@ -154,8 +159,18 @@ export const ENGINE_COPY = {
 	liftAssetNotRegex: (v0: string) => `${v0}: asset is not a valid regular expression`,
 	liftVersionlessOnly: (v0: string) => `${v0}: versionless is only for kind claude-plugins`,
 	liftAppimageRepoOrLatest: (v0: string) => `${v0}: repo or latest is required for kind appimage`,
-	liftLatestScheme: (v0: string) => `${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:`,
+	liftLatestScheme: (v0: string) =>
+		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,
 	liftJsonOnlyAppimage: (v0: string) => `${v0}: a json: latest is only for kind appimage`,
+	liftRepoForm: (v0: string) =>
+		`${v0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name`,
+	liftForgeNeeded: (v0: string, v1: string) => `${v0}: forge must say gitlab or gitea for a repo on ${v1}`,
+	liftForgeValues: (v0: string) => `${v0}: forge must be gitlab or gitea`,
+	liftForgeOnlySelfHosted: (v0: string) =>
+		`${v0}: forge is only for a repo on a host other than github.com, gitlab.com or codeberg.org`,
+	liftRepoOrLinks: (v0: string, v1: string) => `${v0}: repo or a links: latest is required for kind ${v1}`,
+	liftLinksPage: (v0: string) => `${v0}: a links: latest needs an https page and an asset pattern`,
+	liftLinksKinds: (v0: string) => `${v0}: a links: latest is only for kinds appimage, archive, file, deb and rpm`,
 	liftRelaunchNeedsDest: (v0: string) => `${v0}: relaunch needs dest`,
 	liftRelaunchNeedsProcess: (v0: string) => `${v0}: relaunch needs process`,
 	liftRelaunchShared: (v0: string, v1: string) =>

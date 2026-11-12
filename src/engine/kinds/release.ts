@@ -14,7 +14,8 @@ import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
 import { download, verifyAsset } from "../download";
-import { type Failure, fetchRelease, isFailure, latestFromSource, pickAsset, type Release } from "../github";
+import { forgeRelease, linksRelease } from "../forge";
+import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
 import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
@@ -34,7 +35,7 @@ import {
 
 /**
  * Whether an install of this app keeps a restore point. A file kind copies its files; a .deb or .rpm keeps the installed
- * version's package from its GitHub release; a command app needs its table's restore argv; a source app keeps one
+ * version's package from its release (or its links: page); a command app needs its table's restore argv; a source app keeps one
  * only with a dir or stage (one built in a fresh clone runs make install, which writes many files).
  */
 export function canRestore(spec: Pick<AppSpec, "kind" | "dir" | "stage" | "restore">): boolean {
@@ -64,18 +65,21 @@ export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult
 }
 
 /**
- * The release a check compares against: GitHub's latest for repo, else what latest names when it carries a download
- * (a "json:" source). A latest that only gives a version has nothing to install, which is a failure here.
+ * The release a check compares against, or with tag the release of that tag (a restore point's): the latest of repo
+ * on its forge, else the page a "links:" latest names, else what latest names when it carries a download (a "json:"
+ * source). A latest that only gives a version has nothing to install, which is a failure here.
  */
-async function latestRelease(spec: AppSpec, ctx: KindCtx): Promise<Release | Failure> {
+async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Release | Failure> {
 	const opts = {
 		cacheDir: join(ctx.paths.cache, "github"),
 		token: ctx.token,
 		fetch: ctx.fetch,
 		onRate: ctx.onRate,
 		api: ctx.api,
+		tag,
 	};
-	if (spec.repo || !spec.latest) return fetchRelease(spec.repo ?? "", opts);
+	if (spec.repo || !spec.latest) return forgeRelease(spec.repo ?? "", spec.forge, opts);
+	if (spec.latest.startsWith("links:")) return linksRelease(spec.latest.slice(6), spec.asset ?? "", opts);
 	const r = await latestFromSource(spec.latest, opts);
 	if (isFailure(r)) return r;
 	return r.release ?? { failure: "http", detail: MESSAGES.sourceGivesNoDownload(spec.latest) };
@@ -92,7 +96,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		return null;
 	}
 	const installed = "version" in probe ? probe.version : null;
-	const release = await latestRelease(spec, ctx);
+	const release = await releaseOf(spec, ctx);
 	if (isFailure(release)) return { installed, latest: null, status: "problem", detail: release.detail };
 	const base = { ...fromRelease(release) };
 	if (!release.version)
@@ -349,14 +353,7 @@ async function oldPackage(
 	const from = target.from ?? "";
 	if (!target.tag.includes(target.version)) return { problem: `${target.tag} does not name its version.` };
 	const tag = target.tag.replace(target.version, from);
-	const release = await fetchRelease(spec.repo ?? "", {
-		cacheDir: join(ctx.paths.cache, "github"),
-		token: ctx.token,
-		fetch: ctx.fetch,
-		onRate: ctx.onRate,
-		api: ctx.api,
-		tag,
-	});
+	const release = await releaseOf(spec, ctx, tag);
 	if (isFailure(release)) return { problem: `${tag}: ${release.detail}` };
 	const picked = pickAsset(release, spec.asset ?? "");
 	if (!picked) return { problem: `the ${tag} release has no package matching ${spec.asset ?? ""}.` };

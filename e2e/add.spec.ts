@@ -69,7 +69,7 @@ test("a problem card has no add button, and a bad input says why", async ({ page
 	await page.getByTestId("add-input").fill("just some words");
 	await page.keyboard.press("Enter");
 	await expect(page.getByTestId("add-problem")).toHaveText(
-		"Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.",
+		"Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.",
 	);
 });
 

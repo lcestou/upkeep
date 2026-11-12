@@ -24,7 +24,8 @@ export const MESSAGES = {
 	/** backup.ts. {0} file name in the restore point; {1} raw stderr or stdout of install/mv, trimmed (can be run.ts:279 'size differs after copy') */
 	couldNotRestoreFile: (v0: Value, v1: Value) => `Could not restore ${v0}: ${v1}`,
 	/** discover.ts */
-	badInput: () => `Give an app's name, a GitHub repo like owner/name, a github.com link, or a file path.`,
+	badInput: () =>
+		`Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.`,
 	/** discover.ts */
 	catalogueWhy: () => `From Upkeep's catalogue of tested apps.`,
 	/** discover.ts. {0} repo owner/name */
@@ -139,6 +140,14 @@ export const MESSAGES = {
 	urlSentNoVersion: (v0: Value) => `${v0} sent no version.`,
 	/** github.ts. {0} repo owner/name from a github: source */
 	noTrackedVersionTag: (v0: Value) => `${v0} has no tracked version tag.`,
+	/** forge.ts. {0} host such as gitlab.com; {1} project path on it */
+	forgeSentNoRelease: (v0: Value, v1: Value) => `${v0} sent no release for ${v1}.`,
+	/** forge.ts. {0} host such as gitlab.com */
+	forgeRateLimit: (v0: Value) => `${v0}'s request limit is used up. Try again after it resets.`,
+	/** forge.ts. {0} host such as gitlab.com; {1} HTTP status; {2} project path on it */
+	forgeAnswered: (v0: Value, v1: Value, v2: Value) => `${v0} answered ${v1} for ${v2}.`,
+	/** forge.ts. {0} page URL; {1} the table's asset pattern */
+	linksNoMatch: (v0: Value, v1: Value) => `${v0} lists no download matching ${v1}.`,
 	/** github.ts. {0} installed version */
 	noVersionAtOrAbove: (v0: Value) => `No published version at or above ${v0}.`,
 	/** github.ts. {0} the latest source string as written */
@@ -299,9 +308,26 @@ export const MESSAGES = {
 	/** manifest.ts. {0} app key */
 	liftAppimageRepoOrLatest: (v0: Value) => `${v0}: repo or latest is required for kind appimage`,
 	/** manifest.ts. {0} app key */
-	liftLatestScheme: (v0: Value) => `${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json: or crates:`,
+	liftLatestScheme: (v0: Value) =>
+		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,
 	/** manifest.ts. {0} app key */
 	liftJsonOnlyAppimage: (v0: Value) => `${v0}: a json: latest is only for kind appimage`,
+	/** manifest.ts. {0} app key */
+	liftRepoForm: (v0: Value) =>
+		`${v0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name`,
+	/** manifest.ts. {0} app key; {1} host such as git.example.org */
+	liftForgeNeeded: (v0: Value, v1: Value) => `${v0}: forge must say gitlab or gitea for a repo on ${v1}`,
+	/** manifest.ts. {0} app key */
+	liftForgeValues: (v0: Value) => `${v0}: forge must be gitlab or gitea`,
+	/** manifest.ts. {0} app key */
+	liftForgeOnlySelfHosted: (v0: Value) =>
+		`${v0}: forge is only for a repo on a host other than github.com, gitlab.com or codeberg.org`,
+	/** manifest.ts. {0} app key; {1} kind */
+	liftRepoOrLinks: (v0: Value, v1: Value) => `${v0}: repo or a links: latest is required for kind ${v1}`,
+	/** manifest.ts. {0} app key */
+	liftLinksPage: (v0: Value) => `${v0}: a links: latest needs an https page and an asset pattern`,
+	/** manifest.ts. {0} app key */
+	liftLinksKinds: (v0: Value) => `${v0}: a links: latest is only for kinds appimage, archive, file, deb and rpm`,
 	/** manifest.ts. {0} app key */
 	liftRelaunchNeedsDest: (v0: Value) => `${v0}: relaunch needs dest`,
 	/** manifest.ts. {0} app key */

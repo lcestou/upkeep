@@ -14,10 +14,10 @@ import { MESSAGES } from "../shared/messages";
 import type { AppKind, AppSpec, Suggestion } from "../shared/types";
 import { download, verifyAsset } from "./download";
 import { draftFor } from "./draft";
+import { type ForgeKind, forgeOf, forgeRelease, hostKind, hostOf } from "./forge";
 import {
 	type Asset,
 	type FetchLike,
-	fetchRelease,
 	isFailure,
 	parseRepoSearch,
 	type Release,
@@ -57,22 +57,56 @@ const RELEASE_KINDS = new Set<AppKind>(["appimage", "archive", "file", "deb", "r
 
 const SEGMENT = /^[A-Za-z0-9_.-]+$/;
 
-/** A repo, a file path, or null when the input is neither. */
-export function readInput(input: string): { repo: string } | { file: string } | null {
+/** A repo as Add app reads it: forge only for a host whose forge is not known from the host alone. */
+export type RepoInput = { repo: string; forge?: ForgeKind };
+
+/**
+ * A repo, a file path, or null when the input is neither. A repo is owner/name (GitHub's), host/owner/name, or a link
+ * into a project on github.com, gitlab.com, codeberg.org or a self-hosted forge named in hosts (host to forge, from
+ * the tables already known). A GitLab project path runs until its "-" part (gitlab.com/group/name/-/releases), and
+ * a GitHub repo comes back as plain owner/name.
+ */
+export function readInput(
+	input: string,
+	hosts: ReadonlyMap<string, ForgeKind> = new Map(),
+): RepoInput | { file: string } | null {
 	const text = input.trim();
 	if (text.startsWith("/") || text.startsWith("~/") || text.startsWith("file://")) return { file: text };
-	const parts = text.split("/");
-	if (parts.length === 2 && parts.every((p) => SEGMENT.test(p))) return { repo: text };
+	let host: string;
+	let parts: string[];
 	try {
 		const url = new URL(text);
-		if (url.hostname !== "github.com" && url.hostname !== "www.github.com") return null;
-		const [owner, name] = url.pathname.split("/").filter(Boolean);
-		const repo = name?.replace(/\.git$/, "");
-		if (owner && repo && SEGMENT.test(owner) && SEGMENT.test(repo)) return { repo: `${owner}/${repo}` };
+		if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+		host = url.hostname.toLowerCase().replace(/^www\./, "");
+		parts = url.pathname.split("/").filter(Boolean);
 	} catch {
-		// not a URL
+		parts = text.split("/");
+		const named = hostOf(text);
+		if (named === null) return parts.length === 2 && parts.every((p) => SEGMENT.test(p)) ? { repo: text } : null;
+		host = named;
+		parts = parts.slice(1);
 	}
-	return null;
+	const forge = hosts.get(host);
+	const kind = hostKind(host) ?? forge;
+	if (kind === undefined) return null;
+	const end = parts.indexOf("-");
+	const path = (kind === "gitlab" ? parts.slice(0, end === -1 ? parts.length : end) : parts.slice(0, 2))
+		.join("/")
+		.replace(/\.git$/, "");
+	const f = forgeOf(`${host}/${path}`, forge);
+	if (!f) return null;
+	if (f.kind === "github") return { repo: f.path };
+	return hostKind(host) === undefined ? { repo: `${host}/${f.path}`, forge: f.kind } : { repo: `${host}/${f.path}` };
+}
+
+/** The self-hosted forges the tables already name, host to forge, so a link to one of them reads as a repo. */
+function forgeHosts(ctx: DiscoverCtx): Map<string, ForgeKind> {
+	const hosts = new Map<string, ForgeKind>();
+	for (const s of [...ctx.specs, ...(ctx.catalogue ?? [])]) {
+		const host = s.repo ? hostOf(s.repo) : null;
+		if (host && s.forge) hosts.set(host, s.forge);
+	}
+	return hosts;
 }
 
 const OTHER_SYSTEM =
@@ -284,13 +318,15 @@ export type RepoOpts = {
 	found?: string;
 	/** Run the version probe on dest. Never during a scan. */
 	probe?: boolean;
+	/** The forge of a repo on a self-hosted host, as its table or the link says. */
+	forge?: ForgeKind;
 };
 
 export type RepoResult = { suggestion: Suggestion } | { problem: string; rate?: boolean };
 
 /** A suggestion from a repo's latest release. */
 export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = {}): Promise<RepoResult> {
-	const release = await fetchRelease(repo, {
+	const release = await forgeRelease(repo, opts.forge, {
 		cacheDir: join(ctx.paths.cache, "github"),
 		token: ctx.token,
 		fetch: ctx.fetch,
@@ -302,7 +338,9 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		return { problem: release.detail, rate: release.failure === "rate" };
 	}
 	if (!release.version) return { problem: MESSAGES.latestNotComparable(release.tag) };
-	const repoName = repo.split("/")[1] ?? repo;
+	// Named by its owner and name: a host and GitLab's groups say nothing about the app.
+	const named = repo.split("/").slice(-2).join("/");
+	const repoName = named.split("/")[1] ?? named;
 	const home = ctx.paths.home;
 	// An app is named after what it ships: the shortest stem of its builds, since variants add words
 	// ("rustdesk-unsigned"). A stem too short to mean anything falls back to the repo.
@@ -382,7 +420,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		return join(home, ".local/bin", program);
 	};
 	if (!opts.file && (kind === "archive" || kind === "file")) dest = place(onPath, bin);
-	const name = appName(shippedBy(picked), repo);
+	const name = appName(shippedBy(picked), named);
 	const key = keyOf(bin);
 	const { pattern, widen } = assetPattern(picked.asset.name, release);
 	let bins = kind === "archive" ? [opts.file ? (dest.split("/").at(-1) ?? bin) : bin] : undefined;
@@ -399,6 +437,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		if (found.more) installs += MESSAGES.archiveHoldsMore(found.more, MAX_BINS);
 	}
 	const spec: AppSpec = { key, name, kind, repo, asset: pattern, dest: tilde(dest, home) };
+	if (opts.forge) spec.forge = opts.forge;
 	if (bins) spec.bins = bins;
 	if (isPackage(kind) || rootDest) spec.sudo = true;
 	const exists = existsSync(dest);
@@ -437,7 +476,8 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 
 /**
  * A source table drafted from the repo's build files at the release tag, offered as a guess for the person to read;
- * null when the root holds no build file Upkeep knows, or GitHub cannot list it. The program goes where it is
+ * null when the root holds no build file Upkeep knows, or GitHub cannot list it, or the repo is not on GitHub (only
+ * GitHub's contents API is read). The program goes where it is
  * already found in the home folder or /usr/local, else where its build installs it. A missing build tool is the
  * suggestion's problem, so the card says so instead of offering a build that cannot run.
  */
@@ -448,6 +488,7 @@ async function draftSource(
 	opts: RepoOpts,
 	bin: string,
 ): Promise<RepoResult | null> {
+	if (forgeOf(repo, opts.forge)?.kind !== "github") return null;
 	const gh = { cacheDir: join(ctx.paths.cache, "github"), token: ctx.token, fetch: ctx.fetch, api: ctx.api };
 	const names = await rootNames(repo, release.tag, gh);
 	if (isFailure(names)) return null;
@@ -467,7 +508,7 @@ async function draftSource(
 	const shadow = found && found !== dest && found.startsWith(`${home}/`) ? found : null;
 	const spec: AppSpec = {
 		key: keyOf(draft.bin),
-		name: appName(draft.bin, repo),
+		name: appName(draft.bin, repo.split("/").slice(-2).join("/")),
 		kind: "source",
 		repo,
 		dest: tilde(dest, home),
@@ -712,9 +753,9 @@ export async function suggest(
 	ctx: DiscoverCtx,
 	asset?: string,
 ): Promise<{ suggestions: Suggestion[]; problem?: string }> {
-	const entry = inCatalogue(input, ctx.catalogue ?? []);
+	const entry = inCatalogue(input, ctx.catalogue ?? [], forgeHosts(ctx));
 	if (entry) return fromCatalogue(entry, ctx, asset);
-	const what = readInput(input);
+	const what = readInput(input, forgeHosts(ctx));
 	if (!what) {
 		// A bare name that is not in the catalogue may still be a tool one of the managers installed.
 		const text = input.trim().toLowerCase();
@@ -722,7 +763,7 @@ export async function suggest(
 		return tools.length > 0 ? { suggestions: tools } : { suggestions: [], problem: BAD_INPUT };
 	}
 	if ("repo" in what) {
-		const r = await fromRepo(what.repo, ctx, { asset });
+		const r = await fromRepo(what.repo, ctx, { asset, forge: what.forge });
 		return "problem" in r ? { suggestions: [], problem: r.problem } : { suggestions: [r.suggestion] };
 	}
 	const r = await fromFile(what.file, ctx, { asset });
@@ -740,9 +781,9 @@ const repoOf = (c: AppSpec) => (c.repo ?? (c.latest?.startsWith("github:") ? c.l
  * The catalogue's table for what was typed: an app's key or name, or its repo or github.com link, in any case. A
  * table that names its repo only in latest ("github:owner/name") is found by that repo too.
  */
-function inCatalogue(input: string, catalogue: AppSpec[]): AppSpec | undefined {
+function inCatalogue(input: string, catalogue: AppSpec[], hosts: ReadonlyMap<string, ForgeKind>): AppSpec | undefined {
 	const text = input.trim().toLowerCase();
-	const read = readInput(input);
+	const read = readInput(input, hosts);
 	const repo = read && "repo" in read ? read.repo.toLowerCase() : null;
 	return catalogue.find(
 		(c) => c.key.toLowerCase() === text || c.name.toLowerCase() === text || (repo !== null && repoOf(c) === repo),
@@ -768,6 +809,7 @@ async function fromCatalogue(
 	const r = await fromRepo(entry.repo, ctx, {
 		...(asset ? { asset } : { pattern: entry.asset }),
 		versionArgs: entry.version_args,
+		forge: entry.forge,
 	});
 	if ("problem" in r) return { suggestions: [], problem: r.problem };
 	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
