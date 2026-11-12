@@ -1,9 +1,12 @@
 import { existsSync, lstatSync, mkdirSync, readdirSync, renameSync, rmSync } from "node:fs";
 import { rm } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { basename, join } from "node:path";
 import type { Paths } from "./paths";
 
 let seq = 0;
+/** Names this process's trash entries; random, so a later process that reuses the pid never mistakes them for its own. */
+const OWN = randomUUID().slice(0, 8);
 const pending = new Set<Promise<void>>();
 
 /** The folder trees wait in while they are deleted. */
@@ -22,13 +25,13 @@ export function dropTree(path: string, paths: Pick<Paths, "cache">): void {
 		return;
 	}
 	seq += 1;
-	const name = `${basename(path)}.${process.pid}.${seq}`;
+	const name = `${basename(path)}.${OWN}.${seq}`;
 	let aside = join(trashOf(paths), name);
 	try {
 		mkdirSync(trashOf(paths), { recursive: true });
 		renameSync(path, aside);
 	} catch {
-		aside = `${path}.upkeep-drop.${process.pid}.${seq}`;
+		aside = `${path}.upkeep-drop.${OWN}.${seq}`;
 		try {
 			renameSync(path, aside);
 		} catch {
@@ -53,5 +56,5 @@ export async function dropsSettled(): Promise<void> {
 export function sweepTrash(paths: Pick<Paths, "cache">): void {
 	const trash = trashOf(paths);
 	if (!existsSync(trash)) return;
-	for (const name of readdirSync(trash)) if (!name.includes(`.${process.pid}.`)) dropTree(join(trash, name), paths);
+	for (const name of readdirSync(trash)) if (!name.includes(`.${OWN}.`)) dropTree(join(trash, name), paths);
 }

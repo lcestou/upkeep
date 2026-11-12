@@ -336,6 +336,10 @@ export function createEngine(deps: EngineDeps): Engine {
 	const restarting = new Set<string>();
 	/** The run under way's queue, which addToRun appends to; null outside a run. */
 	let runQueue: AppSpec[] | null = null;
+	/** A retry's first-pass order, which the order on screen keeps. */
+	let runBase: string[] = [];
+	/** The order the view shows: a retry's first pass as it was, then what this pass adds. */
+	const shownOrder = (queue: AppSpec[]) => [...runBase, ...queue.map((s) => s.key).filter((k) => !runBase.includes(k))];
 
 	/**
 	 * Whether the app still runs a process from before its install. The entry goes once none does:
@@ -601,7 +605,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			}
 		}
 		say(null, `Added ${add.map((s) => s.name).join(", ")} to the run`);
-		run = { ...run, total: queue.length, queue: queue.map((s) => s.key) };
+		run = { ...run, total: queue.length, queue: shownOrder(queue) };
 		emitRun();
 		return { started: true };
 	}
@@ -622,12 +626,14 @@ export function createEngine(deps: EngineDeps): Engine {
 		});
 		const queue = [...pick.filter((s) => s.kind !== "legacy"), ...pick.filter((s) => s.kind === "legacy")];
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
-		runQueue = queue;
 		if (!claimLock(paths, process.pid, deps.procRoot)) return { started: false, reason: REASON_BUSY };
 		if (oldUpdaterRunning(kindCtx(""))) {
 			releaseLock(paths);
 			return { started: false, reason: REASON_OLD };
 		}
+		runQueue = queue;
+		// A retry keeps the first pass's order on screen, so the rows it shows do not move.
+		runBase = retry ? (run.queue ?? []) : [];
 		try {
 			dropTree(join(paths.cache, "dl"), paths);
 			const id = stamp(deps.now());
@@ -641,7 +647,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				stopping: false,
 				results: carried,
 				retry,
-				queue: queue.map((s) => s.key),
+				queue: shownOrder(queue),
 			};
 			for (const s of queue) {
 				const a = apps.get(s.key);
@@ -791,6 +797,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				break;
 			}
 		}
+		// The loop is over: an app added from here on would never run, so the run takes no more.
+		runQueue = null;
 		if (legacyRuns.size > 0) {
 			say(null, "Checking the old script's apps once more");
 			run = { ...run, currentKey: null };

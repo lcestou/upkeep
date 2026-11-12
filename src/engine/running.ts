@@ -35,6 +35,15 @@ function exeOf(dir: string): string | null {
 	}
 }
 
+/** True when the process's command line, its arguments joined by spaces, contains text. Gone or unreadable is false. */
+function hasText(dir: string, text: string): boolean {
+	try {
+		return readFileSync(join(dir, "cmdline"), "utf8").split("\0").join(" ").includes(text);
+	} catch {
+		return false;
+	}
+}
+
 /** Null when the path no longer resolves, as a deleted exe link or a vanished process does. */
 function real(path: string): string | null {
 	try {
@@ -171,6 +180,7 @@ export function earliestStart(
  */
 export function argsRunning(text: string, procRoot = "/proc", selfPid = process.pid): boolean {
 	const skip = new Set<number>([selfPid]);
+	const later: string[] = [];
 	let entries: string[];
 	try {
 		entries = readdirSync(procRoot);
@@ -185,18 +195,10 @@ export function argsRunning(text: string, procRoot = "/proc", selfPid = process.
 				ours = true;
 				break;
 			}
-		if (ours || stateOf(join(procRoot, e)) === "D") continue;
-		try {
-			if (
-				readFileSync(join(procRoot, e, "cmdline"), "utf8")
-					.split("\0")
-					.join(" ")
-					.includes(text)
-			)
-				return true;
-		} catch {
-			// gone, or not ours to read
-		}
+		if (ours) continue;
+		// A process in uninterruptible sleep is looked at again once the rest are read: it is usually out of it by then.
+		if (stateOf(join(procRoot, e)) === "D") later.push(e);
+		else if (hasText(join(procRoot, e), text)) return true;
 	}
-	return false;
+	return later.some((e) => stateOf(join(procRoot, e)) !== "D" && hasText(join(procRoot, e), text));
 }

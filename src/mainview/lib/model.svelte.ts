@@ -337,7 +337,7 @@ export class Model {
 		if (this.apps.find((a) => a.key === key)?.status !== "ready") return;
 		// During a run a tick is a request to join it, as in a download manager; the row turns Queued.
 		if (this.run.phase === "installing") {
-			if (!this.run.stopping) void this.install([key]);
+			if (!this.run.stopping) void this.#join(key);
 			return;
 		}
 		this.#tick(key, !this.ticked.has(key));
@@ -413,6 +413,17 @@ export class Model {
 			// A run that did start reports itself through events; one that did not leaves the list as it was.
 		} finally {
 			this.starting = false;
+		}
+	}
+
+	/** Asks for one app to join the run under way. Not held by `starting`, so a second quick tick is never dropped. */
+	async #join(key: string): Promise<void> {
+		const bridge = this.#bridge;
+		if (!bridge) return;
+		try {
+			await this.#ask(bridge.request("install", { keys: [key] }));
+		} catch {
+			// The row stays Ready; the refusal, if any, is shown by #ask.
 		}
 	}
 

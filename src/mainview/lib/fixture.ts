@@ -765,6 +765,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	/** keep: results from the pass a retry continues; the engine keeps them in the summary. */
 	/** The run under way's order, which joinRun appends to; null outside a run. */
 	let running: string[] | null = null;
+	/** A retry's first-pass order, kept on screen. */
+	let base: string[] = [];
 
 	async function runQueue(keys: string[], keep: RunResult[] = [], retry = false) {
 		attempts++;
@@ -783,8 +785,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			stopping: false,
 			results: keep,
 			retry,
-			queue: [...order],
+			// A retry keeps the first pass's order on screen, as the engine does.
+			queue: keep.length > 0 ? [...(run.queue ?? []), ...order.filter((k) => !run.queue?.includes(k))] : [...order],
 		});
+		base = keep.length > 0 ? (run.queue ?? []) : [];
 		running = order;
 		log(runId, null, `Run started: ${order.length} apps.`);
 		const results: RunResult[] = [...keep];
@@ -840,7 +844,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			const app = get(k);
 			if (app) put({ ...app, status: "queued", detail: undefined });
 		}
-		setRun({ total: order.length, queue: [...order] });
+		setRun({ total: order.length, queue: [...base, ...order.filter((k) => !base.includes(k))] });
 		return { started: true };
 	}
 

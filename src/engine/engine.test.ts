@@ -2,7 +2,15 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
-import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_OLD, REASON_STOPPING } from "./engine";
+import {
+	createEngine,
+	type EngineDeps,
+	REASON_BUSY,
+	REASON_CHECKING,
+	REASON_NOTHING,
+	REASON_OLD,
+	REASON_STOPPING,
+} from "./engine";
 import type { FetchLike } from "./github";
 import { readMeta, takePoint } from "./backup";
 import { loadManifest } from "./manifest";
@@ -1058,5 +1066,19 @@ test("once Stop after current is pending nothing more joins the run", async () =
 	engine.stopAfterCurrent();
 	expect(await engine.install(["claude"])).toEqual({ started: false, reason: REASON_STOPPING });
 	await engine.idle();
+	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("ready");
+});
+
+test("an app ticked once the run's loop is over, during the old script's last check, is refused and stays ready", async () => {
+	const engine = createEngine(await deps());
+	await engine.check();
+	const late: { asked?: ReturnType<typeof engine.install> } = {};
+	engine.subscribe((e) => {
+		if (e.type === "log" && e.line.text === "Checking the old script's apps once more")
+			late.asked = engine.install(["claude"]);
+	});
+	await engine.install(["cursor"]);
+	await engine.idle();
+	expect(await late.asked).toEqual({ started: false, reason: REASON_BUSY });
 	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.status).toBe("ready");
 });
