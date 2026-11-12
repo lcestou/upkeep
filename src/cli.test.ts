@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkLine, main, pickSure, USAGE } from "./cli";
 import type { EngineDeps } from "./engine/engine";
@@ -359,28 +359,40 @@ test("add writes only a sure suggestion or a catalogue table, never a guessed re
 	expect(pickSure([])).toBeNull();
 });
 
-test("an import that cannot finish puts every file back, and an export to a path it cannot write says so", async () => {
+test("an import that cannot finish puts every file back and removes the ones it created", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
-	updateState(t.paths, (s) => {
-		s.hold = { bat: true };
-	});
 	const before = readFileSync(join(t.paths.config, "apps.toml"), "utf8");
 	const file = join(t.dir, "upkeep.json");
 	await main(["export", file], d, () => {});
 	const exported = JSON.parse(readFileSync(file, "utf8"));
 	exported.apps = exported.apps.replace(/\[apps\.bat\][\s\S]*$/, "");
-	exported.hold = {};
+	exported.hold = { borg: true };
 	exported.extras = { system: "show" };
 	writeFileSync(file, JSON.stringify(exported));
-	// extras.json is a folder here, so the last write fails after apps.toml and state.json were written.
-	mkdirSync(join(t.paths.state, "extras.json"), { recursive: true });
+	// A fresh machine: no state.json or extras.json yet. A folder where extras.json's temp copy goes makes the last
+	// write fail after apps.toml and state.json were written.
+	rmSync(join(t.paths.state, "state.json"), { force: true });
+	mkdirSync(join(t.paths.state, `extras.json.${process.pid}.tmp`), { recursive: true });
 	const out: string[] = [];
 	expect(await main(["import", file], d, (l) => out.push(l))).toBe(1);
 	expect(out[0]).toStartWith("could not write: ");
 	expect(out[0]).toEndWith("Nothing was changed.");
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
-	expect(loadState(t.paths).hold).toEqual({ bat: true });
+	expect(existsSync(join(t.paths.state, "state.json"))).toBe(false);
+	expect(existsSync(join(t.paths.state, "extras.json"))).toBe(false);
+	rmSync(join(t.paths.state, `extras.json.${process.pid}.tmp`), { recursive: true });
+	// Two imports at the same moment keep both starting points.
+	const same: EngineDeps = { ...d, now: () => new Date("2026-11-12T10:00:00Z") };
+	expect(await main(["import", file], same, () => {})).toBe(0);
+	expect(await main(["import", file], same, () => {})).toBe(0);
+	const copies = readdirSync(t.paths.config).filter((f) =>
+		f.startsWith("apps.toml.pre-import-2026-11-12T10-00-00-000Z"),
+	);
+	expect(copies.toSorted()).toEqual([
+		"apps.toml.pre-import-2026-11-12T10-00-00-000Z",
+		"apps.toml.pre-import-2026-11-12T10-00-00-000Z-2",
+	]);
 	const failed: string[] = [];
 	expect(await main(["export", join(t.dir, "no", "such", "dir", "x.json")], d, (l) => failed.push(l))).toBe(1);
 	expect(failed[0]).toStartWith("Could not write ");

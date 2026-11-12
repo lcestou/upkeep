@@ -1,10 +1,10 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { ExtrasSettings, Settings } from "../shared/types";
 import { loadExtras, updateExtras } from "./extras/state";
 import { ensureManifest, isRecord, parseManifest } from "./manifest";
 import type { Paths } from "./paths";
-import { loadState, updateState, writeAtomic } from "./store";
+import { loadState, updateState, withStateLock, writeAtomic } from "./store";
 
 /**
  * Everything a person set up, in one file to carry to another machine or hand to an agent: the app list as written
@@ -50,7 +50,8 @@ function only<T>(v: unknown, keep: (x: unknown) => x is T): Record<string, T> {
  * Replaces the setup with the one in an exported file's text, or changes nothing and names every problem. The file
  * is read whole before anything is written: it must be this format's version, and its app list must load with no
  * error, so a broken file never replaces a working list. apps.toml, state.json and extras.json are each kept beside
- * themselves as <file>.pre-import-<time> first, and a write that fails midway puts all three back. Skips, holds and automatic installs are kept only for apps the new list has; settings and extras
+ * themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes any the
+ * import created. Skips, holds and automatic installs are kept only for apps the new list has; settings and extras
  * go through the same checks as the files they land in, so an out-of-range value reads as its default.
  */
 export function importSetup(
@@ -75,15 +76,22 @@ export function importSetup(
 
 	const stamp = now.toISOString().replace(/[:.]/g, "-");
 	const files = [ensureManifest(paths, seedFile), join(paths.state, "state.json"), join(paths.state, "extras.json")];
-	// Each file that exists is kept as <file>.pre-import-<time>, so every import's starting point survives.
+	// Each file that exists is kept as <file>.pre-import-<time>, so every import's starting point survives; one that
+	// does not exist yet is noted, so a rollback removes what the import created.
 	const kept: [string, string][] = [];
+	const absent: string[] = [];
 	try {
 		mkdirSync(paths.state, { recursive: true });
-		for (const f of files)
-			if (existsSync(f)) {
-				copyFileSync(f, `${f}.pre-import-${stamp}`);
-				kept.push([f, `${f}.pre-import-${stamp}`]);
+		for (const f of files) {
+			if (!existsSync(f)) {
+				absent.push(f);
+				continue;
 			}
+			let copy = `${f}.pre-import-${stamp}`;
+			for (let n = 2; existsSync(copy); n++) copy = `${f}.pre-import-${stamp}-${n}`;
+			copyFileSync(f, copy);
+			kept.push([f, copy]);
+		}
 		writeAtomic(files[0] ?? "", doc.apps);
 		const settings = isRecord(doc.settings) ? doc.settings : {};
 		updateState(paths, (s) => {
@@ -98,18 +106,40 @@ export function importSetup(
 			updateExtras(paths, doc.extras as Partial<ExtrasSettings>);
 		}
 	} catch (err) {
-		// Half an import is worse than none: put back every file that was kept, and say what stopped it.
-		for (const [f, copy] of kept) {
-			try {
-				copyFileSync(copy, f);
-			} catch {
-				// nothing more to do; the kept copy stays beside it
-			}
-		}
+		const why = `could not write: ${err instanceof Error ? err.message : String(err)}.`;
+		const stuck = rollBack(paths, kept, absent);
 		return {
 			ok: false,
-			problems: [`could not write: ${err instanceof Error ? err.message : String(err)}. Nothing was changed.`],
+			problems:
+				stuck.length === 0 ? [`${why} Nothing was changed.`] : [`${why} Some files could not be put back:`, ...stuck],
 		};
 	}
 	return { ok: true, apps: list.apps.length, kept: kept.map(([, copy]) => copy) };
+}
+
+/**
+ * Half an import is worse than none: writes each kept copy back over its file (atomically, state.json under the
+ * state lock so the window's own writes wait) and removes each file the import created. Returns a line for every
+ * file it could not put back, naming where its copy is.
+ */
+function rollBack(paths: Paths, kept: [string, string][], absent: string[]): string[] {
+	const stuck: string[] = [];
+	const state = join(paths.state, "state.json");
+	for (const [f, copy] of kept) {
+		try {
+			const put = () => writeAtomic(f, readFileSync(copy, "utf8"));
+			if (f === state) withStateLock(paths, put);
+			else put();
+		} catch {
+			stuck.push(`${f}: its copy from before is ${copy}`);
+		}
+	}
+	for (const f of absent) {
+		try {
+			rmSync(f, { force: true });
+		} catch {
+			stuck.push(`${f}: written by this import, and could not be removed`);
+		}
+	}
+	return stuck;
 }
