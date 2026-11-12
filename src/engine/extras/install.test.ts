@@ -376,7 +376,12 @@ test("Update Manager's own priority updates come with any apt install, since min
 test("a trial run that failed, checked nothing, or removes a package refuses; a sudoers rule refusing fuser is sudo", async () => {
 	const cases: [Map<string, ProcessResult>, string][] = [
 		[
-			new Map([[trialArgv(PERL_IGNORE).join(" "), exit(0, "Inst perl [1] (2)\n", "E: Could not get lock /var/lib/dpkg/lock-frontend")]]),
+			new Map([
+				[
+					trialArgv(PERL_IGNORE).join(" "),
+					exit(0, "Inst perl [1] (2)\n", "E: Could not get lock /var/lib/dpkg/lock-frontend"),
+				],
+			]),
 			MESSAGES.systemTrialFailed("E: Could not get lock /var/lib/dpkg/lock-frontend"),
 		],
 		[
