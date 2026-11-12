@@ -1958,3 +1958,8 @@ msgstr "Ни один файл этого выпуска не работает �
 #: src/mainview/lib/engine-text.ts
 msgid "Building it needs {0}, which is not installed."
 msgstr "Для сборки нужно: {0} — не установлено."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
+msgstr "Программа считается названной {0}, по имени репозитория; измените путь, если сборка устанавливает другое имя."

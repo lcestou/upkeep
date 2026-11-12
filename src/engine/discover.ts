@@ -427,13 +427,9 @@ async function draftSource(
 		draft = draftFor(names, await repoText(repo, draft.file, release.tag, gh), bin) ?? draft;
 	const home = ctx.paths.home;
 	const usrLocal = ctx.usrLocal ?? "/usr/local";
-	const found = await which(ctx, draft.bin);
-	const dest =
-		found && (found.startsWith(`${home}/`) || found.startsWith(`${usrLocal}/`))
-			? found
-			: draft.system
-				? join(usrLocal, "bin", draft.bin)
-				: join(home, ".local/bin", draft.bin);
+	// Only a copy where the build installs is the one it replaces: a stray copy elsewhere would pass the check
+	// after the build while the new one sits unused.
+	const dest = draft.system ? join(usrLocal, "bin", draft.bin) : join(home, ".local/bin", draft.bin);
 	const spec: AppSpec = {
 		key: keyOf(draft.bin),
 		name: appName(draft.bin, repo),
@@ -464,6 +460,7 @@ async function draftSource(
 		why: [
 			opts.found,
 			MESSAGES.draftedFrom(draft.file),
+			draft.named ? null : MESSAGES.draftNamedAfterRepo(draft.bin),
 			exists ? MESSAGES.foundInstalledAt(String(spec.dest)) : MESSAGES.nothingInstalledAt(String(spec.dest)),
 		]
 			.filter(Boolean)
@@ -729,6 +726,8 @@ async function fromCatalogue(
 	const pattern = asset ?? entry.asset;
 	const r = await fromRepo(entry.repo, ctx, { asset: pattern });
 	if ("problem" in r) return { suggestions: [], problem: r.problem };
+	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
+	if (r.suggestion.spec.kind !== entry.kind) return { suggestions: [r.suggestion] };
 	return { suggestions: [{ ...r.suggestion, spec: { ...entry, asset: pattern }, ...sure }] };
 }
 

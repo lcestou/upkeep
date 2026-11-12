@@ -1940,3 +1940,8 @@ msgstr "Nenhum arquivo desta versão roda nesta máquina, então o Upkeep montou
 #: src/mainview/lib/engine-text.ts
 msgid "Building it needs {0}, which is not installed."
 msgstr "Para compilar é preciso {0}, que não está instalado."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
+msgstr "Supõe que o programa se chama {0}, como o repositório; altere o caminho se a compilação instalar outro nome."

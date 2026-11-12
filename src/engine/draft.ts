@@ -10,6 +10,8 @@ export type Draft = {
 	tools: string[];
 	build: string[];
 	bin: string;
+	/** The build file named the program; false when it is the repo's name, which the build may not install. */
+	named: boolean;
 	/** Installs under /usr/local with sudo, rather than into ~/.local/bin. */
 	system: boolean;
 };
@@ -44,7 +46,7 @@ const SYSTEMS: { file: string; tools: string[]; build: string[]; system: boolean
 		system: true,
 	},
 	{ file: "configure", tools: ["make"], build: ["./configure", ...MAKE], system: true },
-	{ file: "autogen.sh", tools: ["make"], build: ["sh autogen.sh", "./configure", ...MAKE], system: true },
+	{ file: "autogen.sh", tools: ["autoreconf", "make"], build: ["sh autogen.sh", "./configure", ...MAKE], system: true },
 	{
 		file: "configure.ac",
 		tools: ["autoreconf", "make"],
@@ -59,7 +61,7 @@ export function cargoBin(text: string): string | null {
 	let section = "";
 	let pkg: string | null = null;
 	for (const line of text.split("\n")) {
-		const head = /^\s*\[\[?([^\]]+)\]\]?\s*$/.exec(line);
+		const head = /^\s*\[\[?([^\]]+)\]\]?\s*(?:#.*)?$/.exec(line);
 		if (head) {
 			section = head[1]?.trim() ?? "";
 			continue;
@@ -91,5 +93,12 @@ export function draftFor(names: string[], text: string | null, fallback: string)
 		text === null ? null : s.file === "Cargo.toml" ? cargoBin(text) : s.file === "go.mod" ? goBin(text) : null;
 	// The name comes from a stranger's file and becomes a path: a plain file name or nothing.
 	const safe = named && /^[A-Za-z0-9_][A-Za-z0-9._-]*$/.test(named) ? named : null;
-	return { file: s.file, tools: s.tools, build: s.build, bin: safe ?? fallback, system: s.system };
+	return {
+		file: s.file,
+		tools: s.tools,
+		build: s.build,
+		bin: safe ?? fallback,
+		named: safe !== null,
+		system: s.system,
+	};
 }

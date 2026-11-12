@@ -784,6 +784,9 @@ test("a drafted CMake build installs under /usr/local with sudo, and says when i
 	expect(s?.spec.sudo).toBe(true);
 	expect(s?.spec.dest).toBe(join(t.dir, "usr/local/bin/thing"));
 	expect(s?.problem).toBe("Building it needs cmake, which is not installed.");
+	expect(s?.why).toContain(
+		"It takes the program to be thing, after the repo; change the path if the build installs another name.",
+	);
 	onPath.cmake = "/usr/bin/cmake";
 	expect((await suggest("o/thing", ctx().c)).suggestions[0]?.problem).toBeUndefined();
 });
@@ -794,4 +797,30 @@ test("a repo with no build file Upkeep knows still says no file runs here", asyn
 	expect((await suggest("o/plain", ctx().c)).problem).toBe(
 		"No asset of o/plain's latest release runs on this machine.",
 	);
+});
+
+test("a drafted build replaces only the copy where it installs: a stray one elsewhere would pass the check", async () => {
+	releases["o/thing"] = { tag_name: "v2.0", assets: [] };
+	roots["o/thing"] = { "CMakeLists.txt": "" };
+	onPath.cmake = "/usr/bin/cmake";
+	onPath.thing = join(t.paths.home, ".local/bin/thing");
+	expect((await suggest("o/thing", ctx().c)).suggestions[0]?.spec.dest).toBe(join(t.dir, "usr/local/bin/thing"));
+});
+
+test("a catalogue app with no release file here gets the drafted build as a guess, not its own table as sure", async () => {
+	releases["o/cat"] = { tag_name: "v1.0", assets: [{ name: "cat-1.0-aarch64.tar.gz", size: 1 }] };
+	roots["o/cat"] = { "go.mod": "module example.com/cat\n" };
+	onPath.go = "/usr/bin/go";
+	const entry: AppSpec = {
+		key: "cat",
+		name: "Cat",
+		kind: "archive",
+		repo: "o/cat",
+		asset: "x86_64",
+		dest: "~/.local/bin/cat",
+	};
+	const s = (await suggest("cat", { ...ctx().c, catalogue: [entry] })).suggestions[0];
+	expect(s?.spec.kind).toBe("source");
+	expect(s?.confidence).toBe("guess");
+	expect(s?.source).toBe("repo");
 });

@@ -15,6 +15,7 @@ test("the most specific build file wins: a Rust project's Makefile is a convenie
 test("Cargo.toml names its program by its first [[bin]], else its package", () => {
 	expect(cargoBin('[package]\nname = "ripgrep"\n\n[[bin]]\nname = "rg"\npath = "x"\n')).toBe("rg");
 	expect(cargoBin('[package]\nname = "fd-find"\n[dependencies]\nname = "not-this"\n')).toBe("fd-find");
+	expect(cargoBin('[package] # the crate\nname = "x"\n[[bin]] # the program\nname = "y"\n')).toBe("y");
 	expect(cargoBin('[workspace]\nmembers = ["a"]\n')).toBeNull();
 });
 
@@ -31,9 +32,12 @@ test("a draft takes the program's name from the build file when it says, else th
 		tools: ["go"],
 		build: ["GOBIN=$HOME/.local/bin go install ./..."],
 		bin: "hey",
+		named: true,
 		system: false,
 	});
-	expect(draftFor(["go.mod"], null, "repo")?.bin).toBe("repo");
+	expect(draftFor(["go.mod"], null, "repo")).toMatchObject({ bin: "repo", named: false });
+	// autogen.sh runs autoreconf, so a draft from it needs that as well as make.
+	expect(draftFor(["autogen.sh"], null, "app")?.tools).toEqual(["autoreconf", "make"]);
 	expect(draftFor(["meson.build"], null, "app")).toMatchObject({ tools: ["meson", "ninja"], bin: "app", system: true });
 	expect(draftFor(["README.md"], null, "app")).toBeNull();
 	// A name that would climb out of the install folder, or hide, is not taken.

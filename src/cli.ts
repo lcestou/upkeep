@@ -191,9 +191,11 @@ async function add(engine: Engine, input: string, json: boolean, out: Out): Prom
 		const [found] = suggestions;
 		const reason =
 			problem ??
-			(found
-				? `${input} looks like ${found.spec.repo ?? found.spec.name}, but that is a guess; add the repo by name.`
-				: `Nothing found for ${input}.`);
+			(found?.spec.kind === "source"
+				? `${input} has no release file for this machine. Upkeep drafted a source build, which is a guess: read its steps (--json shows the table) and add it from the window's Add app.`
+				: found
+					? `${input} looks like ${found.spec.repo ?? found.spec.name}, but that is a guess; add the repo by name.`
+					: `Nothing found for ${input}.`);
 		if (json) out(JSON.stringify({ added: [], problem: reason, candidate: found?.spec ?? null }));
 		else out(reason);
 		return 1;

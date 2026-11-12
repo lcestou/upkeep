@@ -1922,3 +1922,8 @@ msgstr "Keine Datei dieses Releases läuft auf diesem Rechner, deshalb hat Upkee
 #: src/mainview/lib/engine-text.ts
 msgid "Building it needs {0}, which is not installed."
 msgstr "Zum Bauen fehlt {0}; das ist nicht installiert."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It takes the program to be {0}, after the repo; change the path if the build installs another name."
+msgstr "Als Programmname nimmt es {0}, nach dem Repo; ändere den Pfad, wenn der Bau einen anderen Namen installiert."
