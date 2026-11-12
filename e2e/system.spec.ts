@@ -14,7 +14,7 @@ test("the System group is absent while the setting is off, and Settings shows an
 	await expect(page.getByTestId("group-system-section")).toHaveCount(0);
 	await page.getByTestId("tab-settings").click();
 	await expect(page.getByTestId("setting-system-help")).toHaveText(
-		"Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.",
+		"Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.",
 	);
 	await expect(page.getByTestId("extras-group")).toHaveText("Extras");
 	await page.getByTestId("setting-system").check();
@@ -23,7 +23,7 @@ test("the System group is absent while the setting is off, and Settings shows an
 	// It shows at once in its checking state, then lists.
 	await expect(page.getByTestId("system-checked")).toHaveText("From Update Manager, checking");
 	await expect(page.getByTestId("system-checked")).toHaveText(/^From Update Manager, checked /);
-	await expect(page.getByTestId("count-system")).toHaveText("10");
+	await expect(page.getByTestId("count-system")).toHaveText("11");
 	await page.getByTestId("tab-settings").click();
 	await page.getByTestId("setting-system").uncheck();
 	await page.getByTestId("tab-updates").click();
@@ -37,7 +37,7 @@ test("the group sits last, folded with its count, and opens by click and by keyb
 	await expect(page.getByTestId("group-system-toggle")).toHaveAttribute("aria-expanded", "false");
 	await expect(page.locator('[data-testid^="sys-row-"]')).toHaveCount(0);
 	await openGroup(page);
-	await expect(page.locator('[data-testid^="sys-row-"]')).toHaveCount(10);
+	await expect(page.locator('[data-testid^="sys-row-"]')).toHaveCount(11);
 	await page.getByTestId("group-system-toggle").press("Enter");
 	await expect(page.locator('[data-testid^="sys-row-"]')).toHaveCount(0);
 	await page.getByTestId("group-system-toggle").press("Space");
@@ -65,6 +65,11 @@ test("system rows read their type, versions and notes", async ({ page }) => {
 	await expect(gimp.getByTestId("sys-newbuild")).toHaveText("new build");
 	const platform = page.getByTestId("sys-row-flatpak:org.gnome.Platform");
 	await expect(platform.getByTestId("sys-type")).toHaveText("Flatpak runtime");
+	// A Cinnamon spice, as Update Manager lists it too.
+	const spice = page.getByTestId("sys-row-cinnamon:extension:CinnamonBurnMyWindows@klangman");
+	await expect(spice.getByTestId("sys-name")).toHaveText("Burn My Windows");
+	await expect(spice.getByTestId("sys-type")).toHaveText("Cinnamon extension");
+	await expect(spice.getByTestId("sys-ver")).toHaveAttribute("title", "2026.11.11 → 2026.11.12");
 	// No installed version: the arrow, then latest.
 	await expect(platform.getByTestId("sys-ver")).toHaveAttribute("title", "Not installed. 51 is the latest.");
 	await expect(platform.getByTestId("sys-old")).toHaveText("");

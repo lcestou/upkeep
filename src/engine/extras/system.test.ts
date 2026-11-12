@@ -28,6 +28,12 @@ import {
 	parseMintList,
 	parseSourceVersions,
 	SOURCE_VERSIONS,
+	parseSnapList,
+	parseSpices,
+	SNAP_INSTALLED,
+	SNAP_UPDATES,
+	SPICE_TYPES,
+	spiceList,
 } from "./system";
 
 const fx = (name: string) => readFileSync(join(import.meta.dir, "fixtures", name), "utf8");
@@ -49,12 +55,16 @@ afterEach(() => t.cleanup());
 
 const missing: ProcessResult = { code: 127, stdout: "", stderr: "Executable not found in $PATH", timedOut: false };
 
-/** Answers the seven commands from the fixtures, with overrides by argv; anything else throws. */
+/**
+ * Answers the commands from the fixtures, with overrides by argv; the spice updater and snap are missing unless
+ * overridden, as on a desktop without Cinnamon or snapd. Anything else throws.
+ */
 function box(over: Map<string, ProcessResult | Promise<ProcessResult>> = new Map()) {
 	return strictRun((argv) => {
 		const key = argv.join(" ");
 		const o = over.get(key);
 		if (o) return o;
+		if (argv[0] === "cinnamon-spice-updater" || argv[0] === "snap") return missing;
 		const hit = FIXTURES.find(([a]) => a.join(" ") === key);
 		return hit ? ok(fx(hit[1])) : undefined;
 	});
@@ -151,7 +161,8 @@ test("kernel and driver rows carry the Update Manager note; rows come only from 
 		["nvidia-graphics-drivers-580", "driver", "update-manager-only"],
 		["perl", "security", null],
 	]);
-	expect(calls.map((c) => c.argv.join(" ")).toSorted()).toEqual(FIXTURES.map(([a]) => a.join(" ")).toSorted());
+	const asked = [...FIXTURES.map(([a]) => a), ...SPICE_TYPES.map(spiceList), SNAP_UPDATES, SNAP_INSTALLED];
+	expect(calls.map((c) => c.argv.join(" ")).toSorted()).toEqual(asked.map((a) => a.join(" ")).toSorted());
 	expect(calls.every((c) => c.opts.timeoutMs === 60_000)).toBe(true);
 });
 
@@ -497,6 +508,7 @@ test("turned off and on during a check, only the newer check's answer lands", as
 				releaseFirst = () => r(ok(""));
 			});
 		}
+		if (argv[0] === "cinnamon-spice-updater" || argv[0] === "snap") return missing;
 		const hit = FIXTURES.find(([a]) => a.join(" ") === key);
 		return hit ? ok(fx(hit[1])) : undefined;
 	});
@@ -513,4 +525,50 @@ test("turned off and on during a check, only the newer check's answer lands", as
 	await Bun.sleep(20);
 	expect(x.snapshot().system.phase).toBe("idle");
 	expect(x.snapshot().system.rows.filter((r) => r.source === "apt").length).toBeGreaterThan(0);
+});
+
+test("Cinnamon's spices and Snap's refreshes are listed when their tools answer, read from their real output", async () => {
+	const answers = new Map<string, ProcessResult>([
+		[spiceList("extension").join(" "), ok(fx("spices-extension.json"))],
+		[spiceList("applet").join(" "), ok("{}\n")],
+		[spiceList("theme").join(" "), ok("not json")],
+		[
+			SNAP_UPDATES.join(" "),
+			ok("Name     Version   Rev   Size   Publisher   Notes\nfirefox  133.0-2   5437  250MB  mozilla**   -\n"),
+		],
+		[
+			SNAP_INSTALLED.join(" "),
+			ok(
+				"Name     Version   Rev   Tracking       Publisher   Notes\nfirefox  132.0-1   5300  latest/stable  mozilla**   -\ncore22   20241001  1663  latest/stable  canonical** base\n",
+			),
+		],
+	]);
+	const { rows } = await checkSystem({ run: box(answers).run });
+	expect(rows.filter((r) => r.source === "cinnamon" || r.source === "snap")).toEqual([
+		{
+			id: "cinnamon:extension:CinnamonBurnMyWindows@klangman",
+			source: "cinnamon",
+			name: "Burn My Windows",
+			type: "extension",
+			installed: "2026.11.11",
+			latest: "2026.11.12",
+			running: false,
+		},
+		{
+			id: "snap:firefox",
+			source: "snap",
+			name: "firefox",
+			type: "snap",
+			installed: "132.0-1",
+			latest: "133.0-2",
+			running: false,
+		},
+	]);
+});
+
+test("a spice with no new version, or not an object, gives no row; one without a name is named by its uuid", () => {
+	expect(parseSpices('{"a@x": {"new_version": ""}, "b@x": 3}', "applet")).toEqual([]);
+	expect(parseSpices('{"c@x": {"new_version": "2"}}', "desklet")[0]).toMatchObject({ name: "c@x", installed: null });
+	expect(parseSpices("[1]", "theme")).toEqual([]);
+	expect(parseSnapList("", "")).toEqual([]);
 });

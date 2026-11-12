@@ -39,12 +39,25 @@ export const FLATPAK_ROWS: SystemRow[] = [
 	flatpak("org.gnome.Platform", "GNOME Application Platform", "runtime", null, "51"),
 ];
 
+/** A Cinnamon spice with an update, as the spice updater lists it. */
+export const SPICE_ROWS: SystemRow[] = [
+	{
+		id: "cinnamon:extension:CinnamonBurnMyWindows@klangman",
+		source: "cinnamon",
+		name: "Burn My Windows",
+		type: "extension",
+		installed: "2026.11.11",
+		latest: "2026.11.12",
+		running: false,
+	},
+];
+
 /** The System group for a variant. The base is the owner's machine with every row; each variant drops rows, sets the phase or adds a problem to match its name. */
 export function systemFor(variant: SystemVariant, checkedAt: string): SystemState {
 	const base: SystemState = {
 		mode: "show",
 		phase: "idle",
-		rows: [...APT_ROWS, ...FLATPAK_ROWS],
+		rows: [...APT_ROWS, ...FLATPAK_ROWS, ...SPICE_ROWS],
 		checkedAt,
 		problem: null,
 		glMissing: null,

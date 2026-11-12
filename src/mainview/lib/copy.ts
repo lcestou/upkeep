@@ -718,7 +718,7 @@ export const SYS = {
 		return "Show system updates";
 	},
 	get settingHelp() {
-		return "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.";
+		return "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.";
 	},
 	get group() {
 		return "System";
@@ -763,6 +763,21 @@ export const SYS = {
 		},
 		get runtime() {
 			return "Flatpak runtime";
+		},
+		get applet() {
+			return "Cinnamon applet";
+		},
+		get desklet() {
+			return "Cinnamon desklet";
+		},
+		get extension() {
+			return "Cinnamon extension";
+		},
+		get theme() {
+			return "Cinnamon theme";
+		},
+		get snap() {
+			return "Snap";
 		},
 	} satisfies Record<SystemRow["type"], string>,
 } as const;

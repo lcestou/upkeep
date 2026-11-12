@@ -917,10 +917,6 @@ msgid "Show system updates"
 msgstr "Mostrar actualizaciones del sistema"
 
 #: src/mainview/lib/copy.ts
-msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
-msgstr "Muestra las actualizaciones pendientes del propio sistema: apps y runtimes de Flatpak, y los paquetes que instalaría tu gestor de paquetes (Gestor de actualizaciones en Linux Mint; si no, apt, dnf, pacman o zypper). No cuentan en el número de la bandeja."
-
-#: src/mainview/lib/copy.ts
 msgid "Open Update Manager"
 msgstr "Abrir el Gestor de actualizaciones"
 
@@ -1950,3 +1946,27 @@ msgstr "{0} no pudo instalar {1}. Mira el registro."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} could not install {1}, and putting {2} back failed. See the log."
 msgstr "{0} no pudo instalar {1}, y no se pudo restaurar la {2}. Mira el registro."
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "Muestra las actualizaciones pendientes del propio sistema: apps y runtimes de Flatpak, Snaps, los applets, desklets, extensiones y temas de Cinnamon, y los paquetes que instalaría tu gestor de paquetes (Gestor de actualizaciones en Linux Mint; si no, apt, dnf, pacman o zypper). No cuentan en el número de la bandeja."
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon applet"
+msgstr "Applet de Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon desklet"
+msgstr "Desklet de Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon extension"
+msgstr "Extensión de Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon theme"
+msgstr "Tema de Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Snap"
+msgstr "Snap"

@@ -934,10 +934,6 @@ msgid "Show system updates"
 msgstr "Pokaż aktualizacje systemu"
 
 #: src/mainview/lib/copy.ts
-msgid "Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
-msgstr "Pokazuje oczekujące aktualizacje samego systemu: aplikacje i środowiska Flatpak oraz pakiety, które zainstalowałby twój menedżer pakietów (Menedżer aktualizacji w Linux Mint, w przeciwnym razie apt, dnf, pacman lub zypper). Nie wlicza się do liczby w zasobniku."
-
-#: src/mainview/lib/copy.ts
 msgid "Open Update Manager"
 msgstr "Otwórz Menedżer aktualizacji"
 
@@ -1968,3 +1964,27 @@ msgstr "{0} nie mógł zainstalować {1}. Zobacz dziennik."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} could not install {1}, and putting {2} back failed. See the log."
 msgstr "{0} nie mógł zainstalować {1}, a przywrócenie {2} nie powiodło się. Zobacz dziennik."
+
+#: src/mainview/lib/copy.ts
+msgid "Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number."
+msgstr "Pokazuje oczekujące aktualizacje samego systemu: aplikacje i środowiska Flatpak, Snapy, aplety, desklety, rozszerzenia i motywy Cinnamon oraz pakiety, które zainstalowałby twój menedżer pakietów (Menedżer aktualizacji w Linux Mint, w przeciwnym razie apt, dnf, pacman lub zypper). Nie wlicza się do liczby w zasobniku."
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon applet"
+msgstr "Aplet Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon desklet"
+msgstr "Desklet Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon extension"
+msgstr "Rozszerzenie Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon theme"
+msgstr "Motyw Cinnamon"
+
+#: src/mainview/lib/copy.ts
+msgid "Snap"
+msgstr "Snap"
