@@ -13,10 +13,11 @@ import type {
 	Stage,
 	Suggestion,
 } from "../shared/types";
-import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup } from "./backup";
+import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
 import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { type FetchLike, githubToken, type Rate } from "./github";
-import { checkCommand, installCommand } from "./kinds/command";
+import { checkCommand, installCommand, tagOf } from "./kinds/command";
+import { fill } from "./kinds/tree";
 import {
 	type Checked,
 	type KindCtx,
@@ -180,6 +181,20 @@ const BUILT_WEIGHTS: [Stage, number][] = [
 	["install", 15],
 	["verify", 15],
 ];
+/** A .deb or a command app that keeps a restore point shows a backup stage its default stem has no room for. */
+const POINT_WEIGHTS = {
+	deb: [
+		["download", 45],
+		["backup", 10],
+		["install", 35],
+		["verify", 10],
+	],
+	command: [
+		["backup", 10],
+		["install", 75],
+		["verify", 15],
+	],
+} satisfies Record<"deb" | "command", [Stage, number][]>;
 
 /** A finished install is "updated" in the run's results; failures keep their own word. */
 const resultOf = (r: Outcome["result"]): RunResult["result"] => (r === "done" ? "updated" : r);
@@ -376,7 +391,11 @@ export function createEngine(deps: EngineDeps): Engine {
 				history,
 				spec.key,
 				spec.kind,
-				restorable && spec.kind === "source" ? BUILT_WEIGHTS : undefined,
+				restorable && spec.kind === "source"
+					? BUILT_WEIGHTS
+					: restorable && (spec.kind === "deb" || spec.kind === "command")
+						? POINT_WEIGHTS[spec.kind]
+						: undefined,
 			),
 		};
 		const note = interrupted.get(spec.key);
@@ -864,7 +883,17 @@ export function createEngine(deps: EngineDeps): Engine {
 					const now = await probeInstalled(spec, kindCtx(key));
 					current = "version" in now ? now.version : null;
 				}
-				if (canRestore(spec) && current && current !== version) {
+				// A .deb's undo would need its package downloaded again, so its restore keeps no point of what it replaces.
+				if (canRestore(spec) && current && current !== version && spec.kind === "command" && spec.restore) {
+					// The tag's form comes from this session's check, else from the point being put back, which kept its own tag.
+					const back = readMeta(join(backupDir(paths, key), version));
+					const tag = tagOf(
+						checked.get(key)?.target ?? (back?.tag ? { tag: back.tag, version: back.version } : undefined),
+						current,
+					);
+					const command = spec.restore.map((a) => fill(a, { version: current ?? "", tag }));
+					takePoint(paths, spec, current, { command, tag }, deps.now().toISOString());
+				} else if (canRestore(spec) && current && current !== version && spec.kind !== "deb") {
 					const files = installedFiles(spec, destOf(spec, { paths })).filter((f) => existsSync(f));
 					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString());
 				}

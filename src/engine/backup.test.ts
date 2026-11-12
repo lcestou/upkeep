@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { listBackups, prune, restoreBackup, takeBackup } from "./backup";
+import { listBackups, prune, restoreBackup, takeBackup, takePoint } from "./backup";
 import { realRun, recordingRun, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -101,4 +101,19 @@ test("re-taking a restore point replaces its files rather than adding to them", 
 	takeBackup(t.paths, { key: "uv" }, "0.9.1", [a]);
 	expect(readdirSync(join(t.paths.data, "backups/uv/0.9.1")).toSorted()).toEqual(["meta.json", "uv"]);
 	expect(readdirSync(join(t.paths.data, "backups/uv"))).toEqual(["0.9.1"]);
+});
+
+test("a command point runs its restore argv, and one that wants a sudo password says so plainly", async () => {
+	takePoint(t.paths, { key: "tool" }, "1.0.0", { command: ["sudo", "tool-pin", "1.0.0"] }, "2026-11-10T10:00:00.000Z");
+	const { run, calls } = recordingRun(t.paths, () => ({
+		code: 1,
+		stdout: "",
+		stderr: "sudo: a password is required",
+		timedOut: false,
+	}));
+	expect(await restoreBackup(t.paths, { key: "tool" }, "1.0.0", run)).toEqual({
+		ok: false,
+		detail: "sudo needs a password here. Run the update from a terminal.",
+	});
+	expect(calls[0]?.argv).toEqual(["sudo", "tool-pin", "1.0.0"]);
 });

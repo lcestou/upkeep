@@ -45,7 +45,7 @@ test("Restore swaps the point, lands in Held back unticked, and the pane stays o
 test("a kind with no restore point says why in the pane", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("open-wrangler").click();
-	await expect(page.getByTestId("no-restore")).toHaveText("It updates itself, so there is no restore point.");
+	await expect(page.getByTestId("no-restore")).toHaveText("It updates itself, and its table has no restore command.");
 	await page.getByTestId("open-cursor").click();
 	await expect(page.getByTestId("no-restore")).toHaveText("Upkeep hands this one to lutechi-updater.");
 });

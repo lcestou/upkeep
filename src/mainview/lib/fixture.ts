@@ -283,7 +283,7 @@ const CAN_RESTORE = {
 	appimage: true,
 	archive: true,
 	file: true,
-	deb: false,
+	deb: true,
 	source: false,
 	command: false,
 	legacy: false,

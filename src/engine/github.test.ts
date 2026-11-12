@@ -242,3 +242,14 @@ test("a search item without a string name, full name and star count is dropped",
 	expect(parseRepoSearch({ items: "none" })).toEqual([]);
 	expect(parseRepoSearch(null)).toEqual([]);
 });
+
+test("a tagged release has a cache file of its own, and two tags never share one", async () => {
+	const opts = { cacheDir: dir, fetch, api: api() };
+	await fetchRelease("sharkdp/fd", { ...opts, tag: "v1/2" });
+	await fetchRelease("sharkdp/fd", { ...opts, tag: "v1_2" });
+	expect(hits.map((h) => new URL(h.url).pathname)).toEqual([
+		"/repos/sharkdp/fd/releases/tags/v1%2F2",
+		"/repos/sharkdp/fd/releases/tags/v1_2",
+	]);
+	expect(readdirSync(dir).toSorted()).toEqual(["sharkdp__fd@v1%2F2.json", "sharkdp__fd@v1_2.json"]);
+});

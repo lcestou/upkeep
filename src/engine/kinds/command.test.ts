@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
+import { listBackups } from "../backup";
 import { realRun, script, tempHome } from "../testkit";
 import type { KindCtx } from "./context";
-import { checkCommand, installCommand } from "./command";
+import { checkCommand, installCommand, tagOf } from "./command";
 
 let t: ReturnType<typeof tempHome>;
 let lines: string[] = [];
@@ -125,4 +126,66 @@ test("an update that leaves the tool unable to start is a failure that keeps the
 		installed: "2.1.322",
 		restartToApply: false,
 	});
+});
+
+test("with a restore command the installed version is a point first, and a tool that will not start gets it back", async () => {
+	const state = fakeClaude("2.1.322");
+	// The update breaks the tool; the restore command puts the version it is given back.
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf broken > ${state}`);
+	script(join(t.paths.home, ".local/bin/claude-pin"), `printf "%s" "$1" > ${state}`);
+	script(
+		join(t.paths.home, ".local/bin/claude"),
+		`v=$(cat ${state}); [ "$v" = broken ] && exit 1; echo "$v (Claude Code)"`,
+	);
+	const spec = { ...claude(["~/.local/bin/claude-up"]), restore: ["~/.local/bin/claude-pin", "{version}"] };
+	const outcome = await installCommand(spec, { from: "2.1.322", version: "2.1.400", tag: "v2.1.400" }, ctx());
+	expect(outcome).toMatchObject({
+		result: "rolled_back",
+		installed: "2.1.322",
+		detail: "Would not start after the update. Restored 2.1.322.",
+	});
+	expect(Object.keys(outcome.stages)).toEqual(["backup", "install", "verify"]);
+	expect(readFileSync(state, "utf8")).toBe("2.1.322");
+	expect(listBackups(t.paths, "claude").map((p) => p.version)).toEqual(["2.1.322"]);
+});
+
+test("without a restore command a tool that will not start says so, and no point is taken", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf broken > ${state}`);
+	script(
+		join(t.paths.home, ".local/bin/claude"),
+		`v=$(cat ${state}); [ "$v" = broken ] && exit 1; echo "$v (Claude Code)"`,
+	);
+	const outcome = await installCommand(
+		claude(["~/.local/bin/claude-up"]),
+		{ from: "2.1.322", version: "2.1.400", tag: "2.1.400" },
+		ctx(),
+	);
+	expect(outcome).toMatchObject({
+		result: "failed",
+		detail: "Would not start after the update. Its table has no restore command.",
+	});
+	expect(listBackups(t.paths, "claude")).toEqual([]);
+});
+
+test("tagOf writes a version's tag the way the target's tag is written", () => {
+	expect(tagOf({ tag: "v2.1.400", version: "2.1.400" }, "2.1.322")).toBe("v2.1.322");
+	expect(tagOf({ tag: "release", version: "2.1.400" }, "2.1.322")).toBe("2.1.322");
+	expect(tagOf(undefined, "2.1.322")).toBe("2.1.322");
+});
+
+test("a restore command with no known installed version takes no point and says why", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf broken > ${state}`);
+	script(
+		join(t.paths.home, ".local/bin/claude"),
+		`v=$(cat ${state}); [ "$v" = broken ] && exit 1; echo "$v (Claude Code)"`,
+	);
+	const spec = { ...claude(["~/.local/bin/claude-up"]), restore: ["~/.local/bin/claude-pin", "{version}"] };
+	const outcome = await installCommand(spec, { from: null, version: "2.1.400", tag: "2.1.400" }, ctx());
+	expect(outcome).toMatchObject({
+		result: "failed",
+		detail: "Would not start after the update. No restore point: the installed version was not known.",
+	});
+	expect(listBackups(t.paths, "claude")).toEqual([]);
 });

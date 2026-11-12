@@ -377,7 +377,7 @@ Every string is in `src/mainview/lib/copy.ts`, and each has a `data-testid` the 
 - Name the app, the version and the step: "Installing Zen Browser, 2 of 4", "Updated to 10.5.2", "Rolled back to 3.29.9", "Downloading 12.1 of 30 MB".
 - Counts are plain sentences: "7 updates ready", "3 updated, 1 failed", "All 32 apps are up to date.", "Everything is fresh".
 - Buttons are verbs with their object: "Install 7 updates", "Retry 1 failed", "Stop after this one", "Restore 1.24b", "Remove from Upkeep".
-- Explain a refusal or a missing thing in one sentence: "Tick an update to install.", "dpkg owns these files, so there is no restore point.", "Remove fd from the list? The app itself stays installed.", "Could not write apps.toml:" with the reason, then "Nothing was changed."
+- Explain a refusal or a missing thing in one sentence: "Tick an update to install.", "It updates itself, and its table has no restore command.", "Remove fd from the list? The app itself stays installed.", "Could not write apps.toml:" with the reason, then "Nothing was changed."
 - History names what a run was: a retry's sentence starts with "Retry: " ("Retry: 1 updated"), an app installed fresh reads "Installed 15.2.0" instead of a pair, and during a run "A run is in progress." heads the page with past runs listed under it.
 - Sentence case, no exclamation marks, no hand-typed three-dot ellipsis (`e2e/polish.spec.ts` checks the whole window). A long label is truncated by the browser's ellipsis or fitted, never cut by hand.
 

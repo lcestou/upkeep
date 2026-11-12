@@ -4,3 +4,4 @@ kind = "command"
 check = ["wrangler", "--version"]
 latest = "npm:wrangler"
 update = ["~/.bun/bin/bun", "add", "-g", "wrangler@latest"]
+restore = ["~/.bun/bin/bun", "add", "-g", "wrangler@{version}"]

@@ -31,6 +31,8 @@ export type ReleaseOpts = {
 	api?: string;
 	/** npm-tags: the installed version, so the pick is never older than it. */
 	installed?: string;
+	/** A release by its tag instead of the latest one: the installed version's, for its restore point. */
+	tag?: string;
 };
 
 const GITHUB_API = "https://api.github.com";
@@ -199,17 +201,24 @@ export function pickDistTag(tags: Record<string, unknown>, installed?: string): 
 	return highest(versions.filter((v) => !v.includes("-"))) ?? highest(versions);
 }
 
-/** releases/latest for owner/repo, revalidated with the cached etag so an unchanged release costs no budget. */
+/**
+ * releases/latest for owner/repo, or the release of opts.tag, revalidated with the cached etag so an unchanged
+ * release costs no budget. Each tag has a cache file of its own.
+ */
 export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Release | Failure> {
 	const api = opts.api ?? GITHUB_API;
-	const cacheFile = join(opts.cacheDir, `${repo.replace("/", "__")}.json`);
+	const which = opts.tag === undefined ? "latest" : `tags/${encodeURIComponent(opts.tag)}`;
+	const cacheFile = join(
+		opts.cacheDir,
+		`${repo.replace("/", "__")}${opts.tag === undefined ? "" : `@${encodeURIComponent(opts.tag)}`}.json`,
+	);
 	const cached = readCache(cacheFile);
 	const headers: Record<string, string> = { Accept: "application/vnd.github+json", "User-Agent": "upkeep" };
 	if (cached) headers["If-None-Match"] = cached.etag;
 	if (opts.token && api === GITHUB_API) headers.Authorization = `Bearer ${opts.token}`;
 	let res: Response;
 	try {
-		res = await opts.fetch(`${api}/repos/${repo}/releases/latest`, { headers });
+		res = await opts.fetch(`${api}/repos/${repo}/releases/${which}`, { headers });
 	} catch (err) {
 		return {
 			failure: "network",

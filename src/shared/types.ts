@@ -35,6 +35,8 @@ export type AppSpec = {
 	latest?: string;
 	/** command: argv that performs the update. */
 	update?: string[];
+	/** A command app: puts {version} (and {tag}) back, e.g. ["npm", "i", "-g", "pkg@{version}"]; it makes a restore point possible. */
+	restore?: string[];
 	/** legacy and manual: the name the old script prints in --check for this app. */
 	legacy_name?: string;
 	/** legacy: the argument the old script takes for this app. */

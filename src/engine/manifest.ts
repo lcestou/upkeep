@@ -18,7 +18,7 @@ const STRING_FIELDS = [
 	"process",
 	"note",
 ] as const;
-const LIST_FIELDS = ["bins", "version_args", "build", "check", "update"] as const;
+const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore"] as const;
 const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing"] as const;
 // Read only for kind source.
 const SOURCE_STRINGS = ["dir", "stage"] as const;

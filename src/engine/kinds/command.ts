@@ -4,6 +4,7 @@ import { isFailure, latestFromSource } from "../github";
 import { probeCommand } from "../probe";
 import { isNewer } from "../version";
 import { fill } from "./tree";
+import { prune, restoreBackup, takePoint } from "../backup";
 import {
 	type Checked,
 	fromRelease,
@@ -50,11 +51,29 @@ export async function checkCommand(spec: AppSpec, ctx: KindCtx): Promise<Checked
 }
 
 /**
+ * The tag of version, written the way target's tag is: "v2.1.400" for 2.1.400 gives "v2.1.322" for 2.1.322.
+ * A tag that does not hold its version gives the bare version, which is wrong for a tool whose tags carry a prefix.
+ */
+export function tagOf(target: Pick<Target, "tag" | "version"> | undefined, version: string): string {
+	return target?.tag.includes(target.version) ? target.tag.replace(target.version, version) : version;
+}
+
+/**
  * Runs the tool's own update command, then checks the version moved. {tag} and {version} in its argv are filled in;
- * it runs without a shell, so a tag can only ever be one argument.
+ * it runs without a shell, so a tag can only ever be one argument. With a restore argv in its table, the installed
+ * version is a restore point first, and a tool that will not start after the update gets it back.
  */
 export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const clock = stageClock(ctx);
+	let point: string | null = null;
+	if (spec.restore?.length && target.from) {
+		clock.start("backup");
+		const tag = tagOf(target, target.from);
+		const command = spec.restore.map((a) => fill(a, { version: target.from ?? "", tag }));
+		takePoint(ctx.paths, spec, target.from, { command, tag }, (ctx.now?.() ?? new Date()).toISOString());
+		point = target.from;
+		ctx.log(`Restore point ${target.from} taken`);
+	}
 	clock.start("install");
 	const update = (spec.update ?? []).map((a) => fill(a, { tag: target.tag, version: target.version }));
 	ctx.log(`$ ${update.join(" ")}`);
@@ -63,14 +82,29 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 	clock.start("verify");
 	const after = await probeCommand(spec.check ?? [], { run: ctx.run });
 	const stages = clock.stop();
-	if (!("version" in after))
+	if (!("version" in after)) {
+		const back = point ? await restoreBackup(ctx.paths, spec, point, ctx.run) : null;
+		if (back?.ok)
+			return {
+				result: "rolled_back",
+				installed: point,
+				detail: `Would not start after the update. Restored ${point}.`,
+				restartToApply: false,
+				stages,
+			};
+		if (back) ctx.log(`Restore failed: ${back.detail ?? ""}`);
 		return {
 			result: "failed",
 			installed: target.from,
-			detail: "Would not start after the update. No restore point for this kind.",
+			detail: point
+				? `Would not start after the update, and putting ${point} back failed. See the log.`
+				: spec.restore?.length
+					? "Would not start after the update. No restore point: the installed version was not known."
+					: "Would not start after the update. Its table has no restore command.",
 			restartToApply: false,
 			stages,
 		};
+	}
 	if (after.version === target.from)
 		return {
 			result: "failed",
@@ -79,6 +113,7 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 			restartToApply: false,
 			stages,
 		};
+	if (point) prune(ctx.paths, spec.key, ctx.settings.keepBackups);
 	const detail = after.version !== target.version ? `Reports ${after.version}.` : undefined;
 	return { result: "done", installed: after.version, detail, restartToApply: spec.note !== undefined, stages };
 }
