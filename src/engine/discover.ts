@@ -341,8 +341,12 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		!opts.asset &&
 		usable.length > 0 &&
 		!usable.some((c) => byPattern.test(c.asset.name))
-	)
-		return { problem: MESSAGES.noAssetMatches(opts.pattern) };
+	) {
+		// The file is there but this machine cannot take it (a .deb without dpkg, an archive it cannot open).
+		if (!release.assets.some((a) => byPattern.test(a.name))) return { problem: MESSAGES.noAssetMatches(opts.pattern) };
+		const forMachine = MESSAGES.noAssetForMachine(repo);
+		return { problem: unopened ? MESSAGES.unopenedArchives(forMachine) : forMachine };
+	}
 	const picked =
 		(opts.asset ? usable.find((c) => c.asset.name === opts.asset) : undefined) ??
 		(byPattern ? usable.find((c) => byPattern.test(c.asset.name)) : undefined) ??
@@ -766,7 +770,10 @@ async function fromCatalogue(
 	const spec: AppSpec = { ...entry, asset: asset ? (r.suggestion.spec.asset ?? entry.asset) : entry.asset };
 	// Nothing at the table's dest yet: the app lands in Ready to install, as one added by repo does.
 	if (entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home))) spec.install_if_missing = true;
-	return { suggestions: [{ ...r.suggestion, spec, ...sure }] };
+	// A picked file whose name could not be made a pattern says so, as Add app does for a repo.
+	const widen = asset && r.suggestion.why.includes(MESSAGES.patternNeedsWidening());
+	const why = widen ? `${CATALOGUE_WHY} ${MESSAGES.patternNeedsWidening()}` : CATALOGUE_WHY;
+	return { suggestions: [{ ...r.suggestion, spec, ...sure, why }] };
 }
 
 /** Installed AppImages and binaries that are not in the list. Nothing found is ever run. */

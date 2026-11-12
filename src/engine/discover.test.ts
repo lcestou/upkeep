@@ -921,6 +921,13 @@ test("a catalogue table: no matching release file is a problem, a picked file ke
 	const c = { ...ctx().c, catalogue: [entry] };
 	// The table names a musl build this release does not ship: no other file stands in for it.
 	expect((await suggest("pick", c)).problem).toBe("No release asset matches musl\\.tar\\.gz$.");
+	// The table names a file the release has but this machine cannot take: that is what it says.
+	const xz = { ...entry, asset: "\\.tar\\.xz$" };
+	releases["o/pick"]?.assets.push({ name: "pick-1.2.0-x86_64-linux.tar.xz", size: 1 });
+	expect((await suggest("pick", { ...ctx().c, catalogue: [xz] })).problem).toBe(
+		"No asset of o/pick's latest release runs on this machine. Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet.",
+	);
+	releases["o/pick"]?.assets.pop();
 	// The person picks the archive in the window: the table keeps a pattern that still matches next release.
 	const picked = (await suggest("pick", c, "pick-v1.2.0-x86_64-linux.tar.gz")).suggestions[0];
 	expect(picked?.spec.asset).not.toContain("1.2.0");

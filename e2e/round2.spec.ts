@@ -153,8 +153,9 @@ test("the filter: Clear filter, ArrowDown to the first row, Enter opens the firs
 
 test("disabled pane actions during a run say why", async ({ page }) => {
 	await load(page, "fixture&speed=1");
-	await page.getByTestId("open-fd").click();
 	await page.getByTestId("install").click();
+	// Picked during the run, the pane stays on fd; picked before, it follows the run to the app installing now.
+	await page.getByTestId("open-fd").click();
 	await expect(page.getByTestId("hold-fd")).toHaveAttribute("title", "Wait for the run to finish.");
 });
 
