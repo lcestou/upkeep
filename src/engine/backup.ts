@@ -10,6 +10,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { basename, join } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import type { AppSpec, RestorePoint } from "../shared/types";
 import { dropTree } from "./drop";
 import type { Paths } from "./paths";
@@ -54,7 +55,7 @@ export function backupDir(paths: Paths, key: string): string {
  */
 export function pointName(version: string): string {
 	if (version === "" || version === "." || version === ".." || version.includes("/") || version.includes("\0"))
-		throw new Error(`${JSON.stringify(version)} cannot name a restore point`);
+		throw new Error(MESSAGES.pointNameRefused(JSON.stringify(version)));
 	return version;
 }
 
@@ -160,23 +161,23 @@ export async function restoreBackup(
 	const dir = join(backupDir(paths, spec.key), version);
 	// A half-built point has a meta file and maybe not every file: it is never a version to go back to.
 	const meta = version.endsWith(".upkeep-tmp") ? null : readMeta(dir);
-	if (!meta) return { ok: false, detail: `No restore point ${version}.` };
+	if (!meta) return { ok: false, detail: MESSAGES.noRestorePoint(version) };
 	if (meta.command) {
 		const r = await run(meta.command, { timeoutMs: 600_000, cwd: paths.home });
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
-		return r.code === 0 ? { ok: true } : { ok: false, detail: `${meta.command.join(" ")} exited ${r.code}.` };
+		return r.code === 0 ? { ok: true } : { ok: false, detail: MESSAGES.commandExited(meta.command.join(" "), r.code) };
 	}
 	if (meta.deb) {
 		const deb = join(dir, meta.files[0]?.name ?? "");
 		const r = await run(asRoot(["dpkg", "-i", deb], true), { timeoutMs: 600_000 });
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
-		return r.code === 0 ? { ok: true } : { ok: false, detail: `dpkg could not put ${version} back. See the log.` };
+		return r.code === 0 ? { ok: true } : { ok: false, detail: MESSAGES.dpkgCouldNotPutBack(version) };
 	}
 	for (const f of meta.files) {
 		// oxlint-disable-next-line no-await-in-loop -- files go back one at a time so a failure stops the rest
 		const r = await installAside(run, join(dir, f.name), f.dest, f.mode, meta.sudo);
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
-		if (r.code !== 0) return { ok: false, detail: `Could not restore ${f.name}: ${(r.stderr || r.stdout).trim()}` };
+		if (r.code !== 0) return { ok: false, detail: MESSAGES.couldNotRestoreFile(f.name, (r.stderr || r.stdout).trim()) };
 	}
 	return { ok: true };
 }

@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { compareRefs, fetchRelease, isFailure, latestFromSource, type Release } from "../github";
 import { installBuilt } from "./built";
@@ -76,7 +77,7 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 				installed,
 				latest: null,
 				status: "problem",
-				detail: `The latest tag ${r.tag} is not a tracked version.`,
+				detail: MESSAGES.latestTagNotTracked(r.tag),
 				...fromRelease(r),
 			};
 	}
@@ -93,15 +94,14 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 			installed,
 			latest,
 			status: "problem",
-			detail: "Could not read the commit the installed copy was built from.",
+			detail: MESSAGES.couldNotReadCommit(),
 			...base,
 		};
 	const cmp = await compareRefs(spec.repo ?? "", sha, tag, opts);
 	if (isFailure(cmp)) return { installed, latest, status: "problem", detail: cmp.detail, ...base };
 	const found = { installed, latest, target, commits: cmp.commits, ahead: cmp.ahead, ...base };
 	if (cmp.status === "ahead") return { ...found, status: "ready" };
-	if (cmp.status === "diverged")
-		return { ...found, status: "ready", detail: "Built from a commit that is not on the release's history." };
+	if (cmp.status === "diverged") return { ...found, status: "ready", detail: MESSAGES.divergedCommit() };
 	return { ...found, status: "fresh" };
 }
 
@@ -120,7 +120,7 @@ export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx)
 			return {
 				result: "failed",
 				installed: target.from,
-				detail: `Refused ${name}: not a plain version name. Nothing was changed.`,
+				detail: MESSAGES.refusedTag(name),
 				restartToApply: false,
 				stages: {},
 			};
@@ -142,7 +142,7 @@ export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx)
 		timeoutMs: 600_000,
 		onLine: log,
 	});
-	if (clone.code !== 0) return failed(`Could not clone ${spec.repo} at ${target.tag}.`);
+	if (clone.code !== 0) return failed(MESSAGES.couldNotClone(String(spec.repo), target.tag));
 
 	writeInflight(ctx.paths, { key: spec.key, dest: destOf(spec, ctx), backupVersion: null });
 	clock.start("install", 0);
@@ -152,17 +152,17 @@ export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx)
 		ctx.log(`$ ${step}`);
 		// oxlint-disable-next-line no-await-in-loop -- build steps run in order and stop at the first failure
 		const r = await ctx.run(["bash", "-c", nonInteractive(step)], { cwd: dir, timeoutMs: 30 * 60_000, onLine: log });
-		if (r.timedOut) return failed(`Build step timed out: ${step}`);
+		if (r.timedOut) return failed(MESSAGES.buildStepTimedOut(step));
 		if (sudoNeedsPassword(r)) return failed(SUDO_PASSWORD);
-		if (r.code !== 0) return failed(`Build step failed: ${step}`);
+		if (r.code !== 0) return failed(MESSAGES.buildStepFailedClone(step));
 	}
 
 	clock.start("verify");
 	const after = await probeInstalled(spec, ctx);
 	clearInflight(ctx.paths);
 	if ("version" in after) {
-		const detail = after.version !== target.version ? `Reports ${after.version}.` : undefined;
+		const detail = after.version !== target.version ? MESSAGES.reportsVersion(after.version) : undefined;
 		return { result: "done", installed: after.version, detail, restartToApply: false, stages: clock.stop() };
 	}
-	return failed("Would not start after the update. No restore point for this kind.");
+	return failed(MESSAGES.wouldNotStartNoPointKind());
 }

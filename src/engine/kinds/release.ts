@@ -10,6 +10,7 @@ import {
 	statSync,
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
+import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
 import { download, verifyAsset } from "../download";
@@ -76,7 +77,7 @@ async function latestRelease(spec: AppSpec, ctx: KindCtx): Promise<Release | Fai
 	if (spec.repo || !spec.latest) return fetchRelease(spec.repo ?? "", opts);
 	const r = await latestFromSource(spec.latest, opts);
 	if (isFailure(r)) return r;
-	return r.release ?? { failure: "http", detail: `${spec.latest} gives a version but no download.` };
+	return r.release ?? { failure: "http", detail: MESSAGES.sourceGivesNoDownload(spec.latest) };
 }
 
 /** Probes the installed copy and looks up the latest release. Source builds pass needAsset false. */
@@ -98,7 +99,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			installed,
 			latest: null,
 			status: "problem",
-			detail: `The latest tag ${release.tag} is not a tracked version.`,
+			detail: MESSAGES.latestTagNotTracked(release.tag),
 			...base,
 		};
 	const latest = release.version;
@@ -108,7 +109,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				installed: latest,
 				latest,
 				status: "ready",
-				detail: "Will not start. A rebuild against the current libraries fixes it.",
+				detail: MESSAGES.rebuildFixes(),
 				target: { from: null, version: latest, tag: release.tag },
 				...base,
 			};
@@ -119,13 +120,13 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 	if (needAsset) {
 		const pick = pickAsset(release, spec.asset ?? "");
 		if (!pick)
-			return { installed, latest, status: "problem", detail: `No release asset matches ${spec.asset}.`, ...base };
+			return { installed, latest, status: "problem", detail: MESSAGES.noAssetMatches(String(spec.asset)), ...base };
 		if (pick.count > 1)
 			return {
 				installed,
 				latest,
 				status: "problem",
-				detail: `More than one release asset matches ${spec.asset}: ${pick.names.join(", ")}. Narrow the pattern in apps.toml.`,
+				detail: MESSAGES.severalAssetsMatch(String(spec.asset), pick.names.join(", ")),
 				...base,
 			};
 		target = { ...target, asset: pick.asset };
@@ -163,7 +164,7 @@ function resolved(p: string): string {
 /** Downloads, backs up, installs and verifies one appimage, archive, file or deb app. */
 export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const asset = target.asset;
-	if (!asset) throw new Error(`No release asset for ${spec.name}.`);
+	if (!asset) throw new Error(MESSAGES.noReleaseAssetFor(spec.name));
 	// A symlinked dest is updated through the link, never replaced by a regular file.
 	const dest = resolved(destOf(spec, ctx));
 	const clock = stageClock(ctx);
@@ -219,7 +220,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				const r = await installAside(ctx.run, dl, dest, mode.toString(8), true);
 				if (sudoNeedsPassword(r))
 					return finish({ result: "failed", installed: target.from, detail: SUDO_PASSWORD, restartToApply: false });
-				if (r.code !== 0) throw new StepError(`Could not install ${basename(dest)}.`);
+				if (r.code !== 0) throw new StepError(MESSAGES.couldNotInstallFile(basename(dest)));
 			} else {
 				mkdirSync(dirname(dest), { recursive: true });
 				const next = `${dest}.upkeep-new`;
@@ -236,7 +237,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				? ["unzip", "-q", dl, "-d", extract]
 				: ["tar", "xzf", dl, "-C", extract];
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
-			if (x.code !== 0) throw new StepError(`Could not extract ${asset.name}.`);
+			if (x.code !== 0) throw new StepError(MESSAGES.couldNotExtract(asset.name));
 			// A bin this run added has no restore point, so a failure takes it out again.
 			const added: string[] = [];
 			for (const bin of bins) {
@@ -261,10 +262,10 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 					const detail = sudoFail
 						? SUDO_PASSWORD
 						: back?.ok
-							? `Could not install ${name}. Restored ${backupVersion}.`
+							? MESSAGES.couldNotInstallRestored(name, String(backupVersion))
 							: back
-								? `Could not install ${name}. Restore failed: ${back.detail ?? ""}`
-								: `Could not install ${name}. No restore point was taken.`;
+								? MESSAGES.couldNotInstallRestoreFailed(name, back.detail ?? "")
+								: MESSAGES.couldNotInstallNoPoint(name);
 					return finish({ result: "failed", installed: target.from, detail, restartToApply: false });
 				}
 				if (!existed.has(to)) added.push(to);
@@ -281,15 +282,15 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 					return finish({
 						result: "rolled_back",
 						installed: backupVersion,
-						detail: `dpkg could not install ${asset.name}. Restored ${backupVersion}.`,
+						detail: MESSAGES.dpkgRestored(asset.name, String(backupVersion)),
 						restartToApply: false,
 					});
-				if (!back) throw new StepError(`dpkg could not install ${asset.name}. See the log.`);
+				if (!back) throw new StepError(MESSAGES.dpkgSeeLog(asset.name));
 				ctx.log(`Restore failed: ${back.detail ?? ""}`);
 				return finish({
 					result: "failed",
 					installed: await installedNow(spec, ctx),
-					detail: `dpkg could not install ${asset.name}, and putting ${backupVersion} back failed. See the log.`,
+					detail: MESSAGES.dpkgPutBackFailed(asset.name, String(backupVersion)),
 					restartToApply: false,
 				});
 			}
@@ -301,12 +302,12 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			return finish({
 				result: "failed",
 				installed: after.version,
-				detail: `Still at ${after.version} after the update.`,
+				detail: MESSAGES.stillAtAfterUpdate(after.version),
 				restartToApply: false,
 			});
 		if ("version" in after) {
 			prune(ctx.paths, spec.key, ctx.settings.keepBackups);
-			const detail = after.version !== target.version ? `Reports ${after.version}.` : undefined;
+			const detail = after.version !== target.version ? MESSAGES.reportsVersion(after.version) : undefined;
 			return finish({ result: "done", installed: after.version, detail, restartToApply: running });
 		}
 		ctx.log(`Probe after install: ${after.state}${after.detail ? ` ${after.detail}` : ""}`);
@@ -379,7 +380,7 @@ async function rollBack(
 			return {
 				result: "rolled_back",
 				installed: point,
-				detail: `Would not start after the update. Restored ${point}.`,
+				detail: MESSAGES.wouldNotStartRestored(point),
 				restartToApply: false,
 			};
 		ctx.log(`Restore failed: ${r.detail ?? ""}`);
@@ -387,16 +388,14 @@ async function rollBack(
 			result: "failed",
 			// The disk may hold the new copy, the old one or neither: the row shows what a probe finds.
 			installed: await installedNow(spec, ctx),
-			detail: `Would not start after the update, and putting ${point} back failed. See the log.`,
+			detail: MESSAGES.wouldNotStartPutBackFailed(point),
 			restartToApply: false,
 		};
 	}
 	return {
 		result: "failed",
 		installed: target.from,
-		detail: canRestore(spec)
-			? "Would not start after the update. No restore point was taken."
-			: "Would not start after the update. No restore point for this kind.",
+		detail: canRestore(spec) ? MESSAGES.wouldNotStartNoPointTaken() : MESSAGES.wouldNotStartNoPointKind(),
 		restartToApply: false,
 	};
 }
