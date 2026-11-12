@@ -103,14 +103,54 @@ export function writeAtomic(file: string, text: string): void {
 	renameSync(tmp, file);
 }
 
-/** Re-reads the file, applies one change, writes it back by rename. The window and the command line may both be running. */
+/** How long a writer waits for another's lock, and how old a lock is before it counts as left by a process that died. */
+const STATE_LOCK_WAIT_MS = 2000;
+const STATE_LOCK_STALE_MS = 10_000;
+
+/**
+ * Runs fn holding state.json.lock, created exclusively, so the window and the command line never read, change and
+ * write the file at the same time and lose each other's change. A lock older than STATE_LOCK_STALE_MS was left by a
+ * process that died and is taken over. When the wait runs out, fn runs anyway: a lost race costs one setting, a
+ * refused write would cost it too.
+ */
+function withStateLock<T>(paths: Paths, fn: () => T): T {
+	const lock = `${stateFile(paths)}.lock`;
+	const until = Date.now() + STATE_LOCK_WAIT_MS;
+	let held = false;
+	while (!held) {
+		try {
+			writeFileSync(lock, String(process.pid), { flag: "wx" });
+			held = true;
+		} catch {
+			let age = 0;
+			try {
+				age = Date.now() - statSync(lock).mtimeMs;
+			} catch {
+				// gone between the two calls: try again at once
+				continue;
+			}
+			if (age > STATE_LOCK_STALE_MS) rmSync(lock, { force: true });
+			else if (Date.now() > until) break;
+			else Bun.sleepSync(10);
+		}
+	}
+	try {
+		return fn();
+	} finally {
+		if (held) rmSync(lock, { force: true });
+	}
+}
+
+/** Re-reads the file, applies one change, writes it back by rename, under the state lock: the window and the command line may both be running. */
 export function updateState(paths: Paths, change: (s: State) => void): State {
 	mkdirSync(paths.state, { recursive: true });
-	const s = loadState(paths);
-	change(s);
-	s.settings = clampSettings(s.settings);
-	writeAtomic(stateFile(paths), JSON.stringify(s, null, "\t"));
-	return s;
+	return withStateLock(paths, () => {
+		const s = loadState(paths);
+		change(s);
+		s.settings = clampSettings(s.settings);
+		writeAtomic(stateFile(paths), JSON.stringify(s, null, "\t"));
+		return s;
+	});
 }
 
 /** Field 22 of /proc/<pid>/stat, the start time in clock ticks, or null when the pid is gone. */
