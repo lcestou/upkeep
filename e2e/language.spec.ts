@@ -105,3 +105,18 @@ test("Export and Import in Settings say what they did", async ({ page }) => {
 	await page.getByTestId("import-setup").click();
 	await expect(note).toHaveText(/^Imported a list of \d+ apps\.$/);
 });
+
+test("what the engine reports follows the language: a row's problem is worded from the catalog", async ({ page }) => {
+	await load(page, "fixture=problems");
+	const line = page.getByTestId("sentence-borg");
+	await expect(line).toHaveText("BorgBackup will not start (~/.local/bin/borg).");
+	await page.getByTestId("tab-settings").click();
+	await page.getByTestId("setting-language").click();
+	await page.getByTestId("setting-language-es").click();
+	await page.getByTestId("tab-updates").click();
+	const es = inLanguage("es", "{0} will not start ({1}).")
+		.replace("{0}", "BorgBackup")
+		.replace("{1}", "~/.local/bin/borg");
+	await expect(line).toHaveText(es);
+	expect(es).not.toBe("BorgBackup will not start (~/.local/bin/borg).");
+});
