@@ -1,7 +1,6 @@
 import {
 	appendFileSync,
 	closeSync,
-	copyFileSync,
 	existsSync,
 	mkdirSync,
 	openSync,
@@ -78,9 +77,10 @@ export function loadState(paths: Paths): State {
 		// SAFETY: readFileSync throws an ErrnoException; JSON.parse's SyntaxError has no code, which reads as not ENOENT.
 		if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
 			try {
-				const hash = new Bun.CryptoHasher("sha256").update(readFileSync(file)).digest("hex").slice(0, 12);
-				const keep = `${file}.unreadable-${hash}`;
-				if (!existsSync(keep)) copyFileSync(file, keep);
+				// One read, so the copy holds the very bytes its name was made from, even if the file changes meanwhile.
+				const bytes = readFileSync(file);
+				const keep = `${file}.unreadable-${new Bun.CryptoHasher("sha256").update(bytes).digest("hex").slice(0, 12)}`;
+				if (!existsSync(keep)) writeFileSync(keep, bytes);
 			} catch {
 				// nothing to keep, or nowhere to keep it
 			}
