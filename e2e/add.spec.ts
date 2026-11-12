@@ -157,6 +157,18 @@ test("drop a file in the real window: WebKitGTK gives its address only as link t
 	await expect(page.getByTestId("suggestion-obsidian")).toBeVisible();
 });
 
+test("a dragged selection keeps its own words; the HTML is read only when nothing else came", async ({ page }) => {
+	await load(page, "fixture&speed=4");
+	await page.evaluate(() => {
+		const data = new DataTransfer();
+		data.setData("text/plain", "BurntSushi/ripgrep");
+		data.setData("text/html", '<span>BurntSushi/ripgrep <a href="https://example.com/x">notes</a></span>');
+		for (const t of ["dragenter", "drop"])
+			document.body.dispatchEvent(new DragEvent(t, { dataTransfer: data, bubbles: true, cancelable: true }));
+	});
+	await expect(page.getByTestId("add-input")).toHaveValue("BurntSushi/ripgrep");
+});
+
 test("Remove asks in place, Keep is the default and Escape keeps", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("open-fd").click();

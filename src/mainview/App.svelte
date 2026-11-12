@@ -70,13 +70,15 @@
 	/**
 	 * The address in dropped HTML. WebKitGTK, the real window's webview, keeps a dropped file's file:// address out of
 	 * text/uri-list and files; it hands it over only in text/html, as the text of an <a> with no href (seen in the real
-	 * window, 2026-11-12). A link's href, when there is one, wins over its text.
+	 * window, 2026-11-12). A link's href, when there is one, wins over its text; text outside the link is never taken.
 	 */
 	function linkIn(html: string | undefined): string | undefined {
-		if (!html) return undefined;
-		const doc = new DOMParser().parseFromString(html, "text/html");
-		return doc.querySelector("a")?.getAttribute("href") || doc.body.textContent?.trim() || undefined;
+		// shortcut: a large HTML drop (a long selection) is not parsed; WebKitGTK's file drop is one short <a>.
+		if (!html || html.length > 65_536) return undefined;
+		const a = new DOMParser().parseFromString(html, "text/html").querySelector("a");
+		return a?.getAttribute("href") || a?.textContent?.trim() || undefined;
 	}
+
 	/** Shows the drop veil on the first enter; `depth` counts nested enters so child elements do not flicker it off. */
 	function ondragenter(e: DragEvent) {
 		if (!carries(e)) return;
@@ -101,7 +103,8 @@
 		veil = false;
 		const data = e.dataTransfer;
 		const uri = data?.getData("text/uri-list").split(/\r?\n/).find((l) => l && !l.startsWith("#"));
-		const text = uri ?? linkIn(data?.getData("text/html")) ?? data?.getData("text/plain").trim();
+		// Plain text before HTML: a dragged selection keeps its own words; WebKitGTK's file drop has neither uri nor text.
+		const text = uri || data?.getData("text/plain").trim() || linkIn(data?.getData("text/html"));
 		if (text) {
 			const path = text.startsWith("file://") ? decodeURIComponent(text.replace(/^file:\/\//, "")) : text;
 			model?.openAdd(path);

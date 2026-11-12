@@ -99,13 +99,11 @@ export function match(text: string, depth = 0): { id: MessageId; values: string[
  */
 export function say(text: string | null | undefined, depth = 0): string {
 	if (!text) return text ?? "";
+	// A whole line of several sentences is cut first: a template ending in "{0}." would otherwise swallow the rest.
+	const parts = depth === 0 ? sentencesOf(text) : [text];
+	if (parts.length > 1) return parts.map((p) => say(p, 1)).join(" ");
 	const found = depth < 3 ? match(text) : null;
-	if (!found)
-		return depth === 0
-			? sentencesOf(text)
-					.map((p) => (p === text ? p : say(p)))
-					.join(" ")
-			: text;
+	if (!found) return text;
 	// SAFETY: ENGINE_COPY has a function for every id, taking as many string values as the template matched.
 	const fn = ENGINE_COPY[found.id] as (...v: string[]) => string;
 	return fn(...found.values.map((v) => say(v, depth + 1)));
@@ -118,6 +116,9 @@ export function say(text: string | null | undefined, depth = 0): string {
  * never cut up.
  */
 export function sentencesOf(text: string): string[] {
+	// shortcut: the cut tries a template at every full stop, so its cost grows with the square of the sentences; a
+	// long line (a history detail with many) is read whole instead. Upgrade to a single left-to-right pass if one matters.
+	if (text.length > 4000 || (text.match(/\. /g)?.length ?? 0) > 40) return [text];
 	return cover(text, new Map()) ?? [text];
 }
 

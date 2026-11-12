@@ -81,3 +81,14 @@ test("a line of several engine sentences, as Add app's why is, is read sentence 
 	expect(sentencesOf("cp: cannot stat. No such file")).toEqual(["cp: cannot stat. No such file"]);
 	expect(say(parts.join(" "))).toBe(parts.join(" "));
 });
+
+test("at the top, a line that is several templates is cut even when one template could swallow it whole", () => {
+	const line = `${MESSAGES.noApp("x")} ${MESSAGES.itInstalls("y")}`;
+	expect(match(line)?.id).toBe("noApp");
+	expect(sentencesOf(line)).toEqual([MESSAGES.noApp("x"), MESSAGES.itInstalls("y")]);
+	// Many matched sentences stay quick: past the cap the line is read whole.
+	const many = Array.from({ length: 400 }, () => MESSAGES.noApp("x")).join(" ");
+	const started = performance.now();
+	say(many);
+	expect(performance.now() - started).toBeLessThan(250);
+});
