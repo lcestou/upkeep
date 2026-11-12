@@ -224,6 +224,22 @@ test("versionless is for Claude Code's plugins only, and the plugins row always 
 	expect(apps).toEqual([{ key: "cc", name: "Claude Code plugins", kind: "claude-plugins", versionless: true }]);
 });
 
+test("a latest whose source the check cannot read is refused at load", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(
+		file,
+		[
+			"[apps.x]",
+			'name = "X"',
+			'kind = "command"',
+			'check = ["x", "--version"]',
+			'latest = "gitlab:o/x"',
+			'update = ["x", "up"]',
+		].join("\n"),
+	);
+	expect(loadManifest(file).errors).toEqual(["x: latest must start with npm:, pypi:, github:, npm-tags: or json:"]);
+});
+
 test("a file that is not TOML is one error and no apps", () => {
 	const file = join(dir, "apps.toml");
 	writeFileSync(file, "[apps.x\nname = ");

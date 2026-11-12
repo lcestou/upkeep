@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { HistoryRow } from "../shared/types";
 import { appendHistory, loadState, readHistory, updateState } from "./store";
@@ -38,6 +38,7 @@ test("a state file that cannot be read is kept beside the new one, not written o
 	updateState(t.paths, (s) => {
 		s.hold.zen = true;
 	});
-	expect(readFileSync(`${file}.unreadable`, "utf8")).toBe('{"auto":{"fd":true');
+	const kept = readdirSync(t.paths.state).filter((n) => n.startsWith("state.json.unreadable-"));
+	expect(kept.map((n) => readFileSync(join(t.paths.state, n), "utf8"))).toEqual(['{"auto":{"fd":true']);
 	expect(loadState(t.paths).hold).toEqual({ zen: true });
 });

@@ -284,8 +284,14 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 						detail: `dpkg could not install ${asset.name}. Restored ${backupVersion}.`,
 						restartToApply: false,
 					});
-				if (back) ctx.log(`Restore failed: ${back.detail ?? ""}`);
-				throw new StepError(`dpkg could not install ${asset.name}. See the log.`);
+				if (!back) throw new StepError(`dpkg could not install ${asset.name}. See the log.`);
+				ctx.log(`Restore failed: ${back.detail ?? ""}`);
+				return finish({
+					result: "failed",
+					installed: await installedNow(spec, ctx),
+					detail: `dpkg could not install ${asset.name}, and putting ${backupVersion} back failed. See the log.`,
+					restartToApply: false,
+				});
 			}
 		}
 
@@ -352,6 +358,12 @@ async function oldDeb(spec: AppSpec, target: Target, ctx: KindCtx): Promise<{ fi
 	return { file };
 }
 
+/** The version a probe reads now, or null when it reads none; for a row after a putting-back that failed. */
+async function installedNow(spec: AppSpec, ctx: KindCtx): Promise<string | null> {
+	const p = await probeInstalled(spec, ctx);
+	return "version" in p ? p.version : null;
+}
+
 /** The new copy would not start: put the restore point back when there is one. */
 async function rollBack(
 	spec: AppSpec,
@@ -373,7 +385,8 @@ async function rollBack(
 		ctx.log(`Restore failed: ${r.detail ?? ""}`);
 		return {
 			result: "failed",
-			installed: target.from,
+			// The disk may hold the new copy, the old one or neither: the row shows what a probe finds.
+			installed: await installedNow(spec, ctx),
 			detail: `Would not start after the update, and putting ${point} back failed. See the log.`,
 			restartToApply: false,
 		};
