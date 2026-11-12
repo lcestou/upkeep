@@ -53,6 +53,7 @@ import {
 	systemAbsent,
 	systemChecked,
 	systemProblem,
+	systemSources,
 	TEXT,
 	tomlWriteFailed,
 	versionText,
@@ -293,4 +294,15 @@ test("the summary's failed part and an apps.toml failure are found without match
 	expect(aboutManifest("無法寫入 apps.toml")).toBe(true);
 	expect(aboutManifest("fd is already in the list.")).toBe(false);
 	expect(aboutManifest(null)).toBe(false);
+});
+
+test("the System subline names every source it read; Update Manager already covers Cinnamon's spices", () => {
+	const snap = { source: "snap" };
+	const spice = { source: "cinnamon" };
+	expect(systemSources("mint", [{ source: "apt" }, spice])).toBe("Update Manager");
+	expect(systemSources("apt", [snap, spice])).toMatch(/^apt, Snap,? and Cinnamon$/);
+	expect(systemSources(null, [snap])).toBe("Flatpak and Snap");
+	expect(
+		systemProblem({ code: "failed", command: "cinnamon-spice-updater --list-json applet", detail: "offline" }),
+	).toBe("Could not read the Cinnamon list: offline");
 });

@@ -10,6 +10,7 @@ import type {
 	SystemState,
 } from "../../shared/types";
 import { formatBytes, plural } from "./format";
+import { language } from "./language.svelte";
 
 export const KIND_LABEL = {
 	get appimage() {
@@ -819,6 +820,28 @@ export const PACKAGES_FROM = {
 	},
 } satisfies Record<NonNullable<SystemState["packages"]>, string>;
 
+/** The sources the System group read beside the package list, by name, for its subline. */
+export const ALSO_FROM = {
+	get snap() {
+		return "Snap";
+	},
+	get cinnamon() {
+		return "Cinnamon";
+	},
+};
+
+/**
+ * The subline's "From …" names: the package list (or Flatpak when there is none), then Snap and Cinnamon when the
+ * group holds their rows, joined the way the language joins a list. On Linux Mint, Update Manager already shows
+ * Cinnamon's spices, so it is not named twice.
+ */
+export function systemSources(packages: SystemState["packages"], rows: { source: string }[]): string {
+	const names = [packages ? PACKAGES_FROM[packages] : "Flatpak"];
+	if (rows.some((r) => r.source === "snap")) names.push(ALSO_FROM.snap);
+	if (packages !== "mint" && rows.some((r) => r.source === "cinnamon")) names.push(ALSO_FROM.cinnamon);
+	return new Intl.ListFormat(language.locale, { type: "conjunction" }).format(names);
+}
+
 /** Sentence for a System list problem. A missing tool says so; a failed read names the source and appends the detail when there is one. */
 export function systemProblem(problem: NonNullable<SystemState["problem"]>): string {
 	if (problem.code === "missing") return `${problem.command} is not installed, so this part of the list is empty.`;
@@ -826,11 +849,13 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 	const source =
 		tool === "flatpak"
 			? "Flatpak"
-			: tool === "apt" || tool === "dnf" || tool === "zypper"
-				? tool
-				: tool === "checkupdates" || tool === "pacman"
-					? "pacman"
-					: PACKAGES_FROM.mint;
+			: tool === "cinnamon-spice-updater"
+				? ALSO_FROM.cinnamon
+				: tool === "apt" || tool === "dnf" || tool === "zypper"
+					? tool
+					: tool === "checkupdates" || tool === "pacman"
+						? "pacman"
+						: PACKAGES_FROM.mint;
 	return problem.detail ? `Could not read the ${source} list: ${problem.detail}` : `Could not read the ${source} list.`;
 }
 

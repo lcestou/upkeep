@@ -136,7 +136,7 @@ test("the filter: Clear filter, ArrowDown to the first row, Enter opens the firs
 	await expect(page.getByTestId("filter")).toHaveValue("");
 	await expect(page.getByTestId("filter")).toBeFocused();
 	await page.keyboard.press("ArrowDown");
-	await expect(page.getByTestId("open-zen")).toBeFocused();
+	await expect(page.locator('[data-testid^="open-"]').first()).toBeFocused();
 	await page.getByTestId("filter").fill("tmux nightly");
 	await page.getByTestId("filter").press("Enter");
 	await expect(page.getByTestId("detail-tmux-2")).toBeVisible();

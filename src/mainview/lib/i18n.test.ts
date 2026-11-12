@@ -14,11 +14,12 @@ const marks = (s: string) => [...s.matchAll(/\{\d+\}/g)].map((m) => m[0]).toSort
  * words the language borrows. Anything else equal to its English was left untranslated (pewtron's test).
  */
 const SAME_IN: Record<string, readonly string[]> = {
-	zh: ["Snap", "Root"],
-	es: ["Snap", "Plugins", "App", "Root", "Auto", "Extras", "Kernel"],
-	pt: ["Snap", "Plugins", "App", "Status", "Root", "Auto", "Extras", "Kernel", "Driver"],
+	zh: ["Snap", "Cinnamon", "Root"],
+	es: ["Snap", "Cinnamon", "Plugins", "App", "Root", "Auto", "Extras", "Kernel"],
+	pt: ["Snap", "Cinnamon", "Plugins", "App", "Status", "Root", "Auto", "Extras", "Kernel", "Driver"],
 	de: [
 		"Snap",
+		"Cinnamon",
 		"Name",
 		"Plugins",
 		"App",
@@ -31,11 +32,11 @@ const SAME_IN: Record<string, readonly string[]> = {
 		"Extras",
 		"Kernel",
 	],
-	fr: ["Snap", "Plugins", "Version", "Root", "Auto", "Source", "Version {0}", "Extras"],
-	it: ["Snap", "Download", "App", "Root", "Auto", "Kernel", "Driver"],
-	pl: ["Snap", "Root", "Auto"],
-	ru: ["Snap", "Root"],
-	ja: ["Snap", "Root"],
+	fr: ["Snap", "Cinnamon", "Plugins", "Version", "Root", "Auto", "Source", "Version {0}", "Extras"],
+	it: ["Snap", "Cinnamon", "Download", "App", "Root", "Auto", "Kernel", "Driver"],
+	pl: ["Snap", "Cinnamon", "Root", "Auto"],
+	ru: ["Snap", "Cinnamon", "Root"],
+	ja: ["Snap", "Cinnamon", "Root"],
 };
 
 /** Strings that hold no word to translate: a number and a unit, or a placeholder alone. */

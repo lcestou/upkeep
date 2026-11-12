@@ -245,16 +245,17 @@ export function parseZypperList(stdout: string): SystemRow[] {
 
 /**
  * cinnamon-spice-updater --list-json: an object of spices with an update, by uuid, each with name, old_version and
- * new_version. Text that is not that object gives no rows; the group lists what it can.
+ * new_version. Null when the text is not that object: the updater prints "Cinnamon updates failed: …" and exits 0
+ * when it cannot fetch the index, and that is a failed read, not an empty list.
  */
-export function parseSpices(stdout: string, type: SpiceType): SystemRow[] {
+export function parseSpices(stdout: string, type: SpiceType): SystemRow[] | null {
 	let data: unknown;
 	try {
 		data = JSON.parse(stdout);
 	} catch {
-		return [];
+		return null;
 	}
-	if (!isRecord(data)) return [];
+	if (!isRecord(data)) return null;
 	return Object.entries(data).flatMap(([uuid, value]) => {
 		if (!isRecord(value) || typeof value.new_version !== "string" || !value.new_version) return [];
 		const name = typeof value.name === "string" && value.name ? value.name : uuid;
@@ -287,7 +288,8 @@ export function parseSnapList(updates: string, installed: string): SystemRow[] {
 	);
 	return snapBody(updates).flatMap((l) => {
 		const [name = "", latest = ""] = l.split(/\s+/);
-		if (!name || !latest) return [];
+		// snapd writes "All snaps up to date." to stderr; a version that says so on stdout still lists nothing.
+		if (!name || !latest || l.startsWith("All snaps")) return [];
 		const row: SystemRow = {
 			id: `snap:${name}`,
 			source: "snap",
@@ -400,12 +402,23 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 			),
 		);
 	// Spices and snaps are listed when their tool answers; a desktop without Cinnamon or a system without snapd says nothing.
-	for (const { type, r } of spices) if (ok(r)) rows.push(...parseSpices(r.stdout, type));
+	let spiceProblem: SystemCheck["problem"] = null;
+	for (const { type, r } of spices) {
+		if (!ok(r)) continue;
+		const found = parseSpices(r.stdout, type);
+		if (found) rows.push(...found);
+		else
+			spiceProblem ??= {
+				code: "failed",
+				command: spiceList(type).join(" "),
+				detail: r.stdout.trim().split("\n")[0] ?? "",
+			};
+	}
 	if (ok(snapUpdates))
 		rows.push(...parseSnapList(snapUpdates?.stdout ?? "", ok(snapInstalled) ? (snapInstalled?.stdout ?? "") : ""));
 	return {
 		rows,
-		problem: mintProblem ?? flatpakProblem,
+		problem: mintProblem ?? flatpakProblem ?? spiceProblem,
 		glMissing: ok(gl) && ok(runtimes) ? glMissing(gl?.stdout ?? "", runtimes?.stdout ?? "") : null,
 		packages: pkg?.packages ?? null,
 	};

@@ -289,7 +289,7 @@ export type ExtrasSettings = {
 
 /** One pending update from Update Manager's list or from Flatpak. Read-only: Upkeep never installs these. */
 export type SystemRow = {
-	/** "<source>:<package>", or "flatpak:<ref>". */
+	/** "<source>:<package>", "flatpak:<ref>", "cinnamon:<spice type>:<uuid>" or "snap:<name>". */
 	id: string;
 	/** apt for Linux Mint's Update Manager and for apt; dnf; pacman; zypper; flatpak; cinnamon for Cinnamon's spices; snap. */
 	source: "apt" | "dnf" | "pacman" | "zypper" | "flatpak" | "cinnamon" | "snap";

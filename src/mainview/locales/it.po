@@ -1968,5 +1968,10 @@ msgid "Cinnamon theme"
 msgstr "Tema di Cinnamon"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Snap"
 msgstr "Snap"
+
+#: src/mainview/lib/copy.ts
+msgid "Cinnamon"
+msgstr "Cinnamon"

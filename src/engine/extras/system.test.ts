@@ -531,7 +531,7 @@ test("Cinnamon's spices and Snap's refreshes are listed when their tools answer,
 	const answers = new Map<string, ProcessResult>([
 		[spiceList("extension").join(" "), ok(fx("spices-extension.json"))],
 		[spiceList("applet").join(" "), ok("{}\n")],
-		[spiceList("theme").join(" "), ok("not json")],
+		[spiceList("theme").join(" "), ok("{}")],
 		[
 			SNAP_UPDATES.join(" "),
 			ok("Name     Version   Rev   Size   Publisher   Notes\nfirefox  133.0-2   5437  250MB  mozilla**   -\n"),
@@ -568,7 +568,21 @@ test("Cinnamon's spices and Snap's refreshes are listed when their tools answer,
 
 test("a spice with no new version, or not an object, gives no row; one without a name is named by its uuid", () => {
 	expect(parseSpices('{"a@x": {"new_version": ""}, "b@x": 3}', "applet")).toEqual([]);
-	expect(parseSpices('{"c@x": {"new_version": "2"}}', "desklet")[0]).toMatchObject({ name: "c@x", installed: null });
-	expect(parseSpices("[1]", "theme")).toEqual([]);
+	expect(parseSpices('{"c@x": {"new_version": "2"}}', "desklet")?.[0]).toMatchObject({ name: "c@x", installed: null });
+	expect(parseSpices("[1]", "theme")).toBeNull();
 	expect(parseSnapList("", "")).toEqual([]);
+	expect(parseSnapList("All snaps up to date.\n", "")).toEqual([]);
+});
+
+test("the spice updater's own failure, printed with exit 0, is a failed read, not an empty list", async () => {
+	const answers = new Map<string, ProcessResult>([
+		[spiceList("applet").join(" "), ok("Cinnamon updates failed: could not reach the server\n")],
+	]);
+	const r = await checkSystem({ run: box(answers).run });
+	expect(r.problem).toEqual({
+		code: "failed",
+		command: spiceList("applet").join(" "),
+		detail: "Cinnamon updates failed: could not reach the server",
+	});
+	expect(r.rows.some((x) => x.source === "apt")).toBe(true);
 });

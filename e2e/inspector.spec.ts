@@ -29,15 +29,16 @@ test("Enter opens, Down moves the selection and the pane follows, Escape closes 
 	await expect(page.getByTestId("detail-wrangler")).toBeVisible();
 	await page.keyboard.press("ArrowDown");
 	await page.keyboard.press("ArrowDown");
-	await expect(page.getByTestId("detail-llama")).toBeVisible();
+	// Past Zen Browser, the last ready row, to the first of By hand.
+	await expect(page.getByTestId("detail-comfyui")).toBeVisible();
 	await page.keyboard.press("Escape");
 	await expect(page.getByTestId("inspector")).toHaveCount(0);
-	await expect(page.getByTestId("open-llama")).toBeFocused();
+	await expect(page.getByTestId("open-comfyui")).toBeFocused();
 	await page.keyboard.press("Enter");
-	await expect(page.getByTestId("detail-llama")).toBeVisible();
+	await expect(page.getByTestId("detail-comfyui")).toBeVisible();
 	await page.getByTestId("inspector-close").click();
 	await expect(page.getByTestId("inspector")).toHaveCount(0);
-	await expect(page.getByTestId("open-llama")).toBeFocused();
+	await expect(page.getByTestId("open-comfyui")).toBeFocused();
 });
 
 test("the pane follows the run while open, and a pick during the run pins it", async ({ page }) => {
