@@ -267,6 +267,23 @@ test("install: an archive installs every bin, finding one by base name when its 
 	expect(readdirSync(join(t.paths.cache, "dl"))).toEqual([]);
 });
 
+test("install: a top folder named like the program is searched, not installed as the program", async () => {
+	// btop's archive: btop/bin/btop beside btop/themes; a bin listed as "btop" points at the folder first.
+	const bin = join(t.paths.home, ".local/bin");
+	script(join(bin, "uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", {
+		"uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({
+			"uv/bin/uv": 'echo "uv 0.9.2"',
+			"uv/themes/default.theme": "x",
+		}),
+	});
+	const spec = uv(["uv"]);
+	const c = ctx();
+	const outcome = await installRelease(spec, await checkAndTarget(spec, c), c);
+	expect(outcome).toMatchObject({ result: "done", installed: "0.9.2" });
+	expect(readFileSync(join(bin, "uv"), "utf8")).toContain("uv 0.9.2");
+});
+
 test("install: when one bin cannot be installed every bin is restored", async () => {
 	const bin = join(t.paths.home, ".local/bin");
 	script(join(bin, "uv"), 'echo "uv 0.9.1"');

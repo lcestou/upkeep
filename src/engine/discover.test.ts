@@ -874,6 +874,8 @@ test("a catalogue app with no release file here gets the drafted build as a gues
 });
 
 test("a catalogue table stays sure when the release's best file is of another kind than the table's", async () => {
+	// The table names the archive, so that is the asset opened, not the AppImage the plan would rank first.
+	bodies["both-1.0-x86_64-linux.tar.gz"] = await archive({ "both/both": "elf" });
 	releases["o/both"] = {
 		tag_name: "v1.0",
 		assets: [
@@ -892,4 +894,7 @@ test("a catalogue table stays sure when the release's best file is of another ki
 	const s = (await suggest("both", { ...ctx().c, catalogue: [entry] })).suggestions[0];
 	expect(s?.spec.kind).toBe("archive");
 	expect(s?.source).toBe("catalogue");
+	expect(s?.asset?.name).toBe("both-1.0-x86_64-linux.tar.gz");
+	// Nothing at the table's dest: it lands in Ready to install.
+	expect(s?.spec.install_if_missing).toBe(true);
 });

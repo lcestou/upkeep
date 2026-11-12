@@ -271,6 +271,8 @@ async function which(ctx: DiscoverCtx, bin: string): Promise<string | null> {
 export type RepoOpts = {
 	/** The asset the owner picked. */
 	asset?: string;
+	/** A catalogue table's asset pattern: the release asset it matches is the one picked. */
+	pattern?: string;
 	/** A file on disk the suggestion is for: its kind decides the asset, and it is the dest. */
 	file?: { path: string; appimage: boolean };
 	source?: Suggestion["source"];
@@ -329,7 +331,11 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	}
 	const installable = candidates.filter((c) => !missing.has(c.kind));
 	const usable = opts.file ? installable.filter((c) => prefer.includes(c.kind)) : installable;
-	const picked = (opts.asset ? usable.find((c) => c.asset.name === opts.asset) : undefined) ?? usable[0];
+	const byPattern = opts.pattern ? new RegExp(opts.pattern) : null;
+	const picked =
+		(opts.asset ? usable.find((c) => c.asset.name === opts.asset) : undefined) ??
+		(byPattern ? usable.find((c) => byPattern.test(c.asset.name)) : undefined) ??
+		usable[0];
 	if (!picked) {
 		const drafted = opts.file ? null : await draftSource(repo, release, ctx, opts, bin);
 		if (drafted) return drafted;
@@ -738,11 +744,15 @@ async function fromCatalogue(
 		return { suggestions: [s] };
 	}
 	const pattern = asset ?? entry.asset;
-	const r = await fromRepo(entry.repo, ctx, { asset: pattern });
+	// An asset the person picked is a name; the table's own asset is a pattern.
+	const r = await fromRepo(entry.repo, ctx, asset ? { asset } : { pattern });
 	if ("problem" in r) return { suggestions: [], problem: r.problem };
 	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
 	if (r.suggestion.spec.kind === "source") return { suggestions: [r.suggestion] };
-	return { suggestions: [{ ...r.suggestion, spec: { ...entry, asset: pattern }, ...sure }] };
+	const spec: AppSpec = { ...entry, asset: pattern };
+	// Nothing at the table's dest yet: the app lands in Ready to install, as one added by repo does.
+	if (entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home))) spec.install_if_missing = true;
+	return { suggestions: [{ ...r.suggestion, spec, ...sure }] };
 }
 
 /** Installed AppImages and binaries that are not in the list. Nothing found is ever run. */
