@@ -53,18 +53,9 @@ export function defineUpkeepRpc(engine: Engine, deps: EngineDeps, hooks: WindowH
 					return { ok: true };
 				},
 				restore: ({ key, version }) => engine.restore(key, version),
-				setSkip: ({ key, version }) => {
-					engine.setSkip(key, version);
-					return { ok: true };
-				},
-				setHold: ({ key, held }) => {
-					engine.setHold(key, held);
-					return { ok: true };
-				},
-				setAuto: ({ key, auto }) => {
-					engine.setAuto(key, auto);
-					return { ok: true };
-				},
+				setSkip: ({ key, version }) => ({ ok: engine.setSkip(key, version) }),
+				setHold: ({ key, held }) => ({ ok: engine.setHold(key, held) }),
+				setAuto: ({ key, auto }) => ({ ok: engine.setAuto(key, auto) }),
 				setSettings: (patch) => {
 					const settings = engine.setSettings(patch);
 					try {

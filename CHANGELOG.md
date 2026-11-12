@@ -21,6 +21,7 @@ First version.
 - Restart now closes a desktop app by its top process only, so an Electron app such as Cursor shuts down cleanly instead of its windows dying one by one.
 - A new list starts empty and says so, with Add app right there.
 - Filter the list by name.
+- A table whose `latest` names a source Upkeep cannot read (anything but `npm:`, `pypi:`, `github:`, `npm-tags:` or `json:`) is refused when the list loads, with the reason, instead of failing at every check.
 - Skip one version of an app, hold an app, or mark it to install without asking.
 - A tray icon shows how many updates are ready. One notification per new set of updates.
 - Upkeep checks on its own while it runs, in the window or the tray: every 6 hours by default, once a day, or only when you ask (Settings, Check for updates). A machine that slept through the time checks once when it wakes, and a clock that jumps never stops the schedule.

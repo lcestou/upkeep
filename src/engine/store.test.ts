@@ -6,6 +6,7 @@ import {
 	appendHistory,
 	claimLock,
 	clearInflight,
+	DEFAULT_SETTINGS,
 	loadState,
 	openRunLog,
 	pruneLogs,
@@ -194,4 +195,16 @@ test("stage weights come from the last update with an 8 point floor, or the kind
 	expect(w.map((s) => s.id)).toEqual(["download", "backup", "install", "verify"]);
 	expect(w.reduce((a, s) => a + s.weight, 0)).toBe(100);
 	expect(w.map((s) => s.weight)).toEqual([78, 7, 8, 7]);
+});
+
+test("an unreadable state.json is kept beside it, and a second one never replaces the first", () => {
+	const file = join(t.paths.state, "state.json");
+	mkdirSync(t.paths.state, { recursive: true });
+	writeFileSync(file, "{ first");
+	expect(loadState(t.paths).settings).toEqual(DEFAULT_SETTINGS);
+	writeFileSync(file, "{ second");
+	loadState(t.paths);
+	const kept = readdirSync(t.paths.state).filter((n) => n.startsWith("state.json.unreadable"));
+	expect(kept.length).toBe(2);
+	expect(readFileSync(join(t.paths.state, "state.json.unreadable"), "utf8")).toBe("{ first");
 });

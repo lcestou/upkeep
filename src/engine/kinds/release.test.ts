@@ -380,6 +380,8 @@ test("install: a deb whose point cannot go back says so, and an ambiguous old re
 	const c = ctx(run);
 	expect(await installRelease(rustdesk(dest), await checkAndTarget(rustdesk(dest), c), c)).toMatchObject({
 		result: "failed",
+		// What the disk holds after the failed putting back, as a probe reads it: here the broken copy, no version.
+		installed: null,
 		detail: "Would not start after the update, and putting 1.4.2 back failed. See the log.",
 	});
 	script(dest, 'echo "1.4.2"');
@@ -610,4 +612,20 @@ test("an AppImage whose latest is a json: source checks and installs with no rep
 		status: "problem",
 		detail: "npm:cursor gives a version but no download.",
 	});
+});
+
+test("install: a deb dpkg refuses whose point cannot go back either says so, with what is installed now", async () => {
+	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
+	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.deb": new Uint8Array([9]) } };
+	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });
+	const { run } = recordingRun(t.paths, (argv) =>
+		argv[2] === "dpkg" ? { code: 1, stdout: "", stderr: "dpkg: error", timedOut: false } : undefined,
+	);
+	const c = ctx(run);
+	expect(await installRelease(rustdesk(dest), await checkAndTarget(rustdesk(dest), c), c)).toMatchObject({
+		result: "failed",
+		installed: "1.4.2",
+		detail: "dpkg could not install rustdesk-1.4.3-x86_64.deb, and putting 1.4.2 back failed. See the log.",
+	});
+	oldRelease = null;
 });

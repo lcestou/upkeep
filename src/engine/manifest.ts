@@ -114,6 +114,9 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	else if (spec.versionless) return `${key}: versionless is only for kind claude-plugins`;
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest)
 		return `${key}: repo or latest is required for kind appimage`;
+	// A source the check cannot read fails here, at load, not later at every check.
+	if (spec.latest !== undefined && !/^(npm|pypi|github|npm-tags|json):./.test(spec.latest))
+		return `${key}: latest must start with npm:, pypi:, github:, npm-tags: or json:`;
 	// Only an AppImage installs the download a json: answer names; any other kind would read it as a GitHub repo.
 	if (spec.latest?.startsWith("json:") && spec.kind !== "appimage")
 		return `${key}: a json: latest is only for kind appimage`;

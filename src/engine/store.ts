@@ -63,7 +63,10 @@ function obj<T>(v: unknown): Record<string, T> {
 /** Skips, holds, auto flags and settings, in the state directory beside run.lock rather than with apps.toml. */
 const stateFile = (paths: Paths) => join(paths.state, "state.json");
 
-/** Never throws: a missing or unreadable file gives defaults, and an unreadable one is first copied to state.json.unreadable. */
+/**
+ * Never throws: a missing or unreadable file gives defaults, and an unreadable one is first copied beside it, to
+ * state.json.unreadable or, when that is taken, a name with the time, so a second bad file never replaces the first.
+ */
 export function loadState(paths: Paths): State {
 	let raw: Record<string, unknown> = {};
 	const file = stateFile(paths);
@@ -74,7 +77,8 @@ export function loadState(paths: Paths): State {
 		// SAFETY: readFileSync throws an ErrnoException; JSON.parse's SyntaxError has no code, which reads as not ENOENT.
 		if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
 			try {
-				copyFileSync(file, `${file}.unreadable`);
+				const keep = `${file}.unreadable`;
+				copyFileSync(file, existsSync(keep) ? `${keep}-${Date.now()}` : keep);
 			} catch {
 				// nothing to keep, or nowhere to keep it
 			}

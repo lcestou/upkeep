@@ -100,9 +100,12 @@ export type Engine = {
 	restore(key: string, version: string): Promise<{ ok: boolean; detail?: string }>;
 	/** Restarts an app whose table says how, and drops its waiting restart once that worked. Refused during a run. */
 	restartApp(key: string): Promise<{ ok: boolean; detail?: string }>;
-	setSkip(key: string, version: string | null): void;
-	setHold(key: string, held: boolean): void;
-	setAuto(key: string, auto: boolean): void;
+	/** False, and nothing written, for a key not in the list. */
+	setSkip(key: string, version: string | null): boolean;
+	/** False, and nothing written, for a key not in the list. */
+	setHold(key: string, held: boolean): boolean;
+	/** False, and nothing written, for a key not in the list. */
+	setAuto(key: string, auto: boolean): boolean;
 	setSettings(patch: Partial<Settings>): Settings;
 	history(limit: number): HistoryRow[];
 	runLog(runId: string): LogLine[];
@@ -894,11 +897,13 @@ export function createEngine(deps: EngineDeps): Engine {
 			}
 		},
 		setSkip(key, version) {
+			if (!specOf(key)) return false;
 			updateState(paths, (s) => {
 				if (version === null) delete s.skip[key];
 				else s.skip[key] = version;
 			});
 			refresh(key);
+			return true;
 		},
 		async restartApp(key) {
 			if (run.phase === "installing") return { ok: false, detail: REASON_BUSY };
@@ -928,13 +933,16 @@ export function createEngine(deps: EngineDeps): Engine {
 			return r;
 		},
 		setHold(key, held) {
+			if (!specOf(key)) return false;
 			updateState(paths, (s) => {
 				if (held) s.hold[key] = true;
 				else delete s.hold[key];
 			});
 			refresh(key);
+			return true;
 		},
 		setAuto(key, auto) {
+			if (!specOf(key)) return false;
 			updateState(paths, (s) => {
 				s.auto[key] = auto;
 			});
@@ -943,6 +951,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				a.auto = auto;
 				emitApp(a);
 			}
+			return true;
 		},
 		setSettings(patch) {
 			const s = updateState(paths, (st) => {

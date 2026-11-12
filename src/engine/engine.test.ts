@@ -898,3 +898,13 @@ test("Claude Code's plugins are a versionless row: fresh, listed for auto runs, 
 	await engine.idle();
 	expect(engine.snapshot().run.results.find((r) => r.key === "cc")).toMatchObject({ result: "updated" });
 });
+
+test("skip, hold and auto answer no for a key that is not in the list, and write nothing", async () => {
+	const engine = createEngine(await deps());
+	expect(engine.setSkip("nope", "1.0")).toBe(false);
+	expect(engine.setHold("nope", true)).toBe(false);
+	expect(engine.setAuto("nope", true)).toBe(false);
+	const state = loadState(t.paths);
+	expect([state.skip.nope, state.hold.nope, state.auto.nope]).toEqual([undefined, undefined, undefined]);
+	expect(engine.setHold("fd", true)).toBe(true);
+});
