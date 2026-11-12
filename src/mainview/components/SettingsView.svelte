@@ -3,6 +3,7 @@
 	import type { Settings } from "../../shared/types";
 	import {
 		CHECK_EVERY,
+		CLEAN,
 		SYS,
 		TEXT,
 		WIN,
@@ -237,6 +238,29 @@
 					onchange={(e) => model.setExtras({ systemInstall: e.currentTarget.checked })}
 				/>
 				<span class="help" data-testid="setting-system-install-help">{SYS.installSettingHelp}</span>
+			</label>
+		{/if}
+		<label class="row stack">
+			<span class="text">{CLEAN.setting}</span>
+			<input
+				type="checkbox"
+				checked={model.extras?.settings.cleanup === true}
+				disabled={model.extras === null}
+				data-testid="setting-cleanup"
+				onchange={(e) => model.setExtras({ cleanup: e.currentTarget.checked })}
+			/>
+			<span class="help" data-testid="setting-cleanup-help">{CLEAN.settingHelp}</span>
+		</label>
+		{#if model.extras?.settings.cleanup}
+			<label class="row stack">
+				<span class="text">{CLEAN.devSetting}</span>
+				<input
+					type="checkbox"
+					checked={model.extras.settings.devCaches === true}
+					data-testid="setting-cleanup-dev"
+					onchange={(e) => model.setExtras({ devCaches: e.currentTarget.checked })}
+				/>
+				<span class="help" data-testid="setting-cleanup-dev-help">{CLEAN.devSettingHelp}</span>
 			</label>
 		{/if}
 	</div>

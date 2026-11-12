@@ -181,6 +181,7 @@ msgstr "Stop after this one"
 
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "Done"
 
@@ -217,6 +218,7 @@ msgstr "Installed at"
 msgid "Source"
 msgstr "Source"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Restore points"
 msgstr "Restore points"
@@ -311,6 +313,7 @@ msgstr "No runs yet."
 msgid "Updated"
 msgstr "Updated"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
@@ -2043,6 +2046,7 @@ msgid "Install now"
 msgstr "Install now"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Waiting"
 msgstr "Waiting"
 
@@ -2138,3 +2142,338 @@ msgstr "Updated. Restart it to use the new version."
 #: src/mainview/lib/engine-text.ts
 msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
 msgstr "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
+
+#: src/mainview/lib/copy.ts
+msgid "Cleanup"
+msgstr "Cleanup"
+
+#: src/mainview/lib/copy.ts
+msgid "Show Cleanup"
+msgstr "Show Cleanup"
+
+#: src/mainview/lib/copy.ts
+msgid "Adds a Cleanup tab. It measures caches and leftovers, and deletes only what you tick and then confirm."
+msgstr "Adds a Cleanup tab. It measures caches and leftovers, and deletes only what you tick and then confirm."
+
+#: src/mainview/lib/copy.ts
+msgid "Include developer caches"
+msgstr "Include developer caches"
+
+#: src/mainview/lib/copy.ts
+msgid "The uv, bun, npm and pip download caches. They come back as downloads the next time a build needs them."
+msgstr "The uv, bun, npm and pip download caches. They come back as downloads the next time a build needs them."
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep deletes only what you tick, after one more look."
+msgstr "Upkeep deletes only what you tick, after one more look."
+
+#: src/mainview/lib/copy.ts
+msgid "Measure again"
+msgstr "Measure again"
+
+#: src/mainview/lib/copy.ts
+msgid "Measuring"
+msgstr "Measuring"
+
+#: src/mainview/lib/copy.ts
+msgid "Not measured yet."
+msgstr "Not measured yet."
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing to clean."
+msgstr "Nothing to clean."
+
+#: src/mainview/lib/copy.ts
+msgid "Needs administrator"
+msgstr "Needs administrator"
+
+#: src/mainview/lib/copy.ts
+msgid "This copy is newer than the installed file."
+msgstr "This copy is newer than the installed file."
+
+#: src/mainview/lib/copy.ts
+msgid "Tick something to clean."
+msgstr "Tick something to clean."
+
+#: src/mainview/lib/copy.ts
+msgid "Delete these?"
+msgstr "Delete these?"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands:"
+msgstr "Upkeep runs these commands:"
+
+#: src/mainview/lib/copy.ts
+msgid "Back"
+msgstr "Back"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Cleaned"
+msgstr "Cleaned"
+
+#: src/mainview/lib/copy.ts
+msgid "Safe to clear"
+msgstr "Safe to clear"
+
+#: src/mainview/lib/copy.ts
+msgid "Your call"
+msgstr "Your call"
+
+#: src/mainview/lib/copy.ts
+msgid "Shown only"
+msgstr "Shown only"
+
+#: src/mainview/lib/copy.ts
+msgid "Comes back on its own"
+msgstr "Comes back on its own"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloads again"
+msgstr "Downloads again"
+
+#: src/mainview/lib/copy.ts
+msgid "Cannot be undone"
+msgstr "Cannot be undone"
+
+#: src/mainview/lib/copy.ts
+msgid "Cleaning"
+msgstr "Cleaning"
+
+#: src/mainview/lib/copy.ts
+msgid "Skipped"
+msgstr "Skipped"
+
+#: src/mainview/lib/copy.ts
+msgid "Thumbnails"
+msgstr "Thumbnails"
+
+#: src/mainview/lib/copy.ts
+msgid "Trash"
+msgstr "Trash"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep's leftover copies"
+msgstr "Upkeep's leftover copies"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded packages"
+msgstr "Downloaded packages"
+
+#: src/mainview/lib/copy.ts
+msgid "Old NVIDIA runtimes for Flatpak"
+msgstr "Old NVIDIA runtimes for Flatpak"
+
+#: src/mainview/lib/copy.ts
+msgid "Packages nothing needs"
+msgstr "Packages nothing needs"
+
+#: src/mainview/lib/copy.ts
+msgid "Temporary files (/tmp)"
+msgstr "Temporary files (/tmp)"
+
+#: src/mainview/lib/copy.ts
+msgid "System logs"
+msgstr "System logs"
+
+#: src/mainview/lib/copy.ts
+msgid "Old kernels"
+msgstr "Old kernels"
+
+#: src/mainview/lib/copy.ts
+msgid "Timeshift snapshots"
+msgstr "Timeshift snapshots"
+
+#: src/mainview/lib/copy.ts
+msgid "Browser caches"
+msgstr "Browser caches"
+
+#: src/mainview/lib/copy.ts
+msgid "Playwright browsers"
+msgstr "Playwright browsers"
+
+#: src/mainview/lib/copy.ts
+msgid "Backup copies beside your apps"
+msgstr "Backup copies beside your apps"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep's own cache"
+msgstr "Upkeep's own cache"
+
+#: src/mainview/lib/copy.ts
+msgid "Small previews of pictures and videos. The file manager makes them again when it needs them."
+msgstr "Small previews of pictures and videos. The file manager makes them again when it needs them."
+
+#: src/mainview/lib/copy.ts
+msgid "Files you deleted in the file manager, in your home folder's Trash."
+msgstr "Files you deleted in the file manager, in your home folder's Trash."
+
+#: src/mainview/lib/copy.ts
+msgid "Copies Upkeep left beside an app when an install was cut off."
+msgstr "Copies Upkeep left beside an app when an install was cut off."
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep's copies of replaced app versions. Deleting one means that version can no longer be put back."
+msgstr "Upkeep's copies of replaced app versions. Deleting one means that version can no longer be put back."
+
+#: src/mainview/lib/copy.ts
+msgid "Package files apt keeps after installing them. apt downloads them again if it needs them."
+msgstr "Package files apt keeps after installing them. apt downloads them again if it needs them."
+
+#: src/mainview/lib/copy.ts
+msgid "Flatpak GPU runtimes for NVIDIA driver versions no longer installed."
+msgstr "Flatpak GPU runtimes for NVIDIA driver versions no longer installed."
+
+#: src/mainview/lib/copy.ts
+msgid "Packages apt installed as dependencies that nothing uses now."
+msgstr "Packages apt installed as dependencies that nothing uses now."
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded and built Python packages. Tools already installed keep working."
+msgstr "Downloaded and built Python packages. Tools already installed keep working."
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded JavaScript packages for bun."
+msgstr "Downloaded JavaScript packages for bun."
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded JavaScript packages for npm."
+msgstr "Downloaded JavaScript packages for npm."
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded Python packages for pip."
+msgstr "Downloaded Python packages for pip."
+
+#: src/mainview/lib/copy.ts
+msgid "Cleared at every restart, and the system removes anything untouched for 30 days."
+msgstr "Cleared at every restart, and the system removes anything untouched for 30 days."
+
+#: src/mainview/lib/copy.ts
+msgid "The system keeps these under the size its journald setting allows."
+msgstr "The system keeps these under the size its journald setting allows."
+
+#: src/mainview/lib/copy.ts
+msgid "Remove older ones in Update Manager under View, Linux kernels."
+msgstr "Remove older ones in Update Manager under View, Linux kernels."
+
+#: src/mainview/lib/copy.ts
+msgid "Timeshift and its own schedule manage these. Delete one from Timeshift."
+msgstr "Timeshift and its own schedule manage these. Delete one from Timeshift."
+
+#: src/mainview/lib/copy.ts
+msgid "Clear these from the browser's own settings. Deleting them while it runs can break it."
+msgstr "Clear these from the browser's own settings. Deleting them while it runs can break it."
+
+#: src/mainview/lib/copy.ts
+msgid "Test browsers that projects pin by version."
+msgstr "Test browsers that projects pin by version."
+
+#: src/mainview/lib/copy.ts
+msgid "Copies made by hand or by another tool. Upkeep leaves them alone."
+msgstr "Copies made by hand or by another tool. Upkeep leaves them alone."
+
+#: src/mainview/lib/copy.ts
+msgid "Saves GitHub lookups. Upkeep clears its downloads at the start of every run."
+msgstr "Saves GitHub lookups. Upkeep clears its downloads at the start of every run."
+
+#. 0: running
+#: src/mainview/lib/copy.ts
+msgid "Running {0}."
+msgstr "Running {0}."
+
+#. 0: running; 1: newest
+#: src/mainview/lib/copy.ts
+msgid "Running {0}, newest installed {1}."
+msgstr "Running {0}, newest installed {1}."
+
+#: src/mainview/lib/copy.ts
+msgid "# snapshot."
+msgid_plural "# snapshots."
+msgstr[0] "# snapshot."
+msgstr[1] "# snapshots."
+
+#. 0: newest
+#: src/mainview/lib/copy.ts
+msgid "Newest {0}."
+msgstr "Newest {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "# copy."
+msgid_plural "# copies."
+msgstr[0] "# copy."
+msgstr[1] "# copies."
+
+#. 0: relative
+#: src/mainview/lib/copy.ts
+msgid "Measured {0}"
+msgstr "Measured {0}"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "Review {0}"
+msgstr "Review {0}"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "Delete {0}"
+msgstr "Delete {0}"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "{0} in all."
+msgstr "{0} in all."
+
+#. 0: new Intl.ListFormat(language.locale, { type\\: "conjunction" }).format(names)
+#: src/mainview/lib/copy.ts
+msgid "Cannot be undone: {0}."
+msgstr "Cannot be undone: {0}."
+
+#. 0: word
+#: src/mainview/lib/copy.ts
+msgid "Type {0} to also remove packages"
+msgstr "Type {0} to also remove packages"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "Freed {0}."
+msgstr "Freed {0}."
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "{0} freed"
+msgstr "{0} freed"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Skipped: changed since you reviewed it."
+msgstr "Skipped: changed since you reviewed it."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Skipped: sudo needs a password here."
+msgstr "Skipped: sudo needs a password here."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Skipped: Flatpak would ask for a password here."
+msgstr "Skipped: Flatpak would ask for a password here."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Type {0} first. Nothing was deleted."
+msgstr "Type {0} first. Nothing was deleted."
+
+#: src/mainview/lib/engine-text.ts
+msgid "What Cleanup would do changed since you looked. Look at it again, then delete."
+msgstr "What Cleanup would do changed since you looked. Look at it again, then delete."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing ticked is something Cleanup deletes."
+msgstr "Nothing ticked is something Cleanup deletes."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Could not delete {0}: {1}"
+msgstr "Could not delete {0}: {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Left {0} alone: it is not inside the folder being cleaned."
+msgstr "Left {0} alone: it is not inside the folder being cleaned."

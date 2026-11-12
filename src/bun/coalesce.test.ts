@@ -81,6 +81,7 @@ test("an extras event is never dropped and never overtakes the row updates sent 
 				glMissing: null,
 				packages: null,
 			},
+			cleanup: { phase: "off", items: [], measuredAt: null, last: null },
 		},
 	};
 	c.push(app("fd", 10));

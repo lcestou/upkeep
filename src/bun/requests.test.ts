@@ -92,6 +92,20 @@ test("the requests answer from the engine, and refuse what the engine refuses", 
 	expect(did).toEqual(["window close", "copy x y"]);
 });
 
+test("Cleanup's requests go to the extras, and with Cleanup off nothing is measured or deleted", async () => {
+	const { r } = setup();
+	expect(await r.cleanupMeasure({})).toEqual({ started: false });
+	expect(await r.cleanupReview({ picks: [{ id: "thumbnails", partIds: ["all"] }] })).toEqual({
+		bytes: 0,
+		commands: [],
+		reason: MESSAGES.cleanNothing(),
+	});
+	expect(await r.cleanupRun({ picks: [{ id: "thumbnails", partIds: ["all"] }], commands: [] })).toEqual({
+		started: false,
+		reason: MESSAGES.cleanNothing(),
+	});
+});
+
 test("open goes only to apps.toml, a run log, or a release page the engine fetched", async () => {
 	const { r, did } = setup();
 	expect(await r.open({ what: "manifest" })).toEqual({ ok: true });

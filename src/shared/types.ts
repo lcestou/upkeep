@@ -220,8 +220,11 @@ export type RunResult = {
 	name: string;
 	from: string | null;
 	to: string | null;
-	/** "restored" appears only in history: the owner put a restore point back by hand. */
-	result: "updated" | "failed" | "rolled_back" | "restored";
+	/**
+	 * "restored", "cleaned" and "skipped" appear only in history: the owner put a restore point back by hand, Cleanup
+	 * deleted something, or Cleanup left an item alone on purpose (changed since review, no sudo, polkit said no).
+	 */
+	result: "updated" | "failed" | "rolled_back" | "restored" | "cleaned" | "skipped";
 	detail?: string;
 	ms: number;
 };
@@ -286,6 +289,8 @@ export type HistoryRow = RunResult & {
 	at: string;
 	stages: Partial<Record<Stage, number>>;
 	retry?: boolean;
+	/** A Cleanup row (key "cleanup:<id>"): the bytes it freed. */
+	freed?: number;
 };
 
 export type LogLine = { at: string; key: string | null; text: string };
@@ -296,6 +301,83 @@ export type ExtrasSettings = {
 	system: "off" | "show";
 	/** True only while system is "show", and absent when off: the person may tick system rows and install them from Upkeep. */
 	systemInstall?: boolean;
+	/** True shows the Cleanup tab; absent when off. */
+	cleanup?: boolean;
+	/** True only while cleanup is on: the uv, bun, npm and pip download caches join Cleanup's list. */
+	devCaches?: boolean;
+};
+
+/** Every candidate Cleanup knows. Hugging Face's models are never one: they are hours of downloads, not a cache. */
+export type CleanupId =
+	| "thumbnails"
+	| "trash"
+	| "leftovers"
+	| "restore-points"
+	| "apt-cache"
+	| "flatpak-gl"
+	| "autoremove"
+	| "uv"
+	| "bun"
+	| "npm"
+	| "pip"
+	| "tmp"
+	| "journal"
+	| "kernels"
+	| "timeshift"
+	| "browser"
+	| "playwright"
+	| "hand-backups"
+	| "upkeep-cache";
+
+/** One thing Cleanup can delete on its own: a folder's contents, a leftover copy, a restore point, a runtime, a cache. */
+export type CleanupPart = {
+	id: string;
+	/** A path, a restore point's app and version, a runtime's name or the packages: data, never a sentence. */
+	label: string;
+	/** What deleting it frees: the bytes of files with no other hard link. */
+	bytes: number;
+	ticked: boolean;
+	/** newer-copy: a leftover copy newer than the installed file, so it starts unticked. */
+	note?: "newer-copy";
+};
+
+export type CleanupItem = {
+	id: CleanupId;
+	/** safe is ticked by default; choice starts unticked; shown is measured and never deleted by Upkeep. */
+	group: "safe" | "choice" | "shown";
+	/** Bytes deleting it would free; null when it cannot be measured without root (packages, kernels, snapshots). */
+	bytes: number | null;
+	parts: CleanupPart[];
+	/** Runs a command as administrator. */
+	root: boolean;
+	undo: "regrows" | "redownload" | "none";
+	/** Package removal: the person types a word before it runs. */
+	typeToConfirm: boolean;
+	/** Facts a shown item's sentence names: the running and newest kernel, or how many snapshots and the newest. */
+	info?: { running?: string; newest?: string; count?: number };
+};
+
+/** What Cleanup should delete: an item and the parts of it that are ticked. */
+export type CleanupPick = { id: CleanupId; partIds: string[] };
+
+/** One picked item in a cleanup run: waiting, being deleted, or its result. detail is a MESSAGES sentence. */
+export type CleanupOutcome = {
+	id: CleanupId;
+	status: "queued" | "working" | "done" | "skipped" | "failed";
+	/** Bytes freed, measured before and after. */
+	freed: number;
+	detail?: string;
+};
+
+/** The last cleanup: refused before anything ran (refused set, outcomes empty), running, or finished. */
+export type CleanupRun = { at: string; outcomes: CleanupOutcome[]; refused: string | null };
+
+export type CleanupState = {
+	phase: "off" | "measuring" | "idle" | "cleaning";
+	/** In the order the tab lists them; while measuring, the ones measured so far. */
+	items: CleanupItem[];
+	measuredAt: string | null;
+	last: CleanupRun | null;
 };
 
 /** One pending update from the system's own lists. Upkeep installs one only when its id is in SystemState.installable. */
@@ -362,7 +444,7 @@ export type SystemState = {
 	install?: SystemInstall;
 };
 
-export type ExtrasSnapshot = { settings: ExtrasSettings; system: SystemState };
+export type ExtrasSnapshot = { settings: ExtrasSettings; system: SystemState; cleanup: CleanupState };
 
 export type EngineEvent =
 	| { type: "app"; app: AppState }
@@ -411,6 +493,18 @@ export type Requests = {
 	systemPlan: { params: { ids: string[] }; response: { commands: string[][]; reason?: string } };
 	/** Installs the rows, refused unless commands still equals what systemPlan answers now. Progress comes as extras events. */
 	systemInstall: { params: { ids: string[]; commands: string[][] }; response: { started: boolean; reason?: string } };
+	/** Measures every candidate again; the sizes come as extras events. */
+	cleanupMeasure: { params: Record<string, never>; response: { started: boolean } };
+	/** What deleting these picks would free and the commands it would run, each as its literal argv; nothing runs. */
+	cleanupReview: {
+		params: { picks: CleanupPick[] };
+		response: { bytes: number; commands: string[][]; reason?: string };
+	};
+	/** Deletes the picks, refused unless commands still equals what cleanupReview answers now. Progress comes as extras events. */
+	cleanupRun: {
+		params: { picks: CleanupPick[]; commands: string[][]; typed?: string };
+		response: { started: boolean; reason?: string };
+	};
 };
 
 /** One answer per request, each taking that request's params: the main process's and the fixture's. */

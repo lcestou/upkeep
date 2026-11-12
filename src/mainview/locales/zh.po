@@ -181,6 +181,7 @@ msgstr "完成这个后停止"
 
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Done"
 msgstr "完成"
 
@@ -217,6 +218,7 @@ msgstr "安装位置"
 msgid "Source"
 msgstr "来源"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Restore points"
 msgstr "还原点"
@@ -311,6 +313,7 @@ msgstr "还没有运行记录。"
 msgid "Updated"
 msgstr "已更新"
 
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
@@ -2025,6 +2028,7 @@ msgid "Install now"
 msgstr "立即安装"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Waiting"
 msgstr "等待中"
 
@@ -2119,3 +2123,336 @@ msgstr "已更新。重启它以使用新版本。"
 #: src/mainview/lib/engine-text.ts
 msgid "The trial run would remove {0}, so nothing was installed. Update Manager can install this one."
 msgstr "试运行会移除 {0}，因此未安装任何内容。此更新可以通过更新管理器安装。"
+
+#: src/mainview/lib/copy.ts
+msgid "Cleanup"
+msgstr "清理"
+
+#: src/mainview/lib/copy.ts
+msgid "Show Cleanup"
+msgstr "显示清理"
+
+#: src/mainview/lib/copy.ts
+msgid "Adds a Cleanup tab. It measures caches and leftovers, and deletes only what you tick and then confirm."
+msgstr "添加一个清理标签页。它会测量缓存和残留文件，只删除你勾选并确认的内容。"
+
+#: src/mainview/lib/copy.ts
+msgid "Include developer caches"
+msgstr "包括开发者缓存"
+
+#: src/mainview/lib/copy.ts
+msgid "The uv, bun, npm and pip download caches. They come back as downloads the next time a build needs them."
+msgstr "uv、bun、npm 和 pip 的下载缓存。下次构建需要时会重新下载。"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep deletes only what you tick, after one more look."
+msgstr "Upkeep 只删除你勾选的内容，并会在删除前让你再看一次。"
+
+#: src/mainview/lib/copy.ts
+msgid "Measure again"
+msgstr "重新测量"
+
+#: src/mainview/lib/copy.ts
+msgid "Measuring"
+msgstr "正在测量"
+
+#: src/mainview/lib/copy.ts
+msgid "Not measured yet."
+msgstr "尚未测量。"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing to clean."
+msgstr "没有可清理的内容。"
+
+#: src/mainview/lib/copy.ts
+msgid "Needs administrator"
+msgstr "需要管理员权限"
+
+#: src/mainview/lib/copy.ts
+msgid "This copy is newer than the installed file."
+msgstr "此副本比已安装的文件更新。"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick something to clean."
+msgstr "勾选要清理的内容。"
+
+#: src/mainview/lib/copy.ts
+msgid "Delete these?"
+msgstr "删除这些吗？"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep runs these commands:"
+msgstr "Upkeep 将运行这些命令："
+
+#: src/mainview/lib/copy.ts
+msgid "Back"
+msgstr "返回"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Cleaned"
+msgstr "已清理"
+
+#: src/mainview/lib/copy.ts
+msgid "Safe to clear"
+msgstr "可放心清理"
+
+#: src/mainview/lib/copy.ts
+msgid "Your call"
+msgstr "由你决定"
+
+#: src/mainview/lib/copy.ts
+msgid "Shown only"
+msgstr "仅显示"
+
+#: src/mainview/lib/copy.ts
+msgid "Comes back on its own"
+msgstr "会自动重新生成"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloads again"
+msgstr "会重新下载"
+
+#: src/mainview/lib/copy.ts
+msgid "Cannot be undone"
+msgstr "无法撤销"
+
+#: src/mainview/lib/copy.ts
+msgid "Cleaning"
+msgstr "正在清理"
+
+#: src/mainview/lib/copy.ts
+msgid "Skipped"
+msgstr "已跳过"
+
+#: src/mainview/lib/copy.ts
+msgid "Thumbnails"
+msgstr "缩略图"
+
+#: src/mainview/lib/copy.ts
+msgid "Trash"
+msgstr "回收站"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep's leftover copies"
+msgstr "Upkeep 留下的副本"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded packages"
+msgstr "已下载的软件包"
+
+#: src/mainview/lib/copy.ts
+msgid "Old NVIDIA runtimes for Flatpak"
+msgstr "旧的 Flatpak NVIDIA 运行时"
+
+#: src/mainview/lib/copy.ts
+msgid "Packages nothing needs"
+msgstr "没有任何程序需要的软件包"
+
+#: src/mainview/lib/copy.ts
+msgid "Temporary files (/tmp)"
+msgstr "临时文件 (/tmp)"
+
+#: src/mainview/lib/copy.ts
+msgid "System logs"
+msgstr "系统日志"
+
+#: src/mainview/lib/copy.ts
+msgid "Old kernels"
+msgstr "旧内核"
+
+#: src/mainview/lib/copy.ts
+msgid "Timeshift snapshots"
+msgstr "Timeshift 快照"
+
+#: src/mainview/lib/copy.ts
+msgid "Browser caches"
+msgstr "浏览器缓存"
+
+#: src/mainview/lib/copy.ts
+msgid "Playwright browsers"
+msgstr "Playwright 浏览器"
+
+#: src/mainview/lib/copy.ts
+msgid "Backup copies beside your apps"
+msgstr "应用旁的备份副本"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep's own cache"
+msgstr "Upkeep 自己的缓存"
+
+#: src/mainview/lib/copy.ts
+msgid "Small previews of pictures and videos. The file manager makes them again when it needs them."
+msgstr "图片和视频的小预览图。文件管理器需要时会重新生成。"
+
+#: src/mainview/lib/copy.ts
+msgid "Files you deleted in the file manager, in your home folder's Trash."
+msgstr "你在文件管理器中删除的文件，位于主文件夹的回收站中。"
+
+#: src/mainview/lib/copy.ts
+msgid "Copies Upkeep left beside an app when an install was cut off."
+msgstr "安装中断时 Upkeep 留在应用旁的副本。"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep's copies of replaced app versions. Deleting one means that version can no longer be put back."
+msgstr "Upkeep 保存的被替换的应用版本。删除后就无法再恢复到该版本。"
+
+#: src/mainview/lib/copy.ts
+msgid "Package files apt keeps after installing them. apt downloads them again if it needs them."
+msgstr "apt 安装后保留的软件包文件。需要时 apt 会重新下载。"
+
+#: src/mainview/lib/copy.ts
+msgid "Flatpak GPU runtimes for NVIDIA driver versions no longer installed."
+msgstr "适用于已不再安装的 NVIDIA 驱动版本的 Flatpak GPU 运行时。"
+
+#: src/mainview/lib/copy.ts
+msgid "Packages apt installed as dependencies that nothing uses now."
+msgstr "apt 作为依赖安装、现在已无程序使用的软件包。"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded and built Python packages. Tools already installed keep working."
+msgstr "已下载和构建的 Python 软件包。已安装的工具仍可正常使用。"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded JavaScript packages for bun."
+msgstr "为 bun 下载的 JavaScript 软件包。"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded JavaScript packages for npm."
+msgstr "为 npm 下载的 JavaScript 软件包。"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded Python packages for pip."
+msgstr "为 pip 下载的 Python 软件包。"
+
+#: src/mainview/lib/copy.ts
+msgid "Cleared at every restart, and the system removes anything untouched for 30 days."
+msgstr "每次重启都会清空，系统也会删除 30 天未动过的内容。"
+
+#: src/mainview/lib/copy.ts
+msgid "The system keeps these under the size its journald setting allows."
+msgstr "系统会将其保持在 journald 设置允许的大小以内。"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove older ones in Update Manager under View, Linux kernels."
+msgstr "在更新管理器的“查看 > Linux 内核”中删除旧内核。"
+
+#: src/mainview/lib/copy.ts
+msgid "Timeshift and its own schedule manage these. Delete one from Timeshift."
+msgstr "这些由 Timeshift 及其计划管理。请在 Timeshift 中删除。"
+
+#: src/mainview/lib/copy.ts
+msgid "Clear these from the browser's own settings. Deleting them while it runs can break it."
+msgstr "请在浏览器自己的设置中清除。浏览器运行时删除可能会损坏它。"
+
+#: src/mainview/lib/copy.ts
+msgid "Test browsers that projects pin by version."
+msgstr "项目按版本固定的测试浏览器。"
+
+#: src/mainview/lib/copy.ts
+msgid "Copies made by hand or by another tool. Upkeep leaves them alone."
+msgstr "手动或由其他工具创建的副本。Upkeep 不会动它们。"
+
+#: src/mainview/lib/copy.ts
+msgid "Saves GitHub lookups. Upkeep clears its downloads at the start of every run."
+msgstr "节省 GitHub 查询。Upkeep 每次运行开始时都会清除其下载内容。"
+
+#. 0: running
+#: src/mainview/lib/copy.ts
+msgid "Running {0}."
+msgstr "正在运行 {0}。"
+
+#. 0: running; 1: newest
+#: src/mainview/lib/copy.ts
+msgid "Running {0}, newest installed {1}."
+msgstr "正在运行 {0}，已安装的最新版本为 {1}。"
+
+#: src/mainview/lib/copy.ts
+msgid "# snapshot."
+msgid_plural "# snapshots."
+msgstr[0] "# 个快照。"
+
+#. 0: newest
+#: src/mainview/lib/copy.ts
+msgid "Newest {0}."
+msgstr "最新：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "# copy."
+msgid_plural "# copies."
+msgstr[0] "# 个副本。"
+
+#. 0: relative
+#: src/mainview/lib/copy.ts
+msgid "Measured {0}"
+msgstr "测量于{0}"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "Review {0}"
+msgstr "查看 {0}"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "Delete {0}"
+msgstr "删除 {0}"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "{0} in all."
+msgstr "共 {0}。"
+
+#. 0: new Intl.ListFormat(language.locale, { type\\: "conjunction" }).format(names)
+#: src/mainview/lib/copy.ts
+msgid "Cannot be undone: {0}."
+msgstr "无法撤销：{0}。"
+
+#. 0: word
+#: src/mainview/lib/copy.ts
+msgid "Type {0} to also remove packages"
+msgstr "输入 {0} 以同时删除软件包"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "Freed {0}."
+msgstr "已释放 {0}。"
+
+#. 0: size
+#: src/mainview/lib/copy.ts
+msgid "{0} freed"
+msgstr "已释放 {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Skipped: changed since you reviewed it."
+msgstr "已跳过：你查看后它发生了变化。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Skipped: sudo needs a password here."
+msgstr "已跳过：此处 sudo 需要密码。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Skipped: Flatpak would ask for a password here."
+msgstr "已跳过：此处 Flatpak 会要求输入密码。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Type {0} first. Nothing was deleted."
+msgstr "请先输入 {0}。未删除任何内容。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "What Cleanup would do changed since you looked. Look at it again, then delete."
+msgstr "自你查看后，清理要做的事情已发生变化。请再看一遍，然后删除。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing ticked is something Cleanup deletes."
+msgstr "勾选的内容中没有清理会删除的项目。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Could not delete {0}: {1}"
+msgstr "无法删除 {0}：{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Left {0} alone: it is not inside the folder being cleaned."
+msgstr "未动 {0}：它不在正在清理的文件夹内。"

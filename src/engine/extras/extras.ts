@@ -1,5 +1,8 @@
 import { MESSAGES } from "../../shared/messages";
 import type {
+	CleanupOutcome,
+	CleanupPick,
+	CleanupState,
 	EngineEvent,
 	ExtrasSettings,
 	ExtrasSnapshot,
@@ -9,14 +12,23 @@ import type {
 	SystemState,
 } from "../../shared/types";
 import { stamp } from "../engine";
-import type { Paths } from "../paths";
+import { isAbsolute } from "node:path";
+import { expandHome, type Paths } from "../paths";
 import { killGroup, type Run } from "../run";
-import { appendHistory, claimLock, openRunLog, releaseLock, type RunLog } from "../store";
+import { appendHistory, claimLock, openRunLog, readInflight, releaseLock, type RunLog } from "../store";
+import { clean, measureCandidates, type Measured, needsTyping, review, TYPE_WORD } from "./cleanup";
 import { installable, outcomesAfter, planSteps, preflight, runSteps } from "./install";
 import { loadExtras, updateExtras } from "./state";
 import { checkSystem } from "./system";
 
-export type ExtrasDeps = { paths: Paths; run: Run; now: () => Date; procRoot?: string };
+export type ExtrasDeps = {
+	paths: Paths;
+	run: Run;
+	now: () => Date;
+	procRoot?: string;
+	/** The folders apps are installed into, where Cleanup looks for Upkeep's leftovers. */
+	leftoverDirs?: () => string[];
+};
 
 export type Extras = {
 	snapshot(): ExtrasSnapshot;
@@ -28,9 +40,15 @@ export type Extras = {
 	planSystem(ids: string[]): Requests["systemPlan"]["response"];
 	/** Installs the rows when commands is still what planSystem answers; the rest of the run reports through events. */
 	installSystem(ids: string[], commands: string[][]): Requests["systemInstall"]["response"];
-	/** True while a System install runs: the window's close and the tray's Quit wait for it. */
+	/** Measures Cleanup's candidates again unless Cleanup is off, measuring or cleaning. Sizes come as events. */
+	measureCleanup(): { started: boolean };
+	/** What deleting the picks frees and the commands it runs; nothing runs. */
+	reviewCleanup(picks: CleanupPick[]): Requests["cleanupReview"]["response"];
+	/** Deletes the picks when commands is still what reviewCleanup answers; the rest reports through events. */
+	runCleanup(picks: CleanupPick[], commands: string[][], typed?: string): Requests["cleanupRun"]["response"];
+	/** True while a System install or a cleanup runs: the window's close and the tray's Quit wait for it. */
 	installing(): boolean;
-	/** Ends the process group of the command a System install is running; for a quit that cannot wait. */
+	/** Ends the process group of the command a System install or a cleanup is running; for a quit that cannot wait. */
 	stopSystem(): void;
 	/** Resolves when no check or install is running. */
 	idle(): Promise<void>;
@@ -38,6 +56,19 @@ export type Extras = {
 
 /** The lock's owner name for a System install: the engine holds the same run lock under the same pid with none. */
 const LOCK_OWNER = "system";
+/** The lock's owner name for a cleanup, so it never runs beside an install and never frees another's lock. */
+const CLEANUP_OWNER = "cleanup";
+
+/** A measure writes no run log: it changes nothing, and runs each time the tab is looked at. */
+const quiet = () => undefined;
+
+/** Cleanup's state while its tab is hidden, or before its first measure. */
+const cleanupOff = (on: boolean): CleanupState => ({
+	phase: on ? "idle" : "off",
+	items: [],
+	measuredAt: null,
+	last: null,
+});
 
 /** A fresh object each call: callers spread it and must not share rows with an earlier state. */
 const offState = (): SystemState => ({
@@ -68,6 +99,10 @@ export function createExtras(deps: ExtrasDeps): Extras {
 	let child: number | null = null;
 	/** True from the start of a System install to the end of its finally, whatever the settings say meanwhile. */
 	let installingNow = false;
+	let cleanup = cleanupOff(settings.cleanup === true);
+	// What the last measure found, with how each part is deleted; the view only ever sees its items.
+	let measured: Measured | null = null;
+	let measureGeneration = 0;
 
 	/** installable is worked out here, never stored, so it always follows the rows and the switch. */
 	const snapshot = (): ExtrasSnapshot => {
@@ -75,7 +110,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			settings.systemInstall && system.mode === "show"
 				? { ...system, installable: system.rows.filter((r) => installable(r, system.packages)).map((r) => r.id) }
 				: system;
-		return structuredClone({ settings, system: shown });
+		return structuredClone({ settings, system: shown, cleanup });
 	};
 	const emit = () => {
 		const extras = snapshot();
@@ -192,6 +227,115 @@ export function createExtras(deps: ExtrasDeps): Extras {
 		}
 	}
 
+	/** The context Cleanup's measure and delete run with. */
+	const cleanupCtx = (log: (line: string) => void) => ({
+		run: deps.run,
+		paths: deps.paths,
+		pid: process.pid,
+		procRoot: deps.procRoot ?? "/proc",
+		devCaches: settings.devCaches === true,
+		// A table's dest may start with ~; anything that is still not absolute is not looked in.
+		leftoverDirs: (deps.leftoverDirs?.() ?? []).map((d) => expandHome(d, deps.paths.home)).filter((d) => isAbsolute(d)),
+		log,
+		onStart: (pid: number) => {
+			child = pid;
+		},
+	});
+
+	/**
+	 * Measures every candidate, read-only, and lands each item as it is measured. A measure overtaken by a newer one or
+	 * by Cleanup being switched off drops its answer. Not started while Cleanup is off or already measuring or cleaning.
+	 */
+	function measureNow() {
+		if (cleanup.phase !== "idle") return { started: false };
+		measureGeneration += 1;
+		const mine = measureGeneration;
+		const current = () => mine === measureGeneration && cleanup.phase === "measuring";
+		cleanup = { ...cleanup, phase: "measuring", items: [] };
+		emit();
+		const done = measureCandidates(cleanupCtx(quiet), (items) => {
+			if (!current()) return;
+			cleanup = { ...cleanup, items };
+			emit();
+		})
+			.then((m) => {
+				if (!current()) return;
+				measured = m;
+				cleanup = { ...cleanup, phase: "idle", items: m.items, measuredAt: deps.now().toISOString() };
+			})
+			.catch(() => {
+				if (current()) cleanup = { ...cleanup, phase: "idle", measuredAt: deps.now().toISOString() };
+			})
+			.finally(emit);
+		running = Promise.all([running, done]).then(() => undefined);
+		return { started: true };
+	}
+
+	/** Records a refused cleanup where the window shows it, and answers the request with it. Nothing ran. */
+	function refuseCleanup(reason: string) {
+		cleanup = { ...cleanup, last: { at: deps.now().toISOString(), outcomes: [], refused: reason } };
+		emit();
+		return { started: false, reason };
+	}
+
+	/**
+	 * The cleanup itself, once the lock is held: each picked item's parts deleted in turn, one history row per item, the
+	 * lock given back under this owner only, then a fresh measure so the sizes show what is left. A measure or command
+	 * that throws ends the run: every item not finished by then is marked failed with the error's text, and still gets
+	 * its history row, so the tab never stays on Cleaning and the run never rejects.
+	 */
+	async function cleanRun(picks: CleanupPick[], m: Measured, log: RunLog, runId: string) {
+		const started = Date.now();
+		const say = (text: string) => log.write({ at: deps.now().toISOString(), key: "cleanup", text });
+		try {
+			let outcomes: CleanupOutcome[];
+			try {
+				outcomes = await clean(picks, m, cleanupCtx(say), (o) => {
+					const last = cleanup.last;
+					if (!last) return;
+					cleanup = { ...cleanup, last: { ...last, outcomes: last.outcomes.map((x) => (x.id === o.id ? o : x)) } };
+					emit();
+				});
+			} catch (err) {
+				const detail = err instanceof Error ? err.message : String(err);
+				say(`Cleanup stopped: ${detail}`);
+				outcomes = structuredClone(cleanup.last?.outcomes ?? []);
+				for (const o of outcomes)
+					if (o.status === "queued" || o.status === "working") {
+						o.status = "failed";
+						o.detail = detail;
+					}
+				if (cleanup.last) cleanup = { ...cleanup, last: { ...cleanup.last, outcomes } };
+			}
+			const at = deps.now().toISOString();
+			const ms = Date.now() - started;
+			const rows: HistoryRow[] = outcomes.map((o) => ({
+				key: `cleanup:${o.id}`,
+				name: o.id,
+				from: null,
+				to: null,
+				result: o.status === "done" ? "cleaned" : o.status === "skipped" ? "skipped" : "failed",
+				detail: o.detail,
+				ms,
+				runId,
+				at,
+				stages: {},
+				freed: o.freed,
+			}));
+			appendHistory(deps.paths, rows);
+		} catch (err) {
+			say(`Cleanup history not written: ${err instanceof Error ? err.message : String(err)}`);
+		} finally {
+			child = null;
+			log.close();
+			releaseLock(deps.paths, process.pid, CLEANUP_OWNER);
+			measured = null;
+			cleanup = { ...cleanup, phase: settings.cleanup ? "idle" : "off" };
+			emit();
+			if (settings.cleanup) measureNow();
+		}
+	}
+
 	const extras: Extras = {
 		snapshot,
 		subscribe(listener) {
@@ -202,7 +346,23 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			// The group and its install switch stay on while an install runs: off would hide it and let the app quit mid-apt.
 			if (installingNow && (patch.system === "off" || patch.systemInstall === false)) return settings;
 			const was = settings.systemInstall === true;
+			const before = settings;
 			settings = updateExtras(deps.paths, patch);
+			const cleanupOn = settings.cleanup === true;
+			if (!cleanupOn && before.cleanup && cleanup.phase !== "cleaning") {
+				measureGeneration += 1;
+				measured = null;
+				cleanup = cleanupOff(false);
+				emit();
+			} else if (cleanupOn && cleanup.phase === "off") {
+				cleanup = cleanupOff(true);
+				measureNow();
+			} else if (cleanupOn && before.devCaches !== settings.devCaches && cleanup.phase !== "cleaning") {
+				// The list gains or loses the developer caches: measure again, dropping a measure under way.
+				measureGeneration += 1;
+				cleanup = { ...cleanup, phase: "idle" };
+				measureNow();
+			}
 			if (settings.system === "off") {
 				generation += 1;
 				system = offState();
@@ -223,7 +383,8 @@ export function createExtras(deps: ExtrasDeps): Extras {
 		installSystem(ids, commands) {
 			if (!settings.systemInstall || system.mode !== "show")
 				return { started: false, reason: MESSAGES.systemNothing() };
-			if (system.phase === "installing") return { started: false, reason: MESSAGES.reasonBusy() };
+			if (system.phase === "installing" || cleanup.phase === "cleaning")
+				return { started: false, reason: MESSAGES.reasonBusy() };
 			if (system.phase === "checking") return refuse(commands, MESSAGES.reasonChecking());
 			const steps = planSteps(system.rows, ids, system.packages);
 			if (steps.length === 0) return refuse(commands, MESSAGES.systemNothing());
@@ -256,7 +417,48 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			});
 			return { started: true };
 		},
-		installing: () => installingNow,
+		measureCleanup: measureNow,
+		reviewCleanup(picks) {
+			if (!settings.cleanup || !measured || cleanup.phase !== "idle")
+				return { bytes: 0, commands: [], reason: MESSAGES.cleanNothing() };
+			const r = review(picks, measured);
+			return r.parts === 0 ? { ...r, reason: MESSAGES.cleanNothing() } : { bytes: r.bytes, commands: r.commands };
+		},
+		runCleanup(picks, commands, typed) {
+			if (!settings.cleanup) return { started: false, reason: MESSAGES.cleanNothing() };
+			if (cleanup.phase === "cleaning" || installingNow) return { started: false, reason: MESSAGES.reasonBusy() };
+			if (cleanup.phase === "measuring" || !measured) return refuseCleanup(MESSAGES.cleanListChanged());
+			const m = measured;
+			const r = review(picks, m);
+			if (r.parts === 0) return refuseCleanup(MESSAGES.cleanNothing());
+			// What runs is exactly what the person reviewed, or nothing.
+			if (JSON.stringify(r.commands) !== JSON.stringify(commands)) return refuseCleanup(MESSAGES.cleanListChanged());
+			if (needsTyping(picks, m) && typed?.trim() !== TYPE_WORD)
+				return refuseCleanup(MESSAGES.cleanTypeFirst(TYPE_WORD));
+			if (!claimLock(deps.paths, process.pid, deps.procRoot, CLEANUP_OWNER))
+				return refuseCleanup(MESSAGES.reasonBusy());
+			// With the lock held no install runs, so a marker left is an interrupted one: its restore point and temp
+			// copies are what recovery puts back, and none of them may go before it is finished.
+			if (readInflight(deps.paths)) {
+				releaseLock(deps.paths, process.pid, CLEANUP_OWNER);
+				return refuseCleanup(MESSAGES.reasonUnrecovered());
+			}
+			const now = deps.now();
+			const runId = `${stamp(now)}-cleanup`;
+			let log: RunLog;
+			try {
+				log = openRunLog(deps.paths, runId);
+			} catch (err) {
+				releaseLock(deps.paths, process.pid, CLEANUP_OWNER);
+				return refuseCleanup(err instanceof Error ? err.message : String(err));
+			}
+			const queued = r.items.map((id): CleanupOutcome => ({ id, status: "queued", freed: 0 }));
+			cleanup = { ...cleanup, phase: "cleaning", last: { at: now.toISOString(), outcomes: queued, refused: null } };
+			emit();
+			running = Promise.all([running, cleanRun(picks, m, log, runId)]).then(() => undefined);
+			return { started: true };
+		},
+		installing: () => installingNow || cleanup.phase === "cleaning",
 		stopSystem() {
 			if (child !== null) killGroup(child);
 		},

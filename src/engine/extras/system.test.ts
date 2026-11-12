@@ -369,6 +369,7 @@ test("mode off runs nothing at all", async () => {
 	expect(x.snapshot()).toEqual({
 		settings: { system: "off" },
 		system: { mode: "off", phase: "off", rows: [], checkedAt: null, problem: null, glMissing: null, packages: null },
+		cleanup: { phase: "off", items: [], measuredAt: null, last: null },
 	});
 	expect(x.checkSystem()).toEqual({ started: false });
 	await x.idle();

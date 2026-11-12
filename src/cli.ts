@@ -124,7 +124,14 @@ async function restore(
 	return r.ok ? 0 : 1;
 }
 
-const RESULT_TEXT = { updated: "Updated", failed: "Failed", rolled_back: "Rolled back", restored: "Restored" } as const;
+const RESULT_TEXT = {
+	updated: "Updated",
+	failed: "Failed",
+	rolled_back: "Rolled back",
+	restored: "Restored",
+	cleaned: "Cleaned",
+	skipped: "Skipped",
+} as const;
 
 /**
  * Finishes or undoes a built update an interrupted run left behind, one line per app. Exits 0 when every app was

@@ -8,6 +8,7 @@
 	import LogDrawer from "./components/LogDrawer.svelte";
 	import RowDetail from "./components/RowDetail.svelte";
 	import SettingsView from "./components/SettingsView.svelte";
+	import CleanupView from "./components/CleanupView.svelte";
 	import { getBridge } from "./lib/bridge";
 	import { Model } from "./lib/model.svelte";
 	import { ADD } from "./lib/copy";
@@ -193,6 +194,8 @@
 		<main id="view" role={m.view === "updates" ? undefined : "tabpanel"} aria-labelledby="tab-{m.view}">
 			{#if m.view === "history"}
 				<HistoryView model={m} />
+			{:else if m.view === "cleanup"}
+				<CleanupView model={m} />
 			{:else if m.view === "settings"}
 				<SettingsView model={m} />
 			{:else}

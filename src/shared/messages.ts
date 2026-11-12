@@ -448,6 +448,22 @@ export const MESSAGES = {
 	/** extras/install.ts. {0} the first line of the failed re-read */
 	systemNotRechecked: (v0: Value) => `Could not read the list again to see whether it installed: ${v0}`,
 	systemRestartApp: () => `Updated. Restart it to use the new version.`,
+	/** extras/cleanup.ts: a part whose size or time differs from what the review showed */
+	cleanChanged: () => `Skipped: changed since you reviewed it.`,
+	/** extras/cleanup.ts: a root part, and sudo -n true failed */
+	cleanSudo: () => `Skipped: sudo needs a password here.`,
+	/** extras/cleanup.ts: a Flatpak runtime, and pkcheck says removing it would ask */
+	cleanPolkit: () => `Skipped: Flatpak would ask for a password here.`,
+	/** extras/cleanup.ts. {0} the word to type (remove, never translated) */
+	cleanTypeFirst: (v0: Value) => `Type ${v0} first. Nothing was deleted.`,
+	/** extras/cleanup.ts: refused, the commands differ from what the person reviewed */
+	cleanListChanged: () => `What Cleanup would do changed since you looked. Look at it again, then delete.`,
+	/** extras/cleanup.ts: refused, nothing picked is something Cleanup deletes */
+	cleanNothing: () => `Nothing ticked is something Cleanup deletes.`,
+	/** extras/cleanup.ts. {0} path; {1} raw fs error message */
+	cleanCouldNotDelete: (v0: Value, v1: Value) => `Could not delete ${v0}: ${v1}`,
+	/** extras/cleanup.ts. {0} path that is a link, outside the folder, or on another file system */
+	cleanRefusedPath: (v0: Value) => `Left ${v0} alone: it is not inside the folder being cleaned.`,
 } satisfies Record<string, (...values: Value[]) => string>;
 
 export type MessageId = keyof typeof MESSAGES;
