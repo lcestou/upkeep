@@ -14,7 +14,7 @@ test("the System group is absent while the setting is off, and Settings shows an
 	await expect(page.getByTestId("group-system-section")).toHaveCount(0);
 	await page.getByTestId("tab-settings").click();
 	await expect(page.getByTestId("setting-system-help")).toHaveText(
-		"Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf or pacman). Not counted in the tray number.",
+		"Lists your system's own pending updates: Flatpak apps and runtimes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.",
 	);
 	await expect(page.getByTestId("extras-group")).toHaveText("Extras");
 	await page.getByTestId("setting-system").check();
@@ -130,7 +130,7 @@ test("each state of the group body says its own line", async ({ page }) => {
 	await expect(page.getByTestId("system-checked")).toHaveText(/^From Flatpak/);
 	await openGroup(page);
 	await expect(page.getByTestId("system-absent")).toHaveText(
-		"No package list Upkeep can read is installed (Update Manager, apt, dnf or pacman). Flatpak updates still show here.",
+		"No package list Upkeep can read is installed (Update Manager, apt, dnf, pacman or zypper). Flatpak updates still show here.",
 	);
 	await expect(page.getByTestId("system-problem")).toHaveCount(0);
 	await expect(page.locator('[data-testid^="sys-row-flatpak:"]')).toHaveCount(3);

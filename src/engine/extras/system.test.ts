@@ -18,10 +18,12 @@ import {
 	DNF_LIST,
 	PACMAN_CHECK,
 	PACMAN_LIST,
+	ZYPPER_LIST,
 	RPM_VERSIONS,
 	parseAptList,
 	parseDnfList,
 	parsePacmanList,
+	parseZypperList,
 	parseFlatpakUpdates,
 	parseMintList,
 	parseSourceVersions,
@@ -160,14 +162,16 @@ test("one source missing names the command; the other still lists", async () => 
 	expect(r.rows.every((x) => x.source === "apt")).toBe(true);
 	expect(r.rows).toHaveLength(7);
 	// No package list at all: Update Manager's missing command stands for them, said quietly by the view.
-	const none = new Map([MINT_LIST, APT_LIST, DNF_LIST, PACMAN_CHECK, PACMAN_LIST].map((c) => [c.join(" "), missing]));
+	const none = new Map(
+		[MINT_LIST, APT_LIST, DNF_LIST, PACMAN_CHECK, PACMAN_LIST, ZYPPER_LIST].map((c) => [c.join(" "), missing]),
+	);
 	const noMint = await checkSystem(box(none));
 	expect(noMint.problem).toEqual({ code: "missing", command: "mintupdate-cli list" });
 	expect(noMint.packages).toBeNull();
 	expect(noMint.rows.map((x) => x.source)).toEqual(["flatpak", "flatpak", "flatpak"]);
 });
 
-test("without Update Manager the first package list installed answers: apt, then dnf, then pacman", async () => {
+test("without Update Manager the first package list installed answers: apt, then dnf, then pacman, then zypper", async () => {
 	const without = (...gone: string[][]) => new Map(gone.map((c) => [c.join(" "), missing]));
 	const apt = await checkSystem(box(new Map([...without(MINT_LIST), [APT_LIST.join(" "), ok(fx("apt-list.txt"))]])));
 	expect(apt.packages).toBe("apt");
@@ -220,6 +224,62 @@ test("without Update Manager the first package list installed answers: apt, then
 		["linux-firmware", "package", "20251021-1", "20251111-1"],
 		["nvidia-utils", "driver", "580.95.05-1", "580.105.08-1"],
 		["nvidia-settings", "package", "580.95.05-1", "580.105.08-1"],
+	]);
+	// checkupdates installed without fakeroot fails; pacman -Qu still lists.
+	const noFakeroot = await checkSystem(
+		box(
+			new Map([
+				...without(MINT_LIST, APT_LIST, DNF_LIST),
+				[
+					PACMAN_CHECK.join(" "),
+					{ code: 1, stdout: "", stderr: "==> ERROR: Cannot find the fakeroot binary", timedOut: false },
+				],
+				[PACMAN_LIST.join(" "), ok(fx("pacman-list.txt"))],
+			]),
+		),
+	);
+	expect([noFakeroot.packages, noFakeroot.rows.filter((r) => r.source === "pacman").length]).toEqual(["pacman", 5]);
+	expect(noFakeroot.problem).toBeNull();
+	// openSUSE: zypper's table, read from Leap 16.0; kernel-default and the G06 GL driver need a restart.
+	const zypper = await checkSystem(
+		box(
+			new Map([
+				...without(MINT_LIST, APT_LIST, DNF_LIST, PACMAN_CHECK, PACMAN_LIST),
+				[ZYPPER_LIST.join(" "), ok(fx("zypper-list.txt"))],
+			]),
+		),
+	);
+	expect(zypper.packages).toBe("zypper");
+	expect(zypper.problem).toBeNull();
+	expect(zypper.rows.filter((r) => r.source === "zypper").map((r) => [r.id, r.type, r.installed, r.latest])).toEqual([
+		["zypper:curl.x86_64", "package", "8.14.1-160000.2.2", "8.14.1-160000.9.1"],
+		["zypper:glibc.x86_64", "package", "2.40-160000.2.2", "2.40-160000.7.1"],
+		["zypper:kernel-default.x86_64", "kernel", "6.12.0-160000.5.1", "6.12.0-160000.9.1"],
+		["zypper:nvidia-gl-G06.x86_64", "driver", "580.95.05-1.1", "580.105.08-1.1"],
+		["zypper:libcurl4.x86_64", "package", "8.14.1-160000.2.2", "8.14.1-160000.9.1"],
+	]);
+	// 106: a repository could not be read, and the rest still listed. Any other failure names zypper.
+	const zyp = (r: ProcessResult) =>
+		checkSystem(
+			box(new Map([...without(MINT_LIST, APT_LIST, DNF_LIST, PACMAN_CHECK, PACMAN_LIST), [ZYPPER_LIST.join(" "), r]])),
+		);
+	const skipped = await zyp({ code: 106, stdout: fx("zypper-list.txt"), stderr: "", timedOut: false });
+	expect([skipped.problem, skipped.rows.filter((r) => r.source === "zypper").length]).toEqual([null, 5]);
+	const locked = await zyp({ code: 7, stdout: "", stderr: "System management is locked", timedOut: false });
+	expect(locked.problem).toEqual({
+		code: "failed",
+		command: ZYPPER_LIST.join(" "),
+		detail: "System management is locked",
+	});
+	expect(locked.rows.filter((r) => r.source === "zypper")).toEqual([]);
+	// A header zypper translated is above the rule, so it is never a row; headers and devel packages type right.
+	expect(
+		parseZypperList(
+			"S | Repository | Nom | Version actuelle | Version disponible | Arch\n--+--\nv | oss | kernel-default-devel | 1 | 2 | x86_64\nv | oss | nvidia-G06 | 1 | 2 | x86_64\n",
+		).map((r) => [r.name, r.type]),
+	).toEqual([
+		["kernel-default-devel", "kernel"],
+		["nvidia-G06", "driver"],
 	]);
 	const quiet = await checkSystem(
 		box(

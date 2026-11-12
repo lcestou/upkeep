@@ -139,7 +139,7 @@ test("the System group's problem lines name the source and end cleanly without a
 	expect(systemChecked("just now", false, "Flatpak")).toBe("From Flatpak, checked just now");
 	// A tool the system does not have is said quietly; anything else missing is still a problem.
 	expect(systemAbsent({ code: "missing", command: "mintupdate-cli list" })).toBe(
-		"No package list Upkeep can read is installed (Update Manager, apt, dnf or pacman). Flatpak updates still show here.",
+		"No package list Upkeep can read is installed (Update Manager, apt, dnf, pacman or zypper). Flatpak updates still show here.",
 	);
 	expect(systemAbsent({ code: "missing", command: "flatpak remote-ls --updates --columns=ref,name,version" })).toBe(
 		"Flatpak is not installed, so only package updates are listed.",
@@ -239,4 +239,7 @@ test("a failed package list is named by its own tool", () => {
 	);
 	expect(systemProblem({ code: "failed", command: "checkupdates", detail: "" })).toBe("Could not read pacman's list.");
 	expect(PACKAGES_FROM.pacman).toBe("pacman");
+	expect(systemProblem({ code: "failed", command: "zypper -n -q --no-refresh list-updates", detail: "" })).toBe(
+		"Could not read zypper's list.",
+	);
 });

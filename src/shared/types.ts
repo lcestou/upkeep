@@ -286,8 +286,8 @@ export type ExtrasSettings = {
 export type SystemRow = {
 	/** "<source>:<package>", or "flatpak:<ref>". */
 	id: string;
-	/** apt for Linux Mint's Update Manager and for apt; dnf; pacman; flatpak. */
-	source: "apt" | "dnf" | "pacman" | "flatpak";
+	/** apt for Linux Mint's Update Manager and for apt; dnf; pacman; zypper; flatpak. */
+	source: "apt" | "dnf" | "pacman" | "zypper" | "flatpak";
 	name: string;
 	type: "security" | "package" | "kernel" | "driver" | "app" | "runtime";
 	installed: string | null;
@@ -307,8 +307,8 @@ export type SystemState = {
 	problem: { code: "missing"; command: string } | { code: "failed"; command: string; detail: string } | null;
 	/** The NVIDIA driver version whose Flatpak GL runtime is missing, or null. */
 	glMissing: string | null;
-	/** Which package list answered: Linux Mint's Update Manager, apt, dnf or pacman; null when none is installed. */
-	packages: "mint" | "apt" | "dnf" | "pacman" | null;
+	/** Which package list answered: Linux Mint's Update Manager, apt, dnf, pacman or zypper; null when none is installed. */
+	packages: "mint" | "apt" | "dnf" | "pacman" | "zypper" | null;
 };
 
 export type ExtrasSnapshot = { settings: ExtrasSettings; system: SystemState };

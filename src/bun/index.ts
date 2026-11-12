@@ -10,6 +10,7 @@ import type { EngineEvent, RunPhase, WindowButton, WindowChrome } from "../share
 import { syncAutostart } from "./autostart";
 import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
+import { dropStrayIcuData } from "./icu";
 import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
 import { claimInstance, releaseInstance } from "./instance";
@@ -25,6 +26,9 @@ import {
 	trayTitle,
 	updatedNotice,
 } from "./tray-model";
+
+// Before any window opens: the launcher's ICU_DATA blanks the window where ICU keeps its data in a file (openSUSE).
+dropStrayIcuData();
 
 const VERSION = pkg.version;
 // Started at login: no window, check, install what is marked automatic, stay in the tray.
