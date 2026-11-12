@@ -152,7 +152,7 @@ function limiter(n: number): <T>(fn: () => Promise<T>) => Promise<T> {
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /** A run id in local time with four random characters, so two runs in one second still get distinct logs. */
-function stamp(d: Date): string {
+export function stamp(d: Date): string {
 	const rand = Math.random().toString(36).slice(2, 6);
 	return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${rand}`;
 }

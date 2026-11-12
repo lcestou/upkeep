@@ -292,11 +292,13 @@ export type LogLine = { at: string; key: string | null; text: string };
 
 /** Opt-in areas beside the app list. Kept in extras.json, apart from state.json. */
 export type ExtrasSettings = {
-	/** "off": nothing runs. "show": list the system's own updates, read-only. */
+	/** "off": nothing runs. "show": list the system's own updates. */
 	system: "off" | "show";
+	/** True only while system is "show", and absent when off: the person may tick system rows and install them from Upkeep. */
+	systemInstall?: boolean;
 };
 
-/** One pending update from Update Manager's list or from Flatpak. Read-only: Upkeep never installs these. */
+/** One pending update from the system's own lists. Upkeep installs one only when its id is in SystemState.installable. */
 export type SystemRow = {
 	/** "<source>:<package>", "flatpak:<ref>", "cinnamon:<spice type>:<uuid>" or "snap:<name>". */
 	id: string;
@@ -323,9 +325,29 @@ export type SystemRow = {
 	note?: "update-manager-only";
 };
 
+/** One ticked row in a System install: waiting its turn, running, or its result. detail is a MESSAGES sentence. */
+export type SystemOutcome = {
+	id: string;
+	name: string;
+	from: string | null;
+	to: string;
+	status: "queued" | "working" | "done" | "failed";
+	detail?: string;
+};
+
+/** The last System install: refused before anything ran (refused set, outcomes empty), running, or finished. */
+export type SystemInstall = {
+	at: string;
+	/** The commands it ran or would have run, each as its literal argv. */
+	commands: string[][];
+	outcomes: SystemOutcome[];
+	/** Why nothing ran, as a MESSAGES sentence; null once it started. */
+	refused: string | null;
+};
+
 export type SystemState = {
 	mode: ExtrasSettings["system"];
-	phase: "off" | "checking" | "idle";
+	phase: "off" | "checking" | "idle" | "installing";
 	rows: SystemRow[];
 	checkedAt: string | null;
 	/** Codes, never sentences: the view words them. */
@@ -334,6 +356,10 @@ export type SystemState = {
 	glMissing: string | null;
 	/** Which package list answered: Linux Mint's Update Manager, apt, dnf, pacman or zypper; null when none is installed. */
 	packages: "mint" | "apt" | "dnf" | "pacman" | "zypper" | null;
+	/** Ids of the rows Upkeep can install, present only while installing is switched on. Never a kernel or driver row. */
+	installable?: string[];
+	/** The last System install since Upkeep started, if any. */
+	install?: SystemInstall;
 };
 
 export type ExtrasSnapshot = { settings: ExtrasSettings; system: SystemState };
@@ -381,6 +407,10 @@ export type Requests = {
 	setExtras: { params: Partial<ExtrasSettings>; response: ExtrasSettings };
 	systemCheck: { params: Record<string, never>; response: { started: boolean } };
 	openTool: { params: { what: "update-manager" }; response: { ok: boolean } };
+	/** The commands a System install of these rows would run, each as its literal argv; nothing runs. */
+	systemPlan: { params: { ids: string[] }; response: { commands: string[][]; reason?: string } };
+	/** Installs the rows, refused unless commands still equals what systemPlan answers now. Progress comes as extras events. */
+	systemInstall: { params: { ids: string[]; commands: string[][] }; response: { started: boolean; reason?: string } };
 };
 
 /** One answer per request, each taking that request's params: the main process's and the fixture's. */

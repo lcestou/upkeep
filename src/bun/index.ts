@@ -44,6 +44,8 @@ const deps = {
 let win: BrowserWindow | null = null;
 let quitting = false;
 let quitAfterRun = false;
+// The tray's Quit during a System install: Upkeep quits once the install ends, never in the middle of it.
+let quitAfterSystem = false;
 let rebuilding = false;
 let builtFrame = "";
 const sizeFile = join(deps.paths.state, "window.json");
@@ -87,8 +89,8 @@ function openWindow(tab = ""): void {
 	// The framework destroys the window unless a handler refuses. Hiding keeps the view's state and the tray alive.
 	win.on("will-close", (event) => {
 		if (quitting || rebuilding) return;
-		// With no tray a hidden window is unreachable: close quits instead, except during a run.
-		if (!tray.visible && engine.snapshot().run.phase !== "installing") return quit();
+		// With no tray a hidden window is unreachable: close quits instead, except during a run or a System install.
+		if (!tray.visible && !installing()) return quit();
 		// SAFETY: the framework passes a plain event object whose `response` field it reads back after the handlers run; the type does not declare it.
 		(event as { response?: { allow: boolean } }).response = { allow: false };
 		if (tray.visible) win?.hide();
@@ -153,9 +155,17 @@ function windowOp(op: WindowButton): void {
 		if (win.isMaximized()) win.unmaximize();
 		else win.maximize();
 		tellChrome();
-	} else if (!tray.visible && engine.snapshot().run.phase !== "installing") quit();
+	} else if (!tray.visible && !installing()) quit();
 	// Close hides, exactly as the desktop's own close button does.
 	else if (tray.visible) win.hide();
+}
+
+/**
+ * True while an app install or a System install runs. A System install's root apt run must not be cut off by a
+ * quit, so the window's close and the tray's Quit wait for both.
+ */
+function installing(): boolean {
+	return engine.snapshot().run.phase === "installing" || extras.installing();
 }
 
 /** Ends the app for real: marks the close as wanted and frees the socket first so a new launch can start. */
@@ -171,9 +181,11 @@ if ((await claimInstance(deps.paths.socket, openWindow)) === "secondary") {
 	await new Promise<never>(() => process.exit(0));
 }
 
-// SIGTERM at logout and the framework's own quit paths skip quit(): let the window close and free the socket.
+// SIGTERM at logout and the framework's own quit paths skip quit(): let the window close and free the socket. A
+// System install still running is ended with its whole process group, so no root command outlives Upkeep unseen.
 Electrobun.events.on("before-quit", () => {
 	quitting = true;
+	extras.stopSystem();
 	releaseInstance(deps.paths.socket);
 });
 
@@ -181,6 +193,7 @@ const engine = createEngine(deps);
 // An update cut off by a crash or a power cut is finished or undone before the first check.
 void engine.recover();
 // The system updates list: same paths and runner, its own state, never awaited by the engine's check.
+// The background run below never installs system updates: only the window's confirmed press does.
 const extras = createExtras({ paths: deps.paths, run: deps.run, now: deps.now });
 // The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
 const launcher = join(import.meta.dir, "../../../bin/launcher");
@@ -252,10 +265,11 @@ tray.on("tray-clicked", (event) => {
 		if (win) openWindow();
 		else void engine.install(engine.readyKeys(false));
 	} else if (action === "quit") {
+		if (extras.installing()) quitAfterSystem = true;
 		if (engine.snapshot().run.phase === "installing") {
 			quitAfterRun = true;
 			engine.stopAfterCurrent();
-		} else quit();
+		} else if (!quitAfterSystem) quit();
 	}
 });
 
@@ -306,6 +320,7 @@ const schedule = startSchedule({
 extras.subscribe((event) => {
 	toView.push(event);
 	refreshTray();
+	if (quitAfterSystem && !extras.installing() && engine.snapshot().run.phase !== "installing") quit();
 });
 
 engine.subscribe((event) => {
@@ -327,7 +342,7 @@ engine.subscribe((event) => {
 			announceRun();
 			engine.dismissSummary();
 		}
-		if (quitAfterRun) quit();
+		if (quitAfterRun && !extras.installing()) quit();
 	}
 });
 

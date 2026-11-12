@@ -213,11 +213,14 @@ function createExclusive(file: string, text: string): boolean {
 	}
 }
 
-/** Claims the run lock. A lock whose pid is gone or started at another time is stale and taken over. */
-export function claimLock(paths: Paths, pid = process.pid, procRoot = "/proc"): boolean {
+/**
+ * Claims the run lock. A lock whose pid is gone or started at another time is stale and taken over. owner names the
+ * holder inside one process: the engine and the System install share a pid, so a pid alone cannot tell whose lock it is.
+ */
+export function claimLock(paths: Paths, pid = process.pid, procRoot = "/proc", owner = ""): boolean {
 	mkdirSync(paths.state, { recursive: true });
 	const file = lockFile(paths);
-	const mine = `${pid} ${startTime(pid, procRoot) ?? "0"}`;
+	const mine = `${pid} ${startTime(pid, procRoot) ?? "0"}${owner ? ` ${owner}` : ""}`;
 	if (createExclusive(file, mine)) return true;
 	let held = "";
 	try {
@@ -239,11 +242,15 @@ export function claimLock(paths: Paths, pid = process.pid, procRoot = "/proc"): 
 	return createExclusive(file, mine);
 }
 
-/** Leaves a lock another process holds. A missing lock is not an error. */
-export function releaseLock(paths: Paths, pid = process.pid): void {
+/**
+ * Leaves a lock another process holds, and one the same process holds under another owner: a refused System install
+ * never frees the engine's lock, nor the engine a System install's. A missing lock is not an error.
+ */
+export function releaseLock(paths: Paths, pid = process.pid, owner = ""): void {
 	const file = lockFile(paths);
 	try {
-		if (readFileSync(file, "utf8").split(" ")[0] === String(pid)) rmSync(file, { force: true });
+		const [holder, , held = ""] = readFileSync(file, "utf8").trim().split(" ");
+		if (holder === String(pid) && held === owner) rmSync(file, { force: true });
 	} catch {
 		// not held
 	}

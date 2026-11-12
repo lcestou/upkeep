@@ -450,10 +450,17 @@ export class Model {
 		if ((await this.send("check", {}))?.started) this.refusal = null;
 	}
 
-	/** Turning the group on shows it at once in its checking state; turning it off removes it. */
+	/**
+	 * Turning the group on shows it at once in its checking state; turning it off removes it. Switching installing
+	 * on or off keeps the list as it is: which rows can be installed comes from the main process's event.
+	 */
 	async setExtras(patch: Partial<ExtrasSettings>): Promise<void> {
 		const settings = await this.send("setExtras", patch);
 		if (!settings) return;
+		if (this.extras && patch.system === undefined) {
+			this.extras = { ...this.extras, settings };
+			return;
+		}
 		const system = this.extras?.system;
 		const on = settings.system === "show";
 		this.extras = {

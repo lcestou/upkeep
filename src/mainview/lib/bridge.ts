@@ -9,7 +9,18 @@ export type UpkeepRPC = {
 };
 
 const VARIANTS: FixtureVariant[] = ["default", "empty", "checking", "problems", "many", "built", "none"];
-const SYSTEM_VARIANTS: SystemVariant[] = ["off", "show", "checking", "empty", "missing", "failed", "gl", "apt"];
+const SYSTEM_VARIANTS: SystemVariant[] = [
+	"off",
+	"show",
+	"checking",
+	"empty",
+	"missing",
+	"failed",
+	"gl",
+	"apt",
+	"install",
+	"refuse",
+];
 
 // Requests that wait on real work (a download, a restore, a scan) get five minutes; the engine has its own step limits.
 const LONG: ReadonlySet<string> = new Set(["restore", "restartApp", "install", "suggest", "scan", "addApps"]);

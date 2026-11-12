@@ -96,6 +96,19 @@ test("a timeout with killTree also kills the grandchild", async () => {
 	expect(existsSync(`/proc/${pid}`)).toBe(false);
 });
 
+test("a timeout with group ends the whole process group, the grandchild included", async () => {
+	const pidFile = join(t.dir, "group.pid");
+	const r = await realRun(t.paths)(["bash", "-c", `sleep 30 & echo $! > "${pidFile}"; wait`], {
+		timeoutMs: 300,
+		group: true,
+		onLine: () => {},
+	});
+	expect(r.timedOut).toBe(true);
+	await Bun.sleep(300);
+	const pid = Number(await Bun.file(pidFile).text());
+	expect(existsSync(`/proc/${pid}`)).toBe(false);
+});
+
 test("a grandchild that keeps the pipe open does not hold the run, and its late lines are dropped", async () => {
 	const started = Date.now();
 	const got: string[] = [];

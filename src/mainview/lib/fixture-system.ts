@@ -1,7 +1,18 @@
 // The fixture's half of the System group: rows shaped like the engine's checkSystem output on the owner's machine.
-import type { SystemRow, SystemState } from "../../shared/types";
+import type { SystemOutcome, SystemRow, SystemState } from "../../shared/types";
 
-export type SystemVariant = "off" | "show" | "checking" | "empty" | "missing" | "failed" | "gl" | "apt";
+/** install: installing is switched on. refuse: the same, and the fake install is refused by its sudo check. */
+export type SystemVariant =
+	| "off"
+	| "show"
+	| "checking"
+	| "empty"
+	| "missing"
+	| "failed"
+	| "gl"
+	| "apt"
+	| "install"
+	| "refuse";
 
 /** Builds an apt row. Nothing is running, and the note is only set when the caller passes one. */
 const apt = (
@@ -67,6 +78,8 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 		case "off":
 			return { ...base, mode: "off", phase: "off", rows: [], checkedAt: null };
 		case "show":
+		case "install":
+		case "refuse":
 			return base;
 		case "checking":
 			return { ...base, phase: "checking", rows: [], checkedAt: null };
@@ -94,4 +107,42 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 		case "gl":
 			return { ...base, glMissing: "580.178.04" };
 	}
+}
+
+/** The engine's rule, faked: never a kernel or driver, packages only from Update Manager, and Flatpak, Snap and Cinnamon. */
+export function fixtureInstallable(state: SystemState): string[] {
+	return state.rows
+		.filter(
+			(r) =>
+				r.note !== "update-manager-only" &&
+				r.type !== "kernel" &&
+				r.type !== "driver" &&
+				(r.source === "apt" ? state.packages === "mint" : ["flatpak", "snap", "cinnamon"].includes(r.source)),
+		)
+		.map((r) => r.id);
+}
+
+/** The commands the engine would show for these rows, built the same way; the fixture never runs any of them. */
+export function fixturePlan(state: SystemState, ids: string[]): string[][] {
+	const ticked = new Set(ids);
+	const can = new Set(fixtureInstallable(state));
+	const picked = state.rows.filter((r) => ticked.has(r.id) && can.has(r.id));
+	const commands: string[][] = [];
+	if (picked.some((r) => r.source === "apt")) {
+		const unticked = state.rows.filter((r) => r.source === "apt" && !picked.includes(r)).map((r) => r.name);
+		const ignore = ["linux", "linux-signed*", "linux-meta*", "linux-hwe*", "nvidia-graphics-drivers-*", ...unticked];
+		commands.push(["sudo", "-n", "mintupdate-cli", "upgrade", "-y", "--keep-configuration", "-i", ignore.join(",")]);
+	}
+	const refs = picked.filter((r) => r.source === "flatpak").map((r) => r.id.slice("flatpak:".length));
+	if (refs.length > 0) commands.push(["flatpak", "update", "-y", "--noninteractive", ...refs]);
+	for (const type of new Set(picked.filter((r) => r.source === "cinnamon").map((r) => r.type)))
+		commands.push(["cinnamon-spice-updater", "--update", type]);
+	return commands;
+}
+
+/** One row's line in a fake install's result; detail is an engine sentence, left out when there is none. */
+export function fixtureOutcome(r: SystemRow, status: SystemOutcome["status"], detail?: string): SystemOutcome {
+	const o: SystemOutcome = { id: r.id, name: r.name, from: r.installed, to: r.latest, status };
+	if (detail) o.detail = detail;
+	return o;
 }
