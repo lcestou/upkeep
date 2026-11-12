@@ -1912,3 +1912,13 @@ msgstr "{0}: von diesem Import geschrieben und nicht entfernbar"
 #: src/mainview/lib/engine-text.ts
 msgid "An Upkeep run is in progress. Try again when it ends."
 msgstr "Ein Upkeep-Durchlauf läuft gerade. Versuch es noch einmal, wenn er fertig ist."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No file of this release runs on this machine, so Upkeep drafted a source build from its {0}. Read the steps before adding it."
+msgstr "Keine Datei dieses Releases läuft auf diesem Rechner, deshalb hat Upkeep aus seiner {0} einen Bau aus dem Quellcode entworfen. Lies die Schritte, bevor du es hinzufügst."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Building it needs {0}, which is not installed."
+msgstr "Zum Bauen fehlt {0}; das ist nicht installiert."

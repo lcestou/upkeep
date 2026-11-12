@@ -13,6 +13,7 @@ import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { AppKind, AppSpec, Suggestion } from "../shared/types";
 import { download, verifyAsset } from "./download";
+import { draftFor } from "./draft";
 import {
 	type Asset,
 	type FetchLike,
@@ -21,7 +22,10 @@ import {
 	parseRepoSearch,
 	type Release,
 	type RepoHit,
+	repoText,
+	rootNames,
 } from "./github";
+import { DEB_TOOL } from "./kinds/release";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
 import type { Run } from "./run";
@@ -311,9 +315,15 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	// A program outside the home directory came from a package.
 	else if (onPath) prefer = onPath.startsWith(`${home}/`) ? ["archive", "file"] : ["deb"];
 	const { candidates, unopened } = machineAssets(release.assets, prefer);
-	const usable = opts.file ? candidates.filter((c) => prefer.includes(c.kind)) : candidates;
+	// A .deb needs dpkg: on a system without it, a .deb is no file this machine can install. A file on disk never
+	// takes a .deb, so a scan runs nothing for it.
+	const noDeb = !opts.file && candidates.some((c) => c.kind === "deb") && (await which(ctx, DEB_TOOL)) === null;
+	const installable = noDeb ? candidates.filter((c) => c.kind !== "deb") : candidates;
+	const usable = opts.file ? installable.filter((c) => prefer.includes(c.kind)) : installable;
 	const picked = (opts.asset ? usable.find((c) => c.asset.name === opts.asset) : undefined) ?? usable[0];
 	if (!picked) {
+		const drafted = opts.file ? null : await draftSource(repo, release, ctx, opts, bin);
+		if (drafted) return drafted;
 		const problem = MESSAGES.noAssetForMachine(repo);
 		return {
 			problem: unopened ? MESSAGES.unopenedArchives(problem) : problem,
@@ -391,6 +401,76 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	};
 	if (opts.file) suggestion.path = opts.file.path;
 	if (ctx.specs.some((s) => s.key === key)) suggestion.problem = MESSAGES.alreadyInList(name);
+	return { suggestion };
+}
+
+/**
+ * A source table drafted from the repo's build files at the release tag, offered as a guess for the person to read;
+ * null when the root holds no build file Upkeep knows, or GitHub cannot list it. The program goes where it is
+ * already found in the home folder or /usr/local, else where its build installs it. A missing build tool is the
+ * suggestion's problem, so the card says so instead of offering a build that cannot run.
+ */
+async function draftSource(
+	repo: string,
+	release: Release,
+	ctx: DiscoverCtx,
+	opts: RepoOpts,
+	bin: string,
+): Promise<RepoResult | null> {
+	const gh = { cacheDir: join(ctx.paths.cache, "github"), token: ctx.token, fetch: ctx.fetch, api: ctx.api };
+	const names = await rootNames(repo, release.tag, gh);
+	if (isFailure(names)) return null;
+	let draft = draftFor(names, null, bin);
+	if (!draft) return null;
+	// Cargo.toml and go.mod name the program they build; the other build files do not say.
+	if (draft.file === "Cargo.toml" || draft.file === "go.mod")
+		draft = draftFor(names, await repoText(repo, draft.file, release.tag, gh), bin) ?? draft;
+	const home = ctx.paths.home;
+	const usrLocal = ctx.usrLocal ?? "/usr/local";
+	const found = await which(ctx, draft.bin);
+	const dest =
+		found && (found.startsWith(`${home}/`) || found.startsWith(`${usrLocal}/`))
+			? found
+			: draft.system
+				? join(usrLocal, "bin", draft.bin)
+				: join(home, ".local/bin", draft.bin);
+	const spec: AppSpec = {
+		key: keyOf(draft.bin),
+		name: appName(draft.bin, repo),
+		kind: "source",
+		repo,
+		dest: tilde(dest, home),
+		build: draft.build,
+	};
+	if (draft.system) spec.sudo = true;
+	const exists = existsSync(dest);
+	if (!exists) spec.install_if_missing = true;
+	const missing = (await Promise.all(draft.tools.map(async (t) => ((await which(ctx, t)) ? null : t)))).filter(
+		(t): t is string => t !== null,
+	);
+	let installed: string | null = null;
+	if (exists && opts.probe !== false) {
+		const p = await probeVersion(dest, ["--version"], { run: ctx.run });
+		if ("version" in p) installed = p.version;
+	}
+	const suggestion: Suggestion = {
+		spec,
+		installed,
+		latest: release.version,
+		asset: null,
+		alternatives: [],
+		source: opts.source ?? "repo",
+		confidence: "guess",
+		why: [
+			opts.found,
+			MESSAGES.draftedFrom(draft.file),
+			exists ? MESSAGES.foundInstalledAt(String(spec.dest)) : MESSAGES.nothingInstalledAt(String(spec.dest)),
+		]
+			.filter(Boolean)
+			.join(" "),
+	};
+	if (missing.length > 0) suggestion.problem = MESSAGES.draftNeedsTools(missing.join(", "));
+	else if (ctx.specs.some((s) => s.key === spec.key)) suggestion.problem = MESSAGES.alreadyInList(spec.name);
 	return { suggestion };
 }
 

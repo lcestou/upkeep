@@ -31,6 +31,9 @@ import {
 	type Target,
 } from "./context";
 
+/** The tool a .deb installs with; Add app offers a .deb only where it is on PATH. */
+export const DEB_TOOL = "dpkg";
+
 /**
  * Whether an install of this app keeps a restore point. A file kind copies its files; a .deb keeps the installed
  * version's package from its GitHub release; a command app needs its table's restore argv; a source app keeps one
@@ -272,7 +275,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				ctx.log(`Installed ${name} to ${to}`);
 			}
 		} else if (spec.kind === "deb") {
-			const r = await ctx.run(asRoot(["dpkg", "-i", dl], true), { timeoutMs: 600_000, onLine: (l) => ctx.log(l) });
+			const r = await ctx.run(asRoot([DEB_TOOL, "-i", dl], true), { timeoutMs: 600_000, onLine: (l) => ctx.log(l) });
 			if (sudoNeedsPassword(r))
 				return finish({ result: "failed", installed: target.from, detail: SUDO_PASSWORD, restartToApply: false });
 			if (r.code !== 0) {

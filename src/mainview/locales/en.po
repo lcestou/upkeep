@@ -1912,3 +1912,13 @@ msgstr "{0}: written by this import, and could not be removed"
 #: src/mainview/lib/engine-text.ts
 msgid "An Upkeep run is in progress. Try again when it ends."
 msgstr "An Upkeep run is in progress. Try again when it ends."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No file of this release runs on this machine, so Upkeep drafted a source build from its {0}. Read the steps before adding it."
+msgstr "No file of this release runs on this machine, so Upkeep drafted a source build from its {0}. Read the steps before adding it."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Building it needs {0}, which is not installed."
+msgstr "Building it needs {0}, which is not installed."

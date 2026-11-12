@@ -379,6 +379,11 @@ export const MESSAGES = {
 	importCopyFromBefore: (v0: Value, v1: Value) => `${v0}: its copy from before is ${v1}`,
 	/** transfer.ts. {0} file path */
 	importCreatedNotRemoved: (v0: Value) => `${v0}: written by this import, and could not be removed`,
+	/** discover.ts. {0} the build file the steps were drafted from, e.g. Cargo.toml */
+	draftedFrom: (v0: Value) =>
+		`No file of this release runs on this machine, so Upkeep drafted a source build from its ${v0}. Read the steps before adding it.`,
+	/** discover.ts. {0} the missing build tools, comma-separated */
+	draftNeedsTools: (v0: Value) => `Building it needs ${v0}, which is not installed.`,
 	/** requests.ts and cli.ts: an import refused because a run holds the lock */
 	importDuringRun: () => `An Upkeep run is in progress. Try again when it ends.`,
 } satisfies Record<string, (...values: Value[]) => string>;

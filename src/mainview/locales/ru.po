@@ -1948,3 +1948,13 @@ msgstr "{0}: записан этим импортом, и удалить его 
 #: src/mainview/lib/engine-text.ts
 msgid "An Upkeep run is in progress. Try again when it ends."
 msgstr "Идёт проход Upkeep. Попробуйте ещё раз, когда он закончится."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No file of this release runs on this machine, so Upkeep drafted a source build from its {0}. Read the steps before adding it."
+msgstr "Ни один файл этого выпуска не работает на этом компьютере, поэтому Upkeep составил сборку из исходников по файлу {0}. Прочитайте шаги, прежде чем добавлять."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Building it needs {0}, which is not installed."
+msgstr "Для сборки нужно: {0} — не установлено."

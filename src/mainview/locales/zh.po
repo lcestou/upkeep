@@ -1894,3 +1894,13 @@ msgstr "{0}：由本次导入写入，且无法删除"
 #: src/mainview/lib/engine-text.ts
 msgid "An Upkeep run is in progress. Try again when it ends."
 msgstr "Upkeep 正在运行。请在运行结束后重试。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No file of this release runs on this machine, so Upkeep drafted a source build from its {0}. Read the steps before adding it."
+msgstr "此版本没有能在本机运行的文件，因此 Upkeep 根据其 {0} 拟定了源码构建。添加前请阅读这些步骤。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Building it needs {0}, which is not installed."
+msgstr "构建需要 {0}，但尚未安装。"

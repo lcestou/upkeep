@@ -34,6 +34,8 @@ let searches: Record<string, { name: string; full_name: string; stargazers_count
 let fetched: string[] = [];
 let onPath: Record<string, string> = {};
 let lines: string[] = [];
+/** A repo's root at its release tag, by repo: the names in it and the text of the files a draft reads. */
+let roots: Record<string, Record<string, string>> = {};
 /** Asset bodies the fake download server serves; the release then lists their real size and digest. */
 let bodies: Record<string, Uint8Array<ArrayBuffer>> = {};
 
@@ -79,8 +81,10 @@ beforeEach(async () => {
 	};
 	searches = {};
 	fetched = [];
-	onPath = {};
+	// A Debian system unless a test says otherwise: a .deb is offered only where dpkg is.
+	onPath = { dpkg: "/usr/bin/dpkg" };
 	lines = [];
+	roots = {};
 });
 afterEach(() => t.cleanup());
 
@@ -103,6 +107,17 @@ const fakeFetch: FetchLike = async (url) => {
 				};
 			}),
 		});
+	}
+	const listing = /^https:\/\/api\.github\.com\/repos\/([^/]+\/[^/]+)\/contents(?:\/([^?]+))?\?ref=/.exec(url);
+	if (listing) {
+		const root = roots[listing[1] ?? ""];
+		if (!root) return new Response('{"message":"Not Found"}', { status: 404 });
+		const path = listing[2];
+		if (!path) return Response.json(Object.keys(root).map((name) => ({ name, type: "file" })));
+		const text = root[path];
+		return text === undefined
+			? new Response('{"message":"Not Found"}', { status: 404 })
+			: Response.json({ encoding: "base64", content: Buffer.from(text).toString("base64") });
 	}
 	const q = /^https:\/\/api\.github\.com\/search\/repositories\?q=([^+]+)\+in:name/.exec(url);
 	if (q) {
@@ -653,7 +668,7 @@ test("examples: what the owner gets for six repos", async () => {
 	// rustdesk is the owner's dpkg install; nothing else is on disk. Only tar runs for real, on the test's own archives.
 	const rec = recordingRun(t.paths, (argv) => {
 		if (argv[0] === "tar" || argv[0] === "unzip") return undefined;
-		if (argv[0] === "which") return argv[1] === "rustdesk" ? ok("/usr/bin/rustdesk\n") : none;
+		if (argv[0] === "which") return argv[1] === "rustdesk" || argv[1] === "dpkg" ? ok(`/usr/bin/${argv[1]}\n`) : none;
 		return argv[0] === "/usr/bin/rustdesk" ? ok("1.5.1\n") : none;
 	});
 	const c: DiscoverCtx = { ...ctx().c, run: rec.run };
@@ -724,4 +739,59 @@ install_if_missing = true
 	expect(rec.calls.filter((x) => !["which", "tar", "unzip"].includes(x.argv[0] ?? "")).map((x) => x.argv[0])).toEqual([
 		"/usr/bin/rustdesk",
 	]);
+});
+
+test("a .deb is offered only where dpkg is: without it, a release of only a .deb runs nothing here", async () => {
+	releases["o/debonly"] = { tag_name: "v1.0", assets: [{ name: "debonly_1.0_amd64.deb", size: 1 }] };
+	expect((await suggest("o/debonly", ctx().c)).suggestions[0]?.spec.kind).toBe("deb");
+	onPath = {};
+	expect((await suggest("o/debonly", ctx().c)).problem).toBe(
+		"No asset of o/debonly's latest release runs on this machine.",
+	);
+});
+
+test("a release with no file for this machine gets a source build drafted from its Cargo.toml, as a guess", async () => {
+	releases["o/tool"] = { tag_name: "v1.2.0", assets: [{ name: "tool-1.2.0-aarch64-apple-darwin.tar.gz", size: 1 }] };
+	roots["o/tool"] = {
+		"Cargo.toml": '[package]\nname = "tool-cli"\nversion = "1.2.0"\n\n[[bin]]\nname = "tl"\npath = "src/main.rs"\n',
+		Makefile: "",
+		src: "",
+	};
+	onPath.cargo = "/home/x/.cargo/bin/cargo";
+	const s = (await suggest("o/tool", ctx().c)).suggestions[0];
+	expect(s?.spec).toEqual({
+		key: "tl",
+		name: "tool",
+		kind: "source",
+		repo: "o/tool",
+		dest: "~/.local/bin/tl",
+		build: ["cargo install --locked --path . --root ~/.local"],
+		install_if_missing: true,
+	});
+	expect(s?.confidence).toBe("guess");
+	expect(s?.latest).toBe("1.2.0");
+	expect(s?.problem).toBeUndefined();
+	expect(s?.why).toBe(
+		"No file of this release runs on this machine, so Upkeep drafted a source build from its Cargo.toml. Read the steps before adding it. Nothing is installed at ~/.local/bin/tl yet, so Install will put it there.",
+	);
+});
+
+test("a drafted CMake build installs under /usr/local with sudo, and says when its tool is missing", async () => {
+	releases["o/thing"] = { tag_name: "v2.0", assets: [] };
+	roots["o/thing"] = { "CMakeLists.txt": "", "README.md": "" };
+	const s = (await suggest("o/thing", ctx().c)).suggestions[0];
+	expect(s?.spec.build?.[0]).toBe("cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local");
+	expect(s?.spec.sudo).toBe(true);
+	expect(s?.spec.dest).toBe(join(t.dir, "usr/local/bin/thing"));
+	expect(s?.problem).toBe("Building it needs cmake, which is not installed.");
+	onPath.cmake = "/usr/bin/cmake";
+	expect((await suggest("o/thing", ctx().c)).suggestions[0]?.problem).toBeUndefined();
+});
+
+test("a repo with no build file Upkeep knows still says no file runs here", async () => {
+	releases["o/plain"] = { tag_name: "v1.0", assets: [] };
+	roots["o/plain"] = { "README.md": "", "build.zig": "" };
+	expect((await suggest("o/plain", ctx().c)).problem).toBe(
+		"No asset of o/plain's latest release runs on this machine.",
+	);
 });
