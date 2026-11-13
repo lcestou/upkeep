@@ -28,6 +28,8 @@ update = ["tool", "up"]
 let selfState: SelfState = { phase: "none" };
 // Only the test about the snapshot hook listens for it.
 let watchSnapshots = false;
+// How many times a request asked the main process to apply the settings (login entry, menu entry, upkeep command).
+let settingsApplied = 0;
 
 function setup(over: Partial<Desktop> = {}) {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
@@ -54,6 +56,7 @@ function setup(over: Partial<Desktop> = {}) {
 	};
 	const hooks = {
 		onSettings: () => {
+			settingsApplied += 1;
 			throw new Error("no login entry here");
 		},
 		chrome: () => ({ own: true, side: "right" as const, order: [], maximized: false, rounded: true }),
@@ -224,6 +227,17 @@ test("Export saves to the picked folder and Import replaces the setup from a pic
 	expect((await missing.r.importSetup({})).ok).toBe(false);
 	const unwritable = setup({ pickFolder: async () => [join(t.dir, "no", "such")] });
 	expect((await unwritable.r.exportSetup({})).problem).toBeTruthy();
+});
+
+test("Import applies the imported settings to the login entry and the upkeep command at once, and a failure there does not fail it", async () => {
+	const folder = join(t.dir, "out");
+	mkdirSync(folder, { recursive: true });
+	const exported = await setup({ pickFolder: async () => [folder] }).r.exportSetup({});
+	const loaded = setup({ pickFile: async () => [exported.file ?? ""] });
+	settingsApplied = 0;
+	expect(await loaded.r.importSetup({})).toEqual({ ok: true, apps: 1 });
+	expect(settingsApplied).toBe(1);
+	await loaded.engine.idle();
 });
 
 test("Import waits for no run: with the run lock held elsewhere it refuses", async () => {

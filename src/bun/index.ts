@@ -231,7 +231,7 @@ const launcher = join(import.meta.dir, "../../../bin/launcher");
 const appIcon = join(import.meta.dir, "../../appIcon.png");
 /**
  * Makes the login entry, the menu entry and the `upkeep` command match the settings; skipped in dev and source runs.
- * Throws if the autostart folder or ~/.local/bin cannot be written.
+ * Throws if the autostart folder cannot be written; a ~/.local/bin that cannot be written is logged instead.
  */
 function applyLoginSetting(): void {
 	// Only an installed build may own the login entry; a dev bundle or a source run would point it at a moving target.
@@ -242,7 +242,12 @@ function applyLoginSetting(): void {
 	const command = entryArgv(root);
 	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, command, appIcon);
 	syncMenuExec(join(dirname(deps.paths.data), "applications", "Upkeep.desktop"), command, launcher, SELF_FILES.shim);
-	syncCommand(deps.paths.home, engine.snapshot().settings.upkeepCommand, root);
+	// Its own try: a ~/.local/bin that cannot be written must not stop the frame setting that is applied after this.
+	try {
+		syncCommand(deps.paths.home, engine.snapshot().settings.upkeepCommand, root);
+	} catch (err) {
+		console.error("upkeep command:", err);
+	}
 }
 
 /** Upkeep's own update. Absent in a start test, which must not look for updates or settle anything. */

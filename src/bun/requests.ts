@@ -192,6 +192,12 @@ export function upkeepRequests(
 			// The new settings, extras and list reach the window: settings and extras by their events, the list by a check.
 			engine.setSettings({});
 			hooks.extras.setSettings({});
+			// The login entry and the upkeep command follow the imported settings now, not at the next start.
+			try {
+				hooks.onSettings();
+			} catch (err) {
+				console.error("login entry:", err);
+			}
 			void engine.check();
 			return { ok: true, apps: r.apps };
 		},
