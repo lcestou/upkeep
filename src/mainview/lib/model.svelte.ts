@@ -5,6 +5,7 @@ import type {
 	EngineEvent,
 	ExtrasSettings,
 	ExtrasSnapshot,
+	SelfState,
 	HistoryRow,
 	LogLine,
 	Requests,
@@ -89,6 +90,7 @@ export class Model {
 		buttons: "auto",
 		corners: "rounded",
 		language: "system",
+		selfAuto: false,
 	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
 	chrome = $state<WindowChrome | null>(null);
@@ -126,6 +128,17 @@ export class Model {
 	filter = $state("");
 	/** The read-only System group; null until the main process answers. */
 	extras = $state<ExtrasSnapshot | null>(null);
+	/** Upkeep's own update; "none" until the main process says otherwise. */
+	self = $state<SelfState>({ phase: "none" });
+	/** True while a check, a run, a system install or a cleanup is going: Upkeep's own update waits for it. */
+	get selfBusy(): boolean {
+		return (
+			this.run.phase === "checking" ||
+			this.run.phase === "installing" ||
+			this.extras?.system.phase === "installing" ||
+			this.extras?.cleanup.phase === "cleaning"
+		);
+	}
 	/** The engine's reason when it refused a request, shown until the next request. */
 	refusal = $state<string | null>(null);
 
@@ -237,12 +250,14 @@ export class Model {
 		const bridge = this.#bridge;
 		if (!bridge) return;
 		this.#off = bridge.onEvent((e) => this.apply(e));
-		const [snap, chrome, extras, languages] = await Promise.all([
+		const [snap, chrome, extras, languages, self] = await Promise.all([
 			bridge.request("snapshot", {}),
 			this.send("chrome", {}),
 			this.send("extras", {}),
 			this.send("languages", {}),
+			this.send("self", {}),
 		]);
+		if (self) this.self = self;
 		this.desktopLanguages = languages ?? [];
 		this.chrome = chrome;
 		if (extras) this.extras = extras;
@@ -315,6 +330,9 @@ export class Model {
 			case "chrome":
 				this.chrome = e.chrome;
 				return;
+			case "self":
+				this.self = e.self;
+				break;
 			case "extras":
 				this.extras = e.extras;
 				// Cleanup switched off while its tab shows: the tab is gone, so Settings, where the switch is, shows.

@@ -27,6 +27,8 @@ export type TrayText = {
 	failed: string;
 	/** The login entry's Comment. */
 	loginComment: string;
+	/** A new version of Upkeep itself is there: the tray menu's line and the notification. "{version}" is its number. */
+	selfReady: string;
 };
 
 /**
@@ -49,6 +51,7 @@ export const TRAY_TEXT = {
 		updated: "Updated",
 		failed: "{name} failed to update. Open Upkeep for the log.",
 		loginComment: "Check app updates at login and stay in the tray",
+		selfReady: "Upkeep {version} is ready",
 	},
 	zh: {
 		open: "打开 Upkeep",
@@ -64,6 +67,7 @@ export const TRAY_TEXT = {
 		updated: "已更新",
 		failed: "{name} 更新失败。打开 Upkeep 查看日志。",
 		loginComment: "登录时检查应用更新并留在托盘中",
+		selfReady: "Upkeep {version} 已可更新",
 	},
 	es: {
 		open: "Abrir Upkeep",
@@ -79,6 +83,7 @@ export const TRAY_TEXT = {
 		updated: "Actualizado",
 		failed: "No se pudo actualizar {name}. Abre Upkeep para ver el registro.",
 		loginComment: "Buscar actualizaciones de apps al iniciar sesión y quedarse en la bandeja",
+		selfReady: "Upkeep {version} está listo",
 	},
 	pt: {
 		open: "Abrir o Upkeep",
@@ -94,6 +99,7 @@ export const TRAY_TEXT = {
 		updated: "Atualizado",
 		failed: "Não foi possível atualizar {name}. Abra o Upkeep para ver o registro.",
 		loginComment: "Verificar atualizações de apps ao entrar e ficar na bandeja",
+		selfReady: "O Upkeep {version} está pronto",
 	},
 	de: {
 		open: "Upkeep öffnen",
@@ -109,6 +115,7 @@ export const TRAY_TEXT = {
 		updated: "Aktualisiert",
 		failed: "{name} konnte nicht aktualisiert werden. Öffne Upkeep für das Protokoll.",
 		loginComment: "Beim Anmelden nach App-Aktualisierungen suchen und im Tray bleiben",
+		selfReady: "Upkeep {version} ist bereit",
 	},
 	fr: {
 		open: "Ouvrir Upkeep",
@@ -124,6 +131,7 @@ export const TRAY_TEXT = {
 		updated: "Mis à jour",
 		failed: "La mise à jour de {name} a échoué. Ouvrez Upkeep pour voir le journal.",
 		loginComment: "Vérifier les mises à jour des applications à la connexion et rester dans la zone de notification",
+		selfReady: "Upkeep {version} est prêt",
 	},
 	it: {
 		open: "Apri Upkeep",
@@ -139,6 +147,7 @@ export const TRAY_TEXT = {
 		updated: "Aggiornato",
 		failed: "Impossibile aggiornare {name}. Apri Upkeep per il registro.",
 		loginComment: "Controlla gli aggiornamenti delle app all'accesso e resta nell'area di notifica",
+		selfReady: "Upkeep {version} è pronto",
 	},
 	pl: {
 		open: "Otwórz Upkeep",
@@ -164,6 +173,7 @@ export const TRAY_TEXT = {
 		updated: "Zaktualizowano",
 		failed: "Nie udało się zaktualizować {name}. Otwórz Upkeep, aby zobaczyć dziennik.",
 		loginComment: "Sprawdzaj aktualizacje aplikacji po zalogowaniu i zostań w zasobniku",
+		selfReady: "Upkeep {version} jest gotowy",
 	},
 	ru: {
 		open: "Открыть Upkeep",
@@ -189,6 +199,7 @@ export const TRAY_TEXT = {
 		updated: "Обновлено",
 		failed: "Не удалось обновить {name}. Откройте Upkeep, чтобы посмотреть журнал.",
 		loginComment: "Проверять обновления приложений при входе и оставаться в трее",
+		selfReady: "Upkeep {version} готов к установке",
 	},
 	ja: {
 		open: "Upkeep を開く",
@@ -204,6 +215,7 @@ export const TRAY_TEXT = {
 		updated: "更新しました",
 		failed: "{name} を更新できませんでした。ログは Upkeep で確認できます。",
 		loginComment: "ログイン時にアプリの更新を確認し、トレイに常駐します",
+		selfReady: "Upkeep {version} の準備ができました",
 	},
 } satisfies Record<LanguageCode, TrayText>;
 

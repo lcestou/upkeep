@@ -24,6 +24,10 @@ export type State = {
 	notified: string;
 	/** Apps replaced while they ran: key to the ISO time the install ended. Cleared once no older process remains. */
 	restart: Record<string, string>;
+	/** The hash of a version of Upkeep that failed its start test or was rolled back; automatic self-update skips it. "" for none. */
+	selfFailed: string;
+	/** The hash of the last version of Upkeep the person was told about, so each is announced once. "" for none. */
+	selfNotified: string;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -35,6 +39,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	buttons: "auto",
 	corners: "rounded",
 	language: "system",
+	selfAuto: false,
 };
 
 /** Any missing or out-of-range field takes its default; keepBackups is rounded into 1 to 5. */
@@ -53,6 +58,7 @@ function clampSettings(s: Partial<Settings>): Settings {
 			s.buttons === "left" || s.buttons === "right" || s.buttons === "auto" ? s.buttons : DEFAULT_SETTINGS.buttons,
 		corners: s.corners === "square" || s.corners === "rounded" ? s.corners : DEFAULT_SETTINGS.corners,
 		language: s.language === "system" || isLanguage(s.language) ? s.language : DEFAULT_SETTINGS.language,
+		selfAuto: typeof s.selfAuto === "boolean" ? s.selfAuto : DEFAULT_SETTINGS.selfAuto,
 	};
 }
 
@@ -96,6 +102,8 @@ export function loadState(paths: Paths): State {
 		settings: clampSettings(obj(raw.settings)),
 		notified: typeof raw.notified === "string" ? raw.notified : "",
 		restart: obj<string>(raw.restart),
+		selfFailed: typeof raw.selfFailed === "string" ? raw.selfFailed : "",
+		selfNotified: typeof raw.selfNotified === "string" ? raw.selfNotified : "",
 	};
 }
 
@@ -240,6 +248,21 @@ export function claimLock(paths: Paths, pid = process.pid, procRoot = "/proc", o
 	}
 	rmSync(aside, { force: true });
 	return createExclusive(file, mine);
+}
+
+/**
+ * True while a live process holds the run lock, this one included: an install, a restore, an import or an add is
+ * under way somewhere. Reads only; a stale lock (its pid gone or started at another time) reads as not held.
+ */
+export function lockHeld(paths: Paths, procRoot = "/proc"): boolean {
+	let held = "";
+	try {
+		held = readFileSync(lockFile(paths), "utf8").trim();
+	} catch {
+		return false;
+	}
+	const [holder, started] = held.split(" ");
+	return holder !== undefined && /^\d+$/.test(holder) && startTime(Number(holder), procRoot) === started;
 }
 
 /**

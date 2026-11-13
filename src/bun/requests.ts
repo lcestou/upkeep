@@ -5,7 +5,8 @@ import type { Extras } from "../engine/extras/extras";
 import { claimLock, releaseLock } from "../engine/store";
 import { exportSetup, importSetup } from "../engine/transfer";
 import { MESSAGES } from "../shared/messages";
-import { aboutUrl } from "./about";
+import { aboutUrl, releasePage } from "./about";
+import type { Self } from "./self-update";
 import type { RequestHandlers, WindowButton, WindowChrome } from "../shared/types";
 
 /** The newest run log, for "Open log file" when no run is in progress. */
@@ -31,6 +32,10 @@ export type WindowHooks = {
 	extras: Extras;
 	/** The environment, for the desktop and session a bug report names. */
 	env: Record<string, string | undefined>;
+	/** Upkeep's own update. */
+	self: Pick<Self, "snapshot" | "prepare" | "restart" | "dismiss">;
+	/** Called each time a view asks for its snapshot: a start test waits for the first. */
+	onSnapshot?: () => void;
 };
 
 /** What the requests ask of the desktop: the framework's Utils in the app, a recorder in tests. */
@@ -57,7 +62,24 @@ export function upkeepRequests(
 ): RequestHandlers {
 	const logDir = join(deps.paths.state, "logs");
 	return {
-		snapshot: () => engine.snapshot(),
+		snapshot: () => {
+			hooks.onSnapshot?.();
+			return engine.snapshot();
+		},
+		self: () => hooks.self.snapshot(),
+		// Both take a while and report through self events; the answer only says the press was taken.
+		selfUpdate: () => {
+			void hooks.self.prepare();
+			return { ok: true };
+		},
+		selfRestart: () => {
+			void hooks.self.restart();
+			return { ok: true };
+		},
+		selfDismiss: () => {
+			hooks.self.dismiss();
+			return { ok: true };
+		},
 		check: ({ keys }) => {
 			// The engine ignores a check while it is checking or installing. Say so, so the view can.
 			const phase = engine.snapshot().run.phase;
@@ -96,6 +118,12 @@ export function upkeepRequests(
 				const id = engine.snapshot().run.id;
 				const file = id ? join(logDir, `${id}.log`) : newestLog(logDir);
 				return { ok: file ? desktop.openPath(file) : false };
+			}
+			if (what === "self-notes") {
+				const self = hooks.self.snapshot();
+				// No offer, or one with no version to name: there is no page to open.
+				if (self.phase === "none" || !self.version) return { ok: false };
+				return { ok: desktop.openExternal(releasePage(self.version)) };
 			}
 			// Upkeep's own pages are built here from fixed addresses; the view only names which one.
 			if (what === "changelog" || what === "bug" || what === "repo") {

@@ -4,6 +4,7 @@
 
 First version.
 
+- Upkeep updates itself. A newer version shows as a row above the list; Update Upkeep downloads it, checks it and starts it once as a test beside the running one, and only then offers Restart now. The version being replaced is kept until the new one has started, and the menu and login entries put it back if the new one will not start. Settings has a switch for doing all of it unattended while Upkeep sits in the tray, off by default. An install made before this is replaced once with the installer.
 - Settings, under About, has What's new, Report a bug and Upkeep on GitHub. A bug report opens a new issue with the version, the distribution and the desktop already filled in.
 - A command-line tool that was running while it updated (uv inside a long-running uvx, say) no longer asks to be restarted: the row reads updated, with a note that the running copy keeps the old version until it exits. Apps with a window, packages and services still ask.
 - Upkeep picks release files for arm64 (aarch64) machines as well as x86_64: it reads the machine's architecture, Add app offers only that machine's builds, and a table can name its arm64 file with `asset_aarch64`, which 37 catalogue apps now do. A catalogue app with no arm64 build is not offered on arm64, and an app moved from a machine of the other architecture says its table names no file for this one.

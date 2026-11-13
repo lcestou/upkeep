@@ -722,6 +722,48 @@ export const WIN = {
 	},
 } as const;
 
+/** Upkeep's own update: the row above the list, and its switch in Settings. */
+export const SELF = {
+	get available() {
+		return "A new version of Upkeep is ready.";
+	},
+	get preparing() {
+		return "Downloading and testing";
+	},
+	get ready() {
+		return "Restart Upkeep to finish.";
+	},
+	get restarting() {
+		return "Restarting";
+	},
+	get update() {
+		return "Update Upkeep";
+	},
+	get again() {
+		return "Try again";
+	},
+	get restart() {
+		return "Restart now";
+	},
+	get dismiss() {
+		return "Dismiss";
+	},
+	get busy() {
+		return "Finish what is running first.";
+	},
+	get auto() {
+		return "Update Upkeep automatically";
+	},
+	get autoHelp() {
+		return "Installs a new version of Upkeep while it sits in the tray, and restarts it. Off: Upkeep tells you and waits.";
+	},
+} as const;
+/** The row's sentence on the first start of a new version. */
+export const selfUpdated = (version: string) => `Upkeep was updated to ${version}.`;
+/** The row's sentence after the start script put the version before back. */
+export const selfRolledBack = (version: string) =>
+	`Upkeep ${version} would not start, so the version before it was put back.`;
+
 /** The System group: the system's own pending updates, read-only unless installing is switched on. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */
 export const SYS = {
 	get extras() {

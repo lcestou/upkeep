@@ -759,6 +759,7 @@ msgid "Removed {0}."
 msgstr "已移除 {0}。"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Restart now"
 msgstr "立即重启"
 
@@ -2474,3 +2475,76 @@ msgstr "报告问题"
 #: src/mainview/lib/copy.ts
 msgid "Upkeep on GitHub"
 msgstr "GitHub 上的 Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "A new version of Upkeep is ready."
+msgstr "Upkeep 有新版本可用。"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloading and testing"
+msgstr "正在下载并测试"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart Upkeep to finish."
+msgstr "重启 Upkeep 以完成更新。"
+
+#: src/mainview/lib/copy.ts
+msgid "Restarting"
+msgstr "正在重启"
+
+#: src/mainview/lib/copy.ts
+msgid "Update Upkeep"
+msgstr "更新 Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Try again"
+msgstr "重试"
+
+#: src/mainview/lib/copy.ts
+msgid "Dismiss"
+msgstr "关闭"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/engine-text.ts
+msgid "Finish what is running first."
+msgstr "请先完成正在进行的操作。"
+
+#: src/mainview/lib/copy.ts
+msgid "Update Upkeep automatically"
+msgstr "自动更新 Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs a new version of Upkeep while it sits in the tray, and restarts it. Off: Upkeep tells you and waits."
+msgstr "当 Upkeep 位于托盘时安装新版本并重启。关闭：Upkeep 会通知你并等待。"
+
+#. 0: version
+#: src/mainview/lib/copy.ts
+msgid "Upkeep was updated to {0}."
+msgstr "Upkeep 已更新到 {0}。"
+
+#. 0: version
+#: src/mainview/lib/copy.ts
+msgid "Upkeep {0} would not start, so the version before it was put back."
+msgstr "Upkeep {0} 无法启动，已恢复到之前的版本。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Not enough free space to update Upkeep."
+msgstr "可用空间不足，无法更新 Upkeep。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Cannot update Upkeep here: /bin/sh is missing."
+msgstr "无法在此更新 Upkeep：缺少 /bin/sh。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Could not download the update. Nothing was changed."
+msgstr "无法下载更新。未做任何更改。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep {0} failed its start test, so nothing was changed."
+msgstr "Upkeep {0} 未通过启动测试，因此未做任何更改。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The update to Upkeep {0} was not applied. Nothing was changed."
+msgstr "到 Upkeep {0} 的更新未应用。未做任何更改。"

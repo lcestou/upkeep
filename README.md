@@ -46,6 +46,7 @@ Your distro's updater keeps its own packages current. Everything you installed y
 - **Quiet.** It sits in the tray, can start at login, and shows one count and one notification. No app installs on its own until you mark it automatic.
 - **Extras you switch on.** The system's own updates in the same list (Flatpak, Snap, Cinnamon spices, and packages from Linux Mint's Update Manager, apt, dnf, pacman or zypper) and a Cleanup tab for caches and leftovers. Both are off until you turn them on.
 - **Yours.** No account and no telemetry. Upkeep contacts only the places your apps are released. The app list is one TOML file you can read, edit and move to another computer.
+- **It updates itself, carefully.** A new version of Upkeep is downloaded and started once as a test beside the one you have. Only a version that came up is swapped in, and the old one comes back if the new one will not start.
 - **Ten languages**, and a command line with JSON output for scripts.
 
 ## Install
@@ -187,6 +188,7 @@ Every command takes `--json` and prints one JSON value per line, so a script or 
 | [Cleanup](docs/cleanup.md)                           | every item it measures and how each is deleted                          |
 | [Which Linux](docs/linux-support.md)                 | what each part needs, and the distributions it was run on               |
 | [Command line](docs/command-line.md)                 | every command, exit codes, JSON output for scripts and agents           |
+| [Updating Upkeep](docs/updating-upkeep.md)           | how Upkeep updates itself, what keeps that safe, and the way out        |
 | [Develop](docs/develop.md)                           | run from a checkout, build the installer, the checks a change must pass |
 
 ## Contributing

@@ -17,6 +17,7 @@ import type {
 	RequestHandlers,
 	RunResult,
 	RunState,
+	SelfState,
 	Settings,
 	Snapshot,
 	Stage,
@@ -594,6 +595,14 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 	return apps;
 }
 
+/** The state a self-update variant starts in: 0.1.0 running, 0.1.1 offered. */
+function selfStart(phase: FixtureOptions["self"]): SelfState {
+	if (!phase) return { phase: "none" };
+	const base = { from: "0.1.0", version: "0.1.1" };
+	if (phase === "failed") return { phase, ...base, why: MESSAGES.selfDownload() };
+	return { phase, ...base };
+}
+
 /** Resolves after ms; the fixture's stand-in for engine work taking time. */
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 /** A deep copy, so a caller changing a reply cannot reach the fixture's own state. */
@@ -615,6 +624,10 @@ export type FixtureOptions = {
 	system?: SystemVariant;
 	/** "on" starts with the Cleanup tab switched on. */
 	cleanup?: "on";
+	/** The phase Upkeep's own update starts in; none unless asked. */
+	self?: Exclude<SelfState["phase"], "none">;
+	/** The offered version fails its start test, so a press on Update ends failed and never ready. */
+	selfTestFails?: boolean;
 };
 
 // Cinnamon can put the window buttons on the left: close, maximize, minimize.
@@ -637,6 +650,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		buttons: "auto",
 		corners: opts.corners ?? "rounded",
 		language: "system",
+		selfAuto: false,
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",
@@ -796,6 +810,12 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		checkedAt = null;
 	}
 
+	/** Upkeep's own update, as the main process would report it. */
+	let selfNow: SelfState = selfStart(opts.self);
+	const setSelf = (next: SelfState) => {
+		selfNow = next;
+		emit({ type: "self", self: clone(next) });
+	};
 	const emit = (e: EngineEvent) => {
 		const copy = clone(e);
 		queueMicrotask(() => listeners.forEach((l) => l(copy)));
@@ -1127,6 +1147,35 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		runLog: ({ runId }) => clone(logs.get(runId) ?? []),
 		open: ({ what }) => {
 			globalThis.upkeepOps?.push(`open ${what}`);
+			return { ok: true };
+		},
+		self: () => clone(selfNow),
+		// As the main process: the press is taken at once and the phases arrive as events.
+		selfUpdate: () => {
+			globalThis.upkeepOps?.push("self update");
+			void (async () => {
+				setSelf({ phase: "preparing", from: "0.1.0", version: "0.1.1" });
+				await sleep(900 / speed);
+				setSelf(
+					opts.selfTestFails
+						? { phase: "failed", from: "0.1.0", version: "0.1.1", why: MESSAGES.selfTestFailed("0.1.1") }
+						: { phase: "ready", from: "0.1.0", version: "0.1.1" },
+				);
+			})();
+			return { ok: true };
+		},
+		selfRestart: () => {
+			globalThis.upkeepOps?.push("self restart");
+			void (async () => {
+				setSelf({ phase: "restarting", from: "0.1.0", version: "0.1.1" });
+				await sleep(900 / speed);
+				// The real window goes away here and the new version's comes back saying this.
+				setSelf({ phase: "updated", from: "0.1.0", version: "0.1.1" });
+			})();
+			return { ok: true };
+		},
+		selfDismiss: () => {
+			setSelf({ phase: "none" });
 			return { ok: true };
 		},
 		copy: () => ({ ok: true }),

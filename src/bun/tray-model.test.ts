@@ -40,6 +40,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			buttons: "auto",
 			corners: "rounded",
 			language: "system",
+			selfAuto: false,
 		},
 		rate: null,
 		checkedAt: null,

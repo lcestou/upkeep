@@ -1,6 +1,12 @@
 /** Upkeep's own home: the repo its changelog, issues and releases live in. Named here and nowhere else. */
 export const HOME = "https://github.com/lcestou/upkeep";
 
+/** Where an installed Upkeep reads its own updates from: the latest release's files, by their flat names. */
+export const RELEASE_BASE_URL = `${HOME}/releases/latest/download`;
+
+/** The release page of one version of Upkeep, for "What's new" on its own update. */
+export const releasePage = (version: string) => `${HOME}/releases/tag/v${encodeURIComponent(version)}`;
+
 /** The pages About can open. */
 export type AboutLink = "changelog" | "bug" | "repo";
 

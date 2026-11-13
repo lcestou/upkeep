@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { RunState, Snapshot, SystemRow, SystemState } from "../shared/types";
-import { trayIcon, trayMenu, trayTitle } from "./tray-model";
+import { selfNotice, trayIcon, trayMenu, trayTitle } from "./tray-model";
 
 const idle: RunState = {
 	id: null,
@@ -47,4 +47,21 @@ test("no line when the area is off, when nothing is pending, or with no system s
 test("system updates never reach the tray icon or its count", () => {
 	expect(trayIcon(snap)).toBe("idle");
 	expect(trayTitle(snap)).toBe("Upkeep");
+});
+
+test("a new version of Upkeep adds one line that opens the window, in the tray's language, and no other phase does", () => {
+	const plain = trayMenu(snap);
+	for (const phase of ["available", "ready"] as const) {
+		const menu = trayMenu(snap, undefined, "en", { phase, from: "0.1.0", version: "0.1.1" });
+		const at = menu.findIndex((i) => i.type === "divider");
+		expect(menu[at - 1]).toEqual({ type: "normal", label: "Upkeep 0.1.1 is ready", action: "open" });
+		expect(menu).toHaveLength(plain.length + 1);
+	}
+	expect(selfNotice("0.1.1", "de")).toBe("Upkeep 0.1.1 ist bereit");
+	for (const phase of ["preparing", "restarting", "updated", "rolled-back"] as const)
+		expect(trayMenu(snap, undefined, "en", { phase, from: "0.1.0", version: "0.1.1" })).toEqual(plain);
+	expect(trayMenu(snap, undefined, "en", { phase: "none" })).toEqual(plain);
+	expect(trayMenu(snap, undefined, "en", { phase: "failed", from: "0.1.0", version: "0.1.1", why: "x" })).toEqual(
+		plain,
+	);
 });

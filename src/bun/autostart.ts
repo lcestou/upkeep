@@ -14,11 +14,15 @@ const MARK = "X-Upkeep-Managed=true";
 /** Desktop Entry spec: escape for a quoted Exec argument, then for a string value; % starts a field code. */
 const execArg = (s: string) => `"${s.replace(/[\\"`$]/g, "\\$&")}"`.replaceAll("\\", "\\\\").replaceAll("%", "%%");
 
+/** An Exec line's command from an argument list, each argument quoted for a desktop entry. */
+export const execLine = (argv: string[]) => argv.map(execArg).join(" ");
+
 /**
  * The login entry. Background mode travels as an environment variable because the framework's
  * launcher drops command-line arguments on Linux. The Comment carries every interface language.
+ * `command` is what starts Upkeep: its launcher, or the start script's argument list.
  */
-export function autostartEntry(launcher: string, icon: string): string {
+export function autostartEntry(command: string | string[], icon: string): string {
 	return [
 		"[Desktop Entry]",
 		"Type=Application",
@@ -26,7 +30,7 @@ export function autostartEntry(launcher: string, icon: string): string {
 		`Comment=${TRAY_TEXT.en.loginComment}`,
 		// The desktop shows the Comment in the person's own language, whichever Upkeep shows.
 		...LANGUAGES.filter((l) => l.code !== "en").map((l) => `Comment[${l.code}]=${TRAY_TEXT[l.code].loginComment}`),
-		`Exec=env UPKEEP_BACKGROUND=1 ${execArg(launcher)}`,
+		`Exec=env UPKEEP_BACKGROUND=1 ${execLine(Array.isArray(command) ? command : [command])}`,
 		`Icon=${icon}`,
 		"Terminal=false",
 		"StartupWMClass=Upkeep",
@@ -38,8 +42,44 @@ export function autostartEntry(launcher: string, icon: string): string {
 	].join("\n");
 }
 
+/**
+ * Makes a menu entry start Upkeep through `command`. Only the Exec line of the [Desktop Entry] section is replaced,
+ * and only when it is Upkeep's own: the line the installer wrote, which is `launcher` and nothing else, or a line
+ * Upkeep wrote before, which runs `script` through sh. A line the person wrote themselves, even one that wraps the
+ * launcher, a file that is not there, and a file with no such line are left alone. Line endings
+ * are kept as they were. Returns true when the file was written.
+ */
+export function syncMenuExec(file: string, command: string[], launcher: string, script: string): boolean {
+	let text = "";
+	try {
+		text = readFileSync(file, "utf8");
+	} catch {
+		return false;
+	}
+	const lines = text.split("\n");
+	let section = "";
+	const at = lines.findIndex((raw) => {
+		const line = raw.trimEnd();
+		if (line.startsWith("[")) section = line;
+		return section === "[Desktop Entry]" && line.startsWith("Exec=");
+	});
+	const current = lines[at];
+	if (current === undefined) return false;
+	// Upkeep's own: the line the installer wrote (the launcher alone, bare or quoted) or one Upkeep wrote before
+	// (a shell line that runs the start script). A wrapper the person put around the launcher is theirs.
+	const value = current.trimEnd().slice("Exec=".length);
+	const installers = value === launcher || value === `"${launcher}"` || value === execLine([launcher]);
+	const upkeeps = value.startsWith('"sh" "-c" ') && value.includes(script);
+	if (!installers && !upkeeps) return false;
+	const wanted = `Exec=${execLine(command)}${current.endsWith("\r") ? "\r" : ""}`;
+	if (current === wanted) return false;
+	lines[at] = wanted;
+	writeFileSync(file, lines.join("\n"));
+	return true;
+}
+
 /** Makes the login entry match the setting. Returns true when the file was written or removed. */
-export function syncAutostart(configDir: string, on: boolean, launcher: string, icon: string): boolean {
+export function syncAutostart(configDir: string, on: boolean, launcher: string | string[], icon: string): boolean {
 	const file = autostartFile(configDir);
 	const current = existsSync(file) ? readFileSync(file, "utf8") : null;
 	// A file Upkeep did not write is the owner's: it is never rewritten or removed.

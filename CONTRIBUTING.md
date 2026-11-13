@@ -48,6 +48,12 @@ bun run validate         # everything, in Chromium and WebKit (about 2 min)
 
 `PRODUCT.md` is the product record and `DESIGN.md` the visual system. Read both before changing the window.
 
+## Releasing
+
+An installed Upkeep takes its updates from the latest release, so a release is checked harder than a pull request. `bash scripts/release.sh`, on a clean `main` with the new version in `package.json` and its notes in `CHANGELOG.md`, runs the gate, builds, checks the version and the update address the build carries, and runs the self-update trial (`scripts/self-update-trial/trial.sh`): six real builds updating themselves in throwaway home folders, through every failure in [docs/updating-upkeep.md](docs/updating-upkeep.md). It then prints the command that publishes; it publishes nothing itself.
+
+A change to `src/bun/self-*.ts`, to the start of `src/bun/index.ts` or to the login and menu entries runs the trial before it merges.
+
 ## Pull requests
 
 One branch per change, named `type/YYYY-MM-DD-description`, and a pull request to `main`. Say what changed and why, and what you checked. Keep unrelated changes in separate pull requests.

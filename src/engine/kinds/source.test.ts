@@ -34,6 +34,7 @@ function ctx(run: Run): KindCtx {
 			buttons: "auto",
 			corners: "rounded",
 			language: "system",
+			selfAuto: false,
 		},
 		log: (l) => lines.push(l),
 		stage: () => {},
