@@ -162,15 +162,17 @@ Built and used daily on Linux Mint. Each of these was run as a normal user: the 
 
 ## Command line
 
-The engine also runs without the window, from a checkout of this repo:
+The engine also runs without the window. Turn on **Add the upkeep command** in Settings and Upkeep puts `upkeep` in `~/.local/bin`:
 
 ```sh
-bun run cli check              # one line per app: OK, UPDATE, SKIP or BROKEN
-bun run cli install fd zen     # install named apps, or --all, or --auto
-bun run cli restore fd         # put back the newest restore point
-bun run cli add sharkdp/fd     # a catalogue name, a repo, a link or a file
-bun run cli export upkeep.json # settings and app list as one file
+upkeep check              # one line per app: OK, UPDATE, SKIP or BROKEN
+upkeep install fd zen     # install named apps, or --all, or --auto
+upkeep restore fd         # put back the newest restore point
+upkeep add sharkdp/fd     # a catalogue name, a repo, a link or a file
+upkeep export upkeep.json # settings and app list as one file
 ```
+
+From a checkout of this repo, `bun run cli` takes the same commands.
 
 Every command takes `--json` and prints one JSON value per line, so a script or an agent can manage Upkeep without editing a file. [Command line](docs/command-line.md) has all of them.
 

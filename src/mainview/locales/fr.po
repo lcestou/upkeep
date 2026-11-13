@@ -2590,3 +2590,11 @@ msgstr "Upkeep {0} a échoué à son test de démarrage ; rien n'a donc été mo
 #: src/mainview/lib/engine-text.ts
 msgid "The update to Upkeep {0} was not applied. Nothing was changed."
 msgstr "La mise à jour vers Upkeep {0} n'a pas été appliquée. Rien n'a été modifié."
+
+#: src/mainview/lib/copy.ts
+msgid "Add the upkeep command"
+msgstr "Ajouter la commande upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Puts upkeep in ~/.local/bin for the terminal and scripts. A file already there that Upkeep did not write is left alone."
+msgstr "Place upkeep dans ~/.local/bin pour le terminal et les scripts. Un fichier déjà présent qu'Upkeep n'a pas écrit reste intact."

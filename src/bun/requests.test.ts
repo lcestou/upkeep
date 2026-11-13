@@ -28,6 +28,9 @@ update = ["tool", "up"]
 let selfState: SelfState = { phase: "none" };
 // Only the test about the snapshot hook listens for it.
 let watchSnapshots = false;
+// What each request asked the main process to apply: the frame and entries, or the entries alone with the upkeep
+// command setting as it read then.
+let applied: string[] = [];
 
 function setup(over: Partial<Desktop> = {}) {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
@@ -54,6 +57,11 @@ function setup(over: Partial<Desktop> = {}) {
 	};
 	const hooks = {
 		onSettings: () => {
+			applied.push("frame and entries");
+			throw new Error("no login entry here");
+		},
+		applyEntries: () => {
+			applied.push(`entries, upkeepCommand ${engine.snapshot().settings.upkeepCommand}`);
 			throw new Error("no login entry here");
 		},
 		chrome: () => ({ own: true, side: "right" as const, order: [], maximized: false, rounded: true }),
@@ -224,6 +232,24 @@ test("Export saves to the picked folder and Import replaces the setup from a pic
 	expect((await missing.r.importSetup({})).ok).toBe(false);
 	const unwritable = setup({ pickFolder: async () => [join(t.dir, "no", "such")] });
 	expect((await unwritable.r.exportSetup({})).problem).toBeTruthy();
+});
+
+test("Import applies the entries from the imported settings at once, never the frame, and a failure there does not fail it", async () => {
+	const folder = join(t.dir, "out");
+	mkdirSync(folder, { recursive: true });
+	const exported = await setup({ pickFolder: async () => [folder] }).r.exportSetup({});
+	const file = exported.file ?? "";
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.settings.upkeepCommand = true;
+	doc.settings.frame = "system";
+	writeFileSync(file, JSON.stringify(doc));
+	const loaded = setup({ pickFile: async () => [file] });
+	applied = [];
+	expect(await loaded.r.importSetup({})).toEqual({ ok: true, apps: 1 });
+	// Applied once, after the import wrote the settings, so the entries see the imported value.
+	expect(applied).toEqual(["entries, upkeepCommand true"]);
+	expect(loaded.engine.snapshot().settings.frame).toBe("system");
+	await loaded.engine.idle();
 });
 
 test("Import waits for no run: with the run lock held elsewhere it refuses", async () => {

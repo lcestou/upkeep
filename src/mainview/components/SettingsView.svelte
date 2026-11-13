@@ -118,6 +118,18 @@
 			/>
 		</label>
 		<label class="row">
+			<span class="text">
+				<span data-testid="setting-command-label">{TEXT.upkeepCommand}</span>
+				<span class="hint" data-testid="setting-command-hint">{TEXT.upkeepCommandHint}</span>
+			</span>
+			<input
+				type="checkbox"
+				checked={model.settings.upkeepCommand}
+				data-testid="setting-command"
+				onchange={(e) => set({ upkeepCommand: e.currentTarget.checked })}
+			/>
+		</label>
+		<label class="row">
 			<span class="text" data-testid="setting-check-every-label">{TEXT.checkEvery}</span>
 			<select
 				value={model.settings.checkEvery}

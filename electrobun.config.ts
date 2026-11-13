@@ -25,6 +25,8 @@ export default {
 		copy: {
 			"dist/index.html": "views/mainview/index.html",
 			"dist/assets": "views/mainview/assets",
+			// The command line, bundled by the view build (vite.config.ts); the `upkeep` command runs it with the install's Bun.
+			"dist/cli/cli.js": "cli/cli.js",
 			"manifest/apps.toml": "manifest/apps.toml",
 			catalogue: "catalogue",
 			"assets/tray": "views/tray",

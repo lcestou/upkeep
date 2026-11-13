@@ -12,6 +12,7 @@ const settings: Settings = {
 	corners: "rounded",
 	language: "system",
 	selfAuto: false,
+	upkeepCommand: false,
 };
 
 test("button layouts as the desktop writes them", () => {

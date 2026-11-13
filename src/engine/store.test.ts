@@ -71,6 +71,19 @@ test("a held run lock reads as held only while its holder lives", () => {
 	expect(lockHeld(t.paths, proc)).toBe(false);
 });
 
+test("the upkeep command switch is off by default, survives other writes, and a wrong kind reads as off", () => {
+	expect(loadState(t.paths).settings.upkeepCommand).toBe(false);
+	updateState(t.paths, (s) => {
+		s.settings.upkeepCommand = true;
+	});
+	updateState(t.paths, (s) => {
+		s.skip.fd = "10.5.2";
+	});
+	expect(loadState(t.paths).settings.upkeepCommand).toBe(true);
+	writeFileSync(join(t.paths.state, "state.json"), JSON.stringify({ settings: { upkeepCommand: 1 } }));
+	expect(loadState(t.paths).settings.upkeepCommand).toBe(false);
+});
+
 test("the self-update switch and the skipped build survive a write that changes something else", () => {
 	updateState(t.paths, (s) => {
 		s.settings.selfAuto = true;
@@ -105,6 +118,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			corners: "rounded",
 			language: "system",
 			selfAuto: false,
+			upkeepCommand: false,
 		},
 		notified: "",
 		restart: {},

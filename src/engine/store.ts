@@ -40,6 +40,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	corners: "rounded",
 	language: "system",
 	selfAuto: false,
+	upkeepCommand: false,
 };
 
 /** Any missing or out-of-range field takes its default; keepBackups is rounded into 1 to 5. */
@@ -59,6 +60,7 @@ function clampSettings(s: Partial<Settings>): Settings {
 		corners: s.corners === "square" || s.corners === "rounded" ? s.corners : DEFAULT_SETTINGS.corners,
 		language: s.language === "system" || isLanguage(s.language) ? s.language : DEFAULT_SETTINGS.language,
 		selfAuto: typeof s.selfAuto === "boolean" ? s.selfAuto : DEFAULT_SETTINGS.selfAuto,
+		upkeepCommand: typeof s.upkeepCommand === "boolean" ? s.upkeepCommand : DEFAULT_SETTINGS.upkeepCommand,
 	};
 }
 

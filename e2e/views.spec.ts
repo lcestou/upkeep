@@ -33,6 +33,21 @@ test("each Settings control", async ({ page }) => {
 	await expect(page.getByTestId("version")).toHaveText("Version 0.1.0");
 });
 
+test("the upkeep command switch starts off, says where the command goes, and keeps its state", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("tab-settings").click();
+	await expect(page.getByTestId("setting-command-label")).toHaveText("Add the upkeep command");
+	await expect(page.getByTestId("setting-command-hint")).toHaveText(
+		"Puts upkeep in ~/.local/bin for the terminal and scripts. A file already there that Upkeep did not write is left alone.",
+	);
+	const box = page.getByTestId("setting-command");
+	await expect(box).not.toBeChecked();
+	await box.check();
+	await page.getByTestId("tab-updates").click();
+	await page.getByTestId("tab-settings").click();
+	await expect(page.getByTestId("setting-command")).toBeChecked();
+});
+
 test("About offers what's new, a bug report and the repo, and each asks the main process for its page", async ({
 	page,
 }) => {

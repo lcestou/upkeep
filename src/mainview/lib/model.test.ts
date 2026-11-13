@@ -92,6 +92,7 @@ describe("events", () => {
 				corners: "rounded",
 				language: "system",
 				selfAuto: false,
+				upkeepCommand: false,
 			},
 			rate: null,
 			checkedAt: null,
