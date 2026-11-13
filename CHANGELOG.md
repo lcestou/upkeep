@@ -4,6 +4,7 @@
 
 First version.
 
+- An app whose source lists no file size (Cursor, GitLab releases, `links:` pages) no longer shows 0 B in its row and while it downloads: the size cell stays empty, the download shows a percent when the server gives one, and the selection total reads "at least".
 - An `upkeep` command for the terminal and scripts, behind "Add the upkeep command" in Settings (off by default). It goes in `~/.local/bin`, runs the installed Upkeep's command line, keeps working across Upkeep's own updates, and leaves alone any `upkeep` file Upkeep did not write.
 - Upkeep updates itself. A newer version shows as a row above the list; Update Upkeep downloads it, checks it and starts it once as a test beside the running one, and only then offers Restart now. The version being replaced is kept until the new one has started, and the menu and login entries put it back if the new one will not start. Settings has a switch for doing all of it unattended while Upkeep sits in the tray, off by default. An install made before this is replaced once with the installer.
 - Settings, under About, has What's new, Report a bug and Upkeep on GitHub. A bug report opens a new issue with the version, the distribution and the desktop already filled in.
