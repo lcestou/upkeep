@@ -1,19 +1,23 @@
 # Command line
 
+Settings has **Add the upkeep command**, off until you turn it on. It writes a small script to `~/.local/bin/upkeep` that runs the command line with the installed Upkeep's own Bun, and turning the switch off removes it. A file already called `upkeep` there that Upkeep did not write, or a link, is never changed or removed; the switch then does nothing. `~/.local/bin` is on the `PATH` of most desktops once it exists; if `upkeep` is not found, log out and in once, or add the folder to `PATH`. The script outlives Upkeep's own updates. After Upkeep is uninstalled it prints where Upkeep used to be and exits 127; delete the file then.
+
+From a checkout of this repo, `bun run cli` takes the same commands as `upkeep`.
+
 ```sh
-bun run cli check                 # one line per app: OK, UPDATE, SKIP or BROKEN
-bun run cli check --json          # the same as JSON, one app per line
-bun run cli install fd zen        # install named apps
-bun run cli install --all         # everything that is ready
-bun run cli install --auto        # only apps marked auto
-bun run cli restore fd            # put back the newest restore point
-bun run cli history
-bun run cli recover               # finish or undo an update that was interrupted
-bun run cli list                  # the apps in apps.toml, without a check
-bun run cli add sharkdp/fd        # add an app: a catalogue name, a repo, a GitHub, GitLab or Codeberg link, or a file
-bun run cli remove fd             # take it off the list; the app itself stays installed
-bun run cli export upkeep.json    # settings and app list as one file (to stdout without a name)
-bun run cli import upkeep.json    # replace them from such a file
+upkeep check                 # one line per app: OK, UPDATE, SKIP or BROKEN
+upkeep check --json          # the same as JSON, one app per line
+upkeep install fd zen        # install named apps
+upkeep install --all         # everything that is ready
+upkeep install --auto        # only apps marked auto
+upkeep restore fd            # put back the newest restore point
+upkeep history
+upkeep recover               # finish or undo an update that was interrupted
+upkeep list                  # the apps in apps.toml, without a check
+upkeep add sharkdp/fd        # add an app: a catalogue name, a repo, a GitHub, GitLab or Codeberg link, or a file
+upkeep remove fd             # take it off the list; the app itself stays installed
+upkeep export upkeep.json    # settings and app list as one file (to stdout without a name)
+upkeep import upkeep.json    # replace them from such a file
 ```
 
 `check` exits 0; an app it could not check is a SKIP line, not a failure. `install` exits 0 when every app it ran ended updated. Every other command exits 0 when it did what was asked and 1 when it did not, and prints why.

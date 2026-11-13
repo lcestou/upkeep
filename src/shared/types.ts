@@ -262,6 +262,8 @@ export type Settings = {
 	language: LanguageSetting;
 	/** Upkeep installs its own new version while it sits in the tray, and restarts. Off: it tells the person and waits. */
 	selfAuto: boolean;
+	/** An `upkeep` command in ~/.local/bin that runs this install's command line. Off: no such file from Upkeep. */
+	upkeepCommand: boolean;
 };
 
 /**

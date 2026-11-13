@@ -91,6 +91,7 @@ export class Model {
 		corners: "rounded",
 		language: "system",
 		selfAuto: false,
+		upkeepCommand: false,
 	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
 	chrome = $state<WindowChrome | null>(null);

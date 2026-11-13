@@ -37,6 +37,7 @@ function ctx(): KindCtx {
 			corners: "rounded",
 			language: "system",
 			selfAuto: false,
+			upkeepCommand: false,
 		},
 		log: (l) => lines.push(l),
 		stage: () => {},

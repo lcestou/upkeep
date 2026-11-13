@@ -41,6 +41,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			corners: "rounded",
 			language: "system",
 			selfAuto: false,
+			upkeepCommand: false,
 		},
 		rate: null,
 		checkedAt: null,

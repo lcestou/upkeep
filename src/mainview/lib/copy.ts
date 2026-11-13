@@ -285,6 +285,12 @@ export const TEXT = {
 	get startAtLoginHint() {
 		return "Opens in the tray and checks for updates.";
 	},
+	get upkeepCommand() {
+		return "Add the upkeep command";
+	},
+	get upkeepCommandHint() {
+		return "Puts upkeep in ~/.local/bin for the terminal and scripts. A file already there that Upkeep did not write is left alone.";
+	},
 	get keepBackups() {
 		return "Restore points to keep";
 	},

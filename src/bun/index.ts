@@ -8,6 +8,7 @@ import { realDeps } from "../engine/real";
 import { loadState, updateState } from "../engine/store";
 import type { EngineEvent, RunPhase, WindowButton, WindowChrome } from "../shared/types";
 import { syncAutostart, syncMenuExec } from "./autostart";
+import { syncCommand } from "./command";
 import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
 import { dropStrayIcuData } from "./icu";
@@ -228,15 +229,20 @@ const extras = createExtras({
 // The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
 const launcher = join(import.meta.dir, "../../../bin/launcher");
 const appIcon = join(import.meta.dir, "../../appIcon.png");
-/** Writes or removes the login entry to match the setting; skipped in dev and source runs. Throws if the autostart folder cannot be written. */
+/**
+ * Makes the login entry, the menu entry and the `upkeep` command match the settings; skipped in dev and source runs.
+ * Throws if the autostart folder or ~/.local/bin cannot be written.
+ */
 function applyLoginSetting(): void {
 	// Only an installed build may own the login entry; a dev bundle or a source run would point it at a moving target.
 	if (isDevBuild(import.meta.dir) || !existsSync(launcher)) return;
 	// Both entries start Upkeep through the start script beside the app folder, which repairs an interrupted
 	// self-update first; each falls back to the launcher when the script is not there.
-	const command = entryArgv(dirname(dirname(dirname(launcher))));
+	const root = dirname(dirname(dirname(launcher)));
+	const command = entryArgv(root);
 	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, command, appIcon);
 	syncMenuExec(join(dirname(deps.paths.data), "applications", "Upkeep.desktop"), command, launcher, SELF_FILES.shim);
+	syncCommand(deps.paths.home, engine.snapshot().settings.upkeepCommand, root);
 }
 
 /** Upkeep's own update. Absent in a start test, which must not look for updates or settle anything. */
