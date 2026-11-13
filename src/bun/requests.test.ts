@@ -133,6 +133,10 @@ test("About opens Upkeep's own pages, and a bug report carries the version and t
 	expect(did.slice(0, 2)).toEqual([`url ${HOME}`, `url ${HOME}/blob/main/CHANGELOG.md`]);
 	const body = new URL((did[2] ?? "").slice(4)).searchParams.get("body") ?? "";
 	expect(body).toContain("Test Linux 1, X-Cinnamon, x11");
+	// A system with no os-release file still names its desktop.
+	const bare = setup({ osRelease: () => "" });
+	expect(await bare.r.open({ what: "bug" })).toEqual({ ok: true });
+	expect(new URL((bare.did[0] ?? "").slice(4)).searchParams.get("body")).toContain("\nX-Cinnamon, x11");
 	// A browser that would not open is reported, not hidden.
 	const refused = setup({ openExternal: () => false });
 	expect(await refused.r.open({ what: "repo" })).toEqual({ ok: false });

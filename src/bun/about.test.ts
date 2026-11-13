@@ -10,6 +10,10 @@ test("the system line names the distribution, the desktop and the session, and l
 	expect(systemLine("PRETTY_NAME=Arch Linux\n", { XDG_SESSION_TYPE: "wayland" })).toBe("Arch Linux, wayland");
 	expect(systemLine("PRETTY_NAME='Fedora Linux 45'\n", {})).toBe("Fedora Linux 45");
 	expect(systemLine("", { XDG_CURRENT_DESKTOP: "", XDG_SESSION_TYPE: undefined })).toBe("Linux");
+	// Whatever the machine holds stays one short line: no line break gets through, and a long value is cut.
+	expect(systemLine("", { XDG_CURRENT_DESKTOP: "a\nb\tc", XDG_SESSION_TYPE: "x".repeat(500) })).toBe(
+		`a b c, ${"x".repeat(80)}`,
+	);
 	// A key that only ends in PRETTY_NAME is not the name.
 	expect(systemLine("NOT_PRETTY_NAME=x\n", {})).toBe("Linux");
 });

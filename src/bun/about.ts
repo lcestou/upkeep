@@ -13,16 +13,23 @@ export type AboutInfo = {
 	env: Record<string, string | undefined>;
 };
 
+/** The longest a part of the system line may be: a real name is far shorter, and the line ends up in an address. */
+const PART_MAX = 80;
+
 /**
  * One line naming the system: the distribution's own name for itself, the desktop and the session type.
- * A part nobody set is left out, and a system that names none of them is "Linux".
+ * A part nobody set is left out, and a system that names none of them is "Linux". Each part is put on one line and
+ * cut at 80 characters, since the file and the environment are whatever the machine holds. A backslash escape inside
+ * a quoted name is kept as written, not decoded.
  */
 export function systemLine(osRelease: string, env: Record<string, string | undefined>): string {
 	const pretty = /^PRETTY_NAME=(.*)$/m
 		.exec(osRelease)?.[1]
 		?.trim()
 		.replace(/^(["'])(.*)\1$/, "$2");
-	const parts = [pretty, env.XDG_CURRENT_DESKTOP, env.XDG_SESSION_TYPE].filter((p) => p);
+	const parts = [pretty, env.XDG_CURRENT_DESKTOP, env.XDG_SESSION_TYPE]
+		.map((p) => (p ?? "").replace(/\s+/g, " ").trim().slice(0, PART_MAX))
+		.filter((p) => p);
 	return parts.length > 0 ? parts.join(", ") : "Linux";
 }
 

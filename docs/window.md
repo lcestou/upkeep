@@ -10,7 +10,7 @@ Changing the frame or the corners rebuilds the window, which takes a moment.
 
 ## About
 
-**About** in Settings shows the version and three links: **What's new** opens the changelog, **Report a bug** opens a new issue with the version, the distribution and the desktop already filled in, and **Upkeep on GitHub** opens the repo. Nothing is sent anywhere: each opens a page in your browser.
+**About** in Settings shows the version and three links: **What's new** opens the changelog, **Report a bug** opens a new issue with the version, the distribution and the desktop already filled in, and **Upkeep on GitHub** opens the repo. Upkeep itself sends nothing: each opens a page in your browser, and the bug report's page carries the version and that one line about the system in its address.
 
 ## Moving to another computer
 

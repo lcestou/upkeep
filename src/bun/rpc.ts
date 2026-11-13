@@ -26,6 +26,7 @@ const desktop: Desktop = {
 	spawnDetached: (argv) => {
 		Bun.spawn(argv, { stdin: "ignore", stdout: "ignore", stderr: "ignore" }).unref();
 	},
+	// A system with no os-release file still gets a bug report; it just names less.
 	osRelease: () => {
 		try {
 			return readFileSync("/etc/os-release", "utf8");
