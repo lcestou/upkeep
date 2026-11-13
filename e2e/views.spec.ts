@@ -33,6 +33,25 @@ test("each Settings control", async ({ page }) => {
 	await expect(page.getByTestId("version")).toHaveText("Version 0.1.0");
 });
 
+test("About offers what's new, a bug report and the repo, and each asks the main process for its page", async ({
+	page,
+}) => {
+	await load(page);
+	await page.getByTestId("tab-settings").click();
+	await expect(page.getByTestId("about-changelog")).toHaveText("What's new");
+	await expect(page.getByTestId("about-bug")).toHaveText("Report a bug");
+	await expect(page.getByTestId("about-repo")).toHaveText("Upkeep on GitHub");
+	for (const what of ["changelog", "bug", "repo"]) await page.getByTestId(`about-${what}`).click();
+	// The request leaves on the next tick, so the list is polled.
+	await expect
+		.poll(() =>
+			page.evaluate(() =>
+				((globalThis as { upkeepOps?: string[] }).upkeepOps ?? []).filter((o) => o.startsWith("open ")),
+			),
+		)
+		.toEqual(["open changelog", "open bug", "open repo"]);
+});
+
 test("the Log drawer fills during a run and History gains the run", async ({ page }) => {
 	await load(page, "fixture&speed=4");
 	await page.getByTestId("log-toggle").click();

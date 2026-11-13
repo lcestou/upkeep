@@ -2462,3 +2462,15 @@ msgstr "{0}：{1} が正しい正規表現ではありません"
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
 msgstr "更新しました。実行中だった {0} のコピーは終了するまで旧バージョンのままです。新しく実行すると新バージョンが使われます。"
+
+#: src/mainview/lib/copy.ts
+msgid "What's new"
+msgstr "新機能"
+
+#: src/mainview/lib/copy.ts
+msgid "Report a bug"
+msgstr "バグを報告"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep on GitHub"
+msgstr "GitHub の Upkeep"

@@ -5,6 +5,7 @@ import type { Extras } from "../engine/extras/extras";
 import { claimLock, releaseLock } from "../engine/store";
 import { exportSetup, importSetup } from "../engine/transfer";
 import { MESSAGES } from "../shared/messages";
+import { aboutUrl } from "./about";
 import type { RequestHandlers, WindowButton, WindowChrome } from "../shared/types";
 
 /** The newest run log, for "Open log file" when no run is in progress. */
@@ -28,6 +29,8 @@ export type WindowHooks = {
 	windowOp: (op: WindowButton) => void;
 	/** The system updates list and its install, beside the engine. */
 	extras: Extras;
+	/** The environment, for the desktop and session a bug report names. */
+	env: Record<string, string | undefined>;
 };
 
 /** What the requests ask of the desktop: the framework's Utils in the app, a recorder in tests. */
@@ -41,6 +44,8 @@ export type Desktop = {
 	pickFolder: (startingFolder: string) => Promise<string[]>;
 	/** Starts argv detached and never waits; throws when it cannot start. */
 	spawnDetached: (argv: string[]) => void;
+	/** The text of /etc/os-release for a bug report, or "" where it cannot be read. */
+	osRelease: () => string;
 };
 
 /** The main-process answer to every request the view can make. Plain code, so it is unit-tested without the framework. */
@@ -91,6 +96,16 @@ export function upkeepRequests(
 				const id = engine.snapshot().run.id;
 				const file = id ? join(logDir, `${id}.log`) : newestLog(logDir);
 				return { ok: file ? desktop.openPath(file) : false };
+			}
+			// Upkeep's own pages are built here from fixed addresses; the view only names which one.
+			if (what === "changelog" || what === "bug" || what === "repo") {
+				const info = {
+					version: deps.version ?? "",
+					arch: deps.arch ?? "",
+					osRelease: desktop.osRelease(),
+					env: hooks.env,
+				};
+				return { ok: desktop.openExternal(aboutUrl(what, info)) };
 			}
 			const url = engine.snapshot().apps.find((a) => a.key === key)?.releaseUrl;
 			// Only a release page the engine itself fetched is opened, never a string from the view.

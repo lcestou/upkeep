@@ -2525,3 +2525,15 @@ msgstr "{0}: {1} не является допустимым регулярным
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
 msgstr "Обновлено. Запущенная копия {0} сохраняет старую версию, пока не завершится; новые запуски используют новую."
+
+#: src/mainview/lib/copy.ts
+msgid "What's new"
+msgstr "Что нового"
+
+#: src/mainview/lib/copy.ts
+msgid "Report a bug"
+msgstr "Сообщить об ошибке"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep on GitHub"
+msgstr "Upkeep на GitHub"

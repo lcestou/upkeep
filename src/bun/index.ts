@@ -225,6 +225,7 @@ function makeRpc() {
 		// desktop's locale is not generated; the environment is what the tray reads, so both use it.
 		languages: () => systemLanguages(process.env),
 		extras,
+		env: process.env,
 	});
 }
 let rpc = makeRpc();

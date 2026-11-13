@@ -1125,7 +1125,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		history: ({ limit }) => clone(history.slice(0, limit)),
 		runLog: ({ runId }) => clone(logs.get(runId) ?? []),
-		open: () => ({ ok: true }),
+		open: ({ what }) => {
+			globalThis.upkeepOps?.push(`open ${what}`);
+			return { ok: true };
+		},
 		copy: () => ({ ok: true }),
 		suggest: async ({ input, asset }) => {
 			// An archive is opened to find its programs, so it answers slower than an AppImage.
