@@ -44,8 +44,9 @@ export function autostartEntry(command: string | string[], icon: string): string
 
 /**
  * Makes a menu entry start Upkeep through `command`. Only the Exec line of the [Desktop Entry] section is replaced,
- * and only when it is recognisably Upkeep's own: it starts `launcher`, or it already runs the start script. A line
- * the person wrote themselves, a file that is not there, and a file with no such line are left alone. Line endings
+ * and only when it is Upkeep's own: the line the installer wrote, which is `launcher` and nothing else, or a line
+ * Upkeep wrote before, which runs `script` through sh. A line the person wrote themselves, even one that wraps the
+ * launcher, a file that is not there, and a file with no such line are left alone. Line endings
  * are kept as they were. Returns true when the file was written.
  */
 export function syncMenuExec(file: string, command: string[], launcher: string, script: string): boolean {
@@ -64,7 +65,12 @@ export function syncMenuExec(file: string, command: string[], launcher: string, 
 	});
 	const current = lines[at];
 	if (current === undefined) return false;
-	if (!current.includes(launcher) && !current.includes(script)) return false;
+	// Upkeep's own: the line the installer wrote (the launcher alone, bare or quoted) or one Upkeep wrote before
+	// (a shell line that runs the start script). A wrapper the person put around the launcher is theirs.
+	const value = current.trimEnd().slice("Exec=".length);
+	const installers = value === launcher || value === `"${launcher}"` || value === execLine([launcher]);
+	const upkeeps = value.startsWith('"sh" "-c" ') && value.includes(script);
+	if (!installers && !upkeeps) return false;
 	const wanted = `Exec=${execLine(command)}${current.endsWith("\r") ? "\r" : ""}`;
 	if (current === wanted) return false;
 	lines[at] = wanted;

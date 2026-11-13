@@ -53,13 +53,16 @@ export function selfPorts(host: SelfHost): SelfPorts {
 		log(`framework: ${entry.status}: ${entry.message}`);
 		waiting?.(entry.status);
 	});
+	// The channel root, learned at the first local(): where the framework keeps its record of a staged build.
+	let stagedRoot = "";
 	return {
 		async local() {
 			try {
 				const info = await Updater.getLocalInfo();
 				// A dev build, or one built before Upkeep had an address to update from.
 				if (info.channel === "dev" || !info.baseUrl) return null;
-				return { version: info.version, hash: info.hash, root: await Updater.appDataFolder() };
+				stagedRoot = await Updater.appDataFolder();
+				return { version: info.version, hash: info.hash, root: stagedRoot };
 			} catch {
 				// Not started from a managed install.
 				return null;
@@ -75,6 +78,15 @@ export function selfPorts(host: SelfHost): SelfPorts {
 			return { ready: info.updateReady, error: info.error };
 		},
 		stagedHash() {
+			// The record the framework's swap reads, not its last check's answer: a check that could not reach the
+			// address forgets what was staged, and the staged build is still there.
+			try {
+				const record = readFileSync(join(stagedRoot, "self-extraction", ".electrobun-prepared-update.json"), "utf8");
+				const hash = /"hash"\s*:\s*"([a-z0-9]{1,13})"/.exec(record)?.[1];
+				if (hash && existsSync(join(stagedRoot, `app.prepared-${hash}`))) return hash;
+			} catch {
+				// No record: nothing is staged, unless the framework says otherwise below.
+			}
 			const info = Updater.updateInfo();
 			return info.updateReady ? info.hash : null;
 		},

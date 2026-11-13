@@ -195,7 +195,7 @@ export function createSelf(p: SelfPorts): Self {
 		const found = await p.check();
 		if (found.error) return null;
 		// The framework would take any other hash, an older release included.
-		if (!found.available || !newerSelf(local.version, found.version) || !/^[a-z0-9]{1,32}$/.test(found.hash)) {
+		if (!found.available || !newerSelf(local.version, found.version) || !/^[a-z0-9]{1,13}$/.test(found.hash)) {
 			if (state.phase === "available" || state.phase === "ready" || state.phase === "failed") {
 				offered = null;
 				tested = "";
@@ -204,7 +204,14 @@ export function createSelf(p: SelfPorts): Self {
 			return null;
 		}
 		const fresh = found.hash !== p.notifiedHash();
-		if (fresh) p.setNotifiedHash(found.hash);
+		if (fresh) {
+			try {
+				p.setNotifiedHash(found.hash);
+			} catch (err) {
+				// A state file that cannot be written costs a repeated notice, never the offer itself.
+				p.log(`self-update: could not record that ${found.version} was announced: ${String(err)}`);
+			}
+		}
 		if (offered?.hash === found.hash && state.phase !== "none") return null;
 		offered = { version: found.version, hash: found.hash, from: local.version };
 		tested = "";
@@ -212,6 +219,13 @@ export function createSelf(p: SelfPorts): Self {
 		if (state.phase === "rolled-back" && found.hash === p.failedHash()) return null;
 		set({ phase: "available", from: local.version, version: found.version });
 		return fresh ? found.version : null;
+	}
+
+	/** Resolves once no look is under way; a look that began while waiting is waited out too. */
+	async function quiet(): Promise<void> {
+		if (!looking) return;
+		await looking;
+		return quiet();
 	}
 
 	/** One look at a time, and none while a version is being prepared or swapped in. Never rejects. */
@@ -276,10 +290,24 @@ export function createSelf(p: SelfPorts): Self {
 	 * The kept copy is made before the framework is asked, so a swap never happens without one.
 	 */
 	async function restart(): Promise<void> {
+		try {
+			await swap();
+		} catch (err) {
+			// A port that throws before the framework was asked: nothing was swapped.
+			p.log(`self-update: the restart threw: ${String(err)}`);
+			fail(MESSAGES.selfNotApplied(offered?.version ?? ""));
+		}
+	}
+
+	/**
+	 * The restart itself. Everything that waits comes first; from the last look ending to the phase turning
+	 * "restarting" nothing is awaited, so no new look can begin in between and report through the framework's one
+	 * status slot while the swap is asked for (a look refuses once the phase is "restarting").
+	 */
+	async function swap(): Promise<void> {
 		if (state.phase !== "ready" || !offered || p.busy()) return;
-		// A check under way would report through the framework's one status slot while the swap is asked for.
-		if (looking) await looking;
 		const local = await p.local();
+		await quiet();
 		if (!local || state.phase !== "ready" || !offered || p.busy()) return;
 		const want = offered;
 		// Checked again here: a later check may have staged something else since the test passed.
@@ -341,12 +369,16 @@ export function createSelf(p: SelfPorts): Self {
 		// This version is up: the start script reads the marker as "it has started".
 		step("writing the marker", () => writeFileSync(join(local.root, okMarker(local.hash)), ""));
 		step("removing the attempt", () => rmSync(join(local.root, SELF_FILES.attempt), { force: true }));
-		step("removing the rollback note", () => rmSync(rolledFile, { force: true }));
 		let window: boolean | null = null;
 		if (rolled) {
 			// Without the attempt the version that failed has no name; the build is still skipped from now on.
 			const to = attempt?.toHash === rolled ? attempt.toVersion : "";
-			step("recording the build that failed", () => p.setFailedHash(rolled));
+			// The note goes only once the build is on record as failed: otherwise the automatic update would take
+			// the same build again, be rolled back again, and so on at every start.
+			step("recording the build that failed", () => {
+				p.setFailedHash(rolled);
+				rmSync(rolledFile, { force: true });
+			});
 			// The tree that would not start stays for a bug report, until the next attempt.
 			step("clearing the kept copy", () => clearKept(local.root, false));
 			if (to) {

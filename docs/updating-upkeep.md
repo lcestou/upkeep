@@ -31,7 +31,7 @@ Upkeep's own update waits while anything else is running: a check, an install, a
 
 ## If the new version does not start after the swap
 
-The start test catches a broken release before anything is swapped. For the rest, the menu entry and the login entry do not start Upkeep directly. They run a small script, `upkeep-start.sh`, kept beside the app folder, which looks at three things before it starts anything:
+The start test catches a broken release before anything is swapped. For the rest, the login entry Upkeep writes and the menu entry the installer wrote do not start Upkeep directly. They run a small script, `upkeep-start.sh`, kept beside the app folder, which looks at three things before it starts anything (an entry you edited yourself is left as you made it, and starts whatever you wrote):
 
 - **The app folder is missing** (the machine lost power in the middle of the swap): the old version is put back.
 - **A new version was swapped in, never marked itself as started, and is not running**: the kept copy is put back, with your app list and settings as the old version last wrote them. The row then says which version would not start.

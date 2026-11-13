@@ -92,6 +92,64 @@ test("a version is announced once on a machine, not again after Upkeep starts an
 	expect(await later.self.check()).toBe("0.1.2");
 });
 
+test("a state file that cannot be written costs a repeated notice, never the offer", async () => {
+	const { self, did } = setup({
+		setNotifiedHash: () => {
+			throw new Error("state.json: ENOSPC");
+		},
+	});
+	expect(await self.check()).toBe("0.1.1");
+	expect(self.snapshot()).toEqual({ phase: "available", from: "0.1.0", version: "0.1.1" });
+	expect(did).toEqual(["log self-update: could not record that 0.1.1 was announced: Error: state.json: ENOSPC"]);
+});
+
+test("a look that begins while the restart is still getting ready is waited out before the swap is asked for", async () => {
+	// The restart's own first wait: a look slips in during it, as one from a finished app check would.
+	let slow = false;
+	let release: (v: { version: string; hash: string; root: string }) => void = () => {};
+	let answer: (v: { version: string; hash: string; available: boolean; error: string }) => void = () => {};
+	let looks = 0;
+	const { self, did } = setup({
+		local: () => (slow ? new Promise((r) => (release = r)) : Promise.resolve({ ...OLD, root })),
+		check: () => {
+			looks += 1;
+			return looks === 1 ? Promise.resolve({ ...NEW, available: true, error: "" }) : new Promise((r) => (answer = r));
+		},
+	});
+	await self.prepare();
+	slow = true;
+	const restarting = self.restart();
+	await Bun.sleep(2);
+	// The restart is waiting on local(); a look starts now. It needs local() too, so let both through.
+	slow = false;
+	const looking = self.check();
+	release({ ...OLD, root });
+	await Bun.sleep(5);
+	expect(looks).toBe(2);
+	// The look is still out: the framework has not been asked to swap.
+	expect(did).not.toContain("apply");
+	answer({ ...NEW, available: true, error: "" });
+	await looking;
+	await restarting;
+	expect(did).toContain("apply");
+});
+
+test("a port that throws at the restart leaves a failed row and nothing beside the app", async () => {
+	let boom = false;
+	const { self, did } = setup({
+		busy: () => {
+			if (boom) throw new Error("run.lock: EIO");
+			return false;
+		},
+	});
+	await self.prepare();
+	boom = true;
+	await self.restart();
+	expect(self.snapshot()).toMatchObject({ phase: "failed", why: MESSAGES.selfNotApplied("0.1.1") });
+	expect(did).not.toContain("apply");
+	expect(readdirSync(root)).toEqual(["app"]);
+});
+
 test("a look that cannot reach the address changes nothing: a tested build is kept", async () => {
 	let error = "";
 	const { self } = setup({ check: async () => ({ ...NEW, available: true, error }) });
@@ -112,7 +170,7 @@ test("a look that cannot reach the address changes nothing: a tested build is ke
 
 test("a hash that is not the framework's shape is never offered: it names folders beside the app", async () => {
 	await Promise.all(
-		["../../x", "ABC", "a b", "", "a/b", "x".repeat(33)].map(async (hash) => {
+		["../../x", "ABC", "a b", "", "a/b", "x".repeat(14)].map(async (hash) => {
 			const { self } = setup({ check: async () => ({ version: "0.1.1", hash, available: true, error: "" }) });
 			expect(await self.check(), hash).toBeNull();
 			expect(self.snapshot(), hash).toEqual({ phase: "none" });
@@ -495,6 +553,28 @@ test("settle writes the marker and removes the attempt even when a later step fa
 	expect(existsSync(join(root, SELF_FILES.attempt))).toBe(false);
 	expect(self.snapshot().phase).toBe("updated");
 	expect(did).toEqual(["log self-update: settling: history: Error: history.jsonl: ENOSPC"]);
+});
+
+test("the rollback note stays until the failed build is on record, so it is never taken again unattended", async () => {
+	writeAttempt(root, ATTEMPT);
+	writeFileSync(join(root, SELF_FILES.rolledBack), `${NEW.hash}\n`);
+	let writable = false;
+	const { self, did } = setup({
+		setFailedHash: (hash) => {
+			if (!writable) throw new Error("state.json: ENOSPC");
+			did.push(`failed ${hash}`);
+		},
+	});
+	await self.settle();
+	expect(existsSync(join(root, SELF_FILES.rolledBack))).toBe(true);
+	// The next start can write again: the build is recorded then, and the note goes.
+	writable = true;
+	const next = setup({
+		setFailedHash: (hash) => void did.push(`failed ${hash}`),
+	});
+	await next.self.settle();
+	expect(did).toContain(`failed ${NEW.hash}`);
+	expect(existsSync(join(root, SELF_FILES.rolledBack))).toBe(false);
 });
 
 test("a rollback note with no attempt beside it still skips that build, and shows no row it cannot word", async () => {

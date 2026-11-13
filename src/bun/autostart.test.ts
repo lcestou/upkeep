@@ -91,11 +91,22 @@ test("a menu entry's own Exec line is replaced once; the person's line, other se
 	// A line that already runs the start script is Upkeep's too, and follows a moved install.
 	expect(sync(["sh", "-c", "upkeep-start.sh", "/moved"])).toBe(true);
 
-	// A line the person wrote themselves is never replaced.
-	const theirs = "[Desktop Entry]\nName=Upkeep\nExec=env GDK_SCALE=2 /opt/my-upkeep-wrapper\n";
-	writeFileSync(file, theirs);
-	expect(sync(["sh"])).toBe(false);
-	expect(readFileSync(file, "utf8")).toBe(theirs);
+	// A line the person wrote themselves is never replaced, even when it wraps this install's launcher or
+	// mentions the start script.
+	for (const exec of [
+		"env GDK_SCALE=2 /opt/my-upkeep-wrapper",
+		`env GDK_SCALE=2 "${launcher}"`,
+		`${launcher} --flag`,
+		"/opt/run-upkeep-start.sh",
+	]) {
+		const theirs = `[Desktop Entry]\nName=Upkeep\nExec=${exec}\n`;
+		writeFileSync(file, theirs);
+		expect(sync(["sh"]), exec).toBe(false);
+		expect(readFileSync(file, "utf8")).toBe(theirs);
+	}
+	// The installer quotes the path; both spellings are its line.
+	writeFileSync(file, `[Desktop Entry]\nExec="${launcher}"\n`);
+	expect(sync(["sh"])).toBe(true);
 
 	// Only the main section's line: an action listed first keeps its own command.
 	writeFileSync(
