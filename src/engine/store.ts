@@ -248,6 +248,21 @@ export function claimLock(paths: Paths, pid = process.pid, procRoot = "/proc", o
 }
 
 /**
+ * True while a live process holds the run lock, this one included: an install, a restore, an import or an add is
+ * under way somewhere. Reads only; a stale lock (its pid gone or started at another time) reads as not held.
+ */
+export function lockHeld(paths: Paths, procRoot = "/proc"): boolean {
+	let held = "";
+	try {
+		held = readFileSync(lockFile(paths), "utf8").trim();
+	} catch {
+		return false;
+	}
+	const [holder, started] = held.split(" ");
+	return holder !== undefined && /^\d+$/.test(holder) && startTime(Number(holder), procRoot) === started;
+}
+
+/**
  * Leaves a lock another process holds, and one the same process holds under another owner: a refused System install
  * never frees the engine's lock, nor the engine a System install's. A missing lock is not an error.
  */

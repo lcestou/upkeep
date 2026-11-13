@@ -5,6 +5,7 @@ import type { HistoryRow } from "../shared/types";
 import {
 	appendHistory,
 	claimLock,
+	lockHeld,
 	clearInflight,
 	DEFAULT_SETTINGS,
 	loadState,
@@ -57,6 +58,18 @@ function fakeProc(pid: number, start: string): void {
 	];
 	writeFileSync(join(proc, String(pid), "stat"), `${pid} (we (ird) ${after.join(" ")}`);
 }
+
+test("a held run lock reads as held only while its holder lives", () => {
+	expect(lockHeld(t.paths, proc)).toBe(false);
+	fakeProc(10, "100");
+	expect(claimLock(t.paths, 10, proc)).toBe(true);
+	expect(lockHeld(t.paths, proc)).toBe(true);
+	// The pid was reused by a process that started later: the lock is stale.
+	fakeProc(10, "999");
+	expect(lockHeld(t.paths, proc)).toBe(false);
+	writeFileSync(join(t.paths.state, "run.lock"), "not a pid");
+	expect(lockHeld(t.paths, proc)).toBe(false);
+});
 
 test("the self-update switch and the skipped build survive a write that changes something else", () => {
 	updateState(t.paths, (s) => {
