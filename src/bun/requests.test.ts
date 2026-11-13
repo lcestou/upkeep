@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { createEngine, type EngineDeps } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
 import { MESSAGES } from "../shared/messages";
+import type { SelfState } from "../shared/types";
 import { claimLock, releaseLock } from "../engine/store";
 import { recordingRun, tempHome } from "../engine/testkit";
 import { HOME } from "./about";
@@ -24,6 +25,10 @@ update = ["tool", "up"]
 `;
 
 /** A real engine on an empty temp home, a recording desktop, and hooks that note what they were asked. */
+let selfState: SelfState = { phase: "none" };
+// Only the test about the snapshot hook listens for it.
+let watchSnapshots = false;
+
 function setup(over: Partial<Desktop> = {}) {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
 	const { run } = recordingRun(t.paths, () => ({ code: 127, stdout: "", stderr: "", timedOut: false }));
@@ -56,6 +61,15 @@ function setup(over: Partial<Desktop> = {}) {
 		languages: () => ["de_DE.UTF-8"],
 		extras: createExtras({ paths: t.paths, run, now: deps.now }),
 		env: { XDG_CURRENT_DESKTOP: "X-Cinnamon", XDG_SESSION_TYPE: "x11" },
+		self: {
+			snapshot: () => selfState,
+			prepare: async () => void did.push("self prepare"),
+			restart: async () => void did.push("self restart"),
+			dismiss: () => void did.push("self dismiss"),
+		},
+		onSnapshot: () => {
+			if (watchSnapshots) did.push("snapshot asked");
+		},
 	};
 	return { r: upkeepRequests(engine, deps, hooks, desktop), did, engine };
 }
@@ -123,6 +137,31 @@ test("open goes only to apps.toml, a run log, or a release page the engine fetch
 		`open ${join(t.paths.config, "apps.toml")}`,
 		`open ${join(t.paths.state, "logs", "20261112-090000-b.log")}`,
 	]);
+});
+
+test("the self-update requests pass the press on, and What's new opens the offered version's release page", async () => {
+	selfState = { phase: "none" };
+	const { r, did } = setup();
+	expect(await r.self({})).toEqual({ phase: "none" });
+	// Nothing is offered: there is no page to open.
+	expect(await r.open({ what: "self-notes" })).toEqual({ ok: false });
+	selfState = { phase: "ready", from: "0.1.0", version: "0.1.1" };
+	expect(await r.self({})).toEqual(selfState);
+	expect(await r.selfUpdate({})).toEqual({ ok: true });
+	expect(await r.selfRestart({})).toEqual({ ok: true });
+	expect(await r.selfDismiss({})).toEqual({ ok: true });
+	expect(await r.open({ what: "self-notes" })).toEqual({ ok: true });
+	watchSnapshots = true;
+	await r.snapshot({});
+	watchSnapshots = false;
+	expect(did).toEqual([
+		"self prepare",
+		"self restart",
+		"self dismiss",
+		`url ${HOME}/releases/tag/v0.1.1`,
+		"snapshot asked",
+	]);
+	selfState = { phase: "none" };
 });
 
 test("About opens Upkeep's own pages, and a bug report carries the version and the system", async () => {

@@ -7,6 +7,7 @@
 	import type { Attachment } from "svelte/attachments";
 	import { flip } from "svelte/animate";
 	import AppRow from "./AppRow.svelte";
+	import SelfRow from "./SelfRow.svelte";
 	import Mark from "./Mark.svelte";
 	import RestartAll from "./RestartAll.svelte";
 	import SystemGroup from "./SystemGroup.svelte";
@@ -196,6 +197,7 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="list" bind:this={root} {onkeydown} {onfocusin} data-testid="app-list" {@attach shade} {@attach cutoff}>
 		<div class="ledger">
+			<SelfRow {model} />
 			{#if model.apps.length === 0 && model.run.phase === "idle"}
 				<section class="morning" data-testid="empty-list">
 					<span class="morning-mark"><Mark size={32} /></span>

@@ -14,11 +14,15 @@ const MARK = "X-Upkeep-Managed=true";
 /** Desktop Entry spec: escape for a quoted Exec argument, then for a string value; % starts a field code. */
 const execArg = (s: string) => `"${s.replace(/[\\"`$]/g, "\\$&")}"`.replaceAll("\\", "\\\\").replaceAll("%", "%%");
 
+/** An Exec line's command from an argument list, each argument quoted for a desktop entry. */
+export const execLine = (argv: string[]) => argv.map(execArg).join(" ");
+
 /**
  * The login entry. Background mode travels as an environment variable because the framework's
  * launcher drops command-line arguments on Linux. The Comment carries every interface language.
+ * `command` is what starts Upkeep: its launcher, or the start script's argument list.
  */
-export function autostartEntry(launcher: string, icon: string): string {
+export function autostartEntry(command: string | string[], icon: string): string {
 	return [
 		"[Desktop Entry]",
 		"Type=Application",
@@ -26,7 +30,7 @@ export function autostartEntry(launcher: string, icon: string): string {
 		`Comment=${TRAY_TEXT.en.loginComment}`,
 		// The desktop shows the Comment in the person's own language, whichever Upkeep shows.
 		...LANGUAGES.filter((l) => l.code !== "en").map((l) => `Comment[${l.code}]=${TRAY_TEXT[l.code].loginComment}`),
-		`Exec=env UPKEEP_BACKGROUND=1 ${execArg(launcher)}`,
+		`Exec=env UPKEEP_BACKGROUND=1 ${execLine(Array.isArray(command) ? command : [command])}`,
 		`Icon=${icon}`,
 		"Terminal=false",
 		"StartupWMClass=Upkeep",
@@ -38,8 +42,28 @@ export function autostartEntry(launcher: string, icon: string): string {
 	].join("\n");
 }
 
+/**
+ * Makes a menu entry start Upkeep through `command`: only its Exec line is replaced, and only when it differs. A
+ * file that is not there, or has no Exec line, is left alone. Returns true when the file was written.
+ */
+export function syncMenuExec(file: string, command: string[]): boolean {
+	let text = "";
+	try {
+		text = readFileSync(file, "utf8");
+	} catch {
+		return false;
+	}
+	const wanted = `Exec=${execLine(command)}`;
+	const lines = text.split("\n");
+	const at = lines.findIndex((l) => l.startsWith("Exec="));
+	if (at === -1 || lines[at] === wanted) return false;
+	lines[at] = wanted;
+	writeFileSync(file, lines.join("\n"));
+	return true;
+}
+
 /** Makes the login entry match the setting. Returns true when the file was written or removed. */
-export function syncAutostart(configDir: string, on: boolean, launcher: string, icon: string): boolean {
+export function syncAutostart(configDir: string, on: boolean, launcher: string | string[], icon: string): boolean {
 	const file = autostartFile(configDir);
 	const current = existsSync(file) ? readFileSync(file, "utf8") : null;
 	// A file Upkeep did not write is the owner's: it is never rewritten or removed.

@@ -4,6 +4,7 @@
 	import {
 		CHECK_EVERY,
 		CLEAN,
+		SELF,
 		SYS,
 		TEXT,
 		WIN,
@@ -277,6 +278,18 @@
 		<span class="lockup" role="img" aria-label={WIN.word}>{@html lockup}</span>
 		<p class="about-version" data-testid="version">{versionText(model.version)}</p>
 		<p class="about-line">{WIN.tagline}</p>
+		<label class="auto">
+			<input
+				type="checkbox"
+				checked={model.settings.selfAuto}
+				data-testid="setting-self-auto"
+				onchange={(e) => set({ selfAuto: e.currentTarget.checked })}
+			/>
+			<span>
+				<span class="auto-label" data-testid="setting-self-auto-label">{SELF.auto}</span>
+				<span class="auto-help" data-testid="setting-self-auto-help">{SELF.autoHelp}</span>
+			</span>
+		</label>
 		<div class="about-links">
 			{#each ABOUT_LINKS as link (link.what)}
 				<button
@@ -433,6 +446,25 @@
 		stroke-width: 1.5;
 		stroke-linecap: round;
 		stroke-linejoin: round;
+	}
+	.auto {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--s2);
+		margin-top: var(--s3);
+		max-width: 60ch;
+	}
+	.auto input {
+		margin-top: 2px;
+	}
+	.auto-label,
+	.auto-help {
+		display: block;
+	}
+	.auto-help {
+		margin-top: 2px;
+		font-size: var(--fs-12);
+		color: var(--text-3);
 	}
 	.about-links {
 		display: flex;

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { aboutUrl, HOME, systemLine } from "./about";
+import { aboutUrl, HOME, RELEASE_BASE_URL, releasePage, systemLine } from "./about";
 
 const MINT = 'NAME="Linux Mint"\nVERSION="22.3 (Zena)"\nPRETTY_NAME="Linux Mint 22.3"\nID=linuxmint\n';
 
@@ -22,6 +22,13 @@ test("the repo and the changelog open Upkeep's own pages", () => {
 	const info = { version: "0.1.0", arch: "x64", osRelease: MINT, env: {} };
 	expect(aboutUrl("repo", info)).toBe(HOME);
 	expect(aboutUrl("changelog", info)).toBe(`${HOME}/blob/main/CHANGELOG.md`);
+});
+
+test("updates come from the latest release, and a version's notes from its own release page", () => {
+	expect(RELEASE_BASE_URL).toBe("https://github.com/lcestou/upkeep/releases/latest/download");
+	expect(releasePage("0.1.1")).toBe(`${HOME}/releases/tag/v0.1.1`);
+	// A version is whatever a release document said; it cannot leave its place in the address.
+	expect(releasePage("1/../x?y#z")).toBe(`${HOME}/releases/tag/v1%2F..%2Fx%3Fy%23z`);
 });
 
 test("a bug report opens a new issue with the version and the system filled in, safely encoded", () => {

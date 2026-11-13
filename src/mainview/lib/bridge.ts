@@ -9,6 +9,7 @@ export type UpkeepRPC = {
 };
 
 const VARIANTS: FixtureVariant[] = ["default", "empty", "checking", "problems", "many", "built", "none"];
+const SELF_PHASES = ["available", "preparing", "ready", "restarting", "failed", "rolled-back", "updated"] as const;
 const SYSTEM_VARIANTS: SystemVariant[] = [
 	"off",
 	"show",
@@ -47,6 +48,8 @@ export async function getBridge(): Promise<Bridge> {
 			system,
 			cleanup: query.get("cleanup") === "on" ? "on" : undefined,
 			scan: query.get("scan") === "unknown" ? "unknown" : undefined,
+			self: SELF_PHASES.find((v) => v === query.get("self")),
+			selfTestFails: query.get("selftest") === "fail",
 		});
 	}
 

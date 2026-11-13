@@ -28,6 +28,7 @@ import {
 	readAttempt,
 	SELF_FILES,
 	START_SH,
+	treeBytes,
 	writeAttempt,
 } from "./self-shim";
 
@@ -330,6 +331,17 @@ test("the kept copy holds every file, link and executable bit, and replaces an o
 	// Its own files: changing the original afterwards does not change the copy.
 	writeFileSync(join(app, "Resources", "data"), "changed");
 	expect(readFileSync(join(keep, "Resources", "data"), "utf8")).toHaveLength(5000);
+});
+
+test("a tree's size is the sum of its files, and a missing folder is 0", () => {
+	const app = tree("app", OLD);
+	writeFileSync(join(app, "Resources", "data"), "x".repeat(5000));
+	symlinkSync("data", join(app, "Resources", "link"));
+	const files = [join(app, "bin", "launcher"), join(app, "Resources", "version.json")];
+	const small = files.reduce((n, f) => n + statSync(f).size, 0);
+	expect(treeBytes(app)).toBeGreaterThanOrEqual(5000 + small);
+	expect(treeBytes(app)).toBeLessThan(5000 + small + 200);
+	expect(treeBytes(join(root, "nowhere"))).toBe(0);
 });
 
 test("a kept copy that does not match is removed and reported", () => {

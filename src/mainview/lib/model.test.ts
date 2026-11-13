@@ -461,6 +461,32 @@ describe("what the components read and write", () => {
 		expect(m.prior).toEqual({});
 	});
 
+	test("Upkeep's own update arrives with the first answers and follows its events, and waits for a run", async () => {
+		const m = new Model(createFixture({ speed: 40, self: "available" }));
+		await m.start();
+		expect(m.self).toEqual({ phase: "available", from: "0.1.0", version: "0.1.1" });
+		expect(m.selfBusy).toBe(false);
+		await m.send("selfUpdate", {});
+		await until(() => m.self.phase === "ready");
+		m.apply({ type: "self", self: { phase: "none" } });
+		expect(m.self).toEqual({ phase: "none" });
+		await m.install(["fd"]);
+		await until(() => m.run.phase === "installing");
+		expect(m.selfBusy).toBe(true);
+		await until(() => m.run.phase === "summary");
+		expect(m.selfBusy).toBe(false);
+		m.stop();
+		// A version that fails its start test ends failed, with the reason.
+		const failing = new Model(createFixture({ speed: 40, self: "available", selfTestFails: true }));
+		await failing.start();
+		await failing.send("selfUpdate", {});
+		await until(() => failing.self.phase === "failed");
+		failing.stop();
+		// With nothing asked for, the row has nothing to show.
+		const plain = await started();
+		expect(plain.self).toEqual({ phase: "none" });
+	});
+
 	test("the queue lists the run's apps, and Open shows the inspector app", async () => {
 		const m = await started();
 		m.select("fd");

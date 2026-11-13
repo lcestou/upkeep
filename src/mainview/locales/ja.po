@@ -759,6 +759,7 @@ msgid "Removed {0}."
 msgstr "{0} を外しました。"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Restart now"
 msgstr "今すぐ再起動"
 
@@ -2474,3 +2475,76 @@ msgstr "バグを報告"
 #: src/mainview/lib/copy.ts
 msgid "Upkeep on GitHub"
 msgstr "GitHub の Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "A new version of Upkeep is ready."
+msgstr "Upkeep の新しいバージョンがあります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloading and testing"
+msgstr "ダウンロードしてテスト中"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart Upkeep to finish."
+msgstr "完了するには Upkeep を再起動してください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Restarting"
+msgstr "再起動中"
+
+#: src/mainview/lib/copy.ts
+msgid "Update Upkeep"
+msgstr "Upkeep を更新"
+
+#: src/mainview/lib/copy.ts
+msgid "Try again"
+msgstr "再試行"
+
+#: src/mainview/lib/copy.ts
+msgid "Dismiss"
+msgstr "閉じる"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/engine-text.ts
+msgid "Finish what is running first."
+msgstr "先に実行中の処理を終えてください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Update Upkeep automatically"
+msgstr "Upkeep を自動で更新する"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs a new version of Upkeep while it sits in the tray, and restarts it. Off: Upkeep tells you and waits."
+msgstr "Upkeep がトレイにある間に新しいバージョンをインストールし、再起動します。オフ: Upkeep が知らせて待ちます。"
+
+#. 0: version
+#: src/mainview/lib/copy.ts
+msgid "Upkeep was updated to {0}."
+msgstr "Upkeep を {0} に更新しました。"
+
+#. 0: version
+#: src/mainview/lib/copy.ts
+msgid "Upkeep {0} would not start, so the version before it was put back."
+msgstr "Upkeep {0} が起動しなかったため、前のバージョンに戻しました。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Not enough free space to update Upkeep."
+msgstr "Upkeep を更新するための空き容量が足りません。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Cannot update Upkeep here: /bin/sh is missing."
+msgstr "ここでは Upkeep を更新できません: /bin/sh がありません。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Could not download the update. Nothing was changed."
+msgstr "更新をダウンロードできませんでした。何も変更されていません。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep {0} failed its start test, so nothing was changed."
+msgstr "Upkeep {0} は起動テストに失敗したため、何も変更されていません。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The update to Upkeep {0} was not applied. Nothing was changed."
+msgstr "Upkeep {0} への更新は適用されませんでした。何も変更されていません。"

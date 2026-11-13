@@ -188,6 +188,20 @@ function listTree(dir: string, under = ""): Map<string, string> {
 	return out;
 }
 
+/** The bytes of every file under dir, links not followed; 0 for a folder that is not there. */
+export function treeBytes(dir: string): number {
+	let total = 0;
+	try {
+		for (const name of readdirSync(dir)) {
+			const stat = lstatSync(join(dir, name));
+			total += stat.isDirectory() ? treeBytes(join(dir, name)) : stat.size;
+		}
+	} catch {
+		// gone or unreadable: counts as nothing
+	}
+	return total;
+}
+
 /**
  * Copies the app folder to the kept copy and checks it: every file with its size and whether it runs, every link
  * with its target. A copy that differs is removed and reported, since a kept copy that cannot start is worse than
@@ -250,16 +264,27 @@ export function writeAttempt(root: string, attempt: Attempt): void {
 	renameSync(`${file}.tmp`, file);
 }
 
-/** The recorded attempt, or null when there is none or it cannot be read as one. */
+/**
+ * The recorded attempt, or null when there is none or a field is missing. Read field by field, the way the start
+ * script reads it, so what one accepts the other does too.
+ */
 export function readAttempt(root: string): Attempt | null {
+	let text = "";
 	try {
-		// SAFETY: every field is checked below before the value is returned as an Attempt.
-		const a = JSON.parse(readFileSync(join(root, SELF_FILES.attempt), "utf8")) as Partial<Attempt>;
-		const text = [a.fromVersion, a.fromHash, a.toVersion, a.toHash, a.startedAt];
-		if (!text.every((v) => typeof v === "string") || typeof a.window !== "boolean") return null;
-		// SAFETY: all six fields were just checked.
-		return a as Attempt;
+		text = readFileSync(join(root, SELF_FILES.attempt), "utf8");
 	} catch {
 		return null;
 	}
+	/** The quoted value of one key, or undefined. */
+	const field = (key: string) => new RegExp(`"${key}"\\s*:\\s*"([^"\\\\]*)"`).exec(text)?.[1];
+	const window = /"window"\s*:\s*(true|false)/.exec(text)?.[1];
+	const [fromVersion, fromHash, toVersion, toHash, startedAt] = [
+		field("fromVersion"),
+		field("fromHash"),
+		field("toVersion"),
+		field("toHash"),
+		field("startedAt"),
+	];
+	if (!fromVersion || !fromHash || !toVersion || !toHash || !startedAt || !window) return null;
+	return { fromVersion, fromHash, toVersion, toHash, window: window === "true", startedAt };
 }

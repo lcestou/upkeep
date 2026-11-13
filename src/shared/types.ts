@@ -471,7 +471,8 @@ export type EngineEvent =
 	| { type: "meta"; rate: Snapshot["rate"]; checkedAt: string | null; settings: Settings }
 	| { type: "removed"; key: string }
 	| { type: "chrome"; chrome: WindowChrome }
-	| { type: "extras"; extras: ExtrasSnapshot };
+	| { type: "extras"; extras: ExtrasSnapshot }
+	| { type: "self"; self: SelfState };
 
 /** What the view can ask of the main process. */
 export type Requests = {
@@ -488,7 +489,7 @@ export type Requests = {
 	history: { params: { limit: number }; response: HistoryRow[] };
 	runLog: { params: { runId: string }; response: LogLine[] };
 	open: {
-		params: { what: "manifest" | "log" | "release" | "changelog" | "bug" | "repo"; key?: string };
+		params: { what: "manifest" | "log" | "release" | "changelog" | "bug" | "repo" | "self-notes"; key?: string };
 		response: { ok: boolean };
 	};
 	copy: { params: { text: string }; response: { ok: boolean } };
@@ -507,6 +508,14 @@ export type Requests = {
 	restartApp: { params: { key: string }; response: { ok: boolean; detail?: string } };
 	pickFile: { params: Record<string, never>; response: { path: string | null } };
 	extras: { params: Record<string, never>; response: ExtrasSnapshot };
+	/** Where Upkeep's own update stands. Changes come as self events. */
+	self: { params: Record<string, never>; response: SelfState };
+	/** Downloads, verifies and test-starts the offered version of Upkeep. Nothing the running one uses is changed. */
+	selfUpdate: { params: Record<string, never>; response: { ok: boolean } };
+	/** Swaps the tested version in and restarts Upkeep. Refused while anything is running. */
+	selfRestart: { params: Record<string, never>; response: { ok: boolean } };
+	/** Takes a finished self-update notice off the list. */
+	selfDismiss: { params: Record<string, never>; response: { ok: boolean } };
 	setExtras: { params: Partial<ExtrasSettings>; response: ExtrasSettings };
 	systemCheck: { params: Record<string, never>; response: { started: boolean } };
 	openTool: { params: { what: "update-manager" }; response: { ok: boolean } };

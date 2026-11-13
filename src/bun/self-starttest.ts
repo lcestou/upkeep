@@ -65,6 +65,7 @@ export async function runStartTest(t: StartTest): Promise<string | null> {
 			}
 			// A build that left has said all it will: one last look, then there is nothing more to wait for.
 			if (child.exitCode !== null) return existsSync(answer) ? readFileSync(answer, "utf8").trim() || null : null;
+			// oxlint-disable-next-line no-await-in-loop -- a poll: each look waits for the one before
 			await Bun.sleep(t.pollMs ?? 200);
 		}
 		return null;

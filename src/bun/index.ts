@@ -1,13 +1,13 @@
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import Electrobun, { BrowserWindow, Tray, Utils } from "electrobun/main";
+import Electrobun, { BrowserWindow, Tray, Updater, Utils } from "electrobun/main";
 import pkg from "../../package.json";
 import { createEngine } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
 import { realDeps } from "../engine/real";
 import { loadState, updateState } from "../engine/store";
 import type { EngineEvent, RunPhase, WindowButton, WindowChrome } from "../shared/types";
-import { syncAutostart } from "./autostart";
+import { syncAutostart, syncMenuExec } from "./autostart";
 import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
 import { dropStrayIcuData } from "./icu";
@@ -15,6 +15,9 @@ import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/l
 import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
 import { claimInstance, releaseInstance } from "./instance";
+import { countApps, selfPorts } from "./self-electrobun";
+import { entryArgv } from "./self-shim";
+import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
 import {
@@ -22,6 +25,7 @@ import {
 	readyFingerprint,
 	readyNames,
 	readyNotice,
+	selfNotice,
 	trayIcon,
 	trayMenu,
 	trayTitle,
@@ -35,6 +39,10 @@ const VERSION = pkg.version;
 // Started at login: no window, check, install what is marked automatic, stay in the tray.
 // An environment variable, because the framework's launcher drops command-line arguments on Linux.
 const background = process.env.UPKEEP_BACKGROUND === "1";
+// A start test: the running version started this build from its staging folder, with copies of the person's files,
+// to see that it comes up before anything is swapped. It answers in this file and leaves; it owns no socket and no
+// tray, runs no check and touches nothing real.
+const selftest = process.env.UPKEEP_SELFTEST ?? "";
 
 const deps = {
 	...realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml"), join(import.meta.dir, "../catalogue")),
@@ -93,7 +101,11 @@ function openWindow(tab = ""): void {
 		if (!tray.visible && !installing()) return quit();
 		// SAFETY: the framework passes a plain event object whose `response` field it reads back after the handlers run; the type does not declare it.
 		(event as { response?: { allow: boolean } }).response = { allow: false };
-		if (tray.visible) win?.hide();
+		if (tray.visible) {
+			win?.hide();
+			// With the window out of the way, an update of Upkeep the person asked to be automatic may go ahead.
+			void self?.auto();
+		}
 	});
 }
 
@@ -175,7 +187,7 @@ function quit(): void {
 	Utils.quit();
 }
 
-if ((await claimInstance(deps.paths.socket, openWindow)) === "secondary") {
+if (!selftest && (await claimInstance(deps.paths.socket, openWindow)) === "secondary") {
 	// Another Upkeep is running and has been asked to show its window. The framework's process.exit starts a
 	// graceful quit and returns; the promise never settles, so no second engine, tray or window is built.
 	await new Promise<never>(() => process.exit(0));
@@ -190,8 +202,9 @@ Electrobun.events.on("before-quit", () => {
 });
 
 const engine = createEngine(deps);
-// An update cut off by a crash or a power cut is finished or undone before the first check.
-void engine.recover();
+// An update cut off by a crash or a power cut is finished or undone before the first check. Never in a start test:
+// recovery acts on the installed apps themselves, and a test changes nothing real.
+if (!selftest) void engine.recover();
 // The system updates list: same paths and runner, its own state, never awaited by the engine's check.
 // The background run below never installs system updates and never cleans: only the window's confirmed press does.
 const extras = createExtras({
@@ -208,13 +221,44 @@ const appIcon = join(import.meta.dir, "../../appIcon.png");
 function applyLoginSetting(): void {
 	// Only an installed build may own the login entry; a dev bundle or a source run would point it at a moving target.
 	if (isDevBuild(import.meta.dir) || !existsSync(launcher)) return;
-	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, launcher, appIcon);
+	// Both entries start Upkeep through the start script beside the app folder, which repairs an interrupted
+	// self-update first; each falls back to the launcher when the script is not there.
+	const command = entryArgv(dirname(dirname(dirname(launcher))));
+	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, command, appIcon);
+	syncMenuExec(join(dirname(deps.paths.data), "applications", "Upkeep.desktop"), command);
 }
 
+/** Upkeep's own update. Absent in a start test, which must not look for updates or settle anything. */
+const self: Self | null = selftest
+	? null
+	: createSelf(
+			selfPorts({
+				engine,
+				extras,
+				deps,
+				env: process.env,
+				windowOpen: () => win?.isVisible() ?? false,
+				// The framework asked the quit handler before it gave up: undo what the handler did.
+				stayUp: async () => {
+					quitting = false;
+					await claimInstance(deps.paths.socket, openWindow);
+				},
+			}),
+		);
+/** What the view may ask of self-update; a start test answers that there is none. */
+const selfApi: Pick<Self, "snapshot" | "prepare" | "restart" | "dismiss"> = self ?? {
+	snapshot: () => ({ phase: "none" }),
+	prepare: async () => {},
+	restart: async () => {},
+	dismiss: () => {},
+};
+
 // One channel per window: a channel stays tied to the webview it was first given to, so a rebuilt window with the old one never hears from this process and stays blank.
-/** A fresh channel for a new window; see the note above on why one is never reused. */
-function makeRpc() {
+/** A fresh channel for a new window; see the note above on why one is never reused. `onSnapshot` hears each time the view asks for its snapshot. */
+function makeRpc(onSnapshot?: () => void) {
 	return defineUpkeepRpc(engine, deps, {
+		self: selfApi,
+		onSnapshot,
 		onSettings: () => {
 			applyLoginSetting();
 			followFrameSetting();
@@ -229,6 +273,24 @@ function makeRpc() {
 	});
 }
 let rpc = makeRpc();
+
+if (selftest) {
+	const info = await Updater.getLocalInfo();
+	// The view asking for its snapshot proves the page loaded, its script ran and the channel works.
+	rpc = makeRpc(() => {
+		writeFileSync(selftest, startTestAnswer(info.hash, countApps(deps.paths.config)));
+		process.exit(0);
+	});
+	win = new BrowserWindow({
+		title: "Upkeep",
+		url: "views://mainview/index.html",
+		rpc,
+		hidden: true,
+		frame: { x: 0, y: 0, width: 980, height: 720 },
+	});
+	// The caller ends this process when it has its answer, or when the time is up.
+	await new Promise<never>(() => {});
+}
 
 const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", template: false, width: 22, height: 22 });
 let shownIcon = "";
@@ -254,7 +316,7 @@ function refreshTray(): void {
 		shownTitle = title;
 		tray.setTitle(title);
 	}
-	const menu = trayMenu(snapshot, extras.snapshot().system, code);
+	const menu = trayMenu(snapshot, extras.snapshot().system, code, selfApi.snapshot());
 	const key = JSON.stringify(menu);
 	if (key !== shownMenu) {
 		shownMenu = key;
@@ -330,6 +392,24 @@ extras.subscribe((event) => {
 	if (quitAfterSystem && !extras.installing() && engine.snapshot().run.phase !== "installing") quit();
 });
 
+self?.subscribe((state) => {
+	toView.push({ type: "self", self: state });
+	refreshTray();
+});
+
+/** After a check of the apps: looks for a new Upkeep too, says so once, and installs it when that is switched on. */
+async function selfLook(): Promise<void> {
+	if (!self) return;
+	try {
+		const version = await self.check();
+		if (version && !win?.isVisible()) notify(selfNotice(version, trayLanguage()));
+		await self.auto();
+	} catch (err) {
+		// Upkeep's own update must never take the app list's check down with it.
+		console.error("self-update:", err);
+	}
+}
+
 engine.subscribe((event) => {
 	toView.push(event);
 	if (event.type !== "run") {
@@ -342,7 +422,10 @@ engine.subscribe((event) => {
 	refreshTray();
 	// A finished check or a dismissed run both just looked at every app: the schedule's wait starts again.
 	if (phase === "idle" && (before === "checking" || before === "summary")) schedule.checked();
-	if (before === "checking" && phase === "idle") announceReady();
+	if (before === "checking" && phase === "idle") {
+		announceReady();
+		void selfLook();
+	}
 	if (before === "installing" && phase === "summary") {
 		// With no window to read the summary in, say it once and clear it.
 		if (!win?.isVisible() || quitAfterRun) {
@@ -362,7 +445,17 @@ try {
 	console.error("login entry:", err);
 }
 
-if (background && tray.visible) {
+// What the last self-update attempt came to. After one, the window comes back as it was, whatever started this process.
+let wasOpen: boolean | null = null;
+try {
+	wasOpen = (await self?.settle()) ?? null;
+} catch (err) {
+	// Settling writes beside the app folder; a failure there must not stop Upkeep from starting.
+	console.error("self-update:", err);
+}
+const startHidden = wasOpen === null ? background : !wasOpen;
+
+if (startHidden && tray.visible) {
 	await engine.check();
 	const auto = engine.readyKeys(true);
 	if (auto.length > 0) await engine.install(auto);

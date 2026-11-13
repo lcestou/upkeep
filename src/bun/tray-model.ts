@@ -1,5 +1,5 @@
 import type { LanguageCode } from "../shared/languages";
-import type { Snapshot, SystemState } from "../shared/types";
+import type { SelfState, Snapshot, SystemState } from "../shared/types";
 import { count, TRAY_TEXT } from "./tray-text";
 
 export type TrayAction = "open" | "check" | "install" | "quit";
@@ -11,7 +11,12 @@ export function readyNames(snapshot: Snapshot): string[] {
 }
 
 /** The tray menu, top to bottom, in the language shown. Install appears only when something is ready. */
-export function trayMenu(snapshot: Snapshot, system?: SystemState, code: LanguageCode = "en"): TrayItem[] {
+export function trayMenu(
+	snapshot: Snapshot,
+	system?: SystemState,
+	code: LanguageCode = "en",
+	self?: SelfState,
+): TrayItem[] {
 	const t = TRAY_TEXT[code];
 	const ready = readyNames(snapshot).length;
 	const installing = snapshot.run.phase === "installing";
@@ -25,6 +30,9 @@ export function trayMenu(snapshot: Snapshot, system?: SystemState, code: Languag
 	// System updates are listed, never counted in the icon: they arrive almost daily and would drown the app count.
 	if (system && system.mode === "show" && system.rows.length > 0)
 		items.push({ type: "normal", label: `${t.systemUpdates}: ${system.rows.length}`, action: "open" });
+	// Upkeep's own update is named, never counted: it opens the window, where the row is.
+	if (self && (self.phase === "available" || self.phase === "ready"))
+		items.push({ type: "normal", label: selfNotice(self.version, code), action: "open" });
 	items.push({ type: "divider" });
 	items.push({ type: "normal", label: installing ? t.quitAfterRun : t.quit, action: "quit" });
 	return items;
@@ -65,6 +73,11 @@ export function readyNotice(names: string[], code: LanguageCode = "en"): string 
 /** The notification text after an install, naming at most four apps. */
 export function updatedNotice(names: string[], code: LanguageCode = "en"): string {
 	return `${TRAY_TEXT[code].updated} ${nameList(names, code)}`;
+}
+
+/** "Upkeep 0.1.1 is ready": the tray line and the notification for a new version of Upkeep itself. */
+export function selfNotice(version: string, code: LanguageCode = "en"): string {
+	return TRAY_TEXT[code].selfReady.replace("{version}", version);
 }
 
 /** The notification text for one failed app; it points at the log, which holds the cause. */

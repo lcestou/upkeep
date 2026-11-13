@@ -479,8 +479,6 @@ export const MESSAGES = {
 	selfTestFailed: (v0: Value) => `Upkeep ${v0} failed its start test, so nothing was changed.`,
 	/** bun/self-update.ts. {0} the new version, whose swap did not happen */
 	selfNotApplied: (v0: Value) => `The update to Upkeep ${v0} was not applied. Nothing was changed.`,
-	/** bun/self-update.ts. {0} the new version, which the start script replaced with the one before it */
-	selfRolledBack: (v0: Value) => `Upkeep ${v0} would not start, so the version before it was put back.`,
 } satisfies Record<string, (...values: Value[]) => string>;
 
 export type MessageId = keyof typeof MESSAGES;

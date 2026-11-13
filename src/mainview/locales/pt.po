@@ -791,6 +791,7 @@ msgid "Removed {0}."
 msgstr "{0} removido."
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Restart now"
 msgstr "Reiniciar agora"
 
@@ -2516,3 +2517,76 @@ msgstr "Relatar um bug"
 #: src/mainview/lib/copy.ts
 msgid "Upkeep on GitHub"
 msgstr "Upkeep no GitHub"
+
+#: src/mainview/lib/copy.ts
+msgid "A new version of Upkeep is ready."
+msgstr "Uma nova versão do Upkeep está pronta."
+
+#: src/mainview/lib/copy.ts
+msgid "Downloading and testing"
+msgstr "Baixando e testando"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart Upkeep to finish."
+msgstr "Reinicie o Upkeep para concluir."
+
+#: src/mainview/lib/copy.ts
+msgid "Restarting"
+msgstr "Reiniciando"
+
+#: src/mainview/lib/copy.ts
+msgid "Update Upkeep"
+msgstr "Atualizar o Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Try again"
+msgstr "Tentar de novo"
+
+#: src/mainview/lib/copy.ts
+msgid "Dismiss"
+msgstr "Dispensar"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/engine-text.ts
+msgid "Finish what is running first."
+msgstr "Conclua primeiro o que está em andamento."
+
+#: src/mainview/lib/copy.ts
+msgid "Update Upkeep automatically"
+msgstr "Atualizar o Upkeep automaticamente"
+
+#: src/mainview/lib/copy.ts
+msgid "Installs a new version of Upkeep while it sits in the tray, and restarts it. Off: Upkeep tells you and waits."
+msgstr "Instala uma nova versão do Upkeep enquanto ele está na bandeja e o reinicia. Desligado: o Upkeep avisa e espera."
+
+#. 0: version
+#: src/mainview/lib/copy.ts
+msgid "Upkeep was updated to {0}."
+msgstr "O Upkeep foi atualizado para {0}."
+
+#. 0: version
+#: src/mainview/lib/copy.ts
+msgid "Upkeep {0} would not start, so the version before it was put back."
+msgstr "O Upkeep {0} não iniciou, então a versão anterior foi restaurada."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Not enough free space to update Upkeep."
+msgstr "Não há espaço livre suficiente para atualizar o Upkeep."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Cannot update Upkeep here: /bin/sh is missing."
+msgstr "Não é possível atualizar o Upkeep aqui: /bin/sh está ausente."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Could not download the update. Nothing was changed."
+msgstr "Não foi possível baixar a atualização. Nada foi alterado."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep {0} failed its start test, so nothing was changed."
+msgstr "O Upkeep {0} falhou no teste de inicialização, então nada foi alterado."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The update to Upkeep {0} was not applied. Nothing was changed."
+msgstr "A atualização para o Upkeep {0} não foi aplicada. Nada foi alterado."

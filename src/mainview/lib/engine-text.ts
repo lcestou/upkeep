@@ -251,5 +251,4 @@ export const ENGINE_COPY = {
 	selfBusy: () => `Finish what is running first.`,
 	selfTestFailed: (v0: string) => `Upkeep ${v0} failed its start test, so nothing was changed.`,
 	selfNotApplied: (v0: string) => `The update to Upkeep ${v0} was not applied. Nothing was changed.`,
-	selfRolledBack: (v0: string) => `Upkeep ${v0} would not start, so the version before it was put back.`,
 } satisfies Record<MessageId, (...values: string[]) => string>;

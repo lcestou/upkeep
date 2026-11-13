@@ -71,11 +71,13 @@ test("a newer version is offered once, and the same one is not announced again",
 });
 
 test("an older or equal version is never offered, whatever the framework says about its hash", async () => {
-	for (const version of ["0.1.0", "0.0.9", "0.1.0-rc1", "0.1", "next", ""]) {
-		const { self } = setup({ check: async () => ({ version, hash: "otherhash", available: true, error: "" }) });
-		expect(await self.check(), version).toBeNull();
-		expect(self.snapshot(), version).toEqual({ phase: "none" });
-	}
+	await Promise.all(
+		["0.1.0", "0.0.9", "0.1.0-rc1", "0.1", "next", ""].map(async (version) => {
+			const { self } = setup({ check: async () => ({ version, hash: "otherhash", available: true, error: "" }) });
+			expect(await self.check(), version).toBeNull();
+			expect(self.snapshot(), version).toEqual({ phase: "none" });
+		}),
+	);
 });
 
 test("a later release is newer; a prerelease of the running version, and anything that is not a version, is not", () => {
@@ -143,13 +145,15 @@ test("each pre-flight refusal says why and downloads nothing", async () => {
 		// Room for the staged copy, the kept copy and the download: three app folders.
 		[{ freeBytes: () => 2999 }, MESSAGES.selfNoSpace()],
 	];
-	for (const [over, why] of cases) {
-		const { self, did } = setup(over);
-		await self.check();
-		await self.prepare();
-		expect(self.snapshot()).toEqual({ phase: "failed", from: "0.1.0", version: "0.1.1", why });
-		expect(did).toEqual([]);
-	}
+	await Promise.all(
+		cases.map(async ([over, why]) => {
+			const { self, did } = setup(over);
+			await self.check();
+			await self.prepare();
+			expect(self.snapshot()).toEqual({ phase: "failed", from: "0.1.0", version: "0.1.1", why });
+			expect(did).toEqual([]);
+		}),
+	);
 	const enough = setup({ freeBytes: () => 3000 });
 	await enough.self.prepare();
 	expect(enough.self.snapshot().phase).toBe("ready");
@@ -190,21 +194,23 @@ test("a start test that answers anything but its own hash and the app count fail
 		`ok ${NEW.hash}`,
 		`fail ${NEW.hash} 7`,
 	];
-	for (const answer of answers) {
-		const { self, did } = setup({ startTest: async () => answer });
-		await self.prepare();
-		expect(self.snapshot(), String(answer)).toEqual({
-			phase: "failed",
-			from: "0.1.0",
-			version: "0.1.1",
-			why: MESSAGES.selfTestFailed("0.1.1"),
-		});
-		expect(did).toContain(`failed ${NEW.hash}`);
-		// Nothing was kept or recorded: the running version was never touched.
-		expect(readdirSync(root)).toEqual(["app"]);
-		await self.restart();
-		expect(did).not.toContain("apply");
-	}
+	await Promise.all(
+		answers.map(async (answer) => {
+			const { self, did } = setup({ startTest: async () => answer });
+			await self.prepare();
+			expect(self.snapshot(), String(answer)).toEqual({
+				phase: "failed",
+				from: "0.1.0",
+				version: "0.1.1",
+				why: MESSAGES.selfTestFailed("0.1.1"),
+			});
+			expect(did).toContain(`failed ${NEW.hash}`);
+			// Nothing was kept or recorded: the running version was never touched.
+			expect(readdirSync(root)).toEqual(["app"]);
+			await self.restart();
+			expect(did).not.toContain("apply");
+		}),
+	);
 });
 
 test("restart keeps the old version and the person's files, records the attempt, then asks for the swap", async () => {
@@ -480,15 +486,17 @@ async function settled(p: Promise<unknown>): Promise<boolean> {
 }
 
 test("a refused quit, a helper that would not start and nothing to apply all mean Upkeep is staying up", async () => {
-	for (const status of ["idle", "error", "no-update"]) {
-		const u = fakeUpdater();
-		const waiting = applyAndWait(u.apply, u.subscribe);
-		u.say("applying");
-		expect(await settled(waiting), status).toBe(false);
-		u.say(status);
-		expect(await waiting).toBe(false);
-		expect(u.stopped()).toBe(true);
-	}
+	await Promise.all(
+		["idle", "error", "no-update"].map(async (status) => {
+			const u = fakeUpdater();
+			const waiting = applyAndWait(u.apply, u.subscribe);
+			u.say("applying");
+			expect(await settled(waiting), status).toBe(false);
+			u.say(status);
+			expect(await waiting).toBe(false);
+			expect(u.stopped()).toBe(true);
+		}),
+	);
 });
 
 test("once the restart is announced, the framework's promise resolving is not a reason to clean up", async () => {
@@ -540,7 +548,8 @@ test("a test start inherits a short list and reads copies, never the launcher's 
 		"/tmp/t",
 		"/tmp/t/answer",
 	);
-	expect(env).toEqual({
+	// The inherited names are whatever the machine has, so the result is read as a plain table here.
+	expect<Record<string, string>>(env).toEqual({
 		HOME: "/home/x",
 		PATH: "/usr/bin",
 		DISPLAY: ":0",

@@ -103,7 +103,7 @@ export function applyAndWait(
 }
 
 /** The variables a test start may inherit. Never the launcher's LD_PRELOAD or LD_LIBRARY_PATH, which name the old tree. */
-const TEST_ENV = [
+const TEST_ENV = new Set([
 	"HOME",
 	"PATH",
 	"DISPLAY",
@@ -112,16 +112,16 @@ const TEST_ENV = [
 	"DBUS_SESSION_BUS_ADDRESS",
 	"LANG",
 	"LANGUAGE",
-];
+]);
 
 /**
  * The environment for a test start: a short list from the running one, every LC_ variable, the XDG folders pointed
  * into dir so the new build reads copies and writes nowhere real, and the file it answers in.
  */
-export function testEnv(env: Record<string, string | undefined>, dir: string, answer: string): Record<string, string> {
+export function testEnv(env: Record<string, string | undefined>, dir: string, answer: string) {
 	const out: Record<string, string> = {};
 	for (const [name, value] of Object.entries(env))
-		if (value !== undefined && (TEST_ENV.includes(name) || name.startsWith("LC_"))) out[name] = value;
+		if (value !== undefined && (TEST_ENV.has(name) || name.startsWith("LC_"))) out[name] = value;
 	return {
 		...out,
 		XDG_CONFIG_HOME: join(dir, "config"),
@@ -131,6 +131,12 @@ export function testEnv(env: Record<string, string | undefined>, dir: string, an
 		XDG_RUNTIME_DIR: join(dir, "run"),
 		UPKEEP_SELFTEST: answer,
 	};
+}
+
+/** Takes back an attempt that never reached the swap: the record, the kept copy and the kept files. */
+function unwind(root: string): void {
+	rmSync(join(root, SELF_FILES.attempt), { force: true });
+	clearKept(root, true);
 }
 
 /** Self-update: one instance per running Upkeep. */
@@ -252,12 +258,6 @@ export function createSelf(p: SelfPorts): Self {
 		unwind(local.root);
 		await p.stayUp();
 		set({ phase: "ready", from: want.from, version: want.version });
-	}
-
-	/** Takes back an attempt that never reached the swap. */
-	function unwind(root: string): void {
-		rmSync(join(root, SELF_FILES.attempt), { force: true });
-		clearKept(root, true);
 	}
 
 	async function settle(): Promise<boolean | null> {
