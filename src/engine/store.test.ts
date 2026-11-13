@@ -8,6 +8,7 @@ import {
 	lockHeld,
 	clearInflight,
 	DEFAULT_SETTINGS,
+	loadRows,
 	loadState,
 	openRunLog,
 	pruneLogs,
@@ -15,6 +16,7 @@ import {
 	readInflight,
 	readRunLog,
 	releaseLock,
+	saveRows,
 	stageWeights,
 	startTime,
 	updateState,
@@ -277,4 +279,12 @@ test("an unreadable state.json is kept beside it, and a second one never replace
 	const kept = readdirSync(t.paths.state).filter((n) => n.startsWith("state.json.unreadable"));
 	expect(kept.length).toBe(2);
 	expect(kept.map((n) => readFileSync(join(t.paths.state, n), "utf8")).toSorted()).toEqual(["{ first", "{ second"]);
+});
+
+test("a cached row's size of 0 is read as no size", () => {
+	const row = { installed: "1", latest: "2", status: "ready" as const, checkedAt: "" };
+	saveRows(t.paths, { a: { ...row, size: 0 }, b: { ...row, size: 5 } });
+	const rows = loadRows(t.paths);
+	expect(rows.a?.size).toBeUndefined();
+	expect(rows.b?.size).toBe(5);
 });

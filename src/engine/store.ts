@@ -577,7 +577,8 @@ export function loadRows(paths: Paths): Record<string, KnownRow> {
 				latest: str(r.latest) ?? null,
 				status,
 				detail: str(r.detail),
-				size: typeof r.size === "number" ? r.size : undefined,
+				// A row cached before a 0 meant "not listed" would show "0 B" until the next check.
+				size: typeof r.size === "number" && r.size > 0 ? r.size : undefined,
 				notes: str(r.notes),
 				releaseUrl: str(r.releaseUrl),
 				publishedAt: str(r.publishedAt),
