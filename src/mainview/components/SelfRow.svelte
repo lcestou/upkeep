@@ -153,6 +153,7 @@ once as a test beside this one; only then does Restart now appear, and only the 
 	}
 	.actions {
 		display: flex;
+		align-items: center;
 		flex-wrap: wrap;
 		justify-content: flex-end;
 		gap: var(--s2);

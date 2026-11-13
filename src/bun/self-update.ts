@@ -171,8 +171,9 @@ export function createSelf(p: SelfPorts): Self {
 		state = next;
 		for (const listener of listeners) listener(state);
 	}
-	/** A failed state for the offered version: nothing was changed. */
+	/** A failed state for the offered version: nothing was changed. The reason goes to the log as well as the row. */
 	function fail(why: string): void {
+		p.log(`self-update: ${why}`);
 		if (offered) set({ phase: "failed", from: offered.from, version: offered.version, why });
 	}
 
@@ -219,6 +220,8 @@ export function createSelf(p: SelfPorts): Self {
 		if (answer !== startTestAnswer(want.hash, p.appCount())) {
 			p.log(`self-update: start test of ${want.version} answered ${JSON.stringify(answer)}`);
 			p.setFailedHash(want.hash);
+			// A build that will not start is not kept staged: it is a whole copy of the app.
+			rmSync(join(local.root, `app.prepared-${want.hash}`), { recursive: true, force: true });
 			return fail(MESSAGES.selfTestFailed(want.version));
 		}
 		tested = want.hash;

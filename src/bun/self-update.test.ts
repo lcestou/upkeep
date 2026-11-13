@@ -151,7 +151,8 @@ test("each pre-flight refusal says why and downloads nothing", async () => {
 			await self.check();
 			await self.prepare();
 			expect(self.snapshot()).toEqual({ phase: "failed", from: "0.1.0", version: "0.1.1", why });
-			expect(did).toEqual([]);
+			// Nothing was downloaded, and the reason is in the log for a bug report.
+			expect(did).toEqual([`log self-update: ${why}`]);
 		}),
 	);
 	const enough = setup({ freeBytes: () => 3000 });
@@ -168,7 +169,10 @@ test("a download that fails, or stages another build, changes nothing and keeps 
 		version: "0.1.1",
 		why: MESSAGES.selfDownload(),
 	});
-	expect(failed.did).toEqual(["log self-update: download failed: ArchiveHashMismatch"]);
+	expect(failed.did).toEqual([
+		"log self-update: download failed: ArchiveHashMismatch",
+		`log self-update: ${MESSAGES.selfDownload()}`,
+	]);
 	const other = setup({ stagedHash: () => "somethingelse" });
 	await other.self.prepare();
 	expect(other.self.snapshot().phase).toBe("failed");
@@ -207,10 +211,24 @@ test("a start test that answers anything but its own hash and the app count fail
 			expect(did).toContain(`failed ${NEW.hash}`);
 			// Nothing was kept or recorded: the running version was never touched.
 			expect(readdirSync(root)).toEqual(["app"]);
+			expect(did).toContain(`log self-update: ${MESSAGES.selfTestFailed("0.1.1")}`);
 			await self.restart();
 			expect(did).not.toContain("apply");
 		}),
 	);
+});
+
+test("a staged build that failed its start test is removed, since it is a whole copy of the app", async () => {
+	const stage = join(root, `app.prepared-${NEW.hash}`);
+	mkdirSync(join(stage, "Upkeep", "bin"), { recursive: true });
+	const { self } = setup({ startTest: async () => null });
+	await self.prepare();
+	expect(existsSync(stage)).toBe(false);
+	// A build that passed stays staged: the restart needs it.
+	mkdirSync(join(stage, "Upkeep", "bin"), { recursive: true });
+	const good = setup();
+	await good.self.prepare();
+	expect(existsSync(stage)).toBe(true);
 });
 
 test("restart keeps the old version and the person's files, records the attempt, then asks for the swap", async () => {
