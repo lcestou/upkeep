@@ -100,6 +100,20 @@ test("a launcher that is not there or cannot run is a failed test, not an except
 	expect(readdirSync(scratch)).toEqual([]);
 });
 
+test("a test that cannot even be set up is a failed test, and leaves nothing behind", async () => {
+	// The scratch folder's place is taken by a file, so no temp folder can be made.
+	writeFileSync(join(dir, "blocked"), "");
+	const answer = await runStartTest({
+		launcher: launcher('echo ok > "$UPKEEP_SELFTEST"'),
+		env: { PATH: process.env.PATH },
+		real: real(),
+		scratch: join(dir, "blocked", "tmp"),
+		timeoutMs: 1000,
+		pollMs: 20,
+	});
+	expect(answer).toBeNull();
+});
+
 test("the build gets a short environment: no library paths from the running launcher", async () => {
 	const file = launcher(
 		'echo "${LD_PRELOAD:-none} ${LD_LIBRARY_PATH:-none} ${UPKEEP_BACKGROUND:-none} $LANG" > "$UPKEEP_SELFTEST"',

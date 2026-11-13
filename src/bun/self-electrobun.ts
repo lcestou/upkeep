@@ -133,6 +133,12 @@ export function selfPorts(host: SelfHost): SelfPorts {
 				s.selfFailed = hash;
 			});
 		},
+		notifiedHash: () => loadState(paths).selfNotified,
+		setNotifiedHash(hash) {
+			updateState(paths, (s) => {
+				s.selfNotified = hash;
+			});
+		},
 		history(row) {
 			const at = host.deps.now().toISOString();
 			appendHistory(paths, [

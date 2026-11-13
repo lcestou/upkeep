@@ -26,6 +26,8 @@ export type State = {
 	restart: Record<string, string>;
 	/** The hash of a version of Upkeep that failed its start test or was rolled back; automatic self-update skips it. "" for none. */
 	selfFailed: string;
+	/** The hash of the last version of Upkeep the person was told about, so each is announced once. "" for none. */
+	selfNotified: string;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -101,6 +103,7 @@ export function loadState(paths: Paths): State {
 		notified: typeof raw.notified === "string" ? raw.notified : "",
 		restart: obj<string>(raw.restart),
 		selfFailed: typeof raw.selfFailed === "string" ? raw.selfFailed : "",
+		selfNotified: typeof raw.selfNotified === "string" ? raw.selfNotified : "",
 	};
 }
 

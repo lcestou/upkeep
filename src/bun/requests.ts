@@ -121,7 +121,9 @@ export function upkeepRequests(
 			}
 			if (what === "self-notes") {
 				const self = hooks.self.snapshot();
-				return { ok: self.phase === "none" ? false : desktop.openExternal(releasePage(self.version)) };
+				// No offer, or one with no version to name: there is no page to open.
+				if (self.phase === "none" || !self.version) return { ok: false };
+				return { ok: desktop.openExternal(releasePage(self.version)) };
 			}
 			// Upkeep's own pages are built here from fixed addresses; the view only names which one.
 			if (what === "changelog" || what === "bug" || what === "repo") {

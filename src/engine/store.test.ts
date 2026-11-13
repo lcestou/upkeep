@@ -75,6 +75,7 @@ test("the self-update switch and the skipped build survive a write that changes 
 	updateState(t.paths, (s) => {
 		s.settings.selfAuto = true;
 		s.selfFailed = "abc123";
+		s.selfNotified = "def456";
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";
@@ -82,6 +83,7 @@ test("the self-update switch and the skipped build survive a write that changes 
 	const state = loadState(t.paths);
 	expect(state.settings.selfAuto).toBe(true);
 	expect(state.selfFailed).toBe("abc123");
+	expect(state.selfNotified).toBe("def456");
 	// A value of the wrong kind in a hand-edited file reads as the default.
 	writeFileSync(join(t.paths.state, "state.json"), JSON.stringify({ selfFailed: 7, settings: { selfAuto: "yes" } }));
 	expect(loadState(t.paths).selfFailed).toBe("");
@@ -107,6 +109,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		notified: "",
 		restart: {},
 		selfFailed: "",
+		selfNotified: "",
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";

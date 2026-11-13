@@ -43,20 +43,30 @@ export function autostartEntry(command: string | string[], icon: string): string
 }
 
 /**
- * Makes a menu entry start Upkeep through `command`: only its Exec line is replaced, and only when it differs. A
- * file that is not there, or has no Exec line, is left alone. Returns true when the file was written.
+ * Makes a menu entry start Upkeep through `command`. Only the Exec line of the [Desktop Entry] section is replaced,
+ * and only when it is recognisably Upkeep's own: it starts `launcher`, or it already runs the start script. A line
+ * the person wrote themselves, a file that is not there, and a file with no such line are left alone. Line endings
+ * are kept as they were. Returns true when the file was written.
  */
-export function syncMenuExec(file: string, command: string[]): boolean {
+export function syncMenuExec(file: string, command: string[], launcher: string, script: string): boolean {
 	let text = "";
 	try {
 		text = readFileSync(file, "utf8");
 	} catch {
 		return false;
 	}
-	const wanted = `Exec=${execLine(command)}`;
 	const lines = text.split("\n");
-	const at = lines.findIndex((l) => l.startsWith("Exec="));
-	if (at === -1 || lines[at] === wanted) return false;
+	let section = "";
+	const at = lines.findIndex((raw) => {
+		const line = raw.trimEnd();
+		if (line.startsWith("[")) section = line;
+		return section === "[Desktop Entry]" && line.startsWith("Exec=");
+	});
+	const current = lines[at];
+	if (current === undefined) return false;
+	if (!current.includes(launcher) && !current.includes(script)) return false;
+	const wanted = `Exec=${execLine(command)}${current.endsWith("\r") ? "\r" : ""}`;
+	if (current === wanted) return false;
 	lines[at] = wanted;
 	writeFileSync(file, lines.join("\n"));
 	return true;

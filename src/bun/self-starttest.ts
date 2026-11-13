@@ -40,21 +40,22 @@ export type StartTest = {
  * A file the person does not have yet is simply not copied.
  */
 export async function runStartTest(t: StartTest): Promise<string | null> {
-	mkdirSync(t.scratch, { recursive: true });
-	const dir = mkdtempSync(join(t.scratch, "selftest-"));
-	const answer = join(dir, "answer");
-	const env = testEnv(t.env, dir, answer);
-	const to = paths(env);
-	for (const folder of [to.config, to.state, to.data, to.cache, join(dir, "run")])
-		mkdirSync(folder, { recursive: true });
-	for (const [from, dest, name] of [
-		[t.real.config, to.config, "apps.toml"],
-		[t.real.state, to.state, "state.json"],
-		[t.real.state, to.state, "extras.json"],
-	] as const)
-		if (existsSync(join(from, name))) copyFileSync(join(from, name), join(dest, name));
+	let dir = "";
 	let child: ReturnType<typeof Bun.spawn> | null = null;
 	try {
+		mkdirSync(t.scratch, { recursive: true });
+		dir = mkdtempSync(join(t.scratch, "selftest-"));
+		const answer = join(dir, "answer");
+		const env = testEnv(t.env, dir, answer);
+		const to = paths(env);
+		for (const folder of [to.config, to.state, to.data, to.cache, join(dir, "run")])
+			mkdirSync(folder, { recursive: true });
+		for (const [from, dest, name] of [
+			[t.real.config, to.config, "apps.toml"],
+			[t.real.state, to.state, "state.json"],
+			[t.real.state, to.state, "extras.json"],
+		] as const)
+			if (existsSync(join(from, name))) copyFileSync(join(from, name), join(dest, name));
 		child = Bun.spawn([t.launcher], { env, detached: true, stdin: "ignore", stdout: "ignore", stderr: "ignore" });
 		const until = Date.now() + t.timeoutMs;
 		while (Date.now() < until) {
@@ -70,7 +71,7 @@ export async function runStartTest(t: StartTest): Promise<string | null> {
 		}
 		return null;
 	} catch {
-		// The launcher could not be started at all.
+		// The folders could not be made, a file could not be copied, or the launcher could not be started at all.
 		return null;
 	} finally {
 		if (child) {
@@ -81,6 +82,10 @@ export async function runStartTest(t: StartTest): Promise<string | null> {
 				// already gone
 			}
 		}
-		rmSync(dir, { recursive: true, force: true });
+		try {
+			if (dir) rmSync(dir, { recursive: true, force: true });
+		} catch {
+			// A process still dying can hold a file for a moment; a leftover temp folder must not change the answer.
+		}
 	}
 }

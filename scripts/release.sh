@@ -16,6 +16,8 @@ die() {
 	exit 1
 }
 for tool in bun gh zstd tar python3; do command -v "$tool" >/dev/null || die "needs $tool"; done
+# A folder of its own for the logs and the notes, so no fixed name in a shared /tmp is ever written through.
+OUT=$(mktemp -d /tmp/upkeep-release.XXXXXX) || die "cannot make a folder for the logs"
 
 # The trial's switches bake a local address or another version into a build. Never into a release.
 [ -z "${UPKEEP_RELEASE_BASE_URL:-}" ] || die "UPKEEP_RELEASE_BASE_URL is set; that is for the trial only. Unset it."
@@ -35,10 +37,10 @@ fi
 grep -q "^## $VERSION" CHANGELOG.md || die "CHANGELOG.md has no section for $VERSION"
 
 echo "release: the gate"
-bun run validate >/tmp/upkeep-release-validate.log 2>&1 || die "the gate failed; see /tmp/upkeep-release-validate.log"
+bun run validate >$OUT/validate.log 2>&1 || die "the gate failed; see $OUT/validate.log"
 
 echo "release: the build"
-bun run build >/tmp/upkeep-release-build.log 2>&1 || die "the build failed; see /tmp/upkeep-release-build.log"
+bun run build >$OUT/build.log 2>&1 || die "the build failed; see $OUT/build.log"
 ARCH=$(ls artifacts | sed -n 's/^stable-\(linux-[a-z0-9]*\)-update-v2\.json$/\1/p' | head -1)
 [ -n "$ARCH" ] || die "the build wrote no update document"
 ARCHIVE=$(ls artifacts/stable-"$ARCH"-*.tar.zst | head -1)
@@ -50,11 +52,11 @@ echo "$BAKED" | grep -q "\"baseUrl\":\"$WANT_URL\"" || die "the build's update a
 grep -q "\"version\":\"$VERSION\"" "artifacts/stable-$ARCH-update-v2.json" || die "the update document is not version $VERSION"
 
 echo "release: the self-update trial"
-bash scripts/self-update-trial/trial.sh >/tmp/upkeep-release-trial.log 2>&1 || die "the self-update trial failed; see /tmp/upkeep-release-trial.log"
+bash scripts/self-update-trial/trial.sh >$OUT/trial.log 2>&1 || die "the self-update trial failed; see $OUT/trial.log"
 # The trial builds its own versions; build the release again so artifacts/ holds the release and nothing else.
-bun run build >/tmp/upkeep-release-build.log 2>&1 || die "the build failed; see /tmp/upkeep-release-build.log"
+bun run build >$OUT/build.log 2>&1 || die "the build failed; see $OUT/build.log"
 
-NOTES=/tmp/upkeep-release-notes-$VERSION.md
+NOTES=$OUT/notes-$VERSION.md
 python3 -I - "$VERSION" >"$NOTES" <<'PY'
 import re, sys
 text = open("CHANGELOG.md").read()

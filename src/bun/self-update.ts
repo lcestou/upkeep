@@ -51,6 +51,9 @@ export type SelfPorts = {
 	/** The hash automatic update skips, "" for none. */
 	failedHash: () => string;
 	setFailedHash: (hash: string) => void;
+	/** The hash of the last build the person was told about, "" for none, so each is announced once. */
+	notifiedHash: () => string;
+	setNotifiedHash: (hash: string) => void;
 	/** One History row for a settled attempt. */
 	history: (row: { from: string; to: string; result: "updated" | "rolled_back" }) => void;
 	log: (line: string) => void;
@@ -177,13 +180,22 @@ export function createSelf(p: SelfPorts): Self {
 		if (offered) set({ phase: "failed", from: offered.from, version: offered.version, why });
 	}
 
-	async function check(): Promise<string | null> {
-		if (state.phase === "preparing" || state.phase === "restarting") return null;
+	/** The check under way, if any: a restart waits for it, so none of its statuses is taken for the restart's own. */
+	let looking: Promise<string | null> | null = null;
+
+	/**
+	 * Looks at the release address once. Only a version newer than the running one, with a hash of the framework's own
+	 * shape, is an offer. A look that could not reach the address changes nothing: a build already downloaded and
+	 * tested is not thrown away for a dropped connection. Resolves with the version the first time this build is
+	 * offered on this machine, so it is announced once and not at every start.
+	 */
+	async function look(): Promise<string | null> {
 		const local = await p.local();
 		if (!local) return null;
 		const found = await p.check();
-		// Only a newer version is an update. The framework would take any other hash, an older release included.
-		if (found.error || !found.available || !newerSelf(local.version, found.version)) {
+		if (found.error) return null;
+		// The framework would take any other hash, an older release included.
+		if (!found.available || !newerSelf(local.version, found.version) || !/^[a-z0-9]{1,32}$/.test(found.hash)) {
 			if (state.phase === "available" || state.phase === "ready" || state.phase === "failed") {
 				offered = null;
 				tested = "";
@@ -191,47 +203,84 @@ export function createSelf(p: SelfPorts): Self {
 			}
 			return null;
 		}
+		const fresh = found.hash !== p.notifiedHash();
+		if (fresh) p.setNotifiedHash(found.hash);
 		if (offered?.hash === found.hash && state.phase !== "none") return null;
 		offered = { version: found.version, hash: found.hash, from: local.version };
 		tested = "";
 		// The notice that this very version was rolled back stays until the person has seen it; Try again works from it.
 		if (state.phase === "rolled-back" && found.hash === p.failedHash()) return null;
 		set({ phase: "available", from: local.version, version: found.version });
-		return found.version;
+		return fresh ? found.version : null;
 	}
 
+	/** One look at a time, and none while a version is being prepared or swapped in. Never rejects. */
+	async function check(): Promise<string | null> {
+		if (state.phase === "preparing" || state.phase === "restarting") return null;
+		if (looking) return looking;
+		looking = (async () => {
+			try {
+				return await look();
+			} catch (err) {
+				p.log(`self-update: the check failed: ${String(err)}`);
+				return null;
+			}
+		})();
+		try {
+			return await looking;
+		} finally {
+			looking = null;
+		}
+	}
+
+	/**
+	 * Pre-flight, download, start test. Whatever goes wrong, the running version is untouched and the row says so:
+	 * an exception here (a full disk, a folder that cannot be read) ends as a failed state, never as a stuck one.
+	 */
 	async function prepare(): Promise<void> {
 		if (state.phase === "preparing" || state.phase === "restarting" || state.phase === "ready") return;
 		// After a rollback or a restart the offer is gone from memory: look again.
 		if (!offered) await check();
 		const local = await p.local();
 		if (!offered || !local) return;
-		if (p.busy()) return fail(MESSAGES.selfBusy());
-		if (!p.hasShell()) return fail(MESSAGES.selfNoShell());
-		if (p.freeBytes(local.root) < ROOM * p.appBytes(join(local.root, "app"))) return fail(MESSAGES.selfNoSpace());
 		const want = offered;
-		set({ phase: "preparing", from: want.from, version: want.version });
-		const got = await p.download();
-		if (!got.ready || p.stagedHash() !== want.hash) {
-			p.log(`self-update: download failed: ${got.error || "the staged build is not the one offered"}`);
-			return fail(MESSAGES.selfDownload());
+		try {
+			if (p.busy()) return fail(MESSAGES.selfBusy());
+			if (!p.hasShell()) return fail(MESSAGES.selfNoShell());
+			if (p.freeBytes(local.root) < ROOM * p.appBytes(join(local.root, "app"))) return fail(MESSAGES.selfNoSpace());
+			set({ phase: "preparing", from: want.from, version: want.version });
+			const got = await p.download();
+			if (!got.ready || p.stagedHash() !== want.hash) {
+				p.log(`self-update: download failed: ${got.error || "the staged build is not the one offered"}`);
+				return fail(MESSAGES.selfDownload());
+			}
+			const answer = await p.startTest(local.root, want.hash);
+			if (answer !== startTestAnswer(want.hash, p.appCount())) {
+				p.log(`self-update: start test of ${want.version} answered ${JSON.stringify(answer)}`);
+				p.setFailedHash(want.hash);
+				// A build that will not start is not kept staged: it is a whole copy of the app.
+				rmSync(join(local.root, `app.prepared-${want.hash}`), { recursive: true, force: true });
+				return fail(MESSAGES.selfTestFailed(want.version));
+			}
+			tested = want.hash;
+			set({ phase: "ready", from: want.from, version: want.version });
+		} catch (err) {
+			p.log(`self-update: preparing ${want.version} threw: ${String(err)}`);
+			fail(MESSAGES.selfDownload());
 		}
-		const answer = await p.startTest(local.root, want.hash);
-		if (answer !== startTestAnswer(want.hash, p.appCount())) {
-			p.log(`self-update: start test of ${want.version} answered ${JSON.stringify(answer)}`);
-			p.setFailedHash(want.hash);
-			// A build that will not start is not kept staged: it is a whole copy of the app.
-			rmSync(join(local.root, `app.prepared-${want.hash}`), { recursive: true, force: true });
-			return fail(MESSAGES.selfTestFailed(want.version));
-		}
-		tested = want.hash;
-		set({ phase: "ready", from: want.from, version: want.version });
 	}
 
+	/**
+	 * Keeps the old version and the person's files, records the attempt, and asks the framework to swap. It returns
+	 * only when the restart did not happen, and then nothing of the attempt is left for the start script to act on.
+	 * The kept copy is made before the framework is asked, so a swap never happens without one.
+	 */
 	async function restart(): Promise<void> {
 		if (state.phase !== "ready" || !offered || p.busy()) return;
+		// A check under way would report through the framework's one status slot while the swap is asked for.
+		if (looking) await looking;
 		const local = await p.local();
-		if (!local) return;
+		if (!local || state.phase !== "ready" || !offered || p.busy()) return;
 		const want = offered;
 		// Checked again here: a later check may have staged something else since the test passed.
 		if (!newerSelf(local.version, want.version) || tested !== want.hash || p.stagedHash() !== want.hash) {
@@ -258,35 +307,61 @@ export function createSelf(p: SelfPorts): Self {
 		set({ phase: "restarting", from: want.from, version: want.version });
 		await p.apply();
 		// Still here: the quit did not happen. Nothing was swapped, so the attempt is taken back.
-		unwind(local.root);
-		await p.stayUp();
+		try {
+			unwind(local.root);
+			await p.stayUp();
+		} catch (err) {
+			p.log(`self-update: could not go back to normal after a refused restart: ${String(err)}`);
+		}
 		set({ phase: "ready", from: want.from, version: want.version });
 	}
 
+	/**
+	 * What the last attempt came to, read from what is beside the app folder. Each step stands alone: one that fails
+	 * (a full or read-only folder) is logged and the rest still run, because an attempt left on disk would make the
+	 * start script put a healthy version back. The marker is written before anything optional.
+	 */
 	async function settle(): Promise<boolean | null> {
 		const local = await p.local();
 		if (!local) return null;
-		installShim(local.root);
+		/** Runs one step; a failure is logged and does not stop the next. */
+		const step = (what: string, run: () => void) => {
+			try {
+				run();
+			} catch (err) {
+				p.log(`self-update: settling: ${what}: ${String(err)}`);
+			}
+		};
 		const attempt = readAttempt(local.root);
 		const rolledFile = join(local.root, SELF_FILES.rolledBack);
-		const rolled = existsSync(rolledFile) ? readFileSync(rolledFile, "utf8").trim() : "";
+		let rolled = "";
+		step("reading the rollback note", () => {
+			rolled = existsSync(rolledFile) ? readFileSync(rolledFile, "utf8").trim() : "";
+		});
+		// This version is up: the start script reads the marker as "it has started".
+		step("writing the marker", () => writeFileSync(join(local.root, okMarker(local.hash)), ""));
+		step("removing the attempt", () => rmSync(join(local.root, SELF_FILES.attempt), { force: true }));
+		step("removing the rollback note", () => rmSync(rolledFile, { force: true }));
 		let window: boolean | null = null;
 		if (rolled) {
+			// Without the attempt the version that failed has no name; the build is still skipped from now on.
 			const to = attempt?.toHash === rolled ? attempt.toVersion : "";
-			p.setFailedHash(rolled);
-			p.history({ from: local.version, to, result: "rolled_back" });
+			step("recording the build that failed", () => p.setFailedHash(rolled));
 			// The tree that would not start stays for a bug report, until the next attempt.
-			clearKept(local.root, false);
-			set({ phase: "rolled-back", from: local.version, version: to });
+			step("clearing the kept copy", () => clearKept(local.root, false));
+			if (to) {
+				step("history", () => p.history({ from: local.version, to, result: "rolled_back" }));
+				set({ phase: "rolled-back", from: local.version, version: to });
+			}
 			window = attempt?.window ?? null;
 		} else if (attempt?.toHash === local.hash) {
-			p.history({ from: attempt.fromVersion, to: local.version, result: "updated" });
-			clearKept(local.root, true);
+			step("history", () => p.history({ from: attempt.fromVersion, to: local.version, result: "updated" }));
+			step("clearing the kept copy", () => clearKept(local.root, true));
 			set({ phase: "updated", from: attempt.fromVersion, version: local.version });
 			window = attempt.window;
 		} else if (attempt?.fromHash === local.hash) {
 			// The framework's helper put this version back itself, or never swapped.
-			clearKept(local.root, true);
+			step("clearing the kept copy", () => clearKept(local.root, true));
 			set({
 				phase: "failed",
 				from: local.version,
@@ -296,23 +371,31 @@ export function createSelf(p: SelfPorts): Self {
 			window = attempt.window;
 		} else if (attempt) {
 			// An attempt between two other versions, left behind by an install made by hand.
-			clearKept(local.root, true);
+			step("clearing the kept copy", () => clearKept(local.root, true));
 		}
-		rmSync(rolledFile, { force: true });
-		rmSync(join(local.root, SELF_FILES.attempt), { force: true });
-		// This version is up: the start script reads the marker as "it has started".
-		writeFileSync(join(local.root, okMarker(local.hash)), "");
-		for (const name of readdirSync(local.root))
-			if (name.startsWith(okMarker("")) && name !== okMarker(local.hash))
-				rmSync(join(local.root, name), { force: true });
+		step("removing older markers", () => {
+			for (const name of readdirSync(local.root))
+				if (name.startsWith(okMarker("")) && name !== okMarker(local.hash))
+					rmSync(join(local.root, name), { force: true });
+		});
+		step("writing the start script", () => installShim(local.root));
 		return window;
 	}
 
+	/**
+	 * The unattended path: prepares an offered version and restarts into a tested one, each only while the switch is
+	 * on, the window is hidden and nothing is busy. A build that failed before is left for the person to try.
+	 */
 	async function auto(): Promise<void> {
-		if (!p.autoOn() || p.busy() || p.windowOpen()) return;
-		if (state.phase === "available" && offered && offered.hash !== p.failedHash()) await prepare();
-		// Asked again: the test takes a while, and the window may have been opened meanwhile.
-		if (state.phase === "ready" && !p.busy() && !p.windowOpen()) await restart();
+		try {
+			if (!p.autoOn() || p.busy() || p.windowOpen()) return;
+			if (state.phase === "available" && offered && offered.hash !== p.failedHash()) await prepare();
+			// Asked again: the test takes a while, and the window may have been opened meanwhile.
+			if (state.phase === "ready" && !p.busy() && !p.windowOpen()) await restart();
+		} catch (err) {
+			// Called with nobody waiting on it (a window being hidden): it must never reject.
+			p.log(`self-update: the automatic update threw: ${String(err)}`);
+		}
 	}
 
 	return {

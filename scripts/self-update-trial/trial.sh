@@ -7,11 +7,13 @@
 # One case again, reusing the builds:         UPKEEP_TRIAL_DIR=/tmp/upkeep-trial.XXXX bash scripts/self-update-trial/trial.sh T8
 #
 # It needs Xvfb, dbus-run-session, xdotool, python3 and unshare, and port 8765 free on 127.0.0.1. It builds six
-# versions (about five minutes), then runs the cases (about six). It never touches the real home: every path it
-# writes is under its work folder, which it leaves in place for a look afterwards. It deletes nothing.
+# versions (about five minutes), then runs the cases (about six). It never touches the real home: the installs, the
+# homes and the logs are under its work folder, which it leaves in place for a look afterwards.
 #
-# A faulty build is this same source with one line added near the top of src/bun/index.ts for the build, then taken
-# out again; no test hook lives in the app.
+# In this checkout it changes three things. Each build replaces `artifacts/` and `build/`. And a faulty build is this
+# same source with one line added near the top of src/bun/index.ts, taken out again when that build ends (and by the
+# exit trap if the run is stopped): no test hook lives in the app. So start on a clean tree, and leave that file
+# alone while this runs.
 set -u
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
@@ -389,6 +391,11 @@ kill -0 "$SERVER" 2>/dev/null || {
 	exit 2
 }
 DISPLAY_N=${UPKEEP_TRIAL_DISPLAY:-97}
+# A display that is already someone's would put the trial's windows on their screen.
+if [ -e "/tmp/.X$DISPLAY_N-lock" ]; then
+	echo "display :$DISPLAY_N is in use; set UPKEEP_TRIAL_DISPLAY to a free number"
+	exit 2
+fi
 Xvfb ":$DISPLAY_N" -screen 0 1280x800x24 -nolisten tcp >/dev/null 2>&1 &
 XVFB=$!
 export DISPLAY=":$DISPLAY_N"

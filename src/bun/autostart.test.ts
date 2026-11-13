@@ -75,17 +75,43 @@ test("an entry can start Upkeep through the start script, and what it writes run
 	expect(readFileSync(log, "utf8")).toBe("bg=1\n");
 });
 
-test("a menu entry's Exec line is replaced once, and a file without one is left alone", () => {
+test("a menu entry's own Exec line is replaced once; the person's line, other sections and line endings are left alone", () => {
 	const dir = configDir();
 	mkdirSync(dir, { recursive: true });
 	const file = join(dir, "Upkeep.desktop");
-	expect(syncMenuExec(file, ["sh", "-c", "x"])).toBe(false);
-	writeFileSync(file, "[Desktop Entry]\nName=Upkeep\nExec=/old/app/bin/launcher\nIcon=/i\n");
-	expect(syncMenuExec(file, ["sh", "-c", 'echo "$0"', "/root dir"])).toBe(true);
-	expect(readFileSync(file, "utf8")).toBe(
-		'[Desktop Entry]\nName=Upkeep\nExec="sh" "-c" "echo \\\\"\\\\$0\\\\"" "/root dir"\nIcon=/i\n',
+	const launcher = "/h/stable/app/bin/launcher";
+	const sync = (command: string[]) => syncMenuExec(file, command, launcher, "upkeep-start.sh");
+	expect(sync(["sh", "-c", "x"])).toBe(false);
+	// As the installer writes it: the line starts this install's launcher.
+	writeFileSync(file, `[Desktop Entry]\nName=Upkeep\nExec=${launcher}\nIcon=/i\n`);
+	expect(sync(["sh", "-c", 'echo "$0" upkeep-start.sh', "/root dir"])).toBe(true);
+	const mine = 'Exec="sh" "-c" "echo \\\\"\\\\$0\\\\" upkeep-start.sh" "/root dir"';
+	expect(readFileSync(file, "utf8")).toBe(`[Desktop Entry]\nName=Upkeep\n${mine}\nIcon=/i\n`);
+	expect(sync(["sh", "-c", 'echo "$0" upkeep-start.sh', "/root dir"])).toBe(false);
+	// A line that already runs the start script is Upkeep's too, and follows a moved install.
+	expect(sync(["sh", "-c", "upkeep-start.sh", "/moved"])).toBe(true);
+
+	// A line the person wrote themselves is never replaced.
+	const theirs = "[Desktop Entry]\nName=Upkeep\nExec=env GDK_SCALE=2 /opt/my-upkeep-wrapper\n";
+	writeFileSync(file, theirs);
+	expect(sync(["sh"])).toBe(false);
+	expect(readFileSync(file, "utf8")).toBe(theirs);
+
+	// Only the main section's line: an action listed first keeps its own command.
+	writeFileSync(
+		file,
+		`[Desktop Action Check]\nExec=${launcher} --check\n\n[Desktop Entry]\nName=Upkeep\nExec=${launcher}\n`,
 	);
-	expect(syncMenuExec(file, ["sh", "-c", 'echo "$0"', "/root dir"])).toBe(false);
+	expect(sync(["sh", "x"])).toBe(true);
+	expect(readFileSync(file, "utf8")).toBe(
+		`[Desktop Action Check]\nExec=${launcher} --check\n\n[Desktop Entry]\nName=Upkeep\nExec="sh" "x"\n`,
+	);
+
+	// Windows line endings stay as they were, on the changed line too.
+	writeFileSync(file, `[Desktop Entry]\r\nName=Upkeep\r\nExec=${launcher}\r\nIcon=/i\r\n`);
+	expect(sync(["sh"])).toBe(true);
+	expect(readFileSync(file, "utf8")).toBe('[Desktop Entry]\r\nName=Upkeep\r\nExec="sh"\r\nIcon=/i\r\n');
+
 	writeFileSync(file, "[Desktop Entry]\nName=Upkeep\n");
-	expect(syncMenuExec(file, ["sh"])).toBe(false);
+	expect(sync(["sh"])).toBe(false);
 });

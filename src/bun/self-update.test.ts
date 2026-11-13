@@ -29,6 +29,7 @@ function setup(over: Partial<SelfPorts> = {}, running = OLD) {
 	const did: string[] = [];
 	const seen: SelfState[] = [];
 	let failed = "";
+	let told = "";
 	const ports: SelfPorts = {
 		local: async () => ({ ...running, root }),
 		check: async () => ({ ...NEW, available: true, error: "" }),
@@ -52,6 +53,10 @@ function setup(over: Partial<SelfPorts> = {}, running = OLD) {
 			failed = hash;
 			did.push(`failed ${hash}`);
 		},
+		notifiedHash: () => told,
+		setNotifiedHash: (hash) => {
+			told = hash;
+		},
 		history: (row) => void did.push(`history ${row.from} ${row.to} ${row.result}`),
 		log: (line) => void did.push(`log ${line}`),
 		...over,
@@ -68,6 +73,117 @@ test("a newer version is offered once, and the same one is not announced again",
 	expect(self.snapshot()).toEqual({ phase: "available", from: "0.1.0", version: "0.1.1" });
 	expect(await self.check()).toBeNull();
 	expect(self.snapshot().phase).toBe("available");
+});
+
+test("a version is announced once on a machine, not again after Upkeep starts anew", async () => {
+	let told = "";
+	const memory = { notifiedHash: () => told, setNotifiedHash: (hash: string) => void (told = hash) };
+	const first = setup(memory);
+	expect(await first.self.check()).toBe("0.1.1");
+	// The next day's start: the same build is offered on the row again, and nobody is told twice.
+	const next = setup(memory);
+	expect(await next.self.check()).toBeNull();
+	expect(next.self.snapshot()).toEqual({ phase: "available", from: "0.1.0", version: "0.1.1" });
+	// A newer build is news again.
+	const later = setup({
+		...memory,
+		check: async () => ({ version: "0.1.2", hash: "thirdhash3", available: true, error: "" }),
+	});
+	expect(await later.self.check()).toBe("0.1.2");
+});
+
+test("a look that cannot reach the address changes nothing: a tested build is kept", async () => {
+	let error = "";
+	const { self } = setup({ check: async () => ({ ...NEW, available: true, error }) });
+	await self.prepare();
+	expect(self.snapshot().phase).toBe("ready");
+	error = "ConnectionRefused";
+	expect(await self.check()).toBeNull();
+	expect(self.snapshot()).toEqual({ phase: "ready", from: "0.1.0", version: "0.1.1" });
+	// And a check that throws is logged, never passed on.
+	const thrown = setup({
+		check: async () => {
+			throw new Error("boom");
+		},
+	});
+	expect(await thrown.self.check()).toBeNull();
+	expect(thrown.did).toEqual(["log self-update: the check failed: Error: boom"]);
+});
+
+test("a hash that is not the framework's shape is never offered: it names folders beside the app", async () => {
+	await Promise.all(
+		["../../x", "ABC", "a b", "", "a/b", "x".repeat(33)].map(async (hash) => {
+			const { self } = setup({ check: async () => ({ version: "0.1.1", hash, available: true, error: "" }) });
+			expect(await self.check(), hash).toBeNull();
+			expect(self.snapshot(), hash).toEqual({ phase: "none" });
+		}),
+	);
+});
+
+test("an exception while preparing ends as a failed row, never a stuck one, and nothing was changed", async () => {
+	const cases: Partial<SelfPorts>[] = [
+		{
+			freeBytes: () => {
+				throw new Error("statfs: EACCES");
+			},
+		},
+		{
+			download: async () => {
+				throw new Error("spawn failed");
+			},
+		},
+		{
+			startTest: async () => {
+				throw new Error("ENOSPC");
+			},
+		},
+		{
+			setFailedHash: () => {
+				throw new Error("state.json: ENOSPC");
+			},
+			startTest: async () => null,
+		},
+	];
+	await Promise.all(
+		cases.map(async (over) => {
+			const { self } = setup(over);
+			await self.prepare();
+			expect(self.snapshot()).toMatchObject({ phase: "failed", why: MESSAGES.selfDownload() });
+			expect(readdirSync(root)).toEqual(["app"]);
+			await self.restart();
+		}),
+	);
+});
+
+test("a restart waits for a check under way, so none of that check's statuses is taken for the restart's", async () => {
+	let release: (v: { version: string; hash: string; available: boolean; error: string }) => void = () => {};
+	let slow = false;
+	const { self, did } = setup({
+		check: () => (slow ? new Promise((r) => (release = r)) : Promise.resolve({ ...NEW, available: true, error: "" })),
+	});
+	await self.prepare();
+	slow = true;
+	const looking = self.check();
+	const restarting = self.restart();
+	await Bun.sleep(5);
+	// The framework has not been asked to swap while the check is still out.
+	expect(did).not.toContain("apply");
+	release({ ...NEW, available: true, error: "" });
+	await looking;
+	await restarting;
+	expect(did).toContain("apply");
+});
+
+test("going back to normal after a refused restart cannot throw: the row is usable again", async () => {
+	const { self } = setup({
+		stayUp: async () => {
+			throw new Error("socket: EADDRINUSE");
+		},
+	});
+	await self.prepare();
+	await self.restart();
+	expect(self.snapshot().phase).toBe("ready");
+	expect(readdirSync(root)).toEqual(["app"]);
 });
 
 test("an older or equal version is never offered, whatever the framework says about its hash", async () => {
@@ -362,6 +478,34 @@ test("settle after the start script rolled back: says so, skips that build from 
 	expect(self.snapshot().phase).toBe("ready");
 });
 
+test("settle writes the marker and removes the attempt even when a later step fails", async () => {
+	writeAttempt(root, ATTEMPT);
+	// History cannot be written (a full disk): the attempt must still not survive, or the start script would put
+	// this healthy version back at the next click.
+	const { self, did } = setup(
+		{
+			history: () => {
+				throw new Error("history.jsonl: ENOSPC");
+			},
+		},
+		NEW,
+	);
+	expect(await self.settle()).toBe(true);
+	expect(existsSync(join(root, okMarker(NEW.hash)))).toBe(true);
+	expect(existsSync(join(root, SELF_FILES.attempt))).toBe(false);
+	expect(self.snapshot().phase).toBe("updated");
+	expect(did).toEqual(["log self-update: settling: history: Error: history.jsonl: ENOSPC"]);
+});
+
+test("a rollback note with no attempt beside it still skips that build, and shows no row it cannot word", async () => {
+	writeFileSync(join(root, SELF_FILES.rolledBack), `${NEW.hash}\n`);
+	const { self, did } = setup();
+	expect(await self.settle()).toBeNull();
+	expect(self.snapshot()).toEqual({ phase: "none" });
+	expect(did).toEqual([`failed ${NEW.hash}`]);
+	expect(existsSync(join(root, SELF_FILES.rolledBack))).toBe(false);
+});
+
 test("settle when the swap never happened: the old version says the update was not applied", async () => {
 	writeAttempt(root, ATTEMPT);
 	mkdirSync(join(root, SELF_FILES.keep));
@@ -433,6 +577,17 @@ test("automatic update needs the switch on, the window hidden and nothing busy, 
 	open = false;
 	await opened.self.auto();
 	expect(opened.did).toContain("apply");
+});
+
+test("the automatic update never rejects, whatever a port throws", async () => {
+	const { self, did } = setup({
+		autoOn: () => {
+			throw new Error("state.json unreadable");
+		},
+	});
+	await self.check();
+	await self.auto();
+	expect(did).toEqual(["log self-update: the automatic update threw: Error: state.json unreadable"]);
 });
 
 test("a build that failed its test on its own is not tried again automatically, and a newer one is", async () => {

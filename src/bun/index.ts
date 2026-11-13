@@ -16,7 +16,7 @@ import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
 import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
-import { entryArgv } from "./self-shim";
+import { entryArgv, SELF_FILES } from "./self-shim";
 import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
@@ -51,6 +51,8 @@ const deps = {
 
 let win: BrowserWindow | null = null;
 let quitting = false;
+// Set when the quit handler gave the instance socket away, so a quit that then did not happen takes it back.
+let socketFreed = false;
 let quitAfterRun = false;
 // The tray's Quit during a System install: Upkeep quits once the install ends, never in the middle of it.
 let quitAfterSystem = false;
@@ -195,8 +197,17 @@ if (!selftest && (await claimInstance(deps.paths.socket, openWindow)) === "secon
 
 // SIGTERM at logout and the framework's own quit paths skip quit(): let the window close and free the socket. A
 // System install still running is ended with its whole process group, so no root command outlives Upkeep unseen.
-Electrobun.events.on("before-quit", () => {
+Electrobun.events.on("before-quit", (event) => {
+	// Upkeep's own restart was asked for a moment before an install began (the kept copy takes a second to make, and
+	// a press made meanwhile is served right after it). The install wins: the restart is refused, self-update hears
+	// that as "staying up" and takes its attempt back. Nothing else is ever refused here, logout least of all.
+	if (selfApi.snapshot().phase === "restarting" && installing()) {
+		// SAFETY: the framework passes a plain event object whose `response` field it reads back after the handlers run; the type does not declare it.
+		(event as { response?: { allow: boolean } }).response = { allow: false };
+		return;
+	}
 	quitting = true;
+	socketFreed = true;
 	extras.stopSystem();
 	releaseInstance(deps.paths.socket);
 });
@@ -225,7 +236,7 @@ function applyLoginSetting(): void {
 	// self-update first; each falls back to the launcher when the script is not there.
 	const command = entryArgv(dirname(dirname(dirname(launcher))));
 	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, command, appIcon);
-	syncMenuExec(join(dirname(deps.paths.data), "applications", "Upkeep.desktop"), command);
+	syncMenuExec(join(dirname(deps.paths.data), "applications", "Upkeep.desktop"), command, launcher, SELF_FILES.shim);
 }
 
 /** Upkeep's own update. Absent in a start test, which must not look for updates or settle anything. */
@@ -238,9 +249,13 @@ const self: Self | null = selftest
 				deps,
 				env: process.env,
 				windowOpen: () => win?.isVisible() ?? false,
-				// The framework asked the quit handler before it gave up: undo what the handler did.
+				// The framework asked the quit handler before it gave up: undo what the handler did. The socket is
+				// claimed again only when it was given away; asking for a socket Upkeep still owns would only make it
+				// show its own window.
 				stayUp: async () => {
 					quitting = false;
+					if (!socketFreed) return;
+					socketFreed = false;
 					await claimInstance(deps.paths.socket, openWindow);
 				},
 			}),
