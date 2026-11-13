@@ -711,6 +711,15 @@ export const WIN = {
 	get tagline() {
 		return "Keeps the apps your package manager misses up to date.";
 	},
+	get whatsNew() {
+		return "What's new";
+	},
+	get reportBug() {
+		return "Report a bug";
+	},
+	get onGitHub() {
+		return "Upkeep on GitHub";
+	},
 } as const;
 
 /** The System group: the system's own pending updates, read-only unless installing is switched on. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */

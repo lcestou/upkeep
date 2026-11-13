@@ -4,6 +4,7 @@
 
 First version.
 
+- Settings, under About, has What's new, Report a bug and Upkeep on GitHub. A bug report opens a new issue with the version, the distribution and the desktop already filled in.
 - A command-line tool that was running while it updated (uv inside a long-running uvx, say) no longer asks to be restarted: the row reads updated, with a note that the running copy keeps the old version until it exits. Apps with a window, packages and services still ask.
 - Upkeep picks release files for arm64 (aarch64) machines as well as x86_64: it reads the machine's architecture, Add app offers only that machine's builds, and a table can name its arm64 file with `asset_aarch64`, which 37 catalogue apps now do. A catalogue app with no arm64 build is not offered on arm64, and an app moved from a machine of the other architecture says its table names no file for this one.
 - A Cleanup tab, behind "Show Cleanup" in Settings (off by default), measures thumbnails, the Trash, Upkeep's leftover copies, restore points, apt's package cache, old NVIDIA Flatpak runtimes, packages nothing needs and, behind a second switch, the uv, bun, npm and pip caches, and deletes only what you tick after a review sheet that names the total and every command. It does not run while an interrupted update waits to be put back, and History shows an item it left alone as skipped.

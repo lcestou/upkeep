@@ -32,6 +32,12 @@
 		{ v: "rounded", t: WIN.cornersRounded },
 		{ v: "square", t: WIN.cornersSquare },
 	] as const);
+	// $derived: the labels follow a language switch. The main process builds each address; the view only names it.
+	const ABOUT_LINKS = $derived([
+		{ what: "changelog", label: WIN.whatsNew },
+		{ what: "bug", label: WIN.reportBug },
+		{ what: "repo", label: WIN.onGitHub },
+	] as const);
 	// $derived: the labels follow a language switch.
 	const sides = $derived([
 		{ v: "auto", t: WIN.buttonsAuto },
@@ -271,6 +277,21 @@
 		<span class="lockup" role="img" aria-label={WIN.word}>{@html lockup}</span>
 		<p class="about-version" data-testid="version">{versionText(model.version)}</p>
 		<p class="about-line">{WIN.tagline}</p>
+		<div class="about-links">
+			{#each ABOUT_LINKS as link (link.what)}
+				<button
+					type="button"
+					class="btn small"
+					data-testid="about-{link.what}"
+					onclick={() => model.send("open", { what: link.what })}
+				>
+					{link.label}
+					<svg class="ext" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"
+						><path d="M9.5 2.5h4v4M13.5 2.5 7.5 8.5M12 9.5v3.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-8a.5.5 0 0 1 .5-.5H7" /></svg
+					>
+				</button>
+			{/each}
+		</div>
 	</div>
 
 	<div class="meta">
@@ -405,6 +426,19 @@
 	.about-line {
 		margin-top: var(--s1) !important;
 		color: var(--text-2);
+	}
+	.ext {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.about-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--s2);
+		margin-top: var(--s3);
 	}
 	.meta {
 		max-width: 560px;

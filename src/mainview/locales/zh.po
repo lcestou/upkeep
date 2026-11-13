@@ -2462,3 +2462,15 @@ msgstr "{0}：{1} 不是有效的正则表达式"
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
 msgstr "已更新。正在运行的 {0} 副本在退出前仍是旧版本；新的运行会使用新版本。"
+
+#: src/mainview/lib/copy.ts
+msgid "What's new"
+msgstr "更新内容"
+
+#: src/mainview/lib/copy.ts
+msgid "Report a bug"
+msgstr "报告问题"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep on GitHub"
+msgstr "GitHub 上的 Upkeep"

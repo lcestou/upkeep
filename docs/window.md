@@ -8,6 +8,10 @@ Upkeep draws its own title bar: the header is the drag area, a double click on i
 
 Changing the frame or the corners rebuilds the window, which takes a moment.
 
+## About
+
+**About** in Settings shows the version and three links: **What's new** opens the changelog, **Report a bug** opens a new issue with the version, the distribution and the desktop already filled in, and **Upkeep on GitHub** opens the repo. Nothing is sent anywhere: each opens a page in your browser.
+
 ## Moving to another computer
 
 **Export** in Settings, beside Open apps.toml, saves the settings and the app list as one file in a folder you pick; **Import** replaces them from such a file and checks again. The command line does the same with `upkeep export` and `upkeep import` (see [For scripts and agents](command-line.md#for-scripts-and-agents)).

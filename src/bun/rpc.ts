@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { BrowserView, Utils } from "electrobun/main";
 import type { Engine, EngineDeps } from "../engine/engine";
 import type { UpkeepRPC } from "../mainview/lib/bridge";
@@ -24,6 +25,13 @@ const desktop: Desktop = {
 		}),
 	spawnDetached: (argv) => {
 		Bun.spawn(argv, { stdin: "ignore", stdout: "ignore", stderr: "ignore" }).unref();
+	},
+	osRelease: () => {
+		try {
+			return readFileSync("/etc/os-release", "utf8");
+		} catch {
+			return "";
+		}
 	},
 };
 

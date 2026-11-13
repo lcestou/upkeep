@@ -2483,3 +2483,15 @@ msgstr "{0}: {1} is not a valid regular expression"
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
 msgstr "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
+
+#: src/mainview/lib/copy.ts
+msgid "What's new"
+msgstr "What's new"
+
+#: src/mainview/lib/copy.ts
+msgid "Report a bug"
+msgstr "Report a bug"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep on GitHub"
+msgstr "Upkeep on GitHub"

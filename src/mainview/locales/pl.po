@@ -2525,3 +2525,15 @@ msgstr "{0}: {1} nie jest poprawnym wyrażeniem regularnym"
 #: src/mainview/lib/engine-text.ts
 msgid "Updated. A copy of {0} that was running keeps the old version until it exits; new runs use the new one."
 msgstr "Zaktualizowano. Działająca kopia {0} zachowuje starą wersję, dopóki się nie zakończy; nowe uruchomienia używają nowej."
+
+#: src/mainview/lib/copy.ts
+msgid "What's new"
+msgstr "Co nowego"
+
+#: src/mainview/lib/copy.ts
+msgid "Report a bug"
+msgstr "Zgłoś błąd"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep on GitHub"
+msgstr "Upkeep na GitHubie"

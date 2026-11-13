@@ -471,7 +471,10 @@ export type Requests = {
 	setSettings: { params: Partial<Settings>; response: Settings };
 	history: { params: { limit: number }; response: HistoryRow[] };
 	runLog: { params: { runId: string }; response: LogLine[] };
-	open: { params: { what: "manifest" | "log" | "release"; key?: string }; response: { ok: boolean } };
+	open: {
+		params: { what: "manifest" | "log" | "release" | "changelog" | "bug" | "repo"; key?: string };
+		response: { ok: boolean };
+	};
 	copy: { params: { text: string }; response: { ok: boolean } };
 	chrome: { params: Record<string, never>; response: WindowChrome };
 	/** Asks for a folder and writes the settings and app list there as one file. Cancelled: ok false with no problem. */
