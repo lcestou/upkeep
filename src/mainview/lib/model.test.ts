@@ -91,6 +91,7 @@ describe("events", () => {
 				buttons: "auto",
 				corners: "rounded",
 				language: "system",
+				selfAuto: false,
 			},
 			rate: null,
 			checkedAt: null,

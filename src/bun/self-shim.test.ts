@@ -366,10 +366,15 @@ test("the kept files skip what cannot be listed, and settling removes everything
 	tree(SELF_FILES.failed, NEW);
 	tree(`${SELF_FILES.failed}.4242`, "earlier");
 	tree("app", NEW);
-	clearKept(root);
+	// After a rollback the tree that would not start is left for a bug report.
+	clearKept(root, false);
+	expect(readdirSync(root).toSorted()).toEqual(
+		["app", SELF_FILES.failed, `${SELF_FILES.failed}.4242`, SELF_FILES.shim].toSorted(),
+	);
+	clearKept(root, true);
 	expect(readdirSync(root).toSorted()).toEqual(["app", SELF_FILES.shim]);
 	// A root that is not absolute is never cleared.
-	clearKept("");
+	clearKept("", true);
 });
 
 test("an attempt is read back as written, and anything else reads as none", () => {

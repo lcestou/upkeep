@@ -58,6 +58,23 @@ function fakeProc(pid: number, start: string): void {
 	writeFileSync(join(proc, String(pid), "stat"), `${pid} (we (ird) ${after.join(" ")}`);
 }
 
+test("the self-update switch and the skipped build survive a write that changes something else", () => {
+	updateState(t.paths, (s) => {
+		s.settings.selfAuto = true;
+		s.selfFailed = "abc123";
+	});
+	updateState(t.paths, (s) => {
+		s.skip.fd = "10.5.2";
+	});
+	const state = loadState(t.paths);
+	expect(state.settings.selfAuto).toBe(true);
+	expect(state.selfFailed).toBe("abc123");
+	// A value of the wrong kind in a hand-edited file reads as the default.
+	writeFileSync(join(t.paths.state, "state.json"), JSON.stringify({ selfFailed: 7, settings: { selfAuto: "yes" } }));
+	expect(loadState(t.paths).selfFailed).toBe("");
+	expect(loadState(t.paths).settings.selfAuto).toBe(false);
+});
+
 test("state defaults, and updateState merges one change into what is on disk", () => {
 	expect(loadState(t.paths)).toEqual({
 		skip: {},
@@ -72,9 +89,11 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			buttons: "auto",
 			corners: "rounded",
 			language: "system",
+			selfAuto: false,
 		},
 		notified: "",
 		restart: {},
+		selfFailed: "",
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";

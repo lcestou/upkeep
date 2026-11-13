@@ -260,7 +260,23 @@ export type Settings = {
 	corners: "rounded" | "square";
 	/** The window's and the tray's language. "system" follows the desktop's; a code from LANGUAGES is the person's pick. */
 	language: LanguageSetting;
+	/** Upkeep installs its own new version while it sits in the tray, and restarts. Off: it tells the person and waits. */
+	selfAuto: boolean;
 };
+
+/**
+ * Where Upkeep's own update stands. "ready" means downloaded, verified and started once as a test: only a restart is
+ * left. "failed" changed nothing; "rolled-back" means the start script put the version before back.
+ */
+export type SelfState =
+	| { phase: "none" }
+	| { phase: "available"; from: string; version: string }
+	| { phase: "preparing"; from: string; version: string }
+	| { phase: "ready"; from: string; version: string }
+	| { phase: "restarting"; from: string; version: string }
+	| { phase: "failed"; from: string; version: string; why: string }
+	| { phase: "rolled-back"; from: string; version: string }
+	| { phase: "updated"; from: string; version: string };
 
 export type WindowButton = "close" | "minimize" | "maximize";
 

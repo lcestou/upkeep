@@ -229,11 +229,15 @@ export function keepConfig(root: string, files: string[]): void {
 	writeFileSync(join(dir, "where"), where.map((l) => `${l}\n`).join(""));
 }
 
-/** Removes what an attempt left once it is settled: the kept copy, the kept files, and any tree set aside. */
-export function clearKept(root: string): void {
+/**
+ * Removes what an attempt left once it is settled: the kept copy and the kept files, and with failedToo every tree
+ * set aside. After a rollback the tree that would not start is left for a bug report, until the next attempt.
+ */
+export function clearKept(root: string, failedToo: boolean): void {
 	if (!isAbsolute(root)) return;
 	rmSync(join(root, SELF_FILES.keep), { recursive: true, force: true });
 	rmSync(join(root, SELF_FILES.configKeep), { recursive: true, force: true });
+	if (!failedToo) return;
 	for (const name of readdirSync(root))
 		if (name === SELF_FILES.failed || name.startsWith(`${SELF_FILES.failed}.`))
 			rmSync(join(root, name), { recursive: true, force: true });

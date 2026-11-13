@@ -637,6 +637,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		buttons: "auto",
 		corners: opts.corners ?? "rounded",
 		language: "system",
+		selfAuto: false,
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",

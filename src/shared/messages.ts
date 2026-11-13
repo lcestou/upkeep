@@ -467,6 +467,20 @@ export const MESSAGES = {
 	cleanCouldNotDelete: (v0: Value, v1: Value) => `Could not delete ${v0}: ${v1}`,
 	/** extras/cleanup.ts. {0} path that is a link, outside the folder, or on another file system */
 	cleanRefusedPath: (v0: Value) => `Left ${v0} alone: it is not inside the folder being cleaned.`,
+	/** bun/self-update.ts: the pre-flight found too little room for the download, the test copy and the kept copy */
+	selfNoSpace: () => `Not enough free space to update Upkeep.`,
+	/** bun/self-update.ts: the start script needs a shell */
+	selfNoShell: () => `Cannot update Upkeep here: /bin/sh is missing.`,
+	/** bun/self-update.ts: the framework could not download or verify the new version */
+	selfDownload: () => `Could not download the update. Nothing was changed.`,
+	/** bun/self-update.ts: refused while a run, a check, a system install, a cleanup or a restore is going */
+	selfBusy: () => `Finish what is running first.`,
+	/** bun/self-update.ts. {0} the new version, which did not come up when started as a test before the swap */
+	selfTestFailed: (v0: Value) => `Upkeep ${v0} failed its start test, so nothing was changed.`,
+	/** bun/self-update.ts. {0} the new version, whose swap did not happen */
+	selfNotApplied: (v0: Value) => `The update to Upkeep ${v0} was not applied. Nothing was changed.`,
+	/** bun/self-update.ts. {0} the new version, which the start script replaced with the one before it */
+	selfRolledBack: (v0: Value) => `Upkeep ${v0} would not start, so the version before it was put back.`,
 } satisfies Record<string, (...values: Value[]) => string>;
 
 export type MessageId = keyof typeof MESSAGES;
