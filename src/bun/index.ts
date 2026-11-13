@@ -285,10 +285,12 @@ function makeRpc(onSnapshot?: () => void) {
 	return defineUpkeepRpc(engine, deps, {
 		self: selfApi,
 		onSnapshot,
+		// The frame first: a login entry or menu entry that cannot be written throws, and must not keep the frame back.
 		onSettings: () => {
-			applyLoginSetting();
 			followFrameSetting();
+			applyLoginSetting();
 		},
+		applyEntries: applyLoginSetting,
 		chrome,
 		windowOp,
 		// The webview's own list comes from the C locale, which ignores LANGUAGE and falls back to English when the

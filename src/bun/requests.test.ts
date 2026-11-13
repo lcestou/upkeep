@@ -28,8 +28,9 @@ update = ["tool", "up"]
 let selfState: SelfState = { phase: "none" };
 // Only the test about the snapshot hook listens for it.
 let watchSnapshots = false;
-// How many times a request asked the main process to apply the settings (login entry, menu entry, upkeep command).
-let settingsApplied = 0;
+// What each request asked the main process to apply: the frame and entries, or the entries alone with the upkeep
+// command setting as it read then.
+let applied: string[] = [];
 
 function setup(over: Partial<Desktop> = {}) {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
@@ -56,7 +57,11 @@ function setup(over: Partial<Desktop> = {}) {
 	};
 	const hooks = {
 		onSettings: () => {
-			settingsApplied += 1;
+			applied.push("frame and entries");
+			throw new Error("no login entry here");
+		},
+		applyEntries: () => {
+			applied.push(`entries, upkeepCommand ${engine.snapshot().settings.upkeepCommand}`);
 			throw new Error("no login entry here");
 		},
 		chrome: () => ({ own: true, side: "right" as const, order: [], maximized: false, rounded: true }),
@@ -229,14 +234,21 @@ test("Export saves to the picked folder and Import replaces the setup from a pic
 	expect((await unwritable.r.exportSetup({})).problem).toBeTruthy();
 });
 
-test("Import applies the imported settings to the login entry and the upkeep command at once, and a failure there does not fail it", async () => {
+test("Import applies the entries from the imported settings at once, never the frame, and a failure there does not fail it", async () => {
 	const folder = join(t.dir, "out");
 	mkdirSync(folder, { recursive: true });
 	const exported = await setup({ pickFolder: async () => [folder] }).r.exportSetup({});
-	const loaded = setup({ pickFile: async () => [exported.file ?? ""] });
-	settingsApplied = 0;
+	const file = exported.file ?? "";
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.settings.upkeepCommand = true;
+	doc.settings.frame = "system";
+	writeFileSync(file, JSON.stringify(doc));
+	const loaded = setup({ pickFile: async () => [file] });
+	applied = [];
 	expect(await loaded.r.importSetup({})).toEqual({ ok: true, apps: 1 });
-	expect(settingsApplied).toBe(1);
+	// Applied once, after the import wrote the settings, so the entries see the imported value.
+	expect(applied).toEqual(["entries, upkeepCommand true"]);
+	expect(loaded.engine.snapshot().settings.frame).toBe("system");
 	await loaded.engine.idle();
 });
 

@@ -24,6 +24,12 @@ function newestLog(logDir: string): string | null {
 export type WindowHooks = {
 	/** Runs after any setting changed, so the login entry and the window frame can follow. */
 	onSettings: () => void;
+	/**
+	 * Makes the files outside Upkeep that settings decide (the login entry, the menu entry, the upkeep command) match
+	 * them. Import runs this and not onSettings: onSettings may rebuild the window for a new frame, which would drop
+	 * the import's answer on the old window's channel. An imported frame therefore shows at the next start.
+	 */
+	applyEntries: () => void;
 	chrome: () => WindowChrome;
 	/** The desktop's languages from the environment, so the window and the tray follow the same list. */
 	languages: () => string[];
@@ -194,7 +200,7 @@ export function upkeepRequests(
 			hooks.extras.setSettings({});
 			// The login entry and the upkeep command follow the imported settings now, not at the next start.
 			try {
-				hooks.onSettings();
+				hooks.applyEntries();
 			} catch (err) {
 				console.error("login entry:", err);
 			}
