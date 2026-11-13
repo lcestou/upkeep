@@ -18,7 +18,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.flush()
             self.connection.close()
             return
-        super().do_GET()
+        try:
+            super().do_GET()
+        except (ConnectionResetError, BrokenPipeError):
+            # The updater hangs up as soon as it sees a bad archive; that is the case under test, not an error here.
+            pass
     def log_message(self, *args):
         pass
 
