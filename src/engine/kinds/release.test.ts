@@ -643,6 +643,8 @@ test("an AppImage whose latest is a json: source checks and installs with no rep
 	const checked = await checkRelease(spec, c);
 	expect(checked).toMatchObject({ installed: "3.29.9", latest: "3.29.15", status: "ready" });
 	expect(checked?.target?.asset?.name).toBe("Cursor-3.29.15-x86_64.AppImage");
+	// The API lists no size, so the row has none to show.
+	expect(checked?.size).toBeUndefined();
 	if (!checked?.target) throw new Error("no target");
 	expect(await installRelease(spec, checked.target, c)).toMatchObject({ result: "done", installed: "3.29.15" });
 	// A cut answer below the floor is refused before anything is replaced.

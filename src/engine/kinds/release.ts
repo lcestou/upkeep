@@ -148,7 +148,8 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				...base,
 			};
 		target = { ...target, asset: pick.asset };
-		size = pick.asset.size;
+		// 0 is a source's "not listed" (json:, GitLab, links:); the row shows no size rather than "0 B".
+		size = pick.asset.size || undefined;
 	}
 	const status = missing || isNewer(installed, latest) ? "ready" : "fresh";
 	return { installed, latest, status, size, target, ...base };
