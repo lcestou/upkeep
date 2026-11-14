@@ -19,12 +19,20 @@
 	import { followSetting } from "../lib/language.svelte";
 	import type { Model } from "../lib/model.svelte";
 	import LanguagePicker from "./LanguagePicker.svelte";
+	import { tick } from "svelte";
 
 	let { model }: { model: Model } = $props();
 	let askingUninstall = $state(false);
 	let purge = $state(false);
 	let uninstallSaid = $state<string | null>(null);
 	let closing = $state(false);
+
+	/** Opens the uninstall question and brings it into view: it sits at the very end of Settings. */
+	async function askUninstall() {
+		askingUninstall = true;
+		await tick();
+		document.querySelector('[data-testid="uninstall-ask"]')?.scrollIntoView({ block: "nearest" });
+	}
 
 	/** Asks the main process to uninstall; on ok Upkeep quits by itself, otherwise the reason shows under the question. */
 	async function uninstall() {
@@ -351,9 +359,7 @@
 					{#if uninstallSaid}<p class="problem" role="alert" data-testid="uninstall-problem">{say(uninstallSaid)}</p>{/if}
 				</div>
 			{:else}
-				<button type="button" class="btn small quiet" data-testid="uninstall" onclick={() => (askingUninstall = true)}
-					>{UNINSTALL.button}</button
-				>
+				<button type="button" class="btn small quiet" data-testid="uninstall" onclick={askUninstall}>{UNINSTALL.button}</button>
 			{/if}
 		</div>
 	</div>
@@ -524,6 +530,7 @@
 		margin-top: var(--s3);
 	}
 	.uninstall {
+		justify-self: stretch;
 		margin-top: var(--s4);
 		padding-top: var(--s3);
 		border-top: 1px solid var(--line-soft);

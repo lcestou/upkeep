@@ -23,7 +23,8 @@ beforeEach(() => {
 	script(launcher, "exit 0");
 	// The framework's uninstaller, faked: it removes the app folder and itself, as the real one does.
 	script(join(root, "uninstall"), `rm -rf "$(dirname "$0")/app" "$0"; echo ran > "${join(dir, "uninstalled")}"`);
-	for (const f of [SELF_FILES.shim, SELF_FILES.attempt]) writeFileSync(join(root, f), "x");
+	// Whatever else lives beside the app: the start script, a self-update's files, a start test's marker.
+	for (const f of [SELF_FILES.shim, SELF_FILES.attempt, ".upkeep-ok-abc123"]) writeFileSync(join(root, f), "x");
 	mkdirSync(join(root, "WebKit/cache"), { recursive: true });
 	mkdirSync(join(root, SELF_FILES.keep), { recursive: true });
 	syncAutostart(p.config, true, entryArgv(root), "/i");

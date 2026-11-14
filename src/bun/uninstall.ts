@@ -11,26 +11,14 @@ import { SELF_FILES } from "./self-shim";
 /** An install root Upkeep will hand to rm: absolute and made of plain characters only (…/dev.afk.upkeep/stable). */
 const ROOT = /^\/[A-Za-z0-9._/+@-]+\/[A-Za-z0-9._+@-]+\/[A-Za-z0-9._+@-]+$/;
 
-/** The files beside the app folder that only Upkeep's self-update writes. */
-const SELF_LEFTOVERS = [
-	"WebKit",
-	SELF_FILES.shim,
-	SELF_FILES.attempt,
-	SELF_FILES.keep,
-	SELF_FILES.configKeep,
-	SELF_FILES.failed,
-	SELF_FILES.rolledBack,
-	"self-extraction",
-];
-
 /**
- * The detached finish: wait for Upkeep to quit, run the framework's uninstaller, remove the self-update's files and
- * the emptied folders, then any data folder passed after the root. $0 is the root; "$@" the data folders.
+ * The detached finish: wait for Upkeep to quit, run the framework's uninstaller, then remove what is left of the
+ * install folder (the start script, the self-update's copies and markers, the web view's cache) and its emptied parent,
+ * then any data folder passed after the root. $0 is the root, checked by uninstallUpkeep; "$@" the data folders.
  */
 export const FINISH =
 	`sleep 3; [ -x "$0/uninstall" ] && "$0/uninstall" --quiet; ` +
-	`for f in ${SELF_LEFTOVERS.join(" ")}; do rm -rf "$0/$f"; done; ` +
-	`rmdir "$0" 2>/dev/null; rmdir "$(dirname "$0")" 2>/dev/null; ` +
+	`rm -rf "$0"; rmdir "$(dirname "$0")" 2>/dev/null; ` +
 	`for d in "$@"; do rm -rf "$d"; done`;
 
 export type UninstallCtx = {
