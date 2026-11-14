@@ -37,14 +37,27 @@ beforeEach(() => {
 });
 afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-/** Runs the detached finish at once, without its wait for Upkeep to quit. */
+/** A pid no process has: the finish has nothing to wait out. */
+const GONE = Bun.spawnSync(["sh", "-c", "echo $$"]).stdout.toString().trim();
+/** The context a real uninstall gets, around this test's install. */
+const ctx = (purge: boolean, spawnDetached: (argv: string[]) => void) => ({
+	root,
+	launcher,
+	menu,
+	pid: Number(GONE),
+	paths: p,
+	purge,
+	spawnDetached,
+});
+
+/** Runs the detached finish at once, in the foreground. */
 const now = (argv: string[]) => {
 	expect(argv.slice(0, 5)).toEqual(["sh", "-c", LAUNCH, "upkeep-uninstall", FINISH]);
-	expect(Bun.spawnSync(["sh", "-c", FINISH.replace("sleep 3; ", ""), ...argv.slice(5)]).exitCode).toBe(0);
+	expect(Bun.spawnSync(["sh", "-c", FINISH, ...argv.slice(5)]).exitCode).toBe(0);
 };
 
 test("uninstall removes the entries, the command, the self-update's files and the install, and keeps the data", () => {
-	expect(uninstallUpkeep({ root, launcher, paths: p, purge: false, spawnDetached: now })).toBe(true);
+	expect(uninstallUpkeep(ctx(false, now))).toBe(true);
 	expect(existsSync(autostartFile(p.config))).toBe(false);
 	expect(existsSync(menu)).toBe(false);
 	expect(existsSync(commandFile(p.home))).toBe(false);
@@ -57,21 +70,21 @@ test("uninstall removes the entries, the command, the self-update's files and th
 
 test("uninstall with purge also deletes Upkeep's own data folders, and nothing else in home", () => {
 	writeFileSync(join(p.home, "keep.txt"), "mine");
-	expect(uninstallUpkeep({ root, launcher, paths: p, purge: true, spawnDetached: now })).toBe(true);
+	expect(uninstallUpkeep(ctx(true, now))).toBe(true);
 	for (const d of [p.config, p.state, p.cache, p.data]) expect(existsSync(d)).toBe(false);
 	expect(readFileSync(join(p.home, "keep.txt"), "utf8")).toBe("mine");
 });
 
 test("a menu entry the person changed stays; a root outside home or not a plain path is refused before anything", () => {
 	writeFileSync(menu, "[Desktop Entry]\nName=Upkeep\nExec=my-wrapper --upkeep\n");
-	expect(uninstallUpkeep({ root, launcher, paths: p, purge: false, spawnDetached: now })).toBe(true);
+	expect(uninstallUpkeep(ctx(false, now))).toBe(true);
 	expect(existsSync(menu)).toBe(true);
 	const ran: string[][] = [];
 	for (const bad of ["/opt/upkeep/stable", join(p.home, "a b/c/d"), join(p.home, "x")]) {
-		expect(uninstallUpkeep({ root: bad, launcher, paths: p, purge: true, spawnDetached: (a) => ran.push(a) })).toBe(
-			false,
-		);
+		expect(uninstallUpkeep({ ...ctx(true, (a) => ran.push(a)), root: bad })).toBe(false);
 	}
+	// A launcher that is not the root's own is not an install this may remove.
+	expect(uninstallUpkeep({ ...ctx(true, (a) => ran.push(a)), launcher: "/usr/bin/true" })).toBe(false);
 	expect(ran).toEqual([]);
 	expect(existsSync(p.config)).toBe(true);
 });
@@ -85,4 +98,13 @@ test("the launch passes the finish and its arguments on whole, through whichever
 		env: { PATH: `${bin}:/usr/bin:/bin` },
 	});
 	expect(r.stdout.toString()).toBe("sh|-c|the finish|/r o/ot|/d|");
+});
+
+test("the finish waits for Upkeep's process to end before it deletes anything", () => {
+	// Not this test's own child, as Upkeep is not the finish's: init reaps it, so it does not linger as a zombie.
+	const pid = Bun.spawnSync(["sh", "-c", "sleep 1.5 >/dev/null 2>&1 & echo $!"]).stdout.toString().trim();
+	const t0 = Date.now();
+	expect(Bun.spawnSync(["sh", "-c", FINISH, root, pid]).exitCode).toBe(0);
+	expect(Date.now() - t0).toBeGreaterThan(1000);
+	expect(existsSync(root)).toBe(false);
 });

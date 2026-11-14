@@ -728,8 +728,7 @@ export const WIN = {
 	},
 } as const;
 
-/** Upkeep's own update: the row above the list, and its switch in Settings. */
-/** Uninstall, at the end of About. */
+/** Uninstall, at the end of Settings, under About. */
 export const UNINSTALL = {
 	get button() {
 		return "Uninstall Upkeep";
@@ -751,6 +750,7 @@ export const UNINSTALL = {
 	},
 };
 
+/** Upkeep's own update: the row above the list, and its switch in Settings. */
 export const SELF = {
 	get available() {
 		return "A new version of Upkeep is ready.";

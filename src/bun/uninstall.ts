@@ -12,12 +12,14 @@ import { SELF_FILES } from "./self-shim";
 const ROOT = /^\/[A-Za-z0-9._/+@-]+\/[A-Za-z0-9._+@-]+\/[A-Za-z0-9._+@-]+$/;
 
 /**
- * The detached finish: wait for Upkeep to quit, run the framework's uninstaller, then remove what is left of the
- * install folder (the start script, the self-update's copies and markers, the web view's cache) and its emptied parent,
- * then any data folder passed after the root. $0 is the root, checked by uninstallUpkeep; "$@" the data folders.
+ * The detached finish: wait for Upkeep's process ($1) to end, for at most a minute, run the framework's uninstaller,
+ * then remove what is left of the install folder (the start script, the self-update's copies and markers, the web
+ * view's cache) and its emptied parent, then any data folder passed after the pid. $0 is the root, checked by
+ * uninstallUpkeep.
  */
 export const FINISH =
-	`sleep 3; [ -x "$0/uninstall" ] && "$0/uninstall" --quiet; ` +
+	`p=$1; shift; i=0; while kill -0 "$p" 2>/dev/null && [ $i -lt 120 ]; do sleep 0.5; i=$((i+1)); done; ` +
+	`[ -x "$0/uninstall" ] && "$0/uninstall" --quiet; ` +
 	`rm -rf "$0"; rmdir "$(dirname "$0")" 2>/dev/null; ` +
 	`for d in "$@"; do rm -rf "$d"; done`;
 
@@ -32,7 +34,12 @@ export const LAUNCH =
 export type UninstallCtx = {
 	/** The install root, …/dev.afk.upkeep/stable. */
 	root: string;
+	/** <root>/app/bin/launcher; anything else is not an install this can remove. */
 	launcher: string;
+	/** The menu entry the installer wrote and Upkeep rewrote. */
+	menu: string;
+	/** Upkeep's own process, which the finish waits out before it deletes anything. */
+	pid: number;
 	paths: Paths;
 	/** Also delete settings, the app list, history, restore points and the cache. */
 	purge: boolean;
@@ -44,20 +51,25 @@ const ownData = (p: string, home: string) => p.startsWith(`${home}/`) && p.endsW
 
 /**
  * Removes the login entry, the menu entry and the upkeep command where they are Upkeep's own, then starts the
- * detached finish. A root that is not a plain <XDG data>/<identifier>/<channel> path under home is refused before
- * anything is touched, since the finish deletes inside it. Returns false when refused; the caller quits Upkeep after true.
+ * detached finish. A root that is not a plain <XDG data>/<identifier>/<channel> path under home, holding the
+ * launcher, is refused before anything is touched, since the finish deletes inside it. Returns false when refused; the caller quits Upkeep after true.
  */
 export function uninstallUpkeep(c: UninstallCtx): boolean {
 	const home = c.paths.home;
 	// The framework installs to <XDG data>/<identifier>/<channel>: nothing else is handed to rm.
-	if (!ROOT.test(c.root) || dirname(dirname(c.root)) !== dirname(c.paths.data) || !c.root.startsWith(`${home}/`))
+	if (
+		!ROOT.test(c.root) ||
+		dirname(dirname(c.root)) !== dirname(c.paths.data) ||
+		!c.root.startsWith(`${home}/`) ||
+		c.launcher !== join(c.root, "app", "bin", "launcher")
+	)
 		return false;
 	syncAutostart(c.paths.config, false, c.launcher, "");
-	removeMenuEntry(join(dirname(c.paths.data), "applications", "Upkeep.desktop"), c.launcher, SELF_FILES.shim);
+	removeMenuEntry(c.menu, c.launcher, SELF_FILES.shim);
 	syncCommand(home, false, c.root);
 	const data = c.purge
 		? [c.paths.config, c.paths.state, c.paths.cache, c.paths.data].filter((p) => ownData(p, home))
 		: [];
-	c.spawnDetached(["sh", "-c", LAUNCH, "upkeep-uninstall", FINISH, c.root, ...data]);
+	c.spawnDetached(["sh", "-c", LAUNCH, "upkeep-uninstall", FINISH, c.root, String(c.pid), ...data]);
 	return true;
 }
