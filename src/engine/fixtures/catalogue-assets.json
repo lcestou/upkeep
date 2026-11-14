@@ -1614,6 +1614,19 @@
 			"starship-x86_64-unknown-linux-musl.tar.gz.sha256"
 		]
 	},
+	"superfile": {
+		"repo": "yorukot/superfile",
+		"tag": "v1.6.0",
+		"assets": [
+			"superfile-darwin-v1.6.0-amd64.tar.gz",
+			"superfile-darwin-v1.6.0-arm64.tar.gz",
+			"superfile-linux-v1.6.0-amd64.tar.gz",
+			"superfile-linux-v1.6.0-arm64.tar.gz",
+			"superfile-v1.6.0-checksums.txt",
+			"superfile-windows-v1.6.0-amd64.zip",
+			"superfile-windows-v1.6.0-arm64.zip"
+		]
+	},
 	"tabby": {
 		"repo": "Eugeny/tabby",
 		"tag": "v1.0.238",
