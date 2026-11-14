@@ -2571,3 +2571,8 @@ msgstr "ターミナルで gh auth login を実行すると、上限が 1 時間
 #: src/mainview/lib/copy.ts
 msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
 msgstr "システムグループで行にチェックを入れ、そこからインストールします。カーネルと NVIDIA ドライバーはどちらも再起動が必要なため、システム自身の更新ツールに任せます。パッケージと Snap は sudo でインストールされ、sudo がパスワードを求めないことが条件です。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+msgstr "まだここにはインストールされていません。インストールされれば、Upkeep が {0} を最新に保ちます。"

@@ -11,6 +11,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../shared/types";
+import { MESSAGES } from "../shared/messages";
 import {
 	assetPattern,
 	BAD_INPUT,
@@ -1335,4 +1336,25 @@ test("a catalogue app the rate limit stops ends the scan there, as a search does
 	const r = await scan({ ...c, fetch: limited, catalogue: CATALOGUE });
 	expect(r.suggestions.map((s) => s.path)).toEqual([join(bin, "fd")]);
 	expect(fetched.some((u) => u.includes("/search/"))).toBe(false);
+});
+
+test("a clone build not installed yet lands in Ready to install; a tool that updates itself says it shows up once installed", async () => {
+	const tmux: AppSpec = {
+		key: "tmux",
+		name: "tmux",
+		kind: "source",
+		repo: "tmux/tmux",
+		dest: "/nonexistent/upkeep-test/tmux",
+		build: ["make"],
+	};
+	const claude = CATALOGUE[1];
+	if (!claude) throw new Error("no claude table");
+	const c = { ...ctx().c, catalogue: [tmux, claude] };
+	expect((await suggest("tmux", c)).suggestions[0]?.spec.install_if_missing).toBe(true);
+	// claude is not on the fake PATH.
+	const tool = (await suggest("claude", c)).suggestions[0];
+	expect(tool?.spec.install_if_missing).toBeUndefined();
+	expect(tool?.why).toBe(`${CATALOGUE_WHY} ${MESSAGES.notInstalledYet("Claude Code")}`);
+	onPath.claude = "/usr/bin/claude";
+	expect((await suggest("claude", c)).suggestions[0]?.why).toBe(CATALOGUE_WHY);
 });

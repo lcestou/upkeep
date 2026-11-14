@@ -31,6 +31,7 @@ export const ENGINE_COPY = {
 	couldNotReadVersion: () => `Could not read the installed version with --version.`,
 	installedWith: (v0: string) => `Installed with ${v0}. Upkeep updates it the same way.`,
 	alreadyInList: (v0: string) => `${v0} is already in the list.`,
+	notInstalledYet: (v0: string) => `It is not installed here yet: Upkeep keeps ${v0} up to date once it is.`,
 	noProgramInArchive: (v0: string) => `${v0} holds no program Upkeep can install.`,
 	couldNotReachGithubSearch: (v0: string) => `Could not reach GitHub: ${v0}`,
 	rateLimitSearch: () => `GitHub's request limit is used up. Try again after it resets.`,

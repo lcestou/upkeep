@@ -58,6 +58,8 @@ export const MESSAGES = {
 	installedWith: (v0: Value) => `Installed with ${v0}. Upkeep updates it the same way.`,
 	/** discover.ts. {0} app name */
 	alreadyInList: (v0: Value) => `${v0} is already in the list.`,
+	/** discover.ts. {0} app name */
+	notInstalledYet: (v0: Value) => `It is not installed here yet: Upkeep keeps ${v0} up to date once it is.`,
 	/** discover.ts. {0} asset (archive) name */
 	noProgramInArchive: (v0: Value) => `${v0} holds no program Upkeep can install.`,
 	/** discover.ts. {0} fetch error message (raw) */

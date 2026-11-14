@@ -2571,3 +2571,8 @@ msgstr "在终端中运行 gh auth login，可将上限提高到每小时 5,000 
 #: src/mainview/lib/copy.ts
 msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
 msgstr "在“系统”组中勾选行，并从那里安装。内核和 NVIDIA 驱动交给系统自己的更新工具，因为两者都需要重启。软件包和 Snap 通过 sudo 安装，sudo 不能询问密码。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+msgstr "这里还没有安装：一旦装好，Upkeep 会让 {0} 保持最新。"

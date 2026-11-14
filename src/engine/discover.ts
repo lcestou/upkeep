@@ -847,12 +847,18 @@ async function fromCatalogue(
 	if (RELEASE_KINDS.has(entry.kind) && pattern === undefined)
 		return { suggestions: [], problem: MESSAGES.noAssetForArch(entry.name, ctx.arch ?? "x86_64") };
 	if (!entry.repo || !RELEASE_KINDS.has(entry.kind)) {
-		// A release app found through latest (json:, links:) with nothing at its dest yet would be skipped by every
-		// check: it lands in Ready to install, as a repo one does below.
-		const missing = RELEASE_KINDS.has(entry.kind) && entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home));
+		// A release app found through latest (json:, links:), or a clone build that probes its dest (tmux), with
+		// nothing at its dest yet would be skipped by every check: it lands in Ready to install, as a repo one does below.
+		const clone = entry.kind === "source" && !entry.check && !entry.stage && !entry.dir;
+		const absent = entry.dest !== undefined && !existsSync(expandHome(entry.dest, ctx.paths.home));
+		const missing = absent && (RELEASE_KINDS.has(entry.kind) || clone);
 		const spec = missing ? { ...entry, install_if_missing: true } : entry;
 		const s: Suggestion = { spec, installed: null, latest: null, asset: null, alternatives: [], ...sure };
 		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = MESSAGES.alreadyInList(entry.name);
+		// A tool that updates itself, or a build that reads its own check, cannot be installed by Upkeep the first
+		// time: the card says it shows up once it is there. sh -c checks name no program to look for.
+		else if (!missing && (await notThere(entry, ctx)))
+			s.why = `${CATALOGUE_WHY} ${MESSAGES.notInstalledYet(entry.name)}`;
 		return { suggestions: [s] };
 	}
 	// An asset the person picked is a name; the table's own asset is a pattern.
@@ -874,6 +880,17 @@ async function fromCatalogue(
 	const widen = asset && r.suggestion.why.includes(MESSAGES.patternNeedsWidening());
 	const why = widen ? `${CATALOGUE_WHY} ${MESSAGES.patternNeedsWidening()}` : CATALOGUE_WHY;
 	return { suggestions: [{ ...r.suggestion, spec, ...sure, why }] };
+}
+
+/**
+ * True when a command or check-reading source table's program is not on PATH. A check run through sh or bash names
+ * no program, and a table with no check has none to look for: both are false, so nothing is claimed.
+ */
+async function notThere(entry: AppSpec, ctx: DiscoverCtx): Promise<boolean> {
+	if (entry.kind !== "command" && entry.kind !== "source") return false;
+	const bin = entry.check?.[0];
+	if (!bin || bin === "sh" || bin === "bash") return false;
+	return (await which(ctx, bin)) === null;
 }
 
 /** Whether one argument of a table names the tool: as a whole word, so "yt-dlp" is not found inside "yt-dlp-extra". */

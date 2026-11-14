@@ -2634,3 +2634,8 @@ msgstr "Uruchom gh auth login w terminalu, aby podnieść go do 5000 na godzinę
 #: src/mainview/lib/copy.ts
 msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
 msgstr "Zaznacz wiersze w grupie System i zainstaluj je stamtąd. Jądra i sterownik NVIDIA zostają przy narzędziu aktualizacji systemu, bo oba wymagają ponownego uruchomienia. Pakiety i Snapy instalują się przez sudo, które nie może pytać o hasło."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+msgstr "Nie jest tu jeszcze zainstalowany: Upkeep będzie aktualizować {0}, gdy tylko będzie."
