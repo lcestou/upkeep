@@ -2576,3 +2576,28 @@ msgstr "在“系统”组中勾选行，并从那里安装。内核和 NVIDIA �
 #: src/mainview/lib/engine-text.ts
 msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
 msgstr "这里还没有安装：一旦装好，Upkeep 会让 {0} 保持最新。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+msgstr "{0} 也以 Flatpak（{1}）形式安装，它会自行更新：两份副本，各有自己的菜单项。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Snap ({1}), which updates on its own."
+msgstr "{0} 也以 Snap（{1}）形式安装，它会自行更新。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} also comes from an apt repository, so the system's own updates install it too."
+msgstr "{0} 也来自 apt 软件源，所以系统自己的更新也会安装它。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already follows the same project."
+msgstr "列表中的 {0} 已经在跟踪同一个项目。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
+msgstr "列表中的 {0} 已经安装到同一位置，两者会互相覆盖。"

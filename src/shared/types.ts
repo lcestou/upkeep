@@ -147,6 +147,8 @@ export type Suggestion = {
 	why: string;
 	/** Set when the suggestion cannot be added as it stands. */
 	problem?: string;
+	/** Other copies or tables that already keep this app up to date: engine sentences. Adding is still allowed. */
+	also?: string[];
 };
 
 export type Stage = "download" | "backup" | "build" | "install" | "verify";

@@ -276,3 +276,27 @@ test("a catalogue app that updates itself shows the command it runs before it is
 	await expect(card.getByTestId("sug-runs")).toHaveText("Updates by running gh upgrade");
 	await expect(page.getByTestId("suggestion-glow")).toHaveCount(0);
 });
+
+test("an app something else already updates says so on its card, and Add still works", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("add-app").first().click();
+	await page.getByTestId("add-input").fill("obsidian");
+	await page.getByTestId("add-find").click();
+	await expect(page.getByTestId("sug-also")).toHaveText(
+		"Obsidian is also installed as a Flatpak (md.obsidian.Obsidian), which updates on its own: two copies, each with its own menu entry.",
+	);
+	await expect(page.getByTestId("sug-add")).toBeEnabled();
+});
+
+test("a scanned app that is also a Flatpak says so and starts unticked; the others are ticked", async ({ page }) => {
+	await load(page, "fixture&scan=also");
+	await page.getByTestId("add-app").first().click();
+	await page.getByTestId("add-scan").click();
+	const key = (await page.locator('[data-testid^="scan-also-"]').first().getAttribute("data-testid"))?.slice(
+		"scan-also-".length,
+	);
+	expect(key).toBeTruthy();
+	await expect(page.getByTestId(`scan-also-${key}`)).toContainText("also installed as a Flatpak");
+	await expect(page.getByTestId(`scan-tick-${key}`)).not.toBeChecked();
+	await expect(page.getByTestId("scan-tick-btop")).toBeChecked();
+});

@@ -618,8 +618,8 @@ export type FixtureOptions = {
 	corners?: "rounded" | "square";
 	/** Start with no recorded runs, as on a first launch. */
 	noHistory?: boolean;
-	/** "unknown" makes a scan find only programs whose source it cannot tell. */
-	scan?: "unknown";
+	/** "unknown" makes a scan find only programs whose source it cannot tell; "also" finds Obsidian, which is a Flatpak too. */
+	scan?: "unknown" | "also";
 	/** The System group's starting state; off unless asked. */
 	system?: SystemVariant;
 	/** "on" starts with the Cleanup tab switched on. */
@@ -1197,7 +1197,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		scan: async () => {
 			await sleep(1500 / speed);
-			const suggestions = scanResults(opts.scan === "unknown");
+			const suggestions = scanResults(opts.scan === "unknown", opts.scan === "also");
 			for (const s of suggestions) offered.set(s.spec.key, s);
 			return { suggestions };
 		},

@@ -427,3 +427,61 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 		packages: pkg?.packages ?? null,
 	};
 }
+
+/** The installed Flatpak apps by id and name, and the Snaps by name: the system's other copies an app may have. */
+export type SystemCopies = { flatpaks: { id: string; name: string }[]; snaps: string[] };
+
+/** Reads the Flatpak and Snap lists once, read-only. A tool that is missing or fails gives an empty list. */
+export async function readCopies(ctx: SystemCtx): Promise<SystemCopies> {
+	const opts = { timeoutMs: 20_000 };
+	const [fp, sn] = await Promise.all([
+		ctx.run(["flatpak", "list", "--app", "--columns=application,name"], opts),
+		ctx.run(SNAP_INSTALLED, opts),
+	]);
+	const flatpaks =
+		fp.code === 0
+			? lines(fp.stdout).flatMap((l) => {
+					const [id = "", name = ""] = l.split("\t");
+					return id ? [{ id, name }] : [];
+				})
+			: [];
+	// snap list's first line is its header: Name Version Rev Tracking Publisher Notes.
+	const snaps =
+		sn.code === 0
+			? lines(sn.stdout)
+					.slice(1)
+					.map((l) => l.split(/\s+/)[0] ?? "")
+					.filter(Boolean)
+			: [];
+	return { flatpaks, snaps };
+}
+
+/** Lowercase with spaces, dashes, dots and underscores gone, so "Zen Browser", "zen-browser" and zen_browser meet. */
+const squash = (s: string) => s.toLowerCase().replace(/[\s._-]+/g, "");
+
+/**
+ * The other copies of an app, by its key and its name: a Flatpak whose name or last id segment matches, and a Snap of
+ * the same name. A match on a name this short (two letters) would be a guess, so it is left out.
+ */
+export function copiesOf(
+	key: string,
+	name: string,
+	copies: SystemCopies,
+): { flatpak: string | null; snap: string | null } {
+	const want = new Set([squash(key), squash(name)].filter((w) => w.length > 2));
+	const flatpak = copies.flatpaks.find(
+		(f) => want.has(squash(f.name)) || want.has(squash(f.id.split(".").at(-1) ?? "")),
+	);
+	const snap = copies.snaps.find((s) => want.has(squash(s)));
+	return { flatpak: flatpak?.id ?? null, snap: snap ?? null };
+}
+
+/**
+ * True when apt knows pkg from a repository as well as from what is installed: "apt-cache policy" lists a source
+ * other than dpkg's status file. Then the system's own updates install it too. Missing apt, or an unknown package, is false.
+ */
+export async function aptRepoHas(ctx: SystemCtx, pkg: string): Promise<boolean> {
+	const r = await ctx.run(["apt-cache", "policy", pkg], { timeoutMs: 20_000 });
+	if (r.code !== 0) return false;
+	return lines(r.stdout).some((l) => /^\s+\d+\s+(https?|file|cdrom|mirror):/.test(l));
+}

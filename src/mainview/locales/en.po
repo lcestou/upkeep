@@ -2597,3 +2597,28 @@ msgstr "Tick rows in the System group and install them from there. Kernels and t
 #: src/mainview/lib/engine-text.ts
 msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
 msgstr "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+msgstr "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Snap ({1}), which updates on its own."
+msgstr "{0} is also installed as a Snap ({1}), which updates on its own."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} also comes from an apt repository, so the system's own updates install it too."
+msgstr "{0} also comes from an apt repository, so the system's own updates install it too."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already follows the same project."
+msgstr "{0} in the list already follows the same project."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
+msgstr "{0} in the list already installs to the same place, so the two would overwrite each other."

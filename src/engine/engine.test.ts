@@ -136,8 +136,13 @@ async function deps(): Promise<EngineDeps> {
 	};
 	// boom's release lists an asset whose download is missing, so its install throws.
 	releases["o/boom"] = { tag: "v1.1.0", assets: { boom: bytes("never served") } };
+	// The system's own lists (Flatpak, Snap, apt) read as not installed, so no test reads the machine it runs on.
 	const { run } = recordingRun(t.paths, (argv) =>
-		argv[0] === "gh" ? { code: 1, stdout: "", stderr: "not logged in", timedOut: false } : undefined,
+		argv[0] === "gh"
+			? { code: 1, stdout: "", stderr: "not logged in", timedOut: false }
+			: ["flatpak", "snap", "apt-cache"].includes(argv[0] ?? "")
+				? { code: 127, stdout: "", stderr: "", timedOut: false }
+				: undefined,
 	);
 	return {
 		paths: t.paths,

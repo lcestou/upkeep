@@ -48,7 +48,7 @@ export async function getBridge(): Promise<Bridge> {
 			noHistory: query.get("history") === "none",
 			system,
 			cleanup: query.get("cleanup") === "on" ? "on" : undefined,
-			scan: query.get("scan") === "unknown" ? "unknown" : undefined,
+			scan: query.get("scan") === "unknown" ? "unknown" : query.get("scan") === "also" ? "also" : undefined,
 			self: SELF_PHASES.find((v) => v === query.get("self")),
 			selfTestFails: query.get("selftest") === "fail",
 			rate: query.get("rate") === "out" ? "out" : query.get("rate") === "signed" ? "signed" : undefined,

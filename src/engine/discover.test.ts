@@ -28,6 +28,7 @@ import {
 	stem,
 	suggest,
 } from "./discover";
+import { aptRepoHas, copiesOf } from "./extras/system";
 import { tomlTable } from "./manifest";
 import fdRelease from "./fixtures/sharkdp_fd.json";
 import lazygitRelease from "./fixtures/jesseduffield_lazygit.json";
@@ -47,6 +48,10 @@ let searches: Record<string, { name: string; full_name: string; stargazers_count
 let fetched: string[] = [];
 let onPath: Record<string, string> = {};
 let lines: string[] = [];
+/** The read-only lists the other-copies check reads; a check of "what ran" leaves them out. */
+const LISTS = new Set(["flatpak", "snap", "apt-cache"]);
+/** What flatpak, snap and apt-cache print in a test; a tool with no entry is not installed. */
+let systemLists: Record<string, string> = {};
 /** What each tool manager's list prints in a test; a manager with no entry is not installed. */
 let managers: Record<string, string> = {};
 /** A repo's root at its release tag, by repo: the names in it and the text of the files a draft reads. */
@@ -99,6 +104,7 @@ beforeEach(async () => {
 	fetched = [];
 	// A Debian system unless a test says otherwise: a .deb is offered only where dpkg is.
 	onPath = { dpkg: "/usr/bin/dpkg" };
+	systemLists = {};
 	lines = [];
 	roots = {};
 });
@@ -147,6 +153,11 @@ const fakeFetch: FetchLike = async (url) => {
 function ctx(specs: AppSpec[] = []) {
 	// which is answered from a fake PATH; everything else runs for real on temp files only.
 	const rec = recordingRun(t.paths, (argv) => {
+		// The system's other copies: what each list prints in a test, none unless set.
+		if (argv[0] === "flatpak" || argv[0] === "snap" || argv[0] === "apt-cache") {
+			const out = systemLists[argv[0]];
+			return out === undefined ? { code: 127, stdout: "", stderr: "", timedOut: false } : ok(out);
+		}
 		if (argv[0] === "uv" || argv[0] === "pipx" || argv[0] === "npm") {
 			const out = managers[argv[0]];
 			return out === undefined ? { code: 127, stdout: "", stderr: "", timedOut: false } : ok(out);
@@ -654,7 +665,11 @@ test("scan offers what uv, pipx, npm and cargo installed, as command tables that
 		update: ["cargo", "install", "--locked", "ripgrep@{version}"],
 	});
 	// The scan only asks each manager for its list; it never runs a tool the managers installed.
-	expect(calls.map((x) => x.argv.slice(0, 2).join(" "))).toEqual(["uv tool", "pipx list", "npm ls"]);
+	expect(calls.filter((x) => !LISTS.has(x.argv[0] ?? "")).map((x) => x.argv.slice(0, 2).join(" "))).toEqual([
+		"uv tool",
+		"pipx list",
+		"npm ls",
+	]);
 });
 
 test("scan leaves out manager tools the list already tracks, by key, process, check, update or latest", async () => {
@@ -814,7 +829,9 @@ test("an archive with no program in it is refused, and a scan never opens one", 
 	const r = await scan(c);
 	expect(r.suggestions[0]?.spec.bins).toEqual(["ripgrep"]);
 	expect(fetched.some((u) => u.startsWith("https://dl.test/"))).toBe(false);
-	expect(calls.filter((x) => !["uv", "pipx", "npm"].includes(x.argv[0] ?? ""))).toEqual([]);
+	expect(calls.filter((x) => !["uv", "pipx", "npm"].includes(x.argv[0] ?? "") && !LISTS.has(x.argv[0] ?? ""))).toEqual(
+		[],
+	);
 });
 
 test("examples: what the owner gets for six repos", async () => {
@@ -901,9 +918,11 @@ dest = "~/.local/bin/rg"
 bins = ["${RG}/rg"]
 install_if_missing = true
 `);
-	expect(rec.calls.filter((x) => !["which", "tar", "unzip"].includes(x.argv[0] ?? "")).map((x) => x.argv[0])).toEqual([
-		"/usr/bin/rustdesk",
-	]);
+	expect(
+		rec.calls
+			.filter((x) => !["which", "tar", "unzip"].includes(x.argv[0] ?? "") && !LISTS.has(x.argv[0] ?? ""))
+			.map((x) => x.argv[0]),
+	).toEqual(["/usr/bin/rustdesk"]);
 });
 
 test("a .deb is offered only where dpkg is: without it, a release of only a .deb runs nothing here", async () => {
@@ -1360,4 +1379,70 @@ test("a clone build not installed yet lands in Ready to install; a tool that upd
 	expect(tool?.why).toBe(`${CATALOGUE_WHY} ${MESSAGES.notInstalledYet("Claude Code")}`);
 	onPath.claude = "/usr/bin/claude";
 	expect((await suggest("claude", c)).suggestions[0]?.why).toBe(CATALOGUE_WHY);
+});
+
+test("a suggestion says what else keeps the app up to date, and can still be added", async () => {
+	const zen: AppSpec = {
+		key: "zen",
+		name: "Zen Browser",
+		kind: "appimage",
+		asset: "\\.AppImage$",
+		dest: "~/.local/bin/zen.appimage",
+		latest: "json:https://api.test/zen",
+	};
+	systemLists.flatpak = "app.zen_browser.zen\tZen Browser\nio.github.other.App\tOther\n";
+	systemLists.snap = "Name  Version  Rev  Tracking  Publisher  Notes\nzen-browser  1.0  1  latest/stable  x  -\n";
+	const listed: AppSpec = { ...zen, key: "zen-old", name: "Zen (old table)" };
+	const s = (await suggest("zen", { ...ctx([listed]).c, catalogue: [zen] })).suggestions[0];
+	expect(s?.problem).toBeUndefined();
+	expect(s?.also).toEqual([
+		MESSAGES.alsoFlatpak("Zen Browser", "app.zen_browser.zen"),
+		MESSAGES.alsoSnap("Zen Browser", "zen-browser"),
+		MESSAGES.alsoSameDest("Zen (old table)"),
+	]);
+	// Nothing else installed: no note.
+	systemLists = {};
+	expect((await suggest("zen", { ...ctx().c, catalogue: [zen] })).suggestions[0]?.also).toBeUndefined();
+});
+
+test("a package app apt also knows from a repository says the system's updates install it too", async () => {
+	const deb: AppSpec = {
+		key: "rustdesk",
+		name: "RustDesk",
+		kind: "deb",
+		repo: "rustdesk/rustdesk",
+		dest: "/usr/bin/rustdesk",
+	};
+	expect(copiesOf("rustdesk", "RustDesk", { flatpaks: [], snaps: [] })).toEqual({ flatpak: null, snap: null });
+	systemLists["apt-cache"] =
+		"rustdesk:\n  Installed: 1.5.3\n  Version table:\n *** 1.5.3 500\n        500 https://repo.test/apt stable/main amd64 Packages\n        100 /var/lib/dpkg/status\n";
+	const run = ctx().c.run;
+	expect(await aptRepoHas({ run }, "rustdesk")).toBe(true);
+	systemLists["apt-cache"] =
+		"rustdesk:\n  Installed: 1.5.3\n  Version table:\n *** 1.5.3 100\n        100 /var/lib/dpkg/status\n";
+	expect(await aptRepoHas({ run }, "rustdesk")).toBe(false);
+	void deb;
+});
+
+test("scan finds a catalogue package app installed outside home, at its table's dest", async () => {
+	const dest = join(t.dir, "usr/bin/rd");
+	elf(dest);
+	releases["rustdesk/rustdesk"] = {
+		tag_name: "1.5.3",
+		assets: [{ name: "rustdesk-1.5.3-x86_64.deb", size: 30_000_000 }],
+	};
+	const deb: AppSpec = {
+		key: "rustdesk",
+		name: "RustDesk",
+		kind: "deb",
+		repo: "rustdesk/rustdesk",
+		asset: "^rustdesk-[0-9.]+-x86_64\\.deb$",
+		dest,
+	};
+	const r = await scan({ ...ctx().c, catalogue: [deb] });
+	expect(r.suggestions.map((s) => [s.spec.key, s.source, s.path, s.confidence])).toEqual([
+		["rustdesk", "scan", dest, "sure"],
+	]);
+	// Already in the list: not offered again.
+	expect((await scan({ ...ctx([deb]).c, catalogue: [deb] })).suggestions).toEqual([]);
 });

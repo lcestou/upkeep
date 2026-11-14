@@ -2639,3 +2639,28 @@ msgstr "Отмечайте строки в группе «Система» и у
 #: src/mainview/lib/engine-text.ts
 msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
 msgstr "Здесь он ещё не установлен: Upkeep будет обновлять {0}, как только он появится."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+msgstr "{0} также установлен как Flatpak ({1}), который обновляется сам: две копии, у каждой свой пункт в меню."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Snap ({1}), which updates on its own."
+msgstr "{0} также установлен как Snap ({1}), который обновляется сам."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} also comes from an apt repository, so the system's own updates install it too."
+msgstr "{0} также приходит из репозитория apt, поэтому его ставят и обновления системы."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already follows the same project."
+msgstr "{0} в списке уже следит за тем же проектом."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
+msgstr "{0} в списке уже устанавливается в то же место, и они перезаписывали бы друг друга."

@@ -58,6 +58,18 @@ export const MESSAGES = {
 	installedWith: (v0: Value) => `Installed with ${v0}. Upkeep updates it the same way.`,
 	/** discover.ts. {0} app name */
 	alreadyInList: (v0: Value) => `${v0} is already in the list.`,
+	/** discover.ts. {0} app name; {1} Flatpak app id */
+	alsoFlatpak: (v0: Value, v1: Value) =>
+		`${v0} is also installed as a Flatpak (${v1}), which updates on its own: two copies, each with its own menu entry.`,
+	/** discover.ts. {0} app name; {1} snap name */
+	alsoSnap: (v0: Value, v1: Value) => `${v0} is also installed as a Snap (${v1}), which updates on its own.`,
+	/** discover.ts. {0} package name */
+	alsoAptRepo: (v0: Value) => `${v0} also comes from an apt repository, so the system's own updates install it too.`,
+	/** discover.ts. {0} name of the app already in the list */
+	alsoSameRepo: (v0: Value) => `${v0} in the list already follows the same project.`,
+	/** discover.ts. {0} name of the app already in the list */
+	alsoSameDest: (v0: Value) =>
+		`${v0} in the list already installs to the same place, so the two would overwrite each other.`,
 	/** discover.ts. {0} app name */
 	notInstalledYet: (v0: Value) => `It is not installed here yet: Upkeep keeps ${v0} up to date once it is.`,
 	/** discover.ts. {0} asset (archive) name */

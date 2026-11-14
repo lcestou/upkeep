@@ -2618,3 +2618,28 @@ msgstr "Marca filas en el grupo Sistema e instálalas desde allí. Los kernels y
 #: src/mainview/lib/engine-text.ts
 msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
 msgstr "Aún no está instalado aquí: Upkeep mantiene {0} al día en cuanto lo esté."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+msgstr "{0} también está instalado como Flatpak ({1}), que se actualiza por su cuenta: dos copias, cada una con su entrada en el menú."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Snap ({1}), which updates on its own."
+msgstr "{0} también está instalado como Snap ({1}), que se actualiza por su cuenta."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} also comes from an apt repository, so the system's own updates install it too."
+msgstr "{0} también viene de un repositorio de apt, así que las actualizaciones del sistema también lo instalan."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already follows the same project."
+msgstr "{0} de la lista ya sigue el mismo proyecto."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
+msgstr "{0} de la lista ya se instala en el mismo sitio, así que uno sobrescribiría al otro."

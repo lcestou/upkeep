@@ -59,8 +59,11 @@ function deps(): EngineDeps {
 	writeFileSync(seed, MANIFEST);
 	script(join(t.paths.home, ".local/bin/borg"), 'echo "borg 1.4.1"');
 	script(join(t.paths.home, ".local/bin/bat"), 'echo "bat 0.26.1"');
+	// gh, and the system's own lists (Flatpak, Snap, apt), read as not there: no test reads the machine it runs on.
 	const { run } = recordingRun(t.paths, (argv) =>
-		argv[0] === "gh" ? { code: 1, stdout: "", stderr: "", timedOut: false } : undefined,
+		["gh", "flatpak", "snap", "apt-cache"].includes(argv[0] ?? "")
+			? { code: argv[0] === "gh" ? 1 : 127, stdout: "", stderr: "", timedOut: false }
+			: undefined,
 	);
 	mkdirSync(join(t.dir, "proc"), { recursive: true });
 	return {

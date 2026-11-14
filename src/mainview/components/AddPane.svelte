@@ -108,7 +108,7 @@
 		await find();
 	}
 
-	/** Looks through the machine for programs Upkeep could add, ticking the sure ones that have no problem. Replaces any earlier scan and clears the Find results. */
+	/** Looks through the machine for programs Upkeep could add, ticking the sure ones that have no problem and nothing else updating them. Replaces any earlier scan and clears the Find results. */
 	async function scan() {
 		found = [];
 		problem = null;
@@ -116,7 +116,10 @@
 		const res = await guard("scan", () => model.request("scan", {}));
 		if (!res) return;
 		scanned = res.suggestions;
-		scanTicks = new Set(res.suggestions.filter((s) => s.confidence === "sure" && !s.problem).map((s) => s.spec.key));
+		// Something else already keeping an app up to date is a reason to look first: such a row starts unticked.
+		scanTicks = new Set(
+			res.suggestions.filter((s) => s.confidence === "sure" && !s.problem && !s.also?.length).map((s) => s.spec.key),
+		);
 	}
 
 	/** Adds one found app. On failure the reason shows on its card and nothing else changes; on success the new row takes focus. */
@@ -284,6 +287,10 @@
 									<span class="why">{say(s.problem)}</span>
 								{:else if s.spec.repo}
 									<span class="latin">{s.spec.repo}</span>
+								{/if}
+								{#if !failures[s.spec.key] && !s.problem}
+									{#each s.also ?? [] as line, i (i)}<span class="also" data-testid="scan-also-{s.spec.key}">{say(line)}</span
+										>{/each}
 								{/if}
 							</span>
 							<span class="acts">
@@ -536,6 +543,11 @@
 	.why {
 		font-size: var(--fs-12);
 		color: var(--text-2);
+	}
+	.also {
+		display: block;
+		font-size: var(--fs-12);
+		color: var(--rust);
 	}
 	.acts {
 		display: flex;

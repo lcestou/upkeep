@@ -30,6 +30,7 @@ import { isPackage, PACKAGE_TOOL } from "./kinds/package";
 import { listTools, toolSpec, toolKey } from "./managers";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
+import { aptRepoHas, copiesOf, readCopies } from "./extras/system";
 import type { Run } from "./run";
 
 export type DiscoverCtx = {
@@ -790,8 +791,18 @@ export async function fromFile(
 	return { suggestion: r.suggestion, searched };
 }
 
-/** Answers the owner's paste: a repo, a link to one, or a file. */
+/** Answers the owner's paste: a repo, a link to one, or a file; each suggestion says what else keeps the app up to date. */
 export async function suggest(
+	input: string,
+	ctx: DiscoverCtx,
+	asset?: string,
+): Promise<{ suggestions: Suggestion[]; problem?: string }> {
+	const r = await suggestFor(input, ctx, asset);
+	return { ...r, suggestions: await withAlso(r.suggestions, ctx) };
+}
+
+/** suggest's answer before the other copies are looked up. */
+async function suggestFor(
 	input: string,
 	ctx: DiscoverCtx,
 	asset?: string,
@@ -999,7 +1010,49 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 	// cargo can put a crate's program in a scanned folder (cargo install --root ~/.local): its manager's table wins,
 	// being sure, and the program is not offered twice. Only cargo: uv, pipx and npm leave scripts or links the scan
 	// skips, so a program of the same name there is another app.
+	// A catalogue package app (.deb, .rpm) lives outside home, where the file scan above never looks.
+	for (const e of ctx.catalogue ?? []) {
+		if (!isPackage(e.kind) || !e.dest || known.has(e.key) || listed.has(e.dest) || !existsSync(e.dest)) continue;
+		// oxlint-disable-next-line no-await-in-loop -- one release lookup at a time, as the file scan does
+		const r = await fromCatalogue(e, ctx, undefined, false);
+		const pkg = r.suggestions[0];
+		if (pkg) suggestions.push({ ...pkg, source: "scan", path: e.dest });
+		if (r.rate) break;
+	}
 	const managed = await managedSuggestions(ctx);
 	const keys = new Set(managed.filter((m) => m.spec.update?.[0] === "cargo").map((m) => m.spec.key));
-	return { suggestions: [...suggestions.filter((x) => !keys.has(x.spec.key)), ...managed] };
+	return { suggestions: await withAlso([...suggestions.filter((x) => !keys.has(x.spec.key)), ...managed], ctx) };
+}
+
+/**
+ * Adds to each suggestion that can be added what else already keeps the app up to date: a Flatpak or Snap of it, an
+ * apt repository for a package app, or a table in the list on the same repo or dest. Read-only; the lists are read
+ * once. A warning only: the person may still add it, for two versions side by side.
+ */
+async function withAlso(suggestions: Suggestion[], ctx: DiscoverCtx): Promise<Suggestion[]> {
+	if (!suggestions.some((s) => !s.problem)) return suggestions;
+	const copies = await readCopies(ctx);
+	const home = ctx.paths.home;
+	const out: Suggestion[] = [];
+	for (const s of suggestions) {
+		if (s.problem) {
+			out.push(s);
+			continue;
+		}
+		const { spec } = s;
+		const also: string[] = [];
+		const other = copiesOf(spec.key, spec.name, copies);
+		if (other.flatpak) also.push(MESSAGES.alsoFlatpak(spec.name, other.flatpak));
+		if (other.snap) also.push(MESSAGES.alsoSnap(spec.name, other.snap));
+		// oxlint-disable-next-line no-await-in-loop -- only a package app asks apt, one at a time
+		if (isPackage(spec.kind) && (await aptRepoHas(ctx, spec.key))) also.push(MESSAGES.alsoAptRepo(spec.key));
+		const dest = spec.dest ? expandHome(spec.dest, home) : null;
+		for (const x of ctx.specs) {
+			if (x.key === spec.key) continue;
+			if (dest && x.dest && expandHome(x.dest, home) === dest) also.push(MESSAGES.alsoSameDest(x.name));
+			else if (spec.repo && x.repo?.toLowerCase() === spec.repo.toLowerCase()) also.push(MESSAGES.alsoSameRepo(x.name));
+		}
+		out.push(also.length > 0 ? { ...s, also } : s);
+	}
+	return out;
 }
