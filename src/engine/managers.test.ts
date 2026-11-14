@@ -72,6 +72,11 @@ test("pipx list --json gives index installs an update may move: a name or a rang
 			extras: {
 				metadata: { main_package: { package: "Black_D", package_version: "1.0", package_or_url: "black-d[x]>=1" } },
 			},
+			marked: {
+				metadata: {
+					main_package: { package: "m", package_version: "2.0", package_or_url: "m>=1; sys_platform=='linux'" },
+				},
+			},
 			git: {
 				metadata: { main_package: { package: "g", package_version: "1.0", package_or_url: "git+https://x.test/g" } },
 			},
@@ -84,6 +89,7 @@ test("pipx list --json gives index installs an update may move: a name or a rang
 	expect(parsePipxList(json)).toEqual([
 		{ name: "black", version: "24.8.0" },
 		{ name: "Black_D", version: "1.0" },
+		{ name: "m", version: "2.0" },
 	]);
 	expect(parsePipxList("nope")).toEqual([]);
 });
