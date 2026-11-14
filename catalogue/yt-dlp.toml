@@ -1,0 +1,7 @@
+[apps.yt-dlp]
+name = "yt-dlp"
+kind = "file"
+repo = "yt-dlp/yt-dlp"
+asset = '^yt-dlp_linux$'
+asset_aarch64 = '^yt-dlp_linux_aarch64$'
+dest = "~/.local/bin/yt-dlp"

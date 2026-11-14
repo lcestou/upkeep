@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.bruno]
+name = "Bruno"
+kind = "appimage"
+repo = "usebruno/bruno"
+asset = '_x86_64_linux\.AppImage$'
+asset_aarch64 = '_arm64_linux\.AppImage$'
+dest = "~/.local/bin/bruno.AppImage"
+meta_path = "bruno.desktop"
+process = "bruno"
+relaunch = true

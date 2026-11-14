@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.heroic]
+name = "Heroic Games Launcher"
+kind = "appimage"
+repo = "Heroic-Games-Launcher/HeroicGamesLauncher"
+asset = 'linux-x86_64\.AppImage$'
+asset_aarch64 = 'linux-arm64\.AppImage$'
+dest = "~/.local/bin/heroic.AppImage"
+meta_path = "heroic.desktop"
+process = "heroic"
+relaunch = true

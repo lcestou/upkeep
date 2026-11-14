@@ -4,6 +4,7 @@
 
 First version.
 
+- The catalogue Add app looks in first has 10 more apps: Obsidian, LocalSend, Heroic Games Launcher, Joplin, Logseq, Vesktop, Bruno, Beekeeper Studio, yt-dlp and fastfetch. The AppImages' versions are read from the files inside them, so checking never opens their windows.
 - Add app and Scan this computer say when something else already keeps an app up to date: a Flatpak or Snap of it, an apt repository for a package app, or a table in the list on the same project or install path. Adding is still allowed, for two versions side by side; a scanned app with such a note starts unticked. Scan also finds catalogue apps installed from a .deb or .rpm.
 - An app added from a repo with a generic name, such as `gitlab.com/gitlab-org/cli`, is named after the program it ships (glab), not after the group, when the group's name does not contain it.
 - With "Install system updates from Upkeep" on, Ubuntu, Debian and other systems with plain apt can install their package updates from the System group: the ticked packages go through `apt-get install --only-upgrade`, keeping config files you edited, after a dry run that refuses anything touching a kernel or NVIDIA package or removing a package. Before, only Linux Mint's Update Manager packages could.
