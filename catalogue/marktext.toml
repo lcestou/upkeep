@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.marktext]
+name = "MarkText"
+kind = "appimage"
+repo = "marktext/marktext"
+asset = '^marktext-linux-[0-9.]+\.AppImage$'
+asset_aarch64 = '^marktext-linux-arm64-[0-9.]+\.AppImage$'
+dest = "~/.local/bin/marktext.AppImage"
+meta_path = "marktext.desktop"
+process = "marktext"
+relaunch = true
