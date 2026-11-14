@@ -7,7 +7,7 @@ import { script } from "../engine/testkit";
 import { autostartFile, syncAutostart } from "./autostart";
 import { commandFile, syncCommand } from "./command";
 import { entryArgv, SELF_FILES } from "./self-shim";
-import { FINISH, uninstallUpkeep } from "./uninstall";
+import { FINISH, LAUNCH, uninstallUpkeep } from "./uninstall";
 
 let dir = "";
 let p: Paths;
@@ -39,7 +39,7 @@ afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
 /** Runs the detached finish at once, without its wait for Upkeep to quit. */
 const now = (argv: string[]) => {
-	expect(argv.slice(0, 5)).toEqual(["setsid", "-f", "sh", "-c", FINISH]);
+	expect(argv.slice(0, 5)).toEqual(["sh", "-c", LAUNCH, "upkeep-uninstall", FINISH]);
 	expect(Bun.spawnSync(["sh", "-c", FINISH.replace("sleep 3; ", ""), ...argv.slice(5)]).exitCode).toBe(0);
 };
 
@@ -74,4 +74,15 @@ test("a menu entry the person changed stays; a root outside home or not a plain 
 	}
 	expect(ran).toEqual([]);
 	expect(existsSync(p.config)).toBe(true);
+});
+
+test("the launch passes the finish and its arguments on whole, through whichever way it starts", () => {
+	// A stand-in for both starters, on PATH ahead of the real ones: each prints what it would run.
+	const bin = join(dir, "bin");
+	script(join(bin, "systemd-run"), "exit 1");
+	script(join(bin, "setsid"), 'shift; printf "%s|" "$@"');
+	const r = Bun.spawnSync(["sh", "-c", LAUNCH, "upkeep-uninstall", "the finish", "/r o/ot", "/d"], {
+		env: { PATH: `${bin}:/usr/bin:/bin` },
+	});
+	expect(r.stdout.toString()).toBe("sh|-c|the finish|/r o/ot|/d|");
 });

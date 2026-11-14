@@ -21,6 +21,14 @@ export const FINISH =
 	`rm -rf "$0"; rmdir "$(dirname "$0")" 2>/dev/null; ` +
 	`for d in "$@"; do rm -rf "$d"; done`;
 
+/**
+ * Starts the finish outside Upkeep's own process group and cgroup, so it outlives the quit: as a transient systemd
+ * user unit where there is a user manager (a service manager that stops Upkeep's unit would kill a mere child), else
+ * in a new session. $1 is the finish; the rest are its arguments.
+ */
+export const LAUNCH =
+	'f=$1; shift; systemd-run --user --collect --quiet -- sh -c "$f" "$@" 2>/dev/null || setsid -f sh -c "$f" "$@"';
+
 export type UninstallCtx = {
 	/** The install root, …/dev.afk.upkeep/stable. */
 	root: string;
@@ -50,7 +58,6 @@ export function uninstallUpkeep(c: UninstallCtx): boolean {
 	const data = c.purge
 		? [c.paths.config, c.paths.state, c.paths.cache, c.paths.data].filter((p) => ownData(p, home))
 		: [];
-	// setsid: its own session, so the shell outlives Upkeep's quit.
-	c.spawnDetached(["setsid", "-f", "sh", "-c", FINISH, c.root, ...data]);
+	c.spawnDetached(["sh", "-c", LAUNCH, "upkeep-uninstall", FINISH, c.root, ...data]);
 	return true;
 }

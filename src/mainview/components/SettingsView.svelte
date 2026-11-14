@@ -31,7 +31,8 @@
 	async function askUninstall() {
 		askingUninstall = true;
 		await tick();
-		document.querySelector('[data-testid="uninstall-ask"]')?.scrollIntoView({ block: "nearest" });
+		// The whole question with its buttons, not only its first line.
+		document.querySelector('[aria-labelledby="uninstall-ask"]')?.scrollIntoView({ block: "nearest" });
 	}
 
 	/** Asks the main process to uninstall; on ok Upkeep quits by itself, otherwise the reason shows under the question. */
