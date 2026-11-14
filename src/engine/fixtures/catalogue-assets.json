@@ -705,6 +705,18 @@
 			"fd_10.5.2_i686.deb"
 		]
 	},
+	"fx": {
+		"repo": "antonmedv/fx",
+		"tag": "40.0.1",
+		"assets": [
+			"fx_darwin_amd64",
+			"fx_darwin_arm64",
+			"fx_linux_amd64",
+			"fx_linux_arm64",
+			"fx_windows_amd64.exe",
+			"fx_windows_arm64.exe"
+		]
+	},
 	"fzf": {
 		"repo": "junegunn/fzf",
 		"tag": "v0.75.0",
