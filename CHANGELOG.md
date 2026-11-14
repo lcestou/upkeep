@@ -4,6 +4,7 @@
 
 First version.
 
+- An app added from a repo with a generic name, such as `gitlab.com/gitlab-org/cli`, is named after the program it ships (glab), not after the group, when the group's name does not contain it.
 - With "Install system updates from Upkeep" on, Ubuntu, Debian and other systems with plain apt can install their package updates from the System group: the ticked packages go through `apt-get install --only-upgrade`, keeping config files you edited, after a dry run that refuses anything touching a kernel or NVIDIA package or removing a package. Before, only Linux Mint's Update Manager packages could.
 - When GitHub's hourly request limit is used up, a bar under the header says when checks resume and, without a GitHub sign-in, that `gh auth login` in a terminal raises the limit to 5,000 an hour. Dismissing it hides it until the hour starts over.
 - Adding Cursor, or any catalogue app that finds its version through its own update address or a download page rather than a repo, or a source build such as tmux, when it is not installed yet lands it in Ready to install. It was added to the list and then skipped by every check, so it never showed up. A tool that updates itself and is not installed yet now says on its card that it shows up once it is.

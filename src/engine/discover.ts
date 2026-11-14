@@ -265,12 +265,16 @@ const GENERIC_REPO = new Set([
 	"builds",
 ]);
 
-/** The name a person reads: the asset's own capitals, else the owner for a generic repo name, else the repo. */
+/**
+ * The name a person reads: the asset's own capitals, else for a generic repo name the program it ships when the owner
+ * does not contain it (gitlab-org/cli ships glab) and the owner when it does (zen-browser/desktop ships zen), else the repo.
+ */
 export function appName(shipped: string, repo: string): string {
 	const [owner = repo, repoName = repo] = repo.split("/");
 	if (shipped.length >= 2 && shipped !== shipped.toLowerCase()) return shipped;
-	if (GENERIC_REPO.has(repoName.toLowerCase())) return displayName(owner);
-	return displayName(repoName);
+	if (!GENERIC_REPO.has(repoName.toLowerCase())) return displayName(repoName);
+	const bin = shipped.toLowerCase();
+	return bin.length >= 2 && !GENERIC_REPO.has(bin) && !owner.toLowerCase().includes(bin) ? shipped : displayName(owner);
 }
 
 /** The first 64 kB of a file, or null when it cannot be read. */

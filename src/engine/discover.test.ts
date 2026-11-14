@@ -706,6 +706,9 @@ test("an app is named after what it ships", () => {
 	expect(appName("zen", "zen-browser/desktop")).toBe("Zen Browser");
 	expect(appName("fd", "sharkdp/fd")).toBe("fd");
 	expect(appName("", "o/my_tool")).toBe("My Tool");
+	// A generic repo name whose program the owner does not contain is named by the program.
+	expect(appName("glab", "gitlab-org/cli")).toBe("glab");
+	expect(appName("", "acme-tools/cli")).toBe("Acme Tools");
 });
 
 test("a generic repo name finds the owner's AppImage by what the release ships", async () => {
