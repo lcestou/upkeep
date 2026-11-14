@@ -148,6 +148,7 @@ test("statedSize: the length a HEAD answer states, else undefined", async () => 
 	const answer = (res: Response | Error): FetchLike =>
 		(async (_url: string, init?: RequestInit) => {
 			expect(init?.method).toBe("HEAD");
+			expect(new Headers(init?.headers).get("accept-encoding")).toBe("identity");
 			if (res instanceof Error) throw res;
 			return res;
 		}) as FetchLike;

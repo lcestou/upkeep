@@ -116,7 +116,13 @@ export function verifyAsset(result: DownloadResult, asset: Pick<Asset, "size" | 
  */
 export async function statedSize(url: string, fetch: FetchLike): Promise<number | undefined> {
 	try {
-		const res = await fetch(url, { method: "HEAD", redirect: "follow", signal: AbortSignal.timeout(10_000) });
+		const res = await fetch(url, {
+			method: "HEAD",
+			redirect: "follow",
+			// The file's own length: a server that compresses on the fly would otherwise state the compressed one.
+			headers: { "accept-encoding": "identity" },
+			signal: AbortSignal.timeout(10_000),
+		});
 		const n = Number(res.headers.get("content-length"));
 		return res.ok && n > 0 ? n : undefined;
 	} catch {
