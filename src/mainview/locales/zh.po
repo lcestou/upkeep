@@ -2004,10 +2004,6 @@ msgid "Install system updates from Upkeep"
 msgstr "从 Upkeep 安装系统更新"
 
 #: src/mainview/lib/copy.ts
-msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
-msgstr "在“系统”组中勾选行，并从那里安装。内核和 NVIDIA 驱动交给更新管理器，因为两者都需要重启。软件包和 Snap 通过 sudo 安装，sudo 不能询问密码。"
-
-#: src/mainview/lib/copy.ts
 msgid "Upkeep runs these commands, in this order:"
 msgstr "Upkeep 将按以下顺序运行这些命令："
 
@@ -2501,6 +2497,7 @@ msgid "Try again"
 msgstr "重试"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Dismiss"
 msgstr "关闭"
 
@@ -2562,6 +2559,48 @@ msgstr "将 upkeep 放入 ~/.local/bin，供终端和脚本使用。已存在且
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} 无法启动（{1}）：{2}"
 
+#. 0: time
+#: src/mainview/lib/copy.ts
+msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
+msgstr "此网络的 GitHub 每小时请求上限已用完。检查将于 {0} 恢复。"
+
+#: src/mainview/lib/copy.ts
+msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
+msgstr "在终端中运行 gh auth login，可将上限提高到每小时 5,000 次。"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "在“系统”组中勾选行，并从那里安装。内核和 NVIDIA 驱动交给系统自己的更新工具，因为两者都需要重启。软件包和 Snap 通过 sudo 安装，sudo 不能询问密码。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+msgstr "这里还没有安装：一旦装好，Upkeep 会让 {0} 保持最新。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+msgstr "{0} 也以 Flatpak（{1}）形式安装，它会自行更新：两份副本，各有自己的菜单项。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Snap ({1}), which updates on its own."
+msgstr "{0} 也以 Snap（{1}）形式安装，它会自行更新。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} also comes from an apt repository, so the system's own updates install it too."
+msgstr "{0} 也来自 apt 软件源，所以系统自己的更新也会安装它。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already follows the same project."
+msgstr "列表中的 {0} 已经在跟踪同一个项目。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
+msgstr "列表中的 {0} 已经安装到同一位置，两者会互相覆盖。"
 #: src/mainview/lib/engine-text.ts
 msgid "Only an installed Upkeep can uninstall itself."
 msgstr "只有已安装的 Upkeep 才能卸载自己。"

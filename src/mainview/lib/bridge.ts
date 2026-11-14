@@ -10,6 +10,7 @@ export type UpkeepRPC = {
 
 const VARIANTS: FixtureVariant[] = ["default", "empty", "checking", "problems", "many", "built", "none"];
 const SELF_PHASES = ["available", "preparing", "ready", "restarting", "failed", "rolled-back", "updated"] as const;
+const RATES = ["out", "signed", "soon"] as const;
 const SYSTEM_VARIANTS: SystemVariant[] = [
 	"off",
 	"show",
@@ -19,6 +20,7 @@ const SYSTEM_VARIANTS: SystemVariant[] = [
 	"failed",
 	"gl",
 	"apt",
+	"dnf",
 	"install",
 	"refuse",
 ];
@@ -47,9 +49,10 @@ export async function getBridge(): Promise<Bridge> {
 			noHistory: query.get("history") === "none",
 			system,
 			cleanup: query.get("cleanup") === "on" ? "on" : undefined,
-			scan: query.get("scan") === "unknown" ? "unknown" : undefined,
+			scan: query.get("scan") === "unknown" ? "unknown" : query.get("scan") === "also" ? "also" : undefined,
 			self: SELF_PHASES.find((v) => v === query.get("self")),
 			selfTestFails: query.get("selftest") === "fail",
+			rate: RATES.find((r) => r === query.get("rate")),
 		});
 	}
 

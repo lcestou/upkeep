@@ -147,6 +147,8 @@ export type Suggestion = {
 	why: string;
 	/** Set when the suggestion cannot be added as it stands. */
 	problem?: string;
+	/** Other copies or tables that already keep this app up to date: engine sentences. Adding is still allowed. */
+	also?: string[];
 };
 
 export type Stage = "download" | "backup" | "build" | "install" | "verify";
@@ -298,8 +300,8 @@ export type Snapshot = {
 	apps: AppState[];
 	run: RunState;
 	settings: Settings;
-	/** GitHub API budget after the last check. */
-	rate: { limit: number; remaining: number } | null;
+	/** GitHub API budget after the last check; resetAt is when GitHub's hour starts over. */
+	rate: { limit: number; remaining: number; resetAt?: string } | null;
 	checkedAt: string | null;
 	version: string;
 };

@@ -182,6 +182,8 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 		return { suggestions: [], problem: "No asset of example/mac-only's latest release runs on this machine." };
 	if (/^burntsushi\/ripgrep/i.test(text)) return { suggestions: [ripgrep(asset)] };
 	if (/^obsidianmd\/obsidian-releases/i.test(text)) return { suggestions: [obsidian(asset)] };
+	// Obsidian with its Flatpak installed too: the card warns and Add stays available.
+	if (text === "obsidian") return { suggestions: [{ ...obsidian(asset), also: [OBSIDIAN_ALSO] }] };
 	if (text === BTOP_PATH) return { suggestions: [btop(asset)] };
 	if (text === "nobody/nothing") return { suggestions: [], problem: "nobody/nothing has no published release." };
 	if (/\.AppImage$/i.test(text) && (text.startsWith("/") || text.startsWith("~/") || text.startsWith("file://")))
@@ -216,9 +218,19 @@ export function suggestFor(input: string, asset: string | undefined, has: (key: 
 	};
 }
 
+/** What the engine says when Obsidian's Flatpak is installed too. */
+const OBSIDIAN_ALSO =
+	"Obsidian is also installed as a Flatpak (md.obsidian.Obsidian), which updates on its own: two copies, each with its own menu entry.";
+
 /** Four files with no source found (the common case on a real box) and two sure ones. */
-export function scanResults(onlyUnknown = false): Suggestion[] {
+export function scanResults(onlyUnknown = false, also = false): Suggestion[] {
 	if (onlyUnknown) return [unknown("/home/owner/.local/bin/mytool"), unknown("/home/owner/bin/backup-sync")];
+	// Obsidian is also a Flatpak here: its row says so and starts unticked.
+	if (also)
+		return [
+			{ ...fromFile("/home/owner/Applications/Obsidian-1.9.4.AppImage"), source: "scan", also: [OBSIDIAN_ALSO] },
+			btop(),
+		];
 	return [
 		{ ...fromFile("/home/owner/Applications/Obsidian-1.9.4.AppImage"), source: "scan" },
 		btop(),

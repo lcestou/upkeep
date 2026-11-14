@@ -30,6 +30,7 @@ import { isPackage, PACKAGE_TOOL } from "./kinds/package";
 import { listTools, toolSpec, toolKey } from "./managers";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
+import { aptRepoHas, copiesOf, readCopies } from "./extras/system";
 import type { Run } from "./run";
 
 export type DiscoverCtx = {
@@ -265,12 +266,16 @@ const GENERIC_REPO = new Set([
 	"builds",
 ]);
 
-/** The name a person reads: the asset's own capitals, else the owner for a generic repo name, else the repo. */
+/**
+ * The name a person reads: the asset's own capitals, else for a generic repo name the program it ships when the owner
+ * does not contain it (gitlab-org/cli ships glab) and the owner when it does (zen-browser/desktop ships zen), else the repo.
+ */
 export function appName(shipped: string, repo: string): string {
 	const [owner = repo, repoName = repo] = repo.split("/");
 	if (shipped.length >= 2 && shipped !== shipped.toLowerCase()) return shipped;
-	if (GENERIC_REPO.has(repoName.toLowerCase())) return displayName(owner);
-	return displayName(repoName);
+	if (!GENERIC_REPO.has(repoName.toLowerCase())) return displayName(repoName);
+	const bin = shipped.toLowerCase();
+	return bin.length >= 2 && !GENERIC_REPO.has(bin) && !owner.toLowerCase().includes(bin) ? shipped : displayName(owner);
 }
 
 /** The first 64 kB of a file, or null when it cannot be read. */
@@ -786,8 +791,18 @@ export async function fromFile(
 	return { suggestion: r.suggestion, searched };
 }
 
-/** Answers the owner's paste: a repo, a link to one, or a file. */
+/** Answers the owner's paste: a repo, a link to one, or a file; each suggestion says what else keeps the app up to date. */
 export async function suggest(
+	input: string,
+	ctx: DiscoverCtx,
+	asset?: string,
+): Promise<{ suggestions: Suggestion[]; problem?: string }> {
+	const r = await suggestFor(input, ctx, asset);
+	return { ...r, suggestions: await withAlso(r.suggestions, ctx) };
+}
+
+/** suggest's answer before the other copies are looked up. */
+async function suggestFor(
 	input: string,
 	ctx: DiscoverCtx,
 	asset?: string,
@@ -847,12 +862,18 @@ async function fromCatalogue(
 	if (RELEASE_KINDS.has(entry.kind) && pattern === undefined)
 		return { suggestions: [], problem: MESSAGES.noAssetForArch(entry.name, ctx.arch ?? "x86_64") };
 	if (!entry.repo || !RELEASE_KINDS.has(entry.kind)) {
-		// A release app found through latest (json:, links:) with nothing at its dest yet would be skipped by every
-		// check: it lands in Ready to install, as a repo one does below.
-		const missing = RELEASE_KINDS.has(entry.kind) && entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home));
+		// A release app found through latest (json:, links:), or a clone build that probes its dest (tmux), with
+		// nothing at its dest yet would be skipped by every check: it lands in Ready to install, as a repo one does below.
+		const clone = entry.kind === "source" && !entry.check && !entry.stage && !entry.dir;
+		const absent = entry.dest !== undefined && !existsSync(expandHome(entry.dest, ctx.paths.home));
+		const missing = absent && (RELEASE_KINDS.has(entry.kind) || clone);
 		const spec = missing ? { ...entry, install_if_missing: true } : entry;
 		const s: Suggestion = { spec, installed: null, latest: null, asset: null, alternatives: [], ...sure };
 		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = MESSAGES.alreadyInList(entry.name);
+		// A tool that updates itself, or a build that reads its own check, cannot be installed by Upkeep the first
+		// time: the card says it shows up once it is there. sh -c checks name no program to look for.
+		else if (!missing && (await notThere(entry, ctx)))
+			s.why = `${CATALOGUE_WHY} ${MESSAGES.notInstalledYet(entry.name)}`;
 		return { suggestions: [s] };
 	}
 	// An asset the person picked is a name; the table's own asset is a pattern.
@@ -874,6 +895,17 @@ async function fromCatalogue(
 	const widen = asset && r.suggestion.why.includes(MESSAGES.patternNeedsWidening());
 	const why = widen ? `${CATALOGUE_WHY} ${MESSAGES.patternNeedsWidening()}` : CATALOGUE_WHY;
 	return { suggestions: [{ ...r.suggestion, spec, ...sure, why }] };
+}
+
+/**
+ * True when a command or check-reading source table's program is not on PATH. A check run through sh or bash names
+ * no program, and a table with no check has none to look for: both are false, so nothing is claimed.
+ */
+async function notThere(entry: AppSpec, ctx: DiscoverCtx): Promise<boolean> {
+	if (entry.kind !== "command" && entry.kind !== "source") return false;
+	const bin = entry.check?.[0];
+	if (!bin || bin === "sh" || bin === "bash") return false;
+	return (await which(ctx, bin)) === null;
 }
 
 /** Whether one argument of a table names the tool: as a whole word, so "yt-dlp" is not found inside "yt-dlp-extra". */
@@ -978,7 +1010,49 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 	// cargo can put a crate's program in a scanned folder (cargo install --root ~/.local): its manager's table wins,
 	// being sure, and the program is not offered twice. Only cargo: uv, pipx and npm leave scripts or links the scan
 	// skips, so a program of the same name there is another app.
+	// A catalogue package app (.deb, .rpm) lives outside home, where the file scan above never looks.
+	for (const e of ctx.catalogue ?? []) {
+		if (!isPackage(e.kind) || !e.dest || known.has(e.key) || listed.has(e.dest) || !existsSync(e.dest)) continue;
+		// oxlint-disable-next-line no-await-in-loop -- one release lookup at a time, as the file scan does
+		const r = await fromCatalogue(e, ctx, undefined, false);
+		const pkg = r.suggestions[0];
+		if (pkg) suggestions.push({ ...pkg, source: "scan", path: e.dest });
+		if (r.rate) break;
+	}
 	const managed = await managedSuggestions(ctx);
 	const keys = new Set(managed.filter((m) => m.spec.update?.[0] === "cargo").map((m) => m.spec.key));
-	return { suggestions: [...suggestions.filter((x) => !keys.has(x.spec.key)), ...managed] };
+	return { suggestions: await withAlso([...suggestions.filter((x) => !keys.has(x.spec.key)), ...managed], ctx) };
+}
+
+/**
+ * Adds to each suggestion that can be added what else already keeps the app up to date: a Flatpak or Snap of it, an
+ * apt repository for a package app, or a table in the list on the same repo or dest. Read-only; the lists are read
+ * once. A warning only: the person may still add it, for two versions side by side.
+ */
+async function withAlso(suggestions: Suggestion[], ctx: DiscoverCtx): Promise<Suggestion[]> {
+	if (!suggestions.some((s) => !s.problem)) return suggestions;
+	const copies = await readCopies(ctx);
+	const home = ctx.paths.home;
+	const out: Suggestion[] = [];
+	for (const s of suggestions) {
+		if (s.problem) {
+			out.push(s);
+			continue;
+		}
+		const { spec } = s;
+		const also: string[] = [];
+		const other = copiesOf(spec.key, spec.name, copies);
+		if (other.flatpak) also.push(MESSAGES.alsoFlatpak(spec.name, other.flatpak));
+		if (other.snap) also.push(MESSAGES.alsoSnap(spec.name, other.snap));
+		// oxlint-disable-next-line no-await-in-loop -- only a package app asks apt, one at a time
+		if (isPackage(spec.kind) && (await aptRepoHas(ctx, spec.key))) also.push(MESSAGES.alsoAptRepo(spec.key));
+		const dest = spec.dest ? expandHome(spec.dest, home) : null;
+		for (const x of ctx.specs) {
+			if (x.key === spec.key) continue;
+			if (dest && x.dest && expandHome(x.dest, home) === dest) also.push(MESSAGES.alsoSameDest(x.name));
+			else if (spec.repo && x.repo?.toLowerCase() === spec.repo.toLowerCase()) also.push(MESSAGES.alsoSameRepo(x.name));
+		}
+		out.push(also.length > 0 ? { ...s, also } : s);
+	}
+	return out;
 }

@@ -1,7 +1,7 @@
 import { MESSAGES } from "../../shared/messages";
 import type { SystemOutcome, SystemRow, SystemState } from "../../shared/types";
 import type { ProcessResult, Run } from "../run";
-import { MINT_LIST, parseMintList, type SystemCheck } from "./system";
+import { APT_LIST, MINT_LIST, parseAptList, parseMintList, type SystemCheck } from "./system";
 
 // The install half of the System group. Every command here is a literal argv; the view shows the ones that change
 // something before any of them runs, and a background run never calls this module.
@@ -42,7 +42,8 @@ const RESTART_PACKAGE = /^(linux-(image|headers|modules|signed|meta|hwe|generic|
 
 /** One command of a System install and the rows it answers for. */
 export type Step = {
-	kind: "apt" | "flatpak" | "snap" | "cinnamon";
+	/** apt is Update Manager's mintupdate-cli; apt-get is plain apt where there is no Update Manager. */
+	kind: "apt" | "apt-get" | "flatpak" | "snap" | "cinnamon";
 	argv: string[];
 	ids: string[];
 	timeoutMs: number;
@@ -59,15 +60,44 @@ export type InstallCtx = {
 };
 
 /**
- * Upkeep installs Update Manager's packages, Flatpak refs, Snaps and Cinnamon spices. Never a kernel or a driver,
- * and never a row from apt, dnf, pacman or zypper without Update Manager: those stay with the system's own tool,
- * since only mintupdate-cli brings Mint's dist-upgrade, blacklist and kernel grouping rules along.
+ * Upkeep installs Update Manager's packages, plain apt's (Ubuntu, Debian), Flatpak refs, Snaps and Cinnamon spices.
+ * Never a kernel or a driver, by type or by package name. dnf, pacman and zypper rows stay with the system's own tool:
+ * pacman has no safe partial upgrade, and dnf and zypper are not wired yet.
  */
 export function installable(row: SystemRow, packages: SystemState["packages"]): boolean {
 	if (row.note === "update-manager-only" || row.type === "kernel" || row.type === "driver") return false;
-	if (row.source === "apt") return packages === "mint";
+	if (row.source === "apt") return packages === "mint" || (packages === "apt" && !RESTART_PACKAGE.test(row.name));
 	return row.source === "flatpak" || row.source === "snap" || row.source === "cinnamon";
 }
+
+/** apt-get's name for a plain apt row: the package, with the arch its id carries unless it is "all" (libc6:i386). */
+function aptSpec(row: SystemRow): string {
+	const arch = row.id.slice(row.id.lastIndexOf(".") + 1);
+	return arch && arch !== "all" && row.id.includes(".") ? `${row.name}:${arch}` : row.name;
+}
+
+/**
+ * Plain apt's root install of exactly the ticked packages: --only-upgrade never installs one that is not there, and
+ * confold keeps a config file the person edited, as --keep-configuration does for mintupdate-cli.
+ */
+export const aptGetArgv = (specs: string[]) => [
+	"sudo",
+	"-n",
+	"env",
+	"DEBIAN_FRONTEND=noninteractive",
+	"apt-get",
+	"install",
+	"--only-upgrade",
+	"-y",
+	"-o",
+	"Dpkg::Options::=--force-confdef",
+	"-o",
+	"Dpkg::Options::=--force-confold",
+	...specs,
+];
+
+/** The same install as apt-get's simulation, which needs no root and changes nothing. */
+export const aptGetTrialArgv = (specs: string[]) => ["apt-get", "install", "--only-upgrade", "--simulate", ...specs];
 
 /**
  * -i for mintupdate-cli: the kernel and driver globs, then every apt row this run does not install, by its source
@@ -119,7 +149,14 @@ export function planSteps(rows: SystemRow[], ids: string[], packages: SystemStat
 	const of = (source: SystemRow["source"]) => picked.filter((r) => r.source === source);
 	const steps: Step[] = [];
 	const apt = of("apt");
-	if (apt.length > 0)
+	if (apt.length > 0 && packages === "apt")
+		steps.push({
+			kind: "apt-get",
+			argv: aptGetArgv(apt.map(aptSpec)),
+			ids: apt.map((r) => r.id),
+			timeoutMs: 3_600_000,
+		});
+	else if (apt.length > 0)
 		steps.push({
 			kind: "apt",
 			argv: aptArgv(aptIgnore(rows, new Set(apt.map((r) => r.id)))),
@@ -190,11 +227,16 @@ export async function preflight(steps: Step[], rows: SystemRow[], ctx: InstallCt
 	const opts = { timeoutMs: 60_000 };
 	if (steps.some((s) => s.argv[0] === "sudo") && bad(await ctx.run(SUDO_CHECK, opts))) return MESSAGES.systemSudo();
 	const apt = steps.find((s) => s.kind === "apt");
-	if (apt) {
+	const aptGet = steps.find((s) => s.kind === "apt-get");
+	if (apt || aptGet) {
 		const lock = await ctx.run(DPKG_LOCK_CHECK, opts);
 		// A sudoers rule can allow true and not fuser: that is sudo asking, not the package system being busy.
 		if (/password is required/i.test(lock.stderr)) return MESSAGES.systemSudo();
-		if (lock.code !== 1 || lock.timedOut || lock.stderr.trim() !== "") return MESSAGES.systemAptBusy();
+		// No fuser (psmisc is left out of minimal installs) on plain apt: nothing to ask, and apt-get refuses a held
+		// lock itself, with an exit code, before it changes anything. mintupdate-cli throws that code away, so Mint
+		// still needs the answer.
+		const noFuser = !apt && /fuser: (command )?not found/i.test(lock.stderr);
+		if (!noFuser && (lock.code !== 1 || lock.timedOut || lock.stderr.trim() !== "")) return MESSAGES.systemAptBusy();
 	}
 	const flatpak = steps.find((s) => s.kind === "flatpak");
 	for (const action of flatpak ? polkitActions(rows, flatpak) : []) {
@@ -203,6 +245,7 @@ export async function preflight(steps: Step[], rows: SystemRow[], ctx: InstallCt
 		const r = await ctx.run(["pkcheck", "--action-id", action, "--process", String(ctx.pid)], opts);
 		if (bad(r)) return MESSAGES.systemPolkit();
 	}
+	if (aptGet) return aptGetPreflight(aptGet, rows, ctx);
 	if (!apt) return null;
 	const list = await ctx.run(MINT_LIST, opts);
 	if (bad(list)) return MESSAGES.systemTrialFailed(firstLine(list));
@@ -222,6 +265,34 @@ export async function preflight(steps: Step[], rows: SystemRow[], ctx: InstallCt
 	const removed = [...trial.stdout.matchAll(/^Remv (\S+)/gm)].map((m) => m[1] ?? "");
 	if (removed.length > 0) return MESSAGES.systemTrialRemoves(removed.join(", "));
 	return null;
+}
+
+/**
+ * Plain apt's half of the preflight, after sudo and the lock: the list read again names the same packages, and
+ * apt-get's simulation of the install fails on nothing, names no kernel or NVIDIA package and removes nothing.
+ */
+async function aptGetPreflight(step: Step, rows: SystemRow[], ctx: InstallCtx): Promise<string | null> {
+	const list = await ctx.run(APT_LIST, { timeoutMs: 60_000 });
+	if (bad(list)) return MESSAGES.systemTrialFailed(firstLine(list));
+	const fresh = new Set(parseAptList(list.stdout).map((r) => r.id));
+	const shown = new Set(rows.filter((r) => r.source === "apt").map((r) => r.id));
+	if (fresh.size !== shown.size || [...fresh].some((id) => !shown.has(id))) return MESSAGES.systemListChanged();
+	const specs = step.argv.slice(aptGetArgv([]).length);
+	const trial = await ctx.run(aptGetTrialArgv(specs), { timeoutMs: 600_000 });
+	const error = `${trial.stderr}\n${trial.stdout}`.split("\n").find((l) => l.startsWith("E:"));
+	if (error) return MESSAGES.systemTrialFailed(error);
+	if (bad(trial)) return MESSAGES.systemTrialFailed(firstLine(trial));
+	const named = trialPackages(trial.stdout).filter((p) => RESTART_PACKAGE.test(p));
+	if (named.length > 0) return MESSAGES.systemTrialNamesRestart(named.join(", "));
+	const removed = [...trial.stdout.matchAll(/^Remv (\S+)/gm)].map((m) => m[1] ?? "");
+	if (removed.length > 0) return MESSAGES.systemTrialRemoves(removed.join(", "));
+	return null;
+}
+
+/** The program a step's argv runs, past sudo, its flags and env's assignments, for the log line after it ends. */
+function programOf(argv: string[]): string {
+	if (argv[0] !== "sudo") return argv[0] ?? "";
+	return argv.slice(1).find((a) => !a.startsWith("-") && a !== "env" && !a.includes("=")) ?? "sudo";
 }
 
 /**
@@ -251,7 +322,7 @@ export async function runSteps(
 			: r.code !== 0
 				? MESSAGES.commandExited(command, r.code)
 				: null;
-		ctx.log(why ?? `${step.argv[0] === "sudo" ? step.argv[2] : step.argv[0]} finished`);
+		ctx.log(why ?? `${programOf(step.argv)} finished`);
 		if (why) for (const id of step.ids) failed.set(id, why);
 	}
 	return failed;
@@ -271,7 +342,9 @@ export function outcomesAfter(picked: SystemRow[], failed: Map<string, string>, 
 		const why = failed.get(row.id);
 		if (why) return { ...base, status: "failed", detail: why };
 		if (still.has(row.id)) return { ...base, status: "failed", detail: MESSAGES.systemStillPending() };
-		if (unread && unread.command.startsWith(LIST_TOOL[row.source]))
+		// Plain apt's list is "apt list", not Update Manager's.
+		const tool = row.source === "apt" && !unread?.command.startsWith(LIST_TOOL.apt) ? "apt " : LIST_TOOL[row.source];
+		if (unread && unread.command.startsWith(tool))
 			return { ...base, status: "failed", detail: MESSAGES.systemNotRechecked(unread.detail) };
 		return row.running ? { ...base, status: "done", detail: MESSAGES.systemRestartApp() } : { ...base, status: "done" };
 	});

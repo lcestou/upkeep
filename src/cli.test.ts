@@ -59,8 +59,11 @@ function deps(): EngineDeps {
 	writeFileSync(seed, MANIFEST);
 	script(join(t.paths.home, ".local/bin/borg"), 'echo "borg 1.4.1"');
 	script(join(t.paths.home, ".local/bin/bat"), 'echo "bat 0.26.1"');
+	// gh, and the system's own lists (Flatpak, Snap, apt), read as not there: no test reads the machine it runs on.
 	const { run } = recordingRun(t.paths, (argv) =>
-		argv[0] === "gh" ? { code: 1, stdout: "", stderr: "", timedOut: false } : undefined,
+		["gh", "flatpak", "snap", "apt-cache"].includes(argv[0] ?? "")
+			? { code: argv[0] === "gh" ? 1 : 127, stdout: "", stderr: "", timedOut: false }
+			: undefined,
 	);
 	mkdirSync(join(t.dir, "proc"), { recursive: true });
 	return {
@@ -390,9 +393,34 @@ test("add takes a catalogue app by its name, and says each problem of an import 
 	const out: string[] = [];
 	expect(await main(["add", "fd"], withCatalogue, (l) => out.push(l))).toBe(0);
 	expect(out).toEqual(["Added fd."]);
+	// A Snap of the same app is said after, as the window's card says it; the add itself goes ahead. A name of two
+	// letters (fd) is too short to call a match.
+	writeFileSync(
+		join(catalogue, "glowtool.toml"),
+		'[apps.glowtool]\nname = "Glow Tool"\nkind = "command"\ncheck = ["glowtool", "--version"]\nlatest = "npm:glowtool"\nupdate = ["glowtool", "up"]\n',
+	);
+	const snapped: EngineDeps = {
+		...withCatalogue,
+		run: async (argv, opts) =>
+			argv[0] === "snap"
+				? {
+						code: 0,
+						stdout:
+							"Name  Version  Rev  Tracking  Publisher  Notes\nfd  1  1  latest/stable  x  -\nglowtool  1  1  latest/stable  x  -\n",
+						stderr: "",
+						timedOut: false,
+					}
+				: withCatalogue.run(argv, opts),
+	};
+	const noted: string[] = [];
+	expect(await main(["add", "glowtool"], snapped, (l) => noted.push(l))).toBe(0);
+	expect(noted).toEqual([
+		"Added glowtool.",
+		"Note: Glow Tool is also installed as a Snap (glowtool), which updates on its own.",
+	]);
 	const listed: string[] = [];
 	await main(["list"], withCatalogue, (l) => listed.push(l));
-	expect(listed.at(-1)).toBe("fd  fd  file  sharkdp/fd");
+	expect(listed).toContain("fd  fd  file  sharkdp/fd");
 	const file = join(t.dir, "bad.json");
 	writeFileSync(file, "[]");
 	const said: string[] = [];

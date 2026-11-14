@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { say } from "../lib/engine-say";
+	import Glyph from "./Glyph.svelte";
 	import type { AppSpec, Suggestion } from "../../shared/types";
 	import { ADD, KIND_LABEL, TEXT, aboutManifest } from "../lib/copy";
 
@@ -92,6 +93,11 @@
 				>{/if}{say(s.why)}
 		</p>
 	{/if}
+
+	{#each s.also ?? [] as line, i (i)}
+		<!-- A warning, not a refusal: Add stays available, for two copies side by side. -->
+		<p class="also" data-testid="sug-also"><Glyph name="bang" color="var(--rust)" />{say(line)}</p>
+	{/each}
 
 	{#if runs}
 		<p class="runs" data-testid="sug-runs">{ADD.runs} <code>{runs}</code></p>
@@ -246,5 +252,19 @@
 		margin: 0;
 		font-size: var(--fs-12);
 		color: var(--fail);
+	}
+	.also {
+		display: flex;
+		gap: 6px;
+		align-items: baseline;
+		margin: 0;
+		font-size: var(--fs-12);
+		line-height: 1.5;
+		color: var(--text);
+		max-width: 62ch;
+	}
+	.also :global(svg) {
+		flex: none;
+		transform: translateY(2px);
 	}
 </style>

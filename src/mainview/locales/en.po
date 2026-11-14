@@ -2022,10 +2022,6 @@ msgid "Install system updates from Upkeep"
 msgstr "Install system updates from Upkeep"
 
 #: src/mainview/lib/copy.ts
-msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
-msgstr "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
-
-#: src/mainview/lib/copy.ts
 msgid "Upkeep runs these commands, in this order:"
 msgstr "Upkeep runs these commands, in this order:"
 
@@ -2522,6 +2518,7 @@ msgid "Try again"
 msgstr "Try again"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Dismiss"
 msgstr "Dismiss"
 
@@ -2583,6 +2580,48 @@ msgstr "Puts upkeep in ~/.local/bin for the terminal and scripts. A file already
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} will not start ({1}): {2}"
 
+#. 0: time
+#: src/mainview/lib/copy.ts
+msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
+msgstr "GitHub's hourly limit for this network is used up. Checks resume at {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
+msgstr "Run gh auth login in a terminal to raise it to 5,000 an hour."
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+msgstr "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+msgstr "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Snap ({1}), which updates on its own."
+msgstr "{0} is also installed as a Snap ({1}), which updates on its own."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} also comes from an apt repository, so the system's own updates install it too."
+msgstr "{0} also comes from an apt repository, so the system's own updates install it too."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already follows the same project."
+msgstr "{0} in the list already follows the same project."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
+msgstr "{0} in the list already installs to the same place, so the two would overwrite each other."
 #: src/mainview/lib/engine-text.ts
 msgid "Only an installed Upkeep can uninstall itself."
 msgstr "Only an installed Upkeep can uninstall itself."

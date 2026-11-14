@@ -204,7 +204,7 @@ test("installing is a second switch, off by default and shown only while the lis
 	const install = page.getByTestId("setting-system-install");
 	await expect(install).not.toBeChecked();
 	await expect(page.getByTestId("setting-system-install-help")).toHaveText(
-		"Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password.",
+		"Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password.",
 	);
 	await page.getByTestId("tab-updates").click();
 	await openGroup(page);
@@ -292,15 +292,33 @@ test("a refused pre-check shows its reason and nothing installs", async ({ page 
 	await expect(page.getByTestId("system-results")).toHaveCount(0);
 });
 
-test("without Update Manager, package rows have no tick and name the system's own tool", async ({ page }) => {
+test("on plain apt, package rows tick and install through apt-get --only-upgrade, never a kernel or driver", async ({
+	page,
+}) => {
 	await load(page, "fixture&system=apt");
 	await page.getByTestId("tab-settings").click();
 	await page.getByTestId("setting-system-install").check();
 	await page.getByTestId("tab-updates").click();
 	await openGroup(page);
-	const perl = page.getByTestId("sys-row-apt:perl");
-	await expect(perl.getByTestId("sys-tick-apt:perl")).toHaveCount(0);
-	await expect(perl.getByTestId("sys-note")).toHaveText("Install it with apt.");
+	await page.getByTestId("sys-tick-apt:perl").check();
+	await expect(page.getByTestId("sys-tick-apt:linux-generic")).toHaveCount(0);
+	await expect(page.getByTestId("sys-tick-apt:nvidia-driver-580")).toHaveCount(0);
+	await expect(page.getByTestId("sys-row-apt:perl").getByTestId("sys-note")).toHaveCount(0);
+	await page.getByTestId("system-install").click();
+	await expect(page.getByTestId("system-command")).toContainText([
+		"sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install --only-upgrade -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold perl",
+	]);
+});
+
+test("with dnf, pacman or zypper, package rows have no tick and name the system's own tool", async ({ page }) => {
+	await load(page, "fixture&system=dnf");
+	await page.getByTestId("tab-settings").click();
+	await page.getByTestId("setting-system-install").check();
+	await page.getByTestId("tab-updates").click();
+	await openGroup(page);
+	const perl = page.getByTestId("sys-row-dnf:perl");
+	await expect(perl.getByTestId("sys-tick-dnf:perl")).toHaveCount(0);
+	await expect(perl.getByTestId("sys-note")).toHaveText("Install it with dnf.");
 	await expect(page.getByTestId("sys-tick-flatpak:com.discordapp.Discord")).toBeVisible();
 	// A row Upkeep installs is not sent to apt.
 	await expect(page.getByTestId("sys-row-flatpak:com.discordapp.Discord").getByTestId("sys-note")).toHaveCount(0);

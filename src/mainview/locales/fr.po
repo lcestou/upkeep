@@ -2040,10 +2040,6 @@ msgid "Install system updates from Upkeep"
 msgstr "Installer les mises à jour du système depuis Upkeep"
 
 #: src/mainview/lib/copy.ts
-msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
-msgstr "Cochez des lignes dans le groupe Système et installez-les depuis là. Les noyaux et le pilote NVIDIA restent au Gestionnaire de mises à jour, car tous deux demandent un redémarrage. Les paquets et les Snaps s'installent via sudo, qui ne doit pas demander de mot de passe."
-
-#: src/mainview/lib/copy.ts
 msgid "Upkeep runs these commands, in this order:"
 msgstr "Upkeep lance ces commandes, dans cet ordre :"
 
@@ -2543,6 +2539,7 @@ msgid "Try again"
 msgstr "Réessayer"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Dismiss"
 msgstr "Fermer"
 
@@ -2604,6 +2601,48 @@ msgstr "Place upkeep dans ~/.local/bin pour le terminal et les scripts. Un fichi
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} ne démarre pas ({1}) : {2}"
 
+#. 0: time
+#: src/mainview/lib/copy.ts
+msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
+msgstr "La limite horaire de GitHub pour ce réseau est épuisée. Les vérifications reprennent à {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
+msgstr "Lancez gh auth login dans un terminal pour la porter à 5 000 par heure."
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "Cochez des lignes dans le groupe Système et installez-les depuis là. Les noyaux et le pilote NVIDIA restent à l'outil de mise à jour du système, car tous deux demandent un redémarrage. Les paquets et les Snaps s'installent via sudo, qui ne doit pas demander de mot de passe."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+msgstr "Ce n'est pas encore installé ici : Upkeep tiendra {0} à jour dès que ce sera fait."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+msgstr "{0} est aussi installé en Flatpak ({1}), qui se met à jour seul : deux copies, chacune avec son entrée de menu."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Snap ({1}), which updates on its own."
+msgstr "{0} est aussi installé en Snap ({1}), qui se met à jour seul."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} also comes from an apt repository, so the system's own updates install it too."
+msgstr "{0} vient aussi d'un dépôt apt, donc les mises à jour du système l'installent aussi."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already follows the same project."
+msgstr "{0} dans la liste suit déjà le même projet."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
+msgstr "{0} dans la liste s'installe déjà au même endroit : l'un écraserait l'autre."
 #: src/mainview/lib/engine-text.ts
 msgid "Only an installed Upkeep can uninstall itself."
 msgstr "Seul un Upkeep installé peut se désinstaller lui-même."

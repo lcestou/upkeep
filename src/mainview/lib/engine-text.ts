@@ -31,6 +31,14 @@ export const ENGINE_COPY = {
 	couldNotReadVersion: () => `Could not read the installed version with --version.`,
 	installedWith: (v0: string) => `Installed with ${v0}. Upkeep updates it the same way.`,
 	alreadyInList: (v0: string) => `${v0} is already in the list.`,
+	alsoFlatpak: (v0: string, v1: string) =>
+		`${v0} is also installed as a Flatpak (${v1}), which updates on its own: two copies, each with its own menu entry.`,
+	alsoSnap: (v0: string, v1: string) => `${v0} is also installed as a Snap (${v1}), which updates on its own.`,
+	alsoAptRepo: (v0: string) => `${v0} also comes from an apt repository, so the system's own updates install it too.`,
+	alsoSameRepo: (v0: string) => `${v0} in the list already follows the same project.`,
+	alsoSameDest: (v0: string) =>
+		`${v0} in the list already installs to the same place, so the two would overwrite each other.`,
+	notInstalledYet: (v0: string) => `It is not installed here yet: Upkeep keeps ${v0} up to date once it is.`,
 	uninstallInstalledOnly: () => `Only an installed Upkeep can uninstall itself.`,
 	uninstallWaitRun: () => `Upkeep is installing something. Uninstall once it is done.`,
 	uninstallRefused: (v0: string) =>

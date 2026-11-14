@@ -20,7 +20,8 @@ export type Release = {
 
 export type Failure = { failure: "rate" | "network" | "http"; detail: string; resetAt?: string };
 
-export type Rate = { limit: number; remaining: number };
+/** GitHub's budget from an answer's headers; resetAt is when the hour starts over, when GitHub says. */
+export type Rate = { limit: number; remaining: number; resetAt?: string };
 
 export type ReleaseOpts = {
 	cacheDir: string;
@@ -144,9 +145,10 @@ function readRate(res: Response, opts: ReleaseOpts): RateRead {
 	const limit = Number(res.headers.get("x-ratelimit-limit"));
 	const remaining = Number(res.headers.get("x-ratelimit-remaining"));
 	const hasRate = res.headers.has("x-ratelimit-remaining") && Number.isFinite(limit) && Number.isFinite(remaining);
-	if (hasRate) opts.onRate?.({ limit, remaining });
 	const reset = Number(res.headers.get("x-ratelimit-reset"));
-	return { hasRate, remaining, resetAt: reset > 0 ? new Date(reset * 1000).toISOString() : undefined };
+	const resetAt = reset > 0 ? new Date(reset * 1000).toISOString() : undefined;
+	if (hasRate) opts.onRate?.(resetAt ? { limit, remaining, resetAt } : { limit, remaining });
+	return { hasRate, remaining, resetAt };
 }
 
 /** Only an error answer can be a rate limit: release notes may quote the phrase. */

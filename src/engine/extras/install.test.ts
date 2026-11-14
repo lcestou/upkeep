@@ -9,6 +9,8 @@ import { ok, strictRun, tempHome } from "../testkit";
 import { createExtras } from "./extras";
 import {
 	aptArgv,
+	aptGetArgv,
+	aptGetTrialArgv,
 	DPKG_LOCK_CHECK,
 	installable,
 	KERNEL_AND_DRIVER_IGNORE,
@@ -19,6 +21,7 @@ import {
 } from "./install";
 import { updateExtras } from "./state";
 import {
+	APT_LIST,
 	DRIVER_GL,
 	FLATPAK_INSTALLED,
 	FLATPAK_RUNNING,
@@ -142,7 +145,10 @@ test("apt runs through mintupdate-cli as root, always with --keep-configuration 
 
 test("Upkeep installs Update Manager's packages, Flatpak, Snap and Cinnamon, never a kernel, a driver or another package list's row", () => {
 	expect(installable(row("apt:perl", "apt", "security"), "mint")).toBe(true);
-	expect(installable(row("apt:perl.amd64", "apt", "security"), "apt")).toBe(false);
+	// Plain apt (Ubuntu, Debian) installs too, never a kernel or NVIDIA package by name.
+	expect(installable(row("apt:perl.amd64", "apt", "security", "perl"), "apt")).toBe(true);
+	expect(installable(row("apt:linux-image-generic.amd64", "apt", "package", "linux-image-generic"), "apt")).toBe(false);
+	expect(installable(row("apt:libnvidia-gl-580.amd64", "apt", "package", "libnvidia-gl-580"), "apt")).toBe(false);
 	expect(installable(row("dnf:bash.x86_64", "dnf", "package"), "dnf")).toBe(false);
 	expect(installable(row("pacman:bash", "pacman", "package"), "pacman")).toBe(false);
 	expect(installable(row("zypper:bash.x86_64", "zypper", "package"), "zypper")).toBe(false);
@@ -424,4 +430,105 @@ test("while an install runs, the group and its switch cannot be turned off, and 
 	await x.idle();
 	expect(x.installing()).toBe(false);
 	expect(x.setSettings({ system: "off" }).system).toBe("off");
+});
+
+/** apt list --upgradable on an Ubuntu box with no Update Manager: less and tzdata. */
+const UBUNTU_LIST = [
+	"Listing...",
+	"less/noble-updates,noble-security 590-2ubuntu2.1 amd64 [upgradable from: 590-2ubuntu2]",
+	"tzdata/noble-updates,noble-security 2026e-0ubuntu0.24.04.1 all [upgradable from: 2024a-2ubuntu1]",
+	"",
+].join("\n");
+const UBUNTU_SPECS = ["less:amd64", "tzdata"];
+
+/** An Ubuntu machine, faked as box() fakes Mint: no mintupdate-cli, apt's list, a clean simulation, every install exiting 0. */
+function ubuntu(over: Map<string, ProcessResult> = new Map()) {
+	let installed = false;
+	return strictRun((argv: string[]) => {
+		const key = argv.join(" ");
+		const o = over.get(key);
+		if (o) return o;
+		if (key === SUDO_CHECK.join(" ")) return ok();
+		if (key === DPKG_LOCK_CHECK.join(" ")) return exit(1);
+		if (key === APT_LIST.join(" ")) return ok(installed ? "Listing...\n" : UBUNTU_LIST);
+		if (key === aptGetTrialArgv(UBUNTU_SPECS).join(" ")) return ok("Inst less [1] (2)\nInst tzdata [1] (2)\n");
+		if (key === aptGetArgv(UBUNTU_SPECS).join(" ")) {
+			installed = true;
+			return ok();
+		}
+		return missing;
+	});
+}
+
+test("on plain apt, the ticked packages install through apt-get --only-upgrade, keeping edited config, after a clean simulation", async () => {
+	const { run, calls } = ubuntu();
+	const x = await shown(run);
+	const ids = x.snapshot().system.rows.map((r) => r.id);
+	expect(ids).toEqual(["apt:less.amd64", "apt:tzdata.all"]);
+	expect(x.snapshot().system.installable).toEqual(ids);
+	expect(plan(x, ids)).toEqual([aptGetArgv(UBUNTU_SPECS)]);
+	expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+	await x.idle();
+	expect(x.snapshot().system.install?.outcomes.map((o) => [o.id, o.status])).toEqual([
+		["apt:less.amd64", "done"],
+		["apt:tzdata.all", "done"],
+	]);
+	expect(calls.some((c) => c.argv.join(" ") === aptGetArgv(UBUNTU_SPECS).join(" "))).toBe(true);
+});
+
+test("with no fuser to ask, the lock check steps aside: apt-get refuses a held lock itself", async () => {
+	const { run, calls } = ubuntu(new Map([[DPKG_LOCK_CHECK.join(" "), exit(1, "", "sudo: fuser: command not found")]]));
+	const x = await shown(run);
+	const ids = x.snapshot().system.rows.map((r) => r.id);
+	expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+	await x.idle();
+	expect(x.snapshot().system.install?.refused ?? null).toBeNull();
+	expect(calls.some((c) => c.argv.join(" ") === aptGetArgv(UBUNTU_SPECS).join(" "))).toBe(true);
+});
+
+test("on plain apt, a simulation that names a kernel, removes a package or fails, or a changed list, refuses before root runs", async () => {
+	const trial = aptGetTrialArgv(UBUNTU_SPECS).join(" ");
+	const cases: [Map<string, ProcessResult>, string][] = [
+		[
+			new Map([[trial, ok("Inst less [1] (2)\nInst linux-image-6.8.0-99-generic (1)\n")]]),
+			MESSAGES.systemTrialNamesRestart("linux-image-6.8.0-99-generic"),
+		],
+		[new Map([[trial, ok("Inst less [1] (2)\nRemv libold1 [1]\n")]]), MESSAGES.systemTrialRemoves("libold1")],
+		[
+			new Map([[trial, exit(100, "", "E: Unable to locate package less")]]),
+			MESSAGES.systemTrialFailed("E: Unable to locate package less"),
+		],
+	];
+	for (const [over, refused] of cases) {
+		rmSync(join(t.paths.state), { recursive: true, force: true });
+		const { run, calls } = ubuntu(over);
+		// oxlint-disable-next-line no-await-in-loop -- each case is its own install
+		const x = await shown(run);
+		const ids = x.snapshot().system.rows.map((r) => r.id);
+		expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+		// oxlint-disable-next-line no-await-in-loop -- each case is its own install
+		await x.idle();
+		expect(x.snapshot().system.install?.refused).toBe(refused);
+		expect(calls.some((c) => c.argv[4] === "apt-get" && c.argv[0] === "sudo")).toBe(false);
+	}
+	// The list read again before the install no longer matches the rows shown.
+	rmSync(join(t.paths.state), { recursive: true, force: true });
+	let reads = 0;
+	const { run } = strictRun((argv: string[]) => {
+		const key = argv.join(" ");
+		if (key === SUDO_CHECK.join(" ")) return ok();
+		if (key === DPKG_LOCK_CHECK.join(" ")) return exit(1);
+		if (key === APT_LIST.join(" "))
+			return ok(
+				reads++ === 0
+					? UBUNTU_LIST
+					: `${UBUNTU_LIST}nano/noble-updates 7.2-2ubuntu0.2 amd64 [upgradable from: 7.2-2build1]\n`,
+			);
+		return missing;
+	});
+	const x = await shown(run);
+	const ids = x.snapshot().system.rows.map((r) => r.id);
+	expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+	await x.idle();
+	expect(x.snapshot().system.install?.refused).toBe(MESSAGES.systemListChanged());
 });

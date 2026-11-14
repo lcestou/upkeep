@@ -2004,10 +2004,6 @@ msgid "Install system updates from Upkeep"
 msgstr "Upkeep からシステムの更新をインストール"
 
 #: src/mainview/lib/copy.ts
-msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
-msgstr "システムグループで行にチェックを入れ、そこからインストールします。カーネルと NVIDIA ドライバーはどちらも再起動が必要なため、アップデートマネージャーに任せます。パッケージと Snap は sudo でインストールされ、sudo がパスワードを求めないことが条件です。"
-
-#: src/mainview/lib/copy.ts
 msgid "Upkeep runs these commands, in this order:"
 msgstr "Upkeep は次のコマンドをこの順に実行します:"
 
@@ -2501,6 +2497,7 @@ msgid "Try again"
 msgstr "再試行"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Dismiss"
 msgstr "閉じる"
 
@@ -2562,6 +2559,48 @@ msgstr "ターミナルやスクリプト用に upkeep を ~/.local/bin に置�
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} が起動しません（{1}）：{2}"
 
+#. 0: time
+#: src/mainview/lib/copy.ts
+msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
+msgstr "このネットワークの GitHub の 1 時間あたりの上限に達しました。{0} にチェックを再開します。"
+
+#: src/mainview/lib/copy.ts
+msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
+msgstr "ターミナルで gh auth login を実行すると、上限が 1 時間 5,000 回に上がります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "システムグループで行にチェックを入れ、そこからインストールします。カーネルと NVIDIA ドライバーはどちらも再起動が必要なため、システム自身の更新ツールに任せます。パッケージと Snap は sudo でインストールされ、sudo がパスワードを求めないことが条件です。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "It is not installed here yet: Upkeep keeps {0} up to date once it is."
+msgstr "まだここにはインストールされていません。インストールされれば、Upkeep が {0} を最新に保ちます。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Flatpak ({1}), which updates on its own: two copies, each with its own menu entry."
+msgstr "{0} は Flatpak（{1}）としてもインストールされていて、そちらは自分で更新されます。コピーが 2 つになり、メニュー項目もそれぞれにできます。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is also installed as a Snap ({1}), which updates on its own."
+msgstr "{0} は Snap（{1}）としてもインストールされていて、そちらは自分で更新されます。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} also comes from an apt repository, so the system's own updates install it too."
+msgstr "{0} は apt のリポジトリからも提供されているため、システム自身の更新でもインストールされます。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already follows the same project."
+msgstr "リストの {0} がすでに同じプロジェクトを追っています。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
+msgstr "リストの {0} がすでに同じ場所にインストールしているため、互いに上書きし合います。"
 #: src/mainview/lib/engine-text.ts
 msgid "Only an installed Upkeep can uninstall itself."
 msgstr "インストールされた Upkeep だけが自分自身をアンインストールできます。"

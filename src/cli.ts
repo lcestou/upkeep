@@ -194,7 +194,8 @@ export function pickSure(suggestions: Suggestion[]): Suggestion | null {
 
 /**
  * Adds one app the way Add app does, from a catalogue name, a repo, a link or a file. Only a sure match is added: a
- * file whose repo was only guessed from its name is named and not added, so an agent never adds the wrong app.
+ * file whose repo was only guessed from its name is named and not added, so an agent never adds the wrong app. What
+ * else already keeps it up to date (a Flatpak, a Snap, another table) is printed after, as a note.
  */
 async function add(engine: Engine, input: string, json: boolean, out: Out): Promise<number> {
 	const { suggestions, problem } = await engine.suggest(input);
@@ -213,9 +214,11 @@ async function add(engine: Engine, input: string, json: boolean, out: Out): Prom
 		return 1;
 	}
 	const r = await engine.addApps([pick.spec]);
-	if (json) out(JSON.stringify(r));
+	// What else already keeps the app up to date, as Add app's card says it: a note, never a refusal.
+	if (json) out(JSON.stringify(pick.also ? { ...r, also: pick.also } : r));
 	else {
 		for (const k of r.added) out(`Added ${k}.`);
+		for (const line of pick.also ?? []) out(`Note: ${line}`);
 		for (const p of r.problems) out(`${p.key}: ${p.detail}`);
 	}
 	return r.added.length > 0 ? 0 : 1;

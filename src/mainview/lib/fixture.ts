@@ -618,8 +618,8 @@ export type FixtureOptions = {
 	corners?: "rounded" | "square";
 	/** Start with no recorded runs, as on a first launch. */
 	noHistory?: boolean;
-	/** "unknown" makes a scan find only programs whose source it cannot tell. */
-	scan?: "unknown";
+	/** "unknown" makes a scan find only programs whose source it cannot tell; "also" finds Obsidian, which is a Flatpak too. */
+	scan?: "unknown" | "also";
 	/** The System group's starting state; off unless asked. */
 	system?: SystemVariant;
 	/** "on" starts with the Cleanup tab switched on. */
@@ -628,6 +628,8 @@ export type FixtureOptions = {
 	self?: Exclude<SelfState["phase"], "none">;
 	/** The offered version fails its start test, so a press on Update ends failed and never ready. */
 	selfTestFails?: boolean;
+	/** GitHub's budget is used up for the next half hour: "out" with no sign-in (60), "signed" with one (5,000); "soon" starts over in 1.5 s. */
+	rate?: "out" | "signed" | "soon";
 };
 
 // Cinnamon can put the window buttons on the left: close, maximize, minimize.
@@ -670,7 +672,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		results: [],
 		retry: false,
 	};
-	const rate = { limit: 5000, remaining: 4977 };
+	const resetAt = iso(Date.now() + (opts.rate === "soon" ? 1500 : 30 * 60_000));
+	const rate =
+		opts.rate === "out" || opts.rate === "soon"
+			? { limit: 60, remaining: 0, resetAt }
+			: opts.rate === "signed"
+				? { limit: 5000, remaining: 0, resetAt }
+				: { limit: 5000, remaining: 4977 };
 	let checkedAt: string | null = iso(Date.now() - 2 * 60_000);
 	const history: HistoryRow[] = opts.noHistory ? [] : pastHistory();
 	const logs = new Map<string, LogLine[]>();
@@ -1194,7 +1202,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		scan: async () => {
 			await sleep(1500 / speed);
-			const suggestions = scanResults(opts.scan === "unknown");
+			const suggestions = scanResults(opts.scan === "unknown", opts.scan === "also");
 			for (const s of suggestions) offered.set(s.spec.key, s);
 			return { suggestions };
 		},
