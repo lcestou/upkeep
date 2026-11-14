@@ -1,4 +1,30 @@
 {
+	"appflowy": {
+		"repo": "AppFlowy-IO/AppFlowy",
+		"tag": "0.15.0",
+		"assets": [
+			"appcast-linux-x86_64.xml",
+			"appcast-macos-arm64.xml",
+			"appcast-macos-x86_64.xml",
+			"appcast-windows-x86_64.xml",
+			"AppFlowy-0.15.0-android.apk",
+			"AppFlowy-0.15.0-linux-x86_64.AppImage",
+			"AppFlowy-0.15.0-linux-x86_64.deb",
+			"AppFlowy-0.15.0-linux-x86_64.rpm",
+			"AppFlowy-0.15.0-linux-x86_64.tar.gz",
+			"AppFlowy-0.15.0-macos-arm64.dmg",
+			"AppFlowy-0.15.0-macos-arm64.zip",
+			"AppFlowy-0.15.0-macos-universal.dmg",
+			"AppFlowy-0.15.0-macos-universal.zip",
+			"AppFlowy-0.15.0-macos-x86_64.dmg",
+			"AppFlowy-0.15.0-windows-x86_64.exe",
+			"AppFlowy-0.15.0-windows-x86_64.zip",
+			"desktop-update.json",
+			"native-appcast-macos-arm64.xml",
+			"native-appcast-macos-x86_64.xml",
+			"native-appcast-windows-x86_64.xml"
+		]
+	},
 	"atuin": {
 		"repo": "atuinsh/atuin",
 		"tag": "v18.24.6",

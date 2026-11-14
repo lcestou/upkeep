@@ -1,0 +1,10 @@
+# The version is read from a json inside the image (its version key): --version starts the GUI and prints nothing.
+[apps.appflowy]
+name = "AppFlowy"
+kind = "appimage"
+repo = "AppFlowy-IO/AppFlowy"
+asset = '^AppFlowy-[0-9.]+-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/appflowy.AppImage"
+meta_path = "data/flutter_assets/version.json"
+process = "AppFlowy"
+relaunch = true
