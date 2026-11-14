@@ -1401,6 +1401,27 @@
 			"siyuan-3.8.10.apk"
 		]
 	},
+	"sniffnet": {
+		"repo": "GyulyVGC/sniffnet",
+		"tag": "v1.5.1",
+		"assets": [
+			"Sniffnet_LinuxAppImage_amd64.AppImage",
+			"Sniffnet_LinuxAppImage_arm64.AppImage",
+			"Sniffnet_LinuxAppImage_armhf.AppImage",
+			"Sniffnet_LinuxAppImage_i386.AppImage",
+			"Sniffnet_LinuxDEB_amd64.deb",
+			"Sniffnet_LinuxDEB_arm64.deb",
+			"Sniffnet_LinuxDEB_armhf.deb",
+			"Sniffnet_LinuxDEB_i386.deb",
+			"Sniffnet_LinuxRPM_aarch64.rpm",
+			"Sniffnet_LinuxRPM_x86_64.rpm",
+			"Sniffnet_macOS_AppleSilicon.dmg",
+			"Sniffnet_macOS_Intel.dmg",
+			"Sniffnet_Windows_arm64.msi",
+			"Sniffnet_Windows_x64.msi",
+			"Sniffnet_Windows_x86.msi"
+		]
+	},
 	"spotube": {
 		"repo": "team-spotube/spotube",
 		"tag": "v6.0.0",
