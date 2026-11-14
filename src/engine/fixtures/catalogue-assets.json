@@ -1033,6 +1033,35 @@
 			"k9s_Windows_arm64.zip.sbom.json"
 		]
 	},
+	"lapce": {
+		"repo": "lapce/lapce",
+		"tag": "v0.4.6",
+		"assets": [
+			"lapce-0.4.6-1.fedora41.x86_64.rpm",
+			"lapce-0.4.6-1.fedora42.x86_64.rpm",
+			"lapce-linux-amd64.tar.gz",
+			"lapce-linux-arm64.tar.gz",
+			"Lapce-macos.dmg",
+			"lapce-proxy-darwin-aarch64.gz",
+			"lapce-proxy-darwin-x86_64.gz",
+			"lapce-proxy-linux-aarch64.gz",
+			"lapce-proxy-linux-x86_64.gz",
+			"lapce-proxy-windows-x86_64.gz",
+			"Lapce-windows-portable.zip",
+			"Lapce-windows.msi",
+			"lapce.debian.bookworm.amd64.deb",
+			"lapce.debian.bookworm.arm64.deb",
+			"lapce.debian.bullseye.amd64.deb",
+			"lapce.debian.bullseye.arm64.deb",
+			"lapce.ubuntu.jammy.amd64.deb",
+			"lapce.ubuntu.jammy.arm64.deb",
+			"lapce.ubuntu.noble.amd64.deb",
+			"lapce.ubuntu.noble.arm64.deb",
+			"lapce.ubuntu.plucky.amd64.deb",
+			"lapce.ubuntu.plucky.arm64.deb",
+			"vendor.tar.gz"
+		]
+	},
 	"lazydocker": {
 		"repo": "jesseduffield/lazydocker",
 		"tag": "v0.25.2",

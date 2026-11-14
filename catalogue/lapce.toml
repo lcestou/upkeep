@@ -1,0 +1,10 @@
+[apps.lapce]
+name = "Lapce"
+kind = "archive"
+repo = "lapce/lapce"
+asset = '^lapce-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^lapce-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/lapce"
+bins = ["lapce"]
+process = "lapce"
+relaunch = true
