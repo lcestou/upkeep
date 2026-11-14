@@ -19,6 +19,7 @@ const SYSTEM_VARIANTS: SystemVariant[] = [
 	"failed",
 	"gl",
 	"apt",
+	"dnf",
 	"install",
 	"refuse",
 ];

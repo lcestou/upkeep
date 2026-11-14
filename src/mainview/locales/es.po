@@ -2040,10 +2040,6 @@ msgid "Install system updates from Upkeep"
 msgstr "Instalar las actualizaciones del sistema desde Upkeep"
 
 #: src/mainview/lib/copy.ts
-msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
-msgstr "Marca filas en el grupo Sistema e instálalas desde allí. Los kernels y el controlador de NVIDIA se quedan con el Gestor de actualizaciones, porque ambos necesitan reiniciar. Los paquetes y los Snaps se instalan con sudo, que no debe pedir contraseña."
-
-#: src/mainview/lib/copy.ts
 msgid "Upkeep runs these commands, in this order:"
 msgstr "Upkeep ejecuta estos comandos, en este orden:"
 
@@ -2613,3 +2609,7 @@ msgstr "Se agotó el límite por hora de GitHub para esta red. Las comprobacione
 #: src/mainview/lib/copy.ts
 msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
 msgstr "Ejecuta gh auth login en una terminal para subirlo a 5000 por hora."
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "Marca filas en el grupo Sistema e instálalas desde allí. Los kernels y el controlador de NVIDIA se quedan con el actualizador del propio sistema, porque ambos necesitan reiniciar. Los paquetes y los Snaps se instalan con sudo, que no debe pedir contraseña."

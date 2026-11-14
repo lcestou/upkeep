@@ -822,7 +822,7 @@ export const SYS = {
 		return "Install system updates from Upkeep";
 	},
 	get installSettingHelp() {
-		return "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password.";
+		return "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password.";
 	},
 	get confirmIntro() {
 		return "Upkeep runs these commands, in this order:";

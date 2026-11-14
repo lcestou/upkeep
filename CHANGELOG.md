@@ -4,6 +4,7 @@
 
 First version.
 
+- With "Install system updates from Upkeep" on, Ubuntu, Debian and other systems with plain apt can install their package updates from the System group: the ticked packages go through `apt-get install --only-upgrade`, keeping config files you edited, after a dry run that refuses anything touching a kernel or NVIDIA package or removing a package. Before, only Linux Mint's Update Manager packages could.
 - When GitHub's hourly request limit is used up, a bar under the header says when checks resume and, without a GitHub sign-in, that `gh auth login` in a terminal raises the limit to 5,000 an hour. Dismissing it hides it until the hour starts over.
 - Adding Cursor, or any catalogue app that finds its version through its own update address or a download page rather than a repo, when it is not installed yet lands it in Ready to install. It was added to the list and then skipped by every check, so it never showed up.
 - Scan this computer takes a program it finds where a catalogue app installs (fd, jq, uv, Helix and the rest) as that catalogue app, ticked and with its tested table, instead of guessing its repo through a GitHub search. A guessed table could pick the wrong file: jq's took a source zip and its install failed. The other programs a catalogue app's archive brings (uvx beside uv) are no longer offered as unknown apps.

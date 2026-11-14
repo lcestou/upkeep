@@ -11,6 +11,7 @@ export type SystemVariant =
 	| "failed"
 	| "gl"
 	| "apt"
+	| "dnf"
 	| "install"
 	| "refuse";
 
@@ -94,6 +95,15 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 			};
 		case "apt":
 			return { ...base, rows: [...APT_ROWS.map((r) => ({ ...r, note: undefined })), ...FLATPAK_ROWS], packages: "apt" };
+		case "dnf":
+			return {
+				...base,
+				rows: [
+					...APT_ROWS.map((r): SystemRow => ({ ...r, id: `dnf:${r.name}`, source: "dnf", note: undefined })),
+					...FLATPAK_ROWS,
+				],
+				packages: "dnf",
+			};
 		case "failed":
 			return {
 				...base,
@@ -109,15 +119,22 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 	}
 }
 
-/** The engine's rule, faked: never a kernel or driver, packages only from Update Manager, and Flatpak, Snap and Cinnamon. */
+/** A kernel or NVIDIA package by name, as the engine's RESTART_PACKAGE reads it. */
+const RESTART = /^(linux-(image|headers|modules|signed|meta|hwe|generic|lowlatency|oem)|.*nvidia)/;
+
+/**
+ * The engine's rule, faked: never a kernel or driver, packages from Update Manager or plain apt (never a kernel or
+ * NVIDIA package by name there), and Flatpak, Snap and Cinnamon.
+ */
 export function fixtureInstallable(state: SystemState): string[] {
+	const pkg = (r: SystemRow) => state.packages === "mint" || (state.packages === "apt" && !RESTART.test(r.name));
 	return state.rows
 		.filter(
 			(r) =>
 				r.note !== "update-manager-only" &&
 				r.type !== "kernel" &&
 				r.type !== "driver" &&
-				(r.source === "apt" ? state.packages === "mint" : ["flatpak", "snap", "cinnamon"].includes(r.source)),
+				(r.source === "apt" ? pkg(r) : ["flatpak", "snap", "cinnamon"].includes(r.source)),
 		)
 		.map((r) => r.id);
 }
@@ -128,7 +145,24 @@ export function fixturePlan(state: SystemState, ids: string[]): string[][] {
 	const can = new Set(fixtureInstallable(state));
 	const picked = state.rows.filter((r) => ticked.has(r.id) && can.has(r.id));
 	const commands: string[][] = [];
-	if (picked.some((r) => r.source === "apt")) {
+	const aptRows = picked.filter((r) => r.source === "apt");
+	if (aptRows.length > 0 && state.packages === "apt")
+		commands.push([
+			"sudo",
+			"-n",
+			"env",
+			"DEBIAN_FRONTEND=noninteractive",
+			"apt-get",
+			"install",
+			"--only-upgrade",
+			"-y",
+			"-o",
+			"Dpkg::Options::=--force-confdef",
+			"-o",
+			"Dpkg::Options::=--force-confold",
+			...aptRows.map((r) => r.name),
+		]);
+	else if (aptRows.length > 0) {
 		const unticked = state.rows.filter((r) => r.source === "apt" && !picked.includes(r)).map((r) => r.name);
 		const ignore = ["linux", "linux-signed*", "linux-meta*", "linux-hwe*", "nvidia-graphics-drivers-*", ...unticked];
 		commands.push(["sudo", "-n", "mintupdate-cli", "upgrade", "-y", "--keep-configuration", "-i", ignore.join(",")]);

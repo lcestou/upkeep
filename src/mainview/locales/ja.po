@@ -2004,10 +2004,6 @@ msgid "Install system updates from Upkeep"
 msgstr "Upkeep からシステムの更新をインストール"
 
 #: src/mainview/lib/copy.ts
-msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with Update Manager, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
-msgstr "システムグループで行にチェックを入れ、そこからインストールします。カーネルと NVIDIA ドライバーはどちらも再起動が必要なため、アップデートマネージャーに任せます。パッケージと Snap は sudo でインストールされ、sudo がパスワードを求めないことが条件です。"
-
-#: src/mainview/lib/copy.ts
 msgid "Upkeep runs these commands, in this order:"
 msgstr "Upkeep は次のコマンドをこの順に実行します:"
 
@@ -2571,3 +2567,7 @@ msgstr "このネットワークの GitHub の 1 時間あたりの上限に達�
 #: src/mainview/lib/copy.ts
 msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
 msgstr "ターミナルで gh auth login を実行すると、上限が 1 時間 5,000 回に上がります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
+msgstr "システムグループで行にチェックを入れ、そこからインストールします。カーネルと NVIDIA ドライバーはどちらも再起動が必要なため、システム自身の更新ツールに任せます。パッケージと Snap は sudo でインストールされ、sudo がパスワードを求めないことが条件です。"
