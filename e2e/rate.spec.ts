@@ -27,3 +27,9 @@ test("signed in to GitHub, the bar only says when checks resume; with budget lef
 	await load(page);
 	await expect(page.getByTestId("rate-bar")).toHaveCount(0);
 });
+
+test("the bar goes by itself when GitHub's hour starts over, with no check in between", async ({ page }) => {
+	await load(page, "fixture&rate=soon");
+	await expect(page.getByTestId("rate-bar")).toBeVisible();
+	await expect(page.getByTestId("rate-bar")).toHaveCount(0, { timeout: 5000 });
+});

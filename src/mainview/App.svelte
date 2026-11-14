@@ -39,6 +39,13 @@
 	let logOpen = $state(false);
 	// The reset the rate bar was dismissed for: it stays hidden until GitHub's hour starts over.
 	let rateDismissed = $state<string | null>(null);
+	// Hides the bar when GitHub's hour starts over, even if no check has answered since.
+	$effect(() => {
+		const at = rateOut?.resetAt;
+		if (!at) return;
+		const t = setTimeout(() => (rateDismissed = at), Math.max(0, Date.parse(at) - Date.now()));
+		return () => clearTimeout(t);
+	});
 	const rateOut = $derived.by(() => {
 		const r = model?.rate;
 		if (!r || r.remaining > 0 || !r.resetAt || r.resetAt === rateDismissed) return null;
