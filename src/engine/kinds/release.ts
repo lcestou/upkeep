@@ -13,7 +13,7 @@ import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
-import { download, verifyAsset } from "../download";
+import { download, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { forgeRelease, linksRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
@@ -133,6 +133,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			};
 		return { installed, latest, status: "problem", detail: probeProblem(spec.name, dest, probe), ...base };
 	}
+	const status = missing || isNewer(installed, latest) ? "ready" : "fresh";
 	let target: Target = { from: installed, version: latest, tag: release.tag };
 	let size: number | undefined;
 	if (needAsset) {
@@ -148,10 +149,9 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				...base,
 			};
 		target = { ...target, asset: pick.asset };
-		// 0 is a source's "not listed" (json:, GitLab, links:); the row shows no size rather than "0 B".
-		size = pick.asset.size || undefined;
+		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
+		size = pick.asset.size || (status === "ready" ? await statedSize(pick.asset.url, ctx.fetch) : undefined);
 	}
-	const status = missing || isNewer(installed, latest) ? "ready" : "fresh";
 	return { installed, latest, status, size, target, ...base };
 }
 

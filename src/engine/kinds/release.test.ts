@@ -622,14 +622,16 @@ test("an AppImage whose latest is a json: source checks and installs with no rep
 	// An AppImage of a size the API never states: above the 1 MiB floor, it installs.
 	const body = new Uint8Array(1024 * 1024 + 10);
 	body.set(bash('echo "cursor 3.29.15"'));
+	let heads = 0;
 	const c = {
 		...ctx(),
-		fetch: (async (url: string) =>
-			url === api
-				? Response.json({ version: "3.29.15", downloadUrl: dlUrl })
-				: url === dlUrl
-					? new Response(body)
-					: new Response("", { status: 404 })) as FetchLike,
+		fetch: (async (url: string, init?: RequestInit) => {
+			if (url === api) return Response.json({ version: "3.29.15", downloadUrl: dlUrl });
+			if (url !== dlUrl) return new Response("", { status: 404 });
+			if (init?.method !== "HEAD") return new Response(body);
+			heads++;
+			return new Response(null, { headers: { "content-length": String(body.length) } });
+		}) as FetchLike,
 	};
 	const dest = script(join(t.paths.home, ".local/bin/cursor.appimage"), 'echo "cursor 3.29.9"');
 	const spec: AppSpec = {
@@ -643,10 +645,13 @@ test("an AppImage whose latest is a json: source checks and installs with no rep
 	const checked = await checkRelease(spec, c);
 	expect(checked).toMatchObject({ installed: "3.29.9", latest: "3.29.15", status: "ready" });
 	expect(checked?.target?.asset?.name).toBe("Cursor-3.29.15-x86_64.AppImage");
-	// The API lists no size, so the row has none to show.
-	expect(checked?.size).toBeUndefined();
+	// The API lists no size, so the row shows the length the download server states.
+	expect(checked?.size).toBe(body.length);
 	if (!checked?.target) throw new Error("no target");
 	expect(await installRelease(spec, checked.target, c)).toMatchObject({ result: "done", installed: "3.29.15" });
+	// A fresh row shows no size, so the server is not asked.
+	expect(await checkRelease(spec, c)).toMatchObject({ status: "fresh", size: undefined });
+	expect(heads).toBe(1);
 	// A cut answer below the floor is refused before anything is replaced.
 	const small = {
 		...c,
