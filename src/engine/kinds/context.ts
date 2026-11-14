@@ -92,9 +92,10 @@ export function stageClock(ctx: KindCtx) {
 	};
 }
 
-/** The sentence for a probe that found the app but read no version: a broken one will not start, any other shows the probe's own detail. */
+/** The sentence for a probe that found the app but read no version: a broken one will not start, with the line it failed on when there is one; any other shows the probe's own detail. */
 export function probeProblem(name: string, dest: string, probe: Exclude<ProbeResult, { version: string }>): string {
-	if (probe.state === "broken") return MESSAGES.willNotStart(name, dest);
+	if (probe.state === "broken")
+		return probe.detail ? MESSAGES.willNotStartBecause(name, dest, probe.detail) : MESSAGES.willNotStart(name, dest);
 	return probe.detail ? MESSAGES.versionProbeFailedWithDetail(probe.detail) : MESSAGES.versionProbeFailed();
 }
 

@@ -6,7 +6,7 @@ First version.
 
 - Scan this computer takes a program it finds where a catalogue app installs (fd, jq, uv, Helix and the rest) as that catalogue app, ticked and with its tested table, instead of guessing its repo through a GitHub search. A guessed table could pick the wrong file: jq's took a source zip and its install failed. The other programs a catalogue app's archive brings (uvx beside uv) are no longer offered as unknown apps.
 - A pipx tool installed at a pinned version (`pipx install black==23.1.0`) is found by the scan and by Add app; it was passed over as if it came from a URL.
-- An AppImage that cannot start because the system has no libfuse2 (Ubuntu 24.04 and later ship without it) shows as needing a look, with the reason, instead of reading the "2" in libfuse.so.2 as its version.
+- An AppImage that cannot start because the system has no libfuse2 (Ubuntu 24.04 and later ship without it) shows as needing a look instead of reading the "2" in libfuse.so.2 as its version. Any app that will not start now says the line it failed on.
 - In the System group, a Flatpak app whose update keeps its version reads as a newer build, not as its branch ("stable"), and the rows Upkeep can install no longer say "Install it with apt."
 - Cleanup no longer shows "0 B" beside packages apt removed, whose size apt does not report.
 - `upkeep check` prints a held or skipped app as HELD (with the skipped version) instead of UPDATE, since `install --all` passes it by, and `upkeep history` gives a Cleanup entry's freed bytes instead of "? to ?".

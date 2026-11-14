@@ -2556,3 +2556,8 @@ msgstr "添加 upkeep 命令"
 #: src/mainview/lib/copy.ts
 msgid "Puts upkeep in ~/.local/bin for the terminal and scripts. A file already there that Upkeep did not write is left alone."
 msgstr "将 upkeep 放入 ~/.local/bin，供终端和脚本使用。已存在且不是 Upkeep 写入的文件不会被改动。"
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} will not start ({1}): {2}"
+msgstr "{0} 无法启动（{1}）：{2}"
