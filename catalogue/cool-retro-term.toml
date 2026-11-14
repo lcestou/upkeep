@@ -1,0 +1,9 @@
+# --version prints and exits (proved in the VM, no window), so no meta_path is needed; the image's own .desktop has no X-AppImage-Version. The kernel name is exactly 15 characters, so it is not cut.
+[apps.cool-retro-term]
+name = "Cool Retro Term"
+kind = "appimage"
+repo = "Swordfish90/cool-retro-term"
+asset = '^cool-retro-term-[0-9.]+(-beta[0-9]+)?\.AppImage$'
+dest = "~/.local/bin/cool-retro-term.AppImage"
+process = "cool-retro-term"
+relaunch = true
