@@ -18,6 +18,8 @@ import { startSchedule } from "./schedule";
 import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
 import { entryArgv, SELF_FILES } from "./self-shim";
+import { uninstallUpkeep } from "./uninstall";
+import { MESSAGES } from "../shared/messages";
 import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
@@ -183,6 +185,11 @@ function installing(): boolean {
 	return engine.snapshot().run.phase === "installing" || extras.installing();
 }
 
+/** Starts argv with nothing attached and never waits on it. */
+function detach(argv: string[]): void {
+	Bun.spawn(argv, { stdin: "ignore", stdout: "ignore", stderr: "ignore" }).unref();
+}
+
 /** Ends the app for real: marks the close as wanted and frees the socket first so a new launch can start. */
 function quit(): void {
 	quitting = true;
@@ -291,6 +298,17 @@ function makeRpc(onSnapshot?: () => void) {
 			applyLoginSetting();
 		},
 		applyEntries: applyLoginSetting,
+		uninstall: (purge) => {
+			if (isDevBuild(import.meta.dir) || !existsSync(launcher))
+				return { ok: false, problem: MESSAGES.uninstallInstalledOnly() };
+			if (installing()) return { ok: false, problem: MESSAGES.uninstallWaitRun() };
+			const root = dirname(dirname(dirname(launcher)));
+			if (!uninstallUpkeep({ root, launcher, paths: deps.paths, purge, spawnDetached: detach }))
+				return { ok: false, problem: MESSAGES.uninstallRefused(root) };
+			// The answer reaches the window first; the finish waits for this quit before it deletes anything.
+			setTimeout(quit, 500);
+			return { ok: true };
+		},
 		chrome,
 		windowOp,
 		// The webview's own list comes from the C locale, which ignores LANGUAGE and falls back to English when the

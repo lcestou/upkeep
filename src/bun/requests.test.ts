@@ -78,6 +78,10 @@ function setup(over: Partial<Desktop> = {}) {
 		onSnapshot: () => {
 			if (watchSnapshots) did.push("snapshot asked");
 		},
+		uninstall: (purge: boolean) => {
+			did.push(`uninstall ${purge}`);
+			return { ok: true };
+		},
 	};
 	return { r: upkeepRequests(engine, deps, hooks, desktop), did, engine };
 }
@@ -266,4 +270,17 @@ test("Import waits for no run: with the run lock held elsewhere it refuses", asy
 		problems: ["An Upkeep run is in progress. Try again when it ends."],
 	});
 	releaseLock(t.paths, process.ppid);
+});
+
+test("uninstall goes to the main process's hook with the purge choice, and only true purges", async () => {
+	const { r, did } = setup();
+	expect(await r.uninstall({ purge: false })).toEqual({ ok: true });
+	// SAFETY: a malformed request from the view; only the boolean true may purge.
+	expect(await r.uninstall({ purge: "yes" as unknown as boolean })).toEqual({ ok: true });
+	expect(await r.uninstall({ purge: true })).toEqual({ ok: true });
+	expect(did.filter((d) => d.startsWith("uninstall"))).toEqual([
+		"uninstall false",
+		"uninstall false",
+		"uninstall true",
+	]);
 });

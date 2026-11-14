@@ -75,6 +75,24 @@ test("an entry can start Upkeep through the start script, and what it writes run
 	expect(readFileSync(log, "utf8")).toBe("bg=1\n");
 });
 
+test("a plain root gives an Exec line with no escapes, which dex and every desktop read the same, and it starts", () => {
+	const dir = configDir();
+	const root = join(dir, "dev.afk.upkeep", "stable");
+	const exec = (
+		autostartEntry(entryArgv(root), "/i")
+			.split("\n")
+			.find((l) => l.startsWith("Exec=")) ?? ""
+	).slice(5);
+	expect(exec).not.toMatch(/[\\$`]/);
+	mkdirSync(join(root, "app", "bin"), { recursive: true });
+	const log = join(dir, "started");
+	writeFileSync(join(root, "app", "bin", "launcher"), `#!/bin/sh\necho "bg=$UPKEEP_BACKGROUND" >> "${log}"\n`, {
+		mode: 0o755,
+	});
+	expect(Bun.spawnSync(["sh", "-c", exec]).exitCode).toBe(0);
+	expect(readFileSync(log, "utf8")).toBe("bg=1\n");
+});
+
 test("a menu entry's own Exec line is replaced once; the person's line, other sections and line endings are left alone", () => {
 	const dir = configDir();
 	mkdirSync(dir, { recursive: true });

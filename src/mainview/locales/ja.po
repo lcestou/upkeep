@@ -2561,3 +2561,40 @@ msgstr "ターミナルやスクリプト用に upkeep を ~/.local/bin に置�
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} が起動しません（{1}）：{2}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Only an installed Upkeep can uninstall itself."
+msgstr "インストールされた Upkeep だけが自分自身をアンインストールできます。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is installing something. Uninstall once it is done."
+msgstr "Upkeep は何かをインストール中です。終わってからアンインストールしてください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is not installed where an uninstall expects it ({0}), so nothing was removed."
+msgstr "Upkeep がアンインストールで想定される場所（{0}）にインストールされていないため、何も削除していません。"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep"
+msgstr "Upkeep をアンインストール"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep? Its menu entry, its login entry and the upkeep command go with it. The apps it keeps up to date stay installed."
+msgstr "Upkeep をアンインストールしますか？メニュー項目、ログイン時の項目、upkeep コマンドも一緒に削除されます。Upkeep が最新に保っているアプリはそのまま残ります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Also delete Upkeep's settings, app list, history and restore points"
+msgstr "Upkeep の設定、アプリ一覧、履歴、復元ポイントも削除する"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall"
+msgstr "アンインストール"
+
+#: src/mainview/lib/copy.ts
+msgid "Keep Upkeep"
+msgstr "Upkeep を残す"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstalling. Upkeep closes now."
+msgstr "アンインストールしています。Upkeep を閉じます。"

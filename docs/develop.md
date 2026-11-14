@@ -23,7 +23,7 @@ In that mode Upkeep checks, installs the apps marked `auto`, and waits. It sends
 bun run build
 ```
 
-This writes `artifacts/linux-x64-Upkeep-Setup.tar.gz` on an x86_64 machine. The arm64 build of Upkeep is built the same way on an arm64 machine, and its file name names that platform instead. Unpack it and run `./installer`. It needs no root and puts the app under `~/.local/share/dev.afk.upkeep/stable/` with a menu entry. The launcher is `~/.local/share/dev.afk.upkeep/stable/app/bin/launcher`. To remove it, run `~/.local/share/dev.afk.upkeep/stable/uninstall --quiet`.
+This writes `artifacts/linux-x64-Upkeep-Setup.tar.gz` on an x86_64 machine. The arm64 build of Upkeep is built the same way on an arm64 machine, and its file name names that platform instead. Unpack it and run `./installer`. It needs no root and puts the app under `~/.local/share/dev.afk.upkeep/stable/` with a menu entry. The launcher is `~/.local/share/dev.afk.upkeep/stable/app/bin/launcher`. To remove it, use **Uninstall Upkeep** in Settings: the framework's own `~/.local/share/dev.afk.upkeep/stable/uninstall --quiet` removes the app folder only, and leaves the menu and login entries, the `upkeep` command and the self-update's files that Upkeep wrote (`src/bun/uninstall.ts` removes those first).
 
 "Start at login" in Settings writes `~/.config/autostart/upkeep.desktop` and turning it off removes the file.
 

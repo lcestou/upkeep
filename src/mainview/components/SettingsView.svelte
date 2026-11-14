@@ -7,6 +7,7 @@
 		SELF,
 		SYS,
 		TEXT,
+		UNINSTALL,
 		WIN,
 		exportedNote,
 		importedNote,
@@ -20,6 +21,18 @@
 	import LanguagePicker from "./LanguagePicker.svelte";
 
 	let { model }: { model: Model } = $props();
+	let askingUninstall = $state(false);
+	let purge = $state(false);
+	let uninstallSaid = $state<string | null>(null);
+	let closing = $state(false);
+
+	/** Asks the main process to uninstall; on ok Upkeep quits by itself, otherwise the reason shows under the question. */
+	async function uninstall() {
+		uninstallSaid = null;
+		const res = await model.send("uninstall", { purge });
+		if (res?.ok) closing = true;
+		else uninstallSaid = res?.problem ?? null;
+	}
 
 	// The span carries the name; the drawing inside is hidden from assistive tech.
 	const lockup = LOCKUP_SVG.replace("<svg ", '<svg aria-hidden="true" focusable="false" ');
@@ -317,6 +330,32 @@
 				</button>
 			{/each}
 		</div>
+		<div class="uninstall">
+			{#if closing}
+				<p role="status" data-testid="uninstall-closing">{UNINSTALL.closing}</p>
+			{:else if askingUninstall}
+				<div class="confirm" role="group" aria-labelledby="uninstall-ask">
+					<p id="uninstall-ask" data-testid="uninstall-ask">{UNINSTALL.ask}</p>
+					<label class="purge">
+						<input type="checkbox" bind:checked={purge} data-testid="uninstall-purge" />
+						<span data-testid="uninstall-purge-label">{UNINSTALL.purge}</span>
+					</label>
+					<div class="confirm-buttons">
+						<button type="button" class="btn small danger" data-testid="uninstall-confirm" onclick={uninstall}
+							>{UNINSTALL.yes}</button
+						>
+						<button type="button" class="btn small" data-testid="uninstall-cancel" onclick={() => (askingUninstall = false)}
+							>{UNINSTALL.keep}</button
+						>
+					</div>
+					{#if uninstallSaid}<p class="problem" role="alert" data-testid="uninstall-problem">{say(uninstallSaid)}</p>{/if}
+				</div>
+			{:else}
+				<button type="button" class="btn small quiet" data-testid="uninstall" onclick={() => (askingUninstall = true)}
+					>{UNINSTALL.button}</button
+				>
+			{/if}
+		</div>
 	</div>
 
 	<div class="meta">
@@ -483,6 +522,40 @@
 		flex-wrap: wrap;
 		gap: var(--s2);
 		margin-top: var(--s3);
+	}
+	.uninstall {
+		margin-top: var(--s4);
+		padding-top: var(--s3);
+		border-top: 1px solid var(--line-soft);
+		font-size: var(--fs-12);
+	}
+	.confirm {
+		display: grid;
+		gap: var(--s2);
+		padding: var(--s3);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+	.confirm p {
+		margin: 0;
+		color: var(--text);
+	}
+	.purge {
+		display: flex;
+		gap: var(--s2);
+		align-items: center;
+		color: var(--text-2);
+	}
+	.confirm-buttons {
+		display: flex;
+		gap: var(--s2);
+	}
+	.danger {
+		border-color: var(--fail);
+		color: var(--fail);
+	}
+	.problem {
+		color: var(--fail);
 	}
 	.meta {
 		max-width: 560px;

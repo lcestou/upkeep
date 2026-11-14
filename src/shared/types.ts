@@ -518,6 +518,8 @@ export type Requests = {
 	selfRestart: { params: Record<string, never>; response: { ok: boolean } };
 	/** Takes a finished self-update notice off the list. */
 	selfDismiss: { params: Record<string, never>; response: { ok: boolean } };
+	/** Removes Upkeep's entries, command and install, and with purge its data too; Upkeep quits after ok. */
+	uninstall: { params: { purge: boolean }; response: { ok: boolean; problem?: string } };
 	setExtras: { params: Partial<ExtrasSettings>; response: ExtrasSettings };
 	systemCheck: { params: Record<string, never>; response: { started: boolean } };
 	openTool: { params: { what: "update-manager" }; response: { ok: boolean } };

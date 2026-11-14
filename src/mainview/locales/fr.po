@@ -2603,3 +2603,40 @@ msgstr "Place upkeep dans ~/.local/bin pour le terminal et les scripts. Un fichi
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} ne démarre pas ({1}) : {2}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Only an installed Upkeep can uninstall itself."
+msgstr "Seul un Upkeep installé peut se désinstaller lui-même."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is installing something. Uninstall once it is done."
+msgstr "Upkeep installe quelque chose. Désinstallez une fois que c'est fini."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is not installed where an uninstall expects it ({0}), so nothing was removed."
+msgstr "Upkeep n'est pas installé là où une désinstallation l'attend ({0}), donc rien n'a été supprimé."
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep"
+msgstr "Désinstaller Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep? Its menu entry, its login entry and the upkeep command go with it. The apps it keeps up to date stay installed."
+msgstr "Désinstaller Upkeep ? Son entrée de menu, son entrée de démarrage et la commande upkeep partent avec lui. Les applications qu'il tient à jour restent installées."
+
+#: src/mainview/lib/copy.ts
+msgid "Also delete Upkeep's settings, app list, history and restore points"
+msgstr "Supprimer aussi les réglages, la liste d'applications, l'historique et les points de restauration d'Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall"
+msgstr "Désinstaller"
+
+#: src/mainview/lib/copy.ts
+msgid "Keep Upkeep"
+msgstr "Garder Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstalling. Upkeep closes now."
+msgstr "Désinstallation. Upkeep se ferme maintenant."

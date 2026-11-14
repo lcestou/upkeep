@@ -4,6 +4,8 @@
 
 First version.
 
+- **Uninstall Upkeep** at the end of Settings removes Upkeep with its menu entry, login entry, `upkeep` command and the copies its own updates keep, and on request its settings, app list, history and restore points. The installer's own `uninstall --quiet` left the menu and login entries behind, so the menu kept a dead item and every login tried to start it.
+- The login and menu entries hold no escaped quotes when Upkeep is installed in a plain folder (the usual case), so `dex`, which i3 and other minimal sessions use to run login entries, starts Upkeep at login too.
 - Adding Cursor, or any catalogue app that finds its version through its own update address or a download page rather than a repo, when it is not installed yet lands it in Ready to install. It was added to the list and then skipped by every check, so it never showed up.
 - Scan this computer takes a program it finds where a catalogue app installs (fd, jq, uv, Helix and the rest) as that catalogue app, ticked and with its tested table, instead of guessing its repo through a GitHub search. A guessed table could pick the wrong file: jq's took a source zip and its install failed. The other programs a catalogue app's archive brings (uvx beside uv) are no longer offered as unknown apps.
 - A pipx tool installed with extras or a version range (`pipx install "black[d]>=24"`) is found by the scan and by Add app; it was passed over as if it came from a URL. One pinned to an exact version stays with pipx, since an update would overwrite the pin.
