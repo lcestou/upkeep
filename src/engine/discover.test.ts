@@ -1305,3 +1305,19 @@ test("scan takes a catalogue app found at its table's dest from the catalogue, a
 	expect(fetched.some((u) => u.includes("/search/") || u.startsWith("https://dl.test/"))).toBe(false);
 	expect(calls.some((x) => x.argv.some((a) => a.includes(".local/bin/fd")))).toBe(false);
 });
+
+test("a catalogue app found through latest (json:) with nothing at its dest lands in Ready to install", async () => {
+	const cursor: AppSpec = {
+		key: "cursor",
+		name: "Cursor",
+		kind: "appimage",
+		asset: "\\.AppImage$",
+		dest: "~/.local/bin/cursor.appimage",
+		latest: "json:https://api.test/cursor",
+	};
+	const ask = () => suggest("cursor", { ...ctx().c, catalogue: [cursor] });
+	expect((await ask()).suggestions[0]?.spec.install_if_missing).toBe(true);
+	// Installed already: the table stays as the catalogue wrote it.
+	elf(join(t.paths.home, ".local/bin/cursor.appimage"), { image: true });
+	expect((await ask()).suggestions[0]?.spec.install_if_missing).toBeUndefined();
+});

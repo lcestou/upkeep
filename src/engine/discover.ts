@@ -842,7 +842,11 @@ async function fromCatalogue(
 	if (RELEASE_KINDS.has(entry.kind) && pattern === undefined)
 		return { suggestions: [], problem: MESSAGES.noAssetForArch(entry.name, ctx.arch ?? "x86_64") };
 	if (!entry.repo || !RELEASE_KINDS.has(entry.kind)) {
-		const s: Suggestion = { spec: entry, installed: null, latest: null, asset: null, alternatives: [], ...sure };
+		// A release app found through latest (json:, links:) with nothing at its dest yet would be skipped by every
+		// check: it lands in Ready to install, as a repo one does below.
+		const missing = RELEASE_KINDS.has(entry.kind) && entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home));
+		const spec = missing ? { ...entry, install_if_missing: true } : entry;
+		const s: Suggestion = { spec, installed: null, latest: null, asset: null, alternatives: [], ...sure };
 		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = MESSAGES.alreadyInList(entry.name);
 		return { suggestions: [s] };
 	}
