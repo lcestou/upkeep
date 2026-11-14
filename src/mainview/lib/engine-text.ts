@@ -31,6 +31,10 @@ export const ENGINE_COPY = {
 	couldNotReadVersion: () => `Could not read the installed version with --version.`,
 	installedWith: (v0: string) => `Installed with ${v0}. Upkeep updates it the same way.`,
 	alreadyInList: (v0: string) => `${v0} is already in the list.`,
+	uninstallInstalledOnly: () => `Only an installed Upkeep can uninstall itself.`,
+	uninstallWaitRun: () => `Upkeep is installing something. Uninstall once it is done.`,
+	uninstallRefused: (v0: string) =>
+		`Upkeep is not installed where an uninstall expects it (${v0}), so nothing was removed.`,
 	noProgramInArchive: (v0: string) => `${v0} holds no program Upkeep can install.`,
 	couldNotReachGithubSearch: (v0: string) => `Could not reach GitHub: ${v0}`,
 	rateLimitSearch: () => `GitHub's request limit is used up. Try again after it resets.`,

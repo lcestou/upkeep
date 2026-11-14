@@ -2561,3 +2561,40 @@ msgstr "将 upkeep 放入 ~/.local/bin，供终端和脚本使用。已存在且
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} 无法启动（{1}）：{2}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Only an installed Upkeep can uninstall itself."
+msgstr "只有已安装的 Upkeep 才能卸载自己。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is installing something. Uninstall once it is done."
+msgstr "Upkeep 正在安装内容。请在完成后再卸载。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is not installed where an uninstall expects it ({0}), so nothing was removed."
+msgstr "Upkeep 没有安装在卸载所预期的位置（{0}），所以什么都没有删除。"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep"
+msgstr "卸载 Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep? Its menu entry, its login entry and the upkeep command go with it. The apps it keeps up to date stay installed."
+msgstr "要卸载 Upkeep 吗？它的菜单项、登录启动项和 upkeep 命令会一起删除。它保持更新的应用仍会保留。"
+
+#: src/mainview/lib/copy.ts
+msgid "Also delete Upkeep's settings, app list, history and restore points"
+msgstr "同时删除 Upkeep 的设置、应用列表、历史记录和还原点"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall"
+msgstr "卸载"
+
+#: src/mainview/lib/copy.ts
+msgid "Keep Upkeep"
+msgstr "保留 Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstalling. Upkeep closes now."
+msgstr "正在卸载。Upkeep 现在关闭。"

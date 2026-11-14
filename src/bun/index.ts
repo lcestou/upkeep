@@ -18,6 +18,8 @@ import { startSchedule } from "./schedule";
 import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
 import { entryArgv, SELF_FILES } from "./self-shim";
+import { uninstallUpkeep } from "./uninstall";
+import { MESSAGES } from "../shared/messages";
 import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
@@ -183,6 +185,11 @@ function installing(): boolean {
 	return engine.snapshot().run.phase === "installing" || extras.installing();
 }
 
+/** Starts argv with nothing attached and never waits on it. */
+function detach(argv: string[]): void {
+	Bun.spawn(argv, { stdin: "ignore", stdout: "ignore", stderr: "ignore" }).unref();
+}
+
 /** Ends the app for real: marks the close as wanted and frees the socket first so a new launch can start. */
 function quit(): void {
 	quitting = true;
@@ -229,6 +236,8 @@ const extras = createExtras({
 // The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
 const launcher = join(import.meta.dir, "../../../bin/launcher");
 const appIcon = join(import.meta.dir, "../../appIcon.png");
+/** The menu entry the installer writes, which Upkeep points at its start script and an uninstall removes. */
+const menuEntry = join(dirname(deps.paths.data), "applications", "Upkeep.desktop");
 /**
  * Makes the login entry, the menu entry and the `upkeep` command match the settings; skipped in dev and source runs.
  * Throws if the autostart folder cannot be written; a ~/.local/bin that cannot be written is logged instead.
@@ -241,7 +250,7 @@ function applyLoginSetting(): void {
 	const root = dirname(dirname(dirname(launcher)));
 	const command = entryArgv(root);
 	syncAutostart(deps.paths.config, engine.snapshot().settings.checkAtLogin, command, appIcon);
-	syncMenuExec(join(dirname(deps.paths.data), "applications", "Upkeep.desktop"), command, launcher, SELF_FILES.shim);
+	syncMenuExec(menuEntry, command, launcher, SELF_FILES.shim);
 	// Its own try: a ~/.local/bin that cannot be written must not stop the frame setting that is applied after this.
 	try {
 		syncCommand(deps.paths.home, engine.snapshot().settings.upkeepCommand, root);
@@ -291,6 +300,28 @@ function makeRpc(onSnapshot?: () => void) {
 			applyLoginSetting();
 		},
 		applyEntries: applyLoginSetting,
+		uninstall: (purge) => {
+			if (isDevBuild(import.meta.dir) || !existsSync(launcher))
+				return { ok: false, problem: MESSAGES.uninstallInstalledOnly() };
+			// A run, or Upkeep's own update being prepared or swapped in: either would write into what the finish deletes.
+			const own = selfApi.snapshot().phase;
+			if (installing() || own === "preparing" || own === "restarting")
+				return { ok: false, problem: MESSAGES.uninstallWaitRun() };
+			const root = dirname(dirname(dirname(launcher)));
+			const ctx = {
+				root,
+				launcher,
+				menu: menuEntry,
+				pid: process.pid,
+				paths: deps.paths,
+				purge,
+				spawnDetached: detach,
+			};
+			if (!uninstallUpkeep(ctx)) return { ok: false, problem: MESSAGES.uninstallRefused(root) };
+			// The answer reaches the window first; the finish waits for this process to end before it deletes anything.
+			setTimeout(quit, 500);
+			return { ok: true };
+		},
 		chrome,
 		windowOp,
 		// The webview's own list comes from the C locale, which ignores LANGUAGE and falls back to English when the

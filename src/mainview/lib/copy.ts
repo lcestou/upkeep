@@ -728,6 +728,28 @@ export const WIN = {
 	},
 } as const;
 
+/** Uninstall, at the end of Settings, under About. */
+export const UNINSTALL = {
+	get button() {
+		return "Uninstall Upkeep";
+	},
+	get ask() {
+		return "Uninstall Upkeep? Its menu entry, its login entry and the upkeep command go with it. The apps it keeps up to date stay installed.";
+	},
+	get purge() {
+		return "Also delete Upkeep's settings, app list, history and restore points";
+	},
+	get yes() {
+		return "Uninstall";
+	},
+	get keep() {
+		return "Keep Upkeep";
+	},
+	get closing() {
+		return "Uninstalling. Upkeep closes now.";
+	},
+};
+
 /** Upkeep's own update: the row above the list, and its switch in Settings. */
 export const SELF = {
 	get available() {

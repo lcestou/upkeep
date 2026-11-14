@@ -1179,6 +1179,11 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			setSelf({ phase: "none" });
 			return { ok: true };
 		},
+		// The fixture never quits: it records the press for the specs.
+		uninstall: ({ purge }) => {
+			globalThis.upkeepOps?.push(`uninstall ${purge}`);
+			return { ok: true };
+		},
 		copy: () => ({ ok: true }),
 		suggest: async ({ input, asset }) => {
 			// An archive is opened to find its programs, so it answers slower than an AppImage.

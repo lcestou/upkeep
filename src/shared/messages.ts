@@ -58,6 +58,13 @@ export const MESSAGES = {
 	installedWith: (v0: Value) => `Installed with ${v0}. Upkeep updates it the same way.`,
 	/** discover.ts. {0} app name */
 	alreadyInList: (v0: Value) => `${v0} is already in the list.`,
+	/** bun/index.ts */
+	uninstallInstalledOnly: () => `Only an installed Upkeep can uninstall itself.`,
+	/** bun/index.ts */
+	uninstallWaitRun: () => `Upkeep is installing something. Uninstall once it is done.`,
+	/** bun/index.ts. {0} the install folder */
+	uninstallRefused: (v0: Value) =>
+		`Upkeep is not installed where an uninstall expects it (${v0}), so nothing was removed.`,
 	/** discover.ts. {0} asset (archive) name */
 	noProgramInArchive: (v0: Value) => `${v0} holds no program Upkeep can install.`,
 	/** discover.ts. {0} fetch error message (raw) */

@@ -58,7 +58,7 @@ tar -xzf linux-x64-Upkeep-Setup.tar.gz
 ./installer
 ```
 
-It needs no root. Upkeep goes under `~/.local/share/dev.afk.upkeep/` with an entry in the menu, and `~/.local/share/dev.afk.upkeep/stable/uninstall --quiet` removes it. The window needs WebKitGTK 4.1, which the supported desktops already have.
+It needs no root. Upkeep goes under `~/.local/share/dev.afk.upkeep/` with an entry in the menu. **Uninstall Upkeep** at the end of Settings removes it with its menu and login entries and the `upkeep` command, and can delete its settings and app list too; the apps it kept up to date stay. The window needs WebKitGTK 4.1, which the supported desktops already have.
 
 The list starts empty. Press **Add app**, or **Scan this computer** to find what is already installed.
 

@@ -165,13 +165,20 @@ export function installShim(root: string): void {
 	renameSync(tmp, file);
 }
 
+/** A root made only of these characters needs no quoting in a shell or a desktop entry. */
+const PLAIN_PATH = /^\/[A-Za-z0-9._/+@-]+$/;
+
 /**
  * What a menu or login entry runs, as an argument list: the start script when it is there, the launcher itself when
- * it is not, so a deleted script never leaves a dead entry. The root travels as the script's $0, which keeps a path
- * with spaces or quotes whole.
+ * it is not, so a deleted script never leaves a dead entry. A plain root (the usual ~/.local/share/...) is written into
+ * the script as is, so the Exec line holds no escaped quote or $: dex, which i3 and other minimal sessions use for
+ * autostart, refuses those. Any other root travels as the script's $0, which keeps spaces or quotes whole.
  */
 export function entryArgv(root: string): string[] {
-	const script = `[ -f "$0/${SELF_FILES.shim}" ] && exec sh "$0/${SELF_FILES.shim}" "$0"; exec "$0/app/bin/launcher"`;
+	const shim = SELF_FILES.shim;
+	const script = PLAIN_PATH.test(root)
+		? `[ -f ${root}/${shim} ] && exec sh ${root}/${shim} ${root}; exec ${root}/app/bin/launcher`
+		: `[ -f "$0/${shim}" ] && exec sh "$0/${shim}" "$0"; exec "$0/app/bin/launcher"`;
 	return ["sh", "-c", script, root];
 }
 

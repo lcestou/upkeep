@@ -2624,3 +2624,40 @@ msgstr "Помещает upkeep в ~/.local/bin для терминала и с�
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} не запускается ({1}): {2}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Only an installed Upkeep can uninstall itself."
+msgstr "Удалить себя может только установленный Upkeep."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is installing something. Uninstall once it is done."
+msgstr "Upkeep сейчас что-то устанавливает. Удалите его, когда он закончит."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is not installed where an uninstall expects it ({0}), so nothing was removed."
+msgstr "Upkeep установлен не там, где его ожидает удаление ({0}), поэтому ничего не удалено."
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep"
+msgstr "Удалить Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep? Its menu entry, its login entry and the upkeep command go with it. The apps it keeps up to date stay installed."
+msgstr "Удалить Upkeep? Вместе с ним уйдут пункт меню, пункт автозапуска и команда upkeep. Приложения, которые он обновляет, останутся установленными."
+
+#: src/mainview/lib/copy.ts
+msgid "Also delete Upkeep's settings, app list, history and restore points"
+msgstr "Удалить также настройки, список приложений, историю и точки восстановления Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall"
+msgstr "Удалить"
+
+#: src/mainview/lib/copy.ts
+msgid "Keep Upkeep"
+msgstr "Оставить Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstalling. Upkeep closes now."
+msgstr "Удаление. Upkeep сейчас закроется."
