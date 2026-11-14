@@ -335,10 +335,11 @@ test("32-bit, other architectures, and an asset that names no architecture all l
 		"t.tar.gz",
 		"t-linux-64bit.tar.gz",
 		"t-x86-64.tar.gz",
+		"t-x86.64.tar.gz",
 	];
 	expect(
 		machineAssets(odd.map((name) => ({ name, url: "", size: 1, digest: null }))).candidates.map((c) => c.asset.name),
-	).toEqual(["t-x86-64.tar.gz", "t-linux-64bit.tar.gz", "t.tar.gz"]);
+	).toEqual(["t-x86-64.tar.gz", "t-x86.64.tar.gz", "t-linux-64bit.tar.gz", "t.tar.gz"]);
 });
 
 test("kinds: bare names, -gh and the machine triple are files; archives the installer cannot open are named", () => {

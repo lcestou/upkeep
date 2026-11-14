@@ -120,9 +120,10 @@ function forgeHosts(ctx: DiscoverCtx): Map<string, ForgeKind> {
 const OTHER_SYSTEM =
 	/darwin|macos|osx|apple|windows|win32|win64|\.exe$|\.msi$|\.dmg$|\.pkg$|android|freebsd|netbsd|openbsd/i;
 const OTHER_ARCH =
-	/arm64|aarch64|armv|arm-|armhf|armel|i[3-6]86|ia32|32-?bit|x86-32|x86(?![_-]64)|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
+	/arm64|aarch64|armv|arm-|armhf|armel|i[3-6]86|ia32|32-?bit|x86-32|x86(?![_.-]64)|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
 // An asset that names this machine outright beats one that names no architecture.
-const THIS_MACHINE = /x86_64|x86-64|amd64|x64|64-?bit/i;
+// DB Browser for SQLite spells it x86.64.
+const THIS_MACHINE = /x86[_.-]64|amd64|x64|64-?bit/i;
 // An aarch64 build always says so: a release names its x86_64 build only by leaving the architecture out. A Debian
 // package calls it arm64, an rpm aarch64.
 const ARM = /aarch64|arm64/i;

@@ -4,6 +4,7 @@
 
 First version.
 
+- A release file that spells the architecture `x86.64` (DB Browser for SQLite does) is taken as the x86_64 build; it was dropped as a 32-bit one.
 - The catalogue Add app looks in first has 10 more apps: Obsidian, LocalSend, Heroic Games Launcher, Joplin, Logseq, Vesktop, Bruno, Beekeeper Studio, yt-dlp and fastfetch. The AppImages' versions are read from the files inside them, so checking never opens their windows.
 - Add app and Scan this computer say when something else already keeps an app up to date: a Flatpak or Snap of it, an apt repository for a package app, or a table in the list on the same project or install path. Adding is still allowed, for two versions side by side; a scanned app with such a note starts unticked. Scan also finds catalogue apps installed from a .deb or .rpm.
 - An app added from a repo with a generic name, such as `gitlab.com/gitlab-org/cli`, is named after the program it ships (glab), not after the group, when the group's name does not contain it.
