@@ -1,0 +1,12 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+# Its release files carry no version, so the patterns are plain anchored names.
+[apps.spotube]
+name = "Spotube"
+kind = "appimage"
+repo = "team-spotube/spotube"
+asset = '^Spotube-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Spotube-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/spotube.AppImage"
+meta_path = "spotube.desktop"
+process = "spotube"
+relaunch = true

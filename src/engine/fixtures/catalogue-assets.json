@@ -1381,6 +1381,24 @@
 			"rustdesk.sbom.json"
 		]
 	},
+	"spotube": {
+		"repo": "team-spotube/spotube",
+		"tag": "v6.0.0",
+		"assets": [
+			"Spotube-android-all-arch.apk",
+			"Spotube-ios.ipa",
+			"spotube-linux-6.0.0-aarch64.tar.xz",
+			"spotube-linux-6.0.0-x86_64.tar.xz",
+			"Spotube-linux-aarch64.AppImage",
+			"Spotube-linux-aarch64.deb",
+			"Spotube-linux-aarch64.rpm",
+			"Spotube-linux-x86_64.AppImage",
+			"Spotube-linux-x86_64.deb",
+			"Spotube-linux-x86_64.rpm",
+			"Spotube-macos-apple-silicon.dmg",
+			"Spotube-windows-x86_64-setup.exe"
+		]
+	},
 	"starship": {
 		"repo": "starship/starship",
 		"tag": "v1.27.0",
