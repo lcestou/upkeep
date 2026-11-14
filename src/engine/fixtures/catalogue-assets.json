@@ -1381,6 +1381,26 @@
 			"rustdesk.sbom.json"
 		]
 	},
+	"siyuan": {
+		"repo": "siyuan-note/siyuan",
+		"tag": "v3.8.10",
+		"assets": [
+			"SHA256SUMS.txt",
+			"siyuan-3.8.10-linux-arm64.AppImage",
+			"siyuan-3.8.10-linux-arm64.deb",
+			"siyuan-3.8.10-linux-arm64.rpm",
+			"siyuan-3.8.10-linux-arm64.tar.gz",
+			"siyuan-3.8.10-linux.AppImage",
+			"siyuan-3.8.10-linux.deb",
+			"siyuan-3.8.10-linux.rpm",
+			"siyuan-3.8.10-linux.tar.gz",
+			"siyuan-3.8.10-mac-arm64.dmg",
+			"siyuan-3.8.10-mac.dmg",
+			"siyuan-3.8.10-win-arm64.exe",
+			"siyuan-3.8.10-win.exe",
+			"siyuan-3.8.10.apk"
+		]
+	},
 	"spotube": {
 		"repo": "team-spotube/spotube",
 		"tag": "v6.0.0",

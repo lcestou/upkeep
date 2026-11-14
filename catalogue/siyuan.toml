@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.siyuan]
+name = "SiYuan"
+kind = "appimage"
+repo = "siyuan-note/siyuan"
+asset = '^siyuan-[0-9.]+-linux\.AppImage$'
+asset_aarch64 = '^siyuan-[0-9.]+-linux-arm64\.AppImage$'
+dest = "~/.local/bin/siyuan.AppImage"
+meta_path = "org.b3log.siyuan.desktop"
+process = "siyuan"
+relaunch = true
