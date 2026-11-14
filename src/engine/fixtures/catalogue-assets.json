@@ -931,6 +931,28 @@
 			"latest.yml"
 		]
 	},
+	"hurl": {
+		"repo": "Orange-OpenSource/hurl",
+		"tag": "8.1.0",
+		"assets": [
+			"hurl-8.1.0-aarch64-apple-darwin.tar.gz",
+			"hurl-8.1.0-aarch64-apple-darwin.tar.gz.sha256",
+			"hurl-8.1.0-aarch64-unknown-linux-gnu.tar.gz",
+			"hurl-8.1.0-aarch64-unknown-linux-gnu.tar.gz.sha256",
+			"hurl-8.1.0-x86_64-apple-darwin.tar.gz",
+			"hurl-8.1.0-x86_64-apple-darwin.tar.gz.sha256",
+			"hurl-8.1.0-x86_64-pc-windows-msvc-installer.exe",
+			"hurl-8.1.0-x86_64-pc-windows-msvc-installer.exe.sha256",
+			"hurl-8.1.0-x86_64-pc-windows-msvc.zip",
+			"hurl-8.1.0-x86_64-pc-windows-msvc.zip.sha256",
+			"hurl-8.1.0-x86_64-unknown-linux-gnu.tar.gz",
+			"hurl-8.1.0-x86_64-unknown-linux-gnu.tar.gz.sha256",
+			"hurl_8.1.0_amd64.deb",
+			"hurl_8.1.0_amd64.deb.sha256",
+			"hurl_8.1.0_arm64.deb",
+			"hurl_8.1.0_arm64.deb.sha256"
+		]
+	},
 	"hyperfine": {
 		"repo": "sharkdp/hyperfine",
 		"tag": "v2.0.0",

@@ -1,0 +1,8 @@
+[apps.hurl]
+name = "hurl"
+kind = "archive"
+repo = "Orange-OpenSource/hurl"
+asset = '^hurl-[0-9.]+-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^hurl-[0-9.]+-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/hurl"
+bins = ["hurl"]
