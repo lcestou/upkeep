@@ -59,18 +59,32 @@ test("a uv receipt for a path, a URL, another git host, another name or bad TOML
 	expect(parseUvReceipt(one(`{ name = "Foo_Bar" }`), "foo-bar")).toEqual({ extras: "", python: null, repo: null });
 });
 
-test("pipx list --json gives index installs only", () => {
+test("pipx list --json gives index installs only, pinned or not", () => {
 	const venv = (package_or_url: string) => ({
 		metadata: { main_package: { package: "black", package_version: "24.8.0", package_or_url } },
 	});
 	const json = JSON.stringify({
 		venvs: {
 			black: venv("black"),
+			pinned: {
+				metadata: { main_package: { package: "ruff", package_version: "0.5.0", package_or_url: "ruff==0.5.0" } },
+			},
+			extras: {
+				metadata: { main_package: { package: "Black_D", package_version: "1.0", package_or_url: "black-d[x]>=1" } },
+			},
+			git: {
+				metadata: { main_package: { package: "g", package_version: "1.0", package_or_url: "git+https://x.test/g" } },
+			},
+			other: { metadata: { main_package: { package: "a", package_version: "1.0", package_or_url: "ab" } } },
 			local: { metadata: { main_package: { package: "local", package_version: "1.0", package_or_url: "/src/local" } } },
 			broken: { metadata: {} },
 		},
 	});
-	expect(parsePipxList(json)).toEqual([{ name: "black", version: "24.8.0" }]);
+	expect(parsePipxList(json)).toEqual([
+		{ name: "black", version: "24.8.0" },
+		{ name: "ruff", version: "0.5.0" },
+		{ name: "Black_D", version: "1.0" },
+	]);
 	expect(parsePipxList("nope")).toEqual([]);
 });
 

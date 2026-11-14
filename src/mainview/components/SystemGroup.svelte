@@ -116,7 +116,8 @@
 	const refused = $derived(fresh && install?.refused ? install.refused : reason);
 	const outcomes = $derived(installing && install ? new Map(install.outcomes.map((o) => [o.id, o])) : new Map());
 	const results = $derived(fresh && !installing && install && !install.refused ? install.outcomes : []);
-	// apt, dnf, pacman and zypper rows without Update Manager stay with the system's own tool.
+	// apt, dnf, pacman and zypper rows without Update Manager stay with the system's own tool; the rows Upkeep can
+	// install (Flatpak, Snap, spices) carry no such note.
 	const toolNote = $derived(
 		installOn && sys?.packages && sys.packages !== "mint" ? systemToolNote(sys.packages) : null,
 	);
@@ -224,7 +225,7 @@
 					locked={installing}
 					onTick={(on) => setTick(row.id, on)}
 					outcome={outcomes.get(row.id) ?? null}
-					note={toolNote}
+					note={can.has(row.id) ? null : toolNote}
 				/>
 			{/each}
 		{/if}

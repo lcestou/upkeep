@@ -110,6 +110,11 @@ test("removing packages needs the word typed before Delete works", async ({ page
 	await expect(page.getByTestId("cleanup-confirm")).toBeDisabled();
 	await page.getByTestId("cleanup-type").fill("remove");
 	await expect(page.getByTestId("cleanup-confirm")).toBeEnabled();
+	// apt does not say what autoremove freed, so its result shows no size rather than 0 B.
+	await page.getByTestId("cleanup-confirm").click();
+	const removed = page.getByTestId("cleanup-result-autoremove");
+	await expect(removed.getByTestId("cleanup-result-state")).toHaveText("Cleaned");
+	await expect(removed.getByTestId("cleanup-result-size")).toHaveCount(0);
 });
 
 test("a confirmed cleanup shows each item's result and what it freed, and History lists it", async ({ page }) => {
@@ -122,6 +127,7 @@ test("a confirmed cleanup shows each item's result and what it freed, and Histor
 	await expect(page.getByTestId("cleanup-freed")).toHaveText("Freed 43 MB.");
 	const thumbs = page.getByTestId("cleanup-result-thumbnails");
 	await expect(thumbs.getByTestId("cleanup-result-state")).toHaveText("Cleaned");
+	await expect(thumbs.getByTestId("cleanup-result-size")).toBeVisible();
 	await expect(page.getByTestId("cleanup-result-leftovers").getByTestId("cleanup-result-state")).toHaveText("Cleaned");
 	expect(await ops(page)).toContain("cleanupRun:thumbnails,leftovers");
 	// The cleaned item left the list; the newer copy it kept stays.

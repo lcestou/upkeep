@@ -3,7 +3,15 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { join } from "node:path";
 import { checkLine, main, pickSure, USAGE } from "./cli";
 import type { EngineDeps } from "./engine/engine";
-import { claimLock, loadState, readInflight, releaseLock, updateState, writeInflight } from "./engine/store";
+import {
+	appendHistory,
+	claimLock,
+	loadState,
+	readInflight,
+	releaseLock,
+	updateState,
+	writeInflight,
+} from "./engine/store";
 import type { FetchLike } from "./engine/github";
 import { realRun, recordingRun, script, tempHome } from "./engine/testkit";
 import type { AppState, Suggestion } from "./shared/types";
@@ -91,6 +99,24 @@ test("install updates, exits 0, then restore and history work", async () => {
 	expect(await main(["history"], d, (l) => h.push(l))).toBe(0);
 	expect(h[0]).toMatch(/ BorgBackup 1\.4\.2 to 1\.4\.1 Restored$/);
 	expect(h[1]).toMatch(/ BorgBackup 1\.4\.1 to 1\.4\.2 Updated$/);
+	// A Cleanup row has no versions: it says what it freed.
+	appendHistory(t.paths, [
+		{
+			runId: "c",
+			at: "2026-11-14T00:00:00.000Z",
+			key: "cleanup:trash",
+			name: "trash",
+			from: null,
+			to: null,
+			result: "cleaned",
+			ms: 0,
+			stages: {},
+			freed: 2048,
+		},
+	]);
+	const c: string[] = [];
+	expect(await main(["history"], d, (l) => c.push(l))).toBe(0);
+	expect(c[0]).toBe("2026-11-14T00:00:00.000Z trash freed 2048 bytes Cleaned");
 });
 
 test("install exits 1 when nothing could be installed, and a bad command line is a usage error", async () => {
@@ -123,6 +149,10 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 		"  SKIP:   tmux GitHub answered 404 for a/b.",
 	);
 	expect(checkLine({ ...base, status: "fresh", versionless: true })).toBe("  OK:     tmux");
+	// A held or skipped update is not one install --all would run.
+	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", skipped: "10.5.2" })).toBe(
+		"  HELD:   tmux 9.0.0 -> 10.5.2 (skipping 10.5.2)",
+	);
 });
 
 test("recover with another Upkeep's run holding the lock says so and exits 1, leaving the marker", async () => {

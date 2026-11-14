@@ -108,6 +108,15 @@ export function parseUvReceipt(text: string, name: string): Pick<Tool, "extras" 
 	return { extras: extras.length > 0 ? `[${extras.join(",")}]` : "", python, repo };
 }
 
+/**
+ * True when pipx's package_or_url is a requirement for pkg from the package index: its name, optionally with extras,
+ * a version pin or a range. A URL, a path or another package's name is false; names compare as PEP 503 normalizes them.
+ */
+function fromIndex(spec: unknown, pkg: string): boolean {
+	if (typeof spec !== "string" || /[/\\:]/.test(spec)) return false;
+	return norm(spec.split(/[[\s=<>!~;@,]/)[0] ?? "") === norm(pkg);
+}
+
 /** The venvs "pipx list --json" holds whose main package came from the index: the venv name and the version. */
 export function parsePipxList(text: string): { name: string; version: string }[] {
 	let doc: unknown;
@@ -122,8 +131,9 @@ export function parsePipxList(text: string): { name: string; version: string }[]
 	for (const venv of Object.values(venvs)) {
 		const main = isRecord(venv) && isRecord(venv.metadata) ? venv.metadata.main_package : null;
 		if (!isRecord(main) || typeof main.package !== "string" || typeof main.package_version !== "string") continue;
-		// package_or_url is the package's own name for an index install and a URL or path for any other.
-		if (main.package_or_url !== undefined && main.package_or_url !== main.package) continue;
+		// package_or_url is the requirement for an index install ("black", "black==23.1.0", "black[d]>=24") and a URL
+		// or path for any other.
+		if (main.package_or_url !== undefined && !fromIndex(main.package_or_url, main.package)) continue;
 		if (safeName(main.package) && main.package_version) out.push({ name: main.package, version: main.package_version });
 	}
 	return out;

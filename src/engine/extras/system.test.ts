@@ -127,6 +127,13 @@ test("parsers read real output saved from a Linux Mint machine", () => {
 		["GIMP", null, "3.2.9"],
 		["KDE Application Platform", null, "6.9"],
 	]);
+	// An app update with no version column (Flathub's Flatseal) is a new build of the installed version, not "stable".
+	const rebuild = parseFlatpakUpdates(
+		"app/com.github.tchx84.Flatseal/x86_64/stable\tFlatseal\t\n",
+		"com.github.tchx84.Flatseal/x86_64/stable\tFlatseal\t2.4.0\n",
+		"",
+	);
+	expect(rebuild.map((r) => [r.installed, r.latest])).toEqual([["2.4.0", "2.4.0"]]);
 });
 
 test("a check lists Update Manager's rows and Flatpak's, with installed versions", async () => {

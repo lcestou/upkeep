@@ -1287,3 +1287,21 @@ test("on arm64 a file's name loses its arm suffix too, and a file naming arm64 b
 		"tool-linux-arm64.tar.gz",
 	]);
 });
+
+test("scan takes a catalogue app found at its table's dest from the catalogue, and not the programs its archive brings", async () => {
+	releases["sharkdp/fd"] = {
+		tag_name: "v10.0.0",
+		assets: [{ name: "fd-v10.0.0-x86_64-unknown-linux-gnu.tar.gz", size: 2_000_000 }],
+	};
+	const entry = { ...CATALOGUE[0], bins: ["fd-x/fd", "fd-x/fdx"] } as AppSpec;
+	elf(join(t.paths.home, ".local/bin/fd"));
+	elf(join(t.paths.home, ".local/bin/fdx"));
+	const { c, calls } = ctx();
+	const r = await scan({ ...c, catalogue: [entry] });
+	expect(r.suggestions.map((s) => [s.spec.key, s.confidence, s.source, s.spec.asset, s.path])).toEqual([
+		["fd", "sure", "scan", entry.asset, join(t.paths.home, ".local/bin/fd")],
+	]);
+	// The table is the catalogue's, so no name search was spent on it; nothing was downloaded and nothing found ran.
+	expect(fetched.some((u) => u.includes("/search/") || u.startsWith("https://dl.test/"))).toBe(false);
+	expect(calls.some((x) => x.argv.some((a) => a.includes(".local/bin/fd")))).toBe(false);
+});

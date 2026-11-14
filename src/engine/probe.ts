@@ -9,7 +9,9 @@ export type ProbeResult = { version: string } | { state: "absent" | "broken" | "
 
 export type ProbeOpts = { run: Run; timeoutMs?: number };
 
-const BROKEN = /error while loading shared libraries|cannot open shared object file|symbol lookup error/;
+// An AppImage built on the FUSE 2 runtime cannot start without libfuse2, which newer distributions leave out.
+const BROKEN =
+	/error while loading shared libraries|cannot open shared object file|symbol lookup error|dlopen\(\): error loading libfuse/;
 
 // oxlint-disable no-control-regex -- terminal escapes are control characters by definition
 /** Drops colour codes and title sequences a version probe prints to a terminal. An unterminated OSC eats the rest of the text. */
