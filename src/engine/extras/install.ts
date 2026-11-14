@@ -232,7 +232,11 @@ export async function preflight(steps: Step[], rows: SystemRow[], ctx: InstallCt
 		const lock = await ctx.run(DPKG_LOCK_CHECK, opts);
 		// A sudoers rule can allow true and not fuser: that is sudo asking, not the package system being busy.
 		if (/password is required/i.test(lock.stderr)) return MESSAGES.systemSudo();
-		if (lock.code !== 1 || lock.timedOut || lock.stderr.trim() !== "") return MESSAGES.systemAptBusy();
+		// No fuser (psmisc is left out of minimal installs) on plain apt: nothing to ask, and apt-get refuses a held
+		// lock itself, with an exit code, before it changes anything. mintupdate-cli throws that code away, so Mint
+		// still needs the answer.
+		const noFuser = !apt && /fuser: (command )?not found/i.test(lock.stderr);
+		if (!noFuser && (lock.code !== 1 || lock.timedOut || lock.stderr.trim() !== "")) return MESSAGES.systemAptBusy();
 	}
 	const flatpak = steps.find((s) => s.kind === "flatpak");
 	for (const action of flatpak ? polkitActions(rows, flatpak) : []) {

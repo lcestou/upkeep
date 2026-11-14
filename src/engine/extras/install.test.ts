@@ -476,6 +476,16 @@ test("on plain apt, the ticked packages install through apt-get --only-upgrade, 
 	expect(calls.some((c) => c.argv.join(" ") === aptGetArgv(UBUNTU_SPECS).join(" "))).toBe(true);
 });
 
+test("with no fuser to ask, the lock check steps aside: apt-get refuses a held lock itself", async () => {
+	const { run, calls } = ubuntu(new Map([[DPKG_LOCK_CHECK.join(" "), exit(1, "", "sudo: fuser: command not found")]]));
+	const x = await shown(run);
+	const ids = x.snapshot().system.rows.map((r) => r.id);
+	expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+	await x.idle();
+	expect(x.snapshot().system.install?.refused ?? null).toBeNull();
+	expect(calls.some((c) => c.argv.join(" ") === aptGetArgv(UBUNTU_SPECS).join(" "))).toBe(true);
+});
+
 test("on plain apt, a simulation that names a kernel, removes a package or fails, or a changed list, refuses before root runs", async () => {
 	const trial = aptGetTrialArgv(UBUNTU_SPECS).join(" ");
 	const cases: [Map<string, ProcessResult>, string][] = [
