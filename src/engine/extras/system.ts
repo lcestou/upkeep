@@ -95,8 +95,9 @@ export function parseFlatpakUpdates(updates: string, installed: string, running:
 			type: kind,
 			// A runtime's branch is its version: found by ref, it is installed at that branch.
 			installed: mine ? mine.version || (kind === "runtime" ? branch : null) : null,
-			// A runtime often has no version column: its branch is what changes.
-			latest: version || branch,
+			// A runtime often has no version column: its branch is what changes. An app with none is a new build of
+			// the version it has, never its branch name ("stable").
+			latest: version || (kind === "app" && mine?.version) || branch,
 			running: kind === "app" && live.has(app),
 		});
 	}

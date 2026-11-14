@@ -131,7 +131,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				target: { from: null, version: latest, tag: release.tag },
 				...base,
 			};
-		return { installed, latest, status: "problem", detail: probeProblem(spec.name, dest, probe), ...base };
+		return { installed, latest, status: "problem", detail: probeProblem(spec.name, spec.dest ?? dest, probe), ...base };
 	}
 	const status = missing || isNewer(installed, latest) ? "ready" : "fresh";
 	let target: Target = { from: installed, version: latest, tag: release.tag };

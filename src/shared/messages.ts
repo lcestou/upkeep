@@ -218,6 +218,8 @@ export const MESSAGES = {
 	reasonUnrecovered: () => `An update was interrupted and could not be put back. Restore it from its row first.`,
 	/** kinds/context.ts. {0} app name; {1} dest path or the check argv's first word */
 	willNotStart: (v0: Value, v1: Value) => `${v0} will not start (${v1}).`,
+	/** kinds/context.ts. {0} app name; {1} dest path; {2} the first line the program printed as it failed */
+	willNotStartBecause: (v0: Value, v1: Value, v2: Value) => `${v0} will not start (${v1}): ${v2}`,
 	/** kinds/context.ts. {0} probe detail: raw first line of the program's output, or a probe.ts sentence (versionProbePrintedNothing, neverReportedMount, metaMissing, metaNoVersion) or a raw error */
 	versionProbeFailedWithDetail: (v0: Value) => `Version probe failed: ${v0}`,
 	/** kinds/context.ts */

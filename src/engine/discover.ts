@@ -742,6 +742,19 @@ export async function fromFile(
 	if (!isElf(start)) return { problem: MESSAGES.notTrackable(base) };
 	const appimage = isAppImage(start);
 	const source = opts.scan ? "scan" : "file";
+	// A catalogue app found where its table installs it is that app: the tested table, and no name search.
+	const entry = (ctx.catalogue ?? []).find((e) => e.dest && expandHome(e.dest, home) === path);
+	if (entry) {
+		const r = await fromCatalogue(entry, ctx, opts.asset, !opts.scan);
+		const found = r.suggestions[0];
+		if (found) return { suggestion: { ...found, source, path }, searched: false };
+		// A used-up rate limit is passed on, so a scan stops asking GitHub.
+		return {
+			suggestion: fileProblem(path, home, r.problem ?? MESSAGES.unknownSource(base), source),
+			rate: r.rate,
+			searched: false,
+		};
+	}
 	const file = { path, appimage };
 	const embedded = appimage ? embeddedRepo(path) : null;
 	let repo = embedded;
@@ -820,19 +833,25 @@ function inCatalogue(input: string, catalogue: AppSpec[], hosts: ReadonlyMap<str
  * A catalogue table as a suggestion, sure and taken as written. A release kind still asks GitHub for today's release
  * and asset (asset is the picker's choice, else the table's pattern); a source or command table needs no lookup. A
  * release table with no pattern for this machine's architecture is refused rather than given another arch's file.
+ * probe false (a scan) neither opens the release's archive nor runs the installed program.
  */
 async function fromCatalogue(
 	entry: AppSpec,
 	ctx: DiscoverCtx,
 	asset?: string,
-): Promise<{ suggestions: Suggestion[]; problem?: string }> {
+	probe = true,
+): Promise<{ suggestions: Suggestion[]; problem?: string; rate?: boolean }> {
 	const sure = { source: "catalogue" as const, confidence: "sure" as const, why: CATALOGUE_WHY };
 	const pattern = assetFor(entry, ctx.arch);
 	// A table tested on one architecture says nothing about the other's files: no pattern for this one, no offer.
 	if (RELEASE_KINDS.has(entry.kind) && pattern === undefined)
 		return { suggestions: [], problem: MESSAGES.noAssetForArch(entry.name, ctx.arch ?? "x86_64") };
 	if (!entry.repo || !RELEASE_KINDS.has(entry.kind)) {
-		const s: Suggestion = { spec: entry, installed: null, latest: null, asset: null, alternatives: [], ...sure };
+		// A release app found through latest (json:, links:) with nothing at its dest yet would be skipped by every
+		// check: it lands in Ready to install, as a repo one does below.
+		const missing = RELEASE_KINDS.has(entry.kind) && entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home));
+		const spec = missing ? { ...entry, install_if_missing: true } : entry;
+		const s: Suggestion = { spec, installed: null, latest: null, asset: null, alternatives: [], ...sure };
 		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = MESSAGES.alreadyInList(entry.name);
 		return { suggestions: [s] };
 	}
@@ -841,8 +860,9 @@ async function fromCatalogue(
 		...(asset ? { asset } : { pattern }),
 		versionArgs: entry.version_args,
 		forge: entry.forge,
+		probe,
 	});
-	if ("problem" in r) return { suggestions: [], problem: r.problem };
+	if ("problem" in r) return { suggestions: [], problem: r.problem, rate: r.rate };
 	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
 	if (r.suggestion.spec.kind === "source") return { suggestions: [r.suggestion] };
 	// A picked asset is kept as the pattern fromRepo made of its name, with the version a wildcard, so it still matches next release.
@@ -929,6 +949,16 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 			if (isElf(head(p, 16))) files.push(p);
 		}
 	}
+	// The other programs a found catalogue app's archive brings (uvx beside uv) are that app, not apps of their own.
+	const found = new Set(files);
+	const bundled = new Set<string>();
+	for (const e of ctx.catalogue ?? []) {
+		const dest = e.dest ? expandHome(e.dest, home) : "";
+		if (!found.has(dest)) continue;
+		for (const b of e.bins ?? []) bundled.add(join(dest.slice(0, dest.lastIndexOf("/")), b.split("/").at(-1) ?? b));
+		bundled.delete(dest);
+	}
+	files.splice(0, files.length, ...files.filter((f) => !bundled.has(f)));
 	if (files.length > MAX_SCAN) ctx.log(`Found ${files.length} programs; looking at the first ${MAX_SCAN}.`);
 	const suggestions: Suggestion[] = [];
 	let searchedLast = false;

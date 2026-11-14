@@ -26,7 +26,7 @@ export const USAGE = [
 
 type Out = (line: string) => void;
 
-/** One line per app, as OK, UPDATE, BROKEN or SKIP first, so a script or a glance reads the state from the first word. */
+/** One line per app, as OK, UPDATE, HELD, BROKEN or SKIP first, so a script or a glance reads the state from the first word. */
 export function checkLine(a: AppState): string {
 	switch (a.status) {
 		case "fresh":
@@ -34,8 +34,10 @@ export function checkLine(a: AppState): string {
 			return a.installed ? `  OK:     ${a.name} ${a.installed}` : `  OK:     ${a.name}`;
 		case "ready":
 		case "manual":
-		case "held":
 			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
+		// install --all passes these by, so they are not offered as updates.
+		case "held":
+			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : ""}`;
 		default: {
 			const detail = a.detail ?? "";
 			const broken = `${a.name} will not start`;
@@ -163,10 +165,13 @@ function history(engine: Engine, json: boolean, out: Out): number {
 		return 0;
 	}
 	if (rows.length === 0) out("No runs yet.");
-	for (const r of rows)
-		out(
-			`${r.at} ${r.name} ${r.from ?? "?"} to ${r.to ?? "?"} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}`,
-		);
+	for (const r of rows) {
+		// A Cleanup row has no versions: what it freed stands in their place, and nothing when that went unmeasured
+		// (apt does not say what autoremove freed).
+		const what =
+			r.freed === undefined ? ` ${r.from ?? "?"} to ${r.to ?? "?"}` : r.freed > 0 ? ` freed ${r.freed} bytes` : "";
+		out(`${r.at} ${r.name}${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}`);
+	}
 	return 0;
 }
 

@@ -145,7 +145,8 @@
 					<li data-testid="cleanup-result-{o.id}">
 						<span class="pname">{CLEAN.name[o.id]}</span>
 						<span class="rstate" class:failed={o.status === "failed"} data-testid="cleanup-result-state">{CLEAN.state[o.status]}</span>
-						{#if o.status === "done"}<span class="mono psize">{formatBytes(o.freed)}</span>{/if}
+						{#if o.status === "done" && o.freed > 0}<span class="mono psize" data-testid="cleanup-result-size">{formatBytes(o.freed)}</span
+							>{/if}
 						{#if o.detail}<span class="rdetail" data-testid="cleanup-result-detail">{say(o.detail)}</span>{/if}
 					</li>
 				{/each}

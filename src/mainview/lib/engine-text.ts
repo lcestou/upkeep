@@ -114,6 +114,7 @@ export const ENGINE_COPY = {
 	reportsVersion: (v0: string) => `Reports ${v0}.`,
 	reasonUnrecovered: () => `An update was interrupted and could not be put back. Restore it from its row first.`,
 	willNotStart: (v0: string, v1: string) => `${v0} will not start (${v1}).`,
+	willNotStartBecause: (v0: string, v1: string, v2: string) => `${v0} will not start (${v1}): ${v2}`,
 	versionProbeFailedWithDetail: (v0: string) => `Version probe failed: ${v0}`,
 	versionProbeFailed: () => `Version probe failed.`,
 	couldNotUpdatePlugins: (v0: string) => `Could not update ${v0}. See the log.`,

@@ -2619,3 +2619,8 @@ msgstr "Dodaj polecenie upkeep"
 #: src/mainview/lib/copy.ts
 msgid "Puts upkeep in ~/.local/bin for the terminal and scripts. A file already there that Upkeep did not write is left alone."
 msgstr "Umieszcza upkeep w ~/.local/bin dla terminala i skryptów. Plik, który już tam jest i nie został zapisany przez Upkeep, pozostaje nietknięty."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} will not start ({1}): {2}"
+msgstr "{0} nie uruchamia się ({1}): {2}"

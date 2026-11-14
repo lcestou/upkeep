@@ -9,7 +9,9 @@ export type ProbeResult = { version: string } | { state: "absent" | "broken" | "
 
 export type ProbeOpts = { run: Run; timeoutMs?: number };
 
-const BROKEN = /error while loading shared libraries|cannot open shared object file|symbol lookup error/;
+// An AppImage built on the FUSE 2 runtime cannot start without libfuse2, which newer distributions leave out.
+const BROKEN =
+	/error while loading shared libraries|cannot open shared object file|symbol lookup error|dlopen\(\): error loading libfuse/;
 
 // oxlint-disable no-control-regex -- terminal escapes are control characters by definition
 /** Drops colour codes and title sequences a version probe prints to a terminal. An unterminated OSC eats the rest of the text. */
@@ -24,8 +26,9 @@ export function stripEscapes(text: string): string {
 
 /** Reads a version out of probe output, after the broken rule: a failed run whose output matches `BROKEN` is a broken install, not a version. */
 export function readProbe(code: number, output: string): ProbeResult {
-	if (code !== 0 && BROKEN.test(output)) return { state: "broken", detail: output.split("\n")[0]?.trim() ?? "" };
 	const text = stripEscapes(output);
+	// The failing line is shown in the window and the command line, so it goes without terminal escapes.
+	if (code !== 0 && BROKEN.test(text)) return { state: "broken", detail: text.split("\n")[0]?.trim() ?? "" };
 	if (!text.trim()) return { state: "unknown", detail: MESSAGES.versionProbePrintedNothing() };
 	const version = extractVersion(text);
 	return version ? { version } : { state: "unknown", detail: text.split("\n")[0]?.trim() ?? "" };

@@ -59,18 +59,38 @@ test("a uv receipt for a path, a URL, another git host, another name or bad TOML
 	expect(parseUvReceipt(one(`{ name = "Foo_Bar" }`), "foo-bar")).toEqual({ extras: "", python: null, repo: null });
 });
 
-test("pipx list --json gives index installs only", () => {
+test("pipx list --json gives index installs an update may move: a name or a range, never an exact pin", () => {
 	const venv = (package_or_url: string) => ({
 		metadata: { main_package: { package: "black", package_version: "24.8.0", package_or_url } },
 	});
 	const json = JSON.stringify({
 		venvs: {
 			black: venv("black"),
+			pinned: {
+				metadata: { main_package: { package: "ruff", package_version: "0.5.0", package_or_url: "ruff==0.5.0" } },
+			},
+			extras: {
+				metadata: { main_package: { package: "Black_D", package_version: "1.0", package_or_url: "black-d[x]>=1" } },
+			},
+			marked: {
+				metadata: {
+					main_package: { package: "m", package_version: "2.0", package_or_url: "m>=1; sys_platform=='linux'" },
+				},
+			},
+			git: {
+				metadata: { main_package: { package: "g", package_version: "1.0", package_or_url: "git+https://x.test/g" } },
+			},
+			other: { metadata: { main_package: { package: "a", package_version: "1.0", package_or_url: "ab" } } },
 			local: { metadata: { main_package: { package: "local", package_version: "1.0", package_or_url: "/src/local" } } },
 			broken: { metadata: {} },
 		},
 	});
-	expect(parsePipxList(json)).toEqual([{ name: "black", version: "24.8.0" }]);
+	// An exact pin is the person's own choice of version: an update would overwrite it, so it is left to pipx.
+	expect(parsePipxList(json)).toEqual([
+		{ name: "black", version: "24.8.0" },
+		{ name: "Black_D", version: "1.0" },
+		{ name: "m", version: "2.0" },
+	]);
 	expect(parsePipxList("nope")).toEqual([]);
 });
 

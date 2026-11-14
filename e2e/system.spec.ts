@@ -302,4 +302,6 @@ test("without Update Manager, package rows have no tick and name the system's ow
 	await expect(perl.getByTestId("sys-tick-apt:perl")).toHaveCount(0);
 	await expect(perl.getByTestId("sys-note")).toHaveText("Install it with apt.");
 	await expect(page.getByTestId("sys-tick-flatpak:com.discordapp.Discord")).toBeVisible();
+	// A row Upkeep installs is not sent to apt.
+	await expect(page.getByTestId("sys-row-flatpak:com.discordapp.Discord").getByTestId("sys-note")).toHaveCount(0);
 });

@@ -108,6 +108,19 @@ export function parseUvReceipt(text: string, name: string): Pick<Tool, "extras" 
 	return { extras: extras.length > 0 ? `[${extras.join(",")}]` : "", python, repo };
 }
 
+/**
+ * True when pipx's package_or_url is a requirement for pkg from the package index that an update may move: its name,
+ * optionally with extras or a range ("black[d]>=24"). An exact pin ("black==23.1.0") is the person's choice of
+ * version, which an update would overwrite, so it is false, as are a URL, a path and another package's name. Names
+ * compare as PEP 503 normalizes them; an environment marker is ignored.
+ */
+function fromIndex(spec: unknown, pkg: string): boolean {
+	// An environment marker after ";" (sys_platform=='linux') is not part of the version.
+	const req = typeof spec === "string" ? (spec.split(";")[0] ?? "") : "";
+	if (!req || /[/\\:]|===?/.test(req)) return false;
+	return norm(req.split(/[[\s<>!~@,]/)[0] ?? "") === norm(pkg);
+}
+
 /** The venvs "pipx list --json" holds whose main package came from the index: the venv name and the version. */
 export function parsePipxList(text: string): { name: string; version: string }[] {
 	let doc: unknown;
@@ -122,8 +135,9 @@ export function parsePipxList(text: string): { name: string; version: string }[]
 	for (const venv of Object.values(venvs)) {
 		const main = isRecord(venv) && isRecord(venv.metadata) ? venv.metadata.main_package : null;
 		if (!isRecord(main) || typeof main.package !== "string" || typeof main.package_version !== "string") continue;
-		// package_or_url is the package's own name for an index install and a URL or path for any other.
-		if (main.package_or_url !== undefined && main.package_or_url !== main.package) continue;
+		// package_or_url is the requirement for an index install ("black", "black==23.1.0", "black[d]>=24") and a URL
+		// or path for any other.
+		if (main.package_or_url !== undefined && !fromIndex(main.package_or_url, main.package)) continue;
 		if (safeName(main.package) && main.package_version) out.push({ name: main.package, version: main.package_version });
 	}
 	return out;
