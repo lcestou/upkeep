@@ -117,6 +117,23 @@ test("install updates, exits 0, then restore and history work", async () => {
 	const c: string[] = [];
 	expect(await main(["history"], d, (l) => c.push(l))).toBe(0);
 	expect(c[0]).toBe("2026-11-14T00:00:00.000Z trash freed 2048 bytes Cleaned");
+	appendHistory(t.paths, [
+		{
+			runId: "d",
+			at: "2026-11-15T00:00:00.000Z",
+			key: "cleanup:autoremove",
+			name: "autoremove",
+			from: null,
+			to: null,
+			result: "cleaned",
+			ms: 0,
+			stages: {},
+			freed: 0,
+		},
+	]);
+	const e: string[] = [];
+	expect(await main(["history"], d, (l) => e.push(l))).toBe(0);
+	expect(e[0]).toBe("2026-11-15T00:00:00.000Z autoremove Cleaned");
 });
 
 test("install exits 1 when nothing could be installed, and a bad command line is a usage error", async () => {

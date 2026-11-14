@@ -109,12 +109,14 @@ export function parseUvReceipt(text: string, name: string): Pick<Tool, "extras" 
 }
 
 /**
- * True when pipx's package_or_url is a requirement for pkg from the package index: its name, optionally with extras,
- * a version pin or a range. A URL, a path or another package's name is false; names compare as PEP 503 normalizes them.
+ * True when pipx's package_or_url is a requirement for pkg from the package index that an update may move: its name,
+ * optionally with extras or a range ("black[d]>=24"). An exact pin ("black==23.1.0") is the person's choice of
+ * version, which an update would overwrite, so it is false, as are a URL, a path and another package's name. Names
+ * compare as PEP 503 normalizes them.
  */
 function fromIndex(spec: unknown, pkg: string): boolean {
-	if (typeof spec !== "string" || /[/\\:]/.test(spec)) return false;
-	return norm(spec.split(/[[\s=<>!~;@,]/)[0] ?? "") === norm(pkg);
+	if (typeof spec !== "string" || /[/\\:]|===?/.test(spec)) return false;
+	return norm(spec.split(/[[\s<>!~;@,]/)[0] ?? "") === norm(pkg);
 }
 
 /** The venvs "pipx list --json" holds whose main package came from the index: the venv name and the version. */

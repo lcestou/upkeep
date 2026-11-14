@@ -166,9 +166,11 @@ function history(engine: Engine, json: boolean, out: Out): number {
 	}
 	if (rows.length === 0) out("No runs yet.");
 	for (const r of rows) {
-		// A Cleanup row has no versions: what it freed stands in their place.
-		const what = r.freed === undefined ? `${r.from ?? "?"} to ${r.to ?? "?"}` : `freed ${r.freed} bytes`;
-		out(`${r.at} ${r.name} ${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}`);
+		// A Cleanup row has no versions: what it freed stands in their place, and nothing when that went unmeasured
+		// (apt does not say what autoremove freed).
+		const what =
+			r.freed === undefined ? ` ${r.from ?? "?"} to ${r.to ?? "?"}` : r.freed > 0 ? ` freed ${r.freed} bytes` : "";
+		out(`${r.at} ${r.name}${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}`);
 	}
 	return 0;
 }

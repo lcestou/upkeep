@@ -748,7 +748,12 @@ export async function fromFile(
 		const r = await fromCatalogue(entry, ctx, opts.asset, !opts.scan);
 		const found = r.suggestions[0];
 		if (found) return { suggestion: { ...found, source, path }, searched: false };
-		return { suggestion: fileProblem(path, home, r.problem ?? MESSAGES.unknownSource(base), source), searched: false };
+		// A used-up rate limit is passed on, so a scan stops asking GitHub.
+		return {
+			suggestion: fileProblem(path, home, r.problem ?? MESSAGES.unknownSource(base), source),
+			rate: r.rate,
+			searched: false,
+		};
 	}
 	const file = { path, appimage };
 	const embedded = appimage ? embeddedRepo(path) : null;
@@ -835,7 +840,7 @@ async function fromCatalogue(
 	ctx: DiscoverCtx,
 	asset?: string,
 	probe = true,
-): Promise<{ suggestions: Suggestion[]; problem?: string }> {
+): Promise<{ suggestions: Suggestion[]; problem?: string; rate?: boolean }> {
 	const sure = { source: "catalogue" as const, confidence: "sure" as const, why: CATALOGUE_WHY };
 	const pattern = assetFor(entry, ctx.arch);
 	// A table tested on one architecture says nothing about the other's files: no pattern for this one, no offer.
@@ -857,7 +862,7 @@ async function fromCatalogue(
 		forge: entry.forge,
 		probe,
 	});
-	if ("problem" in r) return { suggestions: [], problem: r.problem };
+	if ("problem" in r) return { suggestions: [], problem: r.problem, rate: r.rate };
 	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
 	if (r.suggestion.spec.kind === "source") return { suggestions: [r.suggestion] };
 	// A picked asset is kept as the pattern fromRepo made of its name, with the version a wildcard, so it still matches next release.

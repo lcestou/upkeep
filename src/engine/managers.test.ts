@@ -59,7 +59,7 @@ test("a uv receipt for a path, a URL, another git host, another name or bad TOML
 	expect(parseUvReceipt(one(`{ name = "Foo_Bar" }`), "foo-bar")).toEqual({ extras: "", python: null, repo: null });
 });
 
-test("pipx list --json gives index installs only, pinned or not", () => {
+test("pipx list --json gives index installs an update may move: a name or a range, never an exact pin", () => {
 	const venv = (package_or_url: string) => ({
 		metadata: { main_package: { package: "black", package_version: "24.8.0", package_or_url } },
 	});
@@ -80,9 +80,9 @@ test("pipx list --json gives index installs only, pinned or not", () => {
 			broken: { metadata: {} },
 		},
 	});
+	// An exact pin is the person's own choice of version: an update would overwrite it, so it is left to pipx.
 	expect(parsePipxList(json)).toEqual([
 		{ name: "black", version: "24.8.0" },
-		{ name: "ruff", version: "0.5.0" },
 		{ name: "Black_D", version: "1.0" },
 	]);
 	expect(parsePipxList("nope")).toEqual([]);

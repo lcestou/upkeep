@@ -29,6 +29,7 @@ test("a missing shared library is broken, not version 6", async () => {
 test("an AppImage that cannot load libfuse2 is broken, not version 2", () => {
 	const out = "dlopen(): error loading libfuse.so.2\n\nAppImages require FUSE to run. \n";
 	expect(readProbe(127, out)).toEqual({ state: "broken", detail: "dlopen(): error loading libfuse.so.2" });
+	expect(readProbe(127, `\x1b[31m${out}`)).toEqual({ state: "broken", detail: "dlopen(): error loading libfuse.so.2" });
 });
 
 test("terminal escapes are stripped before the version is read", () => {

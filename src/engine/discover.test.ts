@@ -1293,6 +1293,7 @@ test("scan takes a catalogue app found at its table's dest from the catalogue, a
 		tag_name: "v10.0.0",
 		assets: [{ name: "fd-v10.0.0-x86_64-unknown-linux-gnu.tar.gz", size: 2_000_000 }],
 	};
+	// SAFETY: CATALOGUE[0] is the fd table written above, so the spread holds every AppSpec field.
 	const entry = { ...CATALOGUE[0], bins: ["fd-x/fd", "fd-x/fdx"] } as AppSpec;
 	elf(join(t.paths.home, ".local/bin/fd"));
 	elf(join(t.paths.home, ".local/bin/fdx"));
@@ -1320,4 +1321,18 @@ test("a catalogue app found through latest (json:) with nothing at its dest land
 	// Installed already: the table stays as the catalogue wrote it.
 	elf(join(t.paths.home, ".local/bin/cursor.appimage"), { image: true });
 	expect((await ask()).suggestions[0]?.spec.install_if_missing).toBeUndefined();
+});
+
+test("a catalogue app the rate limit stops ends the scan there, as a search does", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	elf(join(bin, "fd"));
+	elf(join(bin, "zzz"));
+	const { c } = ctx();
+	const limited: FetchLike = async (url, init) =>
+		url.includes("/releases/latest")
+			? new Response('{"message":"API rate limit exceeded"}', { status: 403 })
+			: fakeFetch(url, init);
+	const r = await scan({ ...c, fetch: limited, catalogue: CATALOGUE });
+	expect(r.suggestions.map((s) => s.path)).toEqual([join(bin, "fd")]);
+	expect(fetched.some((u) => u.includes("/search/"))).toBe(false);
 });
