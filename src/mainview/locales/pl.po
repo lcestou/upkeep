@@ -2664,3 +2664,39 @@ msgstr "{0} na liście śledzi już ten sam projekt."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
 msgstr "{0} na liście instaluje się już w tym samym miejscu, więc jeden nadpisywałby drugi."
+#: src/mainview/lib/engine-text.ts
+msgid "Only an installed Upkeep can uninstall itself."
+msgstr "Tylko zainstalowany Upkeep może sam się odinstalować."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is installing something. Uninstall once it is done."
+msgstr "Upkeep coś teraz instaluje. Odinstaluj, gdy skończy."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep is not installed where an uninstall expects it ({0}), so nothing was removed."
+msgstr "Upkeep nie jest zainstalowany tam, gdzie odinstalowanie go oczekuje ({0}), więc niczego nie usunięto."
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep"
+msgstr "Odinstaluj Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall Upkeep? Its menu entry, its login entry and the upkeep command go with it. The apps it keeps up to date stay installed."
+msgstr "Odinstalować Upkeep? Jego wpis w menu, wpis logowania i polecenie upkeep znikną razem z nim. Aplikacje, które aktualizuje, zostaną zainstalowane."
+
+#: src/mainview/lib/copy.ts
+msgid "Also delete Upkeep's settings, app list, history and restore points"
+msgstr "Usuń też ustawienia, listę aplikacji, historię i punkty przywracania Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstall"
+msgstr "Odinstaluj"
+
+#: src/mainview/lib/copy.ts
+msgid "Keep Upkeep"
+msgstr "Zostaw Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Uninstalling. Upkeep closes now."
+msgstr "Odinstalowywanie. Upkeep zamyka się teraz."

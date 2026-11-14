@@ -42,6 +42,8 @@ export type WindowHooks = {
 	self: Pick<Self, "snapshot" | "prepare" | "restart" | "dismiss">;
 	/** Called each time a view asks for its snapshot: a start test waits for the first. */
 	onSnapshot?: () => void;
+	/** Uninstalls Upkeep (uninstall.ts) and quits it, or answers why not. */
+	uninstall: (purge: boolean) => { ok: boolean; problem?: string };
 };
 
 /** What the requests ask of the desktop: the framework's Utils in the app, a recorder in tests. */
@@ -216,6 +218,7 @@ export function upkeepRequests(
 		cleanupMeasure: () => hooks.extras.measureCleanup(),
 		cleanupReview: ({ picks }) => hooks.extras.reviewCleanup(picks),
 		cleanupRun: ({ picks, commands, typed }) => hooks.extras.runCleanup(picks, commands, typed),
+		uninstall: ({ purge }) => hooks.uninstall(purge === true),
 		openTool: ({ what }) => {
 			if (what !== "update-manager") return { ok: false };
 			try {

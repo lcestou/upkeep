@@ -39,6 +39,10 @@ export const ENGINE_COPY = {
 	alsoSameDest: (v0: string) =>
 		`${v0} in the list already installs to the same place, so the two would overwrite each other.`,
 	notInstalledYet: (v0: string) => `It is not installed here yet: Upkeep keeps ${v0} up to date once it is.`,
+	uninstallInstalledOnly: () => `Only an installed Upkeep can uninstall itself.`,
+	uninstallWaitRun: () => `Upkeep is installing something. Uninstall once it is done.`,
+	uninstallRefused: (v0: string) =>
+		`Upkeep is not installed where an uninstall expects it (${v0}), so nothing was removed.`,
 	noProgramInArchive: (v0: string) => `${v0} holds no program Upkeep can install.`,
 	couldNotReachGithubSearch: (v0: string) => `Could not reach GitHub: ${v0}`,
 	rateLimitSearch: () => `GitHub's request limit is used up. Try again after it resets.`,

@@ -42,6 +42,43 @@ export function autostartEntry(command: string | string[], icon: string): string
 	].join("\n");
 }
 
+/** The index of the [Desktop Entry] section's Exec line among a desktop file's lines, or -1 when it has none. */
+function execLineOf(lines: string[]): number {
+	let section = "";
+	return lines.findIndex((raw) => {
+		const line = raw.trimEnd();
+		if (line.startsWith("[")) section = line;
+		return section === "[Desktop Entry]" && line.startsWith("Exec=");
+	});
+}
+
+/**
+ * True for an Exec line that is Upkeep's own: the line the installer wrote (the launcher alone, bare or quoted) or one
+ * Upkeep wrote before (a shell line that runs the start script). A wrapper the person put around the launcher is theirs.
+ */
+function upkeepsExec(line: string, launcher: string, script: string): boolean {
+	const value = line.trimEnd().slice("Exec=".length);
+	const installers = value === launcher || value === `"${launcher}"` || value === execLine([launcher]);
+	return installers || (value.startsWith('"sh" "-c" ') && value.includes(script));
+}
+
+/**
+ * Deletes the menu entry when its Exec line is Upkeep's own, for an uninstall. A menu entry the person changed to run
+ * something else is left. Returns true when the file was removed.
+ */
+export function removeMenuEntry(file: string, launcher: string, script: string): boolean {
+	let text = "";
+	try {
+		text = readFileSync(file, "utf8");
+	} catch {
+		return false;
+	}
+	const line = text.split("\n")[execLineOf(text.split("\n"))];
+	if (line === undefined || !upkeepsExec(line, launcher, script)) return false;
+	rmSync(file);
+	return true;
+}
+
 /**
  * Makes a menu entry start Upkeep through `command`. Only the Exec line of the [Desktop Entry] section is replaced,
  * and only when it is Upkeep's own: the line the installer wrote, which is `launcher` and nothing else, or a line
@@ -57,20 +94,10 @@ export function syncMenuExec(file: string, command: string[], launcher: string, 
 		return false;
 	}
 	const lines = text.split("\n");
-	let section = "";
-	const at = lines.findIndex((raw) => {
-		const line = raw.trimEnd();
-		if (line.startsWith("[")) section = line;
-		return section === "[Desktop Entry]" && line.startsWith("Exec=");
-	});
+	const at = execLineOf(lines);
 	const current = lines[at];
 	if (current === undefined) return false;
-	// Upkeep's own: the line the installer wrote (the launcher alone, bare or quoted) or one Upkeep wrote before
-	// (a shell line that runs the start script). A wrapper the person put around the launcher is theirs.
-	const value = current.trimEnd().slice("Exec=".length);
-	const installers = value === launcher || value === `"${launcher}"` || value === execLine([launcher]);
-	const upkeeps = value.startsWith('"sh" "-c" ') && value.includes(script);
-	if (!installers && !upkeeps) return false;
+	if (!upkeepsExec(current, launcher, script)) return false;
 	const wanted = `Exec=${execLine(command)}${current.endsWith("\r") ? "\r" : ""}`;
 	if (current === wanted) return false;
 	lines[at] = wanted;

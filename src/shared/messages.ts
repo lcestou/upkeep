@@ -72,6 +72,13 @@ export const MESSAGES = {
 		`${v0} in the list already installs to the same place, so the two would overwrite each other.`,
 	/** discover.ts. {0} app name */
 	notInstalledYet: (v0: Value) => `It is not installed here yet: Upkeep keeps ${v0} up to date once it is.`,
+	/** bun/index.ts */
+	uninstallInstalledOnly: () => `Only an installed Upkeep can uninstall itself.`,
+	/** bun/index.ts */
+	uninstallWaitRun: () => `Upkeep is installing something. Uninstall once it is done.`,
+	/** bun/index.ts. {0} the install folder */
+	uninstallRefused: (v0: Value) =>
+		`Upkeep is not installed where an uninstall expects it (${v0}), so nothing was removed.`,
 	/** discover.ts. {0} asset (archive) name */
 	noProgramInArchive: (v0: Value) => `${v0} holds no program Upkeep can install.`,
 	/** discover.ts. {0} fetch error message (raw) */
