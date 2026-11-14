@@ -1,0 +1,8 @@
+[apps.shellcheck]
+name = "ShellCheck"
+kind = "archive"
+repo = "koalaman/shellcheck"
+asset = '^shellcheck-v[0-9.]+\.linux\.x86_64\.tar\.gz$'
+asset_aarch64 = '^shellcheck-v[0-9.]+\.linux\.aarch64\.tar\.gz$'
+dest = "~/.local/bin/shellcheck"
+bins = ["shellcheck"]
