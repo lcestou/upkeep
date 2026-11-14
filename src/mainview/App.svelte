@@ -5,6 +5,7 @@
 	import FooterBar from "./components/FooterBar.svelte";
 	import HeaderBar from "./components/HeaderBar.svelte";
 	import HistoryView from "./components/HistoryView.svelte";
+	import RateBar from "./components/RateBar.svelte";
 	import LogDrawer from "./components/LogDrawer.svelte";
 	import RowDetail from "./components/RowDetail.svelte";
 	import SettingsView from "./components/SettingsView.svelte";
@@ -36,6 +37,13 @@
 			);
 	});
 	let logOpen = $state(false);
+	// The reset the rate bar was dismissed for: it stays hidden until GitHub's hour starts over.
+	let rateDismissed = $state<string | null>(null);
+	const rateOut = $derived.by(() => {
+		const r = model?.rate;
+		if (!r || r.remaining > 0 || !r.resetAt || r.resetAt === rateDismissed) return null;
+		return Date.parse(r.resetAt) > Date.now() ? r : null;
+	});
 
 	void getBridge().then((bridge) => {
 		const live = new Model(bridge);
@@ -189,8 +197,13 @@
 		class="shell"
 		class:edged={m.chrome?.own === true && !m.chrome.maximized}
 		class:rounded={m.chrome?.rounded === true && !m.chrome.maximized}
+		class:barred={rateOut !== null}
 	>
 		<HeaderBar model={m} />
+		{#if rateOut?.resetAt}
+			{@const at = rateOut.resetAt}
+			<RateBar resetAt={at} signedIn={rateOut.limit > 60} ondismiss={() => (rateDismissed = at)} />
+		{/if}
 		<main id="view" role={m.view === "updates" ? undefined : "tabpanel"} aria-labelledby="tab-{m.view}">
 			{#if m.view === "history"}
 				<HistoryView model={m} />
@@ -268,6 +281,10 @@
 		grid-template-columns: minmax(0, 1fr);
 		height: 100%;
 		min-width: 0;
+	}
+	/* The rate bar takes its own row between the header and the view while it shows. */
+	.shell.barred {
+		grid-template-rows: 56px auto minmax(0, 1fr) 64px;
 	}
 	main {
 		position: relative;

@@ -298,8 +298,8 @@ export type Snapshot = {
 	apps: AppState[];
 	run: RunState;
 	settings: Settings;
-	/** GitHub API budget after the last check. */
-	rate: { limit: number; remaining: number } | null;
+	/** GitHub API budget after the last check; resetAt is when GitHub's hour starts over. */
+	rate: { limit: number; remaining: number; resetAt?: string } | null;
 	checkedAt: string | null;
 	version: string;
 };

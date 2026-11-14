@@ -2564,6 +2564,7 @@ msgid "Try again"
 msgstr "Spróbuj ponownie"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Dismiss"
 msgstr "Zamknij"
 
@@ -2624,3 +2625,12 @@ msgstr "Umieszcza upkeep w ~/.local/bin dla terminala i skryptów. Plik, który 
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} nie uruchamia się ({1}): {2}"
+
+#. 0: time
+#: src/mainview/lib/copy.ts
+msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
+msgstr "Godzinowy limit GitHuba dla tej sieci się wyczerpał. Sprawdzanie wznowi się o {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
+msgstr "Uruchom gh auth login w terminalu, aby podnieść go do 5000 na godzinę."

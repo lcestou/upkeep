@@ -2501,6 +2501,7 @@ msgid "Try again"
 msgstr "重试"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Dismiss"
 msgstr "关闭"
 
@@ -2561,3 +2562,12 @@ msgstr "将 upkeep 放入 ~/.local/bin，供终端和脚本使用。已存在且
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} 无法启动（{1}）：{2}"
+
+#. 0: time
+#: src/mainview/lib/copy.ts
+msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
+msgstr "此网络的 GitHub 每小时请求上限已用完。检查将于 {0} 恢复。"
+
+#: src/mainview/lib/copy.ts
+msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
+msgstr "在终端中运行 gh auth login，可将上限提高到每小时 5,000 次。"

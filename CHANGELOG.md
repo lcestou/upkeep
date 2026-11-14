@@ -4,6 +4,7 @@
 
 First version.
 
+- When GitHub's hourly request limit is used up, a bar under the header says when checks resume and, without a GitHub sign-in, that `gh auth login` in a terminal raises the limit to 5,000 an hour. Dismissing it hides it until the hour starts over.
 - Adding Cursor, or any catalogue app that finds its version through its own update address or a download page rather than a repo, when it is not installed yet lands it in Ready to install. It was added to the list and then skipped by every check, so it never showed up.
 - Scan this computer takes a program it finds where a catalogue app installs (fd, jq, uv, Helix and the rest) as that catalogue app, ticked and with its tested table, instead of guessing its repo through a GitHub search. A guessed table could pick the wrong file: jq's took a source zip and its install failed. The other programs a catalogue app's archive brings (uvx beside uv) are no longer offered as unknown apps.
 - A pipx tool installed with extras or a version range (`pipx install "black[d]>=24"`) is found by the scan and by Add app; it was passed over as if it came from a URL. One pinned to an exact version stays with pipx, since an update would overwrite the pin.

@@ -2543,6 +2543,7 @@ msgid "Try again"
 msgstr "Riprova"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Dismiss"
 msgstr "Chiudi"
 
@@ -2603,3 +2604,12 @@ msgstr "Mette upkeep in ~/.local/bin per il terminale e gli script. Un file già
 #: src/mainview/lib/engine-text.ts
 msgid "{0} will not start ({1}): {2}"
 msgstr "{0} non si avvia ({1}): {2}"
+
+#. 0: time
+#: src/mainview/lib/copy.ts
+msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
+msgstr "Il limite orario di GitHub per questa rete è esaurito. I controlli riprendono alle {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
+msgstr "Esegui gh auth login in un terminale per portarlo a 5.000 all'ora."

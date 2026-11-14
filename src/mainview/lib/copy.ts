@@ -346,6 +346,18 @@ export const retryLabel = (n: number) => plural(n, ["Retry # failed", "Retry # f
 /** The rate-limit line in Settings. Counts requests, not apps. */
 export const rateText = (remaining: number, limit: number) =>
 	`GitHub requests left this hour: ${remaining} of ${limit}`;
+/** The bar shown while GitHub's hourly budget is used up; time is when it starts over. */
+export const rateOutText = (time: string) =>
+	`GitHub's hourly limit for this network is used up. Checks resume at ${time}.`;
+/** The bar's second sentence, only without a GitHub sign-in: gh's token raises the limit. */
+export const RATE = {
+	get signIn() {
+		return "Run gh auth login in a terminal to raise it to 5,000 an hour.";
+	},
+	get dismiss() {
+		return "Dismiss";
+	},
+};
 /** The version shown in About, with no leading v. */
 export const versionText = (v: string) => `Version ${v}`;
 

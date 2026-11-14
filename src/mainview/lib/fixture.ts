@@ -628,6 +628,8 @@ export type FixtureOptions = {
 	self?: Exclude<SelfState["phase"], "none">;
 	/** The offered version fails its start test, so a press on Update ends failed and never ready. */
 	selfTestFails?: boolean;
+	/** GitHub's budget is used up for the next half hour: "out" with no sign-in (60), "signed" with one (5,000). */
+	rate?: "out" | "signed";
 };
 
 // Cinnamon can put the window buttons on the left: close, maximize, minimize.
@@ -670,7 +672,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		results: [],
 		retry: false,
 	};
-	const rate = { limit: 5000, remaining: 4977 };
+	const resetAt = iso(Date.now() + 30 * 60_000);
+	const rate =
+		opts.rate === "out"
+			? { limit: 60, remaining: 0, resetAt }
+			: opts.rate === "signed"
+				? { limit: 5000, remaining: 0, resetAt }
+				: { limit: 5000, remaining: 4977 };
 	let checkedAt: string | null = iso(Date.now() - 2 * 60_000);
 	const history: HistoryRow[] = opts.noHistory ? [] : pastHistory();
 	const logs = new Map<string, LogLine[]>();
