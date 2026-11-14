@@ -5,7 +5,7 @@ Settings has **Add the upkeep command**, off until you turn it on. It writes a s
 From a checkout of this repo, `bun run cli` takes the same commands as `upkeep`.
 
 ```sh
-upkeep check                 # one line per app: OK, UPDATE, SKIP or BROKEN
+upkeep check                 # one line per app: OK, UPDATE, HELD, SKIP or BROKEN
 upkeep check --json          # the same as JSON, one app per line
 upkeep install fd zen        # install named apps
 upkeep install --all         # everything that is ready

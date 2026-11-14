@@ -165,7 +165,7 @@ Built and used daily on Linux Mint. Each of these was run as a normal user: the 
 The engine also runs without the window. Turn on **Add the upkeep command** in Settings and Upkeep puts `upkeep` in `~/.local/bin`:
 
 ```sh
-upkeep check              # one line per app: OK, UPDATE, SKIP or BROKEN
+upkeep check              # one line per app: OK, UPDATE, HELD, SKIP or BROKEN
 upkeep install fd zen     # install named apps, or --all, or --auto
 upkeep restore fd         # put back the newest restore point
 upkeep add sharkdp/fd     # a catalogue name, a repo, a link or a file
