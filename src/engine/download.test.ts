@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from "bun:te
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { download, verifyAsset } from "./download";
+import { download, statedSize, verifyAsset } from "./download";
 import type { FetchLike } from "./github";
 
 const PAYLOAD = new Uint8Array(200_000).map((_, i) => i % 251);
@@ -142,4 +142,24 @@ test("a download whose size nobody listed must be at least 1 MiB", () => {
 		"Download is 500000 bytes, too small to be a release.",
 	);
 	expect(() => verifyAsset({ bytes: 1024 * 1024, sha256: "ab" }, { size: 0, digest: null })).not.toThrow();
+});
+
+test("statedSize: the length a HEAD answer states, else undefined", async () => {
+	const answer = (res: Response | Error): FetchLike =>
+		(async (_url: string, init?: RequestInit) => {
+			expect(init?.method).toBe("HEAD");
+			if (res instanceof Error) throw res;
+			return res;
+		}) as FetchLike;
+	const len = (n: string) => new Response(null, { headers: { "content-length": n } });
+	expect(await statedSize("https://x.test/a", answer(len("328100344")))).toBe(328_100_344);
+	expect(await statedSize("https://x.test/a", answer(new Response(null)))).toBeUndefined();
+	expect(await statedSize("https://x.test/a", answer(len("0")))).toBeUndefined();
+	expect(
+		await statedSize(
+			"https://x.test/a",
+			answer(new Response(null, { status: 405, headers: { "content-length": "9" } })),
+		),
+	).toBeUndefined();
+	expect(await statedSize("https://x.test/a", answer(new Error("offline")))).toBeUndefined();
 });
