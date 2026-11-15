@@ -14,7 +14,8 @@ import { MESSAGES } from "../shared/messages";
 import type { AppSpec, RestorePoint } from "../shared/types";
 import { dropTree } from "./drop";
 import { isPackage, PACKAGE_TOOL, type PackageKind, packageInstall } from "./kinds/package";
-import type { Paths } from "./paths";
+import { expandHome, type Paths } from "./paths";
+import { stampInstalled } from "./store";
 import { asRoot, installAside, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
 
 export type BackupMeta = {
@@ -154,8 +155,21 @@ export function listBackups(paths: Paths, key: string): RestorePoint[] {
 	return points.toSorted((a, b) => b.at.localeCompare(a.at));
 }
 
-/** Installs each backed-up file back where it came from, with its old mode. */
+/** Puts a restore point back (each file where it came from, with its old mode), then records its version at dest. */
 export async function restoreBackup(
+	paths: Paths,
+	spec: Pick<AppSpec, "key" | "dest">,
+	version: string,
+	run: Run,
+): Promise<{ ok: boolean; detail?: string }> {
+	const r = await putBack(paths, spec, version, run);
+	// The file back at dest is the point's version: recorded, for a program that cannot name its own.
+	if (r.ok && spec.dest) stampInstalled(paths, spec.key, expandHome(spec.dest, paths.home), version);
+	return r;
+}
+
+/** Puts one restore point back: its command, its package, or its files one at a time. */
+async function putBack(
 	paths: Paths,
 	spec: Pick<AppSpec, "key">,
 	version: string,

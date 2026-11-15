@@ -1113,11 +1113,6 @@ msgstr "Aucun fichier de la dernière version de {0} ne fonctionne sur cette mac
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet."
-msgstr "{0} Les versions Linux sont des archives .tar.xz, .tar.zst, .tar.bz2 ou .7z, qu'Upkeep ne sait pas encore ouvrir."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "It installs {0}."
 msgstr "Installe {0}."
 
@@ -2643,6 +2638,7 @@ msgstr "{0} dans la liste suit déjà le même projet."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
 msgstr "{0} dans la liste s'installe déjà au même endroit : l'un écraserait l'autre."
+
 #: src/mainview/lib/engine-text.ts
 msgid "Only an installed Upkeep can uninstall itself."
 msgstr "Seul un Upkeep installé peut se désinstaller lui-même."
@@ -2679,3 +2675,13 @@ msgstr "Garder Upkeep"
 #: src/mainview/lib/copy.ts
 msgid "Uninstalling. Upkeep closes now."
 msgstr "Désinstallation. Upkeep se ferme maintenant."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} Its Linux builds are .7z archives, which Upkeep cannot open yet."
+msgstr "{0} Les versions Linux sont des archives .7z, qu'Upkeep ne sait pas encore ouvrir."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it."
+msgstr "{0} n'indique pas sa version, et cette copie n'a pas été installée par Upkeep. Installer la dernière permet à Upkeep de la suivre."

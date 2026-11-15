@@ -14,13 +14,13 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, Stage } from "../../shared/types";
-import { listBackups, takeBackup } from "../backup";
+import { listBackups, restoreBackup, takeBackup } from "../backup";
 import type { FetchLike } from "../github";
 import type { Run } from "../run";
 import { readInflight } from "../store";
 import { ok, realRun, recordingRun, script, tempHome } from "../testkit";
 import type { KindCtx, Target } from "./context";
-import { checkRelease, installRelease } from "./release";
+import { checkRelease, installRelease, probeInstalled } from "./release";
 
 let t: ReturnType<typeof tempHome>;
 let proc = "";
@@ -688,4 +688,81 @@ test("install: a deb dpkg refuses whose point cannot go back either says so, wit
 		detail: "dpkg could not install rustdesk-1.4.3-x86_64.deb, and putting 1.4.2 back failed. See the log.",
 	});
 	oldRelease = null;
+});
+
+/** An AppImage that never names its version: running it at all leaves a mark, so a test can tell it was never run. */
+const quiet = (): AppSpec => ({ ...zen(), probe: false });
+const ranMark = () => join(t.dir, "ran");
+const quietBody = (version: string) => bash(`touch "${ranMark()}"; echo "starting zen ${version} window"`);
+
+test("probe false: a copy Upkeep did not install is offered the latest, never run, and recorded once installed", async () => {
+	const dest = join(t.paths.home, ".local/bin/zen-browser.AppImage");
+	mkdirSync(join(dest, ".."), { recursive: true });
+	writeFileSync(dest, quietBody("1.0.0"));
+	chmodSync(dest, 0o755);
+	publish("1.1.0", { "zen.linux-x86_64.AppImage": quietBody("1.1.0") });
+	const c = ctx();
+	const checked = await checkRelease(quiet(), c);
+	expect(checked).toMatchObject({
+		installed: null,
+		latest: "1.1.0",
+		status: "ready",
+		detail:
+			"Zen Browser does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it.",
+	});
+	if (!checked?.target) throw new Error("no target");
+	expect(checked.target.from).toBeNull();
+	expect(await installRelease(quiet(), checked.target, c)).toMatchObject({ result: "done", installed: "1.1.0" });
+	expect(await checkRelease(quiet(), c)).toMatchObject({ installed: "1.1.0", status: "fresh" });
+	expect(existsSync(ranMark())).toBe(false);
+	// The next release is an update from the recorded version, with a restore point under it.
+	publish("1.2.0", { "zen.linux-x86_64.AppImage": quietBody("1.2.0") });
+	const next = await checkAndTarget(quiet(), c);
+	expect(next).toMatchObject({ from: "1.1.0", version: "1.2.0" });
+	expect(await installRelease(quiet(), next, c)).toMatchObject({ result: "done", installed: "1.2.0" });
+	expect(listBackups(t.paths, "zen").map((p) => p.version)).toEqual(["1.1.0"]);
+	// A restore records the point's version.
+	expect(await restoreBackup(t.paths, quiet(), "1.1.0", c.run)).toEqual({ ok: true });
+	expect(await probeInstalled(quiet(), c)).toEqual({ version: "1.1.0" });
+	// A file put there some other way is no longer vouched for.
+	rmSync(dest);
+	writeFileSync(dest, quietBody("1.3.0"));
+	expect(await checkRelease(quiet(), c)).toMatchObject({ installed: null, status: "ready" });
+	expect(existsSync(ranMark())).toBe(false);
+	rmSync(dest);
+	expect(await checkRelease(quiet(), c)).toBeNull();
+});
+
+test("probe false on an archive: the dest bin is never run and reads back as the version installed", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	script(join(bin, "uv"), `touch "${ranMark()}"`);
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ "d/uv": `touch "${ranMark()}"` }) });
+	const spec = { ...uv(["d/uv"]), probe: false };
+	const c = ctx();
+	expect(await checkRelease(spec, c)).toMatchObject({ status: "ready", installed: null });
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "done",
+		installed: "0.9.2",
+	});
+	expect(await checkRelease(spec, c)).toMatchObject({ installed: "0.9.2", status: "fresh" });
+	expect(existsSync(ranMark())).toBe(false);
+});
+
+test("install: a .tar.xz archive opens like a .tar.gz, and a * in a bin stands for the version in its name", async () => {
+	const src = join(t.dir, "xzsrc");
+	script(join(src, "bin/uv-0.9.2-linux-amd64"), 'echo "uv 0.9.2"');
+	const out = join(t.dir, "out.tar.xz");
+	const r = await realRun(t.paths)(["tar", "cJf", out, "-C", src, "."]);
+	if (r.code !== 0) throw new Error(r.stderr);
+	script(join(t.paths.home, ".local/bin/uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-0.9.2-linux-amd64.tar.xz": new Uint8Array(readFileSync(out)) });
+	const spec = { ...uv(["uv-*-linux-amd64"]), asset: "linux-amd64\\.tar\\.xz$" };
+	const c = ctx();
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "done",
+		installed: "0.9.2",
+	});
+	expect(readFileSync(join(t.paths.home, ".local/bin/uv"), "utf8")).toContain("uv 0.9.2");
+	expect(existsSync(join(t.paths.home, ".local/bin/uv-0.9.2-linux-amd64"))).toBe(false);
+	expect(readdirSync(join(t.paths.data, "backups/uv/0.9.1")).toSorted()).toEqual(["meta.json", "uv"]);
 });

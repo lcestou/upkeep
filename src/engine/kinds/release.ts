@@ -21,7 +21,7 @@ import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
 import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { isRunning } from "../running";
-import { clearInflight, writeInflight } from "../store";
+import { clearInflight, stampedVersion, stampInstalled, writeInflight } from "../store";
 import { isNewer } from "../version";
 import { isPackage, PACKAGE_TOOL, packageInstall } from "./package";
 import {
@@ -53,14 +53,38 @@ export function destOf(spec: AppSpec, ctx: Pick<KindCtx, "paths">): string {
 /** Every file an install of this app writes: the dest itself, or each of an archive's bins beside it. */
 export function installedFiles(spec: AppSpec, dest: string): string[] {
 	if (spec.kind !== "archive") return [dest];
-	return (spec.bins ?? []).map((b) => join(dirname(dest), basename(b)));
+	return (spec.bins ?? []).map((b) => join(dirname(dest), binName(b, dest)));
 }
 
-/** Reads the installed version: a command app by its check argv, else from the AppImage metadata when the table names one, else by running the dest with its version args. */
+/** The name a bin installs under: its base name, or dest's for one with a * in it (ipatool-*-linux-amd64 is ipatool). */
+function binName(bin: string, dest: string): string {
+	return basename(bin).includes("*") ? basename(dest) : basename(bin);
+}
+
+/** Whether an archive file name is the bin's base name, where a * stands for any run of characters (a version). */
+function binMatcher(bin: string): (name: string) => boolean {
+	const base = basename(bin);
+	if (!base.includes("*")) return (n) => n === base;
+	const parts = base.split("*").map((p) => p.replace(/[.+?^${}()|[\]\\]/g, "\\$&"));
+	const re = new RegExp(`^${parts.join(".*")}$`);
+	return (n) => re.test(n);
+}
+
+/**
+ * Reads the installed version: a command app by its check argv, else from the AppImage metadata when the table names
+ * one, else by running the dest with its version args. A table with probe false never runs it: its version is the one
+ * Upkeep recorded at install, while the file is still the one it wrote, and unknown otherwise. Only that table: for
+ * one that asks, a program that exits with no version may be a broken install, never one to vouch for.
+ */
 export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult> {
 	// A command app has no dest: its own check argv is what reads its version.
 	if (spec.kind === "command") return probeCommand(spec.check ?? [], { run: ctx.run });
 	const dest = destOf(spec, ctx);
+	if (spec.probe === false) {
+		if (!existsSync(dest)) return Promise.resolve({ state: "absent" });
+		const stamped = stampedVersion(ctx.paths, spec.key, dest);
+		return Promise.resolve(stamped ? { version: stamped } : { state: "unknown" });
+	}
 	if (spec.meta_path) return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run });
 	return probeVersion(dest, spec.version_args ?? ["--version"], { run: ctx.run });
 }
@@ -100,6 +124,8 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		return null;
 	}
 	const installed = "version" in probe ? probe.version : null;
+	// A copy Upkeep did not put there, of an app it never asks: the latest is offered, and installing it records the version.
+	const untracked = spec.probe === false && "state" in probe && probe.state === "unknown";
 	const pattern = assetFor(spec, ctx.arch);
 	// A table written on the other architecture (an apps.toml brought from another machine) names no file for this one.
 	if (needAsset && pattern === undefined)
@@ -121,7 +147,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			...base,
 		};
 	const latest = release.version;
-	if (!("version" in probe) && !missing) {
+	if (!("version" in probe) && !missing && !untracked) {
 		if (!needAsset && probe.state === "broken")
 			return {
 				installed: latest,
@@ -133,7 +159,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			};
 		return { installed, latest, status: "problem", detail: probeProblem(spec.name, spec.dest ?? dest, probe), ...base };
 	}
-	const status = missing || isNewer(installed, latest) ? "ready" : "fresh";
+	const status = missing || untracked || isNewer(installed, latest) ? "ready" : "fresh";
 	let target: Target = { from: installed, version: latest, tag: release.tag };
 	let size: number | undefined;
 	if (needAsset) {
@@ -152,16 +178,17 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
 		size = pick.asset.size || (status === "ready" ? await statedSize(pick.asset.url, ctx.fetch) : undefined);
 	}
-	return { installed, latest, status, size, target, ...base };
+	const detail = untracked ? { detail: MESSAGES.versionNotRecorded(spec.name) } : {};
+	return { installed, latest, status, size, target, ...detail, ...base };
 }
 
-/** Depth-first search under dir for a file called name; null when none, and the first match in directory order wins. */
-function findFile(dir: string, name: string): string | null {
+/** Depth-first search under dir for a file whose name matches; null when none, and the first match in directory order wins. */
+function findFile(dir: string, matches: (name: string) => boolean): string | null {
 	for (const e of readdirSync(dir, { withFileTypes: true })) {
 		const p = join(dir, e.name);
-		if (e.isFile() && e.name === name) return p;
+		if (e.isFile() && matches(e.name)) return p;
 		if (e.isDirectory()) {
-			const found = findFile(p, name);
+			const found = findFile(p, matches);
 			if (found) return found;
 		}
 	}
@@ -260,17 +287,18 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			mkdirSync(extract, { recursive: true });
 			const unpack = asset.name.endsWith(".zip")
 				? ["unzip", "-q", dl, "-d", extract]
-				: ["tar", "xzf", dl, "-C", extract];
+				: // GNU tar tells gzip, xz, bzip2 and zstd apart on its own when it reads a file.
+					["tar", "xf", dl, "-C", extract];
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
 			if (x.code !== 0) throw new StepError(MESSAGES.couldNotExtract(asset.name));
 			// A bin this run added has no restore point, so a failure takes it out again.
 			const added: string[] = [];
 			for (const bin of bins) {
-				const name = basename(bin);
+				const name = binName(bin, dest);
 				const to = join(dirname(dest), name);
 				const direct = join(extract, bin);
 				// A top folder can share the program's name (btop/bin/btop): only a file at the direct path is the program.
-				const src = existsSync(direct) && statSync(direct).isFile() ? direct : findFile(extract, name);
+				const src = existsSync(direct) && statSync(direct).isFile() ? direct : findFile(extract, binMatcher(bin));
 				let failed = src === null;
 				let sudoFail = false;
 				if (src) {
@@ -327,6 +355,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		}
 
 		clock.start("verify");
+		// Before the probe, so a table with probe false reads back the version just installed.
+		stampInstalled(ctx.paths, spec.key, dest, target.version);
 		const after = await probeInstalled(spec, ctx);
 		if ("version" in after && after.version === target.from && target.from !== target.version)
 			return finish({

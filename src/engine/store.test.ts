@@ -126,6 +126,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		restart: {},
 		selfFailed: "",
 		selfNotified: "",
+		installed: {},
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";

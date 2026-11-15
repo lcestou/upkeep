@@ -18,6 +18,8 @@ const FIELDS = new Set<keyof AppSpec>([
 	"bins",
 	"version_args",
 	"meta_path",
+	// probe = false only takes a run away: the installed program is never started to ask its version.
+	"probe",
 	"process",
 	"note",
 	"sudo",

@@ -28,7 +28,32 @@ export type State = {
 	selfFailed: string;
 	/** The hash of the last version of Upkeep the person was told about, so each is announced once. "" for none. */
 	selfNotified: string;
+	/** What Upkeep last wrote at each app's dest, by key: read back when the program itself names no version. */
+	installed: Record<string, Stamp>;
 };
+
+/**
+ * A version Upkeep installed, with the size, change time and inode its dest had right after: while all three still
+ * match, the file is the one Upkeep wrote. An updater that rewrites the file in place with the same size and an old
+ * change time would fool it; one that writes a new file never does.
+ */
+export type Stamp = { version: string; size: number; mtimeMs: number; ino: number };
+
+/** The entries that hold a string version and three numbers; anything else a hand edit left is dropped. */
+function stampsOf(v: unknown): Record<string, Stamp> {
+	const out: Record<string, Stamp> = {};
+	for (const [key, s] of Object.entries(obj<unknown>(v))) {
+		const r = obj<unknown>(s);
+		if (
+			typeof r.version === "string" &&
+			typeof r.size === "number" &&
+			typeof r.mtimeMs === "number" &&
+			typeof r.ino === "number"
+		)
+			out[key] = { version: r.version, size: r.size, mtimeMs: r.mtimeMs, ino: r.ino };
+	}
+	return out;
+}
 
 export const DEFAULT_SETTINGS: Settings = {
 	keepBackups: 1,
@@ -106,6 +131,7 @@ export function loadState(paths: Paths): State {
 		restart: obj<string>(raw.restart),
 		selfFailed: typeof raw.selfFailed === "string" ? raw.selfFailed : "",
 		selfNotified: typeof raw.selfNotified === "string" ? raw.selfNotified : "",
+		installed: stampsOf(raw.installed),
 	};
 }
 
@@ -193,6 +219,32 @@ export function updateState(paths: Paths, change: (s: State) => void): State {
 		writeAtomic(stateFile(paths), JSON.stringify(s, null, "\t"));
 		return s;
 	});
+}
+
+/** Records that file holds version, as Upkeep just wrote it. A file that is not there drops the record instead. */
+export function stampInstalled(paths: Paths, key: string, file: string, version: string): void {
+	let st: { size: number; mtimeMs: number; ino: number } | null = null;
+	try {
+		st = statSync(file);
+	} catch {
+		// nothing there to vouch for
+	}
+	updateState(paths, (s) => {
+		if (st) s.installed[key] = { version, size: st.size, mtimeMs: st.mtimeMs, ino: st.ino };
+		else delete s.installed[key];
+	});
+}
+
+/** The version recorded for key while file is still the one Upkeep wrote there, else null. A symlink is followed. */
+export function stampedVersion(paths: Paths, key: string, file: string): string | null {
+	const s = loadState(paths).installed[key];
+	if (!s) return null;
+	try {
+		const st = statSync(file);
+		return st.size === s.size && st.mtimeMs === s.mtimeMs && st.ino === s.ino ? s.version : null;
+	} catch {
+		return null;
+	}
 }
 
 /** Field 22 of /proc/<pid>/stat, the start time in clock ticks, or null when the pid is gone. */

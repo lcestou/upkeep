@@ -35,8 +35,7 @@ export const MESSAGES = {
 	/** discover.ts. {0} repo owner/name */
 	noAssetForMachine: (v0: Value) => `No asset of ${v0}'s latest release runs on this machine.`,
 	/** discover.ts. {0} noAssetForMachine sentence */
-	unopenedArchives: (v0: Value) =>
-		`${v0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet.`,
+	unopenedArchives: (v0: Value) => `${v0} Its Linux builds are .7z archives, which Upkeep cannot open yet.`,
 	/** discover.ts. {0} program names joined with ', ' (358) or the single bin name (370) */
 	itInstalls: (v0: Value) => `It installs ${v0}.`,
 	/** discover.ts. {0} count of programs found (always more than 6); {1} MAX_BINS (6) */
@@ -255,6 +254,9 @@ export const MESSAGES = {
 	latestTagNotTracked: (v0: Value) => `The latest tag ${v0} is not a tracked version.`,
 	/** kinds/release.ts */
 	rebuildFixes: () => `Will not start. A rebuild against the current libraries fixes it.`,
+	/** kinds/release.ts. {0} app name */
+	versionNotRecorded: (v0: Value) =>
+		`${v0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it.`,
 	/** kinds/release.ts, discover.ts. {0} app name; {1} the machine's architecture, x86_64 or aarch64 */
 	noAssetForArch: (v0: Value, v1: Value) => `The table for ${v0} names no release file for ${v1} machines.`,
 	/** kinds/release.ts. {0} asset pattern (regex) */

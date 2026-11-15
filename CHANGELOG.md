@@ -4,6 +4,9 @@
 
 First version.
 
+- Apps whose Linux build is a `.tar.xz`, `.tar.bz2` or `.tar.zst` archive (fish, kitty and many command-line tools) can be added and updated like `.tar.gz` ones. Source tarballs and Arch Linux packages in a release are no longer offered as builds.
+- An app that opens its window when asked for its version, or never names one (many Tauri apps, a binary built without its version stamped in), can be kept up to date: its table says `probe = false`, and Upkeep reads the version it installed instead of starting the program. A copy installed some other way is offered the latest, since Upkeep cannot tell which version it is.
+- An archive whose program carries the version in its file name (`ipatool-2.1.4-linux-amd64`) installs it under its plain name: the table's `bins` entry takes a `*` for the version.
 - An AppImage's version is read from its metainfo whatever order the `<release>` element's attributes come in; one that wrote `date` before `version` was read at an older release.
 - A release file that spells the architecture `x86.64` (DB Browser for SQLite does) is taken as the x86_64 build; it was dropped as a 32-bit one.
 - The catalogue Add app looks in first has 35 more apps: Obsidian, LocalSend, Heroic Games Launcher, Joplin, Logseq, Vesktop, Bruno, Beekeeper Studio, yt-dlp, fastfetch, Tabby, MarkText, Motrix, dive, Spotube, SiYuan, Sniffnet, ShellCheck, AppFlowy, Lapce, Micro, gitleaks, Cool Retro Term, superfile, gitui, vhs, fx, hurl, asciinema, navi, ast-grep, gping, Espanso, Zettlr and DB Browser for SQLite. Each was installed for real and read back at its release's version, and an app whose version can only be read by opening its window reads it from the files inside the AppImage instead.

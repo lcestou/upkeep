@@ -27,6 +27,7 @@ import {
 	rootNames,
 } from "./github";
 import { isPackage, PACKAGE_TOOL } from "./kinds/package";
+import { installedFiles } from "./kinds/release";
 import { listTools, toolSpec, toolKey } from "./managers";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
@@ -130,9 +131,13 @@ const ARM = /aarch64|arm64/i;
 // A package built for every architecture (a script, Python): it names none and runs on both.
 const ANY_ARCH = /[_.](all|noarch)\.(deb|rpm)$/i;
 const SIDE_FILE = /\.(sha256|sha512|sig|asc|zsync|sbom|json|txt|pem|minisig)$/i;
-// A source rpm installs only its sources into rpmbuild, never the program.
-const OTHER_PACKAGE = /\.(apk|pacman|flatpak|snap|src\.rpm)$/i;
-const UNOPENED = /\.(tar\.xz|tar\.zst|tar\.bz2|7z)$/i;
+// A source rpm installs only its sources into rpmbuild, never the program. An Arch package is a tarball for pacman.
+const OTHER_PACKAGE = /\.(apk|pacman|flatpak|snap|src\.rpm|pkg\.tar\.(zst|xz|gz))$/i;
+// GNU tar opens gzip, xz, bzip2 and zstd archives itself; a 7z needs a tool most systems lack.
+const UNOPENED = /\.7z$/i;
+const TARBALL = /\.(tar\.gz|tgz|tar\.xz|txz|tar\.bz2|tbz2?|tar\.zst)$/i;
+// A source tarball names no architecture, like most x86_64 builds, but holds no program (zen.source.tar.zst).
+const SOURCE = /(^|[-_.])(source|sources|src|orig)[-_.]/i;
 const TRIPLE = /x86_64-unknown-linux-(gnu|musl)$/i;
 
 export type Candidate = { asset: Asset; kind: AppKind };
@@ -143,7 +148,7 @@ export function kindOf(name: string): AppKind | "unopened" | null {
 	if (n.endsWith(".appimage")) return "appimage";
 	if (n.endsWith(".deb")) return "deb";
 	if (n.endsWith(".rpm")) return "rpm";
-	if (n.endsWith(".tar.gz") || n.endsWith(".tgz") || n.endsWith(".zip")) return "archive";
+	if (TARBALL.test(n) || n.endsWith(".zip")) return "archive";
 	if (UNOPENED.test(n)) return "unopened";
 	// A trailing ".3" is a version, not an extension.
 	if (!/\.[a-z][a-z0-9]*$/.test(n) || n.endsWith("-gh") || TRIPLE.test(n)) return "file";
@@ -179,6 +184,7 @@ export function machineAssets(assets: Asset[], prefer: AppKind[] = [], arch: Arc
 	for (const asset of assets) {
 		const name = asset.name;
 		if (OTHER_SYSTEM.test(name) || !forArch(name, arch) || SIDE_FILE.test(name) || OTHER_PACKAGE.test(name)) continue;
+		if (SOURCE.test(name)) continue;
 		const kind = kindOf(name);
 		if (kind === "unopened") unopened = true;
 		else if (kind) candidates.push({ asset, kind });
@@ -350,6 +356,8 @@ export type RepoOpts = {
 	found?: string;
 	/** Run the version probe on dest. Never during a scan. */
 	probe?: boolean;
+	/** false: dest is never run for its version, though the archive may still be opened (a table with probe = false). */
+	askVersion?: boolean;
 	/** The forge of a repo on a self-hosted host, as its table or the link says. */
 	forge?: ForgeKind;
 };
@@ -486,7 +494,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	if (widen) why.push(MESSAGES.patternNeedsWidening());
 	let installed: string | null = null;
 	// The system's copy is not the one Upkeep keeps, so its version is not "installed".
-	if (exists && opts.probe !== false && !systemCopy) {
+	if (exists && opts.probe !== false && opts.askVersion !== false && !systemCopy) {
 		const p = await probeVersion(dest, opts.versionArgs ?? ["--version"], { run: ctx.run });
 		if ("version" in p) installed = p.version;
 		else why.push(MESSAGES.couldNotReadVersion());
@@ -600,7 +608,7 @@ export async function programsIn(
 	try {
 		verifyAsset(await download(asset.url, file, { fetch: ctx.fetch }), asset);
 		const zip = asset.name.toLowerCase().endsWith(".zip");
-		const list = await ctx.run(zip ? ["unzip", "-Z1", file] : ["tar", "tzf", file], { timeoutMs: 60_000 });
+		const list = await ctx.run(zip ? ["unzip", "-Z1", file] : ["tar", "tf", file], { timeoutMs: 60_000 });
 		if (list.code !== 0) return { problem: MESSAGES.noProgramInArchive(asset.name) };
 		const listed = new Set(
 			list.stdout
@@ -609,7 +617,7 @@ export async function programsIn(
 				.filter((l) => l && !l.endsWith("/")),
 		);
 		dir = mkdtempSync(join(dl, `discover-${key}-x-`));
-		const x = await ctx.run(zip ? ["unzip", "-q", file, "-d", dir] : ["tar", "xzf", file, "-C", dir], {
+		const x = await ctx.run(zip ? ["unzip", "-q", file, "-d", dir] : ["tar", "xf", file, "-C", dir], {
 			timeoutMs: 300_000,
 		});
 		if (x.code !== 0) return { problem: MESSAGES.noProgramInArchive(asset.name) };
@@ -881,6 +889,7 @@ async function fromCatalogue(
 	const r = await fromRepo(entry.repo, ctx, {
 		...(asset ? { asset } : { pattern }),
 		versionArgs: entry.version_args,
+		askVersion: entry.probe !== false,
 		forge: entry.forge,
 		probe,
 	});
@@ -959,7 +968,7 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 		if (!s.dest) continue;
 		const dest = expandHome(s.dest, home);
 		listed.add(dest);
-		for (const b of s.bins ?? []) listed.add(join(dest.slice(0, dest.lastIndexOf("/")), b.split("/").at(-1) ?? b));
+		for (const f of installedFiles(s, dest)) listed.add(f);
 	}
 	const files: string[] = [];
 	for (const dir of [".local/bin", "Applications", "bin"]) {
@@ -988,7 +997,7 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 	for (const e of ctx.catalogue ?? []) {
 		const dest = e.dest ? expandHome(e.dest, home) : "";
 		if (!found.has(dest)) continue;
-		for (const b of e.bins ?? []) bundled.add(join(dest.slice(0, dest.lastIndexOf("/")), b.split("/").at(-1) ?? b));
+		for (const f of installedFiles(e, dest)) bundled.add(f);
 		bundled.delete(dest);
 	}
 	files.splice(0, files.length, ...files.filter((f) => !bundled.has(f)));

@@ -305,9 +305,10 @@ test("the asset filter keeps what runs on Linux x86_64, best first, on three rea
 		"fd_10.5.2_amd64.deb",
 		"fd-musl_10.5.2_amd64.deb",
 	]);
+	// The .tar.xz build opens now; the source tarball beside it is never a candidate.
 	const zen = machineAssets(names(zenRelease));
-	expect(zen.candidates.map((c) => c.asset.name)).toEqual(["zen-x86_64.AppImage"]);
-	expect(zen.unopened).toBe(true);
+	expect(zen.candidates.map((c) => c.asset.name)).toEqual(["zen-x86_64.AppImage", "zen.linux-x86_64.tar.xz"]);
+	expect(zen.unopened).toBe(false);
 	expect(machineAssets(names(rustdeskRelease)).candidates.map((c) => [c.asset.name, c.kind])).toEqual([
 		["rustdesk-1.5.1-x86_64.AppImage", "appimage"],
 		["rustdesk-1.5.1-unsigned.tar.gz", "archive"],
@@ -347,7 +348,10 @@ test("kinds: bare names, -gh and the machine triple are files; archives the inst
 	expect(kindOf("tool-1.2.3")).toBe("file");
 	expect(kindOf("gh-x86_64-unknown-linux-gnu")).toBe("file");
 	expect(kindOf("dsh-gh")).toBe("file");
-	expect(kindOf("zen.linux-x86_64.tar.xz")).toBe("unopened");
+	expect(kindOf("zen.linux-x86_64.tar.xz")).toBe("archive");
+	expect(kindOf("fish-4.2.1-linux-x86_64.tar.zst")).toBe("archive");
+	expect(kindOf("t.tar.bz2")).toBe("archive");
+	expect(kindOf("t-x86_64.7z")).toBe("unopened");
 	expect(kindOf("a.tgz")).toBe("archive");
 	expect(kindOf("notes.html")).toBeNull();
 });
@@ -463,9 +467,9 @@ test("from a repo: no release, a tag that is not a version, nothing for this mac
 	);
 	releases["o/mac"] = { tag_name: "v1.0", assets: [{ name: "mac-1.0.dmg", size: 1 }] };
 	expect((await suggest("o/mac", ctx().c)).problem).toBe("No asset of o/mac's latest release runs on this machine.");
-	releases["o/xz"] = { tag_name: "v1.0", assets: [{ name: "xz-1.0-x86_64.tar.xz", size: 1 }] };
-	expect((await suggest("o/xz", ctx().c)).problem).toBe(
-		"No asset of o/xz's latest release runs on this machine. Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet.",
+	releases["o/sz"] = { tag_name: "v1.0", assets: [{ name: "sz-1.0-x86_64.7z", size: 1 }] };
+	expect((await suggest("o/sz", ctx().c)).problem).toBe(
+		"No asset of o/sz's latest release runs on this machine. Its Linux builds are .7z archives, which Upkeep cannot open yet.",
 	);
 	const taken = await suggest("sharkdp/fd", ctx([{ key: "fd", name: "fd", kind: "archive" }]).c);
 	expect(taken.suggestions[0]?.problem).toBe("fd is already in the list.");
@@ -1105,10 +1109,10 @@ test("a catalogue table: no matching release file is a problem, a picked file ke
 	// The table names a musl build this release does not ship: no other file stands in for it.
 	expect((await suggest("pick", c)).problem).toBe("No release asset matches musl\\.tar\\.gz$.");
 	// The table names a file the release has but this machine cannot take: that is what it says.
-	const xz = { ...entry, asset: "\\.tar\\.xz$" };
-	releases["o/pick"]?.assets.push({ name: "pick-1.2.0-x86_64-linux.tar.xz", size: 1 });
-	expect((await suggest("pick", { ...ctx().c, catalogue: [xz] })).problem).toBe(
-		"No asset of o/pick's latest release runs on this machine. Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet.",
+	const sz = { ...entry, asset: "\\.7z$" };
+	releases["o/pick"]?.assets.push({ name: "pick-1.2.0-x86_64-linux.7z", size: 1 });
+	expect((await suggest("pick", { ...ctx().c, catalogue: [sz] })).problem).toBe(
+		"No asset of o/pick's latest release runs on this machine. Its Linux builds are .7z archives, which Upkeep cannot open yet.",
 	);
 	releases["o/pick"]?.assets.pop();
 	// The person picks the archive in the window: the table keeps a pattern that still matches next release.
@@ -1121,6 +1125,11 @@ test("a catalogue table: no matching release file is a problem, a picked file ke
 	const rec = ctx();
 	await suggest("pick", { ...rec.c, catalogue: [{ ...entry, asset: "linux\\.tar\\.gz$" }] });
 	expect(rec.calls.some((x) => x.argv[0] === bin && x.argv[1] === "version" && x.argv[2] === "-s")).toBe(true);
+	// A table with probe = false never runs the installed program, and its version stays unread.
+	const quiet = ctx();
+	const s = await suggest("pick", { ...quiet.c, catalogue: [{ ...entry, asset: "linux\\.tar\\.gz$", probe: false }] });
+	expect(quiet.calls.some((x) => x.argv[0] === bin)).toBe(false);
+	expect(s.suggestions[0]).toMatchObject({ installed: null, spec: { probe: false } });
 });
 
 test("a crate cargo installed into a scanned folder is offered once, as cargo's table; an npm name does not hide a program", async () => {
@@ -1206,8 +1215,8 @@ test("on aarch64 the asset filter keeps only builds that name aarch64 or arm64, 
 	]);
 	expect(onArm(names(lazygitRelease).map((a) => a.name))).toEqual(["lazygit_0.66.3_linux_arm64.tar.gz"]);
 	const zen = machineAssets(names(zenRelease), [], "aarch64");
-	expect(zen.candidates.map((c) => c.asset.name)).toEqual(["zen-aarch64.AppImage"]);
-	expect(zen.unopened).toBe(true);
+	expect(zen.candidates.map((c) => c.asset.name)).toEqual(["zen-aarch64.AppImage", "zen.linux-aarch64.tar.xz"]);
+	expect(zen.unopened).toBe(false);
 	// The unsigned archive names no architecture: on an arm64 machine that is an x86_64 build, so it is left out.
 	expect(machineAssets(names(rustdeskRelease), [], "aarch64").candidates.map((c) => [c.asset.name, c.kind])).toEqual([
 		["rustdesk-1.5.1-aarch64.AppImage", "appimage"],
