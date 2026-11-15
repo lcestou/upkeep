@@ -937,6 +937,26 @@
 			"gping.1"
 		]
 	},
+	"gws": {
+		"repo": "googleworkspace/cli",
+		"tag": "v0.22.5",
+		"assets": [
+			"google-workspace-cli-aarch64-apple-darwin.tar.gz",
+			"google-workspace-cli-aarch64-apple-darwin.tar.gz.sha256",
+			"google-workspace-cli-aarch64-unknown-linux-gnu.tar.gz",
+			"google-workspace-cli-aarch64-unknown-linux-gnu.tar.gz.sha256",
+			"google-workspace-cli-aarch64-unknown-linux-musl.tar.gz",
+			"google-workspace-cli-aarch64-unknown-linux-musl.tar.gz.sha256",
+			"google-workspace-cli-x86_64-apple-darwin.tar.gz",
+			"google-workspace-cli-x86_64-apple-darwin.tar.gz.sha256",
+			"google-workspace-cli-x86_64-pc-windows-msvc.zip",
+			"google-workspace-cli-x86_64-pc-windows-msvc.zip.sha256",
+			"google-workspace-cli-x86_64-unknown-linux-gnu.tar.gz",
+			"google-workspace-cli-x86_64-unknown-linux-gnu.tar.gz.sha256",
+			"google-workspace-cli-x86_64-unknown-linux-musl.tar.gz",
+			"google-workspace-cli-x86_64-unknown-linux-musl.tar.gz.sha256"
+		]
+	},
 	"helix": {
 		"repo": "helix-editor/helix",
 		"tag": "25.07.1",
