@@ -201,10 +201,6 @@ Found a bug, or an app Upkeep reads wrong? [Open an issue](../../issues) and inc
 
 Upkeep is built with AI assistance, and contributions from AI coding agents are welcome.
 
-## Thanks
-
-The catalogue's list of apps worth keeping up to date was gathered with help from two projects that track the same kind of software: [aqua's registry](https://github.com/aquaproj/aqua-registry) for command-line tools and [AppImageHub](https://github.com/AppImage/appimage.github.io) for AppImages. Upkeep took only which projects exist and how popular they are; every table is its own, written from each app's own releases. [AM](https://github.com/ivan-hc/AM) and aqua showed the way to keep an app that never names its own version: remember the one that was installed.
-
 ## License
 
 Upkeep is free software under the GNU General Public License, version 3 or any later version. See [LICENSE](LICENSE). Anyone may use, change and share it; a changed copy that is given to others has to come with its source under the same license.
