@@ -1504,6 +1504,27 @@
 			"pastel_0.12.0_i686.deb"
 		]
 	},
+	"recordly": {
+		"repo": "webadderallorg/Recordly",
+		"tag": "v1.4.0",
+		"assets": [
+			"latest-linux.yml",
+			"latest-mac.yml",
+			"latest.yml",
+			"Recordly-arm64.dmg",
+			"Recordly-arm64.dmg.blockmap",
+			"Recordly-arm64.zip",
+			"Recordly-arm64.zip.blockmap",
+			"Recordly-linux-x64.AppImage",
+			"Recordly-windows-x64.exe",
+			"Recordly-windows-x64.exe.blockmap",
+			"Recordly-x64.dmg",
+			"Recordly-x64.dmg.blockmap",
+			"Recordly-x64.zip",
+			"Recordly-x64.zip.blockmap",
+			"SHA256SUMS.txt"
+		]
+	},
 	"ripgrep": {
 		"repo": "BurntSushi/ripgrep",
 		"tag": "15.2.0",
