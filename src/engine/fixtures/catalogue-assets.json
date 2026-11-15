@@ -760,6 +760,41 @@
 			"electerm-5.10.0-win7.tar.gz"
 		]
 	},
+	"escrcpy": {
+		"repo": "viarotel-org/escrcpy",
+		"tag": "v3.3.1",
+		"assets": [
+			"Escrcpy-3.3.1-linux-aarch64.flatpak",
+			"Escrcpy-3.3.1-linux-amd64.deb",
+			"Escrcpy-3.3.1-linux-arm64.AppImage",
+			"Escrcpy-3.3.1-linux-arm64.deb",
+			"Escrcpy-3.3.1-linux-x86_64.AppImage",
+			"Escrcpy-3.3.1-linux-x86_64.flatpak",
+			"Escrcpy-3.3.1-mac-arm64.dmg",
+			"Escrcpy-3.3.1-mac-arm64.dmg.blockmap",
+			"Escrcpy-3.3.1-mac-arm64.zip",
+			"Escrcpy-3.3.1-mac-arm64.zip.blockmap",
+			"Escrcpy-3.3.1-mac-x64.dmg",
+			"Escrcpy-3.3.1-mac-x64.dmg.blockmap",
+			"Escrcpy-3.3.1-mac-x64.zip",
+			"Escrcpy-3.3.1-mac-x64.zip.blockmap",
+			"Escrcpy-3.3.1-win-arm64.zip",
+			"Escrcpy-3.3.1-win-portable-arm64.exe",
+			"Escrcpy-3.3.1-win-portable-x64.exe",
+			"Escrcpy-3.3.1-win-portable.exe",
+			"Escrcpy-3.3.1-win-setup-arm64.exe",
+			"Escrcpy-3.3.1-win-setup-arm64.exe.blockmap",
+			"Escrcpy-3.3.1-win-setup-x64.exe",
+			"Escrcpy-3.3.1-win-setup-x64.exe.blockmap",
+			"Escrcpy-3.3.1-win-setup.exe",
+			"Escrcpy-3.3.1-win-setup.exe.blockmap",
+			"Escrcpy-3.3.1-win-x64.zip",
+			"latest-linux-arm64.yml",
+			"latest-linux.yml",
+			"latest-mac.yml",
+			"latest.yml"
+		]
+	},
 	"espanso": {
 		"repo": "espanso/espanso",
 		"tag": "v2.4.1",
