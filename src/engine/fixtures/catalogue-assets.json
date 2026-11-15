@@ -1912,6 +1912,34 @@
 			"siyuan-3.8.10.apk"
 		]
 	},
+	"skaffold": {
+		"repo": "GoogleContainerTools/skaffold",
+		"tag": "v2.25.0",
+		"assets": [
+			"skaffold-darwin-amd64",
+			"skaffold-darwin-amd64.sha256",
+			"skaffold-darwin-amd64.sha256.sig",
+			"skaffold-darwin-amd64.sig",
+			"skaffold-darwin-arm64",
+			"skaffold-darwin-arm64.sha256",
+			"skaffold-darwin-arm64.sha256.sig",
+			"skaffold-darwin-arm64.sig",
+			"skaffold-linux-amd64",
+			"skaffold-linux-amd64.sha256",
+			"skaffold-linux-amd64.sha256.sig",
+			"skaffold-linux-amd64.sig",
+			"skaffold-linux-arm64",
+			"skaffold-linux-arm64.sha256",
+			"skaffold-linux-arm64.sha256.sig",
+			"skaffold-linux-arm64.sig",
+			"skaffold-windows-amd64.exe",
+			"skaffold-windows-amd64.exe.sha256",
+			"skaffold-windows-amd64.exe.sha256.sig",
+			"skaffold-windows-amd64.exe.sig",
+			"VERSION",
+			"VERSION.sig"
+		]
+	},
 	"sniffnet": {
 		"repo": "GyulyVGC/sniffnet",
 		"tag": "v1.5.1",
