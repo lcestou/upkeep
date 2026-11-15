@@ -125,8 +125,9 @@ export function takeBackup(
 			const mode = (st.mode & 0o7777).toString(8);
 			if (st.isSymbolicLink()) meta.files.push({ name, dest: file, mode, link: readlinkSync(file) });
 			else if (st.isDirectory()) {
-				cpSync(file, join(tmp, name), { recursive: true, verbatimSymlinks: true });
-				meta.files.push({ name, dest: file, mode, dir: true });
+				// Its own name in the point: a folder app's folder and its program share a base name (kitty).
+				cpSync(file, join(tmp, `folder-${name}`), { recursive: true, verbatimSymlinks: true });
+				meta.files.push({ name: `folder-${name}`, dest: file, mode, dir: true });
 			} else {
 				copyFileSync(file, join(tmp, name));
 				meta.files.push({ name, dest: file, mode });
@@ -226,8 +227,13 @@ async function putBack(
 	return { ok: true };
 }
 
-/** Points link at target, by a new link renamed over it, so the name is never missing. */
+/** Points link at target, by a new link renamed over it, so the name is never missing. One already pointing there is left alone. */
 export function relink(target: string, link: string): void {
+	try {
+		if (lstatSync(link).isSymbolicLink() && readlinkSync(link) === target) return;
+	} catch {
+		// not there yet
+	}
 	const next = `${link}.upkeep-new`;
 	rmSync(next, { force: true });
 	symlinkSync(target, next);

@@ -834,7 +834,9 @@ test("a folder app unpacks whole into its folder, links its bins, updates with a
 		installed: "0.45.0",
 	});
 	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.45.0\n");
-	expect(readFileSync(join(t.paths.data, "backups/kitty/0.44.0/kitty/lib/version"), "utf8")).toBe("kitty 0.44.0\n");
+	expect(readFileSync(join(t.paths.data, "backups/kitty/0.44.0/folder-kitty/lib/version"), "utf8")).toBe(
+		"kitty 0.44.0\n",
+	);
 	expect(existsSync(`${folder}.upkeep-old`)).toBe(false);
 	// A release whose program cannot start without a lib/ it lacks goes back to the point, folder and all.
 	const broken = join(t.dir, "brokensrc");
@@ -881,4 +883,55 @@ test("a folder app never replaces a folder Upkeep did not make, and keeps nothin
 	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({ result: "done" });
 	expect(readFileSync(join(folder, ".upkeep"), "utf8")).toBe("kitty\n");
 	expect(existsSync(join(folder, "notes.txt"))).toBe(false);
+});
+
+test("a table that turns folder on keeps a point of the old program and the folder, though they share a name", async () => {
+	// Installed before as a bare program, with a folder Upkeep made earlier beside it.
+	const folder = join(t.paths.home, ".local/share/kitty");
+	mkdirSync(join(folder, "lib"), { recursive: true });
+	writeFileSync(join(folder, ".upkeep"), "kitty\n");
+	writeFileSync(join(folder, "lib/version"), "kitty 0.43.0\n");
+	script(join(t.paths.home, ".local/bin/kitty"), 'echo "kitty 0.43.0"');
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const c = ctx();
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({ result: "done" });
+	const point = join(t.paths.data, "backups/kitty/0.43.0");
+	expect(readdirSync(point).toSorted()).toEqual(
+		["folder-kitty", "kitten", "kitty", "meta.json"].filter((n) => existsSync(join(point, n))),
+	);
+	expect(readFileSync(join(point, "kitty"), "utf8")).toContain("kitty 0.43.0");
+	expect(readFileSync(join(point, "folder-kitty/lib/version"), "utf8")).toBe("kitty 0.43.0\n");
+	// Putting it back gives the bare program and the old folder again.
+	expect(await restoreBackup(t.paths, kitty(), "0.43.0", c.run)).toEqual({ ok: true });
+	expect(lstatSync(join(t.paths.home, ".local/bin/kitty")).isSymbolicLink()).toBe(false);
+	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.43.0\n");
+});
+
+test("a folder app finds a program named with its version through a *, and links it under its plain name", async () => {
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const spec = { ...kitty(), bins: ["bin/kit*"] };
+	const c = ctx();
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({ result: "done" });
+	expect(lstatSync(join(t.paths.home, ".local/bin/kitty")).isSymbolicLink()).toBe(true);
+});
+
+test("a folder app whose link cannot be made after the swap is put back", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const c = ctx();
+	await installRelease(kitty(), await checkAndTarget(kitty(), c), c);
+	publish("0.45.0", { "kitty-0.45.0-x86_64.tar.gz": await kittyTarball("0.45.0") });
+	const target = await checkAndTarget(kitty(), c);
+	// The kitten link is gone and the bin directory cannot be written: kitty's link is already right, kitten's fails.
+	rmSync(join(bin, "kitten"));
+	chmodSync(bin, 0o555);
+	try {
+		expect(await installRelease(kitty(), target, c)).toMatchObject({
+			result: "failed",
+			detail: "Could not install kitty. Restored 0.44.0.",
+		});
+	} finally {
+		chmodSync(bin, 0o755);
+	}
+	expect(readFileSync(join(t.paths.home, ".local/share/kitty/lib/version"), "utf8")).toBe("kitty 0.44.0\n");
 });

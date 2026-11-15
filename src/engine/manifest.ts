@@ -127,9 +127,18 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	if (spec.kind === "claude-plugins") spec.versionless = true;
 	else if (spec.versionless) return MESSAGES.liftVersionlessOnly(key);
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest) return MESSAGES.liftAppimageRepoOrLatest(key);
-	// An install swaps the whole folder out: never home itself, a folder holding others (~/.local) or one outside home.
-	if (spec.folder !== undefined && (!/^~\/[^/]+\/[^/]+/.test(spec.folder) || /(^|\/)\.\.(\/|$)/.test(spec.folder)))
+	// An install swaps the whole folder out: never home itself, a folder holding others (~/.local/share), one outside
+	// home, or one an install as root would write. Under a dot folder it sits three deep (~/.local/share/<app>).
+	if (
+		spec.folder !== undefined &&
+		(spec.sudo ||
+			!/^~\/(?:\.[^/]+\/[^/]+\/[^/]+|[^./][^/]*\/[^/]+)/.test(spec.folder) ||
+			/(^|\/)\.\.(\/|$)/.test(spec.folder))
+	)
 		return MESSAGES.liftFolderPlace(key);
+	// Only an install Upkeep makes from a release file records the version that probe = false reads back.
+	if (spec.probe === false && !["appimage", "archive", "file", "deb", "rpm"].includes(spec.kind))
+		return MESSAGES.liftProbeReleaseOnly(key);
 	const refused = liftRepo(key, table, spec);
 	if (refused) return refused;
 	// A source the check cannot read fails here, at load, not later at every check.

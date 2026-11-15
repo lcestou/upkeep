@@ -2679,3 +2679,8 @@ msgstr "{0} is already there and Upkeep did not make it, so it is left alone. Mo
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: folder must be a folder of its own under home, such as ~/.local/share/{1}"
 msgstr "{0}: folder must be a folder of its own under home, such as ~/.local/share/{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: probe = false is only for an app installed from a release file"
+msgstr "{0}: probe = false is only for an app installed from a release file"

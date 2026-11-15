@@ -179,6 +179,7 @@ export const ENGINE_COPY = {
 	liftAssetNotRegex: (v0: string, v1: string) => `${v0}: ${v1} is not a valid regular expression`,
 	liftVersionlessOnly: (v0: string) => `${v0}: versionless is only for kind claude-plugins`,
 	liftAppimageRepoOrLatest: (v0: string) => `${v0}: repo or latest is required for kind appimage`,
+	liftProbeReleaseOnly: (v0: string) => `${v0}: probe = false is only for an app installed from a release file`,
 	liftFolderPlace: (v0: string) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	liftLatestScheme: (v0: string) =>
 		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,

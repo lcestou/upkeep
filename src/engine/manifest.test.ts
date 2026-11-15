@@ -505,6 +505,17 @@ test("a folder app's folder is a folder of its own under home, never home, a top
 	expect(one(...archive, 'folder = "~/.local/share/x"')).toMatchObject({ folder: "~/.local/share/x" });
 	expect(one(...archive, 'folder = "~/Apps/x"')).toMatchObject({ folder: "~/Apps/x" });
 	const refused = "x: folder must be a folder of its own under home, such as ~/.local/share/x";
-	for (const bad of ["~", "~/", "~/.local", "/opt/x", "~/a/../../etc", "~/../other/x"])
+	for (const bad of ["~", "~/", "~/.local", "~/.local/share", "/opt/x", "~/a/../../etc", "~/../other/x"])
 		expect(one(...archive, `folder = "${bad}"`)).toBe(refused);
+	// An install as root would write it.
+	expect(one(...archive, 'folder = "~/.local/share/x"', "sudo = true")).toBe(refused);
+});
+
+test("probe = false only on an app installed from a release file, which is what records its version", () => {
+	expect(one('kind = "file"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/x"', "probe = false")).toMatchObject({
+		probe: false,
+	});
+	expect(one('kind = "source"', 'repo = "o/r"', 'dest = "~/x"', 'build = ["make"]', "probe = false")).toBe(
+		"x: probe = false is only for an app installed from a release file",
+	);
 });

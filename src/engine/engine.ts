@@ -296,7 +296,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		const files = beside?.length ? beside : spec ? installedFiles(spec, leftover.dest, paths.home) : [leftover.dest];
 		for (const f of new Set([leftover.dest, ...files]))
 			try {
-				rmSync(`${f}.upkeep-new`, { force: true });
+				// A folder app's is a directory.
+				rmSync(`${f}.upkeep-new`, { recursive: true, force: true });
 			} catch {
 				// A root-owned leftover (a sudo install) is not ours to delete; it stays, and the start goes on.
 			}

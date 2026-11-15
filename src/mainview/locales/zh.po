@@ -2658,3 +2658,8 @@ msgstr "{0} 已经存在，且不是 Upkeep 创建的，因此保持不动。请
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: folder must be a folder of its own under home, such as ~/.local/share/{1}"
 msgstr "{0}：folder 必须是主目录下一个单独的文件夹，例如 ~/.local/share/{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: probe = false is only for an app installed from a release file"
+msgstr "{0}：probe = false 仅适用于从发布文件安装的应用"

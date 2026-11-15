@@ -233,16 +233,30 @@ function placeFolder(spec: AppSpec, dest: string, extract: string, ctx: KindCtx)
 	const bins = spec.bins ?? [];
 	const entries = readdirSync(extract);
 	const only = entries.length === 1 ? join(extract, entries[0] ?? "") : "";
-	const top = bins.every(holds(extract)) || !only || !statSync(only).isDirectory() ? extract : only;
-	const absent = bins.find((b) => !holds(top)(b));
+	const top = bins.every((b) => inFolder(extract, b)) || !only || !statSync(only).isDirectory() ? extract : only;
+	const found = bins.map((b) => inFolder(top, b));
+	const absent = bins.find((_, i) => !found[i]);
 	if (absent) return basename(absent);
 	const folder = expandHome(spec.folder ?? "", ctx.paths.home);
 	writeFileSync(join(top, OWN_MARK), `${spec.key}\n`);
 	swapFolder(top, folder, ctx.paths);
 	mkdirSync(dirname(dest), { recursive: true });
-	for (const b of bins) relink(join(folder, b), join(dirname(dest), basename(b)));
-	ctx.log(`Unpacked into ${folder}, linked ${bins.map((b) => basename(b)).join(", ")}`);
+	try {
+		bins.forEach((b, i) => relink(join(folder, found[i] ?? b), join(dirname(dest), binName(b, dest))));
+	} catch (err) {
+		ctx.log(`Linking into ${dirname(dest)}: ${err instanceof Error ? err.message : String(err)}`);
+		return basename(bins[0] ?? dest);
+	}
+	ctx.log(`Unpacked into ${folder}, linked ${bins.map((b) => binName(b, dest)).join(", ")}`);
 	return null;
+}
+
+/** A bin's path inside dir as a regular file, a * in its base name standing for a version; null when it is not there. */
+function inFolder(dir: string, bin: string): string | null {
+	if (!basename(bin).includes("*")) return holds(dir)(bin) ? bin : null;
+	const under = join(dir, dirname(bin));
+	const hit = existsSync(under) ? findFile(under, binMatcher(bin)) : null;
+	return hit ? hit.slice(dir.length + 1) : null;
 }
 
 /** A stage of an install that failed with a message fit to show the person; anything else thrown is unexpected and rethrown. */
@@ -350,7 +364,14 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
 			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x));
 			if (spec.folder) {
-				const missing = placeFolder(spec, dest, extract, ctx);
+				// A failure after the swap (a link that cannot be made) is put back like a missing bin.
+				let missing: string | null;
+				try {
+					missing = placeFolder(spec, dest, extract, ctx);
+				} catch (err) {
+					ctx.log(`Placing the folder: ${err instanceof Error ? err.message : String(err)}`);
+					missing = basename(spec.folder ?? dest);
+				}
 				if (missing) {
 					const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
 					const detail = back?.ok

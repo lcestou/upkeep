@@ -2700,3 +2700,8 @@ msgstr "{0} já existe e não foi criada pelo Upkeep, então fica como está. Mo
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: folder must be a folder of its own under home, such as ~/.local/share/{1}"
 msgstr "{0}: folder deve ser uma pasta só sua dentro da home, como ~/.local/share/{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: probe = false is only for an app installed from a release file"
+msgstr "{0}: probe = false é só para um app instalado a partir de um arquivo de release"

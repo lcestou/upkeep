@@ -342,6 +342,8 @@ export const MESSAGES = {
 	/** manifest.ts. {0} app key */
 	liftAppimageRepoOrLatest: (v0: Value) => `${v0}: repo or latest is required for kind appimage`,
 	/** manifest.ts. {0} app key */
+	liftProbeReleaseOnly: (v0: Value) => `${v0}: probe = false is only for an app installed from a release file`,
+	/** manifest.ts. {0} app key */
 	liftFolderPlace: (v0: Value) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	/** manifest.ts. {0} app key */
 	liftLatestScheme: (v0: Value) =>
