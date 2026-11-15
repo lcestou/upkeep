@@ -118,8 +118,9 @@ function forgeHosts(ctx: DiscoverCtx): Map<string, ForgeKind> {
 	return hosts;
 }
 
+// "mac" only as a whole word: Caddy ships caddy_2.11.9_mac_amd64.tar.gz, and "mac" inside a name ("emacs") is no system.
 const OTHER_SYSTEM =
-	/darwin|macos|osx|apple|windows|win32|win64|\.exe$|\.msi$|\.dmg$|\.pkg$|android|freebsd|netbsd|openbsd/i;
+	/darwin|macos|osx|apple|(?:^|[-_.])mac(?:[-_.]|$)|windows|win32|win64|\.exe$|\.msi$|\.dmg$|\.pkg$|android|freebsd|netbsd|openbsd/i;
 const OTHER_ARCH =
 	/arm64|aarch64|armv|arm-|armhf|armel|i[3-6]86|ia32|32-?bit|x86-32|x86(?![_.-]64)|[_-]386(?![0-9])|ppc64|riscv|s390x|loong|mips/i;
 // An asset that names this machine outright beats one that names no architecture.

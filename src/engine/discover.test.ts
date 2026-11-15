@@ -341,6 +341,13 @@ test("32-bit, other architectures, and an asset that names no architecture all l
 	expect(
 		machineAssets(odd.map((name) => ({ name, url: "", size: 1, digest: null }))).candidates.map((c) => c.asset.name),
 	).toEqual(["t-x86-64.tar.gz", "t-x86.64.tar.gz", "t-linux-64bit.tar.gz", "t.tar.gz"]);
+	// A macOS build that says only "mac" (Caddy) is left out; "mac" inside a word is not a system.
+	const caddy = ["caddy_2.11.9_mac_amd64.tar.gz", "caddy_2.11.9_linux_amd64.tar.gz", "emacs-lsp_linux_amd64.tar.gz"];
+	expect(
+		machineAssets(caddy.map((name) => ({ name, url: "", size: 1, digest: null })))
+			.candidates.map((c) => c.asset.name)
+			.toSorted(),
+	).toEqual(["caddy_2.11.9_linux_amd64.tar.gz", "emacs-lsp_linux_amd64.tar.gz"]);
 });
 
 test("kinds: bare names, -gh and the machine triple are files; archives the installer cannot open are named", () => {
