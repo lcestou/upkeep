@@ -45,13 +45,13 @@ test("the source-build examples load with no errors", () => {
 	]);
 });
 
-test("the catalogue loads 48 apps, one per file, none of them installing without asking", () => {
+test("the catalogue loads 130 apps, one per file, none of them installing without asking", () => {
 	const { apps, errors } = loadCatalogue(CATALOGUE);
 	expect(errors).toEqual([]);
-	expect(apps.length).toBe(48);
+	expect(apps.length).toBe(130);
 	const counts: Record<string, number> = {};
 	for (const a of apps) counts[a.kind] = (counts[a.kind] ?? 0) + 1;
-	expect(counts).toEqual({ appimage: 6, archive: 29, file: 4, deb: 2, source: 2, command: 5 });
+	expect(counts).toEqual({ appimage: 47, archive: 61, file: 13, deb: 2, source: 2, command: 5 });
 	expect(apps.filter((a) => a.auto)).toEqual([]);
 	const fd = apps.find((a) => a.key === "fd");
 	expect(fd).toEqual({
@@ -498,4 +498,24 @@ repo = "o/r"
 asset_aarch64 = 'arm64$'
 dest = "~/x"
 `);
+});
+
+test("a folder app's folder is a folder of its own under home, never home, a top folder in it, or a path out of it", () => {
+	const archive = ['kind = "archive"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/.local/bin/x"', 'bins = ["bin/x"]'];
+	expect(one(...archive, 'folder = "~/.local/share/x"')).toMatchObject({ folder: "~/.local/share/x" });
+	expect(one(...archive, 'folder = "~/Apps/x"')).toMatchObject({ folder: "~/Apps/x" });
+	const refused = "x: folder must be a folder of its own under home, such as ~/.local/share/x";
+	for (const bad of ["~", "~/", "~/.local", "~/.local/share", "/opt/x", "~/a/../../etc", "~/../other/x"])
+		expect(one(...archive, `folder = "${bad}"`)).toBe(refused);
+	// An install as root would write it.
+	expect(one(...archive, 'folder = "~/.local/share/x"', "sudo = true")).toBe(refused);
+});
+
+test("probe = false only on an app installed from a release file, which is what records its version", () => {
+	expect(one('kind = "file"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/x"', "probe = false")).toMatchObject({
+		probe: false,
+	});
+	expect(one('kind = "source"', 'repo = "o/r"', 'dest = "~/x"', 'build = ["make"]', "probe = false")).toBe(
+		"x: probe = false is only for an app installed from a release file",
+	);
 });

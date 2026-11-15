@@ -1077,11 +1077,6 @@ msgstr "{0} 的最新发布中没有能在本机运行的资源文件。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet."
-msgstr "{0} 其 Linux 构建是 .tar.xz、.tar.zst、.tar.bz2 或 .7z 压缩包，Upkeep 暂时无法打开。"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "It installs {0}."
 msgstr "它会安装 {0}。"
 
@@ -2601,6 +2596,7 @@ msgstr "列表中的 {0} 已经在跟踪同一个项目。"
 #: src/mainview/lib/engine-text.ts
 msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
 msgstr "列表中的 {0} 已经安装到同一位置，两者会互相覆盖。"
+
 #: src/mainview/lib/engine-text.ts
 msgid "Only an installed Upkeep can uninstall itself."
 msgstr "只有已安装的 Upkeep 才能卸载自己。"
@@ -2637,3 +2633,33 @@ msgstr "保留 Upkeep"
 #: src/mainview/lib/copy.ts
 msgid "Uninstalling. Upkeep closes now."
 msgstr "正在卸载。Upkeep 现在关闭。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} Its Linux builds are .7z archives, which Upkeep cannot open yet."
+msgstr "{0} 其 Linux 构建是 .7z 压缩包，Upkeep 暂时无法打开。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it."
+msgstr "{0} 不报告自己的版本，而且这份副本不是 Upkeep 安装的。安装最新版后，Upkeep 就能跟踪它。"
+
+#. 0: v0; 1: v1; 2: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Opening {0} needs the {1} program, which is not installed. Install {2} from the system's packages, then try again."
+msgstr "打开 {0} 需要 {1} 程序，但它没有安装。请从系统软件包安装 {2}，然后重试。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new."
+msgstr "{0} 已经存在，且不是 Upkeep 创建的，因此保持不动。请移走它，或在表中把 folder 指向别处。"
+
+#. 0: v0; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: folder must be a folder of its own under home, such as ~/.local/share/{1}"
+msgstr "{0}：folder 必须是主目录下一个单独的文件夹，例如 ~/.local/share/{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: probe = false is only for an app installed from a release file"
+msgstr "{0}：probe = false 仅适用于从发布文件安装的应用"

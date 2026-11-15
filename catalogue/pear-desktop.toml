@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron app opens its window when asked for --version. The release files are still named YouTube-Music.
+[apps.pear-desktop]
+name = "Pear Desktop"
+kind = "appimage"
+repo = "pear-devs/pear-desktop"
+asset = '^YouTube-Music-[0-9.]+\.AppImage$'
+asset_aarch64 = '^YouTube-Music-[0-9.]+-arm64\.AppImage$'
+dest = "~/.local/bin/pear-desktop.AppImage"
+meta_path = "com.github.th-ch.youtube-music.desktop"
+process = "youtube-music"
+relaunch = true

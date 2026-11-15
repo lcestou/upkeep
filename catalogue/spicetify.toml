@@ -1,0 +1,9 @@
+# spicetify reads its themes and apps from the folder it runs in: the archive unpacks into folder and the program is linked.
+[apps.spicetify]
+name = "Spicetify"
+kind = "archive"
+repo = "spicetify/cli"
+asset = '^spicetify-[0-9.]+-linux-amd64\.tar\.gz$'
+dest = "~/.local/bin/spicetify"
+folder = "~/.local/share/spicetify"
+bins = ["spicetify"]

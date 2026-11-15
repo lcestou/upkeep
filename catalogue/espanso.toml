@@ -1,0 +1,9 @@
+# --version prints and exits in 0.2 s (proved in the VM), so no meta_path is needed; the image's own .desktop only has X-AppImage-Version=e6c3736, a commit hash.
+# The only Linux AppImage is the X11 one and its name carries no version, so the pattern is the whole name; Wayland ships as a .deb, and there is no arm64 file.
+# No process or relaunch: its kernel name is AppRun, which other AppImages share, so a relaunch would close them too.
+[apps.espanso]
+name = "Espanso"
+kind = "appimage"
+repo = "espanso/espanso"
+asset = '^Espanso-X11\.AppImage$'
+dest = "~/.local/bin/espanso.AppImage"

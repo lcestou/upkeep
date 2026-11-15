@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.logseq]
+name = "Logseq"
+kind = "appimage"
+repo = "logseq/logseq"
+asset = '^Logseq-linux-x86_64-[0-9.]+\.AppImage$'
+asset_aarch64 = '^Logseq-linux-arm64-[0-9.]+\.AppImage$'
+dest = "~/.local/bin/logseq.AppImage"
+meta_path = "logseq.desktop"
+process = "logseq"
+relaunch = true

@@ -1,0 +1,12 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): --version starts the app, a Java/JCEF app printing its startup banner and failing on the missing GPU (proved in the VM).
+# process is the main program's own kernel name; its children are jcef_helper, a name other JCEF apps share, so it is not the one to signal.
+[apps.chat2db]
+name = "Chat2DB"
+kind = "appimage"
+repo = "OtterMind/Chat2DB"
+asset = '^Chat2DB-Community-[0-9.]+-x86_64\.AppImage$'
+asset_aarch64 = '^Chat2DB-Community-[0-9.]+-arm64\.AppImage$'
+dest = "~/.local/bin/chat2db.AppImage"
+meta_path = "chat2db-community.desktop"
+process = "Chat2DB"
+relaunch = true

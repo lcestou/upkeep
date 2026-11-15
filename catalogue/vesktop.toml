@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.vesktop]
+name = "Vesktop"
+kind = "appimage"
+repo = "Vencord/Vesktop"
+asset = '^Vesktop-[0-9.]+\.AppImage$'
+asset_aarch64 = '^Vesktop-[0-9.]+-arm64\.AppImage$'
+dest = "~/.local/bin/vesktop.AppImage"
+meta_path = "vesktop.desktop"
+process = "vesktop.bin"
+relaunch = true

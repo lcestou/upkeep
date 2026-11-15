@@ -1,0 +1,8 @@
+[apps.micro]
+name = "Micro"
+kind = "archive"
+repo = "micro-editor/micro"
+asset = '^micro-[0-9.]+-linux64\.tar\.gz$'
+asset_aarch64 = '^micro-[0-9.]+-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/micro"
+bins = ["micro"]

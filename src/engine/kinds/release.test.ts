@@ -14,13 +14,13 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, Stage } from "../../shared/types";
-import { listBackups, takeBackup } from "../backup";
+import { listBackups, restoreBackup, takeBackup } from "../backup";
 import type { FetchLike } from "../github";
 import type { Run } from "../run";
 import { readInflight } from "../store";
 import { ok, realRun, recordingRun, script, tempHome } from "../testkit";
 import type { KindCtx, Target } from "./context";
-import { checkRelease, installRelease } from "./release";
+import { checkRelease, installRelease, probeInstalled } from "./release";
 
 let t: ReturnType<typeof tempHome>;
 let proc = "";
@@ -688,4 +688,250 @@ test("install: a deb dpkg refuses whose point cannot go back either says so, wit
 		detail: "dpkg could not install rustdesk-1.4.3-x86_64.deb, and putting 1.4.2 back failed. See the log.",
 	});
 	oldRelease = null;
+});
+
+/** An AppImage that never names its version: running it at all leaves a mark, so a test can tell it was never run. */
+const quiet = (): AppSpec => ({ ...zen(), probe: false });
+const ranMark = () => join(t.dir, "ran");
+const quietBody = (version: string) => bash(`touch "${ranMark()}"; echo "starting zen ${version} window"`);
+
+test("probe false: a copy Upkeep did not install is offered the latest, never run, and recorded once installed", async () => {
+	const dest = join(t.paths.home, ".local/bin/zen-browser.AppImage");
+	mkdirSync(join(dest, ".."), { recursive: true });
+	writeFileSync(dest, quietBody("1.0.0"));
+	chmodSync(dest, 0o755);
+	publish("1.1.0", { "zen.linux-x86_64.AppImage": quietBody("1.1.0") });
+	const c = ctx();
+	const checked = await checkRelease(quiet(), c);
+	expect(checked).toMatchObject({
+		installed: null,
+		latest: "1.1.0",
+		status: "ready",
+		detail:
+			"Zen Browser does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it.",
+	});
+	if (!checked?.target) throw new Error("no target");
+	expect(checked.target.from).toBeNull();
+	expect(await installRelease(quiet(), checked.target, c)).toMatchObject({ result: "done", installed: "1.1.0" });
+	expect(await checkRelease(quiet(), c)).toMatchObject({ installed: "1.1.0", status: "fresh" });
+	expect(existsSync(ranMark())).toBe(false);
+	// The next release is an update from the recorded version, with a restore point under it.
+	publish("1.2.0", { "zen.linux-x86_64.AppImage": quietBody("1.2.0") });
+	const next = await checkAndTarget(quiet(), c);
+	expect(next).toMatchObject({ from: "1.1.0", version: "1.2.0" });
+	expect(await installRelease(quiet(), next, c)).toMatchObject({ result: "done", installed: "1.2.0" });
+	expect(listBackups(t.paths, "zen").map((p) => p.version)).toEqual(["1.1.0"]);
+	// A restore records the point's version.
+	expect(await restoreBackup(t.paths, quiet(), "1.1.0", c.run)).toEqual({ ok: true });
+	expect(await probeInstalled(quiet(), c)).toEqual({ version: "1.1.0" });
+	// A file put there some other way is no longer vouched for.
+	rmSync(dest);
+	writeFileSync(dest, quietBody("1.3.0"));
+	expect(await checkRelease(quiet(), c)).toMatchObject({ installed: null, status: "ready" });
+	expect(existsSync(ranMark())).toBe(false);
+	rmSync(dest);
+	expect(await checkRelease(quiet(), c)).toBeNull();
+});
+
+test("probe false on an archive: the dest bin is never run and reads back as the version installed", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	script(join(bin, "uv"), `touch "${ranMark()}"`);
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ "d/uv": `touch "${ranMark()}"` }) });
+	const spec = { ...uv(["d/uv"]), probe: false };
+	const c = ctx();
+	expect(await checkRelease(spec, c)).toMatchObject({ status: "ready", installed: null });
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "done",
+		installed: "0.9.2",
+	});
+	expect(await checkRelease(spec, c)).toMatchObject({ installed: "0.9.2", status: "fresh" });
+	expect(existsSync(ranMark())).toBe(false);
+});
+
+test("install: a .tar.xz archive opens like a .tar.gz, and a * in a bin stands for the version in its name", async () => {
+	const src = join(t.dir, "xzsrc");
+	script(join(src, "bin/uv-0.9.2-linux-amd64"), 'echo "uv 0.9.2"');
+	const out = join(t.dir, "out.tar.xz");
+	const r = await realRun(t.paths)(["tar", "cJf", out, "-C", src, "."]);
+	if (r.code !== 0) throw new Error(r.stderr);
+	script(join(t.paths.home, ".local/bin/uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-0.9.2-linux-amd64.tar.xz": new Uint8Array(readFileSync(out)) });
+	const spec = { ...uv(["uv-*-linux-amd64"]), asset: "linux-amd64\\.tar\\.xz$" };
+	const c = ctx();
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "done",
+		installed: "0.9.2",
+	});
+	expect(readFileSync(join(t.paths.home, ".local/bin/uv"), "utf8")).toContain("uv 0.9.2");
+	expect(existsSync(join(t.paths.home, ".local/bin/uv-0.9.2-linux-amd64"))).toBe(false);
+	expect(readdirSync(join(t.paths.data, "backups/uv/0.9.1")).toSorted()).toEqual(["meta.json", "uv"]);
+});
+
+test("install: a tarball whose decompressor is missing says which program to install, and keeps the old copy", async () => {
+	script(join(t.paths.home, ".local/bin/uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.xz": new Uint8Array([1, 2, 3]) });
+	const { run } = recordingRun(t.paths, (argv) =>
+		argv[0] === "tar"
+			? { code: 2, stdout: "", stderr: "tar (child): xz: Cannot exec: No such file or directory", timedOut: false }
+			: undefined,
+	);
+	const spec = { ...uv(["uv"]), asset: "linux-gnu\\.tar\\.xz$" };
+	const c = ctx(run);
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		installed: "0.9.1",
+		detail:
+			"Opening uv-x86_64-unknown-linux-gnu.tar.xz needs the xz program, which is not installed. Install xz from the system's packages, then try again.",
+	});
+	expect(readFileSync(join(t.paths.home, ".local/bin/uv"), "utf8")).toContain("uv 0.9.1");
+});
+
+/** A program that needs its lib/ folder beside it: it prints its version only while ../lib/version is there. */
+const kittyBody =
+	'here=$(dirname "$(readlink -f "$0")"); cat "$here/../lib/version" 2>/dev/null || { echo "kitty: error while loading shared libraries: libkitty.so: cannot open shared object file" >&2; exit 127; }';
+
+async function kittyTarball(version: string, top = "kitty-x"): Promise<Uint8Array<ArrayBuffer>> {
+	const src = join(t.dir, `kittysrc-${version}`);
+	script(join(src, top, "bin/kitty"), kittyBody);
+	script(join(src, top, "bin/kitten"), 'echo "kitten"');
+	mkdirSync(join(src, top, "lib"), { recursive: true });
+	writeFileSync(join(src, top, "lib/version"), `kitty ${version}\n`);
+	const out = join(t.dir, `kitty-${version}.tar.gz`);
+	const r = await realRun(t.paths)(["tar", "czf", out, "-C", src, "."]);
+	if (r.code !== 0) throw new Error(r.stderr);
+	return new Uint8Array(readFileSync(out));
+}
+
+const kitty = (): AppSpec => ({
+	key: "kitty",
+	name: "kitty",
+	kind: "archive",
+	repo: "kovidgoyal/kitty",
+	asset: "x86_64\\.tar\\.gz$",
+	dest: "~/.local/bin/kitty",
+	folder: "~/.local/share/kitty",
+	bins: ["bin/kitty", "bin/kitten"],
+	install_if_missing: true,
+});
+
+test("a folder app unpacks whole into its folder, links its bins, updates with a point and rolls back a broken one", async () => {
+	const folder = join(t.paths.home, ".local/share/kitty");
+	const link = join(t.paths.home, ".local/bin/kitty");
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const c = ctx();
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({
+		result: "done",
+		installed: "0.44.0",
+	});
+	// The archive's one top folder is the folder; each bin is a link into it.
+	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.44.0\n");
+	expect(lstatSync(link).isSymbolicLink()).toBe(true);
+	expect(readFileSync(join(t.paths.home, ".local/bin/kitten"), "utf8")).toContain("kitten");
+	// The next release swaps the whole folder; the point keeps the old folder and the links as links.
+	publish("0.45.0", { "kitty-0.45.0-x86_64.tar.gz": await kittyTarball("0.45.0") });
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({
+		result: "done",
+		installed: "0.45.0",
+	});
+	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.45.0\n");
+	expect(readFileSync(join(t.paths.data, "backups/kitty/0.44.0/folder-kitty/lib/version"), "utf8")).toBe(
+		"kitty 0.44.0\n",
+	);
+	expect(existsSync(`${folder}.upkeep-old`)).toBe(false);
+	// A release whose program cannot start without a lib/ it lacks goes back to the point, folder and all.
+	const broken = join(t.dir, "brokensrc");
+	script(join(broken, "bin/kitty"), kittyBody);
+	script(join(broken, "bin/kitten"), "true");
+	const out = join(t.dir, "broken.tar.gz");
+	await realRun(t.paths)(["tar", "czf", out, "-C", broken, "."]);
+	publish("0.46.0", { "kitty-0.46.0-x86_64.tar.gz": new Uint8Array(readFileSync(out)) });
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({
+		result: "rolled_back",
+		installed: "0.45.0",
+	});
+	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.45.0\n");
+	expect(lstatSync(link).isSymbolicLink()).toBe(true);
+});
+
+test("a folder app whose archive lacks a bin changes nothing", async () => {
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const spec = { ...kitty(), bins: ["bin/kitty", "bin/missing"] };
+	const c = ctx();
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		detail: expect.stringContaining("missing"),
+	});
+	expect(existsSync(join(t.paths.home, ".local/share/kitty"))).toBe(false);
+	expect(existsSync(join(t.paths.home, ".local/bin/kitty"))).toBe(false);
+});
+
+test("a folder app never replaces a folder Upkeep did not make, and keeps nothing of it", async () => {
+	const folder = join(t.paths.home, ".local/share/kitty");
+	mkdirSync(folder, { recursive: true });
+	writeFileSync(join(folder, "notes.txt"), "mine");
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const c = ctx();
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({
+		result: "failed",
+		detail: `${folder} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new.`,
+	});
+	expect(readFileSync(join(folder, "notes.txt"), "utf8")).toBe("mine");
+	expect(existsSync(join(t.paths.data, "backups/kitty"))).toBe(false);
+	expect(existsSync(join(t.paths.cache, "dl"))).toBe(false);
+	// One Upkeep made for this app is its own to replace.
+	writeFileSync(join(folder, ".upkeep"), "kitty\n");
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({ result: "done" });
+	expect(readFileSync(join(folder, ".upkeep"), "utf8")).toBe("kitty\n");
+	expect(existsSync(join(folder, "notes.txt"))).toBe(false);
+});
+
+test("a table that turns folder on keeps a point of the old program and the folder, though they share a name", async () => {
+	// Installed before as a bare program, with a folder Upkeep made earlier beside it.
+	const folder = join(t.paths.home, ".local/share/kitty");
+	mkdirSync(join(folder, "lib"), { recursive: true });
+	writeFileSync(join(folder, ".upkeep"), "kitty\n");
+	writeFileSync(join(folder, "lib/version"), "kitty 0.43.0\n");
+	script(join(t.paths.home, ".local/bin/kitty"), 'echo "kitty 0.43.0"');
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const c = ctx();
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({ result: "done" });
+	const point = join(t.paths.data, "backups/kitty/0.43.0");
+	expect(readdirSync(point).toSorted()).toEqual(
+		["folder-kitty", "kitten", "kitty", "meta.json"].filter((n) => existsSync(join(point, n))),
+	);
+	expect(readFileSync(join(point, "kitty"), "utf8")).toContain("kitty 0.43.0");
+	expect(readFileSync(join(point, "folder-kitty/lib/version"), "utf8")).toBe("kitty 0.43.0\n");
+	// Putting it back gives the bare program and the old folder again.
+	expect(await restoreBackup(t.paths, kitty(), "0.43.0", c.run)).toEqual({ ok: true });
+	expect(lstatSync(join(t.paths.home, ".local/bin/kitty")).isSymbolicLink()).toBe(false);
+	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.43.0\n");
+});
+
+test("a folder app finds a program named with its version through a *, and links it under its plain name", async () => {
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const spec = { ...kitty(), bins: ["bin/kit*"] };
+	const c = ctx();
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({ result: "done" });
+	expect(lstatSync(join(t.paths.home, ".local/bin/kitty")).isSymbolicLink()).toBe(true);
+});
+
+test("a folder app whose link cannot be made after the swap is put back", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const c = ctx();
+	await installRelease(kitty(), await checkAndTarget(kitty(), c), c);
+	publish("0.45.0", { "kitty-0.45.0-x86_64.tar.gz": await kittyTarball("0.45.0") });
+	const target = await checkAndTarget(kitty(), c);
+	// The kitten link is gone and the bin directory cannot be written: kitty's link is already right, kitten's fails.
+	rmSync(join(bin, "kitten"));
+	chmodSync(bin, 0o555);
+	try {
+		expect(await installRelease(kitty(), target, c)).toMatchObject({
+			result: "failed",
+			detail: "Could not install kitty. Restored 0.44.0.",
+		});
+	} finally {
+		chmodSync(bin, 0o755);
+	}
+	expect(readFileSync(join(t.paths.home, ".local/share/kitty/lib/version"), "utf8")).toBe("kitty 0.44.0\n");
 });

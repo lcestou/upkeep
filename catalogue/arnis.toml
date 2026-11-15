@@ -1,0 +1,10 @@
+# --version prints its banner then "arnis 3.4.0" and exits in 34 ms, with and without a display: no window (proved in the VM).
+[apps.arnis]
+name = "Arnis"
+kind = "archive"
+repo = "louis-e/arnis"
+asset = '^arnis-linux\.tar\.gz$'
+dest = "~/.local/bin/arnis-linux"
+bins = ["arnis-linux"]
+process = "arnis-linux"
+relaunch = true

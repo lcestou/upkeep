@@ -1,0 +1,8 @@
+[apps.gitleaks]
+name = "gitleaks"
+kind = "archive"
+repo = "gitleaks/gitleaks"
+asset = 'gitleaks_[0-9.]+_linux_x64\.tar\.gz$'
+asset_aarch64 = 'gitleaks_[0-9.]+_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gitleaks"
+bins = ["gitleaks"]

@@ -1,0 +1,8 @@
+# --version prints the version and exits at once (proved in the VM), so no meta_path is needed; its .desktop has no X-AppImage-Version.
+# No process or relaunch: the app's own kernel name is AppRun.wrapped and its children are QtWebEngineProcess, names other AppImages share.
+[apps.zeal]
+name = "Zeal"
+kind = "appimage"
+repo = "zealdocs/zeal"
+asset = '^Zeal-[0-9.]+-x86_64\.AppImage$'
+dest = "~/.local/bin/zeal.AppImage"

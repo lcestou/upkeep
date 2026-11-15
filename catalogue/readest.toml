@@ -1,0 +1,9 @@
+# Readest names no version inside its AppImage, and asking it starts the app: Upkeep reads the version it installed.
+[apps.readest]
+name = "Readest"
+kind = "appimage"
+repo = "readest/readest"
+asset = '^Readest_[0-9.]+_amd64\.AppImage$'
+asset_aarch64 = '^Readest_[0-9.]+_aarch64\.AppImage$'
+dest = "~/.local/bin/readest.AppImage"
+probe = false

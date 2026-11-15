@@ -1,0 +1,8 @@
+[apps.fish]
+name = "fish"
+kind = "archive"
+repo = "fish-shell/fish-shell"
+asset = '^fish-[0-9.]+-linux-x86_64\.tar\.xz$'
+asset_aarch64 = '^fish-[0-9.]+-linux-aarch64\.tar\.xz$'
+dest = "~/.local/bin/fish"
+bins = ["fish"]

@@ -1,0 +1,10 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): asked for --version the app just starts, printing nothing.
+[apps.imageglass]
+name = "ImageGlass"
+kind = "appimage"
+repo = "d2phap/ImageGlass"
+asset = '^ImageGlass_[0-9.]+_linux-x64\.AppImage$'
+dest = "~/.local/bin/imageglass.AppImage"
+meta_path = "io.github.d2phap.imageglass.desktop"
+process = "ImageGlass"
+relaunch = true

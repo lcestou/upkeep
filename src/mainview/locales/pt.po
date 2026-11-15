@@ -1113,11 +1113,6 @@ msgstr "Nenhum arquivo da versão mais recente de {0} roda nesta máquina."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet."
-msgstr "{0} As compilações para Linux são arquivos .tar.xz, .tar.zst, .tar.bz2 ou .7z, que o Upkeep ainda não consegue abrir."
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "It installs {0}."
 msgstr "Instala {0}."
 
@@ -2643,6 +2638,7 @@ msgstr "{0} na lista já acompanha o mesmo projeto."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} in the list already installs to the same place, so the two would overwrite each other."
 msgstr "{0} na lista já instala no mesmo lugar, então um sobrescreveria o outro."
+
 #: src/mainview/lib/engine-text.ts
 msgid "Only an installed Upkeep can uninstall itself."
 msgstr "Só um Upkeep instalado pode se desinstalar."
@@ -2679,3 +2675,33 @@ msgstr "Manter o Upkeep"
 #: src/mainview/lib/copy.ts
 msgid "Uninstalling. Upkeep closes now."
 msgstr "Desinstalando. O Upkeep fecha agora."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} Its Linux builds are .7z archives, which Upkeep cannot open yet."
+msgstr "{0} As compilações para Linux são arquivos .7z, que o Upkeep ainda não consegue abrir."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it."
+msgstr "{0} não informa sua versão, e esta cópia não foi instalada pelo Upkeep. Instalar a mais recente permite que o Upkeep a acompanhe."
+
+#. 0: v0; 1: v1; 2: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Opening {0} needs the {1} program, which is not installed. Install {2} from the system's packages, then try again."
+msgstr "Abrir {0} precisa do programa {1}, que não está instalado. Instale {2} pelos pacotes do sistema e tente de novo."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new."
+msgstr "{0} já existe e não foi criada pelo Upkeep, então fica como está. Mova-a ou aponte o folder da tabela para outro lugar."
+
+#. 0: v0; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: folder must be a folder of its own under home, such as ~/.local/share/{1}"
+msgstr "{0}: folder deve ser uma pasta só sua dentro da home, como ~/.local/share/{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: probe = false is only for an app installed from a release file"
+msgstr "{0}: probe = false é só para um app instalado a partir de um arquivo de release"

@@ -18,8 +18,7 @@ export const ENGINE_COPY = {
 	noPublishedRelease: (v0: string) => `${v0} has no published release.`,
 	latestNotComparable: (v0: string) => `The latest tag ${v0} is not a version Upkeep can compare.`,
 	noAssetForMachine: (v0: string) => `No asset of ${v0}'s latest release runs on this machine.`,
-	unopenedArchives: (v0: string) =>
-		`${v0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet.`,
+	unopenedArchives: (v0: string) => `${v0} Its Linux builds are .7z archives, which Upkeep cannot open yet.`,
 	itInstalls: (v0: string) => `It installs ${v0}.`,
 	archiveHoldsMore: (v0: string, v1: string) => ` The archive holds ${v0} programs; only the first ${v1} are listed.`,
 	matchedAsset: (v0: string) => `Matched ${v0} for this machine.`,
@@ -134,6 +133,8 @@ export const ENGINE_COPY = {
 	sourceGivesNoDownload: (v0: string) => `${v0} gives a version but no download.`,
 	latestTagNotTracked: (v0: string) => `The latest tag ${v0} is not a tracked version.`,
 	rebuildFixes: () => `Will not start. A rebuild against the current libraries fixes it.`,
+	versionNotRecorded: (v0: string) =>
+		`${v0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it.`,
 	noAssetForArch: (v0: string, v1: string) => `The table for ${v0} names no release file for ${v1} machines.`,
 	noAssetMatches: (v0: string) => `No release asset matches ${v0}.`,
 	severalAssetsMatch: (v0: string, v1: string) =>
@@ -141,6 +142,10 @@ export const ENGINE_COPY = {
 	noReleaseAssetFor: (v0: string) => `No release asset for ${v0}.`,
 	couldNotInstallFile: (v0: string) => `Could not install ${v0}.`,
 	couldNotExtract: (v0: string) => `Could not extract ${v0}.`,
+	folderNotOurs: (v0: string) =>
+		`${v0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new.`,
+	archiveNeedsTool: (v0: string, v1: string) =>
+		`Opening ${v0} needs the ${v1} program, which is not installed. Install ${v1} from the system's packages, then try again.`,
 	couldNotInstallRestored: (v0: string, v1: string) => `Could not install ${v0}. Restored ${v1}.`,
 	couldNotInstallRestoreFailed: (v0: string, v1: string) => `Could not install ${v0}. Restore failed: ${v1}`,
 	couldNotInstallNoPoint: (v0: string) => `Could not install ${v0}. No restore point was taken.`,
@@ -174,6 +179,8 @@ export const ENGINE_COPY = {
 	liftAssetNotRegex: (v0: string, v1: string) => `${v0}: ${v1} is not a valid regular expression`,
 	liftVersionlessOnly: (v0: string) => `${v0}: versionless is only for kind claude-plugins`,
 	liftAppimageRepoOrLatest: (v0: string) => `${v0}: repo or latest is required for kind appimage`,
+	liftProbeReleaseOnly: (v0: string) => `${v0}: probe = false is only for an app installed from a release file`,
+	liftFolderPlace: (v0: string) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	liftLatestScheme: (v0: string) =>
 		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,
 	liftJsonOnlyAppimage: (v0: string) => `${v0}: a json: latest is only for kind appimage`,

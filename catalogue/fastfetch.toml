@@ -1,0 +1,8 @@
+[apps.fastfetch]
+name = "fastfetch"
+kind = "archive"
+repo = "fastfetch-cli/fastfetch"
+asset = '^fastfetch-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^fastfetch-linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/fastfetch"
+bins = ["fastfetch"]

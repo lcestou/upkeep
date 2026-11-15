@@ -1,0 +1,7 @@
+[apps.onefetch]
+name = "onefetch"
+kind = "archive"
+repo = "o2sh/onefetch"
+asset = '^onefetch-linux\.tar\.gz$'
+dest = "~/.local/bin/onefetch"
+bins = ["onefetch"]

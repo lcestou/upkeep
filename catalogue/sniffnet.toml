@@ -1,0 +1,9 @@
+[apps.sniffnet]
+name = "Sniffnet"
+kind = "appimage"
+repo = "GyulyVGC/sniffnet"
+asset = '^Sniffnet_LinuxAppImage_amd64\.AppImage$'
+asset_aarch64 = '^Sniffnet_LinuxAppImage_arm64\.AppImage$'
+dest = "~/.local/bin/sniffnet.AppImage"
+process = "sniffnet"
+relaunch = true

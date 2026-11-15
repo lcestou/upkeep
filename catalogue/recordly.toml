@@ -1,0 +1,10 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron app opens its window when asked for --version. The release file name has no version in it.
+[apps.recordly]
+name = "Recordly"
+kind = "appimage"
+repo = "webadderallorg/Recordly"
+asset = '^Recordly-linux-x64\.AppImage$'
+dest = "~/.local/bin/recordly.AppImage"
+meta_path = "recordly.desktop"
+process = "recordly"
+relaunch = true

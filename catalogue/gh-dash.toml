@@ -1,0 +1,7 @@
+[apps.gh-dash]
+name = "gh-dash"
+kind = "file"
+repo = "dlvhdr/gh-dash"
+asset = '^gh-dash_v[0-9.]+_linux-amd64$'
+asset_aarch64 = '^gh-dash_v[0-9.]+_linux-arm64$'
+dest = "~/.local/bin/gh-dash"

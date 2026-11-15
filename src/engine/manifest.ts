@@ -24,13 +24,14 @@ const STRING_FIELDS = [
 	"asset_aarch64",
 	"dest",
 	"meta_path",
+	"folder",
 	"latest",
 	"run",
 	"process",
 	"note",
 ] as const;
 const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore", "restart"] as const;
-const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch"] as const;
+const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch", "probe"] as const;
 // Process names that many programs share: relaunch closes every process with its name, so it refuses these.
 // shortcut: a fixed list of common interpreters; a table naming another shared runtime is the owner's to get right.
 const SHARED_NAMES = new Set([
@@ -126,6 +127,18 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	if (spec.kind === "claude-plugins") spec.versionless = true;
 	else if (spec.versionless) return MESSAGES.liftVersionlessOnly(key);
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest) return MESSAGES.liftAppimageRepoOrLatest(key);
+	// An install swaps the whole folder out: never home itself, a folder holding others (~/.local/share), one outside
+	// home, or one an install as root would write. Under a dot folder it sits three deep (~/.local/share/<app>).
+	if (
+		spec.folder !== undefined &&
+		(spec.sudo ||
+			!/^~\/(?:\.[^/]+\/[^/]+\/[^/]+|[^./][^/]*\/[^/]+)/.test(spec.folder) ||
+			/(^|\/)\.\.(\/|$)/.test(spec.folder))
+	)
+		return MESSAGES.liftFolderPlace(key);
+	// Only an install Upkeep makes from a release file records the version that probe = false reads back.
+	if (spec.probe === false && !["appimage", "archive", "file", "deb", "rpm"].includes(spec.kind))
+		return MESSAGES.liftProbeReleaseOnly(key);
 	const refused = liftRepo(key, table, spec);
 	if (refused) return refused;
 	// A source the check cannot read fails here, at load, not later at every check.

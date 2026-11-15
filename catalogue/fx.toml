@@ -1,0 +1,7 @@
+[apps.fx]
+name = "fx"
+kind = "file"
+repo = "antonmedv/fx"
+asset = '^fx_linux_amd64$'
+asset_aarch64 = '^fx_linux_arm64$'
+dest = "~/.local/bin/fx"

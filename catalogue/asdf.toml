@@ -1,0 +1,9 @@
+# Single Go binary since 0.16; the asdf shell-init line a person adds to their shell is their own setup.
+[apps.asdf]
+name = "asdf"
+kind = "archive"
+repo = "asdf-vm/asdf"
+asset = '^asdf-v[0-9.]+-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^asdf-v[0-9.]+-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/asdf"
+bins = ["asdf"]

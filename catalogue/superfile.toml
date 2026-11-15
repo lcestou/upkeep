@@ -1,0 +1,9 @@
+# The archive holds one binary named spf, the command people run; --version prints "superfile version v1.6.0" and exits (proved in the VM, no TUI).
+[apps.superfile]
+name = "superfile"
+kind = "archive"
+repo = "yorukot/superfile"
+asset = '^superfile-linux-v[0-9.]+-amd64\.tar\.gz$'
+asset_aarch64 = '^superfile-linux-v[0-9.]+-arm64\.tar\.gz$'
+dest = "~/.local/bin/spf"
+bins = ["spf"]

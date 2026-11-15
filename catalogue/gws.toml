@@ -1,0 +1,9 @@
+# The archive is named google-workspace-cli; the program inside it is gws, so the key follows the program.
+[apps.gws]
+name = "Google Workspace CLI"
+kind = "archive"
+repo = "googleworkspace/cli"
+asset = '^google-workspace-cli-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^google-workspace-cli-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/gws"
+bins = ["gws"]

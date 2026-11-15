@@ -1,26 +1,31 @@
 import {
 	copyFileSync,
+	cpSync,
 	existsSync,
+	lstatSync,
 	mkdirSync,
 	readdirSync,
 	readFileSync,
+	readlinkSync,
 	renameSync,
 	rmSync,
-	statSync,
+	symlinkSync,
 	writeFileSync,
 } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { AppSpec, RestorePoint } from "../shared/types";
 import { dropTree } from "./drop";
 import { isPackage, PACKAGE_TOOL, type PackageKind, packageInstall } from "./kinds/package";
-import type { Paths } from "./paths";
+import { expandHome, type Paths } from "./paths";
+import { stampInstalled } from "./store";
 import { asRoot, installAside, type Run, SUDO_PASSWORD, sudoNeedsPassword } from "./run";
 
 export type BackupMeta = {
 	version: string;
 	at: string;
-	files: { name: string; dest: string; mode: string }[];
+	/** dir: a folder app's whole folder, copied with its links as links. link: a symlink, kept as its target only. */
+	files: { name: string; dest: string; mode: string; dir?: boolean; link?: string }[];
 	sudo: boolean;
 	/** A .deb point: its one file is the old version's package, put back with dpkg -i. Older points on disk carry this. */
 	deb?: boolean;
@@ -115,9 +120,18 @@ export function takeBackup(
 		const meta: BackupMeta = { version, at, files: [], sudo: spec.sudo === true };
 		for (const file of files) {
 			const name = basename(file);
-			copyFileSync(file, join(tmp, name));
+			const st = lstatSync(file);
 			// The raw mode carries file-type bits that install -m rejects.
-			meta.files.push({ name, dest: file, mode: (statSync(file).mode & 0o7777).toString(8) });
+			const mode = (st.mode & 0o7777).toString(8);
+			if (st.isSymbolicLink()) meta.files.push({ name, dest: file, mode, link: readlinkSync(file) });
+			else if (st.isDirectory()) {
+				// Its own name in the point: a folder app's folder and its program share a base name (kitty).
+				cpSync(file, join(tmp, `folder-${name}`), { recursive: true, verbatimSymlinks: true });
+				meta.files.push({ name: `folder-${name}`, dest: file, mode, dir: true });
+			} else {
+				copyFileSync(file, join(tmp, name));
+				meta.files.push({ name, dest: file, mode });
+			}
 		}
 		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
 		dropTree(dir, paths);
@@ -154,8 +168,21 @@ export function listBackups(paths: Paths, key: string): RestorePoint[] {
 	return points.toSorted((a, b) => b.at.localeCompare(a.at));
 }
 
-/** Installs each backed-up file back where it came from, with its old mode. */
+/** Puts a restore point back (each file where it came from, with its old mode), then records its version at dest. */
 export async function restoreBackup(
+	paths: Paths,
+	spec: Pick<AppSpec, "key" | "dest">,
+	version: string,
+	run: Run,
+): Promise<{ ok: boolean; detail?: string }> {
+	const r = await putBack(paths, spec, version, run);
+	// The file back at dest is the point's version: recorded, for a program that cannot name its own.
+	if (r.ok && spec.dest) stampInstalled(paths, spec.key, expandHome(spec.dest, paths.home), version);
+	return r;
+}
+
+/** Puts one restore point back: its command, its package, or its files one at a time. */
+async function putBack(
 	paths: Paths,
 	spec: Pick<AppSpec, "key">,
 	version: string,
@@ -180,12 +207,60 @@ export async function restoreBackup(
 			: { ok: false, detail: MESSAGES.packageCouldNotPutBack(PACKAGE_TOOL[kind], version) };
 	}
 	for (const f of meta.files) {
+		if (f.link !== undefined || f.dir) {
+			try {
+				if (f.link !== undefined) relink(f.link, f.dest);
+				else swapFolder(join(dir, f.name), f.dest, paths, true);
+			} catch (err) {
+				return {
+					ok: false,
+					detail: MESSAGES.couldNotRestoreFile(f.name, err instanceof Error ? err.message : String(err)),
+				};
+			}
+			continue;
+		}
 		// oxlint-disable-next-line no-await-in-loop -- files go back one at a time so a failure stops the rest
 		const r = await installAside(run, join(dir, f.name), f.dest, f.mode, meta.sudo);
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		if (r.code !== 0) return { ok: false, detail: MESSAGES.couldNotRestoreFile(f.name, (r.stderr || r.stdout).trim()) };
 	}
 	return { ok: true };
+}
+
+/** Points link at target, by a new link renamed over it, so the name is never missing. One already pointing there is left alone. */
+export function relink(target: string, link: string): void {
+	try {
+		if (lstatSync(link).isSymbolicLink() && readlinkSync(link) === target) return;
+	} catch {
+		// not there yet
+	}
+	const next = `${link}.upkeep-new`;
+	rmSync(next, { force: true });
+	symlinkSync(target, next);
+	renameSync(next, link);
+}
+
+/**
+ * Puts src in place as folder: beside it first, then two renames, so a running copy keeps the files it has open and
+ * the folder is missing only between the renames. The old folder is dropped. copy keeps src (a restore point's copy);
+ * without it src is moved, falling back to a copy across file systems.
+ */
+export function swapFolder(src: string, folder: string, paths: Pick<Paths, "cache">, copy = false): void {
+	const next = `${folder}.upkeep-new`;
+	rmSync(next, { recursive: true, force: true });
+	mkdirSync(dirname(folder), { recursive: true });
+	if (copy) cpSync(src, next, { recursive: true, verbatimSymlinks: true });
+	else
+		try {
+			renameSync(src, next);
+		} catch {
+			cpSync(src, next, { recursive: true, verbatimSymlinks: true });
+		}
+	const old = `${folder}.upkeep-old`;
+	dropTree(old, paths);
+	if (existsSync(folder)) renameSync(folder, old);
+	renameSync(next, folder);
+	dropTree(old, paths);
 }
 
 /**

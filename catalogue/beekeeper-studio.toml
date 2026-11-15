@@ -1,0 +1,12 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+# process is the kernel's name for beekeeper-studio-bin, cut at 15 characters.
+[apps.beekeeper-studio]
+name = "Beekeeper Studio"
+kind = "appimage"
+repo = "beekeeper-studio/beekeeper-studio"
+asset = '^Beekeeper-Studio-[0-9.]+\.AppImage$'
+asset_aarch64 = '^Beekeeper-Studio-[0-9.]+-arm64\.AppImage$'
+dest = "~/.local/bin/beekeeper-studio.AppImage"
+meta_path = "beekeeper-studio.desktop"
+process = "beekeeper-studi"
+relaunch = true

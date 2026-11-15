@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.tabby]
+name = "Tabby"
+kind = "appimage"
+repo = "Eugeny/tabby"
+asset = '^tabby-[0-9.]+-linux-x64\.AppImage$'
+asset_aarch64 = '^tabby-[0-9.]+-linux-arm64\.AppImage$'
+dest = "~/.local/bin/tabby.AppImage"
+meta_path = "tabby.desktop"
+process = "tabby"
+relaunch = true

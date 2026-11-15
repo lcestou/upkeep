@@ -1,0 +1,8 @@
+[apps.gitui]
+name = "gitui"
+kind = "archive"
+repo = "gitui-org/gitui"
+asset = '^gitui-linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^gitui-linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/gitui"
+bins = ["gitui"]

@@ -1,0 +1,9 @@
+# The version is read from the AppImage's own .desktop file, so the check never starts the GPU monitor.
+[apps.nvtop]
+name = "nvtop"
+kind = "appimage"
+repo = "Syllo/nvtop"
+asset = '^nvtop-[0-9.]+-x86_64\.AppImage$'
+asset_aarch64 = '^nvtop-[0-9.]+-aarch64\.AppImage$'
+dest = "~/.local/bin/nvtop.AppImage"
+meta_path = "nvtop.desktop"

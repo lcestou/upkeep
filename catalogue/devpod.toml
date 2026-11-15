@@ -1,0 +1,9 @@
+# The standalone CLI binary; the release also ships the desktop AppImage, for its own table.
+[apps.devpod]
+name = "DevPod (CLI)"
+kind = "file"
+repo = "loft-sh/devpod"
+asset = '^devpod-linux-amd64$'
+asset_aarch64 = '^devpod-linux-arm64$'
+dest = "~/.local/bin/devpod"
+version_args = ["version"]

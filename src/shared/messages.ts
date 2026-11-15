@@ -35,8 +35,7 @@ export const MESSAGES = {
 	/** discover.ts. {0} repo owner/name */
 	noAssetForMachine: (v0: Value) => `No asset of ${v0}'s latest release runs on this machine.`,
 	/** discover.ts. {0} noAssetForMachine sentence */
-	unopenedArchives: (v0: Value) =>
-		`${v0} Its Linux builds are .tar.xz, .tar.zst, .tar.bz2 or .7z archives, which Upkeep cannot open yet.`,
+	unopenedArchives: (v0: Value) => `${v0} Its Linux builds are .7z archives, which Upkeep cannot open yet.`,
 	/** discover.ts. {0} program names joined with ', ' (358) or the single bin name (370) */
 	itInstalls: (v0: Value) => `It installs ${v0}.`,
 	/** discover.ts. {0} count of programs found (always more than 6); {1} MAX_BINS (6) */
@@ -255,6 +254,9 @@ export const MESSAGES = {
 	latestTagNotTracked: (v0: Value) => `The latest tag ${v0} is not a tracked version.`,
 	/** kinds/release.ts */
 	rebuildFixes: () => `Will not start. A rebuild against the current libraries fixes it.`,
+	/** kinds/release.ts. {0} app name */
+	versionNotRecorded: (v0: Value) =>
+		`${v0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it.`,
 	/** kinds/release.ts, discover.ts. {0} app name; {1} the machine's architecture, x86_64 or aarch64 */
 	noAssetForArch: (v0: Value, v1: Value) => `The table for ${v0} names no release file for ${v1} machines.`,
 	/** kinds/release.ts. {0} asset pattern (regex) */
@@ -268,6 +270,12 @@ export const MESSAGES = {
 	couldNotInstallFile: (v0: Value) => `Could not install ${v0}.`,
 	/** kinds/release.ts. {0} asset name */
 	couldNotExtract: (v0: Value) => `Could not extract ${v0}.`,
+	/** kinds/release.ts. {0} the folder's path */
+	folderNotOurs: (v0: Value) =>
+		`${v0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new.`,
+	/** kinds/release.ts, discover.ts. {0} archive file name; {1} the program tar needed: xz, bzip2 or zstd */
+	archiveNeedsTool: (v0: Value, v1: Value) =>
+		`Opening ${v0} needs the ${v1} program, which is not installed. Install ${v1} from the system's packages, then try again.`,
 	/** kinds/release.ts. {0} program (bin) name; {1} restore point version */
 	couldNotInstallRestored: (v0: Value, v1: Value) => `Could not install ${v0}. Restored ${v1}.`,
 	/** kinds/release.ts. {0} program (bin) name; {1} restoreBackup detail (backup.ts sentences or run.ts SUDO_PASSWORD) */
@@ -333,6 +341,10 @@ export const MESSAGES = {
 	liftVersionlessOnly: (v0: Value) => `${v0}: versionless is only for kind claude-plugins`,
 	/** manifest.ts. {0} app key */
 	liftAppimageRepoOrLatest: (v0: Value) => `${v0}: repo or latest is required for kind appimage`,
+	/** manifest.ts. {0} app key */
+	liftProbeReleaseOnly: (v0: Value) => `${v0}: probe = false is only for an app installed from a release file`,
+	/** manifest.ts. {0} app key */
+	liftFolderPlace: (v0: Value) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	/** manifest.ts. {0} app key */
 	liftLatestScheme: (v0: Value) =>
 		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,

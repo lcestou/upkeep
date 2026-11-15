@@ -1,0 +1,8 @@
+[apps.skaffold]
+name = "Skaffold"
+kind = "file"
+repo = "GoogleContainerTools/skaffold"
+asset = '^skaffold-linux-amd64$'
+asset_aarch64 = '^skaffold-linux-arm64$'
+dest = "~/.local/bin/skaffold"
+version_args = ["version"]

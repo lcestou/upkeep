@@ -1,0 +1,9 @@
+# The version is read by --version: it prints and exits in 0.03 s with no window (proved in the VM), so no meta_path is needed.
+# The only Linux file is the AppImage, and its name spells the architecture x86.64; the arm64 files are Windows installers, so there is no arm64 pattern.
+# No process or relaunch: the image's only process is AppRun.wrapped, a name other AppImages share, so a relaunch would ask them to quit too.
+[apps.sqlitebrowser]
+name = "DB Browser for SQLite"
+kind = "appimage"
+repo = "sqlitebrowser/sqlitebrowser"
+asset = '^DB\.Browser\.for\.SQLite-v[0-9.]+-x86\.64(-v\d+)?\.AppImage$'
+dest = "~/.local/bin/sqlitebrowser.AppImage"

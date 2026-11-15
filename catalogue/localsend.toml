@@ -1,0 +1,10 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.localsend]
+name = "LocalSend"
+kind = "appimage"
+repo = "localsend/localsend"
+asset = 'linux-x86-64\.AppImage$'
+dest = "~/.local/bin/localsend.AppImage"
+meta_path = "org.localsend.localsend_app.desktop"
+process = "localsend_app"
+relaunch = true

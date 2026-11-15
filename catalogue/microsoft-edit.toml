@@ -1,0 +1,8 @@
+[apps.microsoft-edit]
+name = "Microsoft Edit"
+kind = "archive"
+repo = "microsoft/edit"
+asset = '^edit-[0-9.]+-x86_64-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^edit-[0-9.]+-aarch64-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/edit"
+bins = ["edit"]

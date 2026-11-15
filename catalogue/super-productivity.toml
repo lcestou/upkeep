@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron app opens its window when asked for --version. The release file has no version in its name, so the asset is the whole name.
+# process is the kernel's name for superproductivity, cut at 15 characters.
+[apps.super-productivity]
+name = "Super Productivity"
+kind = "appimage"
+repo = "super-productivity/super-productivity"
+asset = '^superProductivity-x86_64\.AppImage$'
+dest = "~/.local/bin/super-productivity.AppImage"
+meta_path = "superproductivity.desktop"
+process = "superproductivi"
+relaunch = true

@@ -1,0 +1,9 @@
+# The program inside the archive carries the version in its name; the * installs it as ipatool.
+[apps.ipatool]
+name = "ipatool"
+kind = "archive"
+repo = "majd/ipatool"
+asset = '^ipatool-[0-9.]+-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^ipatool-[0-9.]+-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/ipatool"
+bins = ["ipatool-*"]

@@ -1,0 +1,6 @@
+[apps.sampler]
+name = "Sampler"
+kind = "file"
+repo = "sqshq/sampler"
+asset = '^sampler-[0-9.]+-linux-amd64$'
+dest = "~/.local/bin/sampler"

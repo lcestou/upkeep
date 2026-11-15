@@ -1,0 +1,10 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron app opens its window when asked for --version.
+[apps.notable]
+name = "Notable"
+kind = "appimage"
+repo = "notable/notable"
+asset = '^Notable-[0-9.]+\.AppImage$'
+dest = "~/.local/bin/notable.AppImage"
+meta_path = "notable.desktop"
+process = "notable"
+relaunch = true

@@ -4,24 +4,26 @@ import {
 	existsSync,
 	mkdirSync,
 	readdirSync,
+	readFileSync,
 	realpathSync,
 	renameSync,
 	rmSync,
 	statSync,
+	writeFileSync,
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
-import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
+import { prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
 import { download, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { forgeRelease, linksRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
-import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
+import { asRoot, installAside, type ProcessResult, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { isRunning } from "../running";
-import { clearInflight, writeInflight } from "../store";
+import { clearInflight, stampedVersion, stampInstalled, writeInflight } from "../store";
 import { isNewer } from "../version";
 import { isPackage, PACKAGE_TOOL, packageInstall } from "./package";
 import {
@@ -50,17 +52,51 @@ export function destOf(spec: AppSpec, ctx: Pick<KindCtx, "paths">): string {
 	return expandHome(spec.dest ?? "", ctx.paths.home);
 }
 
-/** Every file an install of this app writes: the dest itself, or each of an archive's bins beside it. */
-export function installedFiles(spec: AppSpec, dest: string): string[] {
+/** Every file an install of this app writes: the dest itself, or each of an archive's bins beside it, after a folder app's folder. */
+export function installedFiles(spec: AppSpec, dest: string, home: string): string[] {
 	if (spec.kind !== "archive") return [dest];
-	return (spec.bins ?? []).map((b) => join(dirname(dest), basename(b)));
+	const bins = (spec.bins ?? []).map((b) => join(dirname(dest), binName(b, dest)));
+	return spec.folder ? [expandHome(spec.folder, home), ...bins] : bins;
 }
 
-/** Reads the installed version: a command app by its check argv, else from the AppImage metadata when the table names one, else by running the dest with its version args. */
+/** The name a bin installs under: its base name, or dest's for one with a * in it (ipatool-*-linux-amd64 is ipatool). */
+function binName(bin: string, dest: string): string {
+	return basename(bin).includes("*") ? basename(dest) : basename(bin);
+}
+
+/**
+ * Why tar could not open an archive, as a sentence: the program it hands xz, bzip2 or zstd to is missing on a minimal
+ * system (Ubuntu's cloud image has no xz), which GNU tar reports as "xz: Cannot exec". Anything else is couldNotExtract.
+ */
+export function unpackProblem(asset: string, r: ProcessResult): string {
+	const tool = /(\w+): Cannot exec/.exec(r.stderr)?.[1];
+	return tool ? MESSAGES.archiveNeedsTool(asset, tool) : MESSAGES.couldNotExtract(asset);
+}
+
+/** Whether an archive file name is the bin's base name, where a * stands for any run of characters (a version). */
+function binMatcher(bin: string): (name: string) => boolean {
+	const base = basename(bin);
+	if (!base.includes("*")) return (n) => n === base;
+	const parts = base.split("*").map((p) => p.replace(/[.+?^${}()|[\]\\]/g, "\\$&"));
+	const re = new RegExp(`^${parts.join(".*")}$`);
+	return (n) => re.test(n);
+}
+
+/**
+ * Reads the installed version: a command app by its check argv, else from the AppImage metadata when the table names
+ * one, else by running the dest with its version args. A table with probe false never runs it: its version is the one
+ * Upkeep recorded at install, while the file is still the one it wrote, and unknown otherwise. Only that table: for
+ * one that asks, a program that exits with no version may be a broken install, never one to vouch for.
+ */
 export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult> {
 	// A command app has no dest: its own check argv is what reads its version.
 	if (spec.kind === "command") return probeCommand(spec.check ?? [], { run: ctx.run });
 	const dest = destOf(spec, ctx);
+	if (spec.probe === false) {
+		if (!existsSync(dest)) return Promise.resolve({ state: "absent" });
+		const stamped = stampedVersion(ctx.paths, spec.key, dest);
+		return Promise.resolve(stamped ? { version: stamped } : { state: "unknown" });
+	}
 	if (spec.meta_path) return probeAppImageMeta(dest, spec.meta_path, { run: ctx.run });
 	return probeVersion(dest, spec.version_args ?? ["--version"], { run: ctx.run });
 }
@@ -100,6 +136,8 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		return null;
 	}
 	const installed = "version" in probe ? probe.version : null;
+	// A copy Upkeep did not put there, of an app it never asks: the latest is offered, and installing it records the version.
+	const untracked = spec.probe === false && "state" in probe && probe.state === "unknown";
 	const pattern = assetFor(spec, ctx.arch);
 	// A table written on the other architecture (an apps.toml brought from another machine) names no file for this one.
 	if (needAsset && pattern === undefined)
@@ -121,7 +159,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			...base,
 		};
 	const latest = release.version;
-	if (!("version" in probe) && !missing) {
+	if (!("version" in probe) && !missing && !untracked) {
 		if (!needAsset && probe.state === "broken")
 			return {
 				installed: latest,
@@ -133,7 +171,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			};
 		return { installed, latest, status: "problem", detail: probeProblem(spec.name, spec.dest ?? dest, probe), ...base };
 	}
-	const status = missing || isNewer(installed, latest) ? "ready" : "fresh";
+	const status = missing || untracked || isNewer(installed, latest) ? "ready" : "fresh";
 	let target: Target = { from: installed, version: latest, tag: release.tag };
 	let size: number | undefined;
 	if (needAsset) {
@@ -152,20 +190,73 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
 		size = pick.asset.size || (status === "ready" ? await statedSize(pick.asset.url, ctx.fetch) : undefined);
 	}
-	return { installed, latest, status, size, target, ...base };
+	const detail = untracked ? { detail: MESSAGES.versionNotRecorded(spec.name) } : {};
+	return { installed, latest, status, size, target, ...detail, ...base };
 }
 
-/** Depth-first search under dir for a file called name; null when none, and the first match in directory order wins. */
-function findFile(dir: string, name: string): string | null {
+/** Depth-first search under dir for a file whose name matches; null when none, and the first match in directory order wins. */
+function findFile(dir: string, matches: (name: string) => boolean): string | null {
 	for (const e of readdirSync(dir, { withFileTypes: true })) {
 		const p = join(dir, e.name);
-		if (e.isFile() && e.name === name) return p;
+		if (e.isFile() && matches(e.name)) return p;
 		if (e.isDirectory()) {
-			const found = findFile(p, name);
+			const found = findFile(p, matches);
 			if (found) return found;
 		}
 	}
 	return null;
+}
+
+/** The file inside a folder app's folder that says Upkeep made it, holding the app's key. */
+const OWN_MARK = ".upkeep";
+
+/** Whether folder is free for key's install: not there yet, or made by Upkeep for that same app. */
+function folderFree(folder: string, key: string): boolean {
+	if (!existsSync(folder)) return true;
+	try {
+		return readFileSync(join(folder, OWN_MARK), "utf8").trim() === key;
+	} catch {
+		return false;
+	}
+}
+
+/** A test for a bin path: whether dir holds it as a regular file. */
+const holds = (dir: string) => (b: string) => existsSync(join(dir, b)) && statSync(join(dir, b)).isFile();
+
+/**
+ * A folder app: what the archive holds becomes the table's folder, swapped in by rename, and each bin, a path inside
+ * it, is linked from dest's directory under its base name. The bins are looked for at the archive's root, then inside
+ * its one top folder (kitty-0.44.0/bin/kitty), so an archive holding only bin/ keeps it. A bin missing from the archive
+ * is returned before anything moves; null when all is in place.
+ */
+function placeFolder(spec: AppSpec, dest: string, extract: string, ctx: KindCtx): string | null {
+	const bins = spec.bins ?? [];
+	const entries = readdirSync(extract);
+	const only = entries.length === 1 ? join(extract, entries[0] ?? "") : "";
+	const top = bins.every((b) => inFolder(extract, b)) || !only || !statSync(only).isDirectory() ? extract : only;
+	const found = bins.map((b) => inFolder(top, b));
+	const absent = bins.find((_, i) => !found[i]);
+	if (absent) return basename(absent);
+	const folder = expandHome(spec.folder ?? "", ctx.paths.home);
+	writeFileSync(join(top, OWN_MARK), `${spec.key}\n`);
+	swapFolder(top, folder, ctx.paths);
+	mkdirSync(dirname(dest), { recursive: true });
+	try {
+		bins.forEach((b, i) => relink(join(folder, found[i] ?? b), join(dirname(dest), binName(b, dest))));
+	} catch (err) {
+		ctx.log(`Linking into ${dirname(dest)}: ${err instanceof Error ? err.message : String(err)}`);
+		return basename(bins[0] ?? dest);
+	}
+	ctx.log(`Unpacked into ${folder}, linked ${bins.map((b) => binName(b, dest)).join(", ")}`);
+	return null;
+}
+
+/** A bin's path inside dir as a regular file, a * in its base name standing for a version; null when it is not there. */
+function inFolder(dir: string, bin: string): string | null {
+	if (!basename(bin).includes("*")) return holds(dir)(bin) ? bin : null;
+	const under = join(dir, dirname(bin));
+	const hit = existsSync(under) ? findFile(under, binMatcher(bin)) : null;
+	return hit ? hit.slice(dir.length + 1) : null;
 }
 
 /** A stage of an install that failed with a message fit to show the person; anything else thrown is unexpected and rethrown. */
@@ -184,16 +275,24 @@ function resolved(p: string): string {
 export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const asset = target.asset;
 	if (!asset) throw new Error(MESSAGES.noReleaseAssetFor(spec.name));
-	// A symlinked dest is updated through the link, never replaced by a regular file.
-	const dest = resolved(destOf(spec, ctx));
+	// A symlinked dest is updated through the link, never replaced by a regular file. A folder app's dest is its own link.
+	const dest = spec.folder ? destOf(spec, ctx) : resolved(destOf(spec, ctx));
 	const clock = stageClock(ctx);
 	const dl = join(ctx.paths.cache, "dl", `${spec.key}-${asset.name}`);
 	const extract = join(ctx.paths.cache, "dl", `${spec.key}-x`);
 	const restorable = canRestore(spec);
 	const bins = spec.kind === "archive" ? (spec.bins ?? []) : [];
-	const targets = installedFiles(spec, dest);
+	const targets = installedFiles(spec, dest, ctx.paths.home);
 	let backupVersion: string | null = null;
 	const finish = (o: Omit<Outcome, "stages">): Outcome => ({ ...o, stages: clock.stop() });
+	// Before any download or restore point: a folder Upkeep did not make is never copied, renamed or replaced.
+	if (spec.folder && !folderFree(expandHome(spec.folder, ctx.paths.home), spec.key))
+		return finish({
+			result: "failed",
+			installed: target.from,
+			detail: MESSAGES.folderNotOurs(expandHome(spec.folder, ctx.paths.home)),
+			restartToApply: false,
+		});
 	try {
 		clock.start("download", 0);
 		ctx.log(`Downloading ${asset.name}`);
@@ -236,7 +335,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		}
 
 		const existed = new Set(targets.filter((f) => existsSync(f)));
-		const running = isRunning({ ...spec, dest }, ctx.procRoot);
+		const running = isRunning({ ...spec, dest: resolved(dest) }, ctx.procRoot);
 		writeInflight(ctx.paths, { key: spec.key, dest, backupVersion, files: targets });
 		clock.start("install");
 		if (spec.kind === "appimage" || spec.kind === "file") {
@@ -260,17 +359,37 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			mkdirSync(extract, { recursive: true });
 			const unpack = asset.name.endsWith(".zip")
 				? ["unzip", "-q", dl, "-d", extract]
-				: ["tar", "xzf", dl, "-C", extract];
+				: // GNU tar tells gzip, xz, bzip2 and zstd apart on its own when it reads a file.
+					["tar", "xf", dl, "-C", extract];
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
-			if (x.code !== 0) throw new StepError(MESSAGES.couldNotExtract(asset.name));
+			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x));
+			if (spec.folder) {
+				// A failure after the swap (a link that cannot be made) is put back like a missing bin.
+				let missing: string | null;
+				try {
+					missing = placeFolder(spec, dest, extract, ctx);
+				} catch (err) {
+					ctx.log(`Placing the folder: ${err instanceof Error ? err.message : String(err)}`);
+					missing = basename(spec.folder ?? dest);
+				}
+				if (missing) {
+					const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
+					const detail = back?.ok
+						? MESSAGES.couldNotInstallRestored(missing, String(backupVersion))
+						: back
+							? MESSAGES.couldNotInstallRestoreFailed(missing, back.detail ?? "")
+							: MESSAGES.couldNotInstallNoPoint(missing);
+					return finish({ result: "failed", installed: target.from, detail, restartToApply: false });
+				}
+			}
 			// A bin this run added has no restore point, so a failure takes it out again.
 			const added: string[] = [];
-			for (const bin of bins) {
-				const name = basename(bin);
+			for (const bin of spec.folder ? [] : bins) {
+				const name = binName(bin, dest);
 				const to = join(dirname(dest), name);
 				const direct = join(extract, bin);
 				// A top folder can share the program's name (btop/bin/btop): only a file at the direct path is the program.
-				const src = existsSync(direct) && statSync(direct).isFile() ? direct : findFile(extract, name);
+				const src = existsSync(direct) && statSync(direct).isFile() ? direct : findFile(extract, binMatcher(bin));
 				let failed = src === null;
 				let sudoFail = false;
 				if (src) {
@@ -327,6 +446,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		}
 
 		clock.start("verify");
+		// Before the probe, so a table with probe false reads back the version just installed.
+		stampInstalled(ctx.paths, spec.key, dest, target.version);
 		const after = await probeInstalled(spec, ctx);
 		if ("version" in after && after.version === target.from && target.from !== target.version)
 			return finish({

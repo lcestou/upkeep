@@ -1,0 +1,9 @@
+# Yaak names no version inside its AppImage, and asking it starts the app: Upkeep reads the version it installed.
+[apps.yaak]
+name = "Yaak"
+kind = "appimage"
+repo = "mountain-loop/yaak"
+asset = '^yaak_[0-9.]+_amd64\.AppImage$'
+asset_aarch64 = '^yaak_[0-9.]+_aarch64\.AppImage$'
+dest = "~/.local/bin/yaak.AppImage"
+probe = false

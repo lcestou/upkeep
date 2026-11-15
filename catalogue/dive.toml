@@ -1,0 +1,8 @@
+[apps.dive]
+name = "dive"
+kind = "archive"
+repo = "wagoodman/dive"
+asset = '^dive_[0-9.]+_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^dive_[0-9.]+_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/dive"
+bins = ["dive"]

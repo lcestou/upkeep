@@ -2,7 +2,7 @@ import type { LanguageSetting } from "./languages";
 
 export type AppKind =
 	| "appimage" // one AppImage file from a GitHub release
-	| "archive" // one or more binaries inside a release tar.gz or zip
+	| "archive" // one or more binaries inside a release tarball (gzip, xz, bzip2 or zstd) or zip
 	| "file" // a single binary that is itself the release asset
 	| "deb" // a .deb from a GitHub release, installed with dpkg
 	| "rpm" // an .rpm from a GitHub release, installed with rpm -U
@@ -29,12 +29,26 @@ export type AppSpec = {
 	asset_aarch64?: string;
 	/** The installed file the version probe runs. */
 	dest?: string;
-	/** archive: paths inside the archive; each installs into dest's directory under its base name. */
+	/**
+	 * archive: paths inside the archive; each installs into dest's directory under its base name. A * in the base name
+	 * stands for a version (ipatool-*-linux-amd64), and that bin installs under dest's name; one such bin per table.
+	 */
 	bins?: string[];
+	/**
+	 * archive: a folder under home the whole archive unpacks into (inside its one top folder, when it has one), for a
+	 * program that needs the files around it. bins are then paths inside it, each linked from dest's directory.
+	 */
+	folder?: string;
 	/** Arguments after dest for the version probe. Default ["--version"]. */
 	version_args?: string[];
 	/** appimage: a metainfo or .desktop path inside the image, read instead of running a probe. */
 	meta_path?: string;
+	/**
+	 * A release kind, false: dest is never run to ask its version, for a program that starts its window or names no version when asked.
+	 * The version is the one Upkeep installed there, kept while the file is unchanged; a copy put there some other way is
+	 * offered the latest, since installing it is what makes the version known.
+	 */
+	probe?: boolean;
 	/** Install with sudo. */
 	sudo?: boolean;
 	/** source: shell steps run in dir (or the clone, or stage), in order. {dir}, {stage}, {tag}, {version} and {needs} are filled in. */

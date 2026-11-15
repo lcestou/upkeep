@@ -1,0 +1,8 @@
+[apps.d2]
+name = "d2"
+kind = "archive"
+repo = "d2lang/d2"
+asset = '^d2-v[0-9.]+-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^d2-v[0-9.]+-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/d2"
+bins = ["d2"]

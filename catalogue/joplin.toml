@@ -1,0 +1,10 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.joplin]
+name = "Joplin"
+kind = "appimage"
+repo = "laurent22/joplin"
+asset = '^Joplin-[0-9.]+\.AppImage$'
+dest = "~/.local/bin/joplin.AppImage"
+meta_path = "appimagekit-joplin.desktop"
+process = "joplin"
+relaunch = true

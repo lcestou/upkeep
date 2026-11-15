@@ -1,0 +1,8 @@
+[apps.bandwhich]
+name = "bandwhich"
+kind = "archive"
+repo = "imsnif/bandwhich"
+asset = '^bandwhich-v[0-9.]+-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^bandwhich-v[0-9.]+-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/bandwhich"
+bins = ["bandwhich"]

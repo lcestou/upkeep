@@ -1,0 +1,10 @@
+# The release build answers --version with "dev": Upkeep reads the version it installed.
+[apps.gron]
+name = "gron"
+kind = "archive"
+repo = "tomnomnom/gron"
+asset = '^gron-linux-amd64-[0-9.]+\.tgz$'
+asset_aarch64 = '^gron-linux-arm64-[0-9.]+\.tgz$'
+dest = "~/.local/bin/gron"
+bins = ["gron"]
+probe = false
