@@ -20,6 +20,8 @@ const FIELDS = new Set<keyof AppSpec>([
 	"meta_path",
 	// probe = false only takes a run away: the installed program is never started to ask its version.
 	"probe",
+	// folder only writes the archive's own files, into one folder of its own under home.
+	"folder",
 	"process",
 	"note",
 	"sudo",
@@ -51,6 +53,9 @@ test("every catalogue table keeps to what a catalogue app may do", () => {
 		if (a.kind === "manual") broken.push(`${a.key}: kind ${a.kind}`);
 		if (a.sudo && !isPackage(a.kind) && a.kind !== "source" && !a.dest?.startsWith("/"))
 			broken.push(`${a.key}: sudo for an install inside home`);
+		// One level below a folder in home, so an install never swaps out ~/.local or ~/.config itself.
+		if (a.folder !== undefined && (a.sudo || !/^~\/[^/]+\/[^/]+\/[^/]+$/.test(a.folder)))
+			broken.push(`${a.key}: folder ${a.folder}`);
 		for (const [f, c] of commands(a)) if (DANGER.test(c)) broken.push(`${a.key}: ${f} runs ${c}`);
 		if (a.restart && !RESTART.test(a.restart.join(" "))) broken.push(`${a.key}: restart runs ${a.restart.join(" ")}`);
 		// A json: or links: source names the download itself, so it is fetched over https only.

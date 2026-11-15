@@ -785,3 +785,80 @@ test("install: a tarball whose decompressor is missing says which program to ins
 	});
 	expect(readFileSync(join(t.paths.home, ".local/bin/uv"), "utf8")).toContain("uv 0.9.1");
 });
+
+/** A program that needs its lib/ folder beside it: it prints its version only while ../lib/version is there. */
+const kittyBody =
+	'here=$(dirname "$(readlink -f "$0")"); cat "$here/../lib/version" 2>/dev/null || { echo "kitty: error while loading shared libraries: libkitty.so: cannot open shared object file" >&2; exit 127; }';
+
+async function kittyTarball(version: string, top = "kitty-x"): Promise<Uint8Array<ArrayBuffer>> {
+	const src = join(t.dir, `kittysrc-${version}`);
+	script(join(src, top, "bin/kitty"), kittyBody);
+	script(join(src, top, "bin/kitten"), 'echo "kitten"');
+	mkdirSync(join(src, top, "lib"), { recursive: true });
+	writeFileSync(join(src, top, "lib/version"), `kitty ${version}\n`);
+	const out = join(t.dir, `kitty-${version}.tar.gz`);
+	const r = await realRun(t.paths)(["tar", "czf", out, "-C", src, "."]);
+	if (r.code !== 0) throw new Error(r.stderr);
+	return new Uint8Array(readFileSync(out));
+}
+
+const kitty = (): AppSpec => ({
+	key: "kitty",
+	name: "kitty",
+	kind: "archive",
+	repo: "kovidgoyal/kitty",
+	asset: "x86_64\\.tar\\.gz$",
+	dest: "~/.local/bin/kitty",
+	folder: "~/.local/share/kitty",
+	bins: ["bin/kitty", "bin/kitten"],
+	install_if_missing: true,
+});
+
+test("a folder app unpacks whole into its folder, links its bins, updates with a point and rolls back a broken one", async () => {
+	const folder = join(t.paths.home, ".local/share/kitty");
+	const link = join(t.paths.home, ".local/bin/kitty");
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const c = ctx();
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({
+		result: "done",
+		installed: "0.44.0",
+	});
+	// The archive's one top folder is the folder; each bin is a link into it.
+	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.44.0\n");
+	expect(lstatSync(link).isSymbolicLink()).toBe(true);
+	expect(readFileSync(join(t.paths.home, ".local/bin/kitten"), "utf8")).toContain("kitten");
+	// The next release swaps the whole folder; the point keeps the old folder and the links as links.
+	publish("0.45.0", { "kitty-0.45.0-x86_64.tar.gz": await kittyTarball("0.45.0") });
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({
+		result: "done",
+		installed: "0.45.0",
+	});
+	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.45.0\n");
+	expect(readFileSync(join(t.paths.data, "backups/kitty/0.44.0/kitty/lib/version"), "utf8")).toBe("kitty 0.44.0\n");
+	expect(existsSync(`${folder}.upkeep-old`)).toBe(false);
+	// A release whose program cannot start without a lib/ it lacks goes back to the point, folder and all.
+	const broken = join(t.dir, "brokensrc");
+	script(join(broken, "bin/kitty"), kittyBody);
+	script(join(broken, "bin/kitten"), "true");
+	const out = join(t.dir, "broken.tar.gz");
+	await realRun(t.paths)(["tar", "czf", out, "-C", broken, "."]);
+	publish("0.46.0", { "kitty-0.46.0-x86_64.tar.gz": new Uint8Array(readFileSync(out)) });
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({
+		result: "rolled_back",
+		installed: "0.45.0",
+	});
+	expect(readFileSync(join(folder, "lib/version"), "utf8")).toBe("kitty 0.45.0\n");
+	expect(lstatSync(link).isSymbolicLink()).toBe(true);
+});
+
+test("a folder app whose archive lacks a bin changes nothing", async () => {
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const spec = { ...kitty(), bins: ["bin/kitty", "bin/missing"] };
+	const c = ctx();
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		detail: expect.stringContaining("missing"),
+	});
+	expect(existsSync(join(t.paths.home, ".local/share/kitty"))).toBe(false);
+	expect(existsSync(join(t.paths.home, ".local/bin/kitty"))).toBe(false);
+});

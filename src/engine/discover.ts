@@ -973,7 +973,7 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 		if (!s.dest) continue;
 		const dest = expandHome(s.dest, home);
 		listed.add(dest);
-		for (const f of installedFiles(s, dest)) listed.add(f);
+		for (const f of installedFiles(s, dest, home)) listed.add(f);
 	}
 	const files: string[] = [];
 	for (const dir of [".local/bin", "Applications", "bin"]) {
@@ -1002,7 +1002,7 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 	for (const e of ctx.catalogue ?? []) {
 		const dest = e.dest ? expandHome(e.dest, home) : "";
 		if (!found.has(dest)) continue;
-		for (const f of installedFiles(e, dest)) bundled.add(f);
+		for (const f of installedFiles(e, dest, home)) bundled.add(f);
 		bundled.delete(dest);
 	}
 	files.splice(0, files.length, ...files.filter((f) => !bundled.has(f)));

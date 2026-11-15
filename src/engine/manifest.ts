@@ -24,6 +24,7 @@ const STRING_FIELDS = [
 	"asset_aarch64",
 	"dest",
 	"meta_path",
+	"folder",
 	"latest",
 	"run",
 	"process",

@@ -12,7 +12,7 @@ import {
 import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
-import { prune, restoreBackup, takeBackup, takePoint } from "../backup";
+import { prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
 import { download, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { forgeRelease, linksRelease } from "../forge";
@@ -50,10 +50,11 @@ export function destOf(spec: AppSpec, ctx: Pick<KindCtx, "paths">): string {
 	return expandHome(spec.dest ?? "", ctx.paths.home);
 }
 
-/** Every file an install of this app writes: the dest itself, or each of an archive's bins beside it. */
-export function installedFiles(spec: AppSpec, dest: string): string[] {
+/** Every file an install of this app writes: the dest itself, or each of an archive's bins beside it, after a folder app's folder. */
+export function installedFiles(spec: AppSpec, dest: string, home: string): string[] {
 	if (spec.kind !== "archive") return [dest];
-	return (spec.bins ?? []).map((b) => join(dirname(dest), binName(b, dest)));
+	const bins = (spec.bins ?? []).map((b) => join(dirname(dest), binName(b, dest)));
+	return spec.folder ? [expandHome(spec.folder, home), ...bins] : bins;
 }
 
 /** The name a bin installs under: its base name, or dest's for one with a * in it (ipatool-*-linux-amd64 is ipatool). */
@@ -204,6 +205,30 @@ function findFile(dir: string, matches: (name: string) => boolean): string | nul
 	return null;
 }
 
+/** A test for a bin path: whether dir holds it as a regular file. */
+const holds = (dir: string) => (b: string) => existsSync(join(dir, b)) && statSync(join(dir, b)).isFile();
+
+/**
+ * A folder app: what the archive holds becomes the table's folder, swapped in by rename, and each bin, a path inside
+ * it, is linked from dest's directory under its base name. The bins are looked for at the archive's root, then inside
+ * its one top folder (kitty-0.44.0/bin/kitty), so an archive holding only bin/ keeps it. A bin missing from the archive
+ * is returned before anything moves; null when all is in place.
+ */
+function placeFolder(spec: AppSpec, dest: string, extract: string, ctx: KindCtx): string | null {
+	const bins = spec.bins ?? [];
+	const entries = readdirSync(extract);
+	const only = entries.length === 1 ? join(extract, entries[0] ?? "") : "";
+	const top = bins.every(holds(extract)) || !only || !statSync(only).isDirectory() ? extract : only;
+	const absent = bins.find((b) => !holds(top)(b));
+	if (absent) return basename(absent);
+	const folder = expandHome(spec.folder ?? "", ctx.paths.home);
+	swapFolder(top, folder, ctx.paths);
+	mkdirSync(dirname(dest), { recursive: true });
+	for (const b of bins) relink(join(folder, b), join(dirname(dest), basename(b)));
+	ctx.log(`Unpacked into ${folder}, linked ${bins.map((b) => basename(b)).join(", ")}`);
+	return null;
+}
+
 /** A stage of an install that failed with a message fit to show the person; anything else thrown is unexpected and rethrown. */
 class StepError extends Error {}
 
@@ -220,14 +245,14 @@ function resolved(p: string): string {
 export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const asset = target.asset;
 	if (!asset) throw new Error(MESSAGES.noReleaseAssetFor(spec.name));
-	// A symlinked dest is updated through the link, never replaced by a regular file.
-	const dest = resolved(destOf(spec, ctx));
+	// A symlinked dest is updated through the link, never replaced by a regular file. A folder app's dest is its own link.
+	const dest = spec.folder ? destOf(spec, ctx) : resolved(destOf(spec, ctx));
 	const clock = stageClock(ctx);
 	const dl = join(ctx.paths.cache, "dl", `${spec.key}-${asset.name}`);
 	const extract = join(ctx.paths.cache, "dl", `${spec.key}-x`);
 	const restorable = canRestore(spec);
 	const bins = spec.kind === "archive" ? (spec.bins ?? []) : [];
-	const targets = installedFiles(spec, dest);
+	const targets = installedFiles(spec, dest, ctx.paths.home);
 	let backupVersion: string | null = null;
 	const finish = (o: Omit<Outcome, "stages">): Outcome => ({ ...o, stages: clock.stop() });
 	try {
@@ -272,7 +297,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		}
 
 		const existed = new Set(targets.filter((f) => existsSync(f)));
-		const running = isRunning({ ...spec, dest }, ctx.procRoot);
+		const running = isRunning({ ...spec, dest: resolved(dest) }, ctx.procRoot);
 		writeInflight(ctx.paths, { key: spec.key, dest, backupVersion, files: targets });
 		clock.start("install");
 		if (spec.kind === "appimage" || spec.kind === "file") {
@@ -300,9 +325,21 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 					["tar", "xf", dl, "-C", extract];
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
 			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x));
+			if (spec.folder) {
+				const missing = placeFolder(spec, dest, extract, ctx);
+				if (missing) {
+					const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
+					const detail = back?.ok
+						? MESSAGES.couldNotInstallRestored(missing, String(backupVersion))
+						: back
+							? MESSAGES.couldNotInstallRestoreFailed(missing, back.detail ?? "")
+							: MESSAGES.couldNotInstallNoPoint(missing);
+					return finish({ result: "failed", installed: target.from, detail, restartToApply: false });
+				}
+			}
 			// A bin this run added has no restore point, so a failure takes it out again.
 			const added: string[] = [];
-			for (const bin of bins) {
+			for (const bin of spec.folder ? [] : bins) {
 				const name = binName(bin, dest);
 				const to = join(dirname(dest), name);
 				const direct = join(extract, bin);

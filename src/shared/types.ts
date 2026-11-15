@@ -34,6 +34,11 @@ export type AppSpec = {
 	 * stands for a version (ipatool-*-linux-amd64), and that bin installs under dest's name; one such bin per table.
 	 */
 	bins?: string[];
+	/**
+	 * archive: a folder under home the whole archive unpacks into (inside its one top folder, when it has one), for a
+	 * program that needs the files around it. bins are then paths inside it, each linked from dest's directory.
+	 */
+	folder?: string;
 	/** Arguments after dest for the version probe. Default ["--version"]. */
 	version_args?: string[];
 	/** appimage: a metainfo or .desktop path inside the image, read instead of running a probe. */

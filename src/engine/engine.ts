@@ -293,7 +293,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const spec = specs.find((s) => s.key === leftover.key);
 		// Only files beside dest: the marker is a file on disk, and recovery touches nothing anywhere else.
 		const beside = leftover.files?.filter((f) => dirname(resolve(f)) === dirname(resolve(leftover.dest)));
-		const files = beside?.length ? beside : spec ? installedFiles(spec, leftover.dest) : [leftover.dest];
+		const files = beside?.length ? beside : spec ? installedFiles(spec, leftover.dest, paths.home) : [leftover.dest];
 		for (const f of new Set([leftover.dest, ...files]))
 			try {
 				rmSync(`${f}.upkeep-new`, { force: true });
@@ -854,7 +854,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					const command = spec.restore.map((a) => fill(a, { version: current ?? "", tag }));
 					takePoint(paths, spec, current, { command, tag }, deps.now().toISOString());
 				} else if (canRestore(spec) && current && current !== version && !isPackage(spec.kind)) {
-					const files = installedFiles(spec, destOf(spec, { paths })).filter((f) => existsSync(f));
+					const files = installedFiles(spec, destOf(spec, { paths }), paths.home).filter((f) => existsSync(f));
 					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString());
 				}
 				const r = await restoreBackup(paths, spec, version, deps.run);
