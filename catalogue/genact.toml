@@ -1,0 +1,7 @@
+[apps.genact]
+name = "genact"
+kind = "file"
+repo = "svenstaro/genact"
+asset = '^genact-[0-9.]+-x86_64-unknown-linux-gnu$'
+asset_aarch64 = '^genact-[0-9.]+-aarch64-unknown-linux-gnu$'
+dest = "~/.local/bin/genact"

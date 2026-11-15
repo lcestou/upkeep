@@ -979,6 +979,22 @@
 			"fzf_0.75.0_s390x.deb"
 		]
 	},
+	"genact": {
+		"repo": "svenstaro/genact",
+		"tag": "v1.6.0",
+		"assets": [
+			"genact-1.6.0-aarch64-unknown-linux-gnu",
+			"genact-1.6.0-aarch64-unknown-linux-musl",
+			"genact-1.6.0-arm-unknown-linux-musleabihf",
+			"genact-1.6.0-armv7-unknown-linux-gnueabihf",
+			"genact-1.6.0-armv7-unknown-linux-musleabihf",
+			"genact-1.6.0-x86_64-apple-darwin",
+			"genact-1.6.0-x86_64-pc-windows-msvc.exe",
+			"genact-1.6.0-x86_64-unknown-freebsd",
+			"genact-1.6.0-x86_64-unknown-linux-gnu",
+			"genact-1.6.0-x86_64-unknown-linux-musl"
+		]
+	},
 	"gh": {
 		"repo": "cli/cli",
 		"tag": "v2.104.0",
