@@ -2556,6 +2556,23 @@
 			"_update_spec"
 		]
 	},
+	"zeal": {
+		"repo": "zealdocs/zeal",
+		"tag": "v0.9.2",
+		"assets": [
+			"zeal-0.9.2-portable-windows-arm64.7z",
+			"zeal-0.9.2-portable-windows-arm64.zip",
+			"zeal-0.9.2-portable-windows-x64.7z",
+			"zeal-0.9.2-portable-windows-x64.zip",
+			"zeal-0.9.2-windows-arm64.msi",
+			"zeal-0.9.2-windows-x64.msi",
+			"Zeal-0.9.2-x86_64.AppImage",
+			"Zeal-0.9.2-x86_64.AppImage.zsync",
+			"zeal-0.9.2.tar.gz",
+			"zeal-0.9.2.tar.xz",
+			"zeal-0.9.2.zip"
+		]
+	},
 	"zellij": {
 		"repo": "zellij-org/zellij",
 		"tag": "v0.46.0",

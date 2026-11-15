@@ -17,7 +17,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/platform-Linux-f4d340?style=flat&labelColor=0d3324&logo=linux&logoColor=white" alt="Linux" />
   <img src="https://img.shields.io/badge/arch-x86__64%20%C2%B7%20aarch64-f4d340?style=flat&labelColor=0d3324" alt="x86_64 and aarch64" />
-  <img src="https://img.shields.io/badge/catalogue-105%20apps-f4d340?style=flat&labelColor=0d3324" alt="105 apps in the catalogue" />
+  <img src="https://img.shields.io/badge/catalogue-106%20apps-f4d340?style=flat&labelColor=0d3324" alt="106 apps in the catalogue" />
   <img src="https://img.shields.io/badge/languages-10-f4d340?style=flat&labelColor=0d3324" alt="10 languages" />
   <img src="https://img.shields.io/badge/license-GPL--3.0-f4d340?style=flat&labelColor=0d3324" alt="GPL-3.0 or later" />
 </p>
@@ -41,7 +41,7 @@ Your distro's updater keeps its own packages current. Everything you installed y
 
 - **One list, one decision.** Every app is checked together. Tick what you want, press Install and walk away: nothing asks a question once the run starts, and each row shows its own step and progress.
 - **A way back.** The version an update replaces is kept as a restore point. An update that will not start is rolled back on the spot, and any restore point can be put back later from the app's pane.
-- **It works out the details.** Type an app's name, paste a repo or a link, drop a file, or scan the computer. Upkeep finds the release file that fits this machine, where the app is installed and which version you have. 105 apps come ready-made in its catalogue.
+- **It works out the details.** Type an app's name, paste a repo or a link, drop a file, or scan the computer. Upkeep finds the release file that fits this machine, where the app is installed and which version you have. 106 apps come ready-made in its catalogue.
 - **It knows where apps come from.** Releases on GitHub, GitLab, Codeberg and self-hosted Gitea or Forgejo, plain download pages, and tools installed with uv, pipx, npm or cargo.
 - **Quiet.** It sits in the tray, can start at login, and shows one count and one notification. No app installs on its own until you mark it automatic.
 - **Extras you switch on.** The system's own updates in the same list (Flatpak, Snap, Cinnamon spices, and packages from Linux Mint's Update Manager, apt, dnf, pacman or zypper) and a Cleanup tab for caches and leftovers. Both are off until you turn them on.
