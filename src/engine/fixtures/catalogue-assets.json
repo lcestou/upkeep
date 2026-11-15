@@ -605,6 +605,18 @@
 			"dust-v1.2.7-x86_64-unknown-linux-musl.tar.gz"
 		]
 	},
+	"espanso": {
+		"repo": "espanso/espanso",
+		"tag": "v2.4.1",
+		"assets": [
+			"espanso-debian-wayland-amd64.deb",
+			"espanso-debian-x11-amd64.deb",
+			"Espanso-Mac-Universal.dmg",
+			"Espanso-Win-Installer-x86_64.exe",
+			"Espanso-Win-Portable-x86_64.zip",
+			"Espanso-X11.AppImage"
+		]
+	},
 	"eza": {
 		"repo": "eza-community/eza",
 		"tag": "v0.23.5",
