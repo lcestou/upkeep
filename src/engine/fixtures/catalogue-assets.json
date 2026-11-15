@@ -1887,6 +1887,34 @@
 			"starship-x86_64-unknown-linux-musl.tar.gz.sha256"
 		]
 	},
+	"super-productivity": {
+		"repo": "super-productivity/super-productivity",
+		"tag": "v20.0.0",
+		"assets": [
+			"app-play-release.apk",
+			"latest-linux.yml",
+			"latest-mac.yml",
+			"latest.yml",
+			"Super-Productivity-Setup-arm64.exe",
+			"Super-Productivity-Setup-x64.exe",
+			"Super-Productivity-Setup.exe",
+			"Super-Productivity-Setup.exe.blockmap",
+			"super-productivity.mcpb",
+			"superProductivity-amd64.deb",
+			"superProductivity-amd64.snap",
+			"superProductivity-arm64.dmg",
+			"superProductivity-arm64.dmg.blockmap",
+			"superProductivity-arm64.exe",
+			"superProductivity-universal.dmg",
+			"superProductivity-universal.dmg.blockmap",
+			"superProductivity-x64.dmg",
+			"superProductivity-x64.dmg.blockmap",
+			"superProductivity-x64.exe",
+			"superProductivity-x86_64.AppImage",
+			"superProductivity-x86_64.rpm",
+			"superProductivity.exe"
+		]
+	},
 	"superfile": {
 		"repo": "yorukot/superfile",
 		"tag": "v1.6.0",
