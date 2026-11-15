@@ -1,0 +1,8 @@
+# Drafted from astefanutti/kubebox's v0.10.0 release; its version is the one Upkeep installed.
+[apps.kubebox]
+name = "kubebox"
+kind = "file"
+repo = "astefanutti/kubebox"
+asset = '^kubebox-arm$'
+dest = "~/.local/bin/kubebox"
+probe = false

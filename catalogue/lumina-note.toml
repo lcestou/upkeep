@@ -1,0 +1,8 @@
+# Drafted from blueberrycongee/Lumina-Note's v1.4.11 release; its version is the one Upkeep installed.
+[apps.lumina-note]
+name = "Lumina-Note"
+kind = "appimage"
+repo = "blueberrycongee/Lumina-Note"
+asset = '^Lumina-Note-.*\.AppImage$'
+dest = "~/.local/bin/lumina-note.AppImage"
+probe = false

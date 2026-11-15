@@ -1,0 +1,10 @@
+# Drafted from bluetuith-org/bluetuith's v0.2.7 release; its version is the one Upkeep installed.
+[apps.bluetuith]
+name = "bluetuith"
+kind = "archive"
+repo = "bluetuith-org/bluetuith"
+asset = '^bluetuith_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^bluetuith_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/bluetuith"
+bins = ["bluetuith"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from hellux/jotdown's 0.10.0 release; its version is the one Upkeep installed.
+[apps.jotdown]
+name = "jotdown"
+kind = "archive"
+repo = "hellux/jotdown"
+asset = '^jotdown-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/jotdown"
+bins = ["jotdown-0.10.0-x86_64-unknown-linux-gnu/jotdown"]
+probe = false

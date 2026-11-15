@@ -1,0 +1,9 @@
+# Drafted from houseabsolute/ubi's v0.13.0 release; its version is the one Upkeep installed.
+[apps.ubi]
+name = "ubi"
+kind = "archive"
+repo = "houseabsolute/ubi"
+asset = '^ubi-Linux-gnu-powerpc\.tar\.gz$'
+dest = "~/.local/bin/ubi"
+bins = ["ubi"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from chaqchase/lla's v0.6.6 release; its version is the one Upkeep installed.
+[apps.lla]
+name = "lla"
+kind = "file"
+repo = "chaqchase/lla"
+asset = '^lla-linux-amd64$'
+asset_aarch64 = '^lla-linux-arm64$'
+dest = "~/.local/bin/lla"
+probe = false

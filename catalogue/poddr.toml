@@ -1,0 +1,8 @@
+# Drafted from Sn8z/Poddr's v2.1.0 release; its version is the one Upkeep installed.
+[apps.poddr]
+name = "Poddr"
+kind = "appimage"
+repo = "Sn8z/Poddr"
+asset = '^Poddr-.*\.AppImage$'
+dest = "~/.local/bin/poddr.AppImage"
+probe = false

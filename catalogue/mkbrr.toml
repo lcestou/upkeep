@@ -1,0 +1,10 @@
+# Drafted from autobrr/mkbrr's v1.27.0 release; its version is the one Upkeep installed.
+[apps.mkbrr]
+name = "mkbrr"
+kind = "archive"
+repo = "autobrr/mkbrr"
+asset = '^mkbrr_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^mkbrr_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/mkbrr"
+bins = ["mkbrr"]
+probe = false

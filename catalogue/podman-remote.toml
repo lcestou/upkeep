@@ -1,0 +1,10 @@
+# Drafted from podman-container-tools/podman's v6.2.0 release; its version is the one Upkeep installed.
+[apps.podman-remote]
+name = "podman"
+kind = "archive"
+repo = "podman-container-tools/podman"
+asset = '^podman-remote-static-linux_amd64\.tar\.gz$'
+asset_aarch64 = '^podman-remote-static-linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/podman-remote"
+bins = ["podman-remote*"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from sn4k3/NetSonar's 0.6.0 release; its version is the one Upkeep installed.
+[apps.netsonar]
+name = "NetSonar"
+kind = "appimage"
+repo = "sn4k3/NetSonar"
+asset = '^NetSonar_linux-x64_.*\.AppImage$'
+asset_aarch64 = '^NetSonar_linux-arm64_.*\.AppImage$'
+dest = "~/.local/bin/netsonar.AppImage"
+probe = false

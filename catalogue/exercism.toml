@@ -1,0 +1,10 @@
+# Drafted from exercism/cli's v3.5.9 release; its version is the one Upkeep installed.
+[apps.exercism]
+name = "exercism"
+kind = "archive"
+repo = "exercism/cli"
+asset = '^exercism-.*-linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^exercism-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/exercism"
+bins = ["exercism"]
+probe = false

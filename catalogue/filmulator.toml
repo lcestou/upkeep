@@ -1,0 +1,8 @@
+# Drafted from CarVac/filmulator-gui's v0.12.0 release; its version is the one Upkeep installed.
+[apps.filmulator]
+name = "Filmulator"
+kind = "appimage"
+repo = "CarVac/filmulator-gui"
+asset = '^Filmulator-x86_64\.AppImage$'
+dest = "~/.local/bin/filmulator.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from brndnmtthws/conky's v1.26.0 release; its version is the one Upkeep installed.
+[apps.conky]
+name = "conky"
+kind = "appimage"
+repo = "brndnmtthws/conky"
+asset = '^conky-x86_64-.*\.AppImage$'
+asset_aarch64 = '^conky-aarch64-.*\.AppImage$'
+dest = "~/.local/bin/conky.AppImage"
+probe = false

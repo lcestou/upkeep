@@ -1,0 +1,8 @@
+# Drafted from buddhi1980/mandelbulber2's 2.34 release; its version is the one Upkeep installed.
+[apps.mandelbulber]
+name = "Mandelbulber"
+kind = "appimage"
+repo = "buddhi1980/mandelbulber2"
+asset = '^Mandelbulber_v2-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/mandelbulber.AppImage"
+probe = false

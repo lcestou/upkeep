@@ -1,0 +1,8 @@
+# Drafted from thtbee/nectarlink's v0.1.5 release; its version is the one Upkeep installed.
+[apps.nectarlink]
+name = "Nectarlink"
+kind = "appimage"
+repo = "thtbee/nectarlink"
+asset = '^Nectarlink-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/nectarlink.AppImage"
+probe = false

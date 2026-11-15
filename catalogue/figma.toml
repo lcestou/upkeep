@@ -1,0 +1,9 @@
+# Drafted from Figma-Linux/figma-linux's v0.11.5 release; its version is the one Upkeep installed.
+[apps.figma]
+name = "Figma Linux"
+kind = "appimage"
+repo = "Figma-Linux/figma-linux"
+asset = '^figma-linux_.*_linux_x86_64\.AppImage$'
+asset_aarch64 = '^figma-linux_.*_linux_arm64\.AppImage$'
+dest = "~/.local/bin/figma.AppImage"
+probe = false

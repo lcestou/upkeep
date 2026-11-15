@@ -1,0 +1,8 @@
+# Drafted from rssh-org/rssh's v1.0.12 release; its version is the one Upkeep installed.
+[apps.rssh]
+name = "rssh"
+kind = "appimage"
+repo = "rssh-org/rssh"
+asset = '^rssh-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/rssh.AppImage"
+probe = false

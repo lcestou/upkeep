@@ -1,0 +1,10 @@
+# Drafted from cloudflare/pint's v0.90.0 release; its version is the one Upkeep installed.
+[apps.pint]
+name = "pint"
+kind = "archive"
+repo = "cloudflare/pint"
+asset = '^pint-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^pint-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/pint"
+bins = ["pint*"]
+probe = false

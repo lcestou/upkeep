@@ -1,0 +1,8 @@
+# Drafted from sun-jiao/flut-renamer's v1.6.3 release; its version is the one Upkeep installed.
+[apps.flut-renamer]
+name = "Flut-Renamer"
+kind = "appimage"
+repo = "sun-jiao/flut-renamer"
+asset = '^Flut_Renamer-x86_64\.AppImage$'
+dest = "~/.local/bin/flut-renamer.AppImage"
+probe = false

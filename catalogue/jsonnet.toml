@@ -1,0 +1,10 @@
+# Drafted from google/go-jsonnet's v0.22.0 release; its version is the one Upkeep installed.
+[apps.jsonnet]
+name = "Go Jsonnet"
+kind = "archive"
+repo = "google/go-jsonnet"
+asset = '^go-jsonnet_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^go-jsonnet_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/jsonnet"
+bins = ["jsonnet", "jsonnet-deps", "jsonnet-lint", "jsonnetfmt"]
+probe = false

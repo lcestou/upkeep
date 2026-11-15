@@ -1,0 +1,8 @@
+# Drafted from noahapp/noah-for-tinkerers's v2.0.0 release; its version is the one Upkeep installed.
+[apps.noah]
+name = "Noah-for-Tinkerers"
+kind = "appimage"
+repo = "noahapp/noah-for-tinkerers"
+asset = '^Noah\.for\.Tinkerers_.*_amd64\.AppImage$'
+dest = "~/.local/bin/noah.AppImage"
+probe = false

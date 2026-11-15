@@ -1,0 +1,9 @@
+# Drafted from iammodev/YAKC's v2.8.1 release; its version is the one Upkeep installed.
+[apps.yakc]
+name = "YAKC"
+kind = "appimage"
+repo = "iammodev/YAKC"
+asset = '^YAKC_.*_amd64\.AppImage$'
+asset_aarch64 = '^YAKC_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/yakc.AppImage"
+probe = false

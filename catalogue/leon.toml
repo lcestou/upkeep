@@ -1,0 +1,8 @@
+# Drafted from leon-cleaning-services/leon's v74.0.0 release; its version is the one Upkeep installed.
+[apps.leon]
+name = "Leon"
+kind = "appimage"
+repo = "leon-cleaning-services/leon"
+asset = '^Leon-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/leon.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from kubernetes-sigs/headlamp's v0.46.0 release; its version is the one Upkeep installed.
+[apps.headlamp]
+name = "Headlamp"
+kind = "appimage"
+repo = "kubernetes-sigs/headlamp"
+asset = '^Headlamp-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^Headlamp-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/headlamp.AppImage"
+probe = false

@@ -1,0 +1,11 @@
+# Drafted from jonaslu/ain's v1.6.0 release; its version is the one Upkeep installed.
+[apps.ain]
+name = "ain"
+kind = "archive"
+repo = "jonaslu/ain"
+asset = '^ain_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^ain_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ain"
+folder = "~/.local/share/ain"
+bins = ["ain"]
+probe = false

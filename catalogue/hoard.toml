@@ -1,0 +1,9 @@
+# Drafted from rleeon/hoard's v1.3.0 release; its version is the one Upkeep installed.
+[apps.hoard]
+name = "hoard"
+kind = "appimage"
+repo = "rleeon/hoard"
+asset = '^hoard-desktop-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^hoard-desktop-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/hoard.AppImage"
+probe = false

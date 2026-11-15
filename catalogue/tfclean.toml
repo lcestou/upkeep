@@ -1,0 +1,10 @@
+# Drafted from takaishi/tfclean's v0.0.20 release; its version is the one Upkeep installed.
+[apps.tfclean]
+name = "tfclean"
+kind = "archive"
+repo = "takaishi/tfclean"
+asset = '^tfclean_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^tfclean_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tfclean"
+bins = ["tfclean"]
+probe = false

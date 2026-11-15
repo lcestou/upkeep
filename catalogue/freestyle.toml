@@ -1,0 +1,8 @@
+# Drafted from freestyle-voice/freestyle's 0.9.5 release; its version is the one Upkeep installed.
+[apps.freestyle]
+name = "Freestyle"
+kind = "appimage"
+repo = "freestyle-voice/freestyle"
+asset = '^Freestyle-.*\.AppImage$'
+dest = "~/.local/bin/freestyle.AppImage"
+probe = false

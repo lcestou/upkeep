@@ -1,0 +1,8 @@
+# Drafted from Gianluca-Improta/cinekive's v0.6.0 release; its version is the one Upkeep installed.
+[apps.cinekive]
+name = "Cinekive"
+kind = "appimage"
+repo = "Gianluca-Improta/cinekive"
+asset = '^Cinekive-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/cinekive.AppImage"
+probe = false

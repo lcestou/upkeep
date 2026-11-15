@@ -1,0 +1,8 @@
+# Drafted from nanbingxyz/5ire's v0.15.4 release; its version is the one Upkeep installed.
+[apps.5ire]
+name = "5ire"
+kind = "appimage"
+repo = "nanbingxyz/5ire"
+asset = '^5ire-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/5ire.AppImage"
+probe = false

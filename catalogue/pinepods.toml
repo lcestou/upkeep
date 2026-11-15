@@ -1,0 +1,9 @@
+# Drafted from madeofpendletonwool/PinePods's 0.9.2 release; its version is the one Upkeep installed.
+[apps.pinepods]
+name = "Pinepods"
+kind = "appimage"
+repo = "madeofpendletonwool/PinePods"
+asset = '^Pinepods_.*_amd64\.AppImage$'
+asset_aarch64 = '^Pinepods_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/pinepods.AppImage"
+probe = false

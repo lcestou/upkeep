@@ -1,0 +1,10 @@
+# Drafted from longbridge/longbridge-terminal's v0.31.2 release; its version is the one Upkeep installed.
+[apps.longbridge]
+name = "Longbridge Terminal"
+kind = "archive"
+repo = "longbridge/longbridge-terminal"
+asset = '^longbridge-terminal-linux-musl-amd64\.tar\.gz$'
+asset_aarch64 = '^longbridge-terminal-linux-musl-arm64\.tar\.gz$'
+dest = "~/.local/bin/longbridge"
+bins = ["longbridge"]
+probe = false

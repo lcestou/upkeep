@@ -1,0 +1,8 @@
+# Drafted from songloft-org/songloft-player's v2.13.10 release; its version is the one Upkeep installed.
+[apps.songloft]
+name = "Songloft Player"
+kind = "appimage"
+repo = "songloft-org/songloft-player"
+asset = '^songloft-linux-x64\.AppImage$'
+dest = "~/.local/bin/songloft.AppImage"
+probe = false

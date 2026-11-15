@@ -1,0 +1,11 @@
+# Drafted from ip7z/7zip's 26.06 release; its version is the one Upkeep installed.
+[apps.7zz]
+name = "7zip"
+kind = "archive"
+repo = "ip7z/7zip"
+asset = '^7z2606-linux-x64\.tar\.xz$'
+asset_aarch64 = '^7z2606-linux-arm64\.tar\.xz$'
+dest = "~/.local/bin/7zz"
+folder = "~/.local/share/7zz"
+bins = ["7zz", "7zzs"]
+probe = false

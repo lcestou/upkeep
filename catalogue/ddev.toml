@@ -1,0 +1,11 @@
+# Drafted from ddev/ddev's v1.25.5 release; its version is the one Upkeep installed.
+[apps.ddev]
+name = "ddev"
+kind = "archive"
+repo = "ddev/ddev"
+asset = '^ddev_linux-amd64\..*\.tar\.gz$'
+asset_aarch64 = '^ddev_linux-arm64\..*\.tar\.gz$'
+dest = "~/.local/bin/ddev"
+folder = "~/.local/share/ddev"
+bins = ["ddev", "ddev-hostname"]
+probe = false

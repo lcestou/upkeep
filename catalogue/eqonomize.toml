@@ -1,0 +1,8 @@
+# Drafted from Eqonomize/Eqonomize's v1.5.13 release; its version is the one Upkeep installed.
+[apps.eqonomize]
+name = "Eqonomize"
+kind = "appimage"
+repo = "Eqonomize/Eqonomize"
+asset = '^eqonomize-.*\.AppImage$'
+dest = "~/.local/bin/eqonomize.AppImage"
+probe = false

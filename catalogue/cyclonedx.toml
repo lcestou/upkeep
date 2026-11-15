@@ -1,0 +1,9 @@
+# Drafted from CycloneDX/cyclonedx-cli's v0.33.1 release; its version is the one Upkeep installed.
+[apps.cyclonedx]
+name = "Cyclonedx Cli"
+kind = "file"
+repo = "CycloneDX/cyclonedx-cli"
+asset = '^cyclonedx-linux-x64$'
+asset_aarch64 = '^cyclonedx-linux-arm64$'
+dest = "~/.local/bin/cyclonedx"
+probe = false

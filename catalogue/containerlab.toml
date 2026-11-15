@@ -1,0 +1,11 @@
+# Drafted from srl-labs/containerlab's v0.83.0 release; its version is the one Upkeep installed.
+[apps.containerlab]
+name = "containerlab"
+kind = "archive"
+repo = "srl-labs/containerlab"
+asset = '^containerlab_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^containerlab_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/containerlab"
+folder = "~/.local/share/containerlab"
+bins = ["containerlab"]
+probe = false

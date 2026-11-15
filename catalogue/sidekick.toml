@@ -1,0 +1,8 @@
+# Drafted from Sidekick-Poe/Sidekick's v2026.11.4 release; its version is the one Upkeep installed.
+[apps.sidekick]
+name = "Sidekick"
+kind = "appimage"
+repo = "Sidekick-Poe/Sidekick"
+asset = '^Sidekick-linux-x64\.AppImage$'
+dest = "~/.local/bin/sidekick.AppImage"
+probe = false

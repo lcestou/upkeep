@@ -1,0 +1,8 @@
+# Drafted from InfernalAzazel/ghost-job's v2.4.1 release; its version is the one Upkeep installed.
+[apps.ghost-job]
+name = "Ghost-Job"
+kind = "appimage"
+repo = "InfernalAzazel/ghost-job"
+asset = '^Ghost\.Job_.*_amd64\.AppImage$'
+dest = "~/.local/bin/ghost-job.AppImage"
+probe = false

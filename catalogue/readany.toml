@@ -1,0 +1,8 @@
+# Drafted from codedogQBY/ReadAny's v1.3.6 release; its version is the one Upkeep installed.
+[apps.readany]
+name = "ReadAny"
+kind = "appimage"
+repo = "codedogQBY/ReadAny"
+asset = '^ReadAny_.*_amd64\.AppImage$'
+dest = "~/.local/bin/readany.AppImage"
+probe = false

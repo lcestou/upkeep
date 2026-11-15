@@ -1,0 +1,8 @@
+# Drafted from open-ani/animeko's v6.4.0 release; its version is the one Upkeep installed.
+[apps.ani]
+name = "animeko"
+kind = "appimage"
+repo = "open-ani/animeko"
+asset = '^ani-.*-linux-x86_64\.appimage$'
+dest = "~/.local/bin/ani.AppImage"
+probe = false

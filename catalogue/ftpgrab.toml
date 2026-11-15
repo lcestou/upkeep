@@ -1,0 +1,10 @@
+# Drafted from crazy-max/ftpgrab's v7.14.0 release; its version is the one Upkeep installed.
+[apps.ftpgrab]
+name = "ftpgrab"
+kind = "archive"
+repo = "crazy-max/ftpgrab"
+asset = '^ftpgrab_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ftpgrab_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ftpgrab"
+bins = ["ftpgrab"]
+probe = false

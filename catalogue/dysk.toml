@@ -1,0 +1,10 @@
+# Drafted from Canop/dysk's v3.8.2 release; its version is the one Upkeep installed.
+[apps.dysk]
+name = "dysk"
+kind = "archive"
+repo = "Canop/dysk"
+asset = '^dysk-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^dysk-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/dysk"
+bins = ["dysk-v3.8.2-x86_64-unknown-linux-gnu/dysk"]
+probe = false

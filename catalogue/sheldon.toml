@@ -1,0 +1,10 @@
+# Drafted from rossmacarthur/sheldon's 0.8.5 release; its version is the one Upkeep installed.
+[apps.sheldon]
+name = "sheldon"
+kind = "archive"
+repo = "rossmacarthur/sheldon"
+asset = '^sheldon-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^sheldon-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/sheldon"
+bins = ["sheldon"]
+probe = false

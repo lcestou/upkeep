@@ -1,0 +1,8 @@
+# Drafted from ollm/OpenComic's v2.0.0 release; its version is the one Upkeep installed.
+[apps.opencomic]
+name = "OpenComic"
+kind = "appimage"
+repo = "ollm/OpenComic"
+asset = '^OpenComic-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/opencomic.AppImage"
+probe = false

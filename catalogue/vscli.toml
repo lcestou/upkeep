@@ -1,0 +1,9 @@
+# Drafted from michidk/vscli's v1.3.3 release; its version is the one Upkeep installed.
+[apps.vscli]
+name = "vscli"
+kind = "archive"
+repo = "michidk/vscli"
+asset = '^vscli-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/vscli"
+bins = ["vscli-x86_64-unknown-linux-musl/vscli"]
+probe = false

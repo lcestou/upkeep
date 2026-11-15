@@ -1,0 +1,10 @@
+# Drafted from joerdav/xc's v0.9.0 release; its version is the one Upkeep installed.
+[apps.xc]
+name = "xc"
+kind = "archive"
+repo = "joerdav/xc"
+asset = '^xc_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^xc_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/xc"
+bins = ["xc"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from tree-sitter/tree-sitter's v0.27.2 release; its version is the one Upkeep installed.
+[apps.tree-sitter]
+name = "Tree Sitter"
+kind = "archive"
+repo = "tree-sitter/tree-sitter"
+asset = '^tree-sitter-cli-linux-x64\.zip$'
+asset_aarch64 = '^tree-sitter-cli-linux-arm64\.zip$'
+dest = "~/.local/bin/tree-sitter"
+bins = ["tree-sitter"]
+probe = false

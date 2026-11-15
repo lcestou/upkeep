@@ -1,0 +1,9 @@
+# Drafted from microsoft/component-detection's v9.1.0 release; its version is the one Upkeep installed.
+[apps.component-detection]
+name = "Component Detection"
+kind = "file"
+repo = "microsoft/component-detection"
+asset = '^component-detection-linux-x64$'
+asset_aarch64 = '^component-detection-linux-arm64$'
+dest = "~/.local/bin/component-detection"
+probe = false

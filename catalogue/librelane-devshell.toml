@@ -1,0 +1,9 @@
+# Drafted from librelane/librelane's 3.0.17 release; its version is the one Upkeep installed.
+[apps.librelane-devshell]
+name = "librelane"
+kind = "appimage"
+repo = "librelane/librelane"
+asset = '^librelane-devshell-x86_64\.AppImage$'
+asset_aarch64 = '^librelane-devshell-aarch64\.AppImage$'
+dest = "~/.local/bin/librelane-devshell.AppImage"
+probe = false

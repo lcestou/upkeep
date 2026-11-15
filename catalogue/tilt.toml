@@ -1,0 +1,10 @@
+# Drafted from tilt-dev/tilt's v0.37.9 release; its version is the one Upkeep installed.
+[apps.tilt]
+name = "tilt"
+kind = "archive"
+repo = "tilt-dev/tilt"
+asset = '^tilt\..*\.linux\.x86_64\.tar\.gz$'
+asset_aarch64 = '^tilt\..*\.linux\.arm64\.tar\.gz$'
+dest = "~/.local/bin/tilt"
+bins = ["tilt"]
+probe = false

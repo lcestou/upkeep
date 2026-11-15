@@ -1,0 +1,10 @@
+# Drafted from dineshba/tf-summarize's v0.3.20 release; its version is the one Upkeep installed.
+[apps.tf-summarize]
+name = "Tf Summarize"
+kind = "archive"
+repo = "dineshba/tf-summarize"
+asset = '^tf-summarize_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tf-summarize_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tf-summarize"
+bins = ["tf-summarize"]
+probe = false

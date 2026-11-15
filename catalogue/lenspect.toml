@@ -1,0 +1,9 @@
+# Drafted from vmkspv/lenspect's v1.0.7 release; its version is the one Upkeep installed.
+[apps.lenspect]
+name = "lenspect"
+kind = "appimage"
+repo = "vmkspv/lenspect"
+asset = '^lenspect-x86_64\.AppImage$'
+asset_aarch64 = '^lenspect-aarch64\.AppImage$'
+dest = "~/.local/bin/lenspect.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from piperhex/remoteai's v2.3.5 release; its version is the one Upkeep installed.
+[apps.remote-ai]
+name = "Remote-AI"
+kind = "appimage"
+repo = "piperhex/remoteai"
+asset = '^Remote\.AI_.*_linux-amd64\.AppImage$'
+dest = "~/.local/bin/remote-ai.AppImage"
+probe = false

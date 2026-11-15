@@ -1,0 +1,8 @@
+# Drafted from matt1398/claude-devtools's v0.5.0 release; its version is the one Upkeep installed.
+[apps.claude-devtools]
+name = "Claude Devtools"
+kind = "appimage"
+repo = "matt1398/claude-devtools"
+asset = '^claude-devtools-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/claude-devtools.AppImage"
+probe = false

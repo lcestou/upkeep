@@ -1,0 +1,9 @@
+# Drafted from vaibhav-kakde-in/mdhero's v0.2.10 release; its version is the one Upkeep installed.
+[apps.mdhero]
+name = "MDHero"
+kind = "appimage"
+repo = "vaibhav-kakde-in/mdhero"
+asset = '^MDHero_.*_amd64\.AppImage$'
+asset_aarch64 = '^MDHero_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/mdhero.AppImage"
+probe = false

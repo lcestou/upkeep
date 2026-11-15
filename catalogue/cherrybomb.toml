@@ -1,0 +1,8 @@
+# Drafted from blst-security/cherrybomb's v1.0.1 release; its version is the one Upkeep installed.
+[apps.cherrybomb]
+name = "cherrybomb"
+kind = "file"
+repo = "blst-security/cherrybomb"
+asset = '^cherrybomb$'
+dest = "~/.local/bin/cherrybomb"
+probe = false

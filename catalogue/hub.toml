@@ -1,0 +1,11 @@
+# Drafted from mislav/hub's v2.14.2 release; its version is the one Upkeep installed.
+[apps.hub]
+name = "hub"
+kind = "archive"
+repo = "mislav/hub"
+asset = '^hub-linux-amd64-.*\.tgz$'
+asset_aarch64 = '^hub-linux-arm64-.*\.tgz$'
+dest = "~/.local/bin/hub"
+folder = "~/.local/share/hub"
+bins = ["bin/hub"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from k1LoW/tbls's v1.96.1 release; its version is the one Upkeep installed.
+[apps.tbls]
+name = "tbls"
+kind = "archive"
+repo = "k1LoW/tbls"
+asset = '^tbls_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tbls_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tbls"
+bins = ["tbls"]
+probe = false

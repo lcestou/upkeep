@@ -1,0 +1,9 @@
+# Drafted from railwayapp/cli's v5.74.0 release; its version is the one Upkeep installed.
+[apps.railway]
+name = "railwayapp"
+kind = "archive"
+repo = "railwayapp/cli"
+asset = '^railway-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/railway"
+bins = ["railway"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from Apps2Samsung/Apps2Samsung's v3.3.0 release; its version is the one Upkeep installed.
+[apps.apps2samsung]
+name = "Apps2Samsung"
+kind = "appimage"
+repo = "Apps2Samsung/Apps2Samsung"
+asset = '^Apps2Samsung-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^Apps2Samsung-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/apps2samsung.AppImage"
+probe = false

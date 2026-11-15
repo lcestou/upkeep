@@ -1,0 +1,10 @@
+# Drafted from grafana/gcx's v1.7.1 release; its version is the one Upkeep installed.
+[apps.gcx]
+name = "gcx"
+kind = "archive"
+repo = "grafana/gcx"
+asset = '^gcx_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^gcx_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gcx"
+bins = ["gcx"]
+probe = false

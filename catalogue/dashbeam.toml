@@ -1,0 +1,9 @@
+# Drafted from tonyantony300/dashbeam's v0.7.2 release; its version is the one Upkeep installed.
+[apps.dashbeam]
+name = "DashBeam"
+kind = "appimage"
+repo = "tonyantony300/dashbeam"
+asset = '^DashBeam_.*_amd64\.AppImage$'
+asset_aarch64 = '^DashBeam_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/dashbeam.AppImage"
+probe = false

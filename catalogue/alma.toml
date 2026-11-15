@@ -1,0 +1,9 @@
+# Drafted from yetone/alma-releases's v0.4.668 release; its version is the one Upkeep installed.
+[apps.alma]
+name = "Alma Releases"
+kind = "appimage"
+repo = "yetone/alma-releases"
+asset = '^alma-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^alma-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/alma.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from chevdor/tera-cli's v0.5.1 release; its version is the one Upkeep installed.
+[apps.tera]
+name = "Tera Cli"
+kind = "archive"
+repo = "chevdor/tera-cli"
+asset = '^tera-cli-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^tera-cli-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/tera"
+bins = ["tera"]
+probe = false

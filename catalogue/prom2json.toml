@@ -1,0 +1,10 @@
+# Drafted from prometheus/prom2json's v1.5.0 release; its version is the one Upkeep installed.
+[apps.prom2json]
+name = "prom2json"
+kind = "archive"
+repo = "prometheus/prom2json"
+asset = '^prom2json-.*\.linux-amd64\.tar\.gz$'
+asset_aarch64 = '^prom2json-.*\.linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/prom2json"
+bins = ["prom2json-1.5.0.linux-amd64/prom2json"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from abhimanyu003/sttr's v0.2.30 release; its version is the one Upkeep installed.
+[apps.sttr]
+name = "sttr"
+kind = "archive"
+repo = "abhimanyu003/sttr"
+asset = '^sttr_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^sttr_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/sttr"
+bins = ["sttr"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from digitalocean/doctl's v2.5.0 release; its version is the one Upkeep installed.
+[apps.doctl]
+name = "doctl"
+kind = "archive"
+repo = "digitalocean/doctl"
+asset = '^doctl-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^doctl-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/doctl"
+bins = ["doctl"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from mapeditor/tiled's v1.12.2 release; its version is the one Upkeep installed.
+[apps.tiled]
+name = "Tiled"
+kind = "appimage"
+repo = "mapeditor/tiled"
+asset = '^Tiled-.*_Linux_x86_64\.AppImage$'
+dest = "~/.local/bin/tiled.AppImage"
+probe = false

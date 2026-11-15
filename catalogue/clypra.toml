@@ -1,0 +1,9 @@
+# Drafted from AIEraDev/Clypra's v1.6.4 release; its version is the one Upkeep installed.
+[apps.clypra]
+name = "Clypra"
+kind = "appimage"
+repo = "AIEraDev/Clypra"
+asset = '^Clypra_.*_amd64\.AppImage$'
+asset_aarch64 = '^Clypra_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/clypra.AppImage"
+probe = false

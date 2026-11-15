@@ -1,0 +1,10 @@
+# Drafted from ginuerzh/gost's v2.12.0 release; its version is the one Upkeep installed.
+[apps.gost]
+name = "gost"
+kind = "archive"
+repo = "ginuerzh/gost"
+asset = '^gost_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^gost_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gost"
+bins = ["gost"]
+probe = false

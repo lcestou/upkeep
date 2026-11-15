@@ -1,0 +1,8 @@
+# Drafted from moly-ai/moly-ai's v0.2.4 release; its version is the one Upkeep installed.
+[apps.moly]
+name = "Moly Ai"
+kind = "appimage"
+repo = "moly-ai/moly-ai"
+asset = '^moly_.*_x86_64\.AppImage$'
+dest = "~/.local/bin/moly.AppImage"
+probe = false

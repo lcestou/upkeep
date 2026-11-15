@@ -1,0 +1,8 @@
+# Drafted from meetfranz/franz's v5.11.0 release; its version is the one Upkeep installed.
+[apps.franz]
+name = "Franz"
+kind = "appimage"
+repo = "meetfranz/franz"
+asset = '^Franz-.*\.AppImage$'
+dest = "~/.local/bin/franz.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from shm11C3/HardwareVisualizer's v1.11.3 release; its version is the one Upkeep installed.
+[apps.hardwarevisualizer]
+name = "HardwareVisualizer"
+kind = "appimage"
+repo = "shm11C3/HardwareVisualizer"
+asset = '^HardwareVisualizer_.*_amd64\.AppImage$'
+dest = "~/.local/bin/hardwarevisualizer.AppImage"
+probe = false

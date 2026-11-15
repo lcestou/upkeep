@@ -1,0 +1,8 @@
+# Drafted from heyman/heynote's v2.9.1 release; its version is the one Upkeep installed.
+[apps.heynote]
+name = "Heynote"
+kind = "appimage"
+repo = "heyman/heynote"
+asset = '^Heynote_.*_x86_64\.AppImage$'
+dest = "~/.local/bin/heynote.AppImage"
+probe = false

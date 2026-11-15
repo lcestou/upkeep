@@ -1,0 +1,9 @@
+# Drafted from fizzyedit/fizzy's v0.1.7 release; its version is the one Upkeep installed.
+[apps.fizzy]
+name = "fizzy"
+kind = "appimage"
+repo = "fizzyedit/fizzy"
+asset = '^fizzy_linux_x86_64\.AppImage$'
+asset_aarch64 = '^fizzy_linux_arm64\.AppImage$'
+dest = "~/.local/bin/fizzy.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from J3n5en/EnsoAI's v0.2.45 release; its version is the one Upkeep installed.
+[apps.ensoai]
+name = "EnsoAI"
+kind = "appimage"
+repo = "J3n5en/EnsoAI"
+asset = '^EnsoAI-.*\.AppImage$'
+dest = "~/.local/bin/ensoai.AppImage"
+probe = false

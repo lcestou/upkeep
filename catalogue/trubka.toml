@@ -1,0 +1,9 @@
+# Drafted from xitonix/trubka's v3.3.0 release; its version is the one Upkeep installed.
+[apps.trubka]
+name = "trubka"
+kind = "archive"
+repo = "xitonix/trubka"
+asset = '^trubka_.*_linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/trubka"
+bins = ["trubka"]
+probe = false

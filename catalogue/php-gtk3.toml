@@ -1,0 +1,8 @@
+# Drafted from scorninpc/php-gtk3's 0.18-beta release; its version is the one Upkeep installed.
+[apps.php-gtk3]
+name = "Php Gtk3"
+kind = "appimage"
+repo = "scorninpc/php-gtk3"
+asset = '^php-gtk3-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/php-gtk3.AppImage"
+probe = false

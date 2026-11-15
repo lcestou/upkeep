@@ -1,0 +1,10 @@
+# Drafted from uutils/sed's 0.3.0 release; its version is the one Upkeep installed.
+[apps.sed]
+name = "sed"
+kind = "archive"
+repo = "uutils/sed"
+asset = '^sed-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^sed-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/sed"
+bins = ["sed-x86_64-unknown-linux-gnu/sed"]
+probe = false

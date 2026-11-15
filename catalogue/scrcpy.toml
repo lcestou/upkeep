@@ -1,0 +1,10 @@
+# Drafted from Genymobile/scrcpy's v5.0.1 release; its version is the one Upkeep installed.
+[apps.scrcpy]
+name = "scrcpy"
+kind = "archive"
+repo = "Genymobile/scrcpy"
+asset = '^scrcpy-linux-x86_64-.*\.tar\.gz$'
+dest = "~/.local/bin/scrcpy"
+folder = "~/.local/share/scrcpy"
+bins = ["scrcpy"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from hj01857655/kiro-account-manager's v1.9.301 release; its version is the one Upkeep installed.
+[apps.kiroaccountmanager]
+name = "KiroAccountManager"
+kind = "appimage"
+repo = "hj01857655/kiro-account-manager"
+asset = '^KiroAccountManager_.*_amd64\.AppImage$'
+asset_aarch64 = '^KiroAccountManager_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/kiroaccountmanager.AppImage"
+probe = false

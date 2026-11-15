@@ -1,0 +1,9 @@
+# Drafted from open-webui/desktop's v0.1.4 release; its version is the one Upkeep installed.
+[apps.open-webui]
+name = "Open Webui"
+kind = "appimage"
+repo = "open-webui/desktop"
+asset = '^open-webui_x86_64\.AppImage$'
+asset_aarch64 = '^open-webui_arm64\.AppImage$'
+dest = "~/.local/bin/open-webui.AppImage"
+probe = false

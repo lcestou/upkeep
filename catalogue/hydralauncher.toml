@@ -1,0 +1,8 @@
+# Drafted from hydralauncher/hydra's v4.4.1 release; its version is the one Upkeep installed.
+[apps.hydralauncher]
+name = "Hydra Launcher"
+kind = "appimage"
+repo = "hydralauncher/hydra"
+asset = '^hydralauncher-.*\.AppImage$'
+dest = "~/.local/bin/hydralauncher.AppImage"
+probe = false

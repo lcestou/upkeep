@@ -1,0 +1,9 @@
+# Drafted from alphaXiv/OpenResearch's v0.2.27 release; its version is the one Upkeep installed.
+[apps.openresearch]
+name = "OpenResearch"
+kind = "appimage"
+repo = "alphaXiv/OpenResearch"
+asset = '^OpenResearch-x86_64\.AppImage$'
+asset_aarch64 = '^OpenResearch-aarch64\.AppImage$'
+dest = "~/.local/bin/openresearch.AppImage"
+probe = false

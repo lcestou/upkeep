@@ -1,0 +1,8 @@
+# Drafted from Chaosnap/Typewriter-Nocturne's v1.0.0 release; its version is the one Upkeep installed.
+[apps.typewriter-nocturne]
+name = "Typewriter-Nocturne"
+kind = "appimage"
+repo = "Chaosnap/Typewriter-Nocturne"
+asset = '^Typewriter-Nocturne-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/typewriter-nocturne.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from yanisplugg/yptun's v3.7.3 release; its version is the one Upkeep installed.
+[apps.yptun]
+name = "YPtun"
+kind = "appimage"
+repo = "yanisplugg/yptun"
+asset = '^YPtun-.*-amd64\.AppImage$'
+asset_aarch64 = '^YPtun-.*-arm64\.AppImage$'
+dest = "~/.local/bin/yptun.AppImage"
+probe = false

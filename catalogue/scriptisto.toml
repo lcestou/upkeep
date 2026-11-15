@@ -1,0 +1,9 @@
+# Drafted from igor-petruk/scriptisto's v2.2.0 release; its version is the one Upkeep installed.
+[apps.scriptisto]
+name = "scriptisto"
+kind = "archive"
+repo = "igor-petruk/scriptisto"
+asset = '^scriptisto-x86_64-unknown-linux-musl\.tar\.bz2$'
+dest = "~/.local/bin/scriptisto"
+bins = ["scriptisto"]
+probe = false

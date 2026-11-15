@@ -1,0 +1,8 @@
+# Drafted from linckosz/moonlight-web's v0.4.3 release; its version is the one Upkeep installed.
+[apps.moonlightweb]
+name = "Moonlight Web"
+kind = "appimage"
+repo = "linckosz/moonlight-web"
+asset = '^moonlightweb-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/moonlightweb.AppImage"
+probe = false

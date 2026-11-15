@@ -1,0 +1,8 @@
+# Drafted from TheForgotten69/RimStack's v1.1.0 release; its version is the one Upkeep installed.
+[apps.rimstack]
+name = "RimStack"
+kind = "appimage"
+repo = "TheForgotten69/RimStack"
+asset = '^RimStack-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/rimstack.AppImage"
+probe = false

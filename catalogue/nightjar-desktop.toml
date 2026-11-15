@@ -1,0 +1,9 @@
+# Drafted from RamazanKara/nightjar's v5.6.0 release; its version is the one Upkeep installed.
+[apps.nightjar-desktop]
+name = "nightjar"
+kind = "appimage"
+repo = "RamazanKara/nightjar"
+asset = '^nightjar-desktop-.*-x86_64\.AppImage$'
+asset_aarch64 = '^nightjar-desktop-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/nightjar-desktop.AppImage"
+probe = false

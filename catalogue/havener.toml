@@ -1,0 +1,10 @@
+# Drafted from homeport/havener's v2.2.7 release; its version is the one Upkeep installed.
+[apps.havener]
+name = "havener"
+kind = "archive"
+repo = "homeport/havener"
+asset = '^havener_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^havener_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/havener"
+bins = ["havener"]
+probe = false

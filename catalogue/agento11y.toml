@@ -1,0 +1,10 @@
+# Drafted from grafana/agento11y's plugins/agento11y/v0.57.0 release; its version is the one Upkeep installed.
+[apps.agento11y]
+name = "agento11y"
+kind = "archive"
+repo = "grafana/agento11y"
+asset = '^agento11y_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^agento11y_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/agento11y"
+bins = ["agento11y"]
+probe = false

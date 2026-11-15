@@ -1,0 +1,8 @@
+# Drafted from noahbclarkson/rgitui's v0.5.1 release; its version is the one Upkeep installed.
+[apps.rgitui]
+name = "rgitui"
+kind = "appimage"
+repo = "noahbclarkson/rgitui"
+asset = '^rgitui-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/rgitui.AppImage"
+probe = false

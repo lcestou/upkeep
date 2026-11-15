@@ -1,0 +1,8 @@
+# Drafted from Red-Hex-Consulting/Ankou's v1.1.5 release; its version is the one Upkeep installed.
+[apps.ankou-c2]
+name = "Ankou-C2"
+kind = "appimage"
+repo = "Red-Hex-Consulting/Ankou"
+asset = '^Ankou\.C2-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ankou-c2.AppImage"
+probe = false

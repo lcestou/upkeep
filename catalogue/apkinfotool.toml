@@ -1,0 +1,8 @@
+# Drafted from huanfeng/ApkInfoTool's v2.1.8 release; its version is the one Upkeep installed.
+[apps.apkinfotool]
+name = "APKInfoTool"
+kind = "appimage"
+repo = "huanfeng/ApkInfoTool"
+asset = '^APKInfoTool-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/apkinfotool.AppImage"
+probe = false

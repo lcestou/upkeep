@@ -1,0 +1,10 @@
+# Drafted from tstack/lnav's v0.14.1 release; its version is the one Upkeep installed.
+[apps.lnav]
+name = "lnav"
+kind = "archive"
+repo = "tstack/lnav"
+asset = '^lnav-.*-linux-musl-x86_64\.zip$'
+asset_aarch64 = '^lnav-.*-linux-musl-arm64\.zip$'
+dest = "~/.local/bin/lnav"
+bins = ["lnav-0.14.1/lnav"]
+probe = false

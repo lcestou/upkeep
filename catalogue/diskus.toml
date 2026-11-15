@@ -1,0 +1,10 @@
+# Drafted from sharkdp/diskus's v0.9.0 release; its version is the one Upkeep installed.
+[apps.diskus]
+name = "diskus"
+kind = "archive"
+repo = "sharkdp/diskus"
+asset = '^diskus-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^diskus-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/diskus"
+bins = ["diskus-v0.9.0-x86_64-unknown-linux-gnu/diskus"]
+probe = false

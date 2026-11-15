@@ -1,0 +1,8 @@
+# Drafted from starcitizen-lug/lug-helper's v4.18 release; its version is the one Upkeep installed.
+[apps.lug-helper]
+name = "Lug Helper"
+kind = "appimage"
+repo = "starcitizen-lug/lug-helper"
+asset = '^lug-helper-.*\.appimage$'
+dest = "~/.local/bin/lug-helper.AppImage"
+probe = false

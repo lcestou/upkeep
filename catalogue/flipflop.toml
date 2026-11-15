@@ -1,0 +1,8 @@
+# Drafted from andunieee/flipflop's v0.2.0 release; its version is the one Upkeep installed.
+[apps.flipflop]
+name = "flipflop"
+kind = "appimage"
+repo = "andunieee/flipflop"
+asset = '^flipflop-linux-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/flipflop.AppImage"
+probe = false

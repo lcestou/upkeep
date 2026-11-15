@@ -1,0 +1,9 @@
+# Drafted from francisreboucas/constructcraft's v0.12.0 release; its version is the one Upkeep installed.
+[apps.constructcraft]
+name = "constructcraft"
+kind = "appimage"
+repo = "francisreboucas/constructcraft"
+asset = '^constructcraft-.*-x86_64\.AppImage$'
+asset_aarch64 = '^constructcraft-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/constructcraft.AppImage"
+probe = false

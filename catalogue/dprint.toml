@@ -1,0 +1,10 @@
+# Drafted from dprint/dprint's 0.64.3 release; its version is the one Upkeep installed.
+[apps.dprint]
+name = "dprint"
+kind = "archive"
+repo = "dprint/dprint"
+asset = '^dprint-x86_64-unknown-linux-gnu\.zip$'
+asset_aarch64 = '^dprint-aarch64-unknown-linux-gnu\.zip$'
+dest = "~/.local/bin/dprint"
+bins = ["dprint"]
+probe = false

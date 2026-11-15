@@ -1,0 +1,10 @@
+# Drafted from googleapis/api-linter's v2.4.1 release; its version is the one Upkeep installed.
+[apps.api-linter]
+name = "Api Linter"
+kind = "archive"
+repo = "googleapis/api-linter"
+asset = '^api-linter-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^api-linter-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/api-linter"
+bins = ["api-linter"]
+probe = false

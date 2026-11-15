@@ -1,0 +1,9 @@
+# Drafted from fougue/mayo's v0.10.0 release; its version is the one Upkeep installed.
+[apps.mayo]
+name = "Mayo"
+kind = "appimage"
+repo = "fougue/mayo"
+asset = '^Mayo-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Mayo-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/mayo.AppImage"
+probe = false

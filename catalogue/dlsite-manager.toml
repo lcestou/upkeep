@@ -1,0 +1,8 @@
+# Drafted from AcrylicShrimp/dlsite-manager's v3.6.0 release; its version is the one Upkeep installed.
+[apps.dlsite-manager]
+name = "Dlsite Manager"
+kind = "appimage"
+repo = "AcrylicShrimp/dlsite-manager"
+asset = '^dlsite-manager_.*_amd64\.AppImage$'
+dest = "~/.local/bin/dlsite-manager.AppImage"
+probe = false

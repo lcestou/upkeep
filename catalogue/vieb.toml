@@ -1,0 +1,8 @@
+# Drafted from Jelmerro/Vieb's 12.11.0 release; its version is the one Upkeep installed.
+[apps.vieb]
+name = "Vieb"
+kind = "appimage"
+repo = "Jelmerro/Vieb"
+asset = '^Vieb-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/vieb.AppImage"
+probe = false

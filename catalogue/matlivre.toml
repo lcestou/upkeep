@@ -1,0 +1,8 @@
+# Drafted from campuslivre/matlivre's v0.1.8 release; its version is the one Upkeep installed.
+[apps.matlivre]
+name = "matlivre"
+kind = "appimage"
+repo = "campuslivre/matlivre"
+asset = '^matlivre\.AppImage$'
+dest = "~/.local/bin/matlivre.AppImage"
+probe = false

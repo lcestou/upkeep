@@ -1,0 +1,11 @@
+# Drafted from arch-go/arch-go's v2.1.2 release; its version is the one Upkeep installed.
+[apps.arch-go]
+name = "Arch Go"
+kind = "archive"
+repo = "arch-go/arch-go"
+asset = '^arch-go_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^arch-go_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/arch-go"
+folder = "~/.local/share/arch-go"
+bins = ["arch-go"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from ivaaaan/smug's v0.3.19 release; its version is the one Upkeep installed.
+[apps.smug]
+name = "smug"
+kind = "archive"
+repo = "ivaaaan/smug"
+asset = '^smug_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^smug_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/smug"
+bins = ["smug"]
+probe = false

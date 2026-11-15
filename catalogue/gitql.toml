@@ -1,0 +1,10 @@
+# Drafted from filhodanuvem/gitql's v2.3.1 release; its version is the one Upkeep installed.
+[apps.gitql]
+name = "gitql"
+kind = "archive"
+repo = "filhodanuvem/gitql"
+asset = '^gitql_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^gitql_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gitql"
+bins = ["gitql"]
+probe = false

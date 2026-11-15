@@ -1,0 +1,9 @@
+# Drafted from kamadorueda/alejandra's 4.1.0 release; its version is the one Upkeep installed.
+[apps.alejandra]
+name = "alejandra"
+kind = "file"
+repo = "kamadorueda/alejandra"
+asset = '^alejandra-x86_64-unknown-linux-musl$'
+asset_aarch64 = '^alejandra-aarch64-unknown-linux-musl$'
+dest = "~/.local/bin/alejandra"
+probe = false

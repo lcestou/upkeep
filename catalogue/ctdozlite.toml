@@ -1,0 +1,8 @@
+# Drafted from ctdoteam1110/ctdozlite's v0.1.1 release; its version is the one Upkeep installed.
+[apps.ctdozlite]
+name = "ctdozlite"
+kind = "appimage"
+repo = "ctdoteam1110/ctdozlite"
+asset = '^ctdozlite-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ctdozlite.AppImage"
+probe = false

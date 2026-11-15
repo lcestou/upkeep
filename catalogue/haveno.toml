@@ -1,0 +1,9 @@
+# Drafted from retoaccess1/haveno-reto's v1.12.0-reto release; its version is the one Upkeep installed.
+[apps.haveno]
+name = "Haveno Reto"
+kind = "appimage"
+repo = "retoaccess1/haveno-reto"
+asset = '^haveno-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^haveno-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/haveno.AppImage"
+probe = false

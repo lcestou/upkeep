@@ -1,0 +1,8 @@
+# Drafted from timoncool/YuE2-Studio's v4.0.0 release; its version is the one Upkeep installed.
+[apps.yue2-studio]
+name = "YuE2-Studio"
+kind = "appimage"
+repo = "timoncool/YuE2-Studio"
+asset = '^YuE2-Studio-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/yue2-studio.AppImage"
+probe = false

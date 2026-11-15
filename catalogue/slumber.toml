@@ -1,0 +1,10 @@
+# Drafted from LucasPickering/slumber's v5.4.4 release; its version is the one Upkeep installed.
+[apps.slumber]
+name = "slumber"
+kind = "archive"
+repo = "LucasPickering/slumber"
+asset = '^slumber-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^slumber-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/slumber"
+bins = ["slumber-x86_64-unknown-linux-gnu/slumber"]
+probe = false

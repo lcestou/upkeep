@@ -1,0 +1,8 @@
+# Drafted from libnyanpasu/clash-nyanpasu's v2.0.1 release; its version is the one Upkeep installed.
+[apps.clash-nyanpasu]
+name = "Clash-Nyanpasu"
+kind = "appimage"
+repo = "libnyanpasu/clash-nyanpasu"
+asset = '^Clash\.Nyanpasu_.*_amd64\.AppImage$'
+dest = "~/.local/bin/clash-nyanpasu.AppImage"
+probe = false

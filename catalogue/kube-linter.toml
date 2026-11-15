@@ -1,0 +1,9 @@
+# Drafted from stackrox/kube-linter's v0.8.3 release; its version is the one Upkeep installed.
+[apps.kube-linter]
+name = "Kube Linter"
+kind = "archive"
+repo = "stackrox/kube-linter"
+asset = '^kube-linter-linux\.tar\.gz$'
+dest = "~/.local/bin/kube-linter"
+bins = ["kube-linter"]
+probe = false

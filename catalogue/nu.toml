@@ -1,0 +1,11 @@
+# Drafted from nushell/nushell's 0.117.0 release; its version is the one Upkeep installed.
+[apps.nu]
+name = "nushell"
+kind = "archive"
+repo = "nushell/nushell"
+asset = '^nu-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^nu-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/nu"
+folder = "~/.local/share/nu"
+bins = ["nu", "nu_plugin_custom_values", "nu_plugin_example", "nu_plugin_formats", "nu_plugin_gstat", "nu_plugin_inc"]
+probe = false

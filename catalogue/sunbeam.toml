@@ -1,0 +1,10 @@
+# Drafted from pomdtr/sunbeam's v1.0.1 release; its version is the one Upkeep installed.
+[apps.sunbeam]
+name = "sunbeam"
+kind = "archive"
+repo = "pomdtr/sunbeam"
+asset = '^sunbeam-linux_amd64\.tar\.gz$'
+asset_aarch64 = '^sunbeam-linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/sunbeam"
+bins = ["sunbeam"]
+probe = false

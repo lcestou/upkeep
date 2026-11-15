@@ -1,0 +1,9 @@
+# Drafted from theimpossibleastronaut/rmw's v0.10.0 release; its version is the one Upkeep installed.
+[apps.rmw]
+name = "rmw"
+kind = "appimage"
+repo = "theimpossibleastronaut/rmw"
+asset = '^rmw-.*-x86_64\.AppImage$'
+asset_aarch64 = '^rmw-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/rmw.AppImage"
+probe = false

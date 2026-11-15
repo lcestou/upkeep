@@ -1,0 +1,8 @@
+# Drafted from skyhook-io/radar's v1.20.3 release; its version is the one Upkeep installed.
+[apps.radar]
+name = "radar"
+kind = "appimage"
+repo = "skyhook-io/radar"
+asset = '^radar-desktop_.*_linux_amd64\.AppImage$'
+dest = "~/.local/bin/radar.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from godotengine/godot's 4.7.2-stable release; its version is the one Upkeep installed.
+[apps.godot]
+name = "Godot"
+kind = "archive"
+repo = "godotengine/godot"
+asset = '^Godot_v.*_linux\.x86_64\.zip$'
+asset_aarch64 = '^Godot_v.*_linux\.arm64\.zip$'
+dest = "~/.local/bin/godot"
+bins = ["Godot*"]
+probe = false

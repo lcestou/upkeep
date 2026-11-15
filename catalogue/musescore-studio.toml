@@ -1,0 +1,9 @@
+# Drafted from musescore/MuseScore's v4.7.7 release; its version is the one Upkeep installed.
+[apps.musescore-studio]
+name = "MuseScore-Studio"
+kind = "appimage"
+repo = "musescore/MuseScore"
+asset = '^MuseScore-Studio-.*\.261109195-x86_64\.AppImage$'
+asset_aarch64 = '^MuseScore-Studio-.*\.261109195-aarch64\.AppImage$'
+dest = "~/.local/bin/musescore-studio.AppImage"
+probe = false

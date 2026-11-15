@@ -1,0 +1,10 @@
+# Drafted from climech/grit's v0.3.0 release; its version is the one Upkeep installed.
+[apps.grit]
+name = "grit"
+kind = "archive"
+repo = "climech/grit"
+asset = '^grit_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^grit_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/grit"
+bins = ["grit_v0.3.0_linux_amd64/grit"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from NuvioMedia/NuvioDesktop's 0.1.36-alpha release; its version is the one Upkeep installed.
+[apps.nuvio]
+name = "Nuvio"
+kind = "appimage"
+repo = "NuvioMedia/NuvioDesktop"
+asset = '^Nuvio-Linux-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/nuvio.AppImage"
+probe = false

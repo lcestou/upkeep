@@ -1,0 +1,8 @@
+# Drafted from ArchipelagoMW/Archipelago's 0.6.8 release; its version is the one Upkeep installed.
+[apps.archipelago]
+name = "Archipelago"
+kind = "appimage"
+repo = "ArchipelagoMW/Archipelago"
+asset = '^Archipelago_.*_linux-x86_64\.AppImage$'
+dest = "~/.local/bin/archipelago.AppImage"
+probe = false

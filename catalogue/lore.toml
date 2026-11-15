@@ -1,0 +1,10 @@
+# Drafted from EpicGames/lore's v0.13.0 release; its version is the one Upkeep installed.
+[apps.lore]
+name = "lore"
+kind = "archive"
+repo = "EpicGames/lore"
+asset = '^lore-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^lore-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/lore"
+bins = ["lore"]
+probe = false

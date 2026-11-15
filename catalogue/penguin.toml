@@ -1,0 +1,8 @@
+# Drafted from Prism-Shadow/penguin-harness's v0.2.18 release; its version is the one Upkeep installed.
+[apps.penguin]
+name = "Penguin Harness"
+kind = "appimage"
+repo = "Prism-Shadow/penguin-harness"
+asset = '^penguin-desktop-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/penguin.AppImage"
+probe = false

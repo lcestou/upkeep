@@ -1,0 +1,9 @@
+# Drafted from DamianB-BitFlipper/proton-drive-sync's v0.2.4 release; its version is the one Upkeep installed.
+[apps.proton-drive-sync]
+name = "Proton-Drive-Sync"
+kind = "appimage"
+repo = "DamianB-BitFlipper/proton-drive-sync"
+asset = '^Proton_Drive_Sync-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Proton_Drive_Sync-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/proton-drive-sync.AppImage"
+probe = false

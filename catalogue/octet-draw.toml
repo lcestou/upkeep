@@ -1,0 +1,8 @@
+# Drafted from SamChemMan/Octet-Draw's v1.1.2 release; its version is the one Upkeep installed.
+[apps.octet-draw]
+name = "Octet-Draw"
+kind = "appimage"
+repo = "SamChemMan/Octet-Draw"
+asset = '^Octet\.Draw_.*_amd64\.AppImage$'
+dest = "~/.local/bin/octet-draw.AppImage"
+probe = false

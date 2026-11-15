@@ -1,0 +1,8 @@
+# Drafted from PapilotAI/papilot's v0.10.4 release; its version is the one Upkeep installed.
+[apps.papilot]
+name = "Papilot"
+kind = "appimage"
+repo = "PapilotAI/papilot"
+asset = '^Papilot-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/papilot.AppImage"
+probe = false

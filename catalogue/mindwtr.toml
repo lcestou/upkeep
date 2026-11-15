@@ -1,0 +1,8 @@
+# Drafted from dongdongbh/Mindwtr's v1.3.8 release; its version is the one Upkeep installed.
+[apps.mindwtr]
+name = "Mindwtr"
+kind = "appimage"
+repo = "dongdongbh/Mindwtr"
+asset = '^Mindwtr-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/mindwtr.AppImage"
+probe = false

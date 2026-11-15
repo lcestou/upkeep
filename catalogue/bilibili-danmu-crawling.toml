@@ -1,0 +1,8 @@
+# Drafted from HengXin666/BiLiBiLi_DanMu_Crawling's New-V1.5.1 release; its version is the one Upkeep installed.
+[apps.bilibili-danmu-crawling]
+name = "BiLiBiLi-DanMu-Crawling"
+kind = "appimage"
+repo = "HengXin666/BiLiBiLi_DanMu_Crawling"
+asset = '^BiLiBiLi_DanMu_Crawling-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/bilibili-danmu-crawling.AppImage"
+probe = false

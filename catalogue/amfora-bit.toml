@@ -1,0 +1,8 @@
+# Drafted from makew0rld/amfora's v1.11.0 release; its version is the one Upkeep installed.
+[apps.amfora-bit]
+name = "amfora"
+kind = "file"
+repo = "makew0rld/amfora"
+asset = '^amfora_.*_linux_64-bit$'
+dest = "~/.local/bin/amfora-bit"
+probe = false

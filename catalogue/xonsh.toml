@@ -1,0 +1,8 @@
+# Drafted from xonsh/xonsh's 0.25.0 release; its version is the one Upkeep installed.
+[apps.xonsh]
+name = "xonsh"
+kind = "appimage"
+repo = "xonsh/xonsh"
+asset = '^xonsh-x86_64\.AppImage$'
+dest = "~/.local/bin/xonsh.AppImage"
+probe = false

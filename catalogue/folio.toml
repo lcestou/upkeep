@@ -1,0 +1,8 @@
+# Drafted from toolstack/Folio's 26.01 release; its version is the one Upkeep installed.
+[apps.folio]
+name = "Folio"
+kind = "appimage"
+repo = "toolstack/Folio"
+asset = '^Folio-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/folio.AppImage"
+probe = false

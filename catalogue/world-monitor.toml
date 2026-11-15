@@ -1,0 +1,9 @@
+# Drafted from koala73/worldmonitor's v2.11.8 release; its version is the one Upkeep installed.
+[apps.world-monitor]
+name = "World-Monitor"
+kind = "appimage"
+repo = "koala73/worldmonitor"
+asset = '^World\.Monitor_.*_amd64\.AppImage$'
+asset_aarch64 = '^World\.Monitor_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/world-monitor.AppImage"
+probe = false

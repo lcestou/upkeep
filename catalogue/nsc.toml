@@ -1,0 +1,10 @@
+# Drafted from nats-io/nsc's v2.15.0 release; its version is the one Upkeep installed.
+[apps.nsc]
+name = "nsc"
+kind = "archive"
+repo = "nats-io/nsc"
+asset = '^nsc-linux-amd64\.zip$'
+asset_aarch64 = '^nsc-linux-arm64\.zip$'
+dest = "~/.local/bin/nsc"
+bins = ["nsc"]
+probe = false

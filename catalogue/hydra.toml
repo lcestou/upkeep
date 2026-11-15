@@ -1,0 +1,9 @@
+# Drafted from ory/hydra's v26.2.0 release; its version is the one Upkeep installed.
+[apps.hydra]
+name = "hydra"
+kind = "archive"
+repo = "ory/hydra"
+asset = '^hydra_.*-linux_sqlite_libmusl_64bit\.tar\.gz$'
+dest = "~/.local/bin/hydra"
+bins = ["hydra"]
+probe = false

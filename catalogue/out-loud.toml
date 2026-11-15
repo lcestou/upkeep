@@ -1,0 +1,8 @@
+# Drafted from light-cloud-com/out-loud's v2.1.2 release; its version is the one Upkeep installed.
+[apps.out-loud]
+name = "Out-Loud"
+kind = "appimage"
+repo = "light-cloud-com/out-loud"
+asset = '^Out\.Loud-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/out-loud.AppImage"
+probe = false

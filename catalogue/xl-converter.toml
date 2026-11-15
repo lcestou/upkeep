@@ -1,0 +1,8 @@
+# Drafted from JacobDev1/xl-converter's v1.3.0 release; its version is the one Upkeep installed.
+[apps.xl-converter]
+name = "Xl Converter"
+kind = "appimage"
+repo = "JacobDev1/xl-converter"
+asset = '^xl-converter-linux-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/xl-converter.AppImage"
+probe = false

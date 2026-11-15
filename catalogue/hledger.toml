@@ -1,0 +1,10 @@
+# Drafted from hledgerorg/hledger's 1.52.4 release; its version is the one Upkeep installed.
+[apps.hledger]
+name = "hledger"
+kind = "archive"
+repo = "hledgerorg/hledger"
+asset = '^hledger-linux-x64\.tar\.gz$'
+dest = "~/.local/bin/hledger"
+folder = "~/.local/share/hledger"
+bins = ["hledger", "hledger-ui", "hledger-web"]
+probe = false

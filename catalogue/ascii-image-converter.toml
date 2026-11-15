@@ -1,0 +1,10 @@
+# Drafted from TheZoraiz/ascii-image-converter's v1.13.1 release; its version is the one Upkeep installed.
+[apps.ascii-image-converter]
+name = "Ascii Image Converter"
+kind = "archive"
+repo = "TheZoraiz/ascii-image-converter"
+asset = '^ascii-image-converter_Linux_amd64_64bit\.tar\.gz$'
+asset_aarch64 = '^ascii-image-converter_Linux_arm64_64bit\.tar\.gz$'
+dest = "~/.local/bin/ascii-image-converter"
+bins = ["ascii-image-converter_Linux_amd64_64bit/ascii-image-converter"]
+probe = false

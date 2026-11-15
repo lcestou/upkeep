@@ -1,0 +1,8 @@
+# Drafted from SeleniumHQ/selenium-ide's v4.1.0-beta.3 release; its version is the one Upkeep installed.
+[apps.selenium-ide-beta]
+name = "Selenium-IDE-beta"
+kind = "appimage"
+repo = "SeleniumHQ/selenium-ide"
+asset = '^Selenium-IDE-.*-beta\.3\.AppImage$'
+dest = "~/.local/bin/selenium-ide-beta.AppImage"
+probe = false

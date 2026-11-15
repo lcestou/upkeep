@@ -1,0 +1,8 @@
+# Drafted from todbot/Blink1Control2's v2.3.0 release; its version is the one Upkeep installed.
+[apps.blink1control2]
+name = "Blink1Control2"
+kind = "appimage"
+repo = "todbot/Blink1Control2"
+asset = '^Blink1Control2-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/blink1control2.AppImage"
+probe = false

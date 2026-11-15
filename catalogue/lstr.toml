@@ -1,0 +1,10 @@
+# Drafted from bgreenwell/lstr's v0.4.0 release; its version is the one Upkeep installed.
+[apps.lstr]
+name = "lstr"
+kind = "archive"
+repo = "bgreenwell/lstr"
+asset = '^lstr-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^lstr-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/lstr"
+bins = ["lstr-x86_64-unknown-linux-gnu/lstr"]
+probe = false

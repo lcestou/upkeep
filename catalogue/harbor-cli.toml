@@ -1,0 +1,10 @@
+# Drafted from goharbor/harbor-cli's v0.0.27 release; its version is the one Upkeep installed.
+[apps.harbor-cli]
+name = "Harbor Cli"
+kind = "archive"
+repo = "goharbor/harbor-cli"
+asset = '^harbor-cli_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^harbor-cli_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/harbor-cli"
+bins = ["harbor-cli"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from linkerd/linkerd2's edge-26.11.2 release; its version is the one Upkeep installed.
+[apps.linkerd2-cli]
+name = "linkerd2"
+kind = "file"
+repo = "linkerd/linkerd2"
+asset = '^linkerd2-cli-.*-linux-amd64$'
+asset_aarch64 = '^linkerd2-cli-.*-linux-arm64$'
+dest = "~/.local/bin/linkerd2-cli"
+probe = false

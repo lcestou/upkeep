@@ -1,0 +1,9 @@
+# Drafted from ttalvitie/browservice's v0.9.12.2 release; its version is the one Upkeep installed.
+[apps.browservice]
+name = "browservice"
+kind = "appimage"
+repo = "ttalvitie/browservice"
+asset = '^browservice-.*-x86_64\.AppImage$'
+asset_aarch64 = '^browservice-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/browservice.AppImage"
+probe = false

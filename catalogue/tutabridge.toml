@@ -1,0 +1,8 @@
+# Drafted from spartanz51/tutabridge's v0.2.0-rc.2 release; its version is the one Upkeep installed.
+[apps.tutabridge]
+name = "TutaBridge"
+kind = "appimage"
+repo = "spartanz51/tutabridge"
+asset = '^TutaBridge-Linux\.AppImage$'
+dest = "~/.local/bin/tutabridge.AppImage"
+probe = false

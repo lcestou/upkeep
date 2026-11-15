@@ -1,0 +1,8 @@
+# Drafted from Zfinix/eleven's v0.1.13 release; its version is the one Upkeep installed.
+[apps.eleven]
+name = "Eleven"
+kind = "appimage"
+repo = "Zfinix/eleven"
+asset = '^Eleven-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/eleven.AppImage"
+probe = false

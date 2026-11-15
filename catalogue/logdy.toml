@@ -1,0 +1,9 @@
+# Drafted from logdyhq/logdy-core's v0.17.1 release; its version is the one Upkeep installed.
+[apps.logdy]
+name = "Logdy Core"
+kind = "file"
+repo = "logdyhq/logdy-core"
+asset = '^logdy_linux_amd64$'
+asset_aarch64 = '^logdy_linux_arm64$'
+dest = "~/.local/bin/logdy"
+probe = false

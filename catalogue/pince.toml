@@ -1,0 +1,8 @@
+# Drafted from korcankaraokcu/PINCE's v0.10.2 release; its version is the one Upkeep installed.
+[apps.pince]
+name = "PINCE"
+kind = "appimage"
+repo = "korcankaraokcu/PINCE"
+asset = '^PINCE-x86_64\.AppImage$'
+dest = "~/.local/bin/pince.AppImage"
+probe = false

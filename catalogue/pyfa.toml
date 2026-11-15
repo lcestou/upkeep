@@ -1,0 +1,8 @@
+# Drafted from pyfa-org/Pyfa's v2.70.0 release; its version is the one Upkeep installed.
+[apps.pyfa]
+name = "Pyfa"
+kind = "appimage"
+repo = "pyfa-org/Pyfa"
+asset = '^pyfa-.*-linux\.AppImage$'
+dest = "~/.local/bin/pyfa.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from cnrancher/autok3s's v0.9.3 release; its version is the one Upkeep installed.
+[apps.autok3s]
+name = "autok3s"
+kind = "file"
+repo = "cnrancher/autok3s"
+asset = '^autok3s_linux_amd64$'
+asset_aarch64 = '^autok3s_linux_arm64$'
+dest = "~/.local/bin/autok3s"
+probe = false

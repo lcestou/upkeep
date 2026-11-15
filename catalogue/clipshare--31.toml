@@ -1,0 +1,8 @@
+# Drafted from aa2013/ClipShare's v1.5.4-downgrade-linux-glibc release; its version is the one Upkeep installed.
+[apps.clipshare--31]
+name = "ClipShare"
+kind = "appimage"
+repo = "aa2013/ClipShare"
+asset = '^clipshare-.*\+31\.AppImage$'
+dest = "~/.local/bin/clipshare-+31.AppImage"
+probe = false

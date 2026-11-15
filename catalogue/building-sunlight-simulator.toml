@@ -1,0 +1,8 @@
+# Drafted from SeanWong17/building-sunlight-simulator's v3.2.1 release; its version is the one Upkeep installed.
+[apps.building-sunlight-simulator]
+name = "Building-Sunlight-Simulator"
+kind = "appimage"
+repo = "SeanWong17/building-sunlight-simulator"
+asset = '^Building-Sunlight-Simulator_.*_amd64\.AppImage$'
+dest = "~/.local/bin/building-sunlight-simulator.AppImage"
+probe = false

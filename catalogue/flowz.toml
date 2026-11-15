@@ -1,0 +1,8 @@
+# Drafted from zhangjh/FlowZ's v4.0.5 release; its version is the one Upkeep installed.
+[apps.flowz]
+name = "FlowZ"
+kind = "appimage"
+repo = "zhangjh/FlowZ"
+asset = '^FlowZ_.*_amd64\.AppImage$'
+dest = "~/.local/bin/flowz.AppImage"
+probe = false

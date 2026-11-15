@@ -1,0 +1,9 @@
+# Drafted from qxcnm/Codex-Manager's v0.7.5 release; its version is the one Upkeep installed.
+[apps.codexmanager]
+name = "CodexManager"
+kind = "appimage"
+repo = "qxcnm/Codex-Manager"
+asset = '^CodexManager_.*_amd64\.AppImage$'
+asset_aarch64 = '^CodexManager_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/codexmanager.AppImage"
+probe = false

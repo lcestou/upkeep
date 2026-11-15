@@ -1,0 +1,8 @@
+# Drafted from the-database/MangaJaNaiGUI's 2.6.0 release; its version is the one Upkeep installed.
+[apps.mangajanaigui]
+name = "MangaJaNaiGUI"
+kind = "appimage"
+repo = "the-database/MangaJaNaiGUI"
+asset = '^MangaJaNaiGUI-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/mangajanaigui.AppImage"
+probe = false

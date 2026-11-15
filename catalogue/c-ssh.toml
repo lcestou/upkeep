@@ -1,0 +1,8 @@
+# Drafted from suiyuebaobao/C-SSH's v0.9.9-r2 release; its version is the one Upkeep installed.
+[apps.c-ssh]
+name = "C-SSH"
+kind = "appimage"
+repo = "suiyuebaobao/C-SSH"
+asset = '^C-SSH_.*_amd64\.AppImage$'
+dest = "~/.local/bin/c-ssh.AppImage"
+probe = false

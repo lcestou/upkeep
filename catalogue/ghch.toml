@@ -1,0 +1,11 @@
+# Drafted from Songmu/ghch's v0.11.0 release; its version is the one Upkeep installed.
+[apps.ghch]
+name = "ghch"
+kind = "archive"
+repo = "Songmu/ghch"
+asset = '^ghch_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ghch_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ghch"
+folder = "~/.local/share/ghch"
+bins = ["ghch"]
+probe = false

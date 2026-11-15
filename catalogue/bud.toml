@@ -1,0 +1,10 @@
+# Drafted from livebud/bud's v0.2.8 release; its version is the one Upkeep installed.
+[apps.bud]
+name = "bud"
+kind = "archive"
+repo = "livebud/bud"
+asset = '^bud_.*_linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/bud"
+folder = "~/.local/share/bud"
+bins = ["bud"]
+probe = false

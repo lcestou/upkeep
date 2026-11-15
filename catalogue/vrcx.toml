@@ -1,0 +1,9 @@
+# Drafted from vrcx-team/VRCX's v2026.09.16 release; its version is the one Upkeep installed.
+[apps.vrcx]
+name = "VRCX"
+kind = "appimage"
+repo = "vrcx-team/VRCX"
+asset = '^VRCX_.*_x64\.AppImage$'
+asset_aarch64 = '^VRCX_.*_arm64\.AppImage$'
+dest = "~/.local/bin/vrcx.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from SSShooter/ebook-to-mindmap's app-v0.1.3 release; its version is the one Upkeep installed.
+[apps.ebook-to-mindmap]
+name = "Ebook To Mindmap"
+kind = "appimage"
+repo = "SSShooter/ebook-to-mindmap"
+asset = '^ebook-to-mindmap_.*_amd64\.AppImage$'
+dest = "~/.local/bin/ebook-to-mindmap.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from hadolint/hadolint's v2.15.1 release; its version is the one Upkeep installed.
+[apps.hadolint]
+name = "hadolint"
+kind = "file"
+repo = "hadolint/hadolint"
+asset = '^hadolint-linux-x86_64$'
+asset_aarch64 = '^hadolint-linux-arm64$'
+dest = "~/.local/bin/hadolint"
+probe = false

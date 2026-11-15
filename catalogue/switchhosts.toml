@@ -1,0 +1,9 @@
+# Drafted from oldj/SwitchHosts's v5.0.3 release; its version is the one Upkeep installed.
+[apps.switchhosts]
+name = "SwitchHosts"
+kind = "appimage"
+repo = "oldj/SwitchHosts"
+asset = '^SwitchHosts-.*-linux-amd64\.AppImage$'
+asset_aarch64 = '^SwitchHosts-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/switchhosts.AppImage"
+probe = false

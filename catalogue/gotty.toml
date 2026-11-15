@@ -1,0 +1,9 @@
+# Drafted from yudai/gotty's v1.0.1 release; its version is the one Upkeep installed.
+[apps.gotty]
+name = "gotty"
+kind = "archive"
+repo = "yudai/gotty"
+asset = '^gotty_linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/gotty"
+bins = ["gotty"]
+probe = false

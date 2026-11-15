@@ -1,0 +1,9 @@
+# Drafted from FilenCloudDienste/filen-cli's v0.0.36 release; its version is the one Upkeep installed.
+[apps.filen-cli]
+name = "Filen Cli"
+kind = "file"
+repo = "FilenCloudDienste/filen-cli"
+asset = '^filen-cli-.*-linux-x64$'
+asset_aarch64 = '^filen-cli-.*-linux-arm64$'
+dest = "~/.local/bin/filen-cli"
+probe = false

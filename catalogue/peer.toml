@@ -1,0 +1,8 @@
+# Drafted from ly-ccx/Peer-Agent's v0.0.18 release; its version is the one Upkeep installed.
+[apps.peer]
+name = "Peer-Agent"
+kind = "appimage"
+repo = "ly-ccx/Peer-Agent"
+asset = '^Peer-Agent-.*-x64\.AppImage$'
+dest = "~/.local/bin/peer.AppImage"
+probe = false

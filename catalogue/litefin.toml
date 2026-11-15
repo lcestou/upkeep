@@ -1,0 +1,8 @@
+# Drafted from MoazSalem/litefin's v2.0.20 release; its version is the one Upkeep installed.
+[apps.litefin]
+name = "Litefin"
+kind = "appimage"
+repo = "MoazSalem/litefin"
+asset = '^Litefin_.*_amd64\.AppImage$'
+dest = "~/.local/bin/litefin.AppImage"
+probe = false

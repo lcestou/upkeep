@@ -1,0 +1,10 @@
+# Drafted from grafana/xk6's v1.5.1 release; its version is the one Upkeep installed.
+[apps.xk6]
+name = "xk6"
+kind = "archive"
+repo = "grafana/xk6"
+asset = '^xk6_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^xk6_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/xk6"
+bins = ["xk6"]
+probe = false

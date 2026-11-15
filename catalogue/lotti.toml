@@ -1,0 +1,10 @@
+# Drafted from matthiasn/lotti's 1.1.98+4488 release; its version is the one Upkeep installed.
+[apps.lotti]
+name = "lotti"
+kind = "archive"
+repo = "matthiasn/lotti"
+asset = '^linux\.x64\.tar\.gz$'
+dest = "~/.local/bin/lotti"
+folder = "~/.local/share/lotti"
+bins = ["lotti"]
+probe = false

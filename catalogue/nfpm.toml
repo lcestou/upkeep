@@ -1,0 +1,11 @@
+# Drafted from goreleaser/nfpm's v2.49.0 release; its version is the one Upkeep installed.
+[apps.nfpm]
+name = "nfpm"
+kind = "archive"
+repo = "goreleaser/nfpm"
+asset = '^nfpm_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^nfpm_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/nfpm"
+folder = "~/.local/share/nfpm"
+bins = ["nfpm"]
+probe = false

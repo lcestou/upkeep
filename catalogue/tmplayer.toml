@@ -1,0 +1,8 @@
+# Drafted from dracu-lah/TMPlayer's v1.28.5 release; its version is the one Upkeep installed.
+[apps.tmplayer]
+name = "TMPlayer"
+kind = "appimage"
+repo = "dracu-lah/TMPlayer"
+asset = '^TMPlayer-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/tmplayer.AppImage"
+probe = false

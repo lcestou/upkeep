@@ -1,0 +1,9 @@
+# Drafted from pgplex/pgschema's v1.14.1 release; its version is the one Upkeep installed.
+[apps.pgschema]
+name = "pgschema"
+kind = "file"
+repo = "pgplex/pgschema"
+asset = '^pgschema-.*-linux-amd64$'
+asset_aarch64 = '^pgschema-.*-linux-arm64$'
+dest = "~/.local/bin/pgschema"
+probe = false

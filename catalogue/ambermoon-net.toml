@@ -1,0 +1,10 @@
+# Drafted from Pyrdacor/Ambermoon.net's v1.15.2 release; its version is the one Upkeep installed.
+[apps.ambermoon-net]
+name = "Ambermoon-net"
+kind = "archive"
+repo = "Pyrdacor/Ambermoon.net"
+asset = '^Ambermoon\.net-Linux\.tar\.gz$'
+dest = "~/.local/bin/Ambermoon.net"
+folder = "~/.local/share/ambermoon-net"
+bins = ["Ambermoon.net"]
+probe = false

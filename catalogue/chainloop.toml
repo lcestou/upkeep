@@ -1,0 +1,9 @@
+# Drafted from chainloop-dev/chainloop's v1.135.2 release; its version is the one Upkeep installed.
+[apps.chainloop]
+name = "chainloop"
+kind = "file"
+repo = "chainloop-dev/chainloop"
+asset = '^chainloop-linux-amd64$'
+asset_aarch64 = '^chainloop-linux-arm64$'
+dest = "~/.local/bin/chainloop"
+probe = false

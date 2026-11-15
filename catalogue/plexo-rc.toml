@@ -1,0 +1,9 @@
+# Drafted from anmolkapil/plexo's v1.0.0-rc.15 release; its version is the one Upkeep installed.
+[apps.plexo-rc]
+name = "plexo"
+kind = "appimage"
+repo = "anmolkapil/plexo"
+asset = '^plexo-.*-rc\.15-x86_64\.AppImage$'
+asset_aarch64 = '^plexo-.*-rc\.15-arm64\.AppImage$'
+dest = "~/.local/bin/plexo-rc.AppImage"
+probe = false

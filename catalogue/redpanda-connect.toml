@@ -1,0 +1,10 @@
+# Drafted from redpanda-data/connect's v4.118.0 release; its version is the one Upkeep installed.
+[apps.redpanda-connect]
+name = "connect"
+kind = "archive"
+repo = "redpanda-data/connect"
+asset = '^redpanda-connect_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^redpanda-connect_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/redpanda-connect"
+bins = ["redpanda-connect"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from scarletkc/Hatoba's v0.8.5 release; its version is the one Upkeep installed.
+[apps.hatoba]
+name = "Hatoba"
+kind = "appimage"
+repo = "scarletkc/Hatoba"
+asset = '^Hatoba_.*_linux-x64\.AppImage$'
+dest = "~/.local/bin/hatoba.AppImage"
+probe = false

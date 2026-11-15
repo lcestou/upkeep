@@ -1,0 +1,8 @@
+# Drafted from tenngoxars/WeMD's v1.6.1 release; its version is the one Upkeep installed.
+[apps.wemd]
+name = "WeMD"
+kind = "appimage"
+repo = "tenngoxars/WeMD"
+asset = '^WeMD-.*\.AppImage$'
+dest = "~/.local/bin/wemd.AppImage"
+probe = false

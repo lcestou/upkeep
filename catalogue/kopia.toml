@@ -1,0 +1,8 @@
+# Drafted from kopia/kopia's v0.23.1 release; its version is the one Upkeep installed.
+[apps.kopia]
+name = "KopiaUI"
+kind = "appimage"
+repo = "kopia/kopia"
+asset = '^KopiaUI-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/kopia.AppImage"
+probe = false

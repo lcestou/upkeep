@@ -1,0 +1,8 @@
+# Drafted from shibing624/agentica's v1.6.0 release; its version is the one Upkeep installed.
+[apps.agentica]
+name = "Agentica"
+kind = "appimage"
+repo = "shibing624/agentica"
+asset = '^Agentica-x86_64\.AppImage$'
+dest = "~/.local/bin/agentica.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from dieqiyun/uni-switch's v0.5.28 release; its version is the one Upkeep installed.
+[apps.uni-switch]
+name = "Uni Switch"
+kind = "appimage"
+repo = "dieqiyun/uni-switch"
+asset = '^uni-switch_.*_x86_64\.AppImage$'
+dest = "~/.local/bin/uni-switch.AppImage"
+probe = false

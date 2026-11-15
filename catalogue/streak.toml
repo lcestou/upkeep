@@ -1,0 +1,8 @@
+# Drafted from InlitX/streak's v2.9.0 release; its version is the one Upkeep installed.
+[apps.streak]
+name = "Streak"
+kind = "appimage"
+repo = "InlitX/streak"
+asset = '^Streak-x86_64\.AppImage$'
+dest = "~/.local/bin/streak.AppImage"
+probe = false

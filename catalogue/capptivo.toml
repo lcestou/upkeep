@@ -1,0 +1,8 @@
+# Drafted from SECHAK-AG/capptivo's v1.0.4 release; its version is the one Upkeep installed.
+[apps.capptivo]
+name = "Capptivo"
+kind = "appimage"
+repo = "SECHAK-AG/capptivo"
+asset = '^Capptivo_.*_amd64\.AppImage$'
+dest = "~/.local/bin/capptivo.AppImage"
+probe = false

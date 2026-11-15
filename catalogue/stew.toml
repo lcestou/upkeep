@@ -1,0 +1,10 @@
+# Drafted from marwanhawari/stew's v0.6.0 release; its version is the one Upkeep installed.
+[apps.stew]
+name = "stew"
+kind = "archive"
+repo = "marwanhawari/stew"
+asset = '^stew-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^stew-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/stew"
+bins = ["stew"]
+probe = false

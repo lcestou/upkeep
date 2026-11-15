@@ -1,0 +1,9 @@
+# Drafted from Norixor/NoriShell's v0.1.10 release; its version is the one Upkeep installed.
+[apps.norishell]
+name = "NoriShell"
+kind = "appimage"
+repo = "Norixor/NoriShell"
+asset = '^NoriShell_.*_linux_x64\.AppImage$'
+asset_aarch64 = '^NoriShell_.*_linux_arm64\.AppImage$'
+dest = "~/.local/bin/norishell.AppImage"
+probe = false

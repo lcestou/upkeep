@@ -1,0 +1,9 @@
+# Drafted from WLJSTeam/wljs-notebook's v3.2.1 release; its version is the one Upkeep installed.
+[apps.wljs-notebook]
+name = "Wljs Notebook"
+kind = "appimage"
+repo = "WLJSTeam/wljs-notebook"
+asset = '^wljs-notebook-.*-x86_64-gnulinux\.AppImage$'
+asset_aarch64 = '^wljs-notebook-.*-arm64-gnulinux\.AppImage$'
+dest = "~/.local/bin/wljs-notebook-gnulinux.AppImage"
+probe = false

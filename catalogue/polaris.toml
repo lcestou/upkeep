@@ -1,0 +1,10 @@
+# Drafted from FairwindsOps/polaris's v10.2.6 release; its version is the one Upkeep installed.
+[apps.polaris]
+name = "polaris"
+kind = "archive"
+repo = "FairwindsOps/polaris"
+asset = '^polaris_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^polaris_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/polaris"
+bins = ["polaris"]
+probe = false

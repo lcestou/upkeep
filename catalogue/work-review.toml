@@ -1,0 +1,9 @@
+# Drafted from wm94i/Work-Review's v1.1.3 release; its version is the one Upkeep installed.
+[apps.work-review]
+name = "Work-Review"
+kind = "appimage"
+repo = "wm94i/Work-Review"
+asset = '^Work_Review_.*_amd64\.AppImage$'
+asset_aarch64 = '^Work_Review_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/work-review.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from thongor77/nmlinux's v1.7.16 release; its version is the one Upkeep installed.
+[apps.nmlinux]
+name = "NMLinux"
+kind = "appimage"
+repo = "thongor77/nmlinux"
+asset = '^NMLinux-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/nmlinux.AppImage"
+probe = false

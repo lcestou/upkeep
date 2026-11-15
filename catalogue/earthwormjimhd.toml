@@ -1,0 +1,8 @@
+# Drafted from TekRantGaming/earthworm-jim-hd-recompiled's v0.9.6 release; its version is the one Upkeep installed.
+[apps.earthwormjimhd]
+name = "EarthwormJimHD"
+kind = "appimage"
+repo = "TekRantGaming/earthworm-jim-hd-recompiled"
+asset = '^EarthwormJimHD-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/earthwormjimhd.AppImage"
+probe = false

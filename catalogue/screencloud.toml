@@ -1,0 +1,9 @@
+# Drafted from olav-st/screencloud's v1.6.2 release; its version is the one Upkeep installed.
+[apps.screencloud]
+name = "ScreenCloud"
+kind = "appimage"
+repo = "olav-st/screencloud"
+asset = '^ScreenCloud-.*-x86_64\.AppImage$'
+asset_aarch64 = '^ScreenCloud-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/screencloud.AppImage"
+probe = false

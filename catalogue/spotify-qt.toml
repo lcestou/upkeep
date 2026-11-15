@@ -1,0 +1,9 @@
+# Drafted from kraxarn/spotify-qt's v4.0.4 release; its version is the one Upkeep installed.
+[apps.spotify-qt]
+name = "Spotify Qt"
+kind = "appimage"
+repo = "kraxarn/spotify-qt"
+asset = '^spotify-qt-.*-x86_64\.AppImage$'
+asset_aarch64 = '^spotify-qt-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/spotify-qt.AppImage"
+probe = false

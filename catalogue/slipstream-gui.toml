@@ -1,0 +1,8 @@
+# Drafted from mirzaaghazadeh/SlipStreamGUI's v1.4.4 release; its version is the one Upkeep installed.
+[apps.slipstream-gui]
+name = "SlipStream-GUI"
+kind = "appimage"
+repo = "mirzaaghazadeh/SlipStreamGUI"
+asset = '^SlipStream-GUI-Linux-x64\.AppImage$'
+dest = "~/.local/bin/slipstream-gui.AppImage"
+probe = false

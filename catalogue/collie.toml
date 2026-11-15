@@ -1,0 +1,8 @@
+# Drafted from collie-reader/collie's v0.2.1 release; its version is the one Upkeep installed.
+[apps.collie]
+name = "collie"
+kind = "appimage"
+repo = "collie-reader/collie"
+asset = '^collie_.*_amd64\.AppImage$'
+dest = "~/.local/bin/collie.AppImage"
+probe = false

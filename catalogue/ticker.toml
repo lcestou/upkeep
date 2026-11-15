@@ -1,0 +1,10 @@
+# Drafted from achannarasappa/ticker's v5.3.0 release; its version is the one Upkeep installed.
+[apps.ticker]
+name = "ticker"
+kind = "archive"
+repo = "achannarasappa/ticker"
+asset = '^ticker-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^ticker-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/ticker"
+bins = ["ticker"]
+probe = false

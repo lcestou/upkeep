@@ -1,0 +1,10 @@
+# Drafted from sqlc-dev/sqlc's v1.31.1 release; its version is the one Upkeep installed.
+[apps.sqlc]
+name = "sqlc"
+kind = "archive"
+repo = "sqlc-dev/sqlc"
+asset = '^sqlc_.*_linux_amd64\.zip$'
+asset_aarch64 = '^sqlc_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/sqlc"
+bins = ["sqlc"]
+probe = false

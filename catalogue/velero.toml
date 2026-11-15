@@ -1,0 +1,11 @@
+# Drafted from velero-io/velero's v1.18.4 release; its version is the one Upkeep installed.
+[apps.velero]
+name = "velero"
+kind = "archive"
+repo = "velero-io/velero"
+asset = '^velero-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^velero-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/velero"
+folder = "~/.local/share/velero"
+bins = ["velero"]
+probe = false

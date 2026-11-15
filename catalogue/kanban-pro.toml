@@ -1,0 +1,8 @@
+# Drafted from donkruger/Kanban's v1.1.60-early-access release; its version is the one Upkeep installed.
+[apps.kanban-pro]
+name = "Kanban-Pro"
+kind = "appimage"
+repo = "donkruger/Kanban"
+asset = '^Kanban-Pro-.*-x64\.AppImage$'
+dest = "~/.local/bin/kanban-pro.AppImage"
+probe = false

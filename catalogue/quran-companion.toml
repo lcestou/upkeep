@@ -1,0 +1,8 @@
+# Drafted from 0xzer0x/quran-companion's v1.6.0 release; its version is the one Upkeep installed.
+[apps.quran-companion]
+name = "Quran-Companion"
+kind = "appimage"
+repo = "0xzer0x/quran-companion"
+asset = '^Quran_Companion-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/quran-companion.AppImage"
+probe = false

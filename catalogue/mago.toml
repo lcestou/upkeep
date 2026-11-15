@@ -1,0 +1,10 @@
+# Drafted from carthage-software/mago's 1.60.1 release; its version is the one Upkeep installed.
+[apps.mago]
+name = "mago"
+kind = "archive"
+repo = "carthage-software/mago"
+asset = '^mago-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^mago-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/mago"
+bins = ["mago-1.60.1-x86_64-unknown-linux-gnu/mago"]
+probe = false

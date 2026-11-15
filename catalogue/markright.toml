@@ -1,0 +1,8 @@
+# Drafted from dvcrn/markright's 1.0.0 release; its version is the one Upkeep installed.
+[apps.markright]
+name = "MarkRight"
+kind = "appimage"
+repo = "dvcrn/markright"
+asset = '^MarkRight_.*_amd64\.AppImage$'
+dest = "~/.local/bin/markright.AppImage"
+probe = false

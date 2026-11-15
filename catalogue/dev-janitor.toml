@@ -1,0 +1,8 @@
+# Drafted from cocojojo5213/Dev-Janitor's v2.5.1 release; its version is the one Upkeep installed.
+[apps.dev-janitor]
+name = "Dev-Janitor"
+kind = "appimage"
+repo = "cocojojo5213/Dev-Janitor"
+asset = '^Dev\.Janitor_.*_amd64\.AppImage$'
+dest = "~/.local/bin/dev-janitor.AppImage"
+probe = false

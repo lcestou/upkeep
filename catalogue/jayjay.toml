@@ -1,0 +1,9 @@
+# Drafted from hewigovens/jayjay's v0.3.22 release; its version is the one Upkeep installed.
+[apps.jayjay]
+name = "jayjay"
+kind = "appimage"
+repo = "hewigovens/jayjay"
+asset = '^jayjay-gpui-x86_64\.AppImage$'
+asset_aarch64 = '^jayjay-gpui-aarch64\.AppImage$'
+dest = "~/.local/bin/jayjay.AppImage"
+probe = false

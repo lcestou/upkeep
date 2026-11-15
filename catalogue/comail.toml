@@ -1,0 +1,8 @@
+# Drafted from NextOSP/comail's v0.2.41 release; its version is the one Upkeep installed.
+[apps.comail]
+name = "Comail"
+kind = "appimage"
+repo = "NextOSP/comail"
+asset = '^Comail_.*_amd64\.AppImage$'
+dest = "~/.local/bin/comail.AppImage"
+probe = false

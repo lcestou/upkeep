@@ -1,0 +1,8 @@
+# Drafted from digimezzo/dopamine's v3.0.12 release; its version is the one Upkeep installed.
+[apps.dopamine]
+name = "Dopamine"
+kind = "appimage"
+repo = "digimezzo/dopamine"
+asset = '^Dopamine-.*\.AppImage$'
+dest = "~/.local/bin/dopamine.AppImage"
+probe = false

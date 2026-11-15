@@ -1,0 +1,8 @@
+# Drafted from GOODBOY008/r-shell's v3.2.0 release; its version is the one Upkeep installed.
+[apps.r-shell]
+name = "R Shell"
+kind = "appimage"
+repo = "GOODBOY008/r-shell"
+asset = '^r-shell_.*_amd64\.AppImage$'
+dest = "~/.local/bin/r-shell.AppImage"
+probe = false

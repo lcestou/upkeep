@@ -1,0 +1,9 @@
+# Drafted from Downvid/downvid's v1.12.0 release; its version is the one Upkeep installed.
+[apps.downvid]
+name = "DownVid-Wails"
+kind = "archive"
+repo = "Downvid/downvid"
+asset = '^DownVid-Wails-linux-x64-.*\.tar\.gz$'
+dest = "~/.local/bin/downvid"
+bins = ["downvid"]
+probe = false

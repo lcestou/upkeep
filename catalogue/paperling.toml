@@ -1,0 +1,8 @@
+# Drafted from Razee4315/Paperling's v1.2.0 release; its version is the one Upkeep installed.
+[apps.paperling]
+name = "Paperling"
+kind = "appimage"
+repo = "Razee4315/Paperling"
+asset = '^Paperling_.*_amd64\.AppImage$'
+dest = "~/.local/bin/paperling.AppImage"
+probe = false

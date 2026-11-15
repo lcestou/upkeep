@@ -1,0 +1,9 @@
+# Drafted from vmware/pinniped's v0.48.0 release; its version is the one Upkeep installed.
+[apps.pinniped-cli]
+name = "pinniped"
+kind = "file"
+repo = "vmware/pinniped"
+asset = '^pinniped-cli-linux-amd64$'
+asset_aarch64 = '^pinniped-cli-linux-arm64$'
+dest = "~/.local/bin/pinniped-cli"
+probe = false

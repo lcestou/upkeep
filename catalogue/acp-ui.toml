@@ -1,0 +1,9 @@
+# Drafted from formulahendry/acp-ui's v0.1.16 release; its version is the one Upkeep installed.
+[apps.acp-ui]
+name = "Acp Ui"
+kind = "appimage"
+repo = "formulahendry/acp-ui"
+asset = '^acp-ui_.*_amd64\.AppImage$'
+asset_aarch64 = '^acp-ui_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/acp-ui.AppImage"
+probe = false

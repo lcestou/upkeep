@@ -1,0 +1,9 @@
+# Drafted from 4gray/iptvnator's v0.25.0 release; its version is the one Upkeep installed.
+[apps.iptvnator]
+name = "iptvnator"
+kind = "appimage"
+repo = "4gray/iptvnator"
+asset = '^iptvnator-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^iptvnator-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/iptvnator.AppImage"
+probe = false

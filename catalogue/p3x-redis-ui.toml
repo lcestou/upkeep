@@ -1,0 +1,8 @@
+# Drafted from patrikx3/redis-ui's v2026.10.100 release; its version is the one Upkeep installed.
+[apps.p3x-redis-ui]
+name = "P3X-Redis-UI"
+kind = "appimage"
+repo = "patrikx3/redis-ui"
+asset = '^P3X-Redis-UI-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/p3x-redis-ui.AppImage"
+probe = false

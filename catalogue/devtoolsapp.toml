@@ -1,0 +1,9 @@
+# Drafted from me-shaon/devtools's v2.11.0 release; its version is the one Upkeep installed.
+[apps.devtoolsapp]
+name = "DevToolsApp"
+kind = "appimage"
+repo = "me-shaon/devtools"
+asset = '^DevToolsApp-linux-x86_64\.AppImage$'
+asset_aarch64 = '^DevToolsApp-linux-arm64\.AppImage$'
+dest = "~/.local/bin/devtoolsapp.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from konnga/skill-buddy's v0.2.0 release; its version is the one Upkeep installed.
+[apps.skillbuddy]
+name = "SkillBuddy"
+kind = "appimage"
+repo = "konnga/skill-buddy"
+asset = '^SkillBuddy-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^SkillBuddy-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/skillbuddy.AppImage"
+probe = false

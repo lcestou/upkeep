@@ -1,0 +1,8 @@
+# Drafted from endless-sky/endless-sky's v0.11.4 release; its version is the one Upkeep installed.
+[apps.endless-sky]
+name = "Endless-Sky"
+kind = "appimage"
+repo = "endless-sky/endless-sky"
+asset = '^Endless_Sky-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/endless-sky.AppImage"
+probe = false

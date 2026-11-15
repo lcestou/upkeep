@@ -1,0 +1,9 @@
+# Drafted from audacity/audacity's Audacity-4.0.2 release; its version is the one Upkeep installed.
+[apps.audacity]
+name = "audacity"
+kind = "appimage"
+repo = "audacity/audacity"
+asset = '^audacity-linux-.*-x86_64\.AppImage$'
+asset_aarch64 = '^audacity-linux-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/audacity.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from zilliztech/attu's v3.0.1 release; its version is the one Upkeep installed.
+[apps.attu]
+name = "attu"
+kind = "appimage"
+repo = "zilliztech/attu"
+asset = '^attu-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/attu.AppImage"
+probe = false

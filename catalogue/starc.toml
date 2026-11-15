@@ -1,0 +1,8 @@
+# Drafted from story-apps/starc's v0.8.4 release; its version is the one Upkeep installed.
+[apps.starc]
+name = "starc"
+kind = "appimage"
+repo = "story-apps/starc"
+asset = '^starc-setup\.AppImage$'
+dest = "~/.local/bin/starc.AppImage"
+probe = false

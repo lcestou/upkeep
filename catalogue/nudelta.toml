@@ -1,0 +1,8 @@
+# Drafted from donn/nudelta's 0.10.0 release; its version is the one Upkeep installed.
+[apps.nudelta]
+name = "nudelta"
+kind = "appimage"
+repo = "donn/nudelta"
+asset = '^nudelta-amd64\.AppImage$'
+dest = "~/.local/bin/nudelta.AppImage"
+probe = false

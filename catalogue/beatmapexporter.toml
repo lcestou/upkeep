@@ -1,0 +1,8 @@
+# Drafted from kabiiQ/BeatmapExporter's v2.8.0 release; its version is the one Upkeep installed.
+[apps.beatmapexporter]
+name = "BeatmapExporter"
+kind = "file"
+repo = "kabiiQ/BeatmapExporter"
+asset = '^linux-BeatmapExporter$'
+dest = "~/.local/bin/beatmapexporter"
+probe = false

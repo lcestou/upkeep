@@ -1,0 +1,8 @@
+# Drafted from inulute/ai-gate's v4.8.0 release; its version is the one Upkeep installed.
+[apps.ai-gate]
+name = "AI-Gate"
+kind = "appimage"
+repo = "inulute/ai-gate"
+asset = '^AI\.Gate-.*\.AppImage$'
+dest = "~/.local/bin/ai-gate.AppImage"
+probe = false

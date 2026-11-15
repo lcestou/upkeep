@@ -1,0 +1,8 @@
+# Drafted from hashicorp/vagrant's v2.4.9 release; its version is the one Upkeep installed.
+[apps.vagrant-sha256sums]
+name = "vagrant-SHA256SUMS"
+kind = "file"
+repo = "hashicorp/vagrant"
+asset = '^vagrant_.*_SHA256SUMS$'
+dest = "~/.local/bin/vagrant-sha256sums"
+probe = false

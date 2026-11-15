@@ -1,0 +1,10 @@
+# Drafted from opentofu/tofu-ls's v0.5.3 release; its version is the one Upkeep installed.
+[apps.tofu-ls]
+name = "Tofu Ls"
+kind = "archive"
+repo = "opentofu/tofu-ls"
+asset = '^tofu-ls_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^tofu-ls_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tofu-ls"
+bins = ["tofu-ls"]
+probe = false

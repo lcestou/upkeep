@@ -1,0 +1,9 @@
+# Drafted from rust-lang/mdBook's v0.5.4 release; its version is the one Upkeep installed.
+[apps.mdbook]
+name = "MdBook"
+kind = "archive"
+repo = "rust-lang/mdBook"
+asset = '^mdbook-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/mdbook"
+bins = ["mdbook"]
+probe = false

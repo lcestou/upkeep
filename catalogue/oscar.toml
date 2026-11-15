@@ -1,0 +1,9 @@
+# Drafted from trafalmejo/OSCAR's v2.1.2 release; its version is the one Upkeep installed.
+[apps.oscar]
+name = "OSCAR"
+kind = "appimage"
+repo = "trafalmejo/OSCAR"
+asset = '^OSCAR-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^OSCAR-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/oscar.AppImage"
+probe = false

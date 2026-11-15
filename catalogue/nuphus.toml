@@ -1,0 +1,8 @@
+# Drafted from mrpulor-gh/nuphus's v1.4.0 release; its version is the one Upkeep installed.
+[apps.nuphus]
+name = "Nuphus"
+kind = "appimage"
+repo = "mrpulor-gh/nuphus"
+asset = '^Nuphus_.*_amd64\.AppImage$'
+dest = "~/.local/bin/nuphus.AppImage"
+probe = false

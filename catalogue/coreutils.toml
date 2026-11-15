@@ -1,0 +1,10 @@
+# Drafted from uutils/coreutils's 0.12.0 release; its version is the one Upkeep installed.
+[apps.coreutils]
+name = "coreutils"
+kind = "archive"
+repo = "uutils/coreutils"
+asset = '^coreutils-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^coreutils-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/coreutils"
+bins = ["coreutils-0.12.0-x86_64-unknown-linux-gnu/coreutils"]
+probe = false

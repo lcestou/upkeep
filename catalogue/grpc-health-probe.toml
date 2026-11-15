@@ -1,0 +1,9 @@
+# Drafted from grpc-ecosystem/grpc-health-probe's v0.4.63 release; its version is the one Upkeep installed.
+[apps.grpc-health-probe]
+name = "Grpc Health Probe"
+kind = "file"
+repo = "grpc-ecosystem/grpc-health-probe"
+asset = '^grpc_health_probe-linux-amd64$'
+asset_aarch64 = '^grpc_health_probe-linux-arm64$'
+dest = "~/.local/bin/grpc-health-probe"
+probe = false

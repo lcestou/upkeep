@@ -1,0 +1,10 @@
+# Drafted from mazrean/kessoku's v1.2.0 release; its version is the one Upkeep installed.
+[apps.kessoku]
+name = "kessoku"
+kind = "archive"
+repo = "mazrean/kessoku"
+asset = '^kessoku_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^kessoku_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kessoku"
+bins = ["kessoku"]
+probe = false

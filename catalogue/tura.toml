@@ -1,0 +1,8 @@
+# Drafted from Tura-AI/tura's v0.1.37 release; its version is the one Upkeep installed.
+[apps.tura]
+name = "tura"
+kind = "appimage"
+repo = "Tura-AI/tura"
+asset = '^tura-gui-only-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/tura.AppImage"
+probe = false

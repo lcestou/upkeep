@@ -1,0 +1,8 @@
+# Drafted from zetaloop/keyviz's v2.1.0 release; its version is the one Upkeep installed.
+[apps.keyviz]
+name = "keyviz"
+kind = "appimage"
+repo = "zetaloop/keyviz"
+asset = '^keyviz_.*_amd64\.AppImage$'
+dest = "~/.local/bin/keyviz.AppImage"
+probe = false

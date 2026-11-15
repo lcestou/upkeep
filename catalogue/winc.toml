@@ -1,0 +1,8 @@
+# Drafted from DEEIX-AI/Winc's v0.1.688 release; its version is the one Upkeep installed.
+[apps.winc]
+name = "Winc"
+kind = "appimage"
+repo = "DEEIX-AI/Winc"
+asset = '^Winc-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/winc.AppImage"
+probe = false

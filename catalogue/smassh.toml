@@ -1,0 +1,8 @@
+# Drafted from kraanzu/smassh's v3.2.1 release; its version is the one Upkeep installed.
+[apps.smassh]
+name = "smassh"
+kind = "file"
+repo = "kraanzu/smassh"
+asset = '^linux-smassh$'
+dest = "~/.local/bin/smassh"
+probe = false

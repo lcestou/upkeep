@@ -1,0 +1,10 @@
+# Drafted from omissis/go-jsonschema's v0.24.1 release; its version is the one Upkeep installed.
+[apps.go-jsonschema]
+name = "Go Jsonschema"
+kind = "archive"
+repo = "omissis/go-jsonschema"
+asset = '^go-jsonschema_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^go-jsonschema_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/go-jsonschema"
+bins = ["go-jsonschema"]
+probe = false

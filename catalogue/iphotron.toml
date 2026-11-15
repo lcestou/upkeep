@@ -1,0 +1,8 @@
+# Drafted from OliverZhaohaibin/iPhotron-LocalPhotoAlbumManager's v6.6.8 release; its version is the one Upkeep installed.
+[apps.iphotron]
+name = "iPhotron"
+kind = "appimage"
+repo = "OliverZhaohaibin/iPhotron-LocalPhotoAlbumManager"
+asset = '^iPhotron-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/iphotron.AppImage"
+probe = false

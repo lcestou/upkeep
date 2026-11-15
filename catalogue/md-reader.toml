@@ -1,0 +1,8 @@
+# Drafted from Neilooo/md-reader's v0.3.14 release; its version is the one Upkeep installed.
+[apps.md-reader]
+name = "MD-Reader"
+kind = "appimage"
+repo = "Neilooo/md-reader"
+asset = '^MD\.Reader_.*_amd64\.AppImage$'
+dest = "~/.local/bin/md-reader.AppImage"
+probe = false

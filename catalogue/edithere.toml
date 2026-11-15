@@ -1,0 +1,8 @@
+# Drafted from Inginnng/EditHere's v0.13.3 release; its version is the one Upkeep installed.
+[apps.edithere]
+name = "EditHere"
+kind = "appimage"
+repo = "Inginnng/EditHere"
+asset = '^EditHere-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/edithere.AppImage"
+probe = false

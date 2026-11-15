@@ -1,0 +1,10 @@
+# Drafted from pulumi/kubespy's v0.6.3 release; its version is the one Upkeep installed.
+[apps.kubespy]
+name = "kubespy"
+kind = "archive"
+repo = "pulumi/kubespy"
+asset = '^kubespy-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^kubespy-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/kubespy"
+bins = ["kubespy"]
+probe = false

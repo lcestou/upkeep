@@ -1,0 +1,10 @@
+# Drafted from blopker/codebook's v0.4.0 release; its version is the one Upkeep installed.
+[apps.codebook-lsp]
+name = "codebook"
+kind = "archive"
+repo = "blopker/codebook"
+asset = '^codebook-lsp-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^codebook-lsp-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/codebook-lsp"
+bins = ["codebook-lsp"]
+probe = false

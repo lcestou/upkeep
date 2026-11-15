@@ -1,0 +1,9 @@
+# Drafted from Jeric-X/SyncClipboard's v3.3.3 release; its version is the one Upkeep installed.
+[apps.syncclipboard]
+name = "SyncClipboard"
+kind = "appimage"
+repo = "Jeric-X/SyncClipboard"
+asset = '^SyncClipboard_linux_x64\.AppImage$'
+asset_aarch64 = '^SyncClipboard_linux_arm64\.AppImage$'
+dest = "~/.local/bin/syncclipboard.AppImage"
+probe = false

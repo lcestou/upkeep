@@ -1,0 +1,10 @@
+# Drafted from notaryproject/notation's v1.3.2 release; its version is the one Upkeep installed.
+[apps.notation]
+name = "notation"
+kind = "archive"
+repo = "notaryproject/notation"
+asset = '^notation_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^notation_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/notation"
+bins = ["notation"]
+probe = false

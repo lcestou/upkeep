@@ -1,0 +1,9 @@
+# Drafted from storytold/lightcraft's v0.21.1 release; its version is the one Upkeep installed.
+[apps.lightcraft]
+name = "lightcraft"
+kind = "appimage"
+repo = "storytold/lightcraft"
+asset = '^lightcraft-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^lightcraft-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/lightcraft.AppImage"
+probe = false

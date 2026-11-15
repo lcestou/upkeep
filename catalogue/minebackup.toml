@@ -1,0 +1,8 @@
+# Drafted from Leafuke/MineBackup's v1.16.4 release; its version is the one Upkeep installed.
+[apps.minebackup]
+name = "MineBackup"
+kind = "appimage"
+repo = "Leafuke/MineBackup"
+asset = '^MineBackup-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/minebackup.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from aquasecurity/starboard's v0.15.38 release; its version is the one Upkeep installed.
+[apps.starboard]
+name = "starboard"
+kind = "archive"
+repo = "aquasecurity/starboard"
+asset = '^starboard_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^starboard_linux_ARM64\.tar\.gz$'
+dest = "~/.local/bin/starboard"
+bins = ["starboard"]
+probe = false

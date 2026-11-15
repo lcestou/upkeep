@@ -1,0 +1,9 @@
+# Drafted from vicinaehq/vicinae's v0.30.0 release; its version is the one Upkeep installed.
+[apps.vicinae]
+name = "Vicinae"
+kind = "appimage"
+repo = "vicinaehq/vicinae"
+asset = '^Vicinae-x86_64\.AppImage$'
+asset_aarch64 = '^Vicinae-aarch64\.AppImage$'
+dest = "~/.local/bin/vicinae.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from dbx0/executioner's v0.0.9 release; its version is the one Upkeep installed.
+[apps.executioner]
+name = "Executioner"
+kind = "appimage"
+repo = "dbx0/executioner"
+asset = '^Executioner-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/executioner.AppImage"
+probe = false

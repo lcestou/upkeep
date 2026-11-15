@@ -1,0 +1,8 @@
+# Drafted from flarkflarkflark/STEMwerk-reaper's v2.3.1.3 release; its version is the one Upkeep installed.
+[apps.stemwerk]
+name = "STEMwerk"
+kind = "appimage"
+repo = "flarkflarkflark/STEMwerk-reaper"
+asset = '^STEMwerk-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/stemwerk.AppImage"
+probe = false

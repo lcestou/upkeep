@@ -1,0 +1,8 @@
+# Drafted from Hunlongyu/ZY-Player's v2.8.8 release; its version is the one Upkeep installed.
+[apps.zy-player]
+name = "ZY-Player"
+kind = "appimage"
+repo = "Hunlongyu/ZY-Player"
+asset = '^ZY-Player-.*\.AppImage$'
+dest = "~/.local/bin/zy-player.AppImage"
+probe = false

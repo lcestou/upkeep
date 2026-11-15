@@ -1,0 +1,10 @@
+# Drafted from temporalio/cli's v1.10.1 release; its version is the one Upkeep installed.
+[apps.temporal]
+name = "temporal-cli"
+kind = "archive"
+repo = "temporalio/cli"
+asset = '^temporal_cli_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^temporal_cli_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/temporal"
+bins = ["temporal"]
+probe = false

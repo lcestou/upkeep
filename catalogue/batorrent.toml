@@ -1,0 +1,8 @@
+# Drafted from BATorrent-app/BATorrent's v4.9.0 release; its version is the one Upkeep installed.
+[apps.batorrent]
+name = "BATorrent"
+kind = "appimage"
+repo = "BATorrent-app/BATorrent"
+asset = '^BATorrent-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/batorrent.AppImage"
+probe = false

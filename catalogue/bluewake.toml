@@ -1,0 +1,8 @@
+# Drafted from chrissotraidis/bluewake's v0.11.0 release; its version is the one Upkeep installed.
+[apps.bluewake]
+name = "BlueWake"
+kind = "appimage"
+repo = "chrissotraidis/bluewake"
+asset = '^BlueWake-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/bluewake.AppImage"
+probe = false

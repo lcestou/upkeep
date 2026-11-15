@@ -1,0 +1,10 @@
+# Drafted from AlexanderGrooff/mermaid-ascii's 1.6.1 release; its version is the one Upkeep installed.
+[apps.mermaid-ascii]
+name = "Mermaid Ascii"
+kind = "archive"
+repo = "AlexanderGrooff/mermaid-ascii"
+asset = '^mermaid-ascii_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^mermaid-ascii_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/mermaid-ascii"
+bins = ["mermaid-ascii"]
+probe = false

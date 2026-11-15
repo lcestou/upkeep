@@ -1,0 +1,8 @@
+# Drafted from nexmoe/VidBee's v2.4.0 release; its version is the one Upkeep installed.
+[apps.vidbee]
+name = "VidBee"
+kind = "appimage"
+repo = "nexmoe/VidBee"
+asset = '^vidbee-.*\.AppImage$'
+dest = "~/.local/bin/vidbee.AppImage"
+probe = false

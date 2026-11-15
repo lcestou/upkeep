@@ -1,0 +1,8 @@
+# Drafted from Sinotrade/shioaji-pro-app's v0.1.57 release; its version is the one Upkeep installed.
+[apps.shioaji-pro]
+name = "Shioaji-Pro"
+kind = "appimage"
+repo = "Sinotrade/shioaji-pro-app"
+asset = '^Shioaji\.Pro_.*_amd64\.AppImage$'
+dest = "~/.local/bin/shioaji-pro.AppImage"
+probe = false

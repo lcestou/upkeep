@@ -1,0 +1,8 @@
+# Drafted from milkytracker/MilkyTracker's v1.05.01 release; its version is the one Upkeep installed.
+[apps.milkytracker]
+name = "Milkytracker"
+kind = "appimage"
+repo = "milkytracker/MilkyTracker"
+asset = '^Milkytracker-x86_64\.AppImage$'
+dest = "~/.local/bin/milkytracker.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from cyberark/kubeletctl's v1.13 release; its version is the one Upkeep installed.
+[apps.kubeletctl]
+name = "kubeletctl"
+kind = "file"
+repo = "cyberark/kubeletctl"
+asset = '^kubeletctl_linux_amd64$'
+asset_aarch64 = '^kubeletctl_linux_arm64$'
+dest = "~/.local/bin/kubeletctl"
+probe = false

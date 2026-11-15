@@ -1,0 +1,10 @@
+# Drafted from revive-lint/revive's v1.17.1 release; its version is the one Upkeep installed.
+[apps.revive]
+name = "revive"
+kind = "archive"
+repo = "revive-lint/revive"
+asset = '^revive_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^revive_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/revive"
+bins = ["revive"]
+probe = false

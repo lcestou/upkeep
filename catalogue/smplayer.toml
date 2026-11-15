@@ -1,0 +1,8 @@
+# Drafted from smplayer-dev/smplayer's v26.8.29 release; its version is the one Upkeep installed.
+[apps.smplayer]
+name = "SMPlayer"
+kind = "appimage"
+repo = "smplayer-dev/smplayer"
+asset = '^SMPlayer-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/smplayer.AppImage"
+probe = false

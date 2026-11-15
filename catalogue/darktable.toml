@@ -1,0 +1,9 @@
+# Drafted from darktable-org/darktable's release-5.6.2 release; its version is the one Upkeep installed.
+[apps.darktable]
+name = "Darktable"
+kind = "appimage"
+repo = "darktable-org/darktable"
+asset = '^Darktable-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Darktable-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/darktable.AppImage"
+probe = false

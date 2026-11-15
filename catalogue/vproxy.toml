@@ -1,0 +1,8 @@
+# Drafted from mateo-ki/vproxy's v1.16.12 release; its version is the one Upkeep installed.
+[apps.vproxy]
+name = "vproxy"
+kind = "appimage"
+repo = "mateo-ki/vproxy"
+asset = '^vproxy-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/vproxy.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from newdee/magpie's v0.6.12 release; its version is the one Upkeep installed.
+[apps.magpie]
+name = "magpie"
+kind = "appimage"
+repo = "newdee/magpie"
+asset = '^magpie_.*_amd64\.AppImage$'
+dest = "~/.local/bin/magpie.AppImage"
+probe = false

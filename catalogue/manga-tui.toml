@@ -1,0 +1,9 @@
+# Drafted from josueBarretogit/manga-tui's v0.10.1 release; its version is the one Upkeep installed.
+[apps.manga-tui]
+name = "Manga Tui"
+kind = "archive"
+repo = "josueBarretogit/manga-tui"
+asset = '^manga-tui-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/manga-tui"
+bins = ["manga-tui"]
+probe = false

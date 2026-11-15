@@ -1,0 +1,8 @@
+# Drafted from Xzandro/sw-exporter's v1.1.0 release; its version is the one Upkeep installed.
+[apps.summoners-war-exporter]
+name = "Summoners-War-Exporter"
+kind = "appimage"
+repo = "Xzandro/sw-exporter"
+asset = '^Summoners-War-Exporter-.*-linux\.AppImage$'
+dest = "~/.local/bin/summoners-war-exporter.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from Loopayeh/pkg-sender's v1.2.9 release; its version is the one Upkeep installed.
+[apps.pkgsender]
+name = "PkgSender"
+kind = "appimage"
+repo = "Loopayeh/pkg-sender"
+asset = '^PkgSender-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/pkgsender.AppImage"
+probe = false

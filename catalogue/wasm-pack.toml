@@ -1,0 +1,10 @@
+# Drafted from wasm-bindgen/wasm-pack's v0.15.1 release; its version is the one Upkeep installed.
+[apps.wasm-pack]
+name = "Wasm Pack"
+kind = "archive"
+repo = "wasm-bindgen/wasm-pack"
+asset = '^wasm-pack-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^wasm-pack-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/wasm-pack"
+bins = ["wasm-pack-v0.15.1-x86_64-unknown-linux-musl/wasm-pack"]
+probe = false

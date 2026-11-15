@@ -1,0 +1,9 @@
+# Drafted from Faster3ck/Converseen's v0.15.2.9 release; its version is the one Upkeep installed.
+[apps.converseen]
+name = "Converseen-anylinux"
+kind = "appimage"
+repo = "Faster3ck/Converseen"
+asset = '^Converseen-.*-1-anylinux-x86_64\.AppImage$'
+asset_aarch64 = '^Converseen-.*-1-anylinux-aarch64\.AppImage$'
+dest = "~/.local/bin/converseen-anylinux.AppImage"
+probe = false

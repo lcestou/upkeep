@@ -1,0 +1,9 @@
+# Drafted from zurawiki/gptcommit's v0.6.0 release; its version is the one Upkeep installed.
+[apps.gptcommit]
+name = "gptcommit"
+kind = "archive"
+repo = "zurawiki/gptcommit"
+asset = '^gptcommit-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/gptcommit"
+bins = ["gptcommit"]
+probe = false

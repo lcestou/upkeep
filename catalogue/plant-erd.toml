@@ -1,0 +1,9 @@
+# Drafted from sue445/plant_erd's v0.4.12 release; its version is the one Upkeep installed.
+[apps.plant-erd]
+name = "Plant Erd"
+kind = "archive"
+repo = "sue445/plant_erd"
+asset = '^plant_erd_linux_amd64\.zip$'
+dest = "~/.local/bin/plant_erd"
+bins = ["plant_erd*"]
+probe = false

@@ -1,0 +1,11 @@
+# Drafted from sharkdp/numbat's v1.24.0 release; its version is the one Upkeep installed.
+[apps.numbat]
+name = "numbat"
+kind = "archive"
+repo = "sharkdp/numbat"
+asset = '^numbat-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^numbat-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/numbat"
+folder = "~/.local/share/numbat"
+bins = ["numbat"]
+probe = false

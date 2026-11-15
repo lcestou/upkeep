@@ -1,0 +1,9 @@
+# Drafted from pingw33n/OpenRB-338's v2026.1113.1528 release; its version is the one Upkeep installed.
+[apps.openrb]
+name = "OpenRB"
+kind = "appimage"
+repo = "pingw33n/OpenRB-338"
+asset = '^OpenRB-338-.*-x86_64\.AppImage$'
+asset_aarch64 = '^OpenRB-338-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/openrb.AppImage"
+probe = false

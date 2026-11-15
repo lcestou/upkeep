@@ -1,0 +1,9 @@
+# Drafted from mfridman/tparse's v0.18.0 release; its version is the one Upkeep installed.
+[apps.tparse]
+name = "tparse"
+kind = "file"
+repo = "mfridman/tparse"
+asset = '^tparse_linux_x86_64$'
+asset_aarch64 = '^tparse_linux_arm64$'
+dest = "~/.local/bin/tparse"
+probe = false

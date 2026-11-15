@@ -1,0 +1,10 @@
+# Drafted from raitonoberu/sptlrx's v1.3.1 release; its version is the one Upkeep installed.
+[apps.sptlrx]
+name = "sptlrx"
+kind = "archive"
+repo = "raitonoberu/sptlrx"
+asset = '^sptlrx_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^sptlrx_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/sptlrx"
+bins = ["sptlrx"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from in-toto/witness's v0.12.0 release; its version is the one Upkeep installed.
+[apps.witness]
+name = "witness"
+kind = "archive"
+repo = "in-toto/witness"
+asset = '^witness_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^witness_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/witness"
+bins = ["witness"]
+probe = false

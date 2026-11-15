@@ -1,0 +1,8 @@
+# Drafted from AQBot-Desktop/AQBot's v0.0.165 release; its version is the one Upkeep installed.
+[apps.aqbot]
+name = "AQBot"
+kind = "appimage"
+repo = "AQBot-Desktop/AQBot"
+asset = '^AQBot_.*_amd64\.AppImage$'
+dest = "~/.local/bin/aqbot.AppImage"
+probe = false

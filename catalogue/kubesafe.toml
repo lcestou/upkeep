@@ -1,0 +1,10 @@
+# Drafted from Telemaco019/kubesafe's v0.5.1 release; its version is the one Upkeep installed.
+[apps.kubesafe]
+name = "kubesafe"
+kind = "archive"
+repo = "Telemaco019/kubesafe"
+asset = '^kubesafe_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^kubesafe_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubesafe"
+bins = ["kubesafe"]
+probe = false

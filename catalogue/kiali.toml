@@ -1,0 +1,9 @@
+# Drafted from kiali/kiali's v2.34.1 release; its version is the one Upkeep installed.
+[apps.kiali]
+name = "kiali"
+kind = "file"
+repo = "kiali/kiali"
+asset = '^kiali-linux-amd64$'
+asset_aarch64 = '^kiali-linux-arm64$'
+dest = "~/.local/bin/kiali"
+probe = false

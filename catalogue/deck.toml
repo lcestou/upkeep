@@ -1,0 +1,10 @@
+# Drafted from k1LoW/deck's v1.24.4 release; its version is the one Upkeep installed.
+[apps.deck]
+name = "deck"
+kind = "archive"
+repo = "k1LoW/deck"
+asset = '^deck_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^deck_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/deck"
+bins = ["deck"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from diasurgical/DevilutionX's 1.5.5 release; its version is the one Upkeep installed.
+[apps.devilutionx]
+name = "DevilutionX"
+kind = "appimage"
+repo = "diasurgical/DevilutionX"
+asset = '^devilutionx-linux-x86_64\.appimage$'
+dest = "~/.local/bin/devilutionx.AppImage"
+probe = false

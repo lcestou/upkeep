@@ -1,0 +1,8 @@
+# Drafted from LibreSprite/LibreSprite's v1.3 release; its version is the one Upkeep installed.
+[apps.libresprite]
+name = "LibreSprite"
+kind = "appimage"
+repo = "LibreSprite/LibreSprite"
+asset = '^libresprite-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/libresprite.AppImage"
+probe = false

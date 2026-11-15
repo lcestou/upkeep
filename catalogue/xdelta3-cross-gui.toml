@@ -1,0 +1,8 @@
+# Drafted from dan0v/xdelta3-cross-gui's 1.8.0 release; its version is the one Upkeep installed.
+[apps.xdelta3-cross-gui]
+name = "xDelta3-Cross-Gui"
+kind = "appimage"
+repo = "dan0v/xdelta3-cross-gui"
+asset = '^xDelta3_Cross_Gui-x86_64\.AppImage$'
+dest = "~/.local/bin/xdelta3-cross-gui.AppImage"
+probe = false

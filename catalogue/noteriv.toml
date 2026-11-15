@@ -1,0 +1,8 @@
+# Drafted from thejacedev/Noteriv's v3.0.1 release; its version is the one Upkeep installed.
+[apps.noteriv]
+name = "Noteriv"
+kind = "appimage"
+repo = "thejacedev/Noteriv"
+asset = '^Noteriv_.*_amd64\.AppImage$'
+dest = "~/.local/bin/noteriv.AppImage"
+probe = false

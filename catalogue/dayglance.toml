@@ -1,0 +1,9 @@
+# Drafted from krelltunez/dayGLANCE's v5.14.0 release; its version is the one Upkeep installed.
+[apps.dayglance]
+name = "dayGLANCE"
+kind = "appimage"
+repo = "krelltunez/dayGLANCE"
+asset = '^dayGLANCE-.*-x86_64\.AppImage$'
+asset_aarch64 = '^dayGLANCE-.*-arm64\.AppImage$'
+dest = "~/.local/bin/dayglance.AppImage"
+probe = false

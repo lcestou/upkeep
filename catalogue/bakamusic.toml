@@ -1,0 +1,9 @@
+# Drafted from Zencok/BakaMusic's v1.9.6 release; its version is the one Upkeep installed.
+[apps.bakamusic]
+name = "BakaMusic"
+kind = "appimage"
+repo = "Zencok/BakaMusic"
+asset = '^BakaMusic-.*-linux-amd64\.AppImage$'
+asset_aarch64 = '^BakaMusic-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/bakamusic.AppImage"
+probe = false

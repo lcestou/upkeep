@@ -1,0 +1,8 @@
+# Drafted from fabox-os/Pro-Wave's v0.2.2 release; its version is the one Upkeep installed.
+[apps.prowave]
+name = "Pro-Wave"
+kind = "appimage"
+repo = "fabox-os/Pro-Wave"
+asset = '^Pro_Wave-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/prowave.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from Merrit/nyrna's v2.27.2 release; its version is the one Upkeep installed.
+[apps.nyrna]
+name = "Nyrna"
+kind = "archive"
+repo = "Merrit/nyrna"
+asset = '^Nyrna-Linux-Portable\.tar\.gz$'
+dest = "~/.local/bin/nyrna"
+folder = "~/.local/share/nyrna"
+bins = ["nyrna"]
+probe = false

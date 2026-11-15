@@ -1,0 +1,8 @@
+# Drafted from TabularisDB/tabularis's v0.32.0 release; its version is the one Upkeep installed.
+[apps.tabularis]
+name = "tabularis"
+kind = "appimage"
+repo = "TabularisDB/tabularis"
+asset = '^tabularis_.*_amd64\.AppImage$'
+dest = "~/.local/bin/tabularis.AppImage"
+probe = false

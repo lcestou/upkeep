@@ -1,0 +1,8 @@
+# Drafted from AGWA/git-crypt's 0.8.0 release; its version is the one Upkeep installed.
+[apps.git-crypt]
+name = "Git Crypt"
+kind = "file"
+repo = "AGWA/git-crypt"
+asset = '^git-crypt-.*-linux-x86_64$'
+dest = "~/.local/bin/git-crypt"
+probe = false

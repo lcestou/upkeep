@@ -1,0 +1,8 @@
+# Drafted from Bokuchi-Editor/bokuchi's v1.2.1 release; its version is the one Upkeep installed.
+[apps.bokuchi]
+name = "Bokuchi"
+kind = "appimage"
+repo = "Bokuchi-Editor/bokuchi"
+asset = '^Bokuchi_.*_amd64\.AppImage$'
+dest = "~/.local/bin/bokuchi.AppImage"
+probe = false

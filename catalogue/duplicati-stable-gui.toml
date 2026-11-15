@@ -1,0 +1,9 @@
+# Drafted from duplicati/duplicati's v2.4.1.0_stable_2026-10-29 release; its version is the one Upkeep installed.
+[apps.duplicati-stable-gui]
+name = "duplicati"
+kind = "appimage"
+repo = "duplicati/duplicati"
+asset = '^duplicati-.*_stable_2026-10-29-linux-x64-gui\.appimage$'
+asset_aarch64 = '^duplicati-.*_stable_2026-10-29-linux-arm64-gui\.appimage$'
+dest = "~/.local/bin/duplicati-stable-gui.AppImage"
+probe = false

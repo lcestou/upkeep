@@ -1,0 +1,8 @@
+# Drafted from Anixapp-Community/anixapp's v0.1.66 release; its version is the one Upkeep installed.
+[apps.anixapp]
+name = "AnixApp"
+kind = "appimage"
+repo = "Anixapp-Community/anixapp"
+asset = '^AnixApp-.*\.AppImage$'
+dest = "~/.local/bin/anixapp.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from HaxeFoundation/haxe's 4.3.7 release; its version is the one Upkeep installed.
+[apps.haxe]
+name = "haxe"
+kind = "archive"
+repo = "HaxeFoundation/haxe"
+asset = '^haxe-.*-linux64\.tar\.gz$'
+dest = "~/.local/bin/haxe"
+folder = "~/.local/share/haxe"
+bins = ["haxe", "haxelib"]
+probe = false

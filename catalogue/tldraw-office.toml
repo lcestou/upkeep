@@ -1,0 +1,9 @@
+# Drafted from tldraw/tldraw-office's v1.24.1 release; its version is the one Upkeep installed.
+[apps.tldraw-office]
+name = "Tldraw Office"
+kind = "appimage"
+repo = "tldraw/tldraw-office"
+asset = '^tldraw-office-linux-x86_64\.AppImage$'
+asset_aarch64 = '^tldraw-office-linux-arm64\.AppImage$'
+dest = "~/.local/bin/tldraw-office.AppImage"
+probe = false

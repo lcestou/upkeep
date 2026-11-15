@@ -1,0 +1,9 @@
+# Drafted from mpalmer/action-validator's v0.9.0 release; its version is the one Upkeep installed.
+[apps.action-validator]
+name = "Action Validator"
+kind = "file"
+repo = "mpalmer/action-validator"
+asset = '^action-validator_linux_amd64$'
+asset_aarch64 = '^action-validator_linux_arm64$'
+dest = "~/.local/bin/action-validator"
+probe = false

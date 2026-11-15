@@ -1,0 +1,8 @@
+# Drafted from padloc/padloc's v4.3.0 release; its version is the one Upkeep installed.
+[apps.padloc-pwa]
+name = "padloc"
+kind = "appimage"
+repo = "padloc/padloc"
+asset = '^padloc_.*_linux_tauri_amd64\.AppImage$'
+dest = "~/.local/bin/padloc-pwa.AppImage"
+probe = false

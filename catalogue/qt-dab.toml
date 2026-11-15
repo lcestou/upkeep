@@ -1,0 +1,8 @@
+# Drafted from JvanKatwijk/qt-dab's 7.3.2.0 release; its version is the one Upkeep installed.
+[apps.qt-dab]
+name = "Qt Dab"
+kind = "appimage"
+repo = "JvanKatwijk/qt-dab"
+asset = '^db-loader-x86_64\.AppImage$'
+dest = "~/.local/bin/qt-dab.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from olegantonyan/mpz's 2.1.9 release; its version is the one Upkeep installed.
+[apps.mpz]
+name = "mpz"
+kind = "appimage"
+repo = "olegantonyan/mpz"
+asset = '^mpz-.*-x86_64\.AppImage$'
+asset_aarch64 = '^mpz-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/mpz.AppImage"
+probe = false

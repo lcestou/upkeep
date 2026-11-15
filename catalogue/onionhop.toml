@@ -1,0 +1,9 @@
+# Drafted from center2055/OnionHop's v3.11 release; its version is the one Upkeep installed.
+[apps.onionhop]
+name = "OnionHop"
+kind = "appimage"
+repo = "center2055/OnionHop"
+asset = '^OnionHop-x86_64\.AppImage$'
+asset_aarch64 = '^OnionHop-aarch64\.AppImage$'
+dest = "~/.local/bin/onionhop.AppImage"
+probe = false

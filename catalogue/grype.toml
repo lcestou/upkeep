@@ -1,0 +1,10 @@
+# Drafted from anchore/grype's v0.121.3 release; its version is the one Upkeep installed.
+[apps.grype]
+name = "grype"
+kind = "archive"
+repo = "anchore/grype"
+asset = '^grype_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^grype_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/grype"
+bins = ["grype"]
+probe = false

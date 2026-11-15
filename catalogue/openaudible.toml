@@ -1,0 +1,8 @@
+# Drafted from openaudible/openaudible's v5.2 release; its version is the one Upkeep installed.
+[apps.openaudible]
+name = "OpenAudible"
+kind = "appimage"
+repo = "openaudible/openaudible"
+asset = '^OpenAudible_.*_x86_64\.AppImage$'
+dest = "~/.local/bin/openaudible.AppImage"
+probe = false

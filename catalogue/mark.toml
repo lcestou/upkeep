@@ -1,0 +1,10 @@
+# Drafted from kovetskiy/mark's v17.2.0 release; its version is the one Upkeep installed.
+[apps.mark]
+name = "mark"
+kind = "archive"
+repo = "kovetskiy/mark"
+asset = '^mark_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^mark_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/mark"
+bins = ["mark"]
+probe = false

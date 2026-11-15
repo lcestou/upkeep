@@ -1,0 +1,8 @@
+# Drafted from arpanghosh8453/open-dronelog's 3.3.2 release; its version is the one Upkeep installed.
+[apps.open-dronelog]
+name = "Open Dronelog"
+kind = "appimage"
+repo = "arpanghosh8453/open-dronelog"
+asset = '^open-dronelog_.*_linux_amd64\.AppImage$'
+dest = "~/.local/bin/open-dronelog.AppImage"
+probe = false

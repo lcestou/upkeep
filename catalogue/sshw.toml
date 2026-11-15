@@ -1,0 +1,10 @@
+# Drafted from yinheli/sshw's v1.1.2 release; its version is the one Upkeep installed.
+[apps.sshw]
+name = "sshw"
+kind = "archive"
+repo = "yinheli/sshw"
+asset = '^sshw_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^sshw_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/sshw"
+bins = ["sshw"]
+probe = false

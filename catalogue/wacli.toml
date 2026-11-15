@@ -1,0 +1,10 @@
+# Drafted from openclaw/wacli's v0.26.0 release; its version is the one Upkeep installed.
+[apps.wacli]
+name = "wacli"
+kind = "archive"
+repo = "openclaw/wacli"
+asset = '^wacli_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^wacli_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/wacli"
+bins = ["wacli"]
+probe = false

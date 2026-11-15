@@ -1,0 +1,10 @@
+# Drafted from crate-ci/typos's v1.52.2 release; its version is the one Upkeep installed.
+[apps.typos]
+name = "typos"
+kind = "archive"
+repo = "crate-ci/typos"
+asset = '^typos-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^typos-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/typos"
+bins = ["typos"]
+probe = false

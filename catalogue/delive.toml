@@ -1,0 +1,8 @@
+# Drafted from XimilalaXiang/DeLive's v2.2.4 release; its version is the one Upkeep installed.
+[apps.delive]
+name = "DeLive"
+kind = "appimage"
+repo = "XimilalaXiang/DeLive"
+asset = '^DeLive-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/delive.AppImage"
+probe = false

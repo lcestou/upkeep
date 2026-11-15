@@ -1,0 +1,10 @@
+# Drafted from lsd-rs/lsd's v1.2.0 release; its version is the one Upkeep installed.
+[apps.lsd]
+name = "lsd"
+kind = "archive"
+repo = "lsd-rs/lsd"
+asset = '^lsd-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^lsd-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/lsd"
+bins = ["lsd-v1.2.0-x86_64-unknown-linux-gnu/lsd"]
+probe = false

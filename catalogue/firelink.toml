@@ -1,0 +1,8 @@
+# Drafted from nimbold/Firelink's v1.5.0 release; its version is the one Upkeep installed.
+[apps.firelink]
+name = "Firelink"
+kind = "appimage"
+repo = "nimbold/Firelink"
+asset = '^Firelink-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/firelink.AppImage"
+probe = false

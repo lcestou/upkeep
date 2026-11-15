@@ -1,0 +1,8 @@
+# Drafted from lvgl/lvgl_pro's v2.1.2 release; its version is the one Upkeep installed.
+[apps.lvgl-pro-editor]
+name = "LVGL-Pro-Editor"
+kind = "appimage"
+repo = "lvgl/lvgl_pro"
+asset = '^LVGL_Pro_Editor-.*-linux\.AppImage$'
+dest = "~/.local/bin/lvgl-pro-editor.AppImage"
+probe = false

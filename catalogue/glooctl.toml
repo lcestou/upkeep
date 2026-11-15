@@ -1,0 +1,9 @@
+# Drafted from solo-io/gloo's v1.22.8 release; its version is the one Upkeep installed.
+[apps.glooctl]
+name = "gloo"
+kind = "file"
+repo = "solo-io/gloo"
+asset = '^glooctl-linux-amd64$'
+asset_aarch64 = '^glooctl-linux-arm64$'
+dest = "~/.local/bin/glooctl"
+probe = false

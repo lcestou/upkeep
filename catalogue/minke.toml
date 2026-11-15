@@ -1,0 +1,8 @@
+# Drafted from lencx/Minke's v0.9.0 release; its version is the one Upkeep installed.
+[apps.minke]
+name = "Minke"
+kind = "appimage"
+repo = "lencx/Minke"
+asset = '^Minke-linux-x64\.AppImage$'
+dest = "~/.local/bin/minke.AppImage"
+probe = false

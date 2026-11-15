@@ -1,0 +1,10 @@
+# Drafted from editorconfig/editorconfig-core-go's v2.6.5 release; its version is the one Upkeep installed.
+[apps.editorconfig]
+name = "Editorconfig Core Go"
+kind = "archive"
+repo = "editorconfig/editorconfig-core-go"
+asset = '^editorconfig-core-go_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^editorconfig-core-go_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/editorconfig"
+bins = ["editorconfig"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from reteps/dockerfmt's v1.0.0 release; its version is the one Upkeep installed.
+[apps.dockerfmt]
+name = "dockerfmt"
+kind = "archive"
+repo = "reteps/dockerfmt"
+asset = '^dockerfmt-.*-linux-amd64-musl\.tar\.gz$'
+asset_aarch64 = '^dockerfmt-.*-linux-arm64-musl\.tar\.gz$'
+dest = "~/.local/bin/dockerfmt"
+bins = ["dockerfmt"]
+probe = false

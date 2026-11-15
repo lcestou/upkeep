@@ -1,0 +1,8 @@
+# Drafted from noah-peeters/ChimpStackr's v0.4.1 release; its version is the one Upkeep installed.
+[apps.chimpstackr]
+name = "ChimpStackr"
+kind = "appimage"
+repo = "noah-peeters/ChimpStackr"
+asset = '^ChimpStackr-Linux-x86_64\.AppImage$'
+dest = "~/.local/bin/chimpstackr.AppImage"
+probe = false

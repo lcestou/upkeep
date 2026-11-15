@@ -1,0 +1,8 @@
+# Drafted from klaudiosinani/tusk's v0.23.0 release; its version is the one Upkeep installed.
+[apps.tusk]
+name = "tusk"
+kind = "appimage"
+repo = "klaudiosinani/tusk"
+asset = '^tusk-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/tusk.AppImage"
+probe = false

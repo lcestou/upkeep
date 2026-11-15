@@ -1,0 +1,11 @@
+# Drafted from UsefulSoftwareCo/executor's v1.6.11 release; its version is the one Upkeep installed.
+[apps.executor]
+name = "executor"
+kind = "archive"
+repo = "UsefulSoftwareCo/executor"
+asset = '^executor-linux-x64-musl\.tar\.gz$'
+asset_aarch64 = '^executor-linux-arm64-musl\.tar\.gz$'
+dest = "~/.local/bin/executor"
+folder = "~/.local/share/executor"
+bins = ["executor"]
+probe = false

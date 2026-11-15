@@ -1,0 +1,8 @@
+# Drafted from friction2d/friction's v1.0.0 release; its version is the one Upkeep installed.
+[apps.friction]
+name = "Friction"
+kind = "appimage"
+repo = "friction2d/friction"
+asset = '^Friction-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/friction.AppImage"
+probe = false

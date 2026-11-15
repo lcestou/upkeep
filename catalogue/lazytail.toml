@@ -1,0 +1,9 @@
+# Drafted from raaymax/lazytail's v0.10.0 release; its version is the one Upkeep installed.
+[apps.lazytail]
+name = "lazytail"
+kind = "archive"
+repo = "raaymax/lazytail"
+asset = '^lazytail-linux-x86_64\.tar\.gz$'
+dest = "~/.local/bin/lazytail"
+bins = ["lazytail"]
+probe = false

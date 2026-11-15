@@ -1,0 +1,9 @@
+# Drafted from grafana/mimir's mimir-3.2.5 release; its version is the one Upkeep installed.
+[apps.mimir]
+name = "mimir"
+kind = "file"
+repo = "grafana/mimir"
+asset = '^mimir-linux-amd64$'
+asset_aarch64 = '^mimir-linux-arm64$'
+dest = "~/.local/bin/mimir"
+probe = false

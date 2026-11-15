@@ -1,0 +1,10 @@
+# Drafted from s0md3v/Smap's v1.0.0-beta release; its version is the one Upkeep installed.
+[apps.smap]
+name = "Smap"
+kind = "archive"
+repo = "s0md3v/Smap"
+asset = '^smap_.*-beta_linux_amd64\.tar\.xz$'
+asset_aarch64 = '^smap_.*-beta_linux_arm64\.tar\.xz$'
+dest = "~/.local/bin/smap"
+bins = ["smap_1.0.0-beta_linux_amd64/smap"]
+probe = false

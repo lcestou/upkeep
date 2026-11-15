@@ -1,0 +1,10 @@
+# Drafted from dstotijn/hetty's v0.7.0 release; its version is the one Upkeep installed.
+[apps.hetty]
+name = "hetty"
+kind = "archive"
+repo = "dstotijn/hetty"
+asset = '^hetty_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^hetty_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/hetty"
+bins = ["hetty"]
+probe = false

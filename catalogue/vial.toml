@@ -1,0 +1,8 @@
+# Drafted from vial-kb/vial-gui's v0.7.5 release; its version is the one Upkeep installed.
+[apps.vial]
+name = "Vial"
+kind = "appimage"
+repo = "vial-kb/vial-gui"
+asset = '^Vial-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/vial.AppImage"
+probe = false

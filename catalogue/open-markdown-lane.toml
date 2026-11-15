@@ -1,0 +1,8 @@
+# Drafted from AniChikage/open-markdown-lane's v0.26.2 release; its version is the one Upkeep installed.
+[apps.open-markdown-lane]
+name = "Open-Markdown-Lane"
+kind = "appimage"
+repo = "AniChikage/open-markdown-lane"
+asset = '^Open-Markdown-Lane-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/open-markdown-lane.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from Zarestia-Dev/rclone-manager's v0.3.6 release; its version is the one Upkeep installed.
+[apps.rclone-manager]
+name = "RClone-Manager"
+kind = "appimage"
+repo = "Zarestia-Dev/rclone-manager"
+asset = '^RClone\.Manager_.*_amd64\.AppImage$'
+asset_aarch64 = '^RClone\.Manager_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/rclone-manager.AppImage"
+probe = false

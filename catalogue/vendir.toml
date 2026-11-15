@@ -1,0 +1,9 @@
+# Drafted from carvel-dev/vendir's v0.46.3 release; its version is the one Upkeep installed.
+[apps.vendir]
+name = "vendir"
+kind = "file"
+repo = "carvel-dev/vendir"
+asset = '^vendir-linux-amd64$'
+asset_aarch64 = '^vendir-linux-arm64$'
+dest = "~/.local/bin/vendir"
+probe = false

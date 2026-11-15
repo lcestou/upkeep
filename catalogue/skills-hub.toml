@@ -1,0 +1,9 @@
+# Drafted from qufei1993/skills-hub's v1.1.1 release; its version is the one Upkeep installed.
+[apps.skills-hub]
+name = "Skills-Hub"
+kind = "appimage"
+repo = "qufei1993/skills-hub"
+asset = '^Skills-Hub-.*-Linux-x64\.AppImage$'
+asset_aarch64 = '^Skills-Hub-.*-Linux-arm64\.AppImage$'
+dest = "~/.local/bin/skills-hub.AppImage"
+probe = false

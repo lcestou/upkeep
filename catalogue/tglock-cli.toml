@@ -1,0 +1,8 @@
+# Drafted from by-sonic/tglock's v2.0.0-beta.19 release; its version is the one Upkeep installed.
+[apps.tglock-cli]
+name = "TGLock-beta"
+kind = "appimage"
+repo = "by-sonic/tglock"
+asset = '^TGLock_.*-beta\.19_amd64\.AppImage$'
+dest = "~/.local/bin/tglock-cli.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from bflad/tfproviderlint's v0.31.0 release; its version is the one Upkeep installed.
+[apps.tfproviderlint]
+name = "tfproviderlint"
+kind = "archive"
+repo = "bflad/tfproviderlint"
+asset = '^tfproviderlint_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tfproviderlint_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tfproviderlint"
+bins = ["tfproviderlint", "tfproviderlintx"]
+probe = false

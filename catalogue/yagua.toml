@@ -1,0 +1,8 @@
+# Drafted from GuilleBouix/Yagua-Image-Processor's v2.0.0 release; its version is the one Upkeep installed.
+[apps.yagua]
+name = "Yagua"
+kind = "appimage"
+repo = "GuilleBouix/Yagua-Image-Processor"
+asset = '^Yagua-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/yagua.AppImage"
+probe = false

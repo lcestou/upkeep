@@ -1,0 +1,8 @@
+# Drafted from Youda008/DoomRunner's v1.9.2 release; its version is the one Upkeep installed.
+[apps.doomrunner]
+name = "DoomRunner"
+kind = "appimage"
+repo = "Youda008/DoomRunner"
+asset = '^DoomRunner-.*-Linux-x86_64\.AppImage$'
+dest = "~/.local/bin/doomrunner.AppImage"
+probe = false

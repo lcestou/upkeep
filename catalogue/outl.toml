@@ -1,0 +1,9 @@
+# Drafted from outlmd/outl's v0.13.4 release; its version is the one Upkeep installed.
+[apps.outl]
+name = "outl"
+kind = "appimage"
+repo = "outlmd/outl"
+asset = '^outl-desktop-linux-x86_64\.AppImage$'
+asset_aarch64 = '^outl-desktop-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/outl.AppImage"
+probe = false

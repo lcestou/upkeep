@@ -1,0 +1,8 @@
+# Drafted from SLEEPYBQ/MemoSync's v0.45.0 release; its version is the one Upkeep installed.
+[apps.memosync]
+name = "MemoSync"
+kind = "appimage"
+repo = "SLEEPYBQ/MemoSync"
+asset = '^MemoSync-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/memosync.AppImage"
+probe = false

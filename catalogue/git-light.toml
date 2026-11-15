@@ -1,0 +1,8 @@
+# Drafted from colinlienard/gitlight's gitlight-v0.17.6 release; its version is the one Upkeep installed.
+[apps.git-light]
+name = "gitlight"
+kind = "appimage"
+repo = "colinlienard/gitlight"
+asset = '^git-light_.*_amd64\.AppImage$'
+dest = "~/.local/bin/git-light.AppImage"
+probe = false

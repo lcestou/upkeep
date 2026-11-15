@@ -1,0 +1,9 @@
+# Drafted from waydroid-helper/waydroid-helper's v0.2.9 release; its version is the one Upkeep installed.
+[apps.waydroid-helper]
+name = "Waydroid Helper"
+kind = "appimage"
+repo = "waydroid-helper/waydroid-helper"
+asset = '^waydroid-helper-.*-x86_64\.AppImage$'
+asset_aarch64 = '^waydroid-helper-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/waydroid-helper.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from GoogleCloudPlatform/berglas's v2.0.18 release; its version is the one Upkeep installed.
+[apps.berglas]
+name = "berglas"
+kind = "archive"
+repo = "GoogleCloudPlatform/berglas"
+asset = '^berglas_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^berglas_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/berglas"
+bins = ["berglas"]
+probe = false

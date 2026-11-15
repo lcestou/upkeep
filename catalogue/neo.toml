@@ -1,0 +1,8 @@
+# Drafted from hughhowey/neo's v1.6.5 release; its version is the one Upkeep installed.
+[apps.neo]
+name = "NEO"
+kind = "appimage"
+repo = "hughhowey/neo"
+asset = '^NEO-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/neo.AppImage"
+probe = false

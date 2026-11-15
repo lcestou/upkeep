@@ -1,0 +1,10 @@
+# Drafted from leg100/pug's v0.6.5 release; its version is the one Upkeep installed.
+[apps.pug]
+name = "pug"
+kind = "archive"
+repo = "leg100/pug"
+asset = '^pug_.*_linux_amd64\.zip$'
+asset_aarch64 = '^pug_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/pug"
+bins = ["pug"]
+probe = false

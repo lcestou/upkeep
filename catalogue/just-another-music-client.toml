@@ -1,0 +1,8 @@
+# Drafted from 2latemc/JustAnotherMusicClient's v1.3.2 release; its version is the one Upkeep installed.
+[apps.just-another-music-client]
+name = "Just-Another-Music-Client"
+kind = "appimage"
+repo = "2latemc/JustAnotherMusicClient"
+asset = '^Just\.Another\.Music\.Client_.*_amd64\.AppImage$'
+dest = "~/.local/bin/just-another-music-client.AppImage"
+probe = false

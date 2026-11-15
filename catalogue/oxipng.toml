@@ -1,0 +1,10 @@
+# Drafted from oxipng/oxipng's v10.2.1 release; its version is the one Upkeep installed.
+[apps.oxipng]
+name = "oxipng"
+kind = "archive"
+repo = "oxipng/oxipng"
+asset = '^oxipng-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^oxipng-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/oxipng"
+bins = ["oxipng-10.2.1-x86_64-unknown-linux-gnu/oxipng"]
+probe = false

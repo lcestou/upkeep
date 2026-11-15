@@ -1,0 +1,11 @@
+# Drafted from x-motemen/blogsync's v0.21.1 release; its version is the one Upkeep installed.
+[apps.blogsync]
+name = "blogsync"
+kind = "archive"
+repo = "x-motemen/blogsync"
+asset = '^blogsync_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^blogsync_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/blogsync"
+folder = "~/.local/share/blogsync"
+bins = ["blogsync"]
+probe = false

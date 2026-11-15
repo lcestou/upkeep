@@ -1,0 +1,8 @@
+# Drafted from Rosalie241/RMG's v0.9.1 release; its version is the one Upkeep installed.
+[apps.rmg-linu]
+name = "RMG-Linu"
+kind = "appimage"
+repo = "Rosalie241/RMG"
+asset = '^RMG-Portable-Linux64-.*\.AppImage$'
+dest = "~/.local/bin/rmg-linu.AppImage"
+probe = false

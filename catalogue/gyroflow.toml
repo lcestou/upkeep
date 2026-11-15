@@ -1,0 +1,8 @@
+# Drafted from gyroflow/gyroflow's v1.7.0 release; its version is the one Upkeep installed.
+[apps.gyroflow]
+name = "Gyroflow-linu"
+kind = "appimage"
+repo = "gyroflow/gyroflow"
+asset = '^Gyroflow-linux64\.AppImage$'
+dest = "~/.local/bin/gyroflow-linu.AppImage"
+probe = false

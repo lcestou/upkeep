@@ -1,0 +1,9 @@
+# Drafted from ungoogled-software/ungoogled-chromium-portablelinux's 156.0.8078.79-1 release; its version is the one Upkeep installed.
+[apps.ungoogled-chromium]
+name = "Ungoogled Chromium Portablelinux"
+kind = "appimage"
+repo = "ungoogled-software/ungoogled-chromium-portablelinux"
+asset = '^ungoogled-chromium-.*-x86_64\.AppImage$'
+asset_aarch64 = '^ungoogled-chromium-.*-arm64\.AppImage$'
+dest = "~/.local/bin/ungoogled-chromium.AppImage"
+probe = false

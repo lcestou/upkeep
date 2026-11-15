@@ -1,0 +1,8 @@
+# Drafted from wygoralves/panes's v0.66.0 release; its version is the one Upkeep installed.
+[apps.panes]
+name = "Panes"
+kind = "appimage"
+repo = "wygoralves/panes"
+asset = '^Panes_.*_amd64\.AppImage$'
+dest = "~/.local/bin/panes.AppImage"
+probe = false

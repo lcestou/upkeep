@@ -1,0 +1,9 @@
+# Drafted from analogdevicesinc/scopy's v2.2.1 release; its version is the one Upkeep installed.
+[apps.scopy]
+name = "Scopy"
+kind = "appimage"
+repo = "analogdevicesinc/scopy"
+asset = '^Scopy-.*-Linux-x86_64\.AppImage$'
+asset_aarch64 = '^Scopy-.*-Linux-arm64\.AppImage$'
+dest = "~/.local/bin/scopy.AppImage"
+probe = false

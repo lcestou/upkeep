@@ -1,0 +1,8 @@
+# Drafted from will-be-done/will-be-done's v0.15.0 release; its version is the one Upkeep installed.
+[apps.will-be-done]
+name = "Will Be Done"
+kind = "appimage"
+repo = "will-be-done/will-be-done"
+asset = '^will-be-done-.*\.AppImage$'
+dest = "~/.local/bin/will-be-done.AppImage"
+probe = false

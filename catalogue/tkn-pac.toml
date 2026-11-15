@@ -1,0 +1,10 @@
+# Drafted from tektoncd/pipelines-as-code's v0.54.0 release; its version is the one Upkeep installed.
+[apps.tkn-pac]
+name = "Pipelines As Code"
+kind = "archive"
+repo = "tektoncd/pipelines-as-code"
+asset = '^tkn-pac_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^tkn-pac_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tkn-pac"
+bins = ["tkn-pac"]
+probe = false

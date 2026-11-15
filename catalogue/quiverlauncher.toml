@@ -1,0 +1,9 @@
+# Drafted from tgeorgiadis/quiver-launcher's v3.5.1 release; its version is the one Upkeep installed.
+[apps.quiverlauncher]
+name = "QuiverLauncher"
+kind = "appimage"
+repo = "tgeorgiadis/quiver-launcher"
+asset = '^QuiverLauncher-linux-x64\.AppImage$'
+asset_aarch64 = '^QuiverLauncher-linux-arm64\.AppImage$'
+dest = "~/.local/bin/quiverlauncher.AppImage"
+probe = false

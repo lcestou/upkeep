@@ -1,0 +1,10 @@
+# Drafted from chainguard-dev/melange's v0.64.1 release; its version is the one Upkeep installed.
+[apps.melange]
+name = "melange"
+kind = "archive"
+repo = "chainguard-dev/melange"
+asset = '^melange_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^melange_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/melange"
+bins = ["melange_0.64.1_linux_amd64/melange"]
+probe = false

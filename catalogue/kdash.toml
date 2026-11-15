@@ -1,0 +1,9 @@
+# Drafted from kdash-rs/kdash's v2.1.1 release; its version is the one Upkeep installed.
+[apps.kdash]
+name = "kdash"
+kind = "archive"
+repo = "kdash-rs/kdash"
+asset = '^kdash-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/kdash"
+bins = ["kdash"]
+probe = false

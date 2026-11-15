@@ -1,0 +1,8 @@
+# Drafted from open-goal/launcher's v2.11.2 release; its version is the one Upkeep installed.
+[apps.opengoal-launcher]
+name = "OpenGOAL-Launcher"
+kind = "appimage"
+repo = "open-goal/launcher"
+asset = '^OpenGOAL-Launcher_.*_amd64\.AppImage$'
+dest = "~/.local/bin/opengoal-launcher.AppImage"
+probe = false

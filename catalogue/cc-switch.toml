@@ -1,0 +1,9 @@
+# Drafted from farion1231/cc-switch's v4.0.32 release; its version is the one Upkeep installed.
+[apps.cc-switch]
+name = "CC-Switch"
+kind = "appimage"
+repo = "farion1231/cc-switch"
+asset = '^CC-Switch-.*-Linux-x86_64\.AppImage$'
+asset_aarch64 = '^CC-Switch-.*-Linux-arm64\.AppImage$'
+dest = "~/.local/bin/cc-switch.AppImage"
+probe = false

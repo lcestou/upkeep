@@ -1,0 +1,10 @@
+# Drafted from vladimirvivien/ktop's v0.6.2 release; its version is the one Upkeep installed.
+[apps.ktop]
+name = "ktop"
+kind = "archive"
+repo = "vladimirvivien/ktop"
+asset = '^ktop_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ktop_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ktop"
+bins = ["ktop"]
+probe = false

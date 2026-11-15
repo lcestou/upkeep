@@ -1,0 +1,8 @@
+# Drafted from mroboff/vm-curator's v1.5.0 release; its version is the one Upkeep installed.
+[apps.vm-curator]
+name = "Vm Curator"
+kind = "appimage"
+repo = "mroboff/vm-curator"
+asset = '^vm-curator-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/vm-curator.AppImage"
+probe = false

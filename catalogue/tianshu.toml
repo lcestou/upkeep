@@ -1,0 +1,9 @@
+# Drafted from huiliyi37/Tianshu-harness's v4.0.4 release; its version is the one Upkeep installed.
+[apps.tianshu]
+name = "Tianshu"
+kind = "appimage"
+repo = "huiliyi37/Tianshu-harness"
+asset = '^Tianshu_.*_amd64\.AppImage$'
+asset_aarch64 = '^Tianshu_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/tianshu.AppImage"
+probe = false

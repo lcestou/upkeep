@@ -1,0 +1,9 @@
+# Drafted from arancormonk/dsd-neo's v2.12.1 release; its version is the one Upkeep installed.
+[apps.dsd-neo]
+name = "Dsd Neo"
+kind = "appimage"
+repo = "arancormonk/dsd-neo"
+asset = '^dsd-neo-linux-x86_64-portable-.*\.AppImage$'
+asset_aarch64 = '^dsd-neo-linux-aarch64-portable-.*\.AppImage$'
+dest = "~/.local/bin/dsd-neo.AppImage"
+probe = false

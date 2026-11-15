@@ -1,0 +1,11 @@
+# Drafted from ccache/ccache's v4.14.3 release; its version is the one Upkeep installed.
+[apps.ccache]
+name = "ccache"
+kind = "archive"
+repo = "ccache/ccache"
+asset = '^ccache-.*-linux-x86_64-musl-static\.tar\.gz$'
+asset_aarch64 = '^ccache-.*-linux-aarch64-musl-static\.tar\.gz$'
+dest = "~/.local/bin/ccache"
+folder = "~/.local/share/ccache"
+bins = ["ccache"]
+probe = false

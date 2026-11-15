@@ -1,0 +1,8 @@
+# Drafted from yabi-zzh/HoKit's v1.8.10 release; its version is the one Upkeep installed.
+[apps.hokit]
+name = "HoKit"
+kind = "appimage"
+repo = "yabi-zzh/HoKit"
+asset = '^HoKit-linux-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/hokit.AppImage"
+probe = false

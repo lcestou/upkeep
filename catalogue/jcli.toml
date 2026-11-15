@@ -1,0 +1,10 @@
+# Drafted from jenkins-zh/jenkins-cli's v0.0.47 release; its version is the one Upkeep installed.
+[apps.jcli]
+name = "Jenkins Cli"
+kind = "archive"
+repo = "jenkins-zh/jenkins-cli"
+asset = '^jcli-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^jcli-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/jcli"
+bins = ["jcli"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from lockedmutex/rhyolite's v0.1.10 release; its version is the one Upkeep installed.
+[apps.rhyolite]
+name = "Rhyolite"
+kind = "appimage"
+repo = "lockedmutex/rhyolite"
+asset = '^Rhyolite_.*_amd64\.AppImage$'
+asset_aarch64 = '^Rhyolite_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/rhyolite.AppImage"
+probe = false

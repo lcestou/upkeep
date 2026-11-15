@@ -1,0 +1,10 @@
+# Drafted from skeema/skeema's v1.14.2 release; its version is the one Upkeep installed.
+[apps.skeema]
+name = "skeema"
+kind = "archive"
+repo = "skeema/skeema"
+asset = '^skeema_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^skeema_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/skeema"
+bins = ["skeema"]
+probe = false

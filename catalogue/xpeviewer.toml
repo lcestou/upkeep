@@ -1,0 +1,8 @@
+# Drafted from horsicq/XPEViewer's 0.05 release; its version is the one Upkeep installed.
+[apps.xpeviewer]
+name = "XPEViewer"
+kind = "appimage"
+repo = "horsicq/XPEViewer"
+asset = '^XPEViewer-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/xpeviewer.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from elirantutia/vibeyard's v0.3.10 release; its version is the one Upkeep installed.
+[apps.vibeyard]
+name = "Vibeyard"
+kind = "appimage"
+repo = "elirantutia/vibeyard"
+asset = '^Vibeyard-.*\.AppImage$'
+dest = "~/.local/bin/vibeyard.AppImage"
+probe = false
