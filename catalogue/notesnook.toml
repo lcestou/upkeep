@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron app opens its window when asked for --version. The release file names carry no version, so the pattern is the whole file name.
+[apps.notesnook]
+name = "Notesnook"
+kind = "appimage"
+repo = "streetwriters/notesnook"
+asset = '^notesnook_linux_x86_64\.AppImage$'
+asset_aarch64 = '^notesnook_linux_arm64\.AppImage$'
+dest = "~/.local/bin/notesnook.AppImage"
+meta_path = "notesnook.desktop"
+process = "notesnook"
+relaunch = true

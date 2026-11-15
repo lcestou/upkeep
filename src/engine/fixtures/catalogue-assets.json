@@ -1711,6 +1711,37 @@
 			"notable_1.8.4_amd64.snap"
 		]
 	},
+	"notesnook": {
+		"repo": "streetwriters/notesnook",
+		"tag": "v3.4.13",
+		"assets": [
+			"generated-sources.json",
+			"latest-linux-arm64.yml",
+			"latest-linux.yml",
+			"latest-mac.yml",
+			"latest.yml",
+			"notesnook_build_v3.4.13.zip",
+			"notesnook_linux_arm64.AppImage",
+			"notesnook_linux_x86_64.AppImage",
+			"notesnook_mac_arm64.dmg",
+			"notesnook_mac_arm64.dmg.blockmap",
+			"notesnook_mac_arm64.zip",
+			"notesnook_mac_arm64.zip.blockmap",
+			"notesnook_mac_x64.dmg",
+			"notesnook_mac_x64.dmg.blockmap",
+			"notesnook_mac_x64.zip",
+			"notesnook_mac_x64.zip.blockmap",
+			"notesnook_win.exe",
+			"notesnook_win.exe.blockmap",
+			"notesnook_win_arm64.exe",
+			"notesnook_win_arm64.exe.blockmap",
+			"notesnook_win_arm64_portable.exe",
+			"notesnook_win_portable.exe",
+			"notesnook_win_x64.exe",
+			"notesnook_win_x64.exe.blockmap",
+			"notesnook_win_x64_portable.exe"
+		]
+	},
 	"nuclear": {
 		"repo": "nukeop/nuclear",
 		"tag": "player@1.55.0",
