@@ -36,6 +36,22 @@
 			"asciinema-x86_64-unknown-linux-musl"
 		]
 	},
+	"asdf": {
+		"repo": "asdf-vm/asdf",
+		"tag": "v0.20.2",
+		"assets": [
+			"asdf-v0.20.2-darwin-amd64.tar.gz",
+			"asdf-v0.20.2-darwin-amd64.tar.gz.md5",
+			"asdf-v0.20.2-darwin-arm64.tar.gz",
+			"asdf-v0.20.2-darwin-arm64.tar.gz.md5",
+			"asdf-v0.20.2-linux-386.tar.gz",
+			"asdf-v0.20.2-linux-386.tar.gz.md5",
+			"asdf-v0.20.2-linux-amd64.tar.gz",
+			"asdf-v0.20.2-linux-amd64.tar.gz.md5",
+			"asdf-v0.20.2-linux-arm64.tar.gz",
+			"asdf-v0.20.2-linux-arm64.tar.gz.md5"
+		]
+	},
 	"ast-grep": {
 		"repo": "ast-grep/ast-grep",
 		"tag": "0.51.2",
