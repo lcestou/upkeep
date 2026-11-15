@@ -1,9 +1,0 @@
-# Drafted from corvo007/MioSub's v3.1.9 release; its version is the one Upkeep installed.
-[apps.miosub]
-name = "MioSub"
-kind = "appimage"
-repo = "corvo007/MioSub"
-asset = '^MioSub-linux-x86_64\.AppImage$'
-asset_aarch64 = '^MioSub-linux-arm64\.AppImage$'
-dest = "~/.local/bin/miosub.AppImage"
-probe = false

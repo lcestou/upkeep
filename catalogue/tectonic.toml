@@ -1,8 +1,0 @@
-# Drafted from tectonic-typesetting/tectonic's tectonic@0.17.0 release; its version is the one Upkeep installed.
-[apps.tectonic]
-name = "tectonic"
-kind = "appimage"
-repo = "tectonic-typesetting/tectonic"
-asset = '^tectonic-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/tectonic.AppImage"
-probe = false

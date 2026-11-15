@@ -1,8 +1,0 @@
-# Drafted from OpenRCT2/OpenRCT2's v0.5.7 release; its version is the one Upkeep installed.
-[apps.openrct2]
-name = "OpenRCT2"
-kind = "appimage"
-repo = "OpenRCT2/OpenRCT2"
-asset = '^OpenRCT2-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/openrct2.AppImage"
-probe = false

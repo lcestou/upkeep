@@ -1,9 +1,0 @@
-# Drafted from OpenTubeX/OpenTubeX's v0.38.0-beta release; its version is the one Upkeep installed.
-[apps.opentubex-beta]
-name = "OpenTubeX"
-kind = "appimage"
-repo = "OpenTubeX/OpenTubeX"
-asset = '^opentubex-.*-beta-amd64\.AppImage$'
-asset_aarch64 = '^opentubex-.*-beta-arm64\.AppImage$'
-dest = "~/.local/bin/opentubex-beta.AppImage"
-probe = false

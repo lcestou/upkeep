@@ -1,8 +1,0 @@
-# Drafted from jorgepb96/nodus's v5.18.0 release; its version is the one Upkeep installed.
-[apps.nodus]
-name = "Nodus"
-kind = "appimage"
-repo = "jorgepb96/nodus"
-asset = '^Nodus-x86_64\.AppImage$'
-dest = "~/.local/bin/nodus.AppImage"
-probe = false

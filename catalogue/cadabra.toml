@@ -1,9 +1,0 @@
-# Drafted from kpeeters/cadabra2's 2.6.0 release; its version is the one Upkeep installed.
-[apps.cadabra]
-name = "Cadabra"
-kind = "appimage"
-repo = "kpeeters/cadabra2"
-asset = '^Cadabra_.*_x86_64\.AppImage$'
-asset_aarch64 = '^Cadabra_.*_arm64\.AppImage$'
-dest = "~/.local/bin/cadabra.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from bugbakery/audapolis's v0.3.1 release; its version is the one Upkeep installed.
-[apps.audapolis]
-name = "audapolis"
-kind = "appimage"
-repo = "bugbakery/audapolis"
-asset = '^audapolis-linux-x86_64-.*\.AppImage$'
-dest = "~/.local/bin/audapolis.AppImage"
-probe = false

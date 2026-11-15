@@ -1,8 +1,0 @@
-# Drafted from CorsixTH/CorsixTH's v0.70.2 release; its version is the one Upkeep installed.
-[apps.corsixth]
-name = "CorsixTH"
-kind = "appimage"
-repo = "CorsixTH/CorsixTH"
-asset = '^CorsixTH-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/corsixth.AppImage"
-probe = false

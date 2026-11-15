@@ -1,9 +1,0 @@
-# Drafted from AstrBotDevs/AstrBot-desktop's v4.29.4 release; its version is the one Upkeep installed.
-[apps.astrbot]
-name = "AstrBot"
-kind = "appimage"
-repo = "AstrBotDevs/AstrBot-desktop"
-asset = '^AstrBot_.*_linux_amd64\.AppImage$'
-asset_aarch64 = '^AstrBot_.*_linux_arm64\.AppImage$'
-dest = "~/.local/bin/astrbot.AppImage"
-probe = false

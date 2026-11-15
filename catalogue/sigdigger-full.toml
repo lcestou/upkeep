@@ -1,8 +1,0 @@
-# Drafted from BatchDrake/SigDigger's v0.3.0 release; its version is the one Upkeep installed.
-[apps.sigdigger-full]
-name = "SigDigger-full"
-kind = "appimage"
-repo = "BatchDrake/SigDigger"
-asset = '^SigDigger-.*-x86_64-full\.AppImage$'
-dest = "~/.local/bin/sigdigger-full.AppImage"
-probe = false

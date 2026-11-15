@@ -1,8 +1,0 @@
-# Drafted from LinkoraApp/Linkora's release-v0.23.0 release; its version is the one Upkeep installed.
-[apps.linkora]
-name = "Linkora"
-kind = "appimage"
-repo = "LinkoraApp/Linkora"
-asset = '^Linkora\.AppImage$'
-dest = "~/.local/bin/linkora.AppImage"
-probe = false

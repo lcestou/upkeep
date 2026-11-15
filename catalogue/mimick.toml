@@ -1,9 +1,0 @@
-# Drafted from nicx17/mimick's v9.15.2 release; its version is the one Upkeep installed.
-[apps.mimick]
-name = "Mimick"
-kind = "appimage"
-repo = "nicx17/mimick"
-asset = '^Mimick-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Mimick-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/mimick.AppImage"
-probe = false

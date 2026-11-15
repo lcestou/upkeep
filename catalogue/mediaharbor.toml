@@ -1,8 +1,0 @@
-# Drafted from MediaHarbor/mediaharbor's v3.0.0 release; its version is the one Upkeep installed.
-[apps.mediaharbor]
-name = "MediaHarbor"
-kind = "appimage"
-repo = "MediaHarbor/mediaharbor"
-asset = '^MediaHarbor_.*_amd64\.AppImage$'
-dest = "~/.local/bin/mediaharbor.AppImage"
-probe = false

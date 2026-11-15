@@ -1,8 +1,0 @@
-# Drafted from supersonic-app/supersonic's v0.22.1 release; its version is the one Upkeep installed.
-[apps.supersonic]
-name = "Supersonic"
-kind = "appimage"
-repo = "supersonic-app/supersonic"
-asset = '^Supersonic-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/supersonic.AppImage"
-probe = false

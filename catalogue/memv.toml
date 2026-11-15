@@ -1,8 +1,0 @@
-# Drafted from humblepenguinn/memv's v0.1.0 release; its version is the one Upkeep installed.
-[apps.memv]
-name = "memv"
-kind = "appimage"
-repo = "humblepenguinn/memv"
-asset = '^memv_.*_amd64\.AppImage$'
-dest = "~/.local/bin/memv.AppImage"
-probe = false

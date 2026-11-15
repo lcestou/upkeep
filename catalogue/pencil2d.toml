@@ -1,8 +1,0 @@
-# Drafted from pencil2d/pencil's v0.7.2 release; its version is the one Upkeep installed.
-[apps.pencil2d]
-name = "pencil"
-kind = "appimage"
-repo = "pencil2d/pencil"
-asset = '^pencil2d-linux-amd64-.*\.AppImage$'
-dest = "~/.local/bin/pencil2d.AppImage"
-probe = false

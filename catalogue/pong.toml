@@ -1,9 +1,0 @@
-# Drafted from kurehajime/pong-command's v2.0.9 release; its version is the one Upkeep installed.
-[apps.pong]
-name = "Pong Command"
-kind = "archive"
-repo = "kurehajime/pong-command"
-asset = '^linux_amd64\.zip$'
-dest = "~/.local/bin/pong"
-bins = ["pong"]
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from zhixianio/clawpal's v0.3.4 release; its version is the one Upkeep installed.
-[apps.clawpal]
-name = "ClawPal"
-kind = "appimage"
-repo = "zhixianio/clawpal"
-asset = '^ClawPal_.*_amd64\.AppImage$'
-dest = "~/.local/bin/clawpal.AppImage"
-probe = false

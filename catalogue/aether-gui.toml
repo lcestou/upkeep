@@ -1,8 +1,0 @@
-# Drafted from MatinSenPai/Aether-GUI's v0.8.0 release; its version is the one Upkeep installed.
-[apps.aether-gui]
-name = "Aether-GUI"
-kind = "appimage"
-repo = "MatinSenPai/Aether-GUI"
-asset = '^Aether-GUI_.*_amd64\.AppImage$'
-dest = "~/.local/bin/aether-gui.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from tom-james-watson/breaktimer-app's v2.0.3 release; its version is the one Upkeep installed.
-[apps.breaktimer]
-name = "BreakTimer"
-kind = "appimage"
-repo = "tom-james-watson/breaktimer-app"
-asset = '^BreakTimer\.AppImage$'
-dest = "~/.local/bin/breaktimer.AppImage"
-probe = false

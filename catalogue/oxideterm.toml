@@ -1,9 +1,0 @@
-# Drafted from AnalyseDeCircuit/oxideterm's v2.3.2 release; its version is the one Upkeep installed.
-[apps.oxideterm]
-name = "OxideTerm"
-kind = "appimage"
-repo = "AnalyseDeCircuit/oxideterm"
-asset = '^OxideTerm_.*_linux_x64\.AppImage$'
-asset_aarch64 = '^OxideTerm_.*_linux_arm64\.AppImage$'
-dest = "~/.local/bin/oxideterm.AppImage"
-probe = false

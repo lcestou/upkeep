@@ -1,9 +1,0 @@
-# Drafted from rcoh/angle-grinder's v0.19.6 release; its version is the one Upkeep installed.
-[apps.agrind]
-name = "Angle Grinder"
-kind = "archive"
-repo = "rcoh/angle-grinder"
-asset = '^agrind-x86_64-unknown-linux-gnu\.tar\.gz$'
-dest = "~/.local/bin/agrind"
-bins = ["agrind"]
-probe = false

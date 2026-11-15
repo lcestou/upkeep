@@ -1,8 +1,0 @@
-# Drafted from benjamimgois/goverlay's 1.9.4 release; its version is the one Upkeep installed.
-[apps.goverlay]
-name = "goverlay"
-kind = "appimage"
-repo = "benjamimgois/goverlay"
-asset = '^goverlay-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/goverlay.AppImage"
-probe = false

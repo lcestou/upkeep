@@ -1,8 +1,0 @@
-# Drafted from 0xfrankz/Kaas's kaas-v1.0.9 release; its version is the one Upkeep installed.
-[apps.kaas]
-name = "Kaas"
-kind = "appimage"
-repo = "0xfrankz/Kaas"
-asset = '^Kaas_.*_amd64\.AppImage$'
-dest = "~/.local/bin/kaas.AppImage"
-probe = false

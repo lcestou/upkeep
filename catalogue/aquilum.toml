@@ -1,8 +1,0 @@
-# Drafted from Freaction/Aquilum's v0.3.28 release; its version is the one Upkeep installed.
-[apps.aquilum]
-name = "Aquilum"
-kind = "appimage"
-repo = "Freaction/Aquilum"
-asset = '^Aquilum_.*_amd64\.AppImage$'
-dest = "~/.local/bin/aquilum.AppImage"
-probe = false

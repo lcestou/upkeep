@@ -1,8 +1,0 @@
-# Drafted from octaviospain/Musicott's v1.0.0 release; its version is the one Upkeep installed.
-[apps.musicott]
-name = "Musicott"
-kind = "appimage"
-repo = "octaviospain/Musicott"
-asset = '^Musicott-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/musicott.AppImage"
-probe = false

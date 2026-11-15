@@ -1,9 +1,0 @@
-# Drafted from crmne/zapfast's v0.21.2 release; its version is the one Upkeep installed.
-[apps.zapfast]
-name = "zapfast"
-kind = "appimage"
-repo = "crmne/zapfast"
-asset = '^zapfast-.*-x86_64\.AppImage$'
-asset_aarch64 = '^zapfast-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/zapfast.AppImage"
-probe = false

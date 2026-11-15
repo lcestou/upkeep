@@ -1,8 +1,0 @@
-# Drafted from drl990114/MarkFlowy's v1.3.1 release; its version is the one Upkeep installed.
-[apps.markflowy]
-name = "MarkFlowy"
-kind = "appimage"
-repo = "drl990114/MarkFlowy"
-asset = '^MarkFlowy_.*_amd64\.AppImage$'
-dest = "~/.local/bin/markflowy.AppImage"
-probe = false

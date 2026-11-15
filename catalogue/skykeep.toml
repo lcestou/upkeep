@@ -1,8 +1,0 @@
-# Drafted from YashwanthKamireddi/Skykeep's v0.1.24 release; its version is the one Upkeep installed.
-[apps.skykeep]
-name = "Skykeep"
-kind = "appimage"
-repo = "YashwanthKamireddi/Skykeep"
-asset = '^Skykeep-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/skykeep.AppImage"
-probe = false

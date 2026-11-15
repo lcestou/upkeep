@@ -1,8 +1,0 @@
-# Drafted from erlang/rebar3's 3.28.0 release; its version is the one Upkeep installed.
-[apps.rebar3]
-name = "rebar3"
-kind = "file"
-repo = "erlang/rebar3"
-asset = '^rebar3$'
-dest = "~/.local/bin/rebar3"
-probe = false

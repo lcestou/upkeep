@@ -1,8 +1,0 @@
-# Drafted from Nixola/VRRTest's v2.1.1 release; its version is the one Upkeep installed.
-[apps.vrrtest]
-name = "vrrTest"
-kind = "appimage"
-repo = "Nixola/VRRTest"
-asset = '^vrrTest_.*_Linux_x64\.AppImage$'
-dest = "~/.local/bin/vrrtest.AppImage"
-probe = false

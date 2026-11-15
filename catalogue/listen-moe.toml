@@ -1,9 +1,0 @@
-# Drafted from LISTEN-moe/desktop-app's 1.0.0 release; its version is the one Upkeep installed.
-[apps.listen-moe]
-name = "Desktop App"
-kind = "archive"
-repo = "LISTEN-moe/desktop-app"
-asset = '^listen-moe-Linux-X64\.tar\.gz$'
-dest = "~/.local/bin/listen-moe"
-bins = ["listen-moe"]
-probe = false

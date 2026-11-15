@@ -1,8 +1,0 @@
-# Drafted from Faugus/faugus-launcher's 2.5.7 release; its version is the one Upkeep installed.
-[apps.faugus]
-name = "Faugus"
-kind = "appimage"
-repo = "Faugus/faugus-launcher"
-asset = '^Faugus-.*-1-x86_64\.AppImage$'
-dest = "~/.local/bin/faugus.AppImage"
-probe = false

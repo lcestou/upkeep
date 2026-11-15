@@ -1,8 +1,0 @@
-# Drafted from gulbanana/gg's v0.46.0 release; its version is the one Upkeep installed.
-[apps.gg]
-name = "gg"
-kind = "appimage"
-repo = "gulbanana/gg"
-asset = '^gg_.*_amd64\.AppImage$'
-dest = "~/.local/bin/gg.AppImage"
-probe = false

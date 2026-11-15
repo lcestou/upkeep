@@ -1,8 +1,0 @@
-# Drafted from pierr3/TrackAudio's 1.4.0 release; its version is the one Upkeep installed.
-[apps.trackaudio]
-name = "TrackAudio"
-kind = "appimage"
-repo = "pierr3/TrackAudio"
-asset = '^trackaudio-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/trackaudio.AppImage"
-probe = false

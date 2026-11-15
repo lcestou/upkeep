@@ -1,8 +1,0 @@
-# Drafted from keshavbhatt/whatsie's v6.2.0 release; its version is the one Upkeep installed.
-[apps.whatsie]
-name = "whatsie"
-kind = "appimage"
-repo = "keshavbhatt/whatsie"
-asset = '^whatsie-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/whatsie.AppImage"
-probe = false

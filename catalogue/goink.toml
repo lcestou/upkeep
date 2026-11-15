@@ -1,8 +1,0 @@
-# Drafted from sigpanic/goink's v1.8.1 release; its version is the one Upkeep installed.
-[apps.goink]
-name = "goink"
-kind = "appimage"
-repo = "sigpanic/goink"
-asset = '^goink-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/goink.AppImage"
-probe = false

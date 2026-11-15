@@ -1,9 +1,0 @@
-# Drafted from dpaulat/supercell-wx's v0.6.2-release release; its version is the one Upkeep installed.
-[apps.supercell-wx]
-name = "Supercell Wx"
-kind = "appimage"
-repo = "dpaulat/supercell-wx"
-asset = '^supercell-wx-.*-x86_64\.AppImage$'
-asset_aarch64 = '^supercell-wx-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/supercell-wx.AppImage"
-probe = false

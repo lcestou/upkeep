@@ -1,8 +1,0 @@
-# Drafted from XxMinor/mykvm's v0.9.16 release; its version is the one Upkeep installed.
-[apps.mykvm]
-name = "mykvm"
-kind = "appimage"
-repo = "XxMinor/mykvm"
-asset = '^mykvm_.*_amd64\.AppImage$'
-dest = "~/.local/bin/mykvm.AppImage"
-probe = false

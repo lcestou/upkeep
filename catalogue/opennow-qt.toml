@@ -1,9 +1,0 @@
-# Drafted from OpenCloudGaming/OpenNOW's v1.0.5 release; its version is the one Upkeep installed.
-[apps.opennow-qt]
-name = "OpenNOW-Qt"
-kind = "appimage"
-repo = "OpenCloudGaming/OpenNOW"
-asset = '^OpenNOW-Qt-.*-Linux-x64\.AppImage$'
-asset_aarch64 = '^OpenNOW-Qt-.*-Linux-arm64\.AppImage$'
-dest = "~/.local/bin/opennow-qt.AppImage"
-probe = false

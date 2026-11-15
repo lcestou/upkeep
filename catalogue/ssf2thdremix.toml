@@ -1,8 +1,0 @@
-# Drafted from saulob/ssf2t-hd-remix-recompiled's v0.4.0 release; its version is the one Upkeep installed.
-[apps.ssf2thdremix]
-name = "SSF2THDRemix"
-kind = "appimage"
-repo = "saulob/ssf2t-hd-remix-recompiled"
-asset = '^SSF2THDRemix-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/ssf2thdremix.AppImage"
-probe = false

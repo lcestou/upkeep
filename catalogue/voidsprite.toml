@@ -1,8 +1,0 @@
-# Drafted from counter185/voidsprite's beta-2026.10 release; its version is the one Upkeep installed.
-[apps.voidsprite]
-name = "voidsprite"
-kind = "appimage"
-repo = "counter185/voidsprite"
-asset = '^voidsprite-.*-linux-appimage-x64\.AppImage$'
-dest = "~/.local/bin/voidsprite.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from lyskouski/app-finance's v7.3.2 release; its version is the one Upkeep installed.
-[apps.fingrom]
-name = "Fingrom"
-kind = "appimage"
-repo = "lyskouski/app-finance"
-asset = '^Fingrom-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/fingrom.AppImage"
-probe = false

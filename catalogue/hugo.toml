@@ -1,9 +1,0 @@
-# Drafted from gohugoio/hugo's v0.170.0 release; its version is the one Upkeep installed.
-[apps.hugo]
-name = "hugo"
-kind = "archive"
-repo = "gohugoio/hugo"
-asset = '^hugo_[0-9][0-9A-Za-z.]*_Linux-64bit\.tar\.gz$'
-dest = "~/.local/bin/hugo"
-bins = ["hugo"]
-probe = false

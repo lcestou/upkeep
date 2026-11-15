@@ -1,8 +1,0 @@
-# Drafted from open-pencil/open-pencil's v0.16.0 release; its version is the one Upkeep installed.
-[apps.openpencil]
-name = "OpenPencil"
-kind = "appimage"
-repo = "open-pencil/open-pencil"
-asset = '^OpenPencil_.*_amd64\.AppImage$'
-dest = "~/.local/bin/openpencil.AppImage"
-probe = false

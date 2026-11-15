@@ -1,8 +1,0 @@
-# Drafted from akratch/goldenballoon's v1.8.0 release; its version is the one Upkeep installed.
-[apps.golden-balloon]
-name = "Golden-Balloon"
-kind = "appimage"
-repo = "akratch/goldenballoon"
-asset = '^Golden-Balloon-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/golden-balloon.AppImage"
-probe = false

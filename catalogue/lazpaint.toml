@@ -1,8 +1,0 @@
-# Drafted from bgrabitmap/lazpaint's v7.3 release; its version is the one Upkeep installed.
-[apps.lazpaint]
-name = "lazpaint"
-kind = "appimage"
-repo = "bgrabitmap/lazpaint"
-asset = '^lazpaint.*_x86_64\.AppImage$'
-dest = "~/.local/bin/lazpaint.AppImage"
-probe = false

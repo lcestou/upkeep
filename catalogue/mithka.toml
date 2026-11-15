@@ -1,9 +1,0 @@
-# Drafted from iebb/mithka's v1.12.8 release; its version is the one Upkeep installed.
-[apps.mithka]
-name = "mithka"
-kind = "appimage"
-repo = "iebb/mithka"
-asset = '^mithka-.*-20261115-linux-x64\.AppImage$'
-asset_aarch64 = '^mithka-.*-20261115-linux-arm64\.AppImage$'
-dest = "~/.local/bin/mithka.AppImage"
-probe = false

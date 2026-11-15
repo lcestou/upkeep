@@ -1,8 +1,0 @@
-# Drafted from hsr88/mouzi's v0.2.1 release; its version is the one Upkeep installed.
-[apps.mouzi]
-name = "Mouzi"
-kind = "appimage"
-repo = "hsr88/mouzi"
-asset = '^Mouzi_.*_amd64\.AppImage$'
-dest = "~/.local/bin/mouzi.AppImage"
-probe = false

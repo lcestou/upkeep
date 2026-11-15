@@ -1,9 +1,0 @@
-# Drafted from 66HEX/frame's 0.34.0 release; its version is the one Upkeep installed.
-[apps.frame]
-name = "Frame"
-kind = "appimage"
-repo = "66HEX/frame"
-asset = '^Frame-x86_64\.AppImage$'
-asset_aarch64 = '^Frame-aarch64\.AppImage$'
-dest = "~/.local/bin/frame.AppImage"
-probe = false

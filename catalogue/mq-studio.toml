@@ -1,9 +1,0 @@
-# Drafted from amigoer/mq-studio's v0.4.2 release; its version is the one Upkeep installed.
-[apps.mq-studio]
-name = "Mq Studio"
-kind = "appimage"
-repo = "amigoer/mq-studio"
-asset = '^mq-studio-.*-linux-amd64\.AppImage$'
-asset_aarch64 = '^mq-studio-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/mq-studio.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from RSSNext/Folo's desktop/v1.17.0 release; its version is the one Upkeep installed.
-[apps.folo]
-name = "Folo"
-kind = "appimage"
-repo = "RSSNext/Folo"
-asset = '^Folo-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/folo.AppImage"
-probe = false

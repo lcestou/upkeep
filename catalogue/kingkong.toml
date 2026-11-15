@@ -1,8 +1,0 @@
-# Drafted from TekRantGaming/king-kong-recompiled's v2.1.3 release; its version is the one Upkeep installed.
-[apps.kingkong]
-name = "KingKong"
-kind = "appimage"
-repo = "TekRantGaming/king-kong-recompiled"
-asset = '^KingKong-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/kingkong.AppImage"
-probe = false

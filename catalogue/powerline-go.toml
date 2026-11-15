@@ -1,9 +1,0 @@
-# Drafted from justjanne/powerline-go's v1.26 release; its version is the one Upkeep installed.
-[apps.powerline-go]
-name = "Powerline Go"
-kind = "file"
-repo = "justjanne/powerline-go"
-asset = '^powerline-go-linux-amd64$'
-asset_aarch64 = '^powerline-go-linux-arm64$'
-dest = "~/.local/bin/powerline-go"
-probe = false

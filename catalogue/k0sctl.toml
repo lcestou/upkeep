@@ -1,9 +1,0 @@
-# Drafted from k0sproject/k0sctl's v0.33.1 release; its version is the one Upkeep installed.
-[apps.k0sctl]
-name = "k0sctl"
-kind = "file"
-repo = "k0sproject/k0sctl"
-asset = '^k0sctl-linux-amd64$'
-asset_aarch64 = '^k0sctl-linux-arm64$'
-dest = "~/.local/bin/k0sctl"
-probe = false

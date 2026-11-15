@@ -1,8 +1,0 @@
-# Drafted from evpo/EncryptPad's v0.6.0.0 release; its version is the one Upkeep installed.
-[apps.encryptpad0]
-name = "EncryptPad"
-kind = "appimage"
-repo = "evpo/EncryptPad"
-asset = '^encryptpad0_6_0_0\.AppImage$'
-dest = "~/.local/bin/encryptpad0.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from freefrank/LostOdysseyRecomp's v1.1.0 release; its version is the one Upkeep installed.
-[apps.lostodysseyrecomp]
-name = "LostOdysseyRecomp"
-kind = "appimage"
-repo = "freefrank/LostOdysseyRecomp"
-asset = '^LostOdysseyRecomp-linux-x64-.*\.AppImage$'
-dest = "~/.local/bin/lostodysseyrecomp.AppImage"
-probe = false

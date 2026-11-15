@@ -1,8 +1,0 @@
-# Drafted from garglk/garglk's 2026.1.1 release; its version is the one Upkeep installed.
-[apps.gargoyle]
-name = "Gargoyle"
-kind = "appimage"
-repo = "garglk/garglk"
-asset = '^Gargoyle-x86_64\.AppImage$'
-dest = "~/.local/bin/gargoyle.AppImage"
-probe = false

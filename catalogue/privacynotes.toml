@@ -1,9 +1,0 @@
-# Drafted from LifetimeLabsHQ/PrivacyNotes.app's v0.780.8 release; its version is the one Upkeep installed.
-[apps.privacynotes]
-name = "PrivacyNotes"
-kind = "appimage"
-repo = "LifetimeLabsHQ/PrivacyNotes.app"
-asset = '^PrivacyNotes_.*_amd64\.AppImage$'
-asset_aarch64 = '^PrivacyNotes_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/privacynotes.AppImage"
-probe = false

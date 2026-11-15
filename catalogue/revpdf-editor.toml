@@ -1,9 +1,0 @@
-# Drafted from Pawandeep-prog/revpdf-release's v5.0.0 release; its version is the one Upkeep installed.
-[apps.revpdf-editor]
-name = "Revpdf Release"
-kind = "appimage"
-repo = "Pawandeep-prog/revpdf-release"
-asset = '^revpdf_editor-x86_64\.AppImage$'
-asset_aarch64 = '^revpdf_editor-aarch64\.AppImage$'
-dest = "~/.local/bin/revpdf-editor.AppImage"
-probe = false

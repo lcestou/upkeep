@@ -1,9 +1,0 @@
-# Drafted from miskin-lee/EdgeTerm's v1.0.6 release; its version is the one Upkeep installed.
-[apps.edgeterm]
-name = "EdgeTerm"
-kind = "appimage"
-repo = "miskin-lee/EdgeTerm"
-asset = '^EdgeTerm_.*_amd64\.AppImage$'
-asset_aarch64 = '^EdgeTerm_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/edgeterm.AppImage"
-probe = false

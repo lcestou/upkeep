@@ -1,9 +1,0 @@
-# Drafted from GlitterWare/Passy's v1.10.2 release; its version is the one Upkeep installed.
-[apps.passy]
-name = "Passy"
-kind = "appimage"
-repo = "GlitterWare/Passy"
-asset = '^Passy-.*-x86-64\.AppImage$'
-asset_aarch64 = '^Passy-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/passy.AppImage"
-probe = false

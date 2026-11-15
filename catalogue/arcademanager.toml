@@ -1,8 +1,0 @@
-# Drafted from cosmo0/arcade-manager's v25.1 release; its version is the one Upkeep installed.
-[apps.arcademanager]
-name = "ArcadeManager"
-kind = "appimage"
-repo = "cosmo0/arcade-manager"
-asset = '^ArcadeManager-linux-.*\.0\.AppImage$'
-dest = "~/.local/bin/arcademanager.AppImage"
-probe = false

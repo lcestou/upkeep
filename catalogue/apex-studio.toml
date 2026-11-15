@@ -1,8 +1,0 @@
-# Drafted from totokunda/apex-studio's v0.1.2 release; its version is the one Upkeep installed.
-[apps.apex-studio]
-name = "Apex-Studio"
-kind = "appimage"
-repo = "totokunda/apex-studio"
-asset = '^Apex-Studio-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/apex-studio.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from ozmartian/vidcutter's 6.0.5.1 release; its version is the one Upkeep installed.
-[apps.vidcutter]
-name = "VidCutter"
-kind = "appimage"
-repo = "ozmartian/vidcutter"
-asset = '^VidCutter-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/vidcutter.AppImage"
-probe = false

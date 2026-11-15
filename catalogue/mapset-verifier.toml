@@ -1,8 +1,0 @@
-# Drafted from Naxesss/MapsetVerifier's v2.1.1 release; its version is the one Upkeep installed.
-[apps.mapset-verifier]
-name = "Mapset-Verifier"
-kind = "appimage"
-repo = "Naxesss/MapsetVerifier"
-asset = '^Mapset-Verifier-.*\.AppImage$'
-dest = "~/.local/bin/mapset-verifier.AppImage"
-probe = false

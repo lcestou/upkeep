@@ -1,8 +1,0 @@
-# Drafted from yapfast/yapfast's v0.4.1 release; its version is the one Upkeep installed.
-[apps.yapfast]
-name = "Yapfast"
-kind = "appimage"
-repo = "yapfast/yapfast"
-asset = '^Yapfast-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/yapfast.AppImage"
-probe = false

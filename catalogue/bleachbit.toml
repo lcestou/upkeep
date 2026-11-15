@@ -1,8 +1,0 @@
-# Drafted from bleachbit/bleachbit's v6.0.6 release; its version is the one Upkeep installed.
-[apps.bleachbit]
-name = "BleachBit"
-kind = "appimage"
-repo = "bleachbit/bleachbit"
-asset = '^BleachBit-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/bleachbit.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from k3d-io/k3d's v5.9.0 release; its version is the one Upkeep installed.
-[apps.k3d]
-name = "k3d"
-kind = "file"
-repo = "k3d-io/k3d"
-asset = '^k3d-linux-amd64$'
-asset_aarch64 = '^k3d-linux-arm64$'
-dest = "~/.local/bin/k3d"
-probe = false

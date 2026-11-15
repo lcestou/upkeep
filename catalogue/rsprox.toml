@@ -1,8 +1,0 @@
-# Drafted from blurite/rsprox's v1.0 release; its version is the one Upkeep installed.
-[apps.rsprox]
-name = "RSProx"
-kind = "appimage"
-repo = "blurite/rsprox"
-asset = '^RSProx\.AppImage$'
-dest = "~/.local/bin/rsprox.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from goastian/midori-desktop's v11.9.1 release; its version is the one Upkeep installed.
-[apps.midori]
-name = "Midori"
-kind = "appimage"
-repo = "goastian/midori-desktop"
-asset = '^Midori-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/midori.AppImage"
-probe = false

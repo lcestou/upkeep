@@ -1,8 +1,0 @@
-# Drafted from liriliri/aya's v1.14.2 release; its version is the one Upkeep installed.
-[apps.aya]
-name = "AYA"
-kind = "appimage"
-repo = "liriliri/aya"
-asset = '^AYA-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/aya.AppImage"
-probe = false

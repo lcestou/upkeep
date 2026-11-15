@@ -1,8 +1,0 @@
-# Drafted from pizi-0/flutter-scrcpygui's 1.4.18 release; its version is the one Upkeep installed.
-[apps.scrcpygui]
-name = "Flutter Scrcpygui"
-kind = "appimage"
-repo = "pizi-0/flutter-scrcpygui"
-asset = '^scrcpygui-.*-linux\.AppImage$'
-dest = "~/.local/bin/scrcpygui.AppImage"
-probe = false

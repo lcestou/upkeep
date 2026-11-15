@@ -1,8 +1,0 @@
-# Drafted from ingelibre/ingetrazo's v0.6.2.1 release; its version is the one Upkeep installed.
-[apps.ingetrazo]
-name = "IngeTrazo"
-kind = "appimage"
-repo = "ingelibre/ingetrazo"
-asset = '^IngeTrazo-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/ingetrazo.AppImage"
-probe = false

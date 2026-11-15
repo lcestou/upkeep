@@ -1,8 +1,0 @@
-# Drafted from ImageMagick/ImageMagick's 7.1.2-35 release; its version is the one Upkeep installed.
-[apps.imagemagick]
-name = "ImageMagick-gcc"
-kind = "appimage"
-repo = "ImageMagick/ImageMagick"
-asset = '^ImageMagick-.*-gcc-x86_64\.AppImage$'
-dest = "~/.local/bin/imagemagick.AppImage"
-probe = false

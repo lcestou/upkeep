@@ -1,8 +1,0 @@
-# Drafted from changexbc/workbuddy-switch's v0.1.62 release; its version is the one Upkeep installed.
-[apps.workbuddy-switch]
-name = "Workbuddy Switch"
-kind = "appimage"
-repo = "changexbc/workbuddy-switch"
-asset = '^workbuddy-switch-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/workbuddy-switch.AppImage"
-probe = false

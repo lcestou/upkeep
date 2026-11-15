@@ -1,8 +1,0 @@
-# Drafted from oop7/YTSage's v5.6.5 release; its version is the one Upkeep installed.
-[apps.ytsage]
-name = "YTSage"
-kind = "appimage"
-repo = "oop7/YTSage"
-asset = '^YTSage-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/ytsage.AppImage"
-probe = false

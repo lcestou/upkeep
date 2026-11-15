@@ -1,8 +1,0 @@
-# Drafted from koishijs/koishi-desktop's v1.1.4 release; its version is the one Upkeep installed.
-[apps.koishi-desktop]
-name = "Koishi Desktop"
-kind = "appimage"
-repo = "koishijs/koishi-desktop"
-asset = '^koishi-desktop-linux-x64-.*\.AppImage$'
-dest = "~/.local/bin/koishi-desktop.AppImage"
-probe = false

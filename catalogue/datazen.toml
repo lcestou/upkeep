@@ -1,8 +1,0 @@
-# Drafted from flyxl/datazen's v0.3.0 release; its version is the one Upkeep installed.
-[apps.datazen]
-name = "DataZen"
-kind = "appimage"
-repo = "flyxl/datazen"
-asset = '^DataZen-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/datazen.AppImage"
-probe = false

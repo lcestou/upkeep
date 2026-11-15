@@ -1,9 +1,0 @@
-# Drafted from Zhou-Yujing114514/deepseek-harness-linux's v0.2.1-rc.2 release; its version is the one Upkeep installed.
-[apps.deepseek-harness-rc]
-name = "Deepseek Harness Linux"
-kind = "appimage"
-repo = "Zhou-Yujing114514/deepseek-harness-linux"
-asset = '^deepseek-harness-.*-rc\.2-linux-x86_64\.AppImage$'
-asset_aarch64 = '^deepseek-harness-.*-rc\.2-linux-arm64\.AppImage$'
-dest = "~/.local/bin/deepseek-harness-rc.AppImage"
-probe = false

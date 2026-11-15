@@ -1,9 +1,0 @@
-# Drafted from alper-han/CrossMacro's v1.5.3 release; its version is the one Upkeep installed.
-[apps.crossmacro]
-name = "CrossMacro"
-kind = "appimage"
-repo = "alper-han/CrossMacro"
-asset = '^CrossMacro-.*-x86_64\.AppImage$'
-asset_aarch64 = '^CrossMacro-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/crossmacro.AppImage"
-probe = false

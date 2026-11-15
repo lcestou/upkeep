@@ -1,8 +1,0 @@
-# Drafted from icebear0828/codex-proxy's v2.1.26 release; its version is the one Upkeep installed.
-[apps.codex-proxy]
-name = "Codex-Proxy"
-kind = "appimage"
-repo = "icebear0828/codex-proxy"
-asset = '^Codex-Proxy-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/codex-proxy.AppImage"
-probe = false

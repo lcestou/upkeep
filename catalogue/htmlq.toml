@@ -1,9 +1,0 @@
-# Drafted from mgdm/htmlq's v0.4.0 release; its version is the one Upkeep installed.
-[apps.htmlq]
-name = "htmlq"
-kind = "archive"
-repo = "mgdm/htmlq"
-asset = '^htmlq-x86_64-linux\.tar\.gz$'
-dest = "~/.local/bin/htmlq"
-bins = ["htmlq"]
-probe = false

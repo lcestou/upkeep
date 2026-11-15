@@ -1,9 +1,0 @@
-# Drafted from bytecodealliance/wrpc's v0.18.0 release; its version is the one Upkeep installed.
-[apps.wrpc-wasmtime]
-name = "wrpc"
-kind = "file"
-repo = "bytecodealliance/wrpc"
-asset = '^wrpc-wasmtime-x86_64-unknown-linux-musl$'
-asset_aarch64 = '^wrpc-wasmtime-aarch64-unknown-linux-musl$'
-dest = "~/.local/bin/wrpc-wasmtime"
-probe = false

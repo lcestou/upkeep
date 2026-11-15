@@ -1,8 +1,0 @@
-# Drafted from vectorcmdr/NMSE's v1.5.12 release; its version is the one Upkeep installed.
-[apps.nmse-release]
-name = "NMSE-Release"
-kind = "appimage"
-repo = "vectorcmdr/NMSE"
-asset = '^NMSE-.*-Release-x64\.AppImage$'
-dest = "~/.local/bin/nmse-release.AppImage"
-probe = false

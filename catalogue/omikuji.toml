@@ -1,8 +1,0 @@
-# Drafted from omikuji-launcher/omikuji's v0.20.10 release; its version is the one Upkeep installed.
-[apps.omikuji]
-name = "Omikuji-anylinux"
-kind = "appimage"
-repo = "omikuji-launcher/omikuji"
-asset = '^Omikuji-.*-anylinux-x86_64\.AppImage$'
-dest = "~/.local/bin/omikuji.AppImage"
-probe = false

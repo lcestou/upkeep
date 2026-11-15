@@ -1,9 +1,0 @@
-# Drafted from biomejs/biome's @biomejs/biome@2.6.7 release; its version is the one Upkeep installed.
-[apps.biome]
-name = "biome"
-kind = "file"
-repo = "biomejs/biome"
-asset = '^biome-linux-x64$'
-asset_aarch64 = '^biome-linux-arm64$'
-dest = "~/.local/bin/biome"
-probe = false

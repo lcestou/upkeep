@@ -1,9 +1,0 @@
-# Drafted from docker/compose's v5.7.1 release; its version is the one Upkeep installed.
-[apps.docker-compose]
-name = "compose"
-kind = "file"
-repo = "docker/compose"
-asset = '^docker-compose-linux-x86_64$'
-asset_aarch64 = '^docker-compose-linux-aarch64$'
-dest = "~/.local/bin/docker-compose"
-probe = false

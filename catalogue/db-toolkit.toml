@@ -1,8 +1,0 @@
-# Drafted from db-toolkit/db-toolkit's v0.1.0-beta7 release; its version is the one Upkeep installed.
-[apps.db-toolkit]
-name = "DB-Toolkit"
-kind = "appimage"
-repo = "db-toolkit/db-toolkit"
-asset = '^DB\.Toolkit-linux\.AppImage$'
-dest = "~/.local/bin/db-toolkit.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from mintnick/eve-settings-manager's v2.0.7 release; its version is the one Upkeep installed.
-[apps.eve-settings-manager]
-name = "EVE-Settings-Manager"
-kind = "appimage"
-repo = "mintnick/eve-settings-manager"
-asset = '^EVE-Settings-Manager-.*\.AppImage$'
-dest = "~/.local/bin/eve-settings-manager.AppImage"
-probe = false

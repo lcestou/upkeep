@@ -1,8 +1,0 @@
-# Drafted from kbterm/kubeterm's v2.8.3 release; its version is the one Upkeep installed.
-[apps.kubeterm]
-name = "kubeterm"
-kind = "appimage"
-repo = "kbterm/kubeterm"
-asset = '^kubeterm-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/kubeterm.AppImage"
-probe = false

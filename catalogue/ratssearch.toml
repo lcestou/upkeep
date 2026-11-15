@@ -1,8 +1,0 @@
-# Drafted from librats/rats-search's v2.3.6 release; its version is the one Upkeep installed.
-[apps.ratssearch]
-name = "RatsSearch"
-kind = "appimage"
-repo = "librats/rats-search"
-asset = '^RatsSearch-Linux-x64-.*\.AppImage$'
-dest = "~/.local/bin/ratssearch.AppImage"
-probe = false

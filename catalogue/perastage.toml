@@ -1,8 +1,0 @@
-# Drafted from PeramatoG/Perastage's v1.7.0 release; its version is the one Upkeep installed.
-[apps.perastage]
-name = "Perastage"
-kind = "appimage"
-repo = "PeramatoG/Perastage"
-asset = '^Perastage-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/perastage.AppImage"
-probe = false

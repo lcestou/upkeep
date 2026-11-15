@@ -1,9 +1,0 @@
-# Drafted from schmayterling/hibi's v0.3.0 release; its version is the one Upkeep installed.
-[apps.hibi]
-name = "hibi"
-kind = "appimage"
-repo = "schmayterling/hibi"
-asset = '^hibi-.*-linux-x64\.AppImage$'
-asset_aarch64 = '^hibi-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/hibi.AppImage"
-probe = false

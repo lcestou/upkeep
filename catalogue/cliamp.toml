@@ -1,9 +1,0 @@
-# Drafted from bjarneo/cliamp's v2.4.1 release; its version is the one Upkeep installed.
-[apps.cliamp]
-name = "cliamp"
-kind = "file"
-repo = "bjarneo/cliamp"
-asset = '^cliamp-linux-amd64$'
-asset_aarch64 = '^cliamp-linux-arm64$'
-dest = "~/.local/bin/cliamp"
-probe = false

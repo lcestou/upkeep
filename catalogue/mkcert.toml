@@ -1,9 +1,0 @@
-# Drafted from FiloSottile/mkcert's v1.4.4 release; its version is the one Upkeep installed.
-[apps.mkcert]
-name = "mkcert"
-kind = "file"
-repo = "FiloSottile/mkcert"
-asset = '^mkcert-.*-linux-amd64$'
-asset_aarch64 = '^mkcert-.*-linux-arm64$'
-dest = "~/.local/bin/mkcert"
-probe = false

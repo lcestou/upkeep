@@ -1,8 +1,0 @@
-# Drafted from Parallel-7/FlashForgeUI-Electron's v1.0.5 release; its version is the one Upkeep installed.
-[apps.flashforgeui]
-name = "FlashForgeUI"
-kind = "appimage"
-repo = "Parallel-7/FlashForgeUI-Electron"
-asset = '^FlashForgeUI-.*\.AppImage$'
-dest = "~/.local/bin/flashforgeui.AppImage"
-probe = false

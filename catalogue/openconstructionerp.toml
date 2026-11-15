@@ -1,8 +1,0 @@
-# Drafted from datadrivenconstruction/OpenConstructionERP's v19.5.1 release; its version is the one Upkeep installed.
-[apps.openconstructionerp]
-name = "OpenConstructionERP"
-kind = "appimage"
-repo = "datadrivenconstruction/OpenConstructionERP"
-asset = '^OpenConstructionERP_.*_amd64\.AppImage$'
-dest = "~/.local/bin/openconstructionerp.AppImage"
-probe = false

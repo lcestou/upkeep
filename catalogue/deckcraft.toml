@@ -1,9 +1,0 @@
-# Drafted from storytold/deckcraft's v0.18.1 release; its version is the one Upkeep installed.
-[apps.deckcraft]
-name = "deckcraft"
-kind = "appimage"
-repo = "storytold/deckcraft"
-asset = '^deckcraft-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^deckcraft-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/deckcraft.AppImage"
-probe = false

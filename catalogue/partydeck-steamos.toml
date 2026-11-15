@@ -1,8 +1,0 @@
-# Drafted from partydeck/partydeck's v0.8.7-e release; its version is the one Upkeep installed.
-[apps.partydeck-steamos]
-name = "partydeck"
-kind = "appimage"
-repo = "partydeck/partydeck"
-asset = '^partydeck-.*-anylinux-x86_64\.AppImage$'
-dest = "~/.local/bin/partydeck-steamos.AppImage"
-probe = false

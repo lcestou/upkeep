@@ -1,8 +1,0 @@
-# Drafted from lettier/gifcurry's 6.0.1.0 release; its version is the one Upkeep installed.
-[apps.gifcurry]
-name = "gifcurry"
-kind = "appimage"
-repo = "lettier/gifcurry"
-asset = '^gifcurry-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/gifcurry.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from maddada/Ghostex's v11.7.1 release; its version is the one Upkeep installed.
-[apps.ghostex]
-name = "Ghostex"
-kind = "appimage"
-repo = "maddada/Ghostex"
-asset = '^ghostex-.*-linux-x64\.AppImage$'
-asset_aarch64 = '^ghostex-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/ghostex.AppImage"
-probe = false

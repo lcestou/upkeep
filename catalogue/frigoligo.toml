@@ -1,9 +1,0 @@
-# Drafted from casimir/frigoligo's v2.4.0 release; its version is the one Upkeep installed.
-[apps.frigoligo]
-name = "Frigoligo"
-kind = "appimage"
-repo = "casimir/frigoligo"
-asset = '^Frigoligo-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Frigoligo-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/frigoligo.AppImage"
-probe = false

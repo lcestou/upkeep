@@ -1,8 +1,0 @@
-# Drafted from pwltr/tauthy's v0.6.0 release; its version is the one Upkeep installed.
-[apps.tauthy]
-name = "Tauthy"
-kind = "appimage"
-repo = "pwltr/tauthy"
-asset = '^Tauthy_.*_amd64\.AppImage$'
-dest = "~/.local/bin/tauthy.AppImage"
-probe = false

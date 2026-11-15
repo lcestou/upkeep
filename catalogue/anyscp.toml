@@ -1,8 +1,0 @@
-# Drafted from macnev2013/anySCP's v0.11.1 release; its version is the one Upkeep installed.
-[apps.anyscp]
-name = "anySCP"
-kind = "appimage"
-repo = "macnev2013/anySCP"
-asset = '^anySCP_.*_amd64\.AppImage$'
-dest = "~/.local/bin/anyscp.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from ajkdrag/otterly's v0.9.0 release; its version is the one Upkeep installed.
-[apps.otterly]
-name = "otterly"
-kind = "appimage"
-repo = "ajkdrag/otterly"
-asset = '^otterly_.*_amd64\.AppImage$'
-dest = "~/.local/bin/otterly.AppImage"
-probe = false

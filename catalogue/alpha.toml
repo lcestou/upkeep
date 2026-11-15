@@ -1,8 +1,0 @@
-# Drafted from xunchahaha/alpha-releases's v0.3.5 release; its version is the one Upkeep installed.
-[apps.alpha]
-name = "Alpha"
-kind = "appimage"
-repo = "xunchahaha/alpha-releases"
-asset = '^Alpha-.*-x64\.AppImage$'
-dest = "~/.local/bin/alpha.AppImage"
-probe = false

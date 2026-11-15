@@ -1,8 +1,0 @@
-# Drafted from WeakAuras/WeakAuras-Companion's v5.3.1 release; its version is the one Upkeep installed.
-[apps.weakauras-companion]
-name = "WeakAuras-Companion"
-kind = "appimage"
-repo = "WeakAuras/WeakAuras-Companion"
-asset = '^WeakAuras-Companion-.*\.AppImage$'
-dest = "~/.local/bin/weakauras-companion.AppImage"
-probe = false

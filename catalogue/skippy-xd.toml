@@ -1,8 +1,0 @@
-# Drafted from felixfung/skippy-xd's v2026.11.14 release; its version is the one Upkeep installed.
-[apps.skippy-xd]
-name = "Skippy Xd"
-kind = "appimage"
-repo = "felixfung/skippy-xd"
-asset = '^skippy-xd_.*-x86_64\.AppImage$'
-dest = "~/.local/bin/skippy-xd.AppImage"
-probe = false

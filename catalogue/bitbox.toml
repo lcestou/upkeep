@@ -1,8 +1,0 @@
-# Drafted from BitBoxSwiss/bitbox-wallet-app's v4.52.0 release; its version is the one Upkeep installed.
-[apps.bitbox]
-name = "BitBox"
-kind = "appimage"
-repo = "BitBoxSwiss/bitbox-wallet-app"
-asset = '^BitBox-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/bitbox.AppImage"
-probe = false

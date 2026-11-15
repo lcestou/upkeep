@@ -1,9 +1,0 @@
-# Drafted from cryptomator/cryptomator's 1.19.6 release; its version is the one Upkeep installed.
-[apps.cryptomator]
-name = "cryptomator"
-kind = "appimage"
-repo = "cryptomator/cryptomator"
-asset = '^cryptomator-.*-x86_64\.AppImage$'
-asset_aarch64 = '^cryptomator-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/cryptomator.AppImage"
-probe = false

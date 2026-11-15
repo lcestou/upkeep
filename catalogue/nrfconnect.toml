@@ -1,8 +1,0 @@
-# Drafted from nordicsemi/pc-nrfconnect-launcher's v5.4.1 release; its version is the one Upkeep installed.
-[apps.nrfconnect]
-name = "Pc Nrfconnect Launcher"
-kind = "appimage"
-repo = "nordicsemi/pc-nrfconnect-launcher"
-asset = '^nrfconnect-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/nrfconnect.AppImage"
-probe = false

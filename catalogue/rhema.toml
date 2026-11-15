@@ -1,8 +1,0 @@
-# Drafted from openbezal/rhema's v0.3.2 release; its version is the one Upkeep installed.
-[apps.rhema]
-name = "Rhema"
-kind = "appimage"
-repo = "openbezal/rhema"
-asset = '^Rhema_.*_amd64\.AppImage$'
-dest = "~/.local/bin/rhema.AppImage"
-probe = false

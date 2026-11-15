@@ -1,9 +1,0 @@
-# Drafted from cross-rs/cross's v0.2.5 release; its version is the one Upkeep installed.
-[apps.cross]
-name = "cross"
-kind = "archive"
-repo = "cross-rs/cross"
-asset = '^cross-x86_64-unknown-linux-gnu\.tar\.gz$'
-dest = "~/.local/bin/cross"
-bins = ["cross", "cross-util"]
-probe = false

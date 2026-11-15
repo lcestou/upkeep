@@ -1,8 +1,0 @@
-# Drafted from aptakube/aptakube's 1.22.3 release; its version is the one Upkeep installed.
-[apps.aptakube]
-name = "aptakube"
-kind = "appimage"
-repo = "aptakube/aptakube"
-asset = '^aptakube_.*_amd64\.AppImage$'
-dest = "~/.local/bin/aptakube.AppImage"
-probe = false

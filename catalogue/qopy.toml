@@ -1,8 +1,0 @@
-# Drafted from 0PandaDEV/Qopy's v0.3.3 release; its version is the one Upkeep installed.
-[apps.qopy]
-name = "Qopy"
-kind = "appimage"
-repo = "0PandaDEV/Qopy"
-asset = '^Qopy-.*\.AppImage$'
-dest = "~/.local/bin/qopy.AppImage"
-probe = false

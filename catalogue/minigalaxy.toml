@@ -1,8 +1,0 @@
-# Drafted from sharkwouter/minigalaxy's 1.4.2 release; its version is the one Upkeep installed.
-[apps.minigalaxy]
-name = "Minigalaxy"
-kind = "appimage"
-repo = "sharkwouter/minigalaxy"
-asset = '^Minigalaxy-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/minigalaxy.AppImage"
-probe = false

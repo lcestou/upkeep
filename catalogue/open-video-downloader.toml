@@ -1,9 +1,0 @@
-# Drafted from jely2002/youtube-dl-gui's app-v3.2.1 release; its version is the one Upkeep installed.
-[apps.open-video-downloader]
-name = "Open-Video-Downloader"
-kind = "appimage"
-repo = "jely2002/youtube-dl-gui"
-asset = '^Open\.Video\.Downloader_.*_amd64\.AppImage$'
-asset_aarch64 = '^Open\.Video\.Downloader_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/open-video-downloader.AppImage"
-probe = false

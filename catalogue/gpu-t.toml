@@ -1,8 +1,0 @@
-# Drafted from lseurttyuu/GPU-T's v0.2.2 release; its version is the one Upkeep installed.
-[apps.gpu-t]
-name = "GPU-T"
-kind = "appimage"
-repo = "lseurttyuu/GPU-T"
-asset = '^GPU-T-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/gpu-t.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from SceneWorks/SceneWorks's v0.11.1 release; its version is the one Upkeep installed.
-[apps.sceneworks]
-name = "SceneWorks"
-kind = "appimage"
-repo = "SceneWorks/SceneWorks"
-asset = '^SceneWorks_.*_amd64\.AppImage$'
-dest = "~/.local/bin/sceneworks.AppImage"
-probe = false

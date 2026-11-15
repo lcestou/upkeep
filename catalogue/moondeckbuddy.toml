@@ -1,8 +1,0 @@
-# Drafted from MoonDeckTeam/moondeck-buddy's v1.11.0 release; its version is the one Upkeep installed.
-[apps.moondeckbuddy]
-name = "MoonDeckBuddy"
-kind = "appimage"
-repo = "MoonDeckTeam/moondeck-buddy"
-asset = '^MoonDeckBuddy-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/moondeckbuddy.AppImage"
-probe = false

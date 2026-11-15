@@ -1,8 +1,0 @@
-# Drafted from ogri-la/strongbox's 7.8.1 release; its version is the one Upkeep installed.
-[apps.strongbox]
-name = "strongbox"
-kind = "appimage"
-repo = "ogri-la/strongbox"
-asset = '^strongbox-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/strongbox.AppImage"
-probe = false

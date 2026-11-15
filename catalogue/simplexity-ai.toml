@@ -1,8 +1,0 @@
-# Drafted from inulute/simplexity-ai-app's v5.2.0 release; its version is the one Upkeep installed.
-[apps.simplexity-ai]
-name = "Simplexity-AI"
-kind = "appimage"
-repo = "inulute/simplexity-ai-app"
-asset = '^Simplexity\.AI-.*\.AppImage$'
-dest = "~/.local/bin/simplexity-ai.AppImage"
-probe = false

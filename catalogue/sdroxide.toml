@@ -1,9 +1,0 @@
-# Drafted from dividebysandwich/sdroxide's v1.7.3 release; its version is the one Upkeep installed.
-[apps.sdroxide]
-name = "sdroxide"
-kind = "appimage"
-repo = "dividebysandwich/sdroxide"
-asset = '^sdroxide-.*-linux-x86_64-compat\.AppImage$'
-asset_aarch64 = '^sdroxide-.*-linux-aarch64-compat\.AppImage$'
-dest = "~/.local/bin/sdroxide.AppImage"
-probe = false

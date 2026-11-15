@@ -1,9 +1,0 @@
-# Drafted from cloudposse/atmos's v1.234.1 release; its version is the one Upkeep installed.
-[apps.atmos]
-name = "atmos"
-kind = "file"
-repo = "cloudposse/atmos"
-asset = '^atmos_.*_linux_amd64$'
-asset_aarch64 = '^atmos_.*_linux_arm64$'
-dest = "~/.local/bin/atmos"
-probe = false

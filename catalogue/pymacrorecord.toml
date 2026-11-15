@@ -1,8 +1,0 @@
-# Drafted from LOUDO2/PyMacroRecord's v1.4.7 release; its version is the one Upkeep installed.
-[apps.pymacrorecord]
-name = "PyMacroRecord"
-kind = "appimage"
-repo = "LOUDO2/PyMacroRecord"
-asset = '^PyMacroRecord-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/pymacrorecord.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from JRickey/BattleShip's v1.6 release; its version is the one Upkeep installed.
-[apps.battleship]
-name = "BattleShip"
-kind = "appimage"
-repo = "JRickey/BattleShip"
-asset = '^BattleShip-x86_64\.AppImage$'
-dest = "~/.local/bin/battleship.AppImage"
-probe = false

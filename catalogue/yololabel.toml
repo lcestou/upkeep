@@ -1,8 +1,0 @@
-# Drafted from developer0hye/Yolo_Label's v3.1.1 release; its version is the one Upkeep installed.
-[apps.yololabel]
-name = "YoloLabel"
-kind = "appimage"
-repo = "developer0hye/Yolo_Label"
-asset = '^YoloLabel-Linux-x64\.AppImage$'
-dest = "~/.local/bin/yololabel.AppImage"
-probe = false

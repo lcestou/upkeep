@@ -1,8 +1,0 @@
-# Drafted from hockyy/miteiru's v8.2.0 release; its version is the one Upkeep installed.
-[apps.miteiru]
-name = "Miteiru"
-kind = "appimage"
-repo = "hockyy/miteiru"
-asset = '^Miteiru_.*_amd64\.AppImage$'
-dest = "~/.local/bin/miteiru.AppImage"
-probe = false

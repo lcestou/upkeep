@@ -1,8 +1,0 @@
-# Drafted from oblien/openship's v0.9.12 release; its version is the one Upkeep installed.
-[apps.openship]
-name = "Openship"
-kind = "appimage"
-repo = "oblien/openship"
-asset = '^Openship\.AppImage$'
-dest = "~/.local/bin/openship.AppImage"
-probe = false

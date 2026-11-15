@@ -1,8 +1,0 @@
-# Drafted from Drenzzz/ADBKit's v2.1.0 release; its version is the one Upkeep installed.
-[apps.adbkit]
-name = "ADBKit"
-kind = "appimage"
-repo = "Drenzzz/ADBKit"
-asset = '^adbkit-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/adbkit.AppImage"
-probe = false

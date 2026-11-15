@@ -1,9 +1,0 @@
-# Drafted from nsaintot/cdj3k-emu's v0.4.1 release; its version is the one Upkeep installed.
-[apps.cdj3k-emulator]
-name = "CDJ3K-Emulator"
-kind = "appimage"
-repo = "nsaintot/cdj3k-emu"
-asset = '^CDJ3K-Emulator-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^CDJ3K-Emulator-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/cdj3k-emulator.AppImage"
-probe = false

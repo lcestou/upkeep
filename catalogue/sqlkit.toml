@@ -1,8 +1,0 @@
-# Drafted from geek-fun/sqlkit's v1.0.2 release; its version is the one Upkeep installed.
-[apps.sqlkit]
-name = "SqlKit"
-kind = "appimage"
-repo = "geek-fun/sqlkit"
-asset = '^SqlKit_.*_amd64\.AppImage$'
-dest = "~/.local/bin/sqlkit.AppImage"
-probe = false

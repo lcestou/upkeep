@@ -1,9 +1,0 @@
-# Drafted from msojocs/bilibili-linux's v1.20.0-2 release; its version is the one Upkeep installed.
-[apps.bilibili]
-name = "Bilibili Linux"
-kind = "appimage"
-repo = "msojocs/bilibili-linux"
-asset = '^bilibili-.*-x86_64\.AppImage$'
-asset_aarch64 = '^bilibili-.*-arm64\.AppImage$'
-dest = "~/.local/bin/bilibili.AppImage"
-probe = false

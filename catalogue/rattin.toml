@@ -1,8 +1,0 @@
-# Drafted from narzaut/rattin-public's v3.0.4 release; its version is the one Upkeep installed.
-[apps.rattin]
-name = "Rattin"
-kind = "appimage"
-repo = "narzaut/rattin-public"
-asset = '^Rattin-x86_64\.AppImage$'
-dest = "~/.local/bin/rattin.AppImage"
-probe = false

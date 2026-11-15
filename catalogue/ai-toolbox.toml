@@ -1,8 +1,0 @@
-# Drafted from coulsontl/ai-toolbox's v1.2.2 release; its version is the one Upkeep installed.
-[apps.ai-toolbox]
-name = "AI-Toolbox"
-kind = "appimage"
-repo = "coulsontl/ai-toolbox"
-asset = '^AI\.Toolbox_.*_amd64\.AppImage$'
-dest = "~/.local/bin/ai-toolbox.AppImage"
-probe = false

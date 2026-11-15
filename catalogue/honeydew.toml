@@ -1,9 +1,0 @@
-# Drafted from daijro/honeydew's v0.5.4 release; its version is the one Upkeep installed.
-[apps.honeydew]
-name = "honeydew"
-kind = "appimage"
-repo = "daijro/honeydew"
-asset = '^honeydew-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^honeydew-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/honeydew.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from OpenSelena/libreget's v0.16.6 release; its version is the one Upkeep installed.
-[apps.omniget]
-name = "OmniGet"
-kind = "appimage"
-repo = "OpenSelena/libreget"
-asset = '^OmniGet_.*_amd64\.AppImage$'
-asset_aarch64 = '^OmniGet_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/omniget.AppImage"
-probe = false

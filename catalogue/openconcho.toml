@@ -1,8 +1,0 @@
-# Drafted from offendingcommit/openconcho's v0.17.1 release; its version is the one Upkeep installed.
-[apps.openconcho]
-name = "OpenConcho"
-kind = "appimage"
-repo = "offendingcommit/openconcho"
-asset = '^OpenConcho_.*_amd64\.AppImage$'
-dest = "~/.local/bin/openconcho.AppImage"
-probe = false

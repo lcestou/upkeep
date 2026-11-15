@@ -1,9 +1,0 @@
-# Drafted from ddworken/hishtory's v0.335 release; its version is the one Upkeep installed.
-[apps.hishtory]
-name = "hishtory"
-kind = "file"
-repo = "ddworken/hishtory"
-asset = '^hishtory-linux-amd64$'
-asset_aarch64 = '^hishtory-linux-arm64$'
-dest = "~/.local/bin/hishtory"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from hrydgard/ppsspp's v1.20.4 release; its version is the one Upkeep installed.
-[apps.ppsspp]
-name = "PPSSPP-anylinux"
-kind = "appimage"
-repo = "hrydgard/ppsspp"
-asset = '^PPSSPP-.*-anylinux-x86_64\.AppImage$'
-asset_aarch64 = '^PPSSPP-.*-anylinux-aarch64\.AppImage$'
-dest = "~/.local/bin/ppsspp.AppImage"
-probe = false

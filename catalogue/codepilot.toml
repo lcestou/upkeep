@@ -1,9 +1,0 @@
-# Drafted from op7418/CodePilot's v0.67.17 release; its version is the one Upkeep installed.
-[apps.codepilot]
-name = "CodePilot"
-kind = "appimage"
-repo = "op7418/CodePilot"
-asset = '^CodePilot-.*-x86_64\.AppImage$'
-asset_aarch64 = '^CodePilot-.*-arm64\.AppImage$'
-dest = "~/.local/bin/codepilot.AppImage"
-probe = false

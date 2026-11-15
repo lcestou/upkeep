@@ -1,9 +1,0 @@
-# Drafted from webstonehq/seaquel's v2026.9.2 release; its version is the one Upkeep installed.
-[apps.seaquel]
-name = "Seaquel"
-kind = "appimage"
-repo = "webstonehq/seaquel"
-asset = '^Seaquel_.*_amd64\.AppImage$'
-asset_aarch64 = '^Seaquel_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/seaquel.AppImage"
-probe = false

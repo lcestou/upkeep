@@ -1,8 +1,0 @@
-# Drafted from codeforreal1/compressO's 4.2.0 release; its version is the one Upkeep installed.
-[apps.compresso]
-name = "CompressO"
-kind = "appimage"
-repo = "codeforreal1/compressO"
-asset = '^CompressO_.*_amd64\.AppImage$'
-dest = "~/.local/bin/compresso.AppImage"
-probe = false

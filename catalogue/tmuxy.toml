@@ -1,9 +1,0 @@
-# Drafted from flplima/tmuxy's v0.1.6 release; its version is the one Upkeep installed.
-[apps.tmuxy]
-name = "tmuxy"
-kind = "appimage"
-repo = "flplima/tmuxy"
-asset = '^tmuxy_.*_amd64\.AppImage$'
-asset_aarch64 = '^tmuxy_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/tmuxy.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from allkern/iris's 0.20-alpha release; its version is the one Upkeep installed.
-[apps.iris]
-name = "iris"
-kind = "archive"
-repo = "allkern/iris"
-asset = '^iris-.*-linux\.zip$'
-dest = "~/.local/bin/iris"
-bins = ["iris"]
-probe = false

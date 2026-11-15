@@ -1,8 +1,0 @@
-# Drafted from Splode/pomotroid's v1.7.1 release; its version is the one Upkeep installed.
-[apps.pomotroid]
-name = "Pomotroid"
-kind = "appimage"
-repo = "Splode/pomotroid"
-asset = '^Pomotroid_.*_amd64\.AppImage$'
-dest = "~/.local/bin/pomotroid.AppImage"
-probe = false

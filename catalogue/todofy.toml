@@ -1,8 +1,0 @@
-# Drafted from salarzeidanlou/todofy's v1.15.0 release; its version is the one Upkeep installed.
-[apps.todofy]
-name = "todofy"
-kind = "appimage"
-repo = "salarzeidanlou/todofy"
-asset = '^todofy_.*_amd64\.AppImage$'
-dest = "~/.local/bin/todofy.AppImage"
-probe = false

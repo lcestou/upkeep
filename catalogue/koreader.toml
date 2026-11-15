@@ -1,9 +1,0 @@
-# Drafted from koreader/koreader's v2026.07.1 release; its version is the one Upkeep installed.
-[apps.koreader]
-name = "koreader"
-kind = "appimage"
-repo = "koreader/koreader"
-asset = '^koreader-.*-x86_64\.AppImage$'
-asset_aarch64 = '^koreader-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/koreader.AppImage"
-probe = false

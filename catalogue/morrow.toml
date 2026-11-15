@@ -1,8 +1,0 @@
-# Drafted from Aarav2709/Morrow's v2.1.0 release; its version is the one Upkeep installed.
-[apps.morrow]
-name = "Morrow"
-kind = "appimage"
-repo = "Aarav2709/Morrow"
-asset = '^Morrow_.*_amd64\.AppImage$'
-dest = "~/.local/bin/morrow.AppImage"
-probe = false

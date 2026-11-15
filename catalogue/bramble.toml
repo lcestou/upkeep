@@ -1,9 +1,0 @@
-# Drafted from bramble-sh/bramble's 0.19.0-desktop release; its version is the one Upkeep installed.
-[apps.bramble]
-name = "Bramble"
-kind = "appimage"
-repo = "bramble-sh/bramble"
-asset = '^Bramble_.*_amd64\.AppImage$'
-asset_aarch64 = '^Bramble_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/bramble.AppImage"
-probe = false

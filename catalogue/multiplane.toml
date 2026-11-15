@@ -1,8 +1,0 @@
-# Drafted from LBEILC/Multiplane's v0.3.15 release; its version is the one Upkeep installed.
-[apps.multiplane]
-name = "Multiplane"
-kind = "appimage"
-repo = "LBEILC/Multiplane"
-asset = '^Multiplane-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/multiplane.AppImage"
-probe = false

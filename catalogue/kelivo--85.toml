@@ -1,8 +1,0 @@
-# Drafted from Chevey339/kelivo's v1.3.5 release; its version is the one Upkeep installed.
-[apps.kelivo--85]
-name = "Kelivo-+85"
-kind = "appimage"
-repo = "Chevey339/kelivo"
-asset = '^Kelivo-.*\+85-x86_64\.AppImage$'
-dest = "~/.local/bin/kelivo-+85.AppImage"
-probe = false

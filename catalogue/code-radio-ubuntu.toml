@@ -1,9 +1,0 @@
-# Drafted from JasonWei512/code-radio-cli's v1.0.6 release; its version is the one Upkeep installed.
-[apps.code-radio-ubuntu]
-name = "Code Radio Cli"
-kind = "file"
-repo = "JasonWei512/code-radio-cli"
-asset = '^code-radio-.*-ubuntu-x64$'
-asset_aarch64 = '^code-radio-.*-ubuntu-arm64$'
-dest = "~/.local/bin/code-radio-ubuntu"
-probe = false

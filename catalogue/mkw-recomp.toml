@@ -1,9 +1,0 @@
-# Drafted from adriadam10/mkw-recomp's v0.1.11 release; its version is the one Upkeep installed.
-[apps.mkw-recomp]
-name = "Mkw Recomp"
-kind = "appimage"
-repo = "adriadam10/mkw-recomp"
-asset = '^mkw-recomp-.*-x86_64\.AppImage$'
-asset_aarch64 = '^mkw-recomp-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/mkw-recomp.AppImage"
-probe = false

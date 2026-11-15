@@ -1,8 +1,0 @@
-# Drafted from vanloctech/youwee's v0.21.0 release; its version is the one Upkeep installed.
-[apps.youwee]
-name = "Youwee"
-kind = "appimage"
-repo = "vanloctech/youwee"
-asset = '^Youwee-Linux\.AppImage$'
-dest = "~/.local/bin/youwee.AppImage"
-probe = false

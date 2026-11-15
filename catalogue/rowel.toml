@@ -1,8 +1,0 @@
-# Drafted from fwdai/rowel's v1.1.1 release; its version is the one Upkeep installed.
-[apps.rowel]
-name = "Rowel"
-kind = "appimage"
-repo = "fwdai/rowel"
-asset = '^Rowel_amd64\.AppImage$'
-dest = "~/.local/bin/rowel.AppImage"
-probe = false

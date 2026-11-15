@@ -1,8 +1,0 @@
-# Drafted from akitaonrails/FrankSherlock's v0.8.2 release; its version is the one Upkeep installed.
-[apps.frank-sherlock]
-name = "FrankSherlock"
-kind = "appimage"
-repo = "akitaonrails/FrankSherlock"
-asset = '^frank_sherlock_.*_amd64\.AppImage$'
-dest = "~/.local/bin/frank-sherlock.AppImage"
-probe = false

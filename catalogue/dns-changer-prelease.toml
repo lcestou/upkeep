@@ -1,8 +1,0 @@
-# Drafted from DnsChanger/dnsChanger-desktop's v2.3.14 release; its version is the one Upkeep installed.
-[apps.dns-changer-prelease]
-name = "DNS-Changer-prelease"
-kind = "appimage"
-repo = "DnsChanger/dnsChanger-desktop"
-asset = '^DNS-Changer-prelease-linux-x86_64-.*\.AppImage$'
-dest = "~/.local/bin/dns-changer-prelease.AppImage"
-probe = false

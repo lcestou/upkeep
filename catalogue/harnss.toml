@@ -1,8 +1,0 @@
-# Drafted from OpenSource03/harnss's v0.21.5 release; its version is the one Upkeep installed.
-[apps.harnss]
-name = "Harnss"
-kind = "appimage"
-repo = "OpenSource03/harnss"
-asset = '^Harnss-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/harnss.AppImage"
-probe = false

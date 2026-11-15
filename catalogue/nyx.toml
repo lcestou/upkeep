@@ -1,9 +1,0 @@
-# Drafted from mooltiverse/nyx's 3.2.0 release; its version is the one Upkeep installed.
-[apps.nyx]
-name = "nyx"
-kind = "file"
-repo = "mooltiverse/nyx"
-asset = '^nyx-linux-amd64$'
-asset_aarch64 = '^nyx-linux-arm64$'
-dest = "~/.local/bin/nyx"
-probe = false

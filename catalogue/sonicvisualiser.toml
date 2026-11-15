@@ -1,8 +1,0 @@
-# Drafted from sonic-visualiser/sonic-visualiser's sv_v5.2.1 release; its version is the one Upkeep installed.
-[apps.sonicvisualiser]
-name = "SonicVisualiser"
-kind = "appimage"
-repo = "sonic-visualiser/sonic-visualiser"
-asset = '^SonicVisualiser-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/sonicvisualiser.AppImage"
-probe = false

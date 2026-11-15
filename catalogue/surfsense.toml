@@ -1,8 +1,0 @@
-# Drafted from MODSetter/SurfSense's v2.3.1 release; its version is the one Upkeep installed.
-[apps.surfsense]
-name = "SurfSense"
-kind = "appimage"
-repo = "MODSetter/SurfSense"
-asset = '^SurfSense\.AppImage$'
-dest = "~/.local/bin/surfsense.AppImage"
-probe = false

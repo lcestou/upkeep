@@ -1,9 +1,0 @@
-# Drafted from jacobdeichert/mask's mask/0.11.7 release; its version is the one Upkeep installed.
-[apps.mask]
-name = "mask"
-kind = "archive"
-repo = "jacobdeichert/mask"
-asset = '^mask-.*-x86_64-unknown-linux-gnu\.zip$'
-dest = "~/.local/bin/mask"
-bins = ["mask-0.11.7-x86_64-unknown-linux-gnu/mask"]
-probe = false

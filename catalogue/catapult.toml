@@ -1,8 +1,0 @@
-# Drafted from qrrk/Catapult's 26.10a release; its version is the one Upkeep installed.
-[apps.catapult]
-name = "Catapult"
-kind = "file"
-repo = "qrrk/Catapult"
-asset = '^catapult-linux-x64-.*$'
-dest = "~/.local/bin/catapult"
-probe = false

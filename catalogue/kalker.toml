@@ -1,8 +1,0 @@
-# Drafted from PaddiM8/kalker's v2.2.3 release; its version is the one Upkeep installed.
-[apps.kalker]
-name = "kalker"
-kind = "file"
-repo = "PaddiM8/kalker"
-asset = '^kalker-linux$'
-dest = "~/.local/bin/kalker"
-probe = false

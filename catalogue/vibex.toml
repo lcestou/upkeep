@@ -1,9 +1,0 @@
-# Drafted from Xircth/VibeX's v0.4.4 release; its version is the one Upkeep installed.
-[apps.vibex]
-name = "VibeX"
-kind = "appimage"
-repo = "Xircth/VibeX"
-asset = '^VibeX-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^VibeX-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/vibex.AppImage"
-probe = false

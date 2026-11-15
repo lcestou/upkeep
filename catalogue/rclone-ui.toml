@@ -1,9 +1,0 @@
-# Drafted from rclone/rclone-ui's v3.7.5 release; its version is the one Upkeep installed.
-[apps.rclone-ui]
-name = "Rclone-UI"
-kind = "appimage"
-repo = "rclone/rclone-ui"
-asset = '^Rclone\.UI_amd64\.AppImage$'
-asset_aarch64 = '^Rclone\.UI_aarch64\.AppImage$'
-dest = "~/.local/bin/rclone-ui.AppImage"
-probe = false

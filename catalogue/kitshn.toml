@@ -1,8 +1,0 @@
-# Drafted from kitshn-app/kitshn's v2.1.6 release; its version is the one Upkeep installed.
-[apps.kitshn]
-name = "kitshn"
-kind = "appimage"
-repo = "kitshn-app/kitshn"
-asset = '^kitshn-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/kitshn.AppImage"
-probe = false

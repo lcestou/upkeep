@@ -1,9 +1,0 @@
-# Drafted from hoowhoami/EchoMusic's v2.3.2 release; its version is the one Upkeep installed.
-[apps.echomusic]
-name = "EchoMusic"
-kind = "appimage"
-repo = "hoowhoami/EchoMusic"
-asset = '^EchoMusic-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^EchoMusic-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/echomusic.AppImage"
-probe = false

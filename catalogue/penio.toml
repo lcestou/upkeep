@@ -1,9 +1,0 @@
-# Drafted from game1024/Penio's v1.1.3 release; its version is the one Upkeep installed.
-[apps.penio]
-name = "Penio"
-kind = "appimage"
-repo = "game1024/Penio"
-asset = '^Penio_.*_amd64\.AppImage$'
-asset_aarch64 = '^Penio_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/penio.AppImage"
-probe = false

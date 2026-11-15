@@ -1,8 +1,0 @@
-# Drafted from getopenscreen/openscreen's v2.2.2 release; its version is the one Upkeep installed.
-[apps.openscreen]
-name = "Openscreen"
-kind = "appimage"
-repo = "getopenscreen/openscreen"
-asset = '^Openscreen-Linux-.*\.AppImage$'
-dest = "~/.local/bin/openscreen.AppImage"
-probe = false

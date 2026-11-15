@@ -1,8 +1,0 @@
-# Drafted from KDAB/hotspot's v1.6.0 release; its version is the one Upkeep installed.
-[apps.hotspot]
-name = "hotspot"
-kind = "appimage"
-repo = "KDAB/hotspot"
-asset = '^hotspot-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/hotspot.AppImage"
-probe = false

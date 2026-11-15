@@ -1,8 +1,0 @@
-# Drafted from astrofox-io/astrofox's v2.0.0 release; its version is the one Upkeep installed.
-[apps.astrofox]
-name = "Astrofox"
-kind = "appimage"
-repo = "astrofox-io/astrofox"
-asset = '^Astrofox-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/astrofox.AppImage"
-probe = false

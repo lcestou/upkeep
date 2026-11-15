@@ -1,9 +1,0 @@
-# Drafted from martpie/museeks's 0.23.4 release; its version is the one Upkeep installed.
-[apps.museeks]
-name = "Museeks"
-kind = "appimage"
-repo = "martpie/museeks"
-asset = '^Museeks_.*_amd64\.AppImage$'
-asset_aarch64 = '^Museeks_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/museeks.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from swaggo/swag's v2.0.0-rc6 release; its version is the one Upkeep installed.
-[apps.swag]
-name = "swag"
-kind = "archive"
-repo = "swaggo/swag"
-asset = '^swag_.*-rc6_Linux_x86_64\.tar\.gz$'
-dest = "~/.local/bin/swag"
-bins = ["swag"]
-probe = false

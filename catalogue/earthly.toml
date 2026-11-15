@@ -1,9 +1,0 @@
-# Drafted from earthly/earthly's v0.8.16 release; its version is the one Upkeep installed.
-[apps.earthly]
-name = "earthly"
-kind = "file"
-repo = "earthly/earthly"
-asset = '^earthly-linux-amd64$'
-asset_aarch64 = '^earthly-linux-arm64$'
-dest = "~/.local/bin/earthly"
-probe = false

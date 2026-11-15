@@ -1,8 +1,0 @@
-# Drafted from maojindao55/freebuddy's v0.10.65 release; its version is the one Upkeep installed.
-[apps.freebuddy]
-name = "FreeBuddy"
-kind = "appimage"
-repo = "maojindao55/freebuddy"
-asset = '^FreeBuddy_Linux_x64-.*\.AppImage$'
-dest = "~/.local/bin/freebuddy.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from nextai-translator/nextai-translator's v0.6.55 release; its version is the one Upkeep installed.
-[apps.nextai-translator]
-name = "NextAI-Translator"
-kind = "appimage"
-repo = "nextai-translator/nextai-translator"
-asset = '^NextAI\.Translator_.*_amd64\.AppImage$'
-dest = "~/.local/bin/nextai-translator.AppImage"
-probe = false

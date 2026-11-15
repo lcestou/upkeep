@@ -1,9 +1,0 @@
-# Drafted from jkcoxson/idevice_pair's v1.1.0 release; its version is the one Upkeep installed.
-[apps.idevice-pair]
-name = "Idevice Pair"
-kind = "appimage"
-repo = "jkcoxson/idevice_pair"
-asset = '^idevice_pair--linux-x86_64\.AppImage$'
-asset_aarch64 = '^idevice_pair--linux-aarch64\.AppImage$'
-dest = "~/.local/bin/idevice-pair.AppImage"
-probe = false

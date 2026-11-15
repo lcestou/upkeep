@@ -1,8 +1,0 @@
-# Drafted from mkbhardwas12/prismos-ai's v0.7.0 release; its version is the one Upkeep installed.
-[apps.prismos-ai]
-name = "PrismOS-AI"
-kind = "appimage"
-repo = "mkbhardwas12/prismos-ai"
-asset = '^PrismOS-AI_.*_amd64\.AppImage$'
-dest = "~/.local/bin/prismos-ai.AppImage"
-probe = false

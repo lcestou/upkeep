@@ -1,8 +1,0 @@
-# Drafted from skalesapp/skales's v12.9.65 release; its version is the one Upkeep installed.
-[apps.skales]
-name = "Skales"
-kind = "appimage"
-repo = "skalesapp/skales"
-asset = '^Skales-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/skales.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from playwora/wora's v0.4.0-beta1 release; its version is the one Upkeep installed.
-[apps.wora]
-name = "Wora"
-kind = "appimage"
-repo = "playwora/wora"
-asset = '^Wora\..*\.AppImage$'
-dest = "~/.local/bin/wora.AppImage"
-probe = false

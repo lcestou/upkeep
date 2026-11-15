@@ -1,8 +1,0 @@
-# Drafted from GrandOrgue/grandorgue's 3.17.3-1 release; its version is the one Upkeep installed.
-[apps.grandorgue]
-name = "grandorgue"
-kind = "appimage"
-repo = "GrandOrgue/grandorgue"
-asset = '^grandorgue-.*\.x86_64\.AppImage$'
-dest = "~/.local/bin/grandorgue.AppImage"
-probe = false

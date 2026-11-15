@@ -1,9 +1,0 @@
-# Drafted from sigstore/rekor's v1.6.1 release; its version is the one Upkeep installed.
-[apps.rekor-cli]
-name = "rekor"
-kind = "file"
-repo = "sigstore/rekor"
-asset = '^rekor-cli-linux-amd64$'
-asset_aarch64 = '^rekor-cli-linux-arm64$'
-dest = "~/.local/bin/rekor-cli"
-probe = false

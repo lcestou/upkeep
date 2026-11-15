@@ -1,9 +1,0 @@
-# Drafted from infinitel8p/Extreme-InfiniTV's v1.9.0 release; its version is the one Upkeep installed.
-[apps.extreme-infinitv]
-name = "Extreme-InfiniTV"
-kind = "appimage"
-repo = "infinitel8p/Extreme-InfiniTV"
-asset = '^Extreme\.InfiniTV_.*_amd64\.AppImage$'
-asset_aarch64 = '^Extreme\.InfiniTV_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/extreme-infinitv.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from chaogei/windsurf-account-manager-simple's v1.8.1 release; its version is the one Upkeep installed.
-[apps.windsurf-account-manager]
-name = "Windsurf Account Manager Simple"
-kind = "appimage"
-repo = "chaogei/windsurf-account-manager-simple"
-asset = '^windsurf-account-manager_.*_amd64\.AppImage$'
-dest = "~/.local/bin/windsurf-account-manager.AppImage"
-probe = false

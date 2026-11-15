@@ -1,8 +1,0 @@
-# Drafted from Spencer0187/Spencer-Macro-Utilities's V3.3.1 release; its version is the one Upkeep installed.
-[apps.spencer-macro-utilities]
-name = "Spencer-Macro-Utilities"
-kind = "appimage"
-repo = "Spencer0187/Spencer-Macro-Utilities"
-asset = '^Spencer-Macro-Utilities-.*-Linux-x86_64\.AppImage$'
-dest = "~/.local/bin/spencer-macro-utilities.AppImage"
-probe = false

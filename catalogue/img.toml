@@ -1,8 +1,0 @@
-# Drafted from genuinetools/img's v0.5.11 release; its version is the one Upkeep installed.
-[apps.img]
-name = "img"
-kind = "file"
-repo = "genuinetools/img"
-asset = '^img-linux-amd64$'
-dest = "~/.local/bin/img"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from kunpengtalk/PeakCode's v0.9.0 release; its version is the one Upkeep installed.
-[apps.peak-code]
-name = "Peak-Code"
-kind = "appimage"
-repo = "kunpengtalk/PeakCode"
-asset = '^Peak-Code-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/peak-code.AppImage"
-probe = false

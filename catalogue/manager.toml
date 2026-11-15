@@ -1,8 +1,0 @@
-# Drafted from Manager-io/Manager's 26.8.4.3664 release; its version is the one Upkeep installed.
-[apps.manager]
-name = "Manager"
-kind = "appimage"
-repo = "Manager-io/Manager"
-asset = '^Manager-x86_64\.AppImage$'
-dest = "~/.local/bin/manager.AppImage"
-probe = false

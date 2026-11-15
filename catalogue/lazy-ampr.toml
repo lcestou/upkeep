@@ -1,8 +1,0 @@
-# Drafted from Nazky/Lazy_AMPR's 0.0.1 release; its version is the one Upkeep installed.
-[apps.lazy-ampr]
-name = "Lazy-AMPR"
-kind = "appimage"
-repo = "Nazky/Lazy_AMPR"
-asset = '^Lazy_AMPR-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/lazy-ampr.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from unxsist/jet-pilot's v2.3.1 release; its version is the one Upkeep installed.
-[apps.jet-pilot]
-name = "JET-Pilot"
-kind = "appimage"
-repo = "unxsist/jet-pilot"
-asset = '^JET\.Pilot_.*_amd64\.AppImage$'
-asset_aarch64 = '^JET\.Pilot_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/jet-pilot.AppImage"
-probe = false

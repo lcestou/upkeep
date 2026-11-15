@@ -1,8 +1,0 @@
-# Drafted from KunalSin9h/secops's 0.13.3 release; its version is the one Upkeep installed.
-[apps.secops]
-name = "secops"
-kind = "appimage"
-repo = "KunalSin9h/secops"
-asset = '^secops_.*_amd64\.AppImage$'
-dest = "~/.local/bin/secops.AppImage"
-probe = false

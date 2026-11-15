@@ -1,9 +1,0 @@
-# Drafted from amule-org/amule's 3.2.0 release; its version is the one Upkeep installed.
-[apps.amule]
-name = "aMule"
-kind = "appimage"
-repo = "amule-org/amule"
-asset = '^aMule-.*-Linux-x64\.AppImage$'
-asset_aarch64 = '^aMule-.*-Linux-arm64\.AppImage$'
-dest = "~/.local/bin/amule.AppImage"
-probe = false

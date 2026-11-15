@@ -1,8 +1,0 @@
-# Drafted from EpicenterHQ/epicenter's v7.11.0 release; its version is the one Upkeep installed.
-[apps.whispering]
-name = "Whispering"
-kind = "appimage"
-repo = "EpicenterHQ/epicenter"
-asset = '^Whispering_.*_amd64\.AppImage$'
-dest = "~/.local/bin/whispering.AppImage"
-probe = false

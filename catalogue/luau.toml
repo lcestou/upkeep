@@ -1,9 +1,0 @@
-# Drafted from luau-lang/luau's 0.747 release; its version is the one Upkeep installed.
-[apps.luau]
-name = "luau"
-kind = "archive"
-repo = "luau-lang/luau"
-asset = '^luau-ubuntu\.zip$'
-dest = "~/.local/bin/luau"
-bins = ["luau", "luau-analyze", "luau-ast", "luau-compile"]
-probe = false

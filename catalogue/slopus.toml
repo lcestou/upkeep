@@ -1,8 +1,0 @@
-# Drafted from bitti-ai/slopus's v0.4.2 release; its version is the one Upkeep installed.
-[apps.slopus]
-name = "Slopus"
-kind = "appimage"
-repo = "bitti-ai/slopus"
-asset = '^Slopus-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/slopus.AppImage"
-probe = false

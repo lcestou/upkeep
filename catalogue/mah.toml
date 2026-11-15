@@ -1,8 +1,0 @@
-# Drafted from ffalt/mah's v2.1.1 release; its version is the one Upkeep installed.
-[apps.mah]
-name = "mah"
-kind = "appimage"
-repo = "ffalt/mah"
-asset = '^linux-mah-2_1_1-amd64\.AppImage$'
-dest = "~/.local/bin/mah.AppImage"
-probe = false

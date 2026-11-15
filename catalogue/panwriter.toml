@@ -1,8 +1,0 @@
-# Drafted from mb21/panwriter's v0.8.10 release; its version is the one Upkeep installed.
-[apps.panwriter]
-name = "PanWriter"
-kind = "appimage"
-repo = "mb21/panwriter"
-asset = '^PanWriter-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/panwriter.AppImage"
-probe = false

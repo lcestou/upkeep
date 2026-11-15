@@ -1,8 +1,0 @@
-# Drafted from qelectrotech/qelectrotech-source-mirror's 0.100 release; its version is the one Upkeep installed.
-[apps.qelectrotech]
-name = "QElectroTech-r8590"
-kind = "appimage"
-repo = "qelectrotech/qelectrotech-source-mirror"
-asset = '^QElectroTech_.*\.0-r8590-x86_64\.AppImage$'
-dest = "~/.local/bin/qelectrotech.AppImage"
-probe = false

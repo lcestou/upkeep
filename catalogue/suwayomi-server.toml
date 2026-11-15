@@ -1,8 +1,0 @@
-# Drafted from Suwayomi/Suwayomi-Server's v2.4.2366 release; its version is the one Upkeep installed.
-[apps.suwayomi-server]
-name = "Suwayomi-Server"
-kind = "appimage"
-repo = "Suwayomi/Suwayomi-Server"
-asset = '^Suwayomi-Server-.*-appimage\.AppImage$'
-dest = "~/.local/bin/suwayomi-server.AppImage"
-probe = false

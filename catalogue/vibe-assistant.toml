@@ -1,8 +1,0 @@
-# Drafted from Zafer-Liu/Vibe_Assistant's v1.2.4 release; its version is the one Upkeep installed.
-[apps.vibe-assistant]
-name = "Vibe-Assistant"
-kind = "appimage"
-repo = "Zafer-Liu/Vibe_Assistant"
-asset = '^Vibe\.Assistant_.*_amd64\.AppImage$'
-dest = "~/.local/bin/vibe-assistant.AppImage"
-probe = false

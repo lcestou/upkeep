@@ -1,8 +1,0 @@
-# Drafted from snyk/cli's v1.1308.4 release; its version is the one Upkeep installed.
-[apps.snyk]
-name = "snyk"
-kind = "file"
-repo = "snyk/cli"
-asset = '^snyk-linux$'
-dest = "~/.local/bin/snyk"
-probe = false

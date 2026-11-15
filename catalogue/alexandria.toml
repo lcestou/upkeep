@@ -1,8 +1,0 @@
-# Drafted from btpf/Alexandria's v0.13.2 release; its version is the one Upkeep installed.
-[apps.alexandria]
-name = "Alexandria"
-kind = "appimage"
-repo = "btpf/Alexandria"
-asset = '^Alexandria_.*_amd64\.AppImage$'
-dest = "~/.local/bin/alexandria.AppImage"
-probe = false

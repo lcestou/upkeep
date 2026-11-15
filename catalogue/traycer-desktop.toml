@@ -1,9 +1,0 @@
-# Drafted from traycerai/traycer's desktop-v1.5.4 release; its version is the one Upkeep installed.
-[apps.traycer-desktop]
-name = "traycer"
-kind = "appimage"
-repo = "traycerai/traycer"
-asset = '^traycer-desktop-linux-x86_64\.AppImage$'
-asset_aarch64 = '^traycer-desktop-linux-arm64\.AppImage$'
-dest = "~/.local/bin/traycer-desktop.AppImage"
-probe = false

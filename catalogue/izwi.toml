@@ -1,8 +1,0 @@
-# Drafted from izwi-ai/izwi's v0.1.3 release; its version is the one Upkeep installed.
-[apps.izwi]
-name = "Izwi"
-kind = "appimage"
-repo = "izwi-ai/izwi"
-asset = '^Izwi_.*_amd64\.AppImage$'
-dest = "~/.local/bin/izwi.AppImage"
-probe = false

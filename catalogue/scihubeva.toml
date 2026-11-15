@@ -1,8 +1,0 @@
-# Drafted from leovan/SciHubEVA's v6.5.1 release; its version is the one Upkeep installed.
-[apps.scihubeva]
-name = "SciHubEVA"
-kind = "appimage"
-repo = "leovan/SciHubEVA"
-asset = '^SciHubEVA-x86_64-.*\.AppImage$'
-dest = "~/.local/bin/scihubeva.AppImage"
-probe = false

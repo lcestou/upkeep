@@ -1,8 +1,0 @@
-# Drafted from adileo/squirreldisk's v2.6.1 release; its version is the one Upkeep installed.
-[apps.squirreldisk]
-name = "SquirrelDisk"
-kind = "appimage"
-repo = "adileo/squirreldisk"
-asset = '^SquirrelDisk-x86_64\.AppImage$'
-dest = "~/.local/bin/squirreldisk.AppImage"
-probe = false

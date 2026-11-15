@@ -1,9 +1,0 @@
-# Drafted from tetherto/pearpass-app-desktop's v2.1.0 release; its version is the one Upkeep installed.
-[apps.pearpass-desktop]
-name = "PearPass-Desktop"
-kind = "appimage"
-repo = "tetherto/pearpass-app-desktop"
-asset = '^PearPass-Desktop-Linux-x64-.*\.AppImage$'
-asset_aarch64 = '^PearPass-Desktop-Linux-arm64-.*\.AppImage$'
-dest = "~/.local/bin/pearpass-desktop.AppImage"
-probe = false

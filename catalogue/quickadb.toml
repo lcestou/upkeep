@@ -1,9 +1,0 @@
-# Drafted from codefl0w/QuickADB's V5.3.6 release; its version is the one Upkeep installed.
-[apps.quickadb]
-name = "QuickADB"
-kind = "appimage"
-repo = "codefl0w/QuickADB"
-asset = '^QuickADB_.*_Linux_x86_64\.AppImage$'
-asset_aarch64 = '^QuickADB_.*_Linux_arm64\.AppImage$'
-dest = "~/.local/bin/quickadb.AppImage"
-probe = false

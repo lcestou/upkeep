@@ -1,8 +1,0 @@
-# Drafted from CKopoer/BiliSail's v1.2.9+6 release; its version is the one Upkeep installed.
-[apps.bilisail--6]
-name = "BiliSail-+6"
-kind = "appimage"
-repo = "CKopoer/BiliSail"
-asset = '^BiliSail-.*\+6-linux-x64\.AppImage$'
-dest = "~/.local/bin/bilisail-+6.AppImage"
-probe = false

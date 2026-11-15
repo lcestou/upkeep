@@ -1,8 +1,0 @@
-# Drafted from mhoeher/opentodolist's 3.52.0 release; its version is the one Upkeep installed.
-[apps.opentodolist]
-name = "OpenTodoList"
-kind = "appimage"
-repo = "mhoeher/opentodolist"
-asset = '^OpenTodoList-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/opentodolist.AppImage"
-probe = false

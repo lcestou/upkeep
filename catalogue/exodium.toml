@@ -1,8 +1,0 @@
-# Drafted from tvollstaedt/exodium's v0.16.1 release; its version is the one Upkeep installed.
-[apps.exodium]
-name = "Exodium"
-kind = "appimage"
-repo = "tvollstaedt/exodium"
-asset = '^Exodium-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/exodium.AppImage"
-probe = false

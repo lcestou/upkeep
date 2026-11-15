@@ -1,8 +1,0 @@
-# Drafted from huxingyi/dust3d's 1.1.6 release; its version is the one Upkeep installed.
-[apps.dust3d]
-name = "dust3d"
-kind = "appimage"
-repo = "huxingyi/dust3d"
-asset = '^dust3d-.*\.AppImage$'
-dest = "~/.local/bin/dust3d.AppImage"
-probe = false

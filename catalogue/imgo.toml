@@ -1,9 +1,0 @@
-# Drafted from meowtec/imgo's v1.1.0 release; its version is the one Upkeep installed.
-[apps.imgo]
-name = "imgo"
-kind = "appimage"
-repo = "meowtec/imgo"
-asset = '^imgo_.*_amd64\.AppImage$'
-asset_aarch64 = '^imgo_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/imgo.AppImage"
-probe = false

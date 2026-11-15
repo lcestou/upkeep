@@ -1,8 +1,0 @@
-# Drafted from kygo8/open-diff's v1.3.2 release; its version is the one Upkeep installed.
-[apps.opendiff]
-name = "OpenDiff"
-kind = "appimage"
-repo = "kygo8/open-diff"
-asset = '^OpenDiff_.*_linux_amd64\.AppImage$'
-dest = "~/.local/bin/opendiff.AppImage"
-probe = false

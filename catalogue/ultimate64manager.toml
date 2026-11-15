@@ -1,8 +1,0 @@
-# Drafted from sandlbn/ultimate64-manager's v0.5.2 release; its version is the one Upkeep installed.
-[apps.ultimate64manager]
-name = "Ultimate64Manager"
-kind = "appimage"
-repo = "sandlbn/ultimate64-manager"
-asset = '^Ultimate64Manager-Linux\.AppImage$'
-dest = "~/.local/bin/ultimate64manager.AppImage"
-probe = false

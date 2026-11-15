@@ -1,8 +1,0 @@
-# Drafted from open-source-labs/Swell's v1.19.0 release; its version is the one Upkeep installed.
-[apps.swell]
-name = "Swell"
-kind = "appimage"
-repo = "open-source-labs/Swell"
-asset = '^Swell-.*\.AppImage$'
-dest = "~/.local/bin/swell.AppImage"
-probe = false

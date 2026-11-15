@@ -1,8 +1,0 @@
-# Drafted from GoldenCheetah/GoldenCheetah's v3.8 release; its version is the one Upkeep installed.
-[apps.goldencheetah]
-name = "GoldenCheetah"
-kind = "appimage"
-repo = "GoldenCheetah/GoldenCheetah"
-asset = '^GoldenCheetah_.*_x64\.AppImage$'
-dest = "~/.local/bin/goldencheetah.AppImage"
-probe = false

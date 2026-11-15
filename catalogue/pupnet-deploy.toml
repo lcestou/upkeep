@@ -1,8 +1,0 @@
-# Drafted from kuiperzone/PupNet-Deploy's v1.10.0 release; its version is the one Upkeep installed.
-[apps.pupnet-deploy]
-name = "PupNet-Deploy"
-kind = "appimage"
-repo = "kuiperzone/PupNet-Deploy"
-asset = '^PupNet-Deploy-.*-1\.x86_64\.AppImage$'
-dest = "~/.local/bin/pupnet-deploy.AppImage"
-probe = false

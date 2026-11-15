@@ -1,9 +1,0 @@
-# Drafted from kot149/zmk-battery-center's v0.13.2 release; its version is the one Upkeep installed.
-[apps.zmk-battery-center]
-name = "Zmk Battery Center"
-kind = "appimage"
-repo = "kot149/zmk-battery-center"
-asset = '^zmk-battery-center_.*_amd64\.AppImage$'
-asset_aarch64 = '^zmk-battery-center_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/zmk-battery-center.AppImage"
-probe = false

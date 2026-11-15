@@ -1,8 +1,0 @@
-# Drafted from VelornLabs/velorn's v0.3.37 release; its version is the one Upkeep installed.
-[apps.velorn]
-name = "Velorn"
-kind = "appimage"
-repo = "VelornLabs/velorn"
-asset = '^Velorn-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/velorn.AppImage"
-probe = false

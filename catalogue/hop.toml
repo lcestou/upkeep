@@ -1,8 +1,0 @@
-# Drafted from golbin/hop's v0.5.3 release; its version is the one Upkeep installed.
-[apps.hop]
-name = "HOP"
-kind = "appimage"
-repo = "golbin/hop"
-asset = '^HOP-linux-x64\.AppImage$'
-dest = "~/.local/bin/hop.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from TermoraDev/termora's 1.0.17 release; its version is the one Upkeep installed.
-[apps.termora]
-name = "termora"
-kind = "appimage"
-repo = "TermoraDev/termora"
-asset = '^termora-.*-linux-x86-64\.AppImage$'
-asset_aarch64 = '^termora-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/termora.AppImage"
-probe = false

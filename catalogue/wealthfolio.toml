@@ -1,9 +1,0 @@
-# Drafted from wealthfolio/wealthfolio's v3.13.0 release; its version is the one Upkeep installed.
-[apps.wealthfolio]
-name = "Wealthfolio"
-kind = "appimage"
-repo = "wealthfolio/wealthfolio"
-asset = '^Wealthfolio_.*_amd64\.AppImage$'
-asset_aarch64 = '^Wealthfolio_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/wealthfolio.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from IgorWarzocha/howcode's v0.1.71 release; its version is the one Upkeep installed.
-[apps.howcode]
-name = "howcode"
-kind = "appimage"
-repo = "IgorWarzocha/howcode"
-asset = '^howcode-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/howcode.AppImage"
-probe = false

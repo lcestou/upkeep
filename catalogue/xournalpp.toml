@@ -1,9 +1,0 @@
-# Drafted from xournalpp/xournalpp's v1.3.8 release; its version is the one Upkeep installed.
-[apps.xournalpp]
-name = "xournalpp"
-kind = "appimage"
-repo = "xournalpp/xournalpp"
-asset = '^xournalpp-.*-x86_64\.AppImage$'
-asset_aarch64 = '^xournalpp-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/xournalpp.AppImage"
-probe = false

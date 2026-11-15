@@ -1,9 +1,0 @@
-# Drafted from grafana/tanka's v0.40.2 release; its version is the one Upkeep installed.
-[apps.tk]
-name = "tanka"
-kind = "file"
-repo = "grafana/tanka"
-asset = '^tk-linux-amd64$'
-asset_aarch64 = '^tk-linux-arm64$'
-dest = "~/.local/bin/tk"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from TiddlyWiki/TiddlyDesktop's v0.0.22 release; its version is the one Upkeep installed.
-[apps.tiddlydesktop]
-name = "TiddlyDesktop"
-kind = "appimage"
-repo = "TiddlyWiki/TiddlyDesktop"
-asset = '^tiddlydesktop-linux64-.*\.AppImage$'
-dest = "~/.local/bin/tiddlydesktop-linu.AppImage"
-probe = false

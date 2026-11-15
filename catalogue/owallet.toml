@@ -1,8 +1,0 @@
-# Drafted from ontio/OWallet's v0.10.4 release; its version is the one Upkeep installed.
-[apps.owallet]
-name = "OWallet"
-kind = "appimage"
-repo = "ontio/OWallet"
-asset = '^OWallet-.*-linux\.AppImage$'
-dest = "~/.local/bin/owallet.AppImage"
-probe = false

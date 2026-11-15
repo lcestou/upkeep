@@ -1,8 +1,0 @@
-# Drafted from haiwen/seafile-client's v9.0.22 release; its version is the one Upkeep installed.
-[apps.seafile]
-name = "Seafile"
-kind = "appimage"
-repo = "haiwen/seafile-client"
-asset = '^Seafile-x86_64\.AppImage$'
-dest = "~/.local/bin/seafile.AppImage"
-probe = false

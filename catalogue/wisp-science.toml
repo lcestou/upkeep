@@ -1,9 +1,0 @@
-# Drafted from xuzhougeng/wisp-science's v1.25.0 release; its version is the one Upkeep installed.
-[apps.wisp-science]
-name = "Wisp Science"
-kind = "appimage"
-repo = "xuzhougeng/wisp-science"
-asset = '^wisp-science_.*_amd64\.AppImage$'
-asset_aarch64 = '^wisp-science_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/wisp-science.AppImage"
-probe = false

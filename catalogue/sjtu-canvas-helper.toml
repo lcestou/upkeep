@@ -1,8 +1,0 @@
-# Drafted from Okabe-Rintarou-0/SJTU-Canvas-Helper's app-v3.0.14 release; its version is the one Upkeep installed.
-[apps.sjtu-canvas-helper]
-name = "SJTU-Canvas-Helper"
-kind = "appimage"
-repo = "Okabe-Rintarou-0/SJTU-Canvas-Helper"
-asset = '^SJTU\.Canvas\.Helper_.*_amd64\.AppImage$'
-dest = "~/.local/bin/sjtu-canvas-helper.AppImage"
-probe = false

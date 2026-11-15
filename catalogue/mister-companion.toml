@@ -1,9 +1,0 @@
-# Drafted from Anime0t4ku/mister-companion's v8.9.1 release; its version is the one Upkeep installed.
-[apps.mister-companion]
-name = "MiSTer-Companion"
-kind = "appimage"
-repo = "Anime0t4ku/mister-companion"
-asset = '^MiSTer-Companion-Linux-x86_64\.AppImage$'
-asset_aarch64 = '^MiSTer-Companion-Linux-ARM64\.AppImage$'
-dest = "~/.local/bin/mister-companion.AppImage"
-probe = false

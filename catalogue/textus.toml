@@ -1,9 +1,0 @@
-# Drafted from CatVinci-Studio/Textus's v1.4.2 release; its version is the one Upkeep installed.
-[apps.textus]
-name = "Textus"
-kind = "appimage"
-repo = "CatVinci-Studio/Textus"
-asset = '^Textus_.*_amd64\.AppImage$'
-asset_aarch64 = '^Textus_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/textus.AppImage"
-probe = false

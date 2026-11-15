@@ -1,8 +1,0 @@
-# Drafted from jlwebs/AllApiDeck's v1.1.0 release; its version is the one Upkeep installed.
-[apps.allapideck]
-name = "AllApiDeck"
-kind = "appimage"
-repo = "jlwebs/AllApiDeck"
-asset = '^allapideck-linux-amd64\.AppImage$'
-dest = "~/.local/bin/allapideck.AppImage"
-probe = false

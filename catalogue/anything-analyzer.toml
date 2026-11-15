@@ -1,8 +1,0 @@
-# Drafted from Mouseww/anything-analyzer's v3.7.1 release; its version is the one Upkeep installed.
-[apps.anything-analyzer]
-name = "Anything-Analyzer"
-kind = "appimage"
-repo = "Mouseww/anything-analyzer"
-asset = '^Anything-Analyzer-.*\.AppImage$'
-dest = "~/.local/bin/anything-analyzer.AppImage"
-probe = false

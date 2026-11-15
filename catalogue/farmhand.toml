@@ -1,8 +1,0 @@
-# Drafted from jeremyckahn/farmhand's 1.24.4 release; its version is the one Upkeep installed.
-[apps.farmhand]
-name = "Farmhand"
-kind = "appimage"
-repo = "jeremyckahn/farmhand"
-asset = '^Farmhand-.*\.AppImage$'
-dest = "~/.local/bin/farmhand.AppImage"
-probe = false

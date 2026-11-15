@@ -1,8 +1,0 @@
-# Drafted from KovaMD/Kova's v0.8.3 release; its version is the one Upkeep installed.
-[apps.kova]
-name = "Kova"
-kind = "appimage"
-repo = "KovaMD/Kova"
-asset = '^Kova_.*_amd64\.AppImage$'
-dest = "~/.local/bin/kova.AppImage"
-probe = false

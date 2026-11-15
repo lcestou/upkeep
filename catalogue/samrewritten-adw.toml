@@ -1,8 +1,0 @@
-# Drafted from PaulCombal/SamRewritten's v1.6.5 release; its version is the one Upkeep installed.
-[apps.samrewritten-adw]
-name = "SamRewritten"
-kind = "appimage"
-repo = "PaulCombal/SamRewritten"
-asset = '^samrewritten-adw\.AppImage$'
-dest = "~/.local/bin/samrewritten-adw.AppImage"
-probe = false

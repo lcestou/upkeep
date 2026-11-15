@@ -1,9 +1,0 @@
-# Drafted from abice/go-enum's v0.9.5 release; its version is the one Upkeep installed.
-[apps.go-enum]
-name = "Go Enum"
-kind = "file"
-repo = "abice/go-enum"
-asset = '^go-enum_Linux_x86_64$'
-asset_aarch64 = '^go-enum_Linux_arm64$'
-dest = "~/.local/bin/go-enum"
-probe = false

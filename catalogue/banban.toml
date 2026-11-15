@@ -1,8 +1,0 @@
-# Drafted from HubertK05/banban's v0.2.0 release; its version is the one Upkeep installed.
-[apps.banban]
-name = "banban"
-kind = "appimage"
-repo = "HubertK05/banban"
-asset = '^banban_.*_amd64\.AppImage$'
-dest = "~/.local/bin/banban.AppImage"
-probe = false

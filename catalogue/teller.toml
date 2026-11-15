@@ -1,9 +1,0 @@
-# Drafted from tellerops/teller's v2.0.7 release; its version is the one Upkeep installed.
-[apps.teller]
-name = "teller"
-kind = "archive"
-repo = "tellerops/teller"
-asset = '^teller-x86_64-linux\.tar\.xz$'
-dest = "~/.local/bin/teller"
-bins = ["teller-x86_64-linux/teller"]
-probe = false

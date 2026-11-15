@@ -1,9 +1,0 @@
-# Drafted from jgraph/drawio-desktop's v32.6.10 release; its version is the one Upkeep installed.
-[apps.drawio]
-name = "Drawio Desktop"
-kind = "appimage"
-repo = "jgraph/drawio-desktop"
-asset = '^drawio-x86_64-.*\.AppImage$'
-asset_aarch64 = '^drawio-arm64-.*\.AppImage$'
-dest = "~/.local/bin/drawio.AppImage"
-probe = false

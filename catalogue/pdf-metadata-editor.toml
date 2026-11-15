@@ -1,9 +1,0 @@
-# Drafted from zaro/pdf-metadata-editor's v4.4.2 release; its version is the one Upkeep installed.
-[apps.pdf-metadata-editor]
-name = "Pdf-Metadata-Editor"
-kind = "appimage"
-repo = "zaro/pdf-metadata-editor"
-asset = '^Pdf_Metadata_Editor-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Pdf_Metadata_Editor-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/pdf-metadata-editor.AppImage"
-probe = false

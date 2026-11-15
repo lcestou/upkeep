@@ -1,8 +1,0 @@
-# Drafted from raydac/zxpoly's 2.4.1 release; its version is the one Upkeep installed.
-[apps.zxpoly-emul]
-name = "zxpoly"
-kind = "appimage"
-repo = "raydac/zxpoly"
-asset = '^zxpoly-emul-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/zxpoly-emul.AppImage"
-probe = false

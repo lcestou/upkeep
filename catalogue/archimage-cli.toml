@@ -1,8 +1,0 @@
-# Drafted from ivan-hc/ArchImage's 5.0 release; its version is the one Upkeep installed.
-[apps.archimage-cli]
-name = "ArchImage"
-kind = "file"
-repo = "ivan-hc/ArchImage"
-asset = '^archimage-cli$'
-dest = "~/.local/bin/archimage-cli"
-probe = false

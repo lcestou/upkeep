@@ -1,8 +1,0 @@
-# Drafted from alplabai/signex's v0.15.0 release; its version is the one Upkeep installed.
-[apps.signex]
-name = "Signex"
-kind = "appimage"
-repo = "alplabai/signex"
-asset = '^Signex-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/signex.AppImage"
-probe = false

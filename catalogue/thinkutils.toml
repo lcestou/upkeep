@@ -1,9 +1,0 @@
-# Drafted from vietanhdev/ThinkUtils's v0.2.0 release; its version is the one Upkeep installed.
-[apps.thinkutils]
-name = "ThinkUtils"
-kind = "appimage"
-repo = "vietanhdev/ThinkUtils"
-asset = '^thinkutils_.*_amd64\.AppImage$'
-asset_aarch64 = '^thinkutils_.*_arm64\.AppImage$'
-dest = "~/.local/bin/thinkutils.AppImage"
-probe = false

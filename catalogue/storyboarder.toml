@@ -1,8 +1,0 @@
-# Drafted from wonderunit/storyboarder's v2.1.0 release; its version is the one Upkeep installed.
-[apps.storyboarder]
-name = "Storyboarder"
-kind = "appimage"
-repo = "wonderunit/storyboarder"
-asset = '^Storyboarder-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/storyboarder.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from jooapa/jammer's 3.53 release; its version is the one Upkeep installed.
-[apps.jammer]
-name = "jammer"
-kind = "appimage"
-repo = "jooapa/jammer"
-asset = '^jammer-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/jammer.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Sapd/HeadsetControl's 4.2.0 release; its version is the one Upkeep installed.
-[apps.headsetcontrol]
-name = "HeadsetControl"
-kind = "appimage"
-repo = "Sapd/HeadsetControl"
-asset = '^headsetcontrol-x86_64\.AppImage$'
-dest = "~/.local/bin/headsetcontrol.AppImage"
-probe = false

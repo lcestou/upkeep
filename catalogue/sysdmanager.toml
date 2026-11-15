@@ -1,8 +1,0 @@
-# Drafted from plrigaux/sysd-manager's v2.25.0 release; its version is the one Upkeep installed.
-[apps.sysdmanager]
-name = "SysDManager"
-kind = "appimage"
-repo = "plrigaux/sysd-manager"
-asset = '^SysDManager-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/sysdmanager.AppImage"
-probe = false

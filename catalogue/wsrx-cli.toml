@@ -1,8 +1,0 @@
-# Drafted from XDSEC/WebSocketReflectorX's 0.6.2 release; its version is the one Upkeep installed.
-[apps.wsrx-cli]
-name = "WebSocketReflectorX"
-kind = "appimage"
-repo = "XDSEC/WebSocketReflectorX"
-asset = '^WebSocketReflectorX-.*-linux-gnu-x86_64\.AppImage$'
-dest = "~/.local/bin/wsrx-cli.AppImage"
-probe = false

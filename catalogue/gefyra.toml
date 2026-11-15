@@ -1,9 +1,0 @@
-# Drafted from gefyrahq/gefyra's 2.5.7 release; its version is the one Upkeep installed.
-[apps.gefyra]
-name = "gefyra"
-kind = "archive"
-repo = "gefyrahq/gefyra"
-asset = '^gefyra-.*-linux-amd64\.zip$'
-dest = "~/.local/bin/gefyra"
-bins = ["gefyra"]
-probe = false

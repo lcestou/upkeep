@@ -1,8 +1,0 @@
-# Drafted from KeaneFeng/cc-gateway-pro's v4.0.32 release; its version is the one Upkeep installed.
-[apps.cc-gateway-pro]
-name = "CC-Gateway-Pro"
-kind = "appimage"
-repo = "KeaneFeng/cc-gateway-pro"
-asset = '^CC\.Gateway\.Pro_.*_amd64\.AppImage$'
-dest = "~/.local/bin/cc-gateway-pro.AppImage"
-probe = false

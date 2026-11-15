@@ -1,9 +1,0 @@
-# Drafted from pavlobu/deskreen's v3.2.16 release; its version is the one Upkeep installed.
-[apps.deskreen-ce]
-name = "deskreen"
-kind = "appimage"
-repo = "pavlobu/deskreen"
-asset = '^deskreen-ce-.*-x86_64\.AppImage$'
-asset_aarch64 = '^deskreen-ce-.*-arm64\.AppImage$'
-dest = "~/.local/bin/deskreen-ce.AppImage"
-probe = false

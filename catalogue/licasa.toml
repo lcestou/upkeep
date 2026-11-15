@@ -1,8 +1,0 @@
-# Drafted from sanxchep/licasa's v0.9.7 release; its version is the one Upkeep installed.
-[apps.licasa]
-name = "Licasa"
-kind = "appimage"
-repo = "sanxchep/licasa"
-asset = '^Licasa-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/licasa.AppImage"
-probe = false

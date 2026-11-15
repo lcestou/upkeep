@@ -1,9 +1,0 @@
-# Drafted from project-robius/robrix's v1.0.0-beta.7 release; its version is the one Upkeep installed.
-[apps.robrix-beta]
-name = "robrix"
-kind = "appimage"
-repo = "project-robius/robrix"
-asset = '^robrix-.*-beta\.7-x86_64\.AppImage$'
-asset_aarch64 = '^robrix-.*-beta\.7-aarch64\.AppImage$'
-dest = "~/.local/bin/robrix-beta.AppImage"
-probe = false

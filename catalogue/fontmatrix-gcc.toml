@@ -1,8 +1,0 @@
-# Drafted from fontmatrix/fontmatrix's v1.0.1 release; its version is the one Upkeep installed.
-[apps.fontmatrix-gcc]
-name = "fontmatrix"
-kind = "appimage"
-repo = "fontmatrix/fontmatrix"
-asset = '^fontmatrix-.*-linux-gcc-x86_64\.AppImage$'
-dest = "~/.local/bin/fontmatrix-gcc.AppImage"
-probe = false

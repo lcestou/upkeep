@@ -1,8 +1,0 @@
-# Drafted from Villagers654/Venture's v0.2.4 release; its version is the one Upkeep installed.
-[apps.venture]
-name = "Venture"
-kind = "appimage"
-repo = "Villagers654/Venture"
-asset = '^Venture-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/venture.AppImage"
-probe = false

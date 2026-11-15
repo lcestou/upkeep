@@ -1,9 +1,0 @@
-# Drafted from AvitalTamir/cyphernetes's v0.18.2 release; its version is the one Upkeep installed.
-[apps.cyphernetes]
-name = "cyphernetes"
-kind = "file"
-repo = "AvitalTamir/cyphernetes"
-asset = '^cyphernetes-linux-amd64$'
-asset_aarch64 = '^cyphernetes-linux-arm64$'
-dest = "~/.local/bin/cyphernetes"
-probe = false

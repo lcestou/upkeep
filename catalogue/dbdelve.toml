@@ -1,9 +1,0 @@
-# Drafted from ShayanAbbas1/dbdelve's v0.7.2 release; its version is the one Upkeep installed.
-[apps.dbdelve]
-name = "dbdelve"
-kind = "appimage"
-repo = "ShayanAbbas1/dbdelve"
-asset = '^dbdelve-.*-x86_64\.AppImage$'
-asset_aarch64 = '^dbdelve-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/dbdelve.AppImage"
-probe = false

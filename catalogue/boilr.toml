@@ -1,8 +1,0 @@
-# Drafted from PhilipK/BoilR's v.1.11.0 release; its version is the one Upkeep installed.
-[apps.boilr]
-name = "BoilR"
-kind = "file"
-repo = "PhilipK/BoilR"
-asset = '^linux_BoilR$'
-dest = "~/.local/bin/boilr"
-probe = false

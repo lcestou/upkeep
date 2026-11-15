@@ -1,8 +1,0 @@
-# Drafted from ActivityWatch/activitywatch's v0.14.2 release; its version is the one Upkeep installed.
-[apps.activitywatch]
-name = "activitywatch"
-kind = "appimage"
-repo = "ActivityWatch/activitywatch"
-asset = '^activitywatch-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/activitywatch.AppImage"
-probe = false

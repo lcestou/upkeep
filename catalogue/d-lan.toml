@@ -1,8 +1,0 @@
-# Drafted from Ummon/D-LAN's 1.6.3 release; its version is the one Upkeep installed.
-[apps.d-lan]
-name = "D-LAN"
-kind = "appimage"
-repo = "Ummon/D-LAN"
-asset = '^D-LAN-.*-2026-10-18_14-55-x86_64\.AppImage$'
-dest = "~/.local/bin/d-lan.AppImage"
-probe = false

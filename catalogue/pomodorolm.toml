@@ -1,8 +1,0 @@
-# Drafted from vjousse/concentre's app-v0.10.1 release; its version is the one Upkeep installed.
-[apps.pomodorolm]
-name = "concentre"
-kind = "appimage"
-repo = "vjousse/concentre"
-asset = '^pomodorolm_.*_amd64\.AppImage$'
-dest = "~/.local/bin/pomodorolm.AppImage"
-probe = false

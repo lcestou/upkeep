@@ -1,8 +1,0 @@
-# Drafted from reqable/reqable-app's 3.3.12 release; its version is the one Upkeep installed.
-[apps.reqable-app]
-name = "Reqable App"
-kind = "appimage"
-repo = "reqable/reqable-app"
-asset = '^reqable-app-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/reqable-app.AppImage"
-probe = false

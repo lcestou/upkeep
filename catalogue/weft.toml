@@ -1,8 +1,0 @@
-# Drafted from Weft-Rust/Weft's v26.11.4 release; its version is the one Upkeep installed.
-[apps.weft]
-name = "Weft"
-kind = "appimage"
-repo = "Weft-Rust/Weft"
-asset = '^Weft-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/weft.AppImage"
-probe = false

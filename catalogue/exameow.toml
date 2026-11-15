@@ -1,9 +1,0 @@
-# Drafted from heshengtao/exameow's v1.7.8 release; its version is the one Upkeep installed.
-[apps.exameow]
-name = "Exameow"
-kind = "appimage"
-repo = "heshengtao/exameow"
-asset = '^Exameow-.*-linux_amd64\.AppImage$'
-asset_aarch64 = '^Exameow-.*-linux_arm64\.AppImage$'
-dest = "~/.local/bin/exameow.AppImage"
-probe = false

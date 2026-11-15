@@ -1,8 +1,0 @@
-# Drafted from mint-lang/mint's 0.29.0 release; its version is the one Upkeep installed.
-[apps.mint]
-name = "mint"
-kind = "file"
-repo = "mint-lang/mint"
-asset = '^mint-.*-linux-x86_64$'
-dest = "~/.local/bin/mint"
-probe = false

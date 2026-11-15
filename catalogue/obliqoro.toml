@@ -1,8 +1,0 @@
-# Drafted from mrjackwills/obliqoro's v0.3.3 release; its version is the one Upkeep installed.
-[apps.obliqoro]
-name = "Obliqoro"
-kind = "appimage"
-repo = "mrjackwills/obliqoro"
-asset = '^Obliqoro_linux_x86_64\.AppImage$'
-dest = "~/.local/bin/obliqoro.AppImage"
-probe = false

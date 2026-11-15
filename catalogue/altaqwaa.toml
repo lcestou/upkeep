@@ -1,8 +1,0 @@
-# Drafted from rn0x/altaqwaa-desktop's v4.0.1 release; its version is the one Upkeep installed.
-[apps.altaqwaa]
-name = "Altaqwaa"
-kind = "appimage"
-repo = "rn0x/altaqwaa-desktop"
-asset = '^Altaqwaa-.*\.AppImage$'
-dest = "~/.local/bin/altaqwaa.AppImage"
-probe = false

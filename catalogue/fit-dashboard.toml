@@ -1,8 +1,0 @@
-# Drafted from arpanghosh8453/fit-dashboard's v0.4.0 release; its version is the one Upkeep installed.
-[apps.fit-dashboard]
-name = "Fit Dashboard"
-kind = "appimage"
-repo = "arpanghosh8453/fit-dashboard"
-asset = '^fit-dashboard_.*_linux_amd64\.AppImage$'
-dest = "~/.local/bin/fit-dashboard.AppImage"
-probe = false

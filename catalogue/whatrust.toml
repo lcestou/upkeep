@@ -1,9 +1,0 @@
-# Drafted from karem505/whatRust's v0.6.16 release; its version is the one Upkeep installed.
-[apps.whatrust]
-name = "whatRust"
-kind = "appimage"
-repo = "karem505/whatRust"
-asset = '^whatRust_.*_amd64\.AppImage$'
-asset_aarch64 = '^whatRust_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/whatrust.AppImage"
-probe = false

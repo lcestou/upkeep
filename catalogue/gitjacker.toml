@@ -1,8 +1,0 @@
-# Drafted from liamg/gitjacker's v0.1.0 release; its version is the one Upkeep installed.
-[apps.gitjacker]
-name = "gitjacker"
-kind = "file"
-repo = "liamg/gitjacker"
-asset = '^gitjacker-linux-amd64$'
-dest = "~/.local/bin/gitjacker"
-probe = false

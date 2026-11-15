@@ -1,8 +1,0 @@
-# Drafted from daoif/anti-power's v4.0.0 release; its version is the one Upkeep installed.
-[apps.anti-power]
-name = "Anti Power"
-kind = "appimage"
-repo = "daoif/anti-power"
-asset = '^anti-power-linux\.AppImage$'
-dest = "~/.local/bin/anti-power.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from PrismLauncher/PrismLauncher's 11.1.1 release; its version is the one Upkeep installed.
-[apps.prismlauncher]
-name = "PrismLauncher"
-kind = "appimage"
-repo = "PrismLauncher/PrismLauncher"
-asset = '^PrismLauncher-Linux-x86_64\.AppImage$'
-asset_aarch64 = '^PrismLauncher-Linux-aarch64\.AppImage$'
-dest = "~/.local/bin/prismlauncher.AppImage"
-probe = false

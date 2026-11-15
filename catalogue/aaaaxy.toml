@@ -1,8 +1,0 @@
-# Drafted from divVerent/aaaaxy's v1.8.34 release; its version is the one Upkeep installed.
-[apps.aaaaxy]
-name = "AAAAXY"
-kind = "appimage"
-repo = "divVerent/aaaaxy"
-asset = '^AAAAXY-x86_64\.AppImage$'
-dest = "~/.local/bin/aaaaxy.AppImage"
-probe = false

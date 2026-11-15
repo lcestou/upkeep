@@ -1,9 +1,0 @@
-# Drafted from Taoister39/tauri-motrix's v0.2.5 release; its version is the one Upkeep installed.
-[apps.tauri-motrix]
-name = "Tauri-Motrix"
-kind = "appimage"
-repo = "Taoister39/tauri-motrix"
-asset = '^Tauri\.Motrix_.*_amd64\.AppImage$'
-asset_aarch64 = '^Tauri\.Motrix_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/tauri-motrix.AppImage"
-probe = false

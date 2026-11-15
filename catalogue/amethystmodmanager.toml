@@ -1,9 +1,0 @@
-# Drafted from ChrisDKN/Amethyst-Mod-Manager's v2.6.3 release; its version is the one Upkeep installed.
-[apps.amethystmodmanager]
-name = "AmethystModManager"
-kind = "appimage"
-repo = "ChrisDKN/Amethyst-Mod-Manager"
-asset = '^AmethystModManager-.*-x86_64\.AppImage$'
-asset_aarch64 = '^AmethystModManager-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/amethystmodmanager.AppImage"
-probe = false

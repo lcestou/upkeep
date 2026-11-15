@@ -1,8 +1,0 @@
-# Drafted from vycdev/Kromacut's v4.2.0 release; its version is the one Upkeep installed.
-[apps.kromacut]
-name = "Kromacut"
-kind = "appimage"
-repo = "vycdev/Kromacut"
-asset = '^Kromacut_.*_amd64\.AppImage$'
-dest = "~/.local/bin/kromacut.AppImage"
-probe = false

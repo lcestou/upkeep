@@ -1,9 +1,0 @@
-# Drafted from git-town/git-town's v24.1.1 release; its version is the one Upkeep installed.
-[apps.git-town]
-name = "Git Town"
-kind = "archive"
-repo = "git-town/git-town"
-asset = '^git-town_linux_arm_64\.tar\.gz$'
-dest = "~/.local/bin/git-town"
-bins = ["git-town"]
-probe = false

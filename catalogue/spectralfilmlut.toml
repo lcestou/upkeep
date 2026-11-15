@@ -1,8 +1,0 @@
-# Drafted from JanLohse/spectral_film_lut's v0.18.14 release; its version is the one Upkeep installed.
-[apps.spectralfilmlut]
-name = "SpectralFilmLUT"
-kind = "appimage"
-repo = "JanLohse/spectral_film_lut"
-asset = '^SpectralFilmLUT-.*\.AppImage$'
-dest = "~/.local/bin/spectralfilmlut.AppImage"
-probe = false

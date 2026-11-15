@@ -1,9 +1,0 @@
-# Drafted from storytold/effectcraft's v0.24.1 release; its version is the one Upkeep installed.
-[apps.effectcraft]
-name = "effectcraft"
-kind = "appimage"
-repo = "storytold/effectcraft"
-asset = '^effectcraft-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^effectcraft-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/effectcraft.AppImage"
-probe = false

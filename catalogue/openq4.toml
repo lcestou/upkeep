@@ -1,8 +1,0 @@
-# Drafted from themuffinator/openQ4's v0.14.1 release; its version is the one Upkeep installed.
-[apps.openq4]
-name = "OpenQ4"
-kind = "appimage"
-repo = "themuffinator/openQ4"
-asset = '^openq4-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/openq4.AppImage"
-probe = false

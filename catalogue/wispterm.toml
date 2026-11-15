@@ -1,8 +1,0 @@
-# Drafted from xuzhougeng/wispterm's v1.47.0 release; its version is the one Upkeep installed.
-[apps.wispterm]
-name = "WispTerm"
-kind = "appimage"
-repo = "xuzhougeng/wispterm"
-asset = '^WispTerm-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/wispterm.AppImage"
-probe = false

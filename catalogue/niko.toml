@@ -1,8 +1,0 @@
-# Drafted from vitorcgo/Niko's v0.2.8 release; its version is the one Upkeep installed.
-[apps.niko]
-name = "Niko"
-kind = "appimage"
-repo = "vitorcgo/Niko"
-asset = '^Niko_.*_amd64\.AppImage$'
-dest = "~/.local/bin/niko.AppImage"
-probe = false

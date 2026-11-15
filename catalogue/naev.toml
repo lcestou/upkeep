@@ -1,8 +1,0 @@
-# Drafted from naev/naev's v0.12.6 release; its version is the one Upkeep installed.
-[apps.naev]
-name = "naev"
-kind = "appimage"
-repo = "naev/naev"
-asset = '^naev-.*-linux-x86-64\.AppImage$'
-dest = "~/.local/bin/naev.AppImage"
-probe = false

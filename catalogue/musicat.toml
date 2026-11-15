@@ -1,8 +1,0 @@
-# Drafted from basharovV/musicat's v0.17.2 release; its version is the one Upkeep installed.
-[apps.musicat]
-name = "Musicat"
-kind = "appimage"
-repo = "basharovV/musicat"
-asset = '^Musicat_.*_amd64\.AppImage$'
-dest = "~/.local/bin/musicat.AppImage"
-probe = false

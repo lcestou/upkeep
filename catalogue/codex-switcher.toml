@@ -1,8 +1,0 @@
-# Drafted from VallierDev/codex-switcher's v0.7.21 release; its version is the one Upkeep installed.
-[apps.codex-switcher]
-name = "Codex-Switcher"
-kind = "appimage"
-repo = "VallierDev/codex-switcher"
-asset = '^Codex\.Switcher_.*_amd64\.AppImage$'
-dest = "~/.local/bin/codex-switcher.AppImage"
-probe = false

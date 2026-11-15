@@ -1,8 +1,0 @@
-# Drafted from NUber-dev/YTubic's v0.5.2 release; its version is the one Upkeep installed.
-[apps.ytubic]
-name = "YTubic"
-kind = "appimage"
-repo = "NUber-dev/YTubic"
-asset = '^YTubic_.*_Linux_x86_64\.AppImage$'
-dest = "~/.local/bin/ytubic.AppImage"
-probe = false

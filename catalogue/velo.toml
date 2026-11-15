@@ -1,8 +1,0 @@
-# Drafted from avihaymenahem/velo's velo-v0.4.21 release; its version is the one Upkeep installed.
-[apps.velo]
-name = "Velo"
-kind = "appimage"
-repo = "avihaymenahem/velo"
-asset = '^Velo_.*_amd64\.AppImage$'
-dest = "~/.local/bin/velo.AppImage"
-probe = false

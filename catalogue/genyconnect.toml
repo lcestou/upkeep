@@ -1,8 +1,0 @@
-# Drafted from genyleap/GenyConnect's v1.4.950 release; its version is the one Upkeep installed.
-[apps.genyconnect]
-name = "GenyConnect"
-kind = "appimage"
-repo = "genyleap/GenyConnect"
-asset = '^GenyConnect-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/genyconnect.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from lone-cloud/gerbil's v1.29.2 release; its version is the one Upkeep installed.
-[apps.gerbil]
-name = "Gerbil"
-kind = "appimage"
-repo = "lone-cloud/gerbil"
-asset = '^Gerbil-.*\.AppImage$'
-dest = "~/.local/bin/gerbil.AppImage"
-probe = false

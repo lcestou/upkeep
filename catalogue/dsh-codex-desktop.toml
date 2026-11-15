@@ -1,9 +1,0 @@
-# Drafted from MichengAI/dsh-codex-desktop's v1.0.96 release; its version is the one Upkeep installed.
-[apps.dsh-codex-desktop]
-name = "Dsh Codex Desktop"
-kind = "appimage"
-repo = "MichengAI/dsh-codex-desktop"
-asset = '^dsh-codex-desktop-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^dsh-codex-desktop-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/dsh-codex-desktop.AppImage"
-probe = false

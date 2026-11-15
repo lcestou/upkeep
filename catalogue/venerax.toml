@@ -1,9 +1,0 @@
-# Drafted from Kyosee/VeneraX's v2.3.12 release; its version is the one Upkeep installed.
-[apps.venerax]
-name = "VeneraX"
-kind = "appimage"
-repo = "Kyosee/VeneraX"
-asset = '^VeneraX-.*-x86_64\.AppImage$'
-asset_aarch64 = '^VeneraX-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/venerax.AppImage"
-probe = false

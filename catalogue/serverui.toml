@@ -1,8 +1,0 @@
-# Drafted from rakhechashubham/serverui's v0.3.0 release; its version is the one Upkeep installed.
-[apps.serverui]
-name = "ServerUI"
-kind = "appimage"
-repo = "rakhechashubham/serverui"
-asset = '^ServerUI-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/serverui.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from rouges78/GameStringer's v1.17.0 release; its version is the one Upkeep installed.
-[apps.gamestringer]
-name = "GameStringer"
-kind = "appimage"
-repo = "rouges78/GameStringer"
-asset = '^GameStringer_.*_amd64\.AppImage$'
-dest = "~/.local/bin/gamestringer.AppImage"
-probe = false

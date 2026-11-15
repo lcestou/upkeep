@@ -1,8 +1,0 @@
-# Drafted from eNkru/freelook's v2.0.3 release; its version is the one Upkeep installed.
-[apps.freelook]
-name = "Freelook"
-kind = "appimage"
-repo = "eNkru/freelook"
-asset = '^Freelook_.*_amd64\.AppImage$'
-dest = "~/.local/bin/freelook.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from inlets/mixctl's 0.1.5 release; its version is the one Upkeep installed.
-[apps.mixctl]
-name = "mixctl"
-kind = "file"
-repo = "inlets/mixctl"
-asset = '^mixctl$'
-dest = "~/.local/bin/mixctl"
-probe = false

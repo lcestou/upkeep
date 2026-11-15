@@ -1,8 +1,0 @@
-# Drafted from maxrave-dev/SimpMusic's v2.6.0 release; its version is the one Upkeep installed.
-[apps.simpmusic]
-name = "SimpMusic"
-kind = "appimage"
-repo = "maxrave-dev/SimpMusic"
-asset = '^SimpMusic-x86_64\.AppImage$'
-dest = "~/.local/bin/simpmusic.AppImage"
-probe = false

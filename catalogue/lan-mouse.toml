@@ -1,9 +1,0 @@
-# Drafted from feschber/lan-mouse's v0.11.0 release; its version is the one Upkeep installed.
-[apps.lan-mouse]
-name = "Lan Mouse"
-kind = "file"
-repo = "feschber/lan-mouse"
-asset = '^lan-mouse-linux-x86_64$'
-asset_aarch64 = '^lan-mouse-linux-arm64$'
-dest = "~/.local/bin/lan-mouse"
-probe = false

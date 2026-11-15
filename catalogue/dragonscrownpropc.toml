@@ -1,8 +1,0 @@
-# Drafted from saulob/dragons-crown-pro-pc's v1.2.0 release; its version is the one Upkeep installed.
-[apps.dragonscrownpropc]
-name = "DragonsCrownProPC"
-kind = "appimage"
-repo = "saulob/dragons-crown-pro-pc"
-asset = '^DragonsCrownProPC-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/dragonscrownpropc.AppImage"
-probe = false

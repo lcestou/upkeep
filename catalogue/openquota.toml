@@ -1,9 +1,0 @@
-# Drafted from deviffyy/OpenQuota's v0.5.0 release; its version is the one Upkeep installed.
-[apps.openquota]
-name = "OpenQuota"
-kind = "appimage"
-repo = "deviffyy/OpenQuota"
-asset = '^OpenQuota_.*_amd64\.AppImage$'
-asset_aarch64 = '^OpenQuota_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/openquota.AppImage"
-probe = false

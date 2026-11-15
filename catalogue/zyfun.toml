@@ -1,9 +1,0 @@
-# Drafted from Hiram-Wong/zyfun's v3.4.7 release; its version is the one Upkeep installed.
-[apps.zyfun]
-name = "zyfun"
-kind = "appimage"
-repo = "Hiram-Wong/zyfun"
-asset = '^zyfun-linux-.*-x86_64\.AppImage$'
-asset_aarch64 = '^zyfun-linux-.*-arm64\.AppImage$'
-dest = "~/.local/bin/zyfun.AppImage"
-probe = false

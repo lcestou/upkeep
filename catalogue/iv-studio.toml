@@ -1,8 +1,0 @@
-# Drafted from hollisorg/iv-studio's v1.1.11 release; its version is the one Upkeep installed.
-[apps.iv-studio]
-name = "IV-Studio"
-kind = "appimage"
-repo = "hollisorg/iv-studio"
-asset = '^IV-Studio\.AppImage$'
-dest = "~/.local/bin/iv-studio.AppImage"
-probe = false

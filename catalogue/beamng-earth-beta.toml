@@ -1,8 +1,0 @@
-# Drafted from TecnaGamer/BeamNG.Earth's v1.10.0-beta release; its version is the one Upkeep installed.
-[apps.beamng-earth-beta]
-name = "BeamNG-Earth-beta"
-kind = "appimage"
-repo = "TecnaGamer/BeamNG.Earth"
-asset = '^BeamNG\.Earth-.*-beta-x86_64\.AppImage$'
-dest = "~/.local/bin/beamng-earth-beta.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from texstudio-org/texstudio's 4.9.9 release; its version is the one Upkeep installed.
-[apps.texstudio]
-name = "texstudio"
-kind = "appimage"
-repo = "texstudio-org/texstudio"
-asset = '^texstudio-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/texstudio.AppImage"
-probe = false

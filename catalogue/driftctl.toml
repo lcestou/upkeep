@@ -1,9 +1,0 @@
-# Drafted from snyk/driftctl's v0.40.0 release; its version is the one Upkeep installed.
-[apps.driftctl]
-name = "driftctl"
-kind = "file"
-repo = "snyk/driftctl"
-asset = '^driftctl_linux_amd64$'
-asset_aarch64 = '^driftctl_linux_arm64$'
-dest = "~/.local/bin/driftctl"
-probe = false

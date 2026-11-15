@@ -1,8 +1,0 @@
-# Drafted from klaudiosinani/ao's v6.9.0 release; its version is the one Upkeep installed.
-[apps.ao]
-name = "ao"
-kind = "appimage"
-repo = "klaudiosinani/ao"
-asset = '^ao-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/ao.AppImage"
-probe = false

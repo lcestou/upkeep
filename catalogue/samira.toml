@@ -1,8 +1,0 @@
-# Drafted from jsnli/Samira's v0.5.1 release; its version is the one Upkeep installed.
-[apps.samira]
-name = "Samira"
-kind = "appimage"
-repo = "jsnli/Samira"
-asset = '^samira_.*_amd64\.AppImage$'
-dest = "~/.local/bin/samira.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Beaver-Notes/Beaver-Notes's 4.4.0 release; its version is the one Upkeep installed.
-[apps.beaver-notes]
-name = "Beaver-Notes"
-kind = "appimage"
-repo = "Beaver-Notes/Beaver-Notes"
-asset = '^Beaver-Notes-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/beaver-notes.AppImage"
-probe = false

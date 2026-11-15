@@ -1,8 +1,0 @@
-# Drafted from patrickelectric/qhot's qt6-1.1.1 release; its version is the one Upkeep installed.
-[apps.qhot]
-name = "qhot"
-kind = "appimage"
-repo = "patrickelectric/qhot"
-asset = '^qhot\.AppImage$'
-dest = "~/.local/bin/qhot.AppImage"
-probe = false

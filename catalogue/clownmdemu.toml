@@ -1,9 +1,0 @@
-# Drafted from Clownacy/clownmdemu-frontend's v1.6.12 release; its version is the one Upkeep installed.
-[apps.clownmdemu]
-name = "ClownMDEmu"
-kind = "appimage"
-repo = "Clownacy/clownmdemu-frontend"
-asset = '^ClownMDEmu-.*-x86_64\.AppImage$'
-asset_aarch64 = '^ClownMDEmu-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/clownmdemu.AppImage"
-probe = false

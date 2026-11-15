@@ -1,8 +1,0 @@
-# Drafted from Rohithgilla12/data-peek's v0.38.0 release; its version is the one Upkeep installed.
-[apps.data-peek]
-name = "Data Peek"
-kind = "appimage"
-repo = "Rohithgilla12/data-peek"
-asset = '^data-peek-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/data-peek.AppImage"
-probe = false

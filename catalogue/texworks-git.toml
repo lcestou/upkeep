@@ -1,8 +1,0 @@
-# Drafted from TeXworks/texworks's release-0.6.11 release; its version is the one Upkeep installed.
-[apps.texworks-git]
-name = "TeXworks-git"
-kind = "appimage"
-repo = "TeXworks/texworks"
-asset = '^TeXworks-.*-x86_64-202602100835-git_7380941\.AppImage$'
-dest = "~/.local/bin/texworks-git.AppImage"
-probe = false

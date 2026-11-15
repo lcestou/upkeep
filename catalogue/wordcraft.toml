@@ -1,9 +1,0 @@
-# Drafted from storytold/wordcraft's v0.18.1 release; its version is the one Upkeep installed.
-[apps.wordcraft]
-name = "wordcraft"
-kind = "appimage"
-repo = "storytold/wordcraft"
-asset = '^wordcraft-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^wordcraft-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/wordcraft.AppImage"
-probe = false

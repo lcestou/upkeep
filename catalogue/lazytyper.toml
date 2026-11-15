@@ -1,8 +1,0 @@
-# Drafted from oldcai/LazyTyper-releases's v1.9.3-linux release; its version is the one Upkeep installed.
-[apps.lazytyper]
-name = "LazyTyper"
-kind = "appimage"
-repo = "oldcai/LazyTyper-releases"
-asset = '^LazyTyper_.*_amd64\.AppImage$'
-dest = "~/.local/bin/lazytyper.AppImage"
-probe = false

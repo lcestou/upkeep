@@ -1,8 +1,0 @@
-# Drafted from kmonad/kmonad's 0.4.5 release; its version is the one Upkeep installed.
-[apps.kmonad]
-name = "kmonad"
-kind = "file"
-repo = "kmonad/kmonad"
-asset = '^kmonad$'
-dest = "~/.local/bin/kmonad"
-probe = false

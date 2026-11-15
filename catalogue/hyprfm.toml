@@ -1,8 +1,0 @@
-# Drafted from soyeb-jim285/hyprfm's v0.7.0 release; its version is the one Upkeep installed.
-[apps.hyprfm]
-name = "HyprFM"
-kind = "appimage"
-repo = "soyeb-jim285/hyprfm"
-asset = '^HyprFM-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/hyprfm.AppImage"
-probe = false

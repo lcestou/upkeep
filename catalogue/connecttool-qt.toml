@@ -1,8 +1,0 @@
-# Drafted from moeleak/connecttool-qt's v1.6.0 release; its version is the one Upkeep installed.
-[apps.connecttool-qt]
-name = "Connecttool Qt"
-kind = "appimage"
-repo = "moeleak/connecttool-qt"
-asset = '^connecttool-qt-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/connecttool-qt.AppImage"
-probe = false

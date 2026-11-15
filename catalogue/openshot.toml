@@ -1,8 +1,0 @@
-# Drafted from OpenShot/openshot-qt's v4.1.1 release; its version is the one Upkeep installed.
-[apps.openshot]
-name = "OpenShot"
-kind = "appimage"
-repo = "OpenShot/openshot-qt"
-asset = '^OpenShot-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/openshot.AppImage"
-probe = false

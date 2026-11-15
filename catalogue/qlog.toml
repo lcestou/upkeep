@@ -1,8 +1,0 @@
-# Drafted from foldynl/QLog's v0.54.2 release; its version is the one Upkeep installed.
-[apps.qlog]
-name = "QLog"
-kind = "appimage"
-repo = "foldynl/QLog"
-asset = '^QLog-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/qlog.AppImage"
-probe = false

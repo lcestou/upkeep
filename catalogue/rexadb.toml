@@ -1,8 +1,0 @@
-# Drafted from RexaDB/RexaDB's v1.3.35 release; its version is the one Upkeep installed.
-[apps.rexadb]
-name = "RexaDB"
-kind = "appimage"
-repo = "RexaDB/RexaDB"
-asset = '^RexaDB_.*_x86_64\.AppImage$'
-dest = "~/.local/bin/rexadb.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Aharoni-Lab/Miniscope-DAQ-QT-Software's v2.0.0 release; its version is the one Upkeep installed.
-[apps.miniscope-daq]
-name = "Miniscope-DAQ"
-kind = "appimage"
-repo = "Aharoni-Lab/Miniscope-DAQ-QT-Software"
-asset = '^Miniscope_DAQ-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/miniscope-daq.AppImage"
-probe = false

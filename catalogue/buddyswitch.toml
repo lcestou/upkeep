@@ -1,8 +1,0 @@
-# Drafted from NextAgentX/qoder-trae-workbuddy-switch's v2026.11.141713 release; its version is the one Upkeep installed.
-[apps.buddyswitch]
-name = "BuddySwitch"
-kind = "appimage"
-repo = "NextAgentX/qoder-trae-workbuddy-switch"
-asset = '^BuddySwitch_.*_amd64\.AppImage$'
-dest = "~/.local/bin/buddyswitch.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Jaxton07/percho's v0.6.8 release; its version is the one Upkeep installed.
-[apps.percho]
-name = "percho"
-kind = "appimage"
-repo = "Jaxton07/percho"
-asset = '^percho-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/percho.AppImage"
-probe = false

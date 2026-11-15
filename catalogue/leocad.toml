@@ -1,8 +1,0 @@
-# Drafted from leozide/leocad's v26.09 release; its version is the one Upkeep installed.
-[apps.leocad]
-name = "LeoCAD"
-kind = "appimage"
-repo = "leozide/leocad"
-asset = '^LeoCAD-Linux-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/leocad.AppImage"
-probe = false

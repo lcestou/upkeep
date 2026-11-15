@@ -1,9 +1,0 @@
-# Drafted from raduprv/Eternal-Lands's 1.9.7.0-4 release; its version is the one Upkeep installed.
-[apps.eternallands]
-name = "EternalLands"
-kind = "appimage"
-repo = "raduprv/Eternal-Lands"
-asset = '^EternalLands-Linux-x86_64_.*\.AppImage$'
-asset_aarch64 = '^EternalLands-Linux-aarch64_.*\.AppImage$'
-dest = "~/.local/bin/eternallands.AppImage"
-probe = false

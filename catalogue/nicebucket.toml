@@ -1,8 +1,0 @@
-# Drafted from nicebucket-org/nicebucket's v0.4.5 release; its version is the one Upkeep installed.
-[apps.nicebucket]
-name = "nicebucket"
-kind = "appimage"
-repo = "nicebucket-org/nicebucket"
-asset = '^nicebucket_.*_amd64\.AppImage$'
-dest = "~/.local/bin/nicebucket.AppImage"
-probe = false

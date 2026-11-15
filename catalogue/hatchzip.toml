@@ -1,8 +1,0 @@
-# Drafted from xevrion/hatchzip's v0.1.10 release; its version is the one Upkeep installed.
-[apps.hatchzip]
-name = "HatchZip"
-kind = "appimage"
-repo = "xevrion/hatchzip"
-asset = '^HatchZip-x86_64\.AppImage$'
-dest = "~/.local/bin/hatchzip.AppImage"
-probe = false

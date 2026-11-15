@@ -1,8 +1,0 @@
-# Drafted from hein1225/HeinPlay's 1.4.1 release; its version is the one Upkeep installed.
-[apps.heinplay]
-name = "HeinPlay"
-kind = "appimage"
-repo = "hein1225/HeinPlay"
-asset = '^heinplay-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/heinplay.AppImage"
-probe = false

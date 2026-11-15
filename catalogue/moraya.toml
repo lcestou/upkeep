@@ -1,8 +1,0 @@
-# Drafted from zouwei/moraya's v0.45.23 release; its version is the one Upkeep installed.
-[apps.moraya]
-name = "Moraya"
-kind = "appimage"
-repo = "zouwei/moraya"
-asset = '^Moraya_.*_amd64\.AppImage$'
-dest = "~/.local/bin/moraya.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from anywhere-labs/dsh-desktop's v2.0.23-next release; its version is the one Upkeep installed.
-[apps.dsh-next-next]
-name = "DSH-NEXT-next"
-kind = "appimage"
-repo = "anywhere-labs/dsh-desktop"
-asset = '^DSH-NEXT-.*-next-x86_64\.AppImage$'
-asset_aarch64 = '^DSH-NEXT-.*-next-arm64\.AppImage$'
-dest = "~/.local/bin/dsh-next-next.AppImage"
-probe = false

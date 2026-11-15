@@ -1,8 +1,0 @@
-# Drafted from AgentSystemLabs/mission-control's v0.48.36 release; its version is the one Upkeep installed.
-[apps.missioncontrol]
-name = "MissionControl"
-kind = "appimage"
-repo = "AgentSystemLabs/mission-control"
-asset = '^MissionControl-.*\.AppImage$'
-dest = "~/.local/bin/missioncontrol.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from mmvanheusden/SteamDepotDownloaderGUI's v3.3.0 release; its version is the one Upkeep installed.
-[apps.steamdepotdownloadergui]
-name = "SteamDepotDownloaderGUI"
-kind = "appimage"
-repo = "mmvanheusden/SteamDepotDownloaderGUI"
-asset = '^SteamDepotDownloaderGUI-Linux-.*-x64\.AppImage$'
-asset_aarch64 = '^SteamDepotDownloaderGUI-Linux-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/steamdepotdownloadergui.AppImage"
-probe = false

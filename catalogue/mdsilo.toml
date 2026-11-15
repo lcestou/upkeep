@@ -1,8 +1,0 @@
-# Drafted from mdSilo/mdSilo-app's mdsilo-v0.8.0 release; its version is the one Upkeep installed.
-[apps.mdsilo]
-name = "MdSilo App"
-kind = "appimage"
-repo = "mdSilo/mdSilo-app"
-asset = '^mdsilo_.*_amd64\.AppImage$'
-dest = "~/.local/bin/mdsilo.AppImage"
-probe = false

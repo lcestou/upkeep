@@ -1,8 +1,0 @@
-# Drafted from manaflow-ai/manaflow's v1.0.269 release; its version is the one Upkeep installed.
-[apps.manaflow]
-name = "Manaflow"
-kind = "appimage"
-repo = "manaflow-ai/manaflow"
-asset = '^Manaflow-.*\.AppImage$'
-dest = "~/.local/bin/manaflow.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from ZiChuanLan/agent-purge's v0.2.33 release; its version is the one Upkeep installed.
-[apps.agent-purge]
-name = "Agent Purge"
-kind = "appimage"
-repo = "ZiChuanLan/agent-purge"
-asset = '^agent-purge-.*-linux-x64\.AppImage$'
-asset_aarch64 = '^agent-purge-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/agent-purge.AppImage"
-probe = false

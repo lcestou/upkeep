@@ -1,9 +1,0 @@
-# Drafted from mayneyao/eidos's lite-v0.34.0 release; its version is the one Upkeep installed.
-[apps.eidos-lite]
-name = "Eidos-Lite"
-kind = "appimage"
-repo = "mayneyao/eidos"
-asset = '^Eidos\.Lite-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^Eidos\.Lite-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/eidos-lite.AppImage"
-probe = false

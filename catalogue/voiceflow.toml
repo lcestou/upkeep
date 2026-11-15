@@ -1,8 +1,0 @@
-# Drafted from infiniV/VoiceFlow's v1.6.2 release; its version is the one Upkeep installed.
-[apps.voiceflow]
-name = "VoiceFlow"
-kind = "appimage"
-repo = "infiniV/VoiceFlow"
-asset = '^VoiceFlow-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/voiceflow.AppImage"
-probe = false

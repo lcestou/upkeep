@@ -1,9 +1,0 @@
-# Drafted from whalebrew/whalebrew's 0.5.0 release; its version is the one Upkeep installed.
-[apps.whalebrew]
-name = "whalebrew"
-kind = "file"
-repo = "whalebrew/whalebrew"
-asset = '^whalebrew-Linux-x86_64$'
-asset_aarch64 = '^whalebrew-Linux-arm64$'
-dest = "~/.local/bin/whalebrew"
-probe = false

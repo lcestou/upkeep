@@ -1,9 +1,0 @@
-# Drafted from cloudfoundry/bosh-cli's v7.11.2 release; its version is the one Upkeep installed.
-[apps.bosh-cli]
-name = "Bosh Cli"
-kind = "file"
-repo = "cloudfoundry/bosh-cli"
-asset = '^bosh-cli-.*-linux-amd64$'
-asset_aarch64 = '^bosh-cli-.*-linux-arm64$'
-dest = "~/.local/bin/bosh-cli"
-probe = false

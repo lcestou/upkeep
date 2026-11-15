@@ -1,8 +1,0 @@
-# Drafted from zhanglun/pavo's v0.0.16 release; its version is the one Upkeep installed.
-[apps.pavo]
-name = "Pavo"
-kind = "appimage"
-repo = "zhanglun/pavo"
-asset = '^Pavo_.*_amd64\.AppImage$'
-dest = "~/.local/bin/pavo.AppImage"
-probe = false

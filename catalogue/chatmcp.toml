@@ -1,8 +1,0 @@
-# Drafted from daodao97/chatmcp's v0.0.76 release; its version is the one Upkeep installed.
-[apps.chatmcp]
-name = "chatmcp"
-kind = "appimage"
-repo = "daodao97/chatmcp"
-asset = '^chatmcp-.*-linux\.AppImage$'
-dest = "~/.local/bin/chatmcp.AppImage"
-probe = false

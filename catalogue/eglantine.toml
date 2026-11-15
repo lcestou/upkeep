@@ -1,9 +1,0 @@
-# Drafted from Eglantine-Community/Eglantine's v0.1.0-rc4 release; its version is the one Upkeep installed.
-[apps.eglantine]
-name = "Eglantine"
-kind = "appimage"
-repo = "Eglantine-Community/Eglantine"
-asset = '^eglantine-linux-x86_64\.AppImage$'
-asset_aarch64 = '^eglantine-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/eglantine.AppImage"
-probe = false

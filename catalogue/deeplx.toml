@@ -1,9 +1,0 @@
-# Drafted from OwO-Network/DLX's v1.3.1 release; its version is the one Upkeep installed.
-[apps.deeplx]
-name = "DLX"
-kind = "file"
-repo = "OwO-Network/DLX"
-asset = '^deeplx_linux_amd64$'
-asset_aarch64 = '^deeplx_linux_arm64$'
-dest = "~/.local/bin/deeplx"
-probe = false

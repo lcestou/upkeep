@@ -1,9 +1,0 @@
-# Drafted from xingkongliang/skills-manager's v1.44.0 release; its version is the one Upkeep installed.
-[apps.skills-manager]
-name = "Skills Manager"
-kind = "appimage"
-repo = "xingkongliang/skills-manager"
-asset = '^skills-manager_.*_amd64\.AppImage$'
-asset_aarch64 = '^skills-manager_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/skills-manager.AppImage"
-probe = false

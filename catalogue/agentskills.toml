@@ -1,8 +1,0 @@
-# Drafted from chrlsio/agent-skills's v0.1.8 release; its version is the one Upkeep installed.
-[apps.agentskills]
-name = "AgentSkills"
-kind = "appimage"
-repo = "chrlsio/agent-skills"
-asset = '^AgentSkills_.*_amd64\.AppImage$'
-dest = "~/.local/bin/agentskills.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from EmuDeck/emudeck-electron's v2.7.1 release; its version is the one Upkeep installed.
-[apps.emudeck]
-name = "EmuDeck"
-kind = "appimage"
-repo = "EmuDeck/emudeck-electron"
-asset = '^EmuDeck-.*-x86_64\.AppImage$'
-asset_aarch64 = '^EmuDeck-.*-arm64\.AppImage$'
-dest = "~/.local/bin/emudeck.AppImage"
-probe = false

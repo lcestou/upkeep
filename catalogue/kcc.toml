@@ -1,9 +1,0 @@
-# Drafted from ciromattia/kcc's v13.0.1 release; its version is the one Upkeep installed.
-[apps.kcc]
-name = "kcc"
-kind = "appimage"
-repo = "ciromattia/kcc"
-asset = '^kcc_linux-.*-x86_64\.AppImage$'
-asset_aarch64 = '^kcc_linux-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/kcc.AppImage"
-probe = false

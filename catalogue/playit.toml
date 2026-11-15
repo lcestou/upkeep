@@ -1,9 +1,0 @@
-# Drafted from playit-cloud/playit-agent's v2.0.2 release; its version is the one Upkeep installed.
-[apps.playit]
-name = "Playit Agent"
-kind = "file"
-repo = "playit-cloud/playit-agent"
-asset = '^playit-linux-amd64$'
-asset_aarch64 = '^playit-linux-aarch64$'
-dest = "~/.local/bin/playit"
-probe = false

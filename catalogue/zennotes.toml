@@ -1,9 +1,0 @@
-# Drafted from ZenNotes/zennotes's v2.85.0 release; its version is the one Upkeep installed.
-[apps.zennotes]
-name = "ZenNotes"
-kind = "appimage"
-repo = "ZenNotes/zennotes"
-asset = '^ZenNotes-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^ZenNotes-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/zennotes.AppImage"
-probe = false

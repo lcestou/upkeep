@@ -1,9 +1,0 @@
-# Drafted from jellyfin-archive/jellyamp's v1.1.2 release; its version is the one Upkeep installed.
-[apps.jellyamp]
-name = "jellyamp"
-kind = "appimage"
-repo = "jellyfin-archive/jellyamp"
-asset = '^jellyamp-.*-x86_64\.AppImage$'
-asset_aarch64 = '^jellyamp-.*-arm64\.AppImage$'
-dest = "~/.local/bin/jellyamp.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from OhMyMeme/OhMyMeme's 0.7.0 release; its version is the one Upkeep installed.
-[apps.ohmymeme]
-name = "OhMyMeme"
-kind = "appimage"
-repo = "OhMyMeme/OhMyMeme"
-asset = '^OhMyMeme-.*-x86_64\.AppImage$'
-asset_aarch64 = '^OhMyMeme-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/ohmymeme.AppImage"
-probe = false

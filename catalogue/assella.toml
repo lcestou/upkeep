@@ -1,8 +1,0 @@
-# Drafted from niwia/ASSella's v3.1.1 release; its version is the one Upkeep installed.
-[apps.assella]
-name = "ASSella"
-kind = "appimage"
-repo = "niwia/ASSella"
-asset = '^ASSella\.AppImage$'
-dest = "~/.local/bin/assella.AppImage"
-probe = false

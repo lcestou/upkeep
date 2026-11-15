@@ -1,9 +1,0 @@
-# Drafted from alexhallam/tv's 1.8.93 release; its version is the one Upkeep installed.
-[apps.tidy-viewer]
-name = "tv"
-kind = "archive"
-repo = "alexhallam/tv"
-asset = '^tidy-viewer-.*\.tgz$'
-dest = "~/.local/bin/tidy-viewer"
-bins = ["tidy-viewer"]
-probe = false

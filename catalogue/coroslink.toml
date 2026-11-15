@@ -1,8 +1,0 @@
-# Drafted from JunAkerBuilds/CorosLink's v0.1.77 release; its version is the one Upkeep installed.
-[apps.coroslink]
-name = "CorosLink"
-kind = "appimage"
-repo = "JunAkerBuilds/CorosLink"
-asset = '^CorosLink-.*\.AppImage$'
-dest = "~/.local/bin/coroslink.AppImage"
-probe = false

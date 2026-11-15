@@ -1,9 +1,0 @@
-# Drafted from amiralibg/unstream's v0.3.23 release; its version is the one Upkeep installed.
-[apps.unstream]
-name = "Unstream"
-kind = "appimage"
-repo = "amiralibg/unstream"
-asset = '^Unstream_.*_amd64\.AppImage$'
-asset_aarch64 = '^Unstream_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/unstream.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from cattr-app/desktop-application's v3.0.1 release; its version is the one Upkeep installed.
-[apps.cattr]
-name = "Cattr"
-kind = "appimage"
-repo = "cattr-app/desktop-application"
-asset = '^Cattr\.AppImage$'
-dest = "~/.local/bin/cattr.AppImage"
-probe = false

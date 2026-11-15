@@ -1,9 +1,0 @@
-# Drafted from ChurchApps/FreeShow's v1.6.7 release; its version is the one Upkeep installed.
-[apps.freeshow]
-name = "FreeShow"
-kind = "appimage"
-repo = "ChurchApps/FreeShow"
-asset = '^FreeShow-.*-x86_64\.AppImage$'
-asset_aarch64 = '^FreeShow-.*-arm64\.AppImage$'
-dest = "~/.local/bin/freeshow.AppImage"
-probe = false

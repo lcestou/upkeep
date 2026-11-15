@@ -1,8 +1,0 @@
-# Drafted from openscopeproject/TrguiNG's v1.5.1 release; its version is the one Upkeep installed.
-[apps.trguing]
-name = "TrguiNG"
-kind = "appimage"
-repo = "openscopeproject/TrguiNG"
-asset = '^TrguiNG_.*_amd64\.AppImage$'
-dest = "~/.local/bin/trguing.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from zmkfirmware/zmk-studio's v0.3.1 release; its version is the one Upkeep installed.
-[apps.zmk-studio]
-name = "ZMK-Studio"
-kind = "appimage"
-repo = "zmkfirmware/zmk-studio"
-asset = '^ZMK\.Studio_.*_amd64\.AppImage$'
-dest = "~/.local/bin/zmk-studio.AppImage"
-probe = false

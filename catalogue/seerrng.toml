@@ -1,8 +1,0 @@
-# Drafted from snapetech-org/seerrng's v3.72.36 release; its version is the one Upkeep installed.
-[apps.seerrng]
-name = "SeerrNG"
-kind = "appimage"
-repo = "snapetech-org/seerrng"
-asset = '^SeerrNG-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/seerrng.AppImage"
-probe = false

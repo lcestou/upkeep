@@ -1,8 +1,0 @@
-# Drafted from timoncool/ACE-Step-Studio's v4.0.0 release; its version is the one Upkeep installed.
-[apps.ace-step-studio]
-name = "ACE-Step-Studio"
-kind = "appimage"
-repo = "timoncool/ACE-Step-Studio"
-asset = '^ACE-Step-Studio-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/ace-step-studio.AppImage"
-probe = false

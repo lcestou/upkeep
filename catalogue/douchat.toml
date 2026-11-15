@@ -1,8 +1,0 @@
-# Drafted from thinkany-ai/douchat's v0.1.27 release; its version is the one Upkeep installed.
-[apps.douchat]
-name = "Douchat"
-kind = "appimage"
-repo = "thinkany-ai/douchat"
-asset = '^Douchat-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/douchat.AppImage"
-probe = false

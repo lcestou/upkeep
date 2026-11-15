@@ -1,9 +1,0 @@
-# Drafted from google/keep-sorted's v0.11.0 release; its version is the one Upkeep installed.
-[apps.keep-sorted]
-name = "Keep Sorted"
-kind = "file"
-repo = "google/keep-sorted"
-asset = '^keep-sorted_linux_amd64$'
-asset_aarch64 = '^keep-sorted_linux_arm64$'
-dest = "~/.local/bin/keep-sorted"
-probe = false

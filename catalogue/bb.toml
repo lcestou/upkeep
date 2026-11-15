@@ -1,8 +1,0 @@
-# Drafted from get-bb/bb's desktop-v0.49.0 release; its version is the one Upkeep installed.
-[apps.bb]
-name = "bb"
-kind = "appimage"
-repo = "get-bb/bb"
-asset = '^bb-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/bb.AppImage"
-probe = false

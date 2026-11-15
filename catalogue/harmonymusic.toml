@@ -1,8 +1,0 @@
-# Drafted from anandnet/Harmony-Music's v1.12.2 release; its version is the one Upkeep installed.
-[apps.harmonymusic]
-name = "Harmony Music"
-kind = "appimage"
-repo = "anandnet/Harmony-Music"
-asset = '^harmonymusic-.*\.AppImage$'
-dest = "~/.local/bin/harmonymusic.AppImage"
-probe = false

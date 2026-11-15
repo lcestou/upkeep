@@ -1,8 +1,0 @@
-# Drafted from Moulberry/PandoraLauncher's v6.0.0 release; its version is the one Upkeep installed.
-[apps.pandoralauncher]
-name = "PandoraLauncher"
-kind = "appimage"
-repo = "Moulberry/PandoraLauncher"
-asset = '^PandoraLauncher-Linux-x86_64\.AppImage$'
-dest = "~/.local/bin/pandoralauncher.AppImage"
-probe = false

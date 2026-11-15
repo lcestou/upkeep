@@ -1,8 +1,0 @@
-# Drafted from feeluown/FuoEvolve's 1.6.3 release; its version is the one Upkeep installed.
-[apps.fuoevolve]
-name = "FuoEvolve"
-kind = "appimage"
-repo = "feeluown/FuoEvolve"
-asset = '^FuoEvolve-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/fuoevolve.AppImage"
-probe = false

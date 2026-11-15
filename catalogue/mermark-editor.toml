@@ -1,8 +1,0 @@
-# Drafted from Vesperino/MerMarkEditor's v0.8.6 release; its version is the one Upkeep installed.
-[apps.mermark-editor]
-name = "MerMark-Editor"
-kind = "appimage"
-repo = "Vesperino/MerMarkEditor"
-asset = '^MerMark\.Editor_.*_amd64\.AppImage$'
-dest = "~/.local/bin/mermark-editor.AppImage"
-probe = false

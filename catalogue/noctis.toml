@@ -1,8 +1,0 @@
-# Drafted from heartached/Noctis's v1.6.9 release; its version is the one Upkeep installed.
-[apps.noctis]
-name = "Noctis"
-kind = "appimage"
-repo = "heartached/Noctis"
-asset = '^Noctis-x86_64\.AppImage$'
-dest = "~/.local/bin/noctis.AppImage"
-probe = false

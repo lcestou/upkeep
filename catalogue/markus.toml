@@ -1,8 +1,0 @@
-# Drafted from markus-global/markus's v0.12.4 release; its version is the one Upkeep installed.
-[apps.markus]
-name = "Markus"
-kind = "appimage"
-repo = "markus-global/markus"
-asset = '^Markus-.*\.AppImage$'
-dest = "~/.local/bin/markus.AppImage"
-probe = false

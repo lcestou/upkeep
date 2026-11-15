@@ -1,8 +1,0 @@
-# Drafted from GitJournal/GitJournal's v1.80.0 release; its version is the one Upkeep installed.
-[apps.gitjournal]
-name = "GitJournal"
-kind = "appimage"
-repo = "GitJournal/GitJournal"
-asset = '^GitJournal-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/gitjournal.AppImage"
-probe = false

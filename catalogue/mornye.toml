@@ -1,9 +1,0 @@
-# Drafted from mornyeapp/Mornye-Desktop's v5.3.1 release; its version is the one Upkeep installed.
-[apps.mornye]
-name = "Mornye"
-kind = "appimage"
-repo = "mornyeapp/Mornye-Desktop"
-asset = '^Mornye-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^Mornye-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/mornye.AppImage"
-probe = false

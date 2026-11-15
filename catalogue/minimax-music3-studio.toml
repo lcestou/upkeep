@@ -1,8 +1,0 @@
-# Drafted from timoncool/MiniMax-Music3-Studio's v4.0.0 release; its version is the one Upkeep installed.
-[apps.minimax-music3-studio]
-name = "MiniMax-Music3-Studio"
-kind = "appimage"
-repo = "timoncool/MiniMax-Music3-Studio"
-asset = '^MiniMax-Music3-Studio-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/minimax-music3-studio.AppImage"
-probe = false

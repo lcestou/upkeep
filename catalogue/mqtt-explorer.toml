@@ -1,8 +1,0 @@
-# Drafted from thomasnordquist/MQTT-Explorer's v0.3.5 release; its version is the one Upkeep installed.
-[apps.mqtt-explorer]
-name = "MQTT-Explorer"
-kind = "appimage"
-repo = "thomasnordquist/MQTT-Explorer"
-asset = '^MQTT-Explorer-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/mqtt-explorer.AppImage"
-probe = false

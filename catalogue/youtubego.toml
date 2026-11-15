@@ -1,8 +1,0 @@
-# Drafted from Efeckc17/YoutubeGO's v5.0.27 release; its version is the one Upkeep installed.
-[apps.youtubego]
-name = "YoutubeGo"
-kind = "appimage"
-repo = "Efeckc17/YoutubeGO"
-asset = '^YoutubeGo-x86_64\.AppImage$'
-dest = "~/.local/bin/youtubego.AppImage"
-probe = false

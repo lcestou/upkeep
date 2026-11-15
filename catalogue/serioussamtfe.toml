@@ -1,8 +1,0 @@
-# Drafted from tx00100xt/SeriousSamClassic's 1.10.7 release; its version is the one Upkeep installed.
-[apps.serioussamtfe]
-name = "SeriousSamTFE"
-kind = "appimage"
-repo = "tx00100xt/SeriousSamClassic"
-asset = '^SeriousSamTFE-[0-9][0-9A-Za-z.]*-x86_64\.AppImage$'
-dest = "~/.local/bin/serioussamtfe.AppImage"
-probe = false

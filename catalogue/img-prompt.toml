@@ -1,8 +1,0 @@
-# Drafted from rockbenben/img-prompt's app-v3.1.0 release; its version is the one Upkeep installed.
-[apps.img-prompt]
-name = "Img Prompt"
-kind = "appimage"
-repo = "rockbenben/img-prompt"
-asset = '^img-prompt_.*_amd64\.AppImage$'
-dest = "~/.local/bin/img-prompt.AppImage"
-probe = false

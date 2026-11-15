@@ -1,9 +1,0 @@
-# Drafted from TKMM-Team/Tkmm's v2.1.6 release; its version is the one Upkeep installed.
-[apps.tkmm]
-name = "Tkmm"
-kind = "appimage"
-repo = "TKMM-Team/Tkmm"
-asset = '^Tkmm-linux-x64\.AppImage$'
-asset_aarch64 = '^Tkmm-linux-arm64\.AppImage$'
-dest = "~/.local/bin/tkmm.AppImage"
-probe = false

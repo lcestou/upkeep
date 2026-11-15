@@ -1,8 +1,0 @@
-# Drafted from Raicuparta/rai-pal's v1.0.0 release; its version is the one Upkeep installed.
-[apps.raipal]
-name = "RaiPal"
-kind = "appimage"
-repo = "Raicuparta/rai-pal"
-asset = '^RaiPal\.AppImage$'
-dest = "~/.local/bin/raipal.AppImage"
-probe = false

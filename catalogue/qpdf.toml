@@ -1,9 +1,0 @@
-# Drafted from qpdf/qpdf's v12.4.2 release; its version is the one Upkeep installed.
-[apps.qpdf]
-name = "qpdf"
-kind = "appimage"
-repo = "qpdf/qpdf"
-asset = '^qpdf-.*-x86_64\.AppImage$'
-asset_aarch64 = '^qpdf-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/qpdf.AppImage"
-probe = false

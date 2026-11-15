@@ -1,8 +1,0 @@
-# Drafted from Novum/vkQuake's 1.37.0 release; its version is the one Upkeep installed.
-[apps.vkquake]
-name = "vkQuake"
-kind = "appimage"
-repo = "Novum/vkQuake"
-asset = '^vkQuake-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/vkquake.AppImage"
-probe = false

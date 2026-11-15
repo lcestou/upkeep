@@ -1,9 +1,0 @@
-# Drafted from notdxbi/dxbi-stremio's v2.37.2 release; its version is the one Upkeep installed.
-[apps.dxbi]
-name = "Dxbi Stremio"
-kind = "appimage"
-repo = "notdxbi/dxbi-stremio"
-asset = '^dxbi-linux-x86_64\.AppImage$'
-asset_aarch64 = '^dxbi-linux-arm64\.AppImage$'
-dest = "~/.local/bin/dxbi.AppImage"
-probe = false

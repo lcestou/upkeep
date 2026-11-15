@@ -1,9 +1,0 @@
-# Drafted from arduino/arduino-cli's v1.6.0 release; its version is the one Upkeep installed.
-[apps.arduino-cli]
-name = "Arduino Cli"
-kind = "archive"
-repo = "arduino/arduino-cli"
-asset = '^arduino-cli_.*_Linux_64bit\.tar\.gz$'
-dest = "~/.local/bin/arduino-cli"
-bins = ["arduino-cli"]
-probe = false

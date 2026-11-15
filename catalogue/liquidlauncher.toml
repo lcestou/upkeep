@@ -1,9 +1,0 @@
-# Drafted from CCBlueX/LiquidLauncher's v0.7.1 release; its version is the one Upkeep installed.
-[apps.liquidlauncher]
-name = "LiquidLauncher"
-kind = "appimage"
-repo = "CCBlueX/LiquidLauncher"
-asset = '^LiquidLauncher_.*_amd64\.AppImage$'
-asset_aarch64 = '^LiquidLauncher_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/liquidlauncher.AppImage"
-probe = false

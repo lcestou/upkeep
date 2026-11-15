@@ -1,8 +1,0 @@
-# Drafted from winfunc/opcode's v0.2.0 release; its version is the one Upkeep installed.
-[apps.opcode]
-name = "opcode"
-kind = "appimage"
-repo = "winfunc/opcode"
-asset = '^opcode_.*_linux_x86_64\.AppImage$'
-dest = "~/.local/bin/opcode.AppImage"
-probe = false

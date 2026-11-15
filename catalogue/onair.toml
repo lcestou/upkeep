@@ -1,9 +1,0 @@
-# Drafted from adswill/OnAir's v4.1.0 release; its version is the one Upkeep installed.
-[apps.onair]
-name = "OnAir"
-kind = "appimage"
-repo = "adswill/OnAir"
-asset = '^OnAir-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^OnAir-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/onair.AppImage"
-probe = false

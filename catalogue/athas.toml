@@ -1,9 +1,0 @@
-# Drafted from athasdev/athas's v0.17.0 release; its version is the one Upkeep installed.
-[apps.athas]
-name = "Athas"
-kind = "appimage"
-repo = "athasdev/athas"
-asset = '^Athas_.*_amd64\.AppImage$'
-asset_aarch64 = '^Athas_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/athas.AppImage"
-probe = false

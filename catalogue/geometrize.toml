@@ -1,8 +1,0 @@
-# Drafted from Tw1ddle/geometrize's v1.0.1 release; its version is the one Upkeep installed.
-[apps.geometrize]
-name = "geometrize"
-kind = "appimage"
-repo = "Tw1ddle/geometrize"
-asset = '^geometrize_.*_linux\.AppImage$'
-dest = "~/.local/bin/geometrize.AppImage"
-probe = false

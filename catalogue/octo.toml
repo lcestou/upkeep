@@ -1,9 +1,0 @@
-# Drafted from open-octo/octo-agent's v1.17.24 release; its version is the one Upkeep installed.
-[apps.octo]
-name = "Octo"
-kind = "appimage"
-repo = "open-octo/octo-agent"
-asset = '^Octo-x86_64\.AppImage$'
-asset_aarch64 = '^Octo-aarch64\.AppImage$'
-dest = "~/.local/bin/octo.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from iamlooper/Lumi-AI's v3.5 release; its version is the one Upkeep installed.
-[apps.lumi-ai]
-name = "Lumi AI"
-kind = "appimage"
-repo = "iamlooper/Lumi-AI"
-asset = '^lumi-ai-linux-amd64\.AppImage$'
-dest = "~/.local/bin/lumi-ai.AppImage"
-probe = false

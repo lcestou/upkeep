@@ -1,8 +1,0 @@
-# Drafted from qier222/YesPlayMusic's v0.4.11 release; its version is the one Upkeep installed.
-[apps.yesplaymusic]
-name = "YesPlayMusic"
-kind = "appimage"
-repo = "qier222/YesPlayMusic"
-asset = '^YesPlayMusic-.*\.AppImage$'
-dest = "~/.local/bin/yesplaymusic.AppImage"
-probe = false

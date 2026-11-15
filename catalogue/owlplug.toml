@@ -1,8 +1,0 @@
-# Drafted from DropSnorz/OwlPlug's 2.1.1 release; its version is the one Upkeep installed.
-[apps.owlplug]
-name = "OwlPlug"
-kind = "appimage"
-repo = "DropSnorz/OwlPlug"
-asset = '^OwlPlug-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/owlplug.AppImage"
-probe = false

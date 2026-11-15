@@ -1,8 +1,0 @@
-# Drafted from tildearrow/furnace's v0.6.8.3 release; its version is the one Upkeep installed.
-[apps.furnace]
-name = "Furnace"
-kind = "appimage"
-repo = "tildearrow/furnace"
-asset = '^Furnace-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/furnace.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from siddhantparadox/codexmanager's v1.3.0 release; its version is the one Upkeep installed.
-[apps.codex-manager]
-name = "Codex-Manager"
-kind = "appimage"
-repo = "siddhantparadox/codexmanager"
-asset = '^Codex\.Manager_.*_amd64\.AppImage$'
-dest = "~/.local/bin/codex-manager.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from mfat/tvhplayer's v4.6.5 release; its version is the one Upkeep installed.
-[apps.tvhplayer]
-name = "tvhplayer"
-kind = "appimage"
-repo = "mfat/tvhplayer"
-asset = '^tvhplayer-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/tvhplayer.AppImage"
-probe = false

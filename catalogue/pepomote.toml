@@ -1,8 +1,0 @@
-# Drafted from PepoTechYT/PepoMote's v1.13.3 release; its version is the one Upkeep installed.
-[apps.pepomote]
-name = "PepoMote"
-kind = "appimage"
-repo = "PepoTechYT/PepoMote"
-asset = '^PepoMote-x86_64\.AppImage$'
-dest = "~/.local/bin/pepomote.AppImage"
-probe = false

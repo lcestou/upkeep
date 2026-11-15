@@ -1,8 +1,0 @@
-# Drafted from marcinz606/NegPy's 0.69.0 release; its version is the one Upkeep installed.
-[apps.negpy]
-name = "NegPy"
-kind = "appimage"
-repo = "marcinz606/NegPy"
-asset = '^NegPy-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/negpy.AppImage"
-probe = false

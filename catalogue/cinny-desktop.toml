@@ -1,8 +1,0 @@
-# Drafted from cinnyapp/cinny-desktop's v4.12.8 release; its version is the one Upkeep installed.
-[apps.cinny-desktop]
-name = "Cinny-desktop"
-kind = "appimage"
-repo = "cinnyapp/cinny-desktop"
-asset = '^Cinny_desktop-x86_64\.AppImage$'
-dest = "~/.local/bin/cinny-desktop.AppImage"
-probe = false

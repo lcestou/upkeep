@@ -1,9 +1,0 @@
-# Drafted from storytold/pdfcraft's v0.21.1 release; its version is the one Upkeep installed.
-[apps.pdfcraft]
-name = "pdfcraft"
-kind = "appimage"
-repo = "storytold/pdfcraft"
-asset = '^pdfcraft-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^pdfcraft-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/pdfcraft.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from lassejlv/termy's v1.0.0-rc.11 release; its version is the one Upkeep installed.
-[apps.termy]
-name = "Termy"
-kind = "appimage"
-repo = "lassejlv/termy"
-asset = '^Termy-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/termy.AppImage"
-probe = false

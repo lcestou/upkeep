@@ -1,8 +1,0 @@
-# Drafted from pinokiocomputer/pinokio's v8.3.7 release; its version is the one Upkeep installed.
-[apps.pinokio]
-name = "Pinokio"
-kind = "appimage"
-repo = "pinokiocomputer/pinokio"
-asset = '^Pinokio-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/pinokio.AppImage"
-probe = false

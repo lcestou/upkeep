@@ -1,8 +1,0 @@
-# Drafted from wyyadd/LaLa's v1.1.4 release; its version is the one Upkeep installed.
-[apps.lala]
-name = "LaLa"
-kind = "appimage"
-repo = "wyyadd/LaLa"
-asset = '^LaLa_linux_amd64\.AppImage$'
-dest = "~/.local/bin/lala.AppImage"
-probe = false

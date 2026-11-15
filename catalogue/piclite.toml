@@ -1,9 +1,0 @@
-# Drafted from amiaoapp/PicLite's v2.1.5 release; its version is the one Upkeep installed.
-[apps.piclite]
-name = "PicLite"
-kind = "appimage"
-repo = "amiaoapp/PicLite"
-asset = '^PicLite_.*_amd64\.AppImage$'
-asset_aarch64 = '^PicLite_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/piclite.AppImage"
-probe = false

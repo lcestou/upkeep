@@ -1,8 +1,0 @@
-# Drafted from Omni-guides/Jackify's v0.8.1.3 release; its version is the one Upkeep installed.
-[apps.jackify]
-name = "Jackify"
-kind = "appimage"
-repo = "Omni-guides/Jackify"
-asset = '^Jackify\.AppImage$'
-dest = "~/.local/bin/jackify.AppImage"
-probe = false

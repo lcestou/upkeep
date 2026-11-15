@@ -1,9 +1,0 @@
-# Drafted from dyne/Zenroom's v5.38.1 release; its version is the one Upkeep installed.
-[apps.zenroom]
-name = "Zenroom"
-kind = "archive"
-repo = "dyne/Zenroom"
-asset = '^zenroom-x86_64-linux\.zip$'
-dest = "~/.local/bin/zenroom"
-bins = ["zenroom-x86_64-linux/zenroom"]
-probe = false

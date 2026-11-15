@@ -1,8 +1,0 @@
-# Drafted from aldelaro5/dolphin-memory-engine's 2026.06.25 release; its version is the one Upkeep installed.
-[apps.dolphin-memory-engine]
-name = "Dolphin Memory Engine"
-kind = "appimage"
-repo = "aldelaro5/dolphin-memory-engine"
-asset = '^dolphin-memory-engine-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/dolphin-memory-engine.AppImage"
-probe = false

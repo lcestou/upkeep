@@ -1,8 +1,0 @@
-# Drafted from LibreScore/app-librescore's v6.0.23 release; its version is the one Upkeep installed.
-[apps.librescore]
-name = "LibreScore"
-kind = "appimage"
-repo = "LibreScore/app-librescore"
-asset = '^LibreScore\.AppImage$'
-dest = "~/.local/bin/librescore.AppImage"
-probe = false

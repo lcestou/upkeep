@@ -1,8 +1,0 @@
-# Drafted from arduino/arduino-ide's 2.3.11 release; its version is the one Upkeep installed.
-[apps.arduino-ide-64bit]
-name = "Arduino Ide"
-kind = "appimage"
-repo = "arduino/arduino-ide"
-asset = '^arduino-ide_.*_Linux_64bit\.AppImage$'
-dest = "~/.local/bin/arduino-ide-64bit.AppImage"
-probe = false

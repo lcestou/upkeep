@@ -1,9 +1,0 @@
-# Drafted from wekan/wekan's v13.13 release; its version is the one Upkeep installed.
-[apps.wekan]
-name = "WeKan"
-kind = "appimage"
-repo = "wekan/wekan"
-asset = '^WeKan-.*-x86_64\.AppImage$'
-asset_aarch64 = '^WeKan-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/wekan.AppImage"
-probe = false

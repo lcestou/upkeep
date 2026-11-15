@@ -1,8 +1,0 @@
-# Drafted from ppy/osu's 2026.1005.0-lazer release; its version is the one Upkeep installed.
-[apps.osu]
-name = "osu"
-kind = "appimage"
-repo = "ppy/osu"
-asset = '^osu\.AppImage$'
-dest = "~/.local/bin/osu.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from a-shygun/Terrascope's v1.0.0 release; its version is the one Upkeep installed.
-[apps.terrascope]
-name = "Terrascope"
-kind = "appimage"
-repo = "a-shygun/Terrascope"
-asset = '^terrascope_.*_linux_x86_64\.AppImage$'
-asset_aarch64 = '^terrascope_.*_linux_arm64\.AppImage$'
-dest = "~/.local/bin/terrascope.AppImage"
-probe = false

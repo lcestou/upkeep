@@ -1,8 +1,0 @@
-# Drafted from wojciech-graj/doom-ascii's v0.3.2 release; its version is the one Upkeep installed.
-[apps.doom-ascii]
-name = "Doom Ascii"
-kind = "appimage"
-repo = "wojciech-graj/doom-ascii"
-asset = '^doom-ascii-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/doom-ascii.AppImage"
-probe = false

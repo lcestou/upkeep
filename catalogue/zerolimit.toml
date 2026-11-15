@@ -1,8 +1,0 @@
-# Drafted from 0xtbug/zero-limit's v1.1.3 release; its version is the one Upkeep installed.
-[apps.zerolimit]
-name = "ZeroLimit"
-kind = "appimage"
-repo = "0xtbug/zero-limit"
-asset = '^ZeroLimit_.*_Linux_x64\.AppImage$'
-dest = "~/.local/bin/zerolimit.AppImage"
-probe = false

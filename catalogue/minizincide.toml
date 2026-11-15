@@ -1,8 +1,0 @@
-# Drafted from MiniZinc/MiniZincIDE's 2.10.1 release; its version is the one Upkeep installed.
-[apps.minizincide]
-name = "MiniZincIDE"
-kind = "appimage"
-repo = "MiniZinc/MiniZincIDE"
-asset = '^MiniZincIDE-.*-x86_64-linux-gnu\.AppImage$'
-dest = "~/.local/bin/minizincide.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from saulob/marvel-ultimate-alliance-bundle-recompiled's v0.2.0 release; its version is the one Upkeep installed.
-[apps.marvelultimatealliance]
-name = "MarvelUltimateAlliance"
-kind = "appimage"
-repo = "saulob/marvel-ultimate-alliance-bundle-recompiled"
-asset = '^MarvelUltimateAlliance-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/marvelultimatealliance.AppImage"
-probe = false

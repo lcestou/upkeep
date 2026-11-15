@@ -1,9 +1,0 @@
-# Drafted from yinxulai/osw's v1.3.3 release; its version is the one Upkeep installed.
-[apps.osw]
-name = "OSW"
-kind = "appimage"
-repo = "yinxulai/osw"
-asset = '^OSW-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^OSW-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/osw.AppImage"
-probe = false

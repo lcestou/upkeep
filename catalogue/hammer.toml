@@ -1,8 +1,0 @@
-# Drafted from Darkrock-Studios/hammer-editor's v3.12.1 release; its version is the one Upkeep installed.
-[apps.hammer]
-name = "Hammer Editor"
-kind = "appimage"
-repo = "Darkrock-Studios/hammer-editor"
-asset = '^hammer\.AppImage$'
-dest = "~/.local/bin/hammer.AppImage"
-probe = false

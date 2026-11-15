@@ -1,9 +1,0 @@
-# Drafted from flacon/flacon's v13.0.2 release; its version is the one Upkeep installed.
-[apps.flacon]
-name = "Flacon"
-kind = "appimage"
-repo = "flacon/flacon"
-asset = '^Flacon-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Flacon-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/flacon.AppImage"
-probe = false

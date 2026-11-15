@@ -1,8 +1,0 @@
-# Drafted from m-uvex/loaf-fm's v0.3.0 release; its version is the one Upkeep installed.
-[apps.loaf]
-name = "Loaf"
-kind = "appimage"
-repo = "m-uvex/loaf-fm"
-asset = '^Loaf-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/loaf.AppImage"
-probe = false

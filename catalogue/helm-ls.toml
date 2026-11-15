@@ -1,9 +1,0 @@
-# Drafted from mrjosh/helm-ls's v0.5.4 release; its version is the one Upkeep installed.
-[apps.helm-ls]
-name = "Helm Ls"
-kind = "file"
-repo = "mrjosh/helm-ls"
-asset = '^helm_ls_linux_amd64$'
-asset_aarch64 = '^helm_ls_linux_arm64$'
-dest = "~/.local/bin/helm-ls"
-probe = false

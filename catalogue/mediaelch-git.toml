@@ -1,8 +1,0 @@
-# Drafted from Komet/MediaElch's v2.12.0 release; its version is the one Upkeep installed.
-[apps.mediaelch-git]
-name = "MediaElch-git"
-kind = "appimage"
-repo = "Komet/MediaElch"
-asset = '^MediaElch_linux_.*_2024-10-13_git-8032465\.AppImage$'
-dest = "~/.local/bin/mediaelch-git.AppImage"
-probe = false

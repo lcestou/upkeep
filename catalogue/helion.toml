@@ -1,8 +1,0 @@
-# Drafted from Helion-Engine/Helion's 1.1.0.0 release; its version is the one Upkeep installed.
-[apps.helion]
-name = "Helion"
-kind = "appimage"
-repo = "Helion-Engine/Helion"
-asset = '^Helion-.*\.AppImage$'
-dest = "~/.local/bin/helion.AppImage"
-probe = false

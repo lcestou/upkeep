@@ -1,8 +1,0 @@
-# Drafted from wayvr-org/wayvr's v26.8.0 release; its version is the one Upkeep installed.
-[apps.wayvr]
-name = "WayVR"
-kind = "appimage"
-repo = "wayvr-org/wayvr"
-asset = '^WayVR-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/wayvr.AppImage"
-probe = false

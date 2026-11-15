@@ -1,9 +1,0 @@
-# Drafted from wilsonglasser/oryxis's v0.23.0 release; its version is the one Upkeep installed.
-[apps.oryxis]
-name = "oryxis"
-kind = "appimage"
-repo = "wilsonglasser/oryxis"
-asset = '^oryxis-linux-x86_64\.AppImage$'
-asset_aarch64 = '^oryxis-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/oryxis.AppImage"
-probe = false

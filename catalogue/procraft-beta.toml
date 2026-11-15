@@ -1,8 +1,0 @@
-# Drafted from artcraft-android/procraft's v0.0.6-beta release; its version is the one Upkeep installed.
-[apps.procraft-beta]
-name = "procraft"
-kind = "appimage"
-repo = "artcraft-android/procraft"
-asset = '^procraft-.*-beta-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/procraft-beta.AppImage"
-probe = false

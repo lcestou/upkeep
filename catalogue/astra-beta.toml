@@ -1,8 +1,0 @@
-# Drafted from Boof2015/astra's v0.8.0-beta release; its version is the one Upkeep installed.
-[apps.astra-beta]
-name = "Astra-beta"
-kind = "appimage"
-repo = "Boof2015/astra"
-asset = '^Astra-.*-beta-Linux\.AppImage$'
-dest = "~/.local/bin/astra-beta.AppImage"
-probe = false

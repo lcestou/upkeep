@@ -1,9 +1,0 @@
-# Drafted from skyjake/lagrange's v2.0.2 release; its version is the one Upkeep installed.
-[apps.lagrange]
-name = "Lagrange"
-kind = "appimage"
-repo = "skyjake/lagrange"
-asset = '^Lagrange-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Lagrange-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/lagrange.AppImage"
-probe = false

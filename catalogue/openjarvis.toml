@@ -1,8 +1,0 @@
-# Drafted from open-jarvis/OpenJarvis's desktop-v1.0.5 release; its version is the one Upkeep installed.
-[apps.openjarvis]
-name = "OpenJarvis"
-kind = "appimage"
-repo = "open-jarvis/OpenJarvis"
-asset = '^OpenJarvis_amd64\.AppImage$'
-dest = "~/.local/bin/openjarvis.AppImage"
-probe = false

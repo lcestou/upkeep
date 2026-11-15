@@ -1,9 +1,0 @@
-# Drafted from Rdiger-36/StudioBridge's v.2.3.2 release; its version is the one Upkeep installed.
-[apps.studiobridge]
-name = "StudioBridge"
-kind = "appimage"
-repo = "Rdiger-36/StudioBridge"
-asset = '^StudioBridge-.*-x86_64\.AppImage$'
-asset_aarch64 = '^StudioBridge-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/studiobridge.AppImage"
-probe = false

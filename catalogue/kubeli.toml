@@ -1,8 +1,0 @@
-# Drafted from atilladeniz/Kubeli's v0.3.90 release; its version is the one Upkeep installed.
-[apps.kubeli]
-name = "Kubeli"
-kind = "appimage"
-repo = "atilladeniz/Kubeli"
-asset = '^Kubeli_.*_amd64\.AppImage$'
-dest = "~/.local/bin/kubeli.AppImage"
-probe = false

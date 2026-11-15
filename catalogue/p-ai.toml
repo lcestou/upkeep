@@ -1,8 +1,0 @@
-# Drafted from kawayiYokami/P-ai's v0.98.3 release; its version is the one Upkeep installed.
-[apps.p-ai]
-name = "P-ai"
-kind = "appimage"
-repo = "kawayiYokami/P-ai"
-asset = '^P-ai_.*_amd64\.AppImage$'
-dest = "~/.local/bin/p-ai.AppImage"
-probe = false

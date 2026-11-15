@@ -1,8 +1,0 @@
-# Drafted from apyra/nvim-unity's v1.0.0 release; its version is the one Upkeep installed.
-[apps.nvimunity]
-name = "Nvim Unity"
-kind = "appimage"
-repo = "apyra/nvim-unity"
-asset = '^nvimunity-linux\.AppImage$'
-dest = "~/.local/bin/nvimunity.AppImage"
-probe = false

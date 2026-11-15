@@ -1,8 +1,0 @@
-# Drafted from warreth/OpenlibExtended's v1.8.2 release; its version is the one Upkeep installed.
-[apps.openlib]
-name = "OpenlibExtended"
-kind = "appimage"
-repo = "warreth/OpenlibExtended"
-asset = '^openlib-linux-x64-.*\.AppImage$'
-dest = "~/.local/bin/openlib.AppImage"
-probe = false

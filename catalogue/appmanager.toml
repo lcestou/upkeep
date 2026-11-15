@@ -1,9 +1,0 @@
-# Drafted from kem-a/AppManager's v3.8.0 release; its version is the one Upkeep installed.
-[apps.appmanager]
-name = "AppManager-anylinux"
-kind = "appimage"
-repo = "kem-a/AppManager"
-asset = '^AppManager-.*-anylinux-x86_64\.AppImage$'
-asset_aarch64 = '^AppManager-.*-anylinux-aarch64\.AppImage$'
-dest = "~/.local/bin/appmanager-anylinux.AppImage"
-probe = false

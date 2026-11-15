@@ -1,9 +1,0 @@
-# Drafted from CyrilPeng/Venera-Next's v1.18.3 release; its version is the one Upkeep installed.
-[apps.venera-next]
-name = "VeneraNext-+249"
-kind = "appimage"
-repo = "CyrilPeng/Venera-Next"
-asset = '^VeneraNext-.*\+249-x86_64\.AppImage$'
-asset_aarch64 = '^VeneraNext-.*\+249-aarch64\.AppImage$'
-dest = "~/.local/bin/venera-next.AppImage"
-probe = false

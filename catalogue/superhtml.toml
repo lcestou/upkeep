@@ -1,9 +1,0 @@
-# Drafted from kristoff-it/superhtml's v0.7.1 release; its version is the one Upkeep installed.
-[apps.superhtml]
-name = "superhtml"
-kind = "archive"
-repo = "kristoff-it/superhtml"
-asset = '^x86_64-linux-musl\.tar\.xz$'
-dest = "~/.local/bin/superhtml"
-bins = ["superhtml"]
-probe = false

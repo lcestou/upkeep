@@ -1,8 +1,0 @@
-# Drafted from redasm-dev/redasm's v4.0.0-beta3 release; its version is the one Upkeep installed.
-[apps.redasm-beta3]
-name = "REDasm-beta3"
-kind = "appimage"
-repo = "redasm-dev/redasm"
-asset = '^REDasm-.*-beta3-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/redasm-beta3.AppImage"
-probe = false

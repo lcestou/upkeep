@@ -1,9 +1,0 @@
-# Drafted from AtomicBot-ai/Atomic-Chat's v2.4.5 release; its version is the one Upkeep installed.
-[apps.atomic-chat]
-name = "Atomic-Chat"
-kind = "appimage"
-repo = "AtomicBot-ai/Atomic-Chat"
-asset = '^Atomic\.Chat_.*_amd64\.AppImage$'
-asset_aarch64 = '^Atomic\.Chat_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/atomic-chat.AppImage"
-probe = false

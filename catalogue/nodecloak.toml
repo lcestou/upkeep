@@ -1,8 +1,0 @@
-# Drafted from nodecloak/nodecloak's v5.0.3 release; its version is the one Upkeep installed.
-[apps.nodecloak]
-name = "NodeCloak"
-kind = "appimage"
-repo = "nodecloak/nodecloak"
-asset = '^NodeCloak_.*_linux_x64\.AppImage$'
-dest = "~/.local/bin/nodecloak.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Kieirra/murmure's 2.0.3 release; its version is the one Upkeep installed.
-[apps.murmure]
-name = "Murmure"
-kind = "appimage"
-repo = "Kieirra/murmure"
-asset = '^Murmure_amd64\.AppImage$'
-dest = "~/.local/bin/murmure.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from chisomobanzi/Serpentine3D's v0.12.5 release; its version is the one Upkeep installed.
-[apps.serpentine3d]
-name = "Serpentine3D"
-kind = "appimage"
-repo = "chisomobanzi/Serpentine3D"
-asset = '^Serpentine3D-x86_64\.AppImage$'
-dest = "~/.local/bin/serpentine3d.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from storytold/filmcraft's v0.20.1 release; its version is the one Upkeep installed.
-[apps.filmcraft]
-name = "filmcraft"
-kind = "appimage"
-repo = "storytold/filmcraft"
-asset = '^filmcraft-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^filmcraft-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/filmcraft.AppImage"
-probe = false

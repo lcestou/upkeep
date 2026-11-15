@@ -1,8 +1,0 @@
-# Drafted from l0ng-ai/papr's v0.16.1 release; its version is the one Upkeep installed.
-[apps.papr]
-name = "Papr"
-kind = "appimage"
-repo = "l0ng-ai/papr"
-asset = '^Papr_.*_amd64\.AppImage$'
-dest = "~/.local/bin/papr.AppImage"
-probe = false

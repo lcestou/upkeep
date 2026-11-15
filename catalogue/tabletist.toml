@@ -1,9 +1,0 @@
-# Drafted from igor-alexandrov/tabletist's v0.6.1 release; its version is the one Upkeep installed.
-[apps.tabletist]
-name = "tabletist"
-kind = "appimage"
-repo = "igor-alexandrov/tabletist"
-asset = '^tabletist-.*-x86_64\.AppImage$'
-asset_aarch64 = '^tabletist-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/tabletist.AppImage"
-probe = false

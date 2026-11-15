@@ -1,8 +1,0 @@
-# Drafted from nota-lang/bene's v0.1.3 release; its version is the one Upkeep installed.
-[apps.bene-reader]
-name = "Bene-Reader"
-kind = "appimage"
-repo = "nota-lang/bene"
-asset = '^Bene\.Reader_.*_amd64\.AppImage$'
-dest = "~/.local/bin/bene-reader.AppImage"
-probe = false

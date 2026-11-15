@@ -1,8 +1,0 @@
-# Drafted from n1m21n/Infinite's v1.2.0 release; its version is the one Upkeep installed.
-[apps.infinite]
-name = "Infinite"
-kind = "appimage"
-repo = "n1m21n/Infinite"
-asset = '^Infinite-x86_64\.AppImage$'
-dest = "~/.local/bin/infinite.AppImage"
-probe = false

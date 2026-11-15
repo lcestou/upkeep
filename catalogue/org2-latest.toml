@@ -1,8 +1,0 @@
-# Drafted from org2AI/ORG2's v2.0.10 release; its version is the one Upkeep installed.
-[apps.org2-latest]
-name = "ORG2-latest"
-kind = "appimage"
-repo = "org2AI/ORG2"
-asset = '^ORG2-latest-linux-x64\.AppImage$'
-dest = "~/.local/bin/org2-latest.AppImage"
-probe = false

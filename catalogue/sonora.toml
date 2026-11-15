@@ -1,9 +1,0 @@
-# Drafted from sonorahq/sonora's v0.49.1 release; its version is the one Upkeep installed.
-[apps.sonora]
-name = "sonora"
-kind = "appimage"
-repo = "sonorahq/sonora"
-asset = '^sonora-.*-x86_64\.AppImage$'
-asset_aarch64 = '^sonora-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/sonora.AppImage"
-probe = false

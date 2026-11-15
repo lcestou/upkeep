@@ -1,8 +1,0 @@
-# Drafted from multizenteam/multizen-browser's v0.4.2 release; its version is the one Upkeep installed.
-[apps.multizen]
-name = "MultiZen"
-kind = "appimage"
-repo = "multizenteam/multizen-browser"
-asset = '^MultiZen-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/multizen.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from ropnop/kerbrute's v1.0.3 release; its version is the one Upkeep installed.
-[apps.kerbrute]
-name = "kerbrute"
-kind = "file"
-repo = "ropnop/kerbrute"
-asset = '^kerbrute_linux_amd64$'
-dest = "~/.local/bin/kerbrute"
-probe = false

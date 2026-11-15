@@ -1,8 +1,0 @@
-# Drafted from openwong2kim/wmux's v4.15.0 release; its version is the one Upkeep installed.
-[apps.wmux]
-name = "wmux"
-kind = "appimage"
-repo = "openwong2kim/wmux"
-asset = '^wmux-.*-x64\.AppImage$'
-dest = "~/.local/bin/wmux.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from bitwarden/clients's desktop-v2026.10.4 release; its version is the one Upkeep installed.
-[apps.bitwarden]
-name = "Bitwarden"
-kind = "appimage"
-repo = "bitwarden/clients"
-asset = '^Bitwarden-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/bitwarden.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Predidit/oneAnime's 1.4.7 release; its version is the one Upkeep installed.
-[apps.oneanime]
-name = "oneAnime"
-kind = "appimage"
-repo = "Predidit/oneAnime"
-asset = '^oneAnime_linux_.*\.AppImage$'
-dest = "~/.local/bin/oneanime.AppImage"
-probe = false

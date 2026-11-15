@@ -1,9 +1,0 @@
-# Drafted from neovim/neovim-releases's v0.12.5 release; its version is the one Upkeep installed.
-[apps.nvim]
-name = "Neovim Releases"
-kind = "appimage"
-repo = "neovim/neovim-releases"
-asset = '^nvim-linux-x86_64\.appimage$'
-asset_aarch64 = '^nvim-linux-arm64\.appimage$'
-dest = "~/.local/bin/nvim.AppImage"
-probe = false

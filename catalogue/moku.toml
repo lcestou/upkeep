@@ -1,9 +1,0 @@
-# Drafted from moku-project/Moku's v0.14.1 release; its version is the one Upkeep installed.
-[apps.moku]
-name = "Moku"
-kind = "appimage"
-repo = "moku-project/Moku"
-asset = '^Moku-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Moku-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/moku.AppImage"
-probe = false

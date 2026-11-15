@@ -1,8 +1,0 @@
-# Drafted from veloxbase/veloxdb's v0.4.1 release; its version is the one Upkeep installed.
-[apps.veloxdb]
-name = "veloxdb"
-kind = "appimage"
-repo = "veloxbase/veloxdb"
-asset = '^veloxdb_.*_amd64\.AppImage$'
-dest = "~/.local/bin/veloxdb.AppImage"
-probe = false

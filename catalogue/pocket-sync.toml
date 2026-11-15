@@ -1,8 +1,0 @@
-# Drafted from neil-morrison44/pocket-sync's v7.2.1 release; its version is the one Upkeep installed.
-[apps.pocket-sync]
-name = "Pocket-Sync"
-kind = "appimage"
-repo = "neil-morrison44/pocket-sync"
-asset = '^Pocket\.Sync_.*_amd64\.AppImage$'
-dest = "~/.local/bin/pocket-sync.AppImage"
-probe = false

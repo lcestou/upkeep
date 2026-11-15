@@ -1,8 +1,0 @@
-# Drafted from Matteo842/SaveState's v3.2.1 release; its version is the one Upkeep installed.
-[apps.savestate]
-name = "SaveState"
-kind = "appimage"
-repo = "Matteo842/SaveState"
-asset = '^SaveState_.*\.AppImage$'
-dest = "~/.local/bin/savestate.AppImage"
-probe = false

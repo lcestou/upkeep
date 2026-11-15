@@ -1,8 +1,0 @@
-# Drafted from winegui/WineGUI's v4.5.2 release; its version is the one Upkeep installed.
-[apps.winegui]
-name = "WineGUI"
-kind = "appimage"
-repo = "winegui/WineGUI"
-asset = '^WineGUI-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/winegui.AppImage"
-probe = false

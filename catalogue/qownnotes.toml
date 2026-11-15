@@ -1,8 +1,0 @@
-# Drafted from pbek/QOwnNotes's v26.11.9 release; its version is the one Upkeep installed.
-[apps.qownnotes]
-name = "QOwnNotes"
-kind = "appimage"
-repo = "pbek/QOwnNotes"
-asset = '^QOwnNotes-x86_64\.AppImage$'
-dest = "~/.local/bin/qownnotes.AppImage"
-probe = false

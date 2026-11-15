@@ -1,8 +1,0 @@
-# Drafted from Masterain98/discord-quest-helper's 0.12.0 release; its version is the one Upkeep installed.
-[apps.discord-quest-helper]
-name = "Discord Quest Helper"
-kind = "appimage"
-repo = "Masterain98/discord-quest-helper"
-asset = '^discord-quest-helper-Linux-x86_64-.*\.AppImage$'
-dest = "~/.local/bin/discord-quest-helper.AppImage"
-probe = false

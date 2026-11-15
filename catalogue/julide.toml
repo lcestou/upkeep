@@ -1,8 +1,0 @@
-# Drafted from Julideorg/JulIde's v0.6.1 release; its version is the one Upkeep installed.
-[apps.julide]
-name = "JulIde"
-kind = "appimage"
-repo = "Julideorg/JulIde"
-asset = '^julide_.*_amd64\.AppImage$'
-dest = "~/.local/bin/julide.AppImage"
-probe = false

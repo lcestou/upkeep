@@ -1,9 +1,0 @@
-# Drafted from jlcodes99/cockpit-tools's v1.3.84 release; its version is the one Upkeep installed.
-[apps.cockpit-tools]
-name = "Cockpit-Tools"
-kind = "appimage"
-repo = "jlcodes99/cockpit-tools"
-asset = '^Cockpit\.Tools_.*_amd64\.AppImage$'
-asset_aarch64 = '^Cockpit\.Tools_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/cockpit-tools.AppImage"
-probe = false

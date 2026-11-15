@@ -1,8 +1,0 @@
-# Drafted from anyproto/anytype-ts's v0.57.8-alpha release; its version is the one Upkeep installed.
-[apps.anytype-alpha]
-name = "Anytype-alpha"
-kind = "appimage"
-repo = "anyproto/anytype-ts"
-asset = '^Anytype-.*-alpha\.AppImage$'
-dest = "~/.local/bin/anytype-alpha.AppImage"
-probe = false

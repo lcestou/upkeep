@@ -1,8 +1,0 @@
-# Drafted from robclouth/noise-canvas's v1.0.3 release; its version is the one Upkeep installed.
-[apps.noise-canvas]
-name = "Noise Canvas"
-kind = "appimage"
-repo = "robclouth/noise-canvas"
-asset = '^noise-canvas-linux\.AppImage$'
-dest = "~/.local/bin/noise-canvas.AppImage"
-probe = false

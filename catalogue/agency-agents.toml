@@ -1,8 +1,0 @@
-# Drafted from msitarzewski/agency-agents-app's v0.3.2 release; its version is the one Upkeep installed.
-[apps.agency-agents]
-name = "Agency-Agents"
-kind = "appimage"
-repo = "msitarzewski/agency-agents-app"
-asset = '^Agency_Agents_.*_amd64\.AppImage$'
-dest = "~/.local/bin/agency-agents.AppImage"
-probe = false

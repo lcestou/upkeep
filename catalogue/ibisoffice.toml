@@ -1,8 +1,0 @@
-# Drafted from ibisjp/ibis-office's v0.8.7 release; its version is the one Upkeep installed.
-[apps.ibisoffice]
-name = "ibisOffice"
-kind = "appimage"
-repo = "ibisjp/ibis-office"
-asset = '^ibisOffice-.*-Linux\.AppImage$'
-dest = "~/.local/bin/ibisoffice.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from SethRobinson/Patchy's v1.36 release; its version is the one Upkeep installed.
-[apps.patchylinux]
-name = "PatchyLinux"
-kind = "appimage"
-repo = "SethRobinson/Patchy"
-asset = '^PatchyLinux\.AppImage$'
-dest = "~/.local/bin/patchylinux.AppImage"
-probe = false

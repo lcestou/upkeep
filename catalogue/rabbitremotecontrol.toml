@@ -1,9 +1,0 @@
-# Drafted from KangLin/RabbitRemoteControl's v0.0.37 release; its version is the one Upkeep installed.
-[apps.rabbitremotecontrol]
-name = "RabbitRemoteControl"
-kind = "appimage"
-repo = "KangLin/RabbitRemoteControl"
-asset = '^RabbitRemoteControl_.*_Linux_x86_64\.AppImage$'
-asset_aarch64 = '^RabbitRemoteControl_.*_Linux_aarch64\.AppImage$'
-dest = "~/.local/bin/rabbitremotecontrol.AppImage"
-probe = false

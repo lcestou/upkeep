@@ -1,8 +1,0 @@
-# Drafted from genspark-ai/genoffice's v0.13.18 release; its version is the one Upkeep installed.
-[apps.genoffice]
-name = "GenOffice"
-kind = "appimage"
-repo = "genspark-ai/genoffice"
-asset = '^GenOffice-.*\.AppImage$'
-dest = "~/.local/bin/genoffice.AppImage"
-probe = false

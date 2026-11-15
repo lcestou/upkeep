@@ -1,8 +1,0 @@
-# Drafted from sthrnilshaaa/looper's 2.7.5 release; its version is the one Upkeep installed.
-[apps.looper-player]
-name = "looper"
-kind = "appimage"
-repo = "sthrnilshaaa/looper"
-asset = '^looper-player_.*_x86_64\.AppImage$'
-dest = "~/.local/bin/looper-player.AppImage"
-probe = false

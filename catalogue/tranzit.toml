@@ -1,8 +1,0 @@
-# Drafted from kr5hn4/tranzit's v0.3.0 release; its version is the one Upkeep installed.
-[apps.tranzit]
-name = "tranzit"
-kind = "file"
-repo = "kr5hn4/tranzit"
-asset = '^tranzit_.*_linux_86_64$'
-dest = "~/.local/bin/tranzit"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from moonaura/Geforce-Eternity's 1.1.2 release; its version is the one Upkeep installed.
-[apps.geforce-eternity]
-name = "GeForce-Eternity"
-kind = "appimage"
-repo = "moonaura/Geforce-Eternity"
-asset = '^GeForce\.Eternity-linux-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/geforce-eternity.AppImage"
-probe = false

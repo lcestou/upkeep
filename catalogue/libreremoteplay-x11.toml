@@ -1,9 +1,0 @@
-# Drafted from PiterWeb/LibreRemotePlay's release-0.10.0 release; its version is the one Upkeep installed.
-[apps.libreremoteplay-x11]
-name = "LibreRemotePlay-x11"
-kind = "file"
-repo = "PiterWeb/LibreRemotePlay"
-asset = '^LibreRemotePlay-amd64-x11$'
-asset_aarch64 = '^LibreRemotePlay-arm64-x11$'
-dest = "~/.local/bin/libreremoteplay-x11"
-probe = false

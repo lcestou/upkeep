@@ -1,9 +1,0 @@
-# Drafted from xiaYuTian11/maskit's v0.16.2 release; its version is the one Upkeep installed.
-[apps.maskit]
-name = "Maskit"
-kind = "appimage"
-repo = "xiaYuTian11/maskit"
-asset = '^Maskit_.*_amd64\.AppImage$'
-asset_aarch64 = '^Maskit_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/maskit.AppImage"
-probe = false

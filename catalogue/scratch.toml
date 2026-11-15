@@ -1,8 +1,0 @@
-# Drafted from erictli/scratch's v1.0.0 release; its version is the one Upkeep installed.
-[apps.scratch]
-name = "Scratch"
-kind = "appimage"
-repo = "erictli/scratch"
-asset = '^Scratch_.*_amd64\.AppImage$'
-dest = "~/.local/bin/scratch.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from winboat-org/winboat's v0.9.2 release; its version is the one Upkeep installed.
-[apps.winboat]
-name = "winboat"
-kind = "appimage"
-repo = "winboat-org/winboat"
-asset = '^winboat-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/winboat.AppImage"
-probe = false

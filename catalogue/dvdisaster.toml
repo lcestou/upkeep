@@ -1,8 +1,0 @@
-# Drafted from speed47/dvdisaster's v0.79.10-pl6 release; its version is the one Upkeep installed.
-[apps.dvdisaster]
-name = "dvdisaster"
-kind = "appimage"
-repo = "speed47/dvdisaster"
-asset = '^dvdisaster-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/dvdisaster.AppImage"
-probe = false

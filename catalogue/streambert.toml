@@ -1,8 +1,0 @@
-# Drafted from truelockmc/streambert's 2.7.0 release; its version is the one Upkeep installed.
-[apps.streambert]
-name = "Streambert"
-kind = "appimage"
-repo = "truelockmc/streambert"
-asset = '^Streambert-.*\.AppImage$'
-dest = "~/.local/bin/streambert.AppImage"
-probe = false

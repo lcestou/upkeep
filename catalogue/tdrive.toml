@@ -1,8 +1,0 @@
-# Drafted from jeetrex17/TDrive's v2.3.0 release; its version is the one Upkeep installed.
-[apps.tdrive]
-name = "TDrive"
-kind = "appimage"
-repo = "jeetrex17/TDrive"
-asset = '^TDrive-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/tdrive.AppImage"
-probe = false

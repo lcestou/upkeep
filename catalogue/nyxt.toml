@@ -1,9 +1,0 @@
-# Drafted from atlas-engineer/nyxt's 4.0.0 release; its version is the one Upkeep installed.
-[apps.nyxt]
-name = "Nyxt"
-kind = "archive"
-repo = "atlas-engineer/nyxt"
-asset = '^Linux-Nyxt-x86_64\.tar\.gz$'
-dest = "~/.local/bin/nyxt"
-bins = ["Nyxt*"]
-probe = false

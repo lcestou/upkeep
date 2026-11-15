@@ -1,8 +1,0 @@
-# Drafted from instead-hub/instead's 3.6.0 release; its version is the one Upkeep installed.
-[apps.instead]
-name = "INSTEAD"
-kind = "appimage"
-repo = "instead-hub/instead"
-asset = '^INSTEAD-x86_64\.AppImage$'
-dest = "~/.local/bin/instead.AppImage"
-probe = false

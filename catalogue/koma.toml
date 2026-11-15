@@ -1,9 +1,0 @@
-# Drafted from aula-id/koma's v0.4.17 release; its version is the one Upkeep installed.
-[apps.koma]
-name = "koma"
-kind = "file"
-repo = "aula-id/koma"
-asset = '^koma-linux-x64$'
-asset_aarch64 = '^koma-linux-arm64$'
-dest = "~/.local/bin/koma"
-probe = false

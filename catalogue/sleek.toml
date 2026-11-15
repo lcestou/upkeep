@@ -1,9 +1,0 @@
-# Drafted from ransome1/sleek's v2.1.1 release; its version is the one Upkeep installed.
-[apps.sleek]
-name = "sleek"
-kind = "appimage"
-repo = "ransome1/sleek"
-asset = '^sleek-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^sleek-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/sleek.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from zibo-chen/SubnetDesk's v1.3.0 release; its version is the one Upkeep installed.
-[apps.subnetdesk]
-name = "SubnetDesk"
-kind = "appimage"
-repo = "zibo-chen/SubnetDesk"
-asset = '^subnetdesk-.*-x86_64\.AppImage$'
-asset_aarch64 = '^subnetdesk-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/subnetdesk.AppImage"
-probe = false

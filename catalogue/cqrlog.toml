@@ -1,8 +1,0 @@
-# Drafted from ok2cqr/cqrlog's v3.3.0 release; its version is the one Upkeep installed.
-[apps.cqrlog]
-name = "CQRLOG-QT5"
-kind = "appimage"
-repo = "ok2cqr/cqrlog"
-asset = '^CQRLOG-.*-QT5-x86_64\.AppImage$'
-dest = "~/.local/bin/cqrlog.AppImage"
-probe = false

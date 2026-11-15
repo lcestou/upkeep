@@ -1,8 +1,0 @@
-# Drafted from Wox-launcher/Wox's v2.5.0 release; its version is the one Upkeep installed.
-[apps.wox]
-name = "Wox"
-kind = "appimage"
-repo = "Wox-launcher/Wox"
-asset = '^wox-linux-amd64\.AppImage$'
-dest = "~/.local/bin/wox.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Rizzo-AI-Academy/rizzo-pii's v2.1.0 release; its version is the one Upkeep installed.
-[apps.rizzo-pii]
-name = "Rizzo-PII"
-kind = "appimage"
-repo = "Rizzo-AI-Academy/rizzo-pii"
-asset = '^Rizzo-PII-.*-Linux-x86_64\.AppImage$'
-dest = "~/.local/bin/rizzo-pii.AppImage"
-probe = false

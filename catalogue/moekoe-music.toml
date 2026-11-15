@@ -1,8 +1,0 @@
-# Drafted from MoeKoeMusic/MoeKoeMusic's v1.7.2 release; its version is the one Upkeep installed.
-[apps.moekoe-music]
-name = "MoeKoe-Music"
-kind = "appimage"
-repo = "MoeKoeMusic/MoeKoeMusic"
-asset = '^MoeKoe_Music_.*-x86_64\.AppImage$'
-dest = "~/.local/bin/moekoe-music.AppImage"
-probe = false

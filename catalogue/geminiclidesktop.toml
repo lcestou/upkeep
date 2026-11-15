@@ -1,8 +1,0 @@
-# Drafted from Piebald-AI/gemini-cli-desktop's v0.3.15 release; its version is the one Upkeep installed.
-[apps.geminiclidesktop]
-name = "GeminiCLIDesktop"
-kind = "appimage"
-repo = "Piebald-AI/gemini-cli-desktop"
-asset = '^GeminiCLIDesktop_.*_amd64\.AppImage$'
-dest = "~/.local/bin/geminiclidesktop.AppImage"
-probe = false

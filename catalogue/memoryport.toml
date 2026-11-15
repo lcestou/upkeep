@@ -1,8 +1,0 @@
-# Drafted from t8/memoryport's v0.1.3 release; its version is the one Upkeep installed.
-[apps.memoryport]
-name = "Memoryport"
-kind = "appimage"
-repo = "t8/memoryport"
-asset = '^Memoryport_.*_amd64\.AppImage$'
-dest = "~/.local/bin/memoryport.AppImage"
-probe = false

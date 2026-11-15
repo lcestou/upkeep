@@ -1,9 +1,0 @@
-# Drafted from nekename/OpenDeck's v2.14.2 release; its version is the one Upkeep installed.
-[apps.opendeck]
-name = "OpenDeck"
-kind = "appimage"
-repo = "nekename/OpenDeck"
-asset = '^opendeck_.*_amd64\.AppImage$'
-asset_aarch64 = '^opendeck_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/opendeck.AppImage"
-probe = false

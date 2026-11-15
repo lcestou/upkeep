@@ -1,9 +1,0 @@
-# Drafted from eduwxyz/tucano's v0.2.32 release; its version is the one Upkeep installed.
-[apps.tucano]
-name = "tucano"
-kind = "appimage"
-repo = "eduwxyz/tucano"
-asset = '^tucano-linux-x86_64\.AppImage$'
-asset_aarch64 = '^tucano-linux-arm64\.AppImage$'
-dest = "~/.local/bin/tucano.AppImage"
-probe = false

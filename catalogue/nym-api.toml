@@ -1,8 +1,0 @@
-# Drafted from nymtech/nym's nym-binaries-v2026.22-istanbul release; its version is the one Upkeep installed.
-[apps.nym-api]
-name = "nym"
-kind = "file"
-repo = "nymtech/nym"
-asset = '^nym-api$'
-dest = "~/.local/bin/nym-api"
-probe = false

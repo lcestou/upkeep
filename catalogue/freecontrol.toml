@@ -1,8 +1,0 @@
-# Drafted from pdone/FreeControl's v2.5.1 release; its version is the one Upkeep installed.
-[apps.freecontrol]
-name = "FreeControl"
-kind = "appimage"
-repo = "pdone/FreeControl"
-asset = '^FreeControl_.*_linux_amd64\.AppImage$'
-dest = "~/.local/bin/freecontrol.AppImage"
-probe = false

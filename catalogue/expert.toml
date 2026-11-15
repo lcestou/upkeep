@@ -1,9 +1,0 @@
-# Drafted from expert-lsp/expert's v0.2.3 release; its version is the one Upkeep installed.
-[apps.expert]
-name = "expert"
-kind = "file"
-repo = "expert-lsp/expert"
-asset = '^expert_linux_amd64$'
-asset_aarch64 = '^expert_linux_arm64$'
-dest = "~/.local/bin/expert"
-probe = false

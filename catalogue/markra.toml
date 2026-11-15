@@ -1,9 +1,0 @@
-# Drafted from markrahq/markra's v2.14.6 release; its version is the one Upkeep installed.
-[apps.markra]
-name = "Markra"
-kind = "appimage"
-repo = "markrahq/markra"
-asset = '^Markra_.*_linux_x64\.AppImage$'
-asset_aarch64 = '^Markra_.*_linux_arm64\.AppImage$'
-dest = "~/.local/bin/markra.AppImage"
-probe = false

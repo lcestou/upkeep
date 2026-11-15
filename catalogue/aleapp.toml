@@ -1,9 +1,0 @@
-# Drafted from abrignoni/ALEAPP's v2026.4.5 release; its version is the one Upkeep installed.
-[apps.aleapp]
-name = "ALEAPP"
-kind = "appimage"
-repo = "abrignoni/ALEAPP"
-asset = '^ALEAPP-.*-linux-x64\.AppImage$'
-asset_aarch64 = '^ALEAPP-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/aleapp.AppImage"
-probe = false

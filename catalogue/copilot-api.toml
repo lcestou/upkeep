@@ -1,8 +1,0 @@
-# Drafted from caozhiyuan/copilot-api's v2.9.9 release; its version is the one Upkeep installed.
-[apps.copilot-api]
-name = "Copilot-API"
-kind = "appimage"
-repo = "caozhiyuan/copilot-api"
-asset = '^Copilot-API-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/copilot-api.AppImage"
-probe = false

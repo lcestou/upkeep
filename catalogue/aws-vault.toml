@@ -1,9 +1,0 @@
-# Drafted from 99designs/aws-vault's v7.2.0 release; its version is the one Upkeep installed.
-[apps.aws-vault]
-name = "Aws Vault"
-kind = "file"
-repo = "99designs/aws-vault"
-asset = '^aws-vault-linux-amd64$'
-asset_aarch64 = '^aws-vault-linux-arm64$'
-dest = "~/.local/bin/aws-vault"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from lencx/Noi's v1.1.0 release; its version is the one Upkeep installed.
-[apps.noi]
-name = "Noi"
-kind = "appimage"
-repo = "lencx/Noi"
-asset = '^Noi-.*-x64\.AppImage$'
-dest = "~/.local/bin/noi.AppImage"
-probe = false

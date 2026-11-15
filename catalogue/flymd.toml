@@ -1,8 +1,0 @@
-# Drafted from flyhunterl/flymd's v1.4.4 release; its version is the one Upkeep installed.
-[apps.flymd]
-name = "flymd"
-kind = "appimage"
-repo = "flyhunterl/flymd"
-asset = '^flymd_.*_amd64\.AppImage$'
-dest = "~/.local/bin/flymd.AppImage"
-probe = false

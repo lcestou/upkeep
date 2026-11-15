@@ -1,8 +1,0 @@
-# Drafted from mikjee/warpdrv's v0.6.26-beta release; its version is the one Upkeep installed.
-[apps.warpdrv]
-name = "warpdrv"
-kind = "appimage"
-repo = "mikjee/warpdrv"
-asset = '^warpdrv_.*_amd64\.AppImage$'
-dest = "~/.local/bin/warpdrv.AppImage"
-probe = false

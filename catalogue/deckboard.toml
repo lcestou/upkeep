@@ -1,8 +1,0 @@
-# Drafted from rivafarabi/deckboard's v3.2.0 release; its version is the one Upkeep installed.
-[apps.deckboard]
-name = "Deckboard"
-kind = "appimage"
-repo = "rivafarabi/deckboard"
-asset = '^Deckboard-.*\.AppImage$'
-dest = "~/.local/bin/deckboard.AppImage"
-probe = false

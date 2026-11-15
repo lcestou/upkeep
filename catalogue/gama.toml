@@ -1,9 +1,0 @@
-# Drafted from termkit/gama's v1.2.1 release; its version is the one Upkeep installed.
-[apps.gama]
-name = "gama"
-kind = "file"
-repo = "termkit/gama"
-asset = '^gama-linux-amd64$'
-asset_aarch64 = '^gama-linux-arm64$'
-dest = "~/.local/bin/gama"
-probe = false

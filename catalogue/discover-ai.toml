@@ -1,8 +1,0 @@
-# Drafted from Fazmin/AILearningGuide's v0.2.1 release; its version is the one Upkeep installed.
-[apps.discover-ai]
-name = "Discover-AI"
-kind = "appimage"
-repo = "Fazmin/AILearningGuide"
-asset = '^Discover\.AI_.*_amd64\.AppImage$'
-dest = "~/.local/bin/discover-ai.AppImage"
-probe = false

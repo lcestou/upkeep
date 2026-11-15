@@ -1,8 +1,0 @@
-# Drafted from 6im0n/lightroom-classic-on-linux's v1.2.0 release; its version is the one Upkeep installed.
-[apps.lightroom-classic-on]
-name = "Lightroom-Classic-on"
-kind = "appimage"
-repo = "6im0n/lightroom-classic-on-linux"
-asset = '^Lightroom_Classic_on_Linux-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/lightroom-classic-on.AppImage"
-probe = false

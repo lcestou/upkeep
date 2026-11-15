@@ -1,8 +1,0 @@
-# Drafted from lobehub/lobehub's v2.3.3 release; its version is the one Upkeep installed.
-[apps.lobehub]
-name = "LobeHub"
-kind = "appimage"
-repo = "lobehub/lobehub"
-asset = '^LobeHub-.*\.AppImage$'
-dest = "~/.local/bin/lobehub.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from abs-lang/abs's 2.7.2 release; its version is the one Upkeep installed.
-[apps.abs]
-name = "abs"
-kind = "file"
-repo = "abs-lang/abs"
-asset = '^abs-linux-amd64$'
-asset_aarch64 = '^abs-linux-arm64$'
-dest = "~/.local/bin/abs"
-probe = false

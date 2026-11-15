@@ -1,8 +1,0 @@
-# Drafted from carloluisito/omnidesk's v2.7.1 release; its version is the one Upkeep installed.
-[apps.omnidesk]
-name = "OmniDesk"
-kind = "appimage"
-repo = "carloluisito/omnidesk"
-asset = '^OmniDesk-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/omnidesk.AppImage"
-probe = false

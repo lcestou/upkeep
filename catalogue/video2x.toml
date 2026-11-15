@@ -1,8 +1,0 @@
-# Drafted from k4yt3x/video2x's 6.4.0 release; its version is the one Upkeep installed.
-[apps.video2x]
-name = "Video2X"
-kind = "appimage"
-repo = "k4yt3x/video2x"
-asset = '^Video2X-x86_64\.AppImage$'
-dest = "~/.local/bin/video2x.AppImage"
-probe = false

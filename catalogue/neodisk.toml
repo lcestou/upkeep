@@ -1,9 +1,0 @@
-# Drafted from tkslucas/Neodisk's v2.91.0 release; its version is the one Upkeep installed.
-[apps.neodisk]
-name = "Neodisk"
-kind = "appimage"
-repo = "tkslucas/Neodisk"
-asset = '^Neodisk-x86_64\.AppImage$'
-asset_aarch64 = '^Neodisk-aarch64\.AppImage$'
-dest = "~/.local/bin/neodisk.AppImage"
-probe = false

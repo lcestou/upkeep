@@ -1,9 +1,0 @@
-# Drafted from LeoAlecksey/opsdeck's v0.8.4 release; its version is the one Upkeep installed.
-[apps.opsdeck]
-name = "OpsDeck"
-kind = "appimage"
-repo = "LeoAlecksey/opsdeck"
-asset = '^OpsDeck_.*_amd64\.AppImage$'
-asset_aarch64 = '^OpsDeck_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/opsdeck.AppImage"
-probe = false

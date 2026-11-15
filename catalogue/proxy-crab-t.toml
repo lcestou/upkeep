@@ -1,9 +1,0 @@
-# Drafted from Yricky/proxycrab's v1.2.0 release; its version is the one Upkeep installed.
-[apps.proxy-crab-t]
-name = "proxycrab"
-kind = "appimage"
-repo = "Yricky/proxycrab"
-asset = '^proxy-crab-t_.*_amd64\.AppImage$'
-asset_aarch64 = '^proxy-crab-t_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/proxy-crab-t.AppImage"
-probe = false

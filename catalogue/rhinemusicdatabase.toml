@@ -1,8 +1,0 @@
-# Drafted from MikeQu223/Rhine-Music-Database's v1.3.1 release; its version is the one Upkeep installed.
-[apps.rhinemusicdatabase]
-name = "RhineMusicDatabase"
-kind = "appimage"
-repo = "MikeQu223/Rhine-Music-Database"
-asset = '^RhineMusicDatabase-.*-Linux-x86_64\.AppImage$'
-dest = "~/.local/bin/rhinemusicdatabase.AppImage"
-probe = false

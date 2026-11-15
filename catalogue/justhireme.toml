@@ -1,8 +1,0 @@
-# Drafted from vasu-devs/JustHireMe's v1.7.0 release; its version is the one Upkeep installed.
-[apps.justhireme]
-name = "JustHireMe"
-kind = "appimage"
-repo = "vasu-devs/JustHireMe"
-asset = '^JustHireMe_.*_amd64\.AppImage$'
-dest = "~/.local/bin/justhireme.AppImage"
-probe = false

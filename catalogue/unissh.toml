@@ -1,9 +1,0 @@
-# Drafted from goduni/unissh's v0.7.1 release; its version is the one Upkeep installed.
-[apps.unissh]
-name = "UniSSH"
-kind = "appimage"
-repo = "goduni/unissh"
-asset = '^UniSSH_.*_amd64\.AppImage$'
-asset_aarch64 = '^UniSSH_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/unissh.AppImage"
-probe = false

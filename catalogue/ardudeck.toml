@@ -1,8 +1,0 @@
-# Drafted from rubenCodeforges/ardudeck's v0.1.2 release; its version is the one Upkeep installed.
-[apps.ardudeck]
-name = "ArduDeck"
-kind = "appimage"
-repo = "rubenCodeforges/ardudeck"
-asset = '^ArduDeck-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/ardudeck.AppImage"
-probe = false

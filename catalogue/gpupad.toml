@@ -1,8 +1,0 @@
-# Drafted from houmain/gpupad's 4.7.0 release; its version is the one Upkeep installed.
-[apps.gpupad]
-name = "GPUpad"
-kind = "appimage"
-repo = "houmain/gpupad"
-asset = '^GPUpad-.*-Linux\.AppImage$'
-dest = "~/.local/bin/gpupad.AppImage"
-probe = false

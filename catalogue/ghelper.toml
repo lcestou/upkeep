@@ -1,8 +1,0 @@
-# Drafted from utajum/g-helper-linux's v1.0.100 release; its version is the one Upkeep installed.
-[apps.ghelper]
-name = "GHelper"
-kind = "appimage"
-repo = "utajum/g-helper-linux"
-asset = '^GHelper-x86_64\.AppImage$'
-dest = "~/.local/bin/ghelper.AppImage"
-probe = false

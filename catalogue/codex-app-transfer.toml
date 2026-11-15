@@ -1,8 +1,0 @@
-# Drafted from Cmochance/codex-app-transfer's v2.4.4 release; its version is the one Upkeep installed.
-[apps.codex-app-transfer]
-name = "Codex-App-Transfer"
-kind = "appimage"
-repo = "Cmochance/codex-app-transfer"
-asset = '^Codex-App-Transfer-.*-Linux-x86_64\.AppImage$'
-dest = "~/.local/bin/codex-app-transfer.AppImage"
-probe = false

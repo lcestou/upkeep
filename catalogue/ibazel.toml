@@ -1,9 +1,0 @@
-# Drafted from bazelbuild/bazel-watcher's v0.33.0 release; its version is the one Upkeep installed.
-[apps.ibazel]
-name = "Bazel Watcher"
-kind = "file"
-repo = "bazelbuild/bazel-watcher"
-asset = '^ibazel_linux_amd64$'
-asset_aarch64 = '^ibazel_linux_arm64$'
-dest = "~/.local/bin/ibazel"
-probe = false

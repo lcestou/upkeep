@@ -1,8 +1,0 @@
-# Drafted from hhannine/superpaper's v2.2.1 release; its version is the one Upkeep installed.
-[apps.superpaper]
-name = "Superpaper"
-kind = "appimage"
-repo = "hhannine/superpaper"
-asset = '^Superpaper-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/superpaper.AppImage"
-probe = false

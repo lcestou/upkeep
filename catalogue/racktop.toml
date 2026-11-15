@@ -1,8 +1,0 @@
-# Drafted from Tongzh-SEU/RackTop's v1.26.3 release; its version is the one Upkeep installed.
-[apps.racktop]
-name = "RackTop"
-kind = "appimage"
-repo = "Tongzh-SEU/RackTop"
-asset = '^RackTop_.*_amd64\.AppImage$'
-dest = "~/.local/bin/racktop.AppImage"
-probe = false

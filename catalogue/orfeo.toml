@@ -1,8 +1,0 @@
-# Drafted from Squarebow/Orfeo's v1.7.3 release; its version is the one Upkeep installed.
-[apps.orfeo]
-name = "Orfeo"
-kind = "appimage"
-repo = "Squarebow/Orfeo"
-asset = '^Orfeo-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/orfeo.AppImage"
-probe = false

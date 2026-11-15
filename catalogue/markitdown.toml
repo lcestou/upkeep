@@ -1,8 +1,0 @@
-# Drafted from imadreamerboy/markitdown-gui's v.1.6.0 release; its version is the one Upkeep installed.
-[apps.markitdown]
-name = "MarkItDown"
-kind = "appimage"
-repo = "imadreamerboy/markitdown-gui"
-asset = '^MarkItDown-Linux-.*\.AppImage$'
-dest = "~/.local/bin/markitdown.AppImage"
-probe = false

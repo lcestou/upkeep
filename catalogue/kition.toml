@@ -1,8 +1,0 @@
-# Drafted from KitionAI/kition's v0.2.0 release; its version is the one Upkeep installed.
-[apps.kition]
-name = "Kition"
-kind = "appimage"
-repo = "KitionAI/kition"
-asset = '^Kition-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/kition.AppImage"
-probe = false

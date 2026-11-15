@@ -1,9 +1,0 @@
-# Drafted from mkchoi212/fac's v2.0.0 release; its version is the one Upkeep installed.
-[apps.fac]
-name = "fac"
-kind = "archive"
-repo = "mkchoi212/fac"
-asset = '^fac_.*_linux_amd64\.tar\.gz$'
-dest = "~/.local/bin/fac"
-bins = ["fac"]
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from lingcang728/ZeppBridge's v3.1.1 release; its version is the one Upkeep installed.
-[apps.zeppbridge]
-name = "ZeppBridge"
-kind = "appimage"
-repo = "lingcang728/ZeppBridge"
-asset = '^ZeppBridge-.*-Linux-x64\.AppImage$'
-dest = "~/.local/bin/zeppbridge.AppImage"
-probe = false

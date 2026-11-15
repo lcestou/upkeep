@@ -1,8 +1,0 @@
-# Drafted from unknownskl/greenlight's v2.4.2 release; its version is the one Upkeep installed.
-[apps.greenlight]
-name = "Greenlight"
-kind = "appimage"
-repo = "unknownskl/greenlight"
-asset = '^Greenlight-.*\.AppImage$'
-dest = "~/.local/bin/greenlight.AppImage"
-probe = false

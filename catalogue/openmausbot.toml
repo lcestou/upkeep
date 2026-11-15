@@ -1,8 +1,0 @@
-# Drafted from milind-soni/OpenMausBot's v0.1.158 release; its version is the one Upkeep installed.
-[apps.openmausbot]
-name = "OpenMausBot"
-kind = "appimage"
-repo = "milind-soni/OpenMausBot"
-asset = '^OpenMausBot-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/openmausbot.AppImage"
-probe = false

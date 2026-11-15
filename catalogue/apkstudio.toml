@@ -1,8 +1,0 @@
-# Drafted from vaibhavpandeyvpz/apkstudio's v6.3.0 release; its version is the one Upkeep installed.
-[apps.apkstudio]
-name = "ApkStudio"
-kind = "appimage"
-repo = "vaibhavpandeyvpz/apkstudio"
-asset = '^ApkStudio-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/apkstudio.AppImage"
-probe = false

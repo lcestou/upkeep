@@ -1,8 +1,0 @@
-# Drafted from Stack-Cairn/LiveAgent's v2.0.21 release; its version is the one Upkeep installed.
-[apps.liveagent]
-name = "LiveAgent"
-kind = "appimage"
-repo = "Stack-Cairn/LiveAgent"
-asset = '^LiveAgent-.*-Linux-x86_64\.AppImage$'
-dest = "~/.local/bin/liveagent.AppImage"
-probe = false

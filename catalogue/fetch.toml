@@ -1,9 +1,0 @@
-# Drafted from gruntwork-io/fetch's v0.4.9 release; its version is the one Upkeep installed.
-[apps.fetch]
-name = "fetch"
-kind = "file"
-repo = "gruntwork-io/fetch"
-asset = '^fetch_linux_amd64$'
-asset_aarch64 = '^fetch_linux_arm64$'
-dest = "~/.local/bin/fetch"
-probe = false

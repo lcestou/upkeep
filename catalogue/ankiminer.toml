@@ -1,8 +1,0 @@
-# Drafted from 0xzerolight/anki_miner's v3.12.0 release; its version is the one Upkeep installed.
-[apps.ankiminer]
-name = "AnkiMiner"
-kind = "appimage"
-repo = "0xzerolight/anki_miner"
-asset = '^AnkiMiner-.*-Linux-x86_64\.AppImage$'
-dest = "~/.local/bin/ankiminer.AppImage"
-probe = false

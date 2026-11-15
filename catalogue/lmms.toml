@@ -1,8 +1,0 @@
-# Drafted from LMMS/lmms's v1.2.2 release; its version is the one Upkeep installed.
-[apps.lmms]
-name = "lmms"
-kind = "appimage"
-repo = "LMMS/lmms"
-asset = '^lmms-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/lmms.AppImage"
-probe = false

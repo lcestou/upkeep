@@ -1,8 +1,0 @@
-# Drafted from PeiPei233/zju-learning-assistant's v1.0.0 release; its version is the one Upkeep installed.
-[apps.zju-learning-assistant]
-name = "Zju Learning Assistant"
-kind = "appimage"
-repo = "PeiPei233/zju-learning-assistant"
-asset = '^zju-learning-assistant_.*_amd64\.AppImage$'
-dest = "~/.local/bin/zju-learning-assistant.AppImage"
-probe = false

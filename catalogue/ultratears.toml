@@ -1,8 +1,0 @@
-# Drafted from kuraeow/ultratears's v0.4.0 release; its version is the one Upkeep installed.
-[apps.ultratears]
-name = "UltraTears"
-kind = "appimage"
-repo = "kuraeow/ultratears"
-asset = '^UltraTears\.AppImage$'
-dest = "~/.local/bin/ultratears.AppImage"
-probe = false

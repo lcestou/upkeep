@@ -1,8 +1,0 @@
-# Drafted from Sandakan/Nora's v3.1.0-stable release; its version is the one Upkeep installed.
-[apps.nora]
-name = "Nora"
-kind = "appimage"
-repo = "Sandakan/Nora"
-asset = '^Nora\..*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/nora.AppImage"
-probe = false

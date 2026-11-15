@@ -1,9 +1,0 @@
-# Drafted from tagspaces/tagspaces's v6.14.3 release; its version is the one Upkeep installed.
-[apps.tagspaces]
-name = "tagspaces"
-kind = "appimage"
-repo = "tagspaces/tagspaces"
-asset = '^tagspaces-linux-x86_64-.*\.AppImage$'
-asset_aarch64 = '^tagspaces-linux-arm64-.*\.AppImage$'
-dest = "~/.local/bin/tagspaces.AppImage"
-probe = false

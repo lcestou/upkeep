@@ -1,8 +1,0 @@
-# Drafted from VioletGiraffe/file-commander's 0.9.9.7 release; its version is the one Upkeep installed.
-[apps.filecommander]
-name = "FileCommander"
-kind = "appimage"
-repo = "VioletGiraffe/file-commander"
-asset = '^FileCommander\.AppImage$'
-dest = "~/.local/bin/filecommander.AppImage"
-probe = false

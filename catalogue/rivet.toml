@@ -1,8 +1,0 @@
-# Drafted from Ironclad/rivet's app-v1.11.3 release; its version is the one Upkeep installed.
-[apps.rivet]
-name = "rivet"
-kind = "appimage"
-repo = "Ironclad/rivet"
-asset = '^rivet_.*_amd64\.AppImage$'
-dest = "~/.local/bin/rivet.AppImage"
-probe = false

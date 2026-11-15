@@ -1,8 +1,0 @@
-# Drafted from apoc/omp-desktop's v0.14.1 release; its version is the one Upkeep installed.
-[apps.omp-desktop]
-name = "OMP-Desktop"
-kind = "appimage"
-repo = "apoc/omp-desktop"
-asset = '^OMP\.Desktop_.*_amd64\.AppImage$'
-dest = "~/.local/bin/omp-desktop.AppImage"
-probe = false

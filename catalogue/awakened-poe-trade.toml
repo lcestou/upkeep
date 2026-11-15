@@ -1,8 +1,0 @@
-# Drafted from SnosMe/awakened-poe-trade's v3.29.108 release; its version is the one Upkeep installed.
-[apps.awakened-poe-trade]
-name = "Awakened-PoE-Trade"
-kind = "appimage"
-repo = "SnosMe/awakened-poe-trade"
-asset = '^Awakened-PoE-Trade-.*\.AppImage$'
-dest = "~/.local/bin/awakened-poe-trade.AppImage"
-probe = false

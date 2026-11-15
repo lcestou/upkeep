@@ -1,9 +1,0 @@
-# Drafted from LightforgeProject/lightforge's v1.0.0-beta.13 release; its version is the one Upkeep installed.
-[apps.lightforge]
-name = "Lightforge"
-kind = "appimage"
-repo = "LightforgeProject/lightforge"
-asset = '^Lightforge-x86_64\.AppImage$'
-asset_aarch64 = '^Lightforge-aarch64\.AppImage$'
-dest = "~/.local/bin/lightforge.AppImage"
-probe = false

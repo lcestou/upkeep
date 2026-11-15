@@ -1,9 +1,0 @@
-# Drafted from rlmcpherson/s3gof3r's v0.5.0 release; its version is the one Upkeep installed.
-[apps.gof3r]
-name = "s3gof3r"
-kind = "archive"
-repo = "rlmcpherson/s3gof3r"
-asset = '^gof3r_.*_linux_amd64\.tar\.gz$'
-dest = "~/.local/bin/gof3r"
-bins = ["gof3r_0.5.0_linux_amd64/gof3r"]
-probe = false

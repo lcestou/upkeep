@@ -1,8 +1,0 @@
-# Drafted from kbumsik/VirtScreen's 0.3.1 release; its version is the one Upkeep installed.
-[apps.virtscreen]
-name = "VirtScreen"
-kind = "appimage"
-repo = "kbumsik/VirtScreen"
-asset = '^VirtScreen\.AppImage$'
-dest = "~/.local/bin/virtscreen.AppImage"
-probe = false

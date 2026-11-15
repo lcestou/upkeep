@@ -1,9 +1,0 @@
-# Drafted from argoproj-labs/argocd-image-updater's v1.5.0 release; its version is the one Upkeep installed.
-[apps.argocd-image-updater]
-name = "Argocd Image Updater"
-kind = "file"
-repo = "argoproj-labs/argocd-image-updater"
-asset = '^argocd-image-updater-linux_amd64$'
-asset_aarch64 = '^argocd-image-updater-linux_arm64$'
-dest = "~/.local/bin/argocd-image-updater"
-probe = false

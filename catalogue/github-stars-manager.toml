@@ -1,8 +1,0 @@
-# Drafted from AmintaCCCP/GithubStarsManager's v0.9.0 release; its version is the one Upkeep installed.
-[apps.github-stars-manager]
-name = "GitHub-Stars-Manager"
-kind = "appimage"
-repo = "AmintaCCCP/GithubStarsManager"
-asset = '^GitHub\.Stars\.Manager-.*\.AppImage$'
-dest = "~/.local/bin/github-stars-manager.AppImage"
-probe = false

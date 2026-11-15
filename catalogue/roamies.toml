@@ -1,8 +1,0 @@
-# Drafted from KenKaiii/Roamies's v0.1.39 release; its version is the one Upkeep installed.
-[apps.roamies]
-name = "Roamies"
-kind = "appimage"
-repo = "KenKaiii/Roamies"
-asset = '^Roamies_.*_amd64\.AppImage$'
-dest = "~/.local/bin/roamies.AppImage"
-probe = false

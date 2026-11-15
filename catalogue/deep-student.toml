@@ -1,8 +1,0 @@
-# Drafted from helixnow/deep-student's v0.11.0 release; its version is the one Upkeep installed.
-[apps.deep-student]
-name = "Deep-Student"
-kind = "appimage"
-repo = "helixnow/deep-student"
-asset = '^Deep\.Student_.*_amd64_x86_64\.AppImage$'
-dest = "~/.local/bin/deep-student.AppImage"
-probe = false

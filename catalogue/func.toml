@@ -1,9 +1,0 @@
-# Drafted from knative/func's knative-v1.24.0 release; its version is the one Upkeep installed.
-[apps.func]
-name = "func"
-kind = "file"
-repo = "knative/func"
-asset = '^func_linux_amd64$'
-asset_aarch64 = '^func_linux_arm64$'
-dest = "~/.local/bin/func"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from IlhamriSKY/TEDI's v0.4.86 release; its version is the one Upkeep installed.
-[apps.tedi]
-name = "TEDI"
-kind = "appimage"
-repo = "IlhamriSKY/TEDI"
-asset = '^TEDI_.*_amd64\.AppImage$'
-dest = "~/.local/bin/tedi.AppImage"
-probe = false

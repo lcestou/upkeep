@@ -1,9 +1,0 @@
-# Drafted from music-assistant/desktop-app's 0.7.4 release; its version is the one Upkeep installed.
-[apps.music-assistant]
-name = "Music-Assistant"
-kind = "appimage"
-repo = "music-assistant/desktop-app"
-asset = '^Music\.Assistant_.*_amd64\.AppImage$'
-asset_aarch64 = '^Music\.Assistant_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/music-assistant.AppImage"
-probe = false

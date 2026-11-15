@@ -1,8 +1,0 @@
-# Drafted from s00d/switchshuttle's app-v2.3.1 release; its version is the one Upkeep installed.
-[apps.switch-shuttle]
-name = "switchshuttle"
-kind = "appimage"
-repo = "s00d/switchshuttle"
-asset = '^switch-shuttle_.*_amd64\.AppImage$'
-dest = "~/.local/bin/switch-shuttle.AppImage"
-probe = false

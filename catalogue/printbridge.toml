@@ -1,9 +1,0 @@
-# Drafted from vergil-lai/print-bridge's printbridge-v0.2.7 release; its version is the one Upkeep installed.
-[apps.printbridge]
-name = "PrintBridge"
-kind = "appimage"
-repo = "vergil-lai/print-bridge"
-asset = '^PrintBridge_.*_amd64\.AppImage$'
-asset_aarch64 = '^PrintBridge_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/printbridge.AppImage"
-probe = false

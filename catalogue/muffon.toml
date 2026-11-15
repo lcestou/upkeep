@@ -1,9 +1,0 @@
-# Drafted from staniel359/muffon's v2.5.0 release; its version is the one Upkeep installed.
-[apps.muffon]
-name = "muffon"
-kind = "appimage"
-repo = "staniel359/muffon"
-asset = '^muffon-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^muffon-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/muffon.AppImage"
-probe = false

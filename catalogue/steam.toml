@@ -1,8 +1,0 @@
-# Drafted from ivan-hc/Steam-appimage's 1.0.0.87-3@2026-11-01_1793536013 release; its version is the one Upkeep installed.
-[apps.steam]
-name = "Steam-anylinux"
-kind = "appimage"
-repo = "ivan-hc/Steam-appimage"
-asset = '^Steam-.*-3-anylinux-x86_64\.AppImage$'
-dest = "~/.local/bin/steam-anylinux.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from CsoundQt/CsoundQt's v7.4.1 release; its version is the one Upkeep installed.
-[apps.csoundqt]
-name = "CsoundQt"
-kind = "appimage"
-repo = "CsoundQt/CsoundQt"
-asset = '^CsoundQt-x86_64\.AppImage$'
-dest = "~/.local/bin/csoundqt.AppImage"
-probe = false

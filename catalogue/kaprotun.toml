@@ -1,8 +1,0 @@
-# Drafted from fafnirov/KaproTUN's v4.2.4.1 release; its version is the one Upkeep installed.
-[apps.kaprotun]
-name = "KaproTUN"
-kind = "appimage"
-repo = "fafnirov/KaproTUN"
-asset = '^KaproTUN-Linux-x64\.AppImage$'
-dest = "~/.local/bin/kaprotun.AppImage"
-probe = false

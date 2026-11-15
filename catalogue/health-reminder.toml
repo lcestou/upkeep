@@ -1,8 +1,0 @@
-# Drafted from kaima2022/Health-reminder's v1.9.2 release; its version is the one Upkeep installed.
-[apps.health-reminder]
-name = "Health Reminder"
-kind = "appimage"
-repo = "kaima2022/Health-reminder"
-asset = '^health-reminder_.*_amd64\.AppImage$'
-dest = "~/.local/bin/health-reminder.AppImage"
-probe = false

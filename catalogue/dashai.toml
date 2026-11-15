@@ -1,8 +1,0 @@
-# Drafted from DashAISoftware/dashAI's v0.11.0 release; its version is the one Upkeep installed.
-[apps.dashai]
-name = "dashAI"
-kind = "appimage"
-repo = "DashAISoftware/dashAI"
-asset = '^dashAI-.*-x64-linux\.AppImage$'
-dest = "~/.local/bin/dashai.AppImage"
-probe = false

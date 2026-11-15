@@ -1,8 +1,0 @@
-# Drafted from av/harbor's v0.5.20 release; its version is the one Upkeep installed.
-[apps.harbor]
-name = "Harbor"
-kind = "appimage"
-repo = "av/harbor"
-asset = '^Harbor_.*_amd64\.AppImage$'
-dest = "~/.local/bin/harbor.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from nab138/CrossCode's v0.0.5 release; its version is the one Upkeep installed.
-[apps.crosscode]
-name = "CrossCode"
-kind = "appimage"
-repo = "nab138/CrossCode"
-asset = '^CrossCode_.*_amd64\.AppImage$'
-dest = "~/.local/bin/crosscode.AppImage"
-probe = false

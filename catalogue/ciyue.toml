@@ -1,8 +1,0 @@
-# Drafted from mumu-lhl/Ciyue's v2.2.0 release; its version is the one Upkeep installed.
-[apps.ciyue]
-name = "Ciyue-latest"
-kind = "appimage"
-repo = "mumu-lhl/Ciyue"
-asset = '^Ciyue-latest-x86_64\.AppImage$'
-dest = "~/.local/bin/ciyue.AppImage"
-probe = false

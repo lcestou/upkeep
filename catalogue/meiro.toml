@@ -1,9 +1,0 @@
-# Drafted from elianiva/meiro's desktop-v0.7.1 release; its version is the one Upkeep installed.
-[apps.meiro]
-name = "Meiro"
-kind = "appimage"
-repo = "elianiva/meiro"
-asset = '^Meiro-.*-linux-amd64\.AppImage$'
-asset_aarch64 = '^Meiro-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/meiro.AppImage"
-probe = false

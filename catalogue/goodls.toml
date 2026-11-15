@@ -1,9 +1,0 @@
-# Drafted from tanaikech/goodls's v3.4.0 release; its version is the one Upkeep installed.
-[apps.goodls]
-name = "goodls"
-kind = "file"
-repo = "tanaikech/goodls"
-asset = '^goodls_linux_amd64$'
-asset_aarch64 = '^goodls_linux_arm64$'
-dest = "~/.local/bin/goodls"
-probe = false

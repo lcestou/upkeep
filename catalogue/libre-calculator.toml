@@ -1,9 +1,0 @@
-# Drafted from tonyzedginidze/librecalculator's v0.1.0 release; its version is the one Upkeep installed.
-[apps.libre-calculator]
-name = "Libre-Calculator"
-kind = "appimage"
-repo = "tonyzedginidze/librecalculator"
-asset = '^Libre\.Calculator_.*_amd64\.AppImage$'
-asset_aarch64 = '^Libre\.Calculator_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/libre-calculator.AppImage"
-probe = false

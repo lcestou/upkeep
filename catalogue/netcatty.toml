@@ -1,9 +1,0 @@
-# Drafted from binaricat/Netcatty's v1.1.90 release; its version is the one Upkeep installed.
-[apps.netcatty]
-name = "Netcatty"
-kind = "appimage"
-repo = "binaricat/Netcatty"
-asset = '^Netcatty-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^Netcatty-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/netcatty.AppImage"
-probe = false

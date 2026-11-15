@@ -1,8 +1,0 @@
-# Drafted from mos1128/ccg-gateway's v2.2.0 release; its version is the one Upkeep installed.
-[apps.ccg-gateway]
-name = "Ccg Gateway"
-kind = "appimage"
-repo = "mos1128/ccg-gateway"
-asset = '^ccg-gateway-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/ccg-gateway.AppImage"
-probe = false

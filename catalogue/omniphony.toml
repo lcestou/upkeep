@@ -1,8 +1,0 @@
-# Drafted from mgth/Omniphony's v0.7.0 release; its version is the one Upkeep installed.
-[apps.omniphony]
-name = "Omniphony"
-kind = "appimage"
-repo = "mgth/Omniphony"
-asset = '^omniphony-studio-egui_.*_x86_64\.AppImage$'
-dest = "~/.local/bin/omniphony.AppImage"
-probe = false

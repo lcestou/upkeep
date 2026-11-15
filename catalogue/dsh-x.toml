@@ -1,9 +1,0 @@
-# Drafted from yyh-001/DSH-X's v0.1.26 release; its version is the one Upkeep installed.
-[apps.dsh-x]
-name = "DSH-X"
-kind = "appimage"
-repo = "yyh-001/DSH-X"
-asset = '^DSH-X-.*-x86_64\.AppImage$'
-asset_aarch64 = '^DSH-X-.*-arm64\.AppImage$'
-dest = "~/.local/bin/dsh-x.AppImage"
-probe = false

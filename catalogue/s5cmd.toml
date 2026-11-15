@@ -1,9 +1,0 @@
-# Drafted from peak/s5cmd's v2.3.0 release; its version is the one Upkeep installed.
-[apps.s5cmd]
-name = "s5cmd"
-kind = "archive"
-repo = "peak/s5cmd"
-asset = '^s5cmd_.*_Linux-64bit\.tar\.gz$'
-dest = "~/.local/bin/s5cmd"
-bins = ["s5cmd"]
-probe = false

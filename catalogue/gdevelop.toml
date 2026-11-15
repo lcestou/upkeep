@@ -1,8 +1,0 @@
-# Drafted from 4ian/GDevelop's v5.6.287 release; its version is the one Upkeep installed.
-[apps.gdevelop]
-name = "GDevelop"
-kind = "appimage"
-repo = "4ian/GDevelop"
-asset = '^GDevelop-5-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/gdevelop.AppImage"
-probe = false

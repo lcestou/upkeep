@@ -1,8 +1,0 @@
-# Drafted from kusule1351-hue/thought-desk's v0.8.4 release; its version is the one Upkeep installed.
-[apps.thought-desk]
-name = "Thought-Desk"
-kind = "appimage"
-repo = "kusule1351-hue/thought-desk"
-asset = '^Thought\.Desk_.*_amd64\.AppImage$'
-dest = "~/.local/bin/thought-desk.AppImage"
-probe = false

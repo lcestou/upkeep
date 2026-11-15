@@ -1,8 +1,0 @@
-# Drafted from SeniorMatt/kinoklip's v1.8.1 release; its version is the one Upkeep installed.
-[apps.kinoklip]
-name = "Kinoklip"
-kind = "appimage"
-repo = "SeniorMatt/kinoklip"
-asset = '^Kinoklip-x86_64\.AppImage$'
-dest = "~/.local/bin/kinoklip.AppImage"
-probe = false

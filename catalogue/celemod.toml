@@ -1,8 +1,0 @@
-# Drafted from std-microblock/CeleMod's v1.2.2 release; its version is the one Upkeep installed.
-[apps.celemod]
-name = "CeleMod"
-kind = "appimage"
-repo = "std-microblock/CeleMod"
-asset = '^CeleMod_.*_amd64\.AppImage$'
-dest = "~/.local/bin/celemod.AppImage"
-probe = false

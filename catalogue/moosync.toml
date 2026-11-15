@@ -1,9 +1,0 @@
-# Drafted from Moosync/Moosync's Moosync-v11.0.2 release; its version is the one Upkeep installed.
-[apps.moosync]
-name = "Moosync"
-kind = "appimage"
-repo = "Moosync/Moosync"
-asset = '^Moosync_.*_amd64\.AppImage$'
-asset_aarch64 = '^Moosync_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/moosync.AppImage"
-probe = false

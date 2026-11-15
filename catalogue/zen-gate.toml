@@ -1,8 +1,0 @@
-# Drafted from LAGcomcom/zen-gate's v1.10.0 release; its version is the one Upkeep installed.
-[apps.zen-gate]
-name = "Zen-Gate"
-kind = "appimage"
-repo = "LAGcomcom/zen-gate"
-asset = '^Zen_Gate-x86_64\.AppImage$'
-dest = "~/.local/bin/zen-gate.AppImage"
-probe = false

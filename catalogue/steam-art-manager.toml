@@ -1,8 +1,0 @@
-# Drafted from Tormak9970/Steam-Art-Manager's v3.23.2 release; its version is the one Upkeep installed.
-[apps.steam-art-manager]
-name = "Steam Art Manager"
-kind = "appimage"
-repo = "Tormak9970/Steam-Art-Manager"
-asset = '^steam-art-manager\.AppImage$'
-dest = "~/.local/bin/steam-art-manager.AppImage"
-probe = false

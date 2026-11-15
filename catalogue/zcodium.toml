@@ -1,9 +1,0 @@
-# Drafted from ZCodium-project/ZCodium's v1.18.0 release; its version is the one Upkeep installed.
-[apps.zcodium]
-name = "ZCodium"
-kind = "appimage"
-repo = "ZCodium-project/ZCodium"
-asset = '^ZCodium-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^ZCodium-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/zcodium.AppImage"
-probe = false

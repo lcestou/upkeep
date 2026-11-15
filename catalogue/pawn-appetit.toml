@@ -1,8 +1,0 @@
-# Drafted from Pawn-Appetit/pawn-appetit's v0.12.1 release; its version is the one Upkeep installed.
-[apps.pawn-appetit]
-name = "Pawn-Appetit"
-kind = "appimage"
-repo = "Pawn-Appetit/pawn-appetit"
-asset = '^Pawn\.Appetit_.*_amd64\.AppImage$'
-dest = "~/.local/bin/pawn-appetit.AppImage"
-probe = false

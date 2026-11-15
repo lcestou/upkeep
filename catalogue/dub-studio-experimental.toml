@@ -1,8 +1,0 @@
-# Drafted from timoncool/dub-studio's v4.6.0 release; its version is the one Upkeep installed.
-[apps.dub-studio-experimental]
-name = "Dub-Studio-experimental"
-kind = "appimage"
-repo = "timoncool/dub-studio"
-asset = '^Dub-Studio-.*-linux-x86_64-experimental\.AppImage$'
-dest = "~/.local/bin/dub-studio-experimental.AppImage"
-probe = false

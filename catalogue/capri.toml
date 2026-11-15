@@ -1,8 +1,0 @@
-# Drafted from lachydotmcg/capri-desktop's v0.9.1 release; its version is the one Upkeep installed.
-[apps.capri]
-name = "Capri"
-kind = "appimage"
-repo = "lachydotmcg/capri-desktop"
-asset = '^Capri-linux-x64\.AppImage$'
-dest = "~/.local/bin/capri.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from ferraridamiano/ConverterNOW's v4.7.0 release; its version is the one Upkeep installed.
-[apps.converternow]
-name = "ConverterNOW"
-kind = "appimage"
-repo = "ferraridamiano/ConverterNOW"
-asset = '^converternow-x86_64\.AppImage$'
-asset_aarch64 = '^converternow-aarch64\.AppImage$'
-dest = "~/.local/bin/converternow.AppImage"
-probe = false

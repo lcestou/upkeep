@@ -1,9 +1,0 @@
-# Drafted from LargeModGames/spotatui's v0.48.0 release; its version is the one Upkeep installed.
-[apps.spotatui]
-name = "spotatui"
-kind = "appimage"
-repo = "LargeModGames/spotatui"
-asset = '^spotatui-desktop_.*_amd64\.AppImage$'
-asset_aarch64 = '^spotatui-desktop_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/spotatui.AppImage"
-probe = false

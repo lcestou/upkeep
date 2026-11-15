@@ -1,8 +1,0 @@
-# Drafted from agentrq/agentrq's v0.15.7 release; its version is the one Upkeep installed.
-[apps.agentrq]
-name = "AgentRQ"
-kind = "appimage"
-repo = "agentrq/agentrq"
-asset = '^AgentRQ-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/agentrq.AppImage"
-probe = false

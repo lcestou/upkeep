@@ -1,8 +1,0 @@
-# Drafted from gsamokovarov/jump's v0.69.0 release; its version is the one Upkeep installed.
-[apps.jump]
-name = "jump"
-kind = "file"
-repo = "gsamokovarov/jump"
-asset = '^jump_linux_amd64_binary$'
-dest = "~/.local/bin/jump"
-probe = false

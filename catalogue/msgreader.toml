@@ -1,8 +1,0 @@
-# Drafted from Rasalas/msg-reader's v1.12.3 release; its version is the one Upkeep installed.
-[apps.msgreader]
-name = "msgReader"
-kind = "appimage"
-repo = "Rasalas/msg-reader"
-asset = '^msgReader_.*_amd64\.AppImage$'
-dest = "~/.local/bin/msgreader.AppImage"
-probe = false

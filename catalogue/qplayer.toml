@@ -1,8 +1,0 @@
-# Drafted from TIMER-err/qplayer's v2.1.1 release; its version is the one Upkeep installed.
-[apps.qplayer]
-name = "QPlayer"
-kind = "appimage"
-repo = "TIMER-err/qplayer"
-asset = '^QPlayer-linux-x64\.AppImage$'
-dest = "~/.local/bin/qplayer.AppImage"
-probe = false

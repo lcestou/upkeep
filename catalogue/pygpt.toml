@@ -1,9 +1,0 @@
-# Drafted from szczyglis-dev/py-gpt's v2.9.1 release; its version is the one Upkeep installed.
-[apps.pygpt]
-name = "PyGPT"
-kind = "appimage"
-repo = "szczyglis-dev/py-gpt"
-asset = '^PyGPT-.*-x86_64\.AppImage$'
-asset_aarch64 = '^PyGPT-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/pygpt.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Daniel-King-8/CoreOps's v0.8.3 release; its version is the one Upkeep installed.
-[apps.coreops]
-name = "CoreOps"
-kind = "appimage"
-repo = "Daniel-King-8/CoreOps"
-asset = '^CoreOps_.*_Linux_x64\.AppImage$'
-dest = "~/.local/bin/coreops.AppImage"
-probe = false

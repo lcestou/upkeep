@@ -1,8 +1,0 @@
-# Drafted from getcrew44/crew44's v0.8.1 release; its version is the one Upkeep installed.
-[apps.crew44]
-name = "Crew44"
-kind = "appimage"
-repo = "getcrew44/crew44"
-asset = '^Crew44-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/crew44.AppImage"
-probe = false

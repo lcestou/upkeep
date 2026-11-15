@@ -1,8 +1,0 @@
-# Drafted from folay-git/mcp-dock's v1.4.2 release; its version is the one Upkeep installed.
-[apps.mcp-dock]
-name = "MCP-Dock"
-kind = "appimage"
-repo = "folay-git/mcp-dock"
-asset = '^MCP\.Dock-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/mcp-dock.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from PurpleDoubleD/locally-uncensored's v3.0.10 release; its version is the one Upkeep installed.
-[apps.locally-uncensored]
-name = "Locally-Uncensored"
-kind = "appimage"
-repo = "PurpleDoubleD/locally-uncensored"
-asset = '^Locally\.Uncensored_.*_amd64\.AppImage$'
-dest = "~/.local/bin/locally-uncensored.AppImage"
-probe = false

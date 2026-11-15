@@ -1,9 +1,0 @@
-# Drafted from ldomaradzki/xcsift's v1.7.5 release; its version is the one Upkeep installed.
-[apps.xcsift]
-name = "xcsift"
-kind = "archive"
-repo = "ldomaradzki/xcsift"
-asset = '^xcsift-.*-linux-x64\.tar\.gz$'
-dest = "~/.local/bin/xcsift"
-bins = ["xcsift"]
-probe = false

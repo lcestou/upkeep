@@ -1,9 +1,0 @@
-# Drafted from danielalves96/claude-code-provider-gateway's v0.2.6 release; its version is the one Upkeep installed.
-[apps.claude-code-provider-gateway-lin]
-name = "Claude-Code-Provider-Gateway-Lin"
-kind = "appimage"
-repo = "danielalves96/claude-code-provider-gateway"
-asset = '^Claude\.Code\.Provider\.Gateway_.*_amd64\.Lin\.x64\.AppImage$'
-asset_aarch64 = '^Claude\.Code\.Provider\.Gateway_.*_arm64\.Lin\.ARM64\.AppImage$'
-dest = "~/.local/bin/claude-code-provider-gateway-lin.AppImage"
-probe = false

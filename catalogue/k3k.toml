@@ -1,9 +1,0 @@
-# Drafted from rancher/k3k's v1.2.1 release; its version is the one Upkeep installed.
-[apps.k3k]
-name = "k3k"
-kind = "file"
-repo = "rancher/k3k"
-asset = '^k3k-linux-amd64$'
-asset_aarch64 = '^k3k-linux-arm64$'
-dest = "~/.local/bin/k3k"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from op7418/pilot-harness's v0.1.0-rc.7-pilot.1 release; its version is the one Upkeep installed.
-[apps.pilot-harness]
-name = "Pilot-Harness"
-kind = "appimage"
-repo = "op7418/pilot-harness"
-asset = '^Pilot-Harness-Linux-x86_64\.AppImage$'
-dest = "~/.local/bin/pilot-harness.AppImage"
-probe = false

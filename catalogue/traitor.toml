@@ -1,9 +1,0 @@
-# Drafted from liamg/traitor's v0.0.14 release; its version is the one Upkeep installed.
-[apps.traitor]
-name = "traitor"
-kind = "file"
-repo = "liamg/traitor"
-asset = '^traitor-amd64$'
-asset_aarch64 = '^traitor-arm64$'
-dest = "~/.local/bin/traitor"
-probe = false

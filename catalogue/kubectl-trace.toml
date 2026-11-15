@@ -1,9 +1,0 @@
-# Drafted from iovisor/kubectl-trace's v0.1.2 release; its version is the one Upkeep installed.
-[apps.kubectl-trace]
-name = "Kubectl Trace"
-kind = "archive"
-repo = "iovisor/kubectl-trace"
-asset = '^kubectl-trace_.*_linux_amd64\.tar\.gz$'
-dest = "~/.local/bin/kubectl-trace"
-bins = ["kubectl-trace"]
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from CrazyFigure/NoteBoard's v0.8.5 release; its version is the one Upkeep installed.
-[apps.noteboard]
-name = "NoteBoard"
-kind = "appimage"
-repo = "CrazyFigure/NoteBoard"
-asset = '^NoteBoard_.*_amd64\.AppImage$'
-dest = "~/.local/bin/noteboard.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from jjsvs/Hashcat-Reactor's v1.0.10 release; its version is the one Upkeep installed.
-[apps.hashcat-reactor]
-name = "Hashcat-Reactor"
-kind = "appimage"
-repo = "jjsvs/Hashcat-Reactor"
-asset = '^Hashcat\.Reactor-.*\.AppImage$'
-dest = "~/.local/bin/hashcat-reactor.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from astrskai/astrsk's v3.5.4 release; its version is the one Upkeep installed.
-[apps.astrsk]
-name = "astrsk"
-kind = "appimage"
-repo = "astrskai/astrsk"
-asset = '^astrsk-.*\.AppImage$'
-dest = "~/.local/bin/astrsk.AppImage"
-probe = false

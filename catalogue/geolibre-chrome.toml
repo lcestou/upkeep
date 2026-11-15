@@ -1,8 +1,0 @@
-# Drafted from opengeos/GeoLibre's v3.8.0 release; its version is the one Upkeep installed.
-[apps.geolibre-chrome]
-name = "GeoLibre-Desktop"
-kind = "appimage"
-repo = "opengeos/GeoLibre"
-asset = '^GeoLibre\.Desktop_.*_amd64\.AppImage$'
-dest = "~/.local/bin/geolibre-chrome.AppImage"
-probe = false

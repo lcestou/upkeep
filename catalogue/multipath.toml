@@ -1,8 +1,0 @@
-# Drafted from uditya-kumar/MultiPath's v1.2.0 release; its version is the one Upkeep installed.
-[apps.multipath]
-name = "MultiPath"
-kind = "appimage"
-repo = "uditya-kumar/MultiPath"
-asset = '^MultiPath_.*_amd64\.AppImage$'
-dest = "~/.local/bin/multipath.AppImage"
-probe = false

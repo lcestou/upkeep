@@ -1,8 +1,0 @@
-# Drafted from happy-loki/codexhub's v0.4.30 release; its version is the one Upkeep installed.
-[apps.codexhub]
-name = "CodexHub"
-kind = "appimage"
-repo = "happy-loki/codexhub"
-asset = '^CodexHub\.Linux\.x86_64\.AppImage$'
-dest = "~/.local/bin/codexhub.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from enzo1982/freac's v1.1.7 release; its version is the one Upkeep installed.
-[apps.freac]
-name = "freac"
-kind = "appimage"
-repo = "enzo1982/freac"
-asset = '^freac-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^freac-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/freac.AppImage"
-probe = false

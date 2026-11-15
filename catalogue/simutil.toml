@@ -1,8 +1,0 @@
-# Drafted from dungngminh/simutil's app-v0.6.0 release; its version is the one Upkeep installed.
-[apps.simutil]
-name = "SimUtil"
-kind = "appimage"
-repo = "dungngminh/simutil"
-asset = '^SimUtil-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/simutil.AppImage"
-probe = false

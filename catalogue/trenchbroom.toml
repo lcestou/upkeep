@@ -1,9 +1,0 @@
-# Drafted from TrenchBroom/TrenchBroom's v2026.2 release; its version is the one Upkeep installed.
-[apps.trenchbroom]
-name = "TrenchBroom-Release"
-kind = "archive"
-repo = "TrenchBroom/TrenchBroom"
-asset = '^TrenchBroom-Linux-x86_64-.*-Release\.zip$'
-dest = "~/.local/bin/TrenchBroom.AppImage"
-bins = ["TrenchBroom.AppImage"]
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from OrchestratorInc/agent-orchestrator's v0.15.1 release; its version is the one Upkeep installed.
-[apps.agent-orchestrator]
-name = "Agent Orchestrator"
-kind = "appimage"
-repo = "OrchestratorInc/agent-orchestrator"
-asset = '^agent-orchestrator-linux-x64\.AppImage$'
-dest = "~/.local/bin/agent-orchestrator.AppImage"
-probe = false

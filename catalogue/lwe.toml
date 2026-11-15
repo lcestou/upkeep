@@ -1,8 +1,0 @@
-# Drafted from YangYuS8/lwe's v0.9.11 release; its version is the one Upkeep installed.
-[apps.lwe]
-name = "lwe"
-kind = "appimage"
-repo = "YangYuS8/lwe"
-asset = '^lwe_.*_amd64\.AppImage$'
-dest = "~/.local/bin/lwe.AppImage"
-probe = false

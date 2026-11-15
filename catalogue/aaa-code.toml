@@ -1,8 +1,0 @@
-# Drafted from hwwn/aaa-code-release's v0.9.0 release; its version is the one Upkeep installed.
-[apps.aaa-code]
-name = "AAA-Code"
-kind = "appimage"
-repo = "hwwn/aaa-code-release"
-asset = '^AAA\.Code_.*_Linux\.AppImage$'
-dest = "~/.local/bin/aaa-code.AppImage"
-probe = false

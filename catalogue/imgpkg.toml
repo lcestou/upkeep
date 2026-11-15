@@ -1,9 +1,0 @@
-# Drafted from carvel-dev/imgpkg's v0.49.0 release; its version is the one Upkeep installed.
-[apps.imgpkg]
-name = "imgpkg"
-kind = "file"
-repo = "carvel-dev/imgpkg"
-asset = '^imgpkg-linux-amd64$'
-asset_aarch64 = '^imgpkg-linux-arm64$'
-dest = "~/.local/bin/imgpkg"
-probe = false

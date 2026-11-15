@@ -1,8 +1,0 @@
-# Drafted from CelestialCartographers/Loenn's v1.0.13 release; its version is the one Upkeep installed.
-[apps.loenn]
-name = "Loenn"
-kind = "appimage"
-repo = "CelestialCartographers/Loenn"
-asset = '^Loenn-.*-linux\.AppImage$'
-dest = "~/.local/bin/loenn.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Ascendara/ascendara's 12.2.5 release; its version is the one Upkeep installed.
-[apps.ascendara]
-name = "Ascendara"
-kind = "appimage"
-repo = "Ascendara/ascendara"
-asset = '^Ascendara-.*\.AppImage$'
-dest = "~/.local/bin/ascendara.AppImage"
-probe = false

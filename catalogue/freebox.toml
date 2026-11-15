@@ -1,9 +1,0 @@
-# Drafted from kknifer7/FreeBox's v1.8.0 release; its version is the one Upkeep installed.
-[apps.freebox]
-name = "FreeBox"
-kind = "appimage"
-repo = "kknifer7/FreeBox"
-asset = '^FreeBox_.*_amd64\.AppImage$'
-asset_aarch64 = '^FreeBox_.*_arm64\.AppImage$'
-dest = "~/.local/bin/freebox.AppImage"
-probe = false

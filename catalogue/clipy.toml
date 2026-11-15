@@ -1,8 +1,0 @@
-# Drafted from BankkRoll/clipy's v2.0.2 release; its version is the one Upkeep installed.
-[apps.clipy]
-name = "Clipy"
-kind = "appimage"
-repo = "BankkRoll/clipy"
-asset = '^Clipy_.*_amd64\.AppImage$'
-dest = "~/.local/bin/clipy.AppImage"
-probe = false

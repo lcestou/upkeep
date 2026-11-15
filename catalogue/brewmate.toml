@@ -1,8 +1,0 @@
-# Drafted from romankurnovskii/BrewMate's 1.0.41 release; its version is the one Upkeep installed.
-[apps.brewmate]
-name = "BrewMate"
-kind = "appimage"
-repo = "romankurnovskii/BrewMate"
-asset = '^BrewMate-.*\.AppImage$'
-dest = "~/.local/bin/brewmate.AppImage"
-probe = false

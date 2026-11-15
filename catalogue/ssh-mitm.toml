@@ -1,8 +1,0 @@
-# Drafted from ssh-mitm/ssh-mitm's 6.0.1 release; its version is the one Upkeep installed.
-[apps.ssh-mitm]
-name = "Ssh Mitm"
-kind = "appimage"
-repo = "ssh-mitm/ssh-mitm"
-asset = '^ssh-mitm-x86_64\.AppImage$'
-dest = "~/.local/bin/ssh-mitm.AppImage"
-probe = false

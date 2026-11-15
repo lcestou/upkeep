@@ -1,8 +1,0 @@
-# Drafted from pystardust/ani-cli's v5.1 release; its version is the one Upkeep installed.
-[apps.ani-cli]
-name = "Ani Cli"
-kind = "file"
-repo = "pystardust/ani-cli"
-asset = '^ani-cli$'
-dest = "~/.local/bin/ani-cli"
-probe = false

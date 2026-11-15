@@ -1,9 +1,0 @@
-# Drafted from t4t5/rencal's v0.9.3 release; its version is the one Upkeep installed.
-[apps.rencal]
-name = "renCal"
-kind = "appimage"
-repo = "t4t5/rencal"
-asset = '^renCal_.*_amd64\.AppImage$'
-asset_aarch64 = '^renCal_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/rencal.AppImage"
-probe = false

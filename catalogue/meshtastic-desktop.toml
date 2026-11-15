@@ -1,9 +1,0 @@
-# Drafted from meshtastic/Meshtastic-Android's v2.8.4 release; its version is the one Upkeep installed.
-[apps.meshtastic-desktop]
-name = "Meshtastic-Desktop"
-kind = "appimage"
-repo = "meshtastic/Meshtastic-Android"
-asset = '^Meshtastic_Desktop-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Meshtastic_Desktop-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/meshtastic-desktop.AppImage"
-probe = false

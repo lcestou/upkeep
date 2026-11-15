@@ -1,8 +1,0 @@
-# Drafted from c0xc/CapacityTester's v0.7c release; its version is the one Upkeep installed.
-[apps.capacity-tester]
-name = "Capacity-Tester"
-kind = "appimage"
-repo = "c0xc/CapacityTester"
-asset = '^Capacity_Tester-x86_64\.AppImage$'
-dest = "~/.local/bin/capacity-tester.AppImage"
-probe = false

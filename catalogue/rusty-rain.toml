@@ -1,8 +1,0 @@
-# Drafted from cowboy8625/rusty-rain's v0.5.1 release; its version is the one Upkeep installed.
-[apps.rusty-rain]
-name = "Rusty Rain"
-kind = "file"
-repo = "cowboy8625/rusty-rain"
-asset = '^x86_64-unknown-linux-musl-rusty-rain-.*$'
-dest = "~/.local/bin/rusty-rain"
-probe = false

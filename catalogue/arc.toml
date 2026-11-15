@@ -1,8 +1,0 @@
-# Drafted from advanced-rest-client/arc-electron's v17.0.9 release; its version is the one Upkeep installed.
-[apps.arc]
-name = "Arc Electron"
-kind = "appimage"
-repo = "advanced-rest-client/arc-electron"
-asset = '^arc-linux-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/arc.AppImage"
-probe = false

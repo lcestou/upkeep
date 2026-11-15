@@ -1,8 +1,0 @@
-# Drafted from OrcaSlicer/OrcaSlicer's v2.5.1 release; its version is the one Upkeep installed.
-[apps.orcaslicer-ubuntu2404-v]
-name = "OrcaSlicer-Ubuntu2404"
-kind = "appimage"
-repo = "OrcaSlicer/OrcaSlicer"
-asset = '^OrcaSlicer_Linux_AppImage_Ubuntu2404_V.*\.AppImage$'
-dest = "~/.local/bin/orcaslicer-ubuntu2404-v.AppImage"
-probe = false

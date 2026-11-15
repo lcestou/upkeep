@@ -1,8 +1,0 @@
-# Drafted from codewiththiha/OpenSlides's v1.2.3 release; its version is the one Upkeep installed.
-[apps.openslides]
-name = "OpenSlides"
-kind = "appimage"
-repo = "codewiththiha/OpenSlides"
-asset = '^OpenSlides_.*_amd64\.AppImage$'
-dest = "~/.local/bin/openslides.AppImage"
-probe = false

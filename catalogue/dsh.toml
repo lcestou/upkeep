@@ -1,9 +1,0 @@
-# Drafted from WSL043/DSH-Portable's v0.9.13 release; its version is the one Upkeep installed.
-[apps.dsh]
-name = "DeepSeek-Herness"
-kind = "appimage"
-repo = "WSL043/DSH-Portable"
-asset = '^DeepSeek-Herness-linux-x64\.AppImage$'
-asset_aarch64 = '^DeepSeek-Herness-linux-arm64\.AppImage$'
-dest = "~/.local/bin/dsh.AppImage"
-probe = false

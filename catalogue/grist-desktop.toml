@@ -1,8 +1,0 @@
-# Drafted from gristlabs/grist-desktop's v0.3.17 release; its version is the one Upkeep installed.
-[apps.grist-desktop]
-name = "Grist Desktop"
-kind = "appimage"
-repo = "gristlabs/grist-desktop"
-asset = '^grist-desktop-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/grist-desktop.AppImage"
-probe = false

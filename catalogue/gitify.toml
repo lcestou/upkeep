@@ -1,8 +1,0 @@
-# Drafted from gitify-app/gitify's v8.1.0 release; its version is the one Upkeep installed.
-[apps.gitify]
-name = "Gitify"
-kind = "appimage"
-repo = "gitify-app/gitify"
-asset = '^Gitify-.*\.AppImage$'
-dest = "~/.local/bin/gitify.AppImage"
-probe = false

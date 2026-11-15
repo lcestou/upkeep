@@ -1,8 +1,0 @@
-# Drafted from AventurasTeam/Aventuras's v0.7.12 release; its version is the one Upkeep installed.
-[apps.aventuras]
-name = "Aventuras"
-kind = "appimage"
-repo = "AventurasTeam/Aventuras"
-asset = '^Aventuras_.*_amd64\.AppImage$'
-dest = "~/.local/bin/aventuras.AppImage"
-probe = false

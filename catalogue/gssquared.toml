@@ -1,8 +1,0 @@
-# Drafted from jawaidbazyar2/gssquared's v1.0.0 release; its version is the one Upkeep installed.
-[apps.gssquared]
-name = "GSSquared"
-kind = "appimage"
-repo = "jawaidbazyar2/gssquared"
-asset = '^GSSquared-x86_64\.AppImage$'
-dest = "~/.local/bin/gssquared.AppImage"
-probe = false

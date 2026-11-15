@@ -1,9 +1,0 @@
-# Drafted from gruntwork-io/boilerplate's v0.17.0 release; its version is the one Upkeep installed.
-[apps.boilerplate]
-name = "boilerplate"
-kind = "file"
-repo = "gruntwork-io/boilerplate"
-asset = '^boilerplate_linux_amd64$'
-asset_aarch64 = '^boilerplate_linux_arm64$'
-dest = "~/.local/bin/boilerplate"
-probe = false

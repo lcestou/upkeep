@@ -1,8 +1,0 @@
-# Drafted from VisiGrid/VisiGrid's v0.55.1 release; its version is the one Upkeep installed.
-[apps.visigrid]
-name = "VisiGrid"
-kind = "appimage"
-repo = "VisiGrid/VisiGrid"
-asset = '^VisiGrid-x86_64\.AppImage$'
-dest = "~/.local/bin/visigrid.AppImage"
-probe = false

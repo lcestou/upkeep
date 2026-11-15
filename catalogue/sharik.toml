@@ -1,8 +1,0 @@
-# Drafted from marchellodev/sharik's v3.1 release; its version is the one Upkeep installed.
-[apps.sharik]
-name = "sharik"
-kind = "appimage"
-repo = "marchellodev/sharik"
-asset = '^sharik_.*_linux\.AppImage$'
-dest = "~/.local/bin/sharik.AppImage"
-probe = false

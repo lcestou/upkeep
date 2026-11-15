@@ -1,9 +1,0 @@
-# Drafted from l0ng-ai/openidea's v0.1.45 release; its version is the one Upkeep installed.
-[apps.openidea]
-name = "OpenIDEA"
-kind = "appimage"
-repo = "l0ng-ai/openidea"
-asset = '^OpenIDEA_.*_amd64\.AppImage$'
-asset_aarch64 = '^OpenIDEA_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/openidea.AppImage"
-probe = false

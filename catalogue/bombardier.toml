@@ -1,9 +1,0 @@
-# Drafted from codesenberg/bombardier's v2.0.2 release; its version is the one Upkeep installed.
-[apps.bombardier]
-name = "bombardier"
-kind = "file"
-repo = "codesenberg/bombardier"
-asset = '^bombardier-linux-amd64$'
-asset_aarch64 = '^bombardier-linux-arm64$'
-dest = "~/.local/bin/bombardier"
-probe = false

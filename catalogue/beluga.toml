@@ -1,8 +1,0 @@
-# Drafted from beluga-labs/beluga's v3.5.0-mac release; its version is the one Upkeep installed.
-[apps.beluga]
-name = "Beluga"
-kind = "appimage"
-repo = "beluga-labs/beluga"
-asset = '^Beluga_.*_amd64\.AppImage$'
-dest = "~/.local/bin/beluga.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from alexellis/arkade's 0.12.1 release; its version is the one Upkeep installed.
-[apps.arkade]
-name = "arkade"
-kind = "file"
-repo = "alexellis/arkade"
-asset = '^arkade$'
-dest = "~/.local/bin/arkade"
-probe = false

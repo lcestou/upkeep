@@ -1,8 +1,0 @@
-# Drafted from vsitzmann/deckwerk's v0.3.4 release; its version is the one Upkeep installed.
-[apps.deckwerk]
-name = "deckwerk"
-kind = "appimage"
-repo = "vsitzmann/deckwerk"
-asset = '^deckwerk-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/deckwerk.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from a-chacon/chaski-app's app-v0.9.0 release; its version is the one Upkeep installed.
-[apps.chaski]
-name = "Chaski"
-kind = "appimage"
-repo = "a-chacon/chaski-app"
-asset = '^Chaski_.*_amd64\.AppImage$'
-dest = "~/.local/bin/chaski.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from phase-rs/phase's shell-v1.0.14 release; its version is the one Upkeep installed.
-[apps.phase-desktop]
-name = "Phase-Desktop"
-kind = "appimage"
-repo = "phase-rs/phase"
-asset = '^Phase-Desktop-Linux-x86_64\.AppImage$'
-asset_aarch64 = '^Phase-Desktop-Linux-aarch64\.AppImage$'
-dest = "~/.local/bin/phase-desktop.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from eneskirca/nodeterm's v0.5.1 release; its version is the one Upkeep installed.
-[apps.nodeterm]
-name = "nodeterm"
-kind = "appimage"
-repo = "eneskirca/nodeterm"
-asset = '^nodeterm-.*\.AppImage$'
-dest = "~/.local/bin/nodeterm.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from kubernetes-sigs/cluster-api's v1.14.4 release; its version is the one Upkeep installed.
-[apps.clusterctl]
-name = "Cluster Api"
-kind = "file"
-repo = "kubernetes-sigs/cluster-api"
-asset = '^clusterctl-linux-amd64$'
-asset_aarch64 = '^clusterctl-linux-arm64$'
-dest = "~/.local/bin/clusterctl"
-probe = false

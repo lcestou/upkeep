@@ -1,8 +1,0 @@
-# Drafted from beltromatti/get-it's v1.4.0 release; its version is the one Upkeep installed.
-[apps.get-it]
-name = "Get-It"
-kind = "appimage"
-repo = "beltromatti/get-it"
-asset = '^Get\.It-.*\.AppImage$'
-dest = "~/.local/bin/get-it.AppImage"
-probe = false

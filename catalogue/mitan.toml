@@ -1,9 +1,0 @@
-# Drafted from kkbo8005/mitan's 2.0.8 release; its version is the one Upkeep installed.
-[apps.mitan]
-name = "mitan"
-kind = "appimage"
-repo = "kkbo8005/mitan"
-asset = '^mitan_x86_64-unknown-linux-gnu\.AppImage$'
-asset_aarch64 = '^mitan_aarch64-unknown-linux-gnu\.AppImage$'
-dest = "~/.local/bin/mitan.AppImage"
-probe = false

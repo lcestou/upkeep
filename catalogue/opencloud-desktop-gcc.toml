@@ -1,8 +1,0 @@
-# Drafted from opencloud-eu/desktop's v4.0.0 release; its version is the one Upkeep installed.
-[apps.opencloud-desktop-gcc]
-name = "OpenCloud-Desktop-gcc"
-kind = "appimage"
-repo = "opencloud-eu/desktop"
-asset = '^OpenCloud_Desktop-.*-linux-gcc-x86_64\.AppImage$'
-dest = "~/.local/bin/opencloud-desktop-gcc.AppImage"
-probe = false

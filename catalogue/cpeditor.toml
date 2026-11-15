@@ -1,8 +1,0 @@
-# Drafted from cpeditor/cpeditor's 7.1.2 release; its version is the one Upkeep installed.
-[apps.cpeditor]
-name = "cpeditor"
-kind = "appimage"
-repo = "cpeditor/cpeditor"
-asset = '^cpeditor-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/cpeditor.AppImage"
-probe = false

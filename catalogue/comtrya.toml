@@ -1,9 +1,0 @@
-# Drafted from comtrya/comtrya's v0.11.0 release; its version is the one Upkeep installed.
-[apps.comtrya]
-name = "comtrya"
-kind = "file"
-repo = "comtrya/comtrya"
-asset = '^comtrya-x86_64-unknown-linux-gnu$'
-asset_aarch64 = '^comtrya-aarch64-unknown-linux-gnu$'
-dest = "~/.local/bin/comtrya"
-probe = false

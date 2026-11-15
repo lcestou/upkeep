@@ -1,8 +1,0 @@
-# Drafted from dail8859/NotepadNext's v0.15 release; its version is the one Upkeep installed.
-[apps.notepadnext]
-name = "NotepadNext"
-kind = "appimage"
-repo = "dail8859/NotepadNext"
-asset = '^NotepadNext-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/notepadnext.AppImage"
-probe = false

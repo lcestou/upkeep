@@ -1,8 +1,0 @@
-# Drafted from MatthewCallis/super-pads's 2.1.0 release; its version is the one Upkeep installed.
-[apps.super-pads]
-name = "Super-Pads"
-kind = "appimage"
-repo = "MatthewCallis/super-pads"
-asset = '^Super\.Pads-linux\.AppImage$'
-dest = "~/.local/bin/super-pads.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Licoy/fetch-github-hosts's v4.1.0 release; its version is the one Upkeep installed.
-[apps.fetch-github-hosts]
-name = "Fetch-Github-Hosts"
-kind = "appimage"
-repo = "Licoy/fetch-github-hosts"
-asset = '^Fetch\.Github\.Hosts_.*_amd64\.AppImage$'
-dest = "~/.local/bin/fetch-github-hosts.AppImage"
-probe = false

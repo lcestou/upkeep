@@ -1,9 +1,0 @@
-# Drafted from shadps4-emu/shadPS4's v.0.21.0 release; its version is the one Upkeep installed.
-[apps.shadps4-sdl]
-name = "ShadPS4"
-kind = "archive"
-repo = "shadps4-emu/shadPS4"
-asset = '^shadps4-linux-sdl-.*\.zip$'
-dest = "~/.local/bin/Shadps4-sdl.AppImage"
-bins = ["Shadps4-sdl.AppImage"]
-probe = false

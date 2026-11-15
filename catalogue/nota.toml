@@ -1,9 +1,0 @@
-# Drafted from nota-daw/nota's v0.60.1 release; its version is the one Upkeep installed.
-[apps.nota]
-name = "Nota"
-kind = "appimage"
-repo = "nota-daw/nota"
-asset = '^Nota-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Nota-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/nota.AppImage"
-probe = false

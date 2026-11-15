@@ -1,9 +1,0 @@
-# Drafted from pkolaczk/fclones's v0.35.0 release; its version is the one Upkeep installed.
-[apps.fclones]
-name = "fclones"
-kind = "archive"
-repo = "pkolaczk/fclones"
-asset = '^fclones-.*-linux-musl-x86_64\.tar\.gz$'
-dest = "~/.local/bin/fclones"
-bins = ["target/x86_64-unknown-linux-musl/release/fclones"]
-probe = false

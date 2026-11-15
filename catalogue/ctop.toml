@@ -1,9 +1,0 @@
-# Drafted from bcicen/ctop's v0.7.7 release; its version is the one Upkeep installed.
-[apps.ctop]
-name = "ctop"
-kind = "file"
-repo = "bcicen/ctop"
-asset = '^ctop-.*-linux-amd64$'
-asset_aarch64 = '^ctop-.*-linux-arm64$'
-dest = "~/.local/bin/ctop"
-probe = false

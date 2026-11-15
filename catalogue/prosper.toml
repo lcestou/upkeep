@@ -1,8 +1,0 @@
-# Drafted from mattias800/prosper's v0.2.4 release; its version is the one Upkeep installed.
-[apps.prosper]
-name = "prosper"
-kind = "appimage"
-repo = "mattias800/prosper"
-asset = '^prosper-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/prosper.AppImage"
-probe = false

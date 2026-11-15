@@ -1,8 +1,0 @@
-# Drafted from tx00100xt/SeriousSamClassic-VK's 1.10.7 release; its version is the one Upkeep installed.
-[apps.serioussamtfe-vk]
-name = "SeriousSamTFE-Vk"
-kind = "appimage"
-repo = "tx00100xt/SeriousSamClassic-VK"
-asset = '^SeriousSamTFE-Vk-[0-9][0-9A-Za-z.]*-x86_64\.AppImage$'
-dest = "~/.local/bin/serioussamtfe-vk.AppImage"
-probe = false

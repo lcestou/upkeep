@@ -1,8 +1,0 @@
-# Drafted from jazzenchen/VibeAround's v0.7.25 release; its version is the one Upkeep installed.
-[apps.vibearound]
-name = "VibeAround"
-kind = "appimage"
-repo = "jazzenchen/VibeAround"
-asset = '^VibeAround-Linux-x64-AppImage-.*\.AppImage$'
-dest = "~/.local/bin/vibearound.AppImage"
-probe = false

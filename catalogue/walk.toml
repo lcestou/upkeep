@@ -1,9 +1,0 @@
-# Drafted from antonmedv/walk's v1.13.0 release; its version is the one Upkeep installed.
-[apps.walk]
-name = "walk"
-kind = "file"
-repo = "antonmedv/walk"
-asset = '^walk_linux_amd64$'
-asset_aarch64 = '^walk_linux_arm64$'
-dest = "~/.local/bin/walk"
-probe = false

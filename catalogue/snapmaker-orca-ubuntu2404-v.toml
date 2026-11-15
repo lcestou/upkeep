@@ -1,8 +1,0 @@
-# Drafted from Snapmaker/OrcaSlicer's v2.4.1 release; its version is the one Upkeep installed.
-[apps.snapmaker-orca-ubuntu2404-v]
-name = "Snapmaker-Orca-Ubuntu2404"
-kind = "appimage"
-repo = "Snapmaker/OrcaSlicer"
-asset = '^Snapmaker_Orca_Linux_AppImage_Ubuntu2404_V.*\.AppImage$'
-dest = "~/.local/bin/snapmaker-orca-ubuntu2404-v.AppImage"
-probe = false

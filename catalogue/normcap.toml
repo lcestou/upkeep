@@ -1,8 +1,0 @@
-# Drafted from dynobo/normcap's v0.6.0 release; its version is the one Upkeep installed.
-[apps.normcap]
-name = "NormCap"
-kind = "appimage"
-repo = "dynobo/normcap"
-asset = '^NormCap-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/normcap.AppImage"
-probe = false

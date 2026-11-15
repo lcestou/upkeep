@@ -1,9 +1,0 @@
-# Drafted from cpisciotta/xcbeautify's 3.2.1 release; its version is the one Upkeep installed.
-[apps.xcbeautify]
-name = "xcbeautify"
-kind = "archive"
-repo = "cpisciotta/xcbeautify"
-asset = '^xcbeautify-.*-x86_64-unknown-linux-gnu\.tar\.xz$'
-dest = "~/.local/bin/xcbeautify"
-bins = ["xcbeautify"]
-probe = false

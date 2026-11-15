@@ -1,9 +1,0 @@
-# Drafted from komaruworld/mocktail's 1.0.5 release; its version is the one Upkeep installed.
-[apps.mocktail]
-name = "Mocktail"
-kind = "appimage"
-repo = "komaruworld/mocktail"
-asset = '^Mocktail-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Mocktail-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/mocktail.AppImage"
-probe = false

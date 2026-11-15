@@ -1,9 +1,0 @@
-# Drafted from pch/rawmakase's v0.5.0 release; its version is the one Upkeep installed.
-[apps.rawmakase]
-name = "rawmakase"
-kind = "appimage"
-repo = "pch/rawmakase"
-asset = '^rawmakase-.*-x86_64\.AppImage$'
-asset_aarch64 = '^rawmakase-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/rawmakase.AppImage"
-probe = false

@@ -1,9 +1,0 @@
-# Drafted from gustavosett/Windows-11-Clipboard-History-For-Linux's v0.7.1 release; its version is the one Upkeep installed.
-[apps.win11-clipboard-history]
-name = "Windows 11 Clipboard History For Linux"
-kind = "appimage"
-repo = "gustavosett/Windows-11-Clipboard-History-For-Linux"
-asset = '^win11-clipboard-history_.*_amd64\.AppImage$'
-asset_aarch64 = '^win11-clipboard-history_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/win11-clipboard-history.AppImage"
-probe = false

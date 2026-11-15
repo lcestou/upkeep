@@ -1,9 +1,0 @@
-# Drafted from LumaryLabsLLC/muxin's v0.15.0 release; its version is the one Upkeep installed.
-[apps.muxin]
-name = "Muxin"
-kind = "appimage"
-repo = "LumaryLabsLLC/muxin"
-asset = '^Muxin-.*-linux-x86_64\.AppImage$'
-asset_aarch64 = '^Muxin-.*-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/muxin.AppImage"
-probe = false

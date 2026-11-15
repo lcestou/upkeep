@@ -1,9 +1,0 @@
-# Drafted from Duecki1/CalibRaw's v1.4.1 release; its version is the one Upkeep installed.
-[apps.calibraw]
-name = "CalibRaw"
-kind = "appimage"
-repo = "Duecki1/CalibRaw"
-asset = '^CalibRaw-x86_64\.AppImage$'
-asset_aarch64 = '^CalibRaw-aarch64\.AppImage$'
-dest = "~/.local/bin/calibraw.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from mame/wsl2-ssh-agent's v0.9.7 release; its version is the one Upkeep installed.
-[apps.wsl2-ssh-agent]
-name = "Wsl2 Ssh Agent"
-kind = "file"
-repo = "mame/wsl2-ssh-agent"
-asset = '^wsl2-ssh-agent$'
-dest = "~/.local/bin/wsl2-ssh-agent"
-probe = false

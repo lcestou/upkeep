@@ -1,8 +1,0 @@
-# Drafted from 847850277/postman-gpui's v0.1.3 release; its version is the one Upkeep installed.
-[apps.postman-g]
-name = "Postman Gpui"
-kind = "appimage"
-repo = "847850277/postman-gpui"
-asset = '^postman-gpui_.*_x86_64\.AppImage$'
-dest = "~/.local/bin/postman-g.AppImage"
-probe = false

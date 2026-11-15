@@ -1,8 +1,0 @@
-# Drafted from Siriusmart/youtube-tui's v0.9.4 release; its version is the one Upkeep installed.
-[apps.youtube-tui-full-arch]
-name = "Youtube Tui"
-kind = "file"
-repo = "Siriusmart/youtube-tui"
-asset = '^youtube-tui-full_arch-x86_64$'
-dest = "~/.local/bin/youtube-tui-full-arch"
-probe = false

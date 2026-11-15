@@ -1,8 +1,0 @@
-# Drafted from AkaraChen/aghub's v1.9.2 release; its version is the one Upkeep installed.
-[apps.aghub]
-name = "aghub"
-kind = "appimage"
-repo = "AkaraChen/aghub"
-asset = '^aghub_.*_amd64\.AppImage$'
-dest = "~/.local/bin/aghub.AppImage"
-probe = false

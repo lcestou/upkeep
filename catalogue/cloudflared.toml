@@ -1,9 +1,0 @@
-# Drafted from cloudflare/cloudflared's 2026.11.0 release; its version is the one Upkeep installed.
-[apps.cloudflared]
-name = "cloudflared"
-kind = "file"
-repo = "cloudflare/cloudflared"
-asset = '^cloudflared-linux-amd64$'
-asset_aarch64 = '^cloudflared-linux-arm64$'
-dest = "~/.local/bin/cloudflared"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Round-Studio/BedrockBoot's v2.1.11.101 release; its version is the one Upkeep installed.
-[apps.bedrockboot]
-name = "BedrockBoot"
-kind = "appimage"
-repo = "Round-Studio/BedrockBoot"
-asset = '^BedrockBoot-x86_64-linux\.AppImage$'
-dest = "~/.local/bin/bedrockboot.AppImage"
-probe = false

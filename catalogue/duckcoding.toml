@@ -1,8 +1,0 @@
-# Drafted from DuckCoding-dev/DuckCoding's v1.5.7 release; its version is the one Upkeep installed.
-[apps.duckcoding]
-name = "DuckCoding"
-kind = "appimage"
-repo = "DuckCoding-dev/DuckCoding"
-asset = '^DuckCoding_.*_amd64\.AppImage$'
-dest = "~/.local/bin/duckcoding.AppImage"
-probe = false

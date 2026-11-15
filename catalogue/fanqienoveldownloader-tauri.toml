@@ -1,9 +1,0 @@
-# Drafted from POf-L/Fanqie-novel-Downloader's unsigned-v2026.11.15-633-r834 release; its version is the one Upkeep installed.
-[apps.fanqienoveldownloader-tauri]
-name = "FanqieNovelDownloader-tauri"
-kind = "appimage"
-repo = "POf-L/Fanqie-novel-Downloader"
-asset = '^FanqieNovelDownloader-tauri-amd64\.AppImage$'
-asset_aarch64 = '^FanqieNovelDownloader-tauri-aarch64\.AppImage$'
-dest = "~/.local/bin/fanqienoveldownloader-tauri.AppImage"
-probe = false

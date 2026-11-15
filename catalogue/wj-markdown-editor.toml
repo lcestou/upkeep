@@ -1,8 +1,0 @@
-# Drafted from nlbwqmz/wj-markdown-editor's 3.1.1 release; its version is the one Upkeep installed.
-[apps.wj-markdown-editor]
-name = "Wj Markdown Editor"
-kind = "appimage"
-repo = "nlbwqmz/wj-markdown-editor"
-asset = '^wj-markdown-editor-x86_64-.*\.AppImage$'
-dest = "~/.local/bin/wj-markdown-editor.AppImage"
-probe = false

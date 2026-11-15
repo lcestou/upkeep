@@ -1,8 +1,0 @@
-# Drafted from tangency-labs/fieldcraft's v0.7.5 release; its version is the one Upkeep installed.
-[apps.fieldcraft]
-name = "fieldcraft"
-kind = "appimage"
-repo = "tangency-labs/fieldcraft"
-asset = '^fieldcraft-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/fieldcraft.AppImage"
-probe = false

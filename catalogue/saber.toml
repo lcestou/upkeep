@@ -1,9 +1,0 @@
-# Drafted from saber-notes/saber's v1.37.2 release; its version is the one Upkeep installed.
-[apps.saber]
-name = "Saber"
-kind = "appimage"
-repo = "saber-notes/saber"
-asset = '^Saber-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Saber-.*-arm64\.AppImage$'
-dest = "~/.local/bin/saber.AppImage"
-probe = false

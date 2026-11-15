@@ -1,8 +1,0 @@
-# Drafted from omf2097/openomf's 0.8.6 release; its version is the one Upkeep installed.
-[apps.openomf]
-name = "OpenOMF"
-kind = "appimage"
-repo = "omf2097/openomf"
-asset = '^OpenOMF-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/openomf.AppImage"
-probe = false

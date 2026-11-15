@@ -1,8 +1,0 @@
-# Drafted from greggman/servez's v1.13.0 release; its version is the one Upkeep installed.
-[apps.servez]
-name = "Servez"
-kind = "appimage"
-repo = "greggman/servez"
-asset = '^Servez-.*\.AppImage$'
-dest = "~/.local/bin/servez.AppImage"
-probe = false

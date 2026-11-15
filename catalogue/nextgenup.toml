@@ -1,8 +1,0 @@
-# Drafted from riponcm/nextgenUp's v1.3.0 release; its version is the one Upkeep installed.
-[apps.nextgenup]
-name = "NextGenUp"
-kind = "appimage"
-repo = "riponcm/nextgenUp"
-asset = '^NextGenUp-Linux\.AppImage$'
-dest = "~/.local/bin/nextgenup.AppImage"
-probe = false

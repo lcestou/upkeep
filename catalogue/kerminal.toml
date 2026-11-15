@@ -1,8 +1,0 @@
-# Drafted from klpod221/kerminal's v2.7.3 release; its version is the one Upkeep installed.
-[apps.kerminal]
-name = "Kerminal"
-kind = "appimage"
-repo = "klpod221/kerminal"
-asset = '^Kerminal_.*_amd64\.AppImage$'
-dest = "~/.local/bin/kerminal.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from checkmake/checkmake's v0.3.2 release; its version is the one Upkeep installed.
-[apps.checkmake]
-name = "checkmake"
-kind = "file"
-repo = "checkmake/checkmake"
-asset = '^checkmake\.1$'
-dest = "~/.local/bin/checkmake"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from eficode/wait-for's v2.2.4 release; its version is the one Upkeep installed.
-[apps.wait-for]
-name = "Wait For"
-kind = "file"
-repo = "eficode/wait-for"
-asset = '^wait-for$'
-dest = "~/.local/bin/wait-for"
-probe = false

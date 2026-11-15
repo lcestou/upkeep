@@ -1,9 +1,0 @@
-# Drafted from marcosnils/bin's v0.29.4 release; its version is the one Upkeep installed.
-[apps.bin]
-name = "marcosnils"
-kind = "file"
-repo = "marcosnils/bin"
-asset = '^bin_.*_linux_amd64$'
-asset_aarch64 = '^bin_.*_linux_arm64$'
-dest = "~/.local/bin/bin"
-probe = false

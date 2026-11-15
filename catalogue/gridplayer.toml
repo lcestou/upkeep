@@ -1,8 +1,0 @@
-# Drafted from vzhd1701/gridplayer's v0.5.5 release; its version is the one Upkeep installed.
-[apps.gridplayer]
-name = "GridPlayer"
-kind = "appimage"
-repo = "vzhd1701/gridplayer"
-asset = '^GridPlayer-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/gridplayer.AppImage"
-probe = false

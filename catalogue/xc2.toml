@@ -1,8 +1,0 @@
-# Drafted from AksharDP/xc2-recomp's v0.1.12 release; its version is the one Upkeep installed.
-[apps.xc2]
-name = "XC2"
-kind = "appimage"
-repo = "AksharDP/xc2-recomp"
-asset = '^XC2-Setup-.*-linux\.AppImage$'
-dest = "~/.local/bin/xc2.AppImage"
-probe = false

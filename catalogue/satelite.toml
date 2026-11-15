@@ -1,8 +1,0 @@
-# Drafted from zn0wii/satelite-proxy's v1.0.46 release; its version is the one Upkeep installed.
-[apps.satelite]
-name = "Satelite"
-kind = "appimage"
-repo = "zn0wii/satelite-proxy"
-asset = '^Satelite_.*_amd64\.AppImage$'
-dest = "~/.local/bin/satelite.AppImage"
-probe = false

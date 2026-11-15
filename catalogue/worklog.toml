@@ -1,8 +1,0 @@
-# Drafted from regisx001/Worklog's app-v1.5.2 release; its version is the one Upkeep installed.
-[apps.worklog]
-name = "Worklog"
-kind = "appimage"
-repo = "regisx001/Worklog"
-asset = '^worklog_.*_amd64\.AppImage$'
-dest = "~/.local/bin/worklog.AppImage"
-probe = false

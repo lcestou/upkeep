@@ -1,8 +1,0 @@
-# Drafted from since2006/shell-rs's v0.1.19 release; its version is the one Upkeep installed.
-[apps.shellrs]
-name = "ShellRS"
-kind = "appimage"
-repo = "since2006/shell-rs"
-asset = '^ShellRS-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/shellrs.AppImage"
-probe = false

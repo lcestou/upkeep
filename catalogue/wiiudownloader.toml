@@ -1,9 +1,0 @@
-# Drafted from Xpl0itU/WiiUDownloader's v3.2 release; its version is the one Upkeep installed.
-[apps.wiiudownloader]
-name = "WiiUDownloader"
-kind = "appimage"
-repo = "Xpl0itU/WiiUDownloader"
-asset = '^WiiUDownloader-Linux-x86_64\.AppImage$'
-asset_aarch64 = '^WiiUDownloader-Linux-aarch64\.AppImage$'
-dest = "~/.local/bin/wiiudownloader.AppImage"
-probe = false

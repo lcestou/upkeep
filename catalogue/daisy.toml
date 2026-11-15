@@ -1,8 +1,0 @@
-# Drafted from niuhuan/daisy's v0.1.28 release; its version is the one Upkeep installed.
-[apps.daisy]
-name = "daisy"
-kind = "appimage"
-repo = "niuhuan/daisy"
-asset = '^daisy-.*\.AppImage$'
-dest = "~/.local/bin/daisy.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from Johnbatey/bible-song-pro-studio's v3.4.0 release; its version is the one Upkeep installed.
-[apps.bible-song-pro-studio]
-name = "Bible-Song-Pro-Studio"
-kind = "appimage"
-repo = "Johnbatey/bible-song-pro-studio"
-asset = '^Bible\.Song\.Pro\.Studio-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/bible-song-pro-studio.AppImage"
-probe = false

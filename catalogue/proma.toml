@@ -1,8 +1,0 @@
-# Drafted from proma-ai/Proma's v0.19.58 release; its version is the one Upkeep installed.
-[apps.proma]
-name = "Proma"
-kind = "appimage"
-repo = "proma-ai/Proma"
-asset = '^Proma-.*\.AppImage$'
-dest = "~/.local/bin/proma.AppImage"
-probe = false

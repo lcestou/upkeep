@@ -1,8 +1,0 @@
-# Drafted from UniversalMediaServer/UniversalMediaServer's 15.9.0 release; its version is the one Upkeep installed.
-[apps.ums]
-name = "UMS"
-kind = "appimage"
-repo = "UniversalMediaServer/UniversalMediaServer"
-asset = '^UMS-Linux-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/ums.AppImage"
-probe = false

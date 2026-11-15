@@ -1,8 +1,0 @@
-# Drafted from scrubbbbs/cbird's v0.8.0 release; its version is the one Upkeep installed.
-[apps.cbird]
-name = "cbird"
-kind = "appimage"
-repo = "scrubbbbs/cbird"
-asset = '^cbird-linux-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/cbird.AppImage"
-probe = false

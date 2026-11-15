@@ -1,8 +1,0 @@
-# Drafted from aleksey-hoffman/sigma-file-manager's v2.2.0 release; its version is the one Upkeep installed.
-[apps.sigma-file-manager]
-name = "Sigma-File-Manager"
-kind = "appimage"
-repo = "aleksey-hoffman/sigma-file-manager"
-asset = '^Sigma-File-Manager-.*-linux\.AppImage$'
-dest = "~/.local/bin/sigma-file-manager.AppImage"
-probe = false

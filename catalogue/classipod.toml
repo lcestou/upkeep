@@ -1,8 +1,0 @@
-# Drafted from adeeteya/Classipod's 2.1.0 release; its version is the one Upkeep installed.
-[apps.classipod]
-name = "Classipod"
-kind = "appimage"
-repo = "adeeteya/Classipod"
-asset = '^Classipod-Linux-AppImage\.AppImage$'
-dest = "~/.local/bin/classipod.AppImage"
-probe = false

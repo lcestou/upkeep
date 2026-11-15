@@ -1,8 +1,0 @@
-# Drafted from TerraMap/terramap.github.io's native-v0.1.11 release; its version is the one Upkeep installed.
-[apps.terramap]
-name = "TerraMap"
-kind = "appimage"
-repo = "TerraMap/terramap.github.io"
-asset = '^TerraMap-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/terramap.AppImage"
-probe = false

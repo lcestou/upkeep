@@ -1,8 +1,0 @@
-# Drafted from Pronexsteam/deviload's v2.16.0 release; its version is the one Upkeep installed.
-[apps.deviload]
-name = "Deviload"
-kind = "appimage"
-repo = "Pronexsteam/deviload"
-asset = '^Deviload-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/deviload.AppImage"
-probe = false

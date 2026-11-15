@@ -1,8 +1,0 @@
-# Drafted from kylejckson/PaintFE's v1.4.28 release; its version is the one Upkeep installed.
-[apps.paintfe]
-name = "PaintFE"
-kind = "appimage"
-repo = "kylejckson/PaintFE"
-asset = '^PaintFE-x86_64\.AppImage$'
-dest = "~/.local/bin/paintfe.AppImage"
-probe = false

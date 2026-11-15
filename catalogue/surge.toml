@@ -1,8 +1,0 @@
-# Drafted from SurgeDM/Surge's v0.12.4 release; its version is the one Upkeep installed.
-[apps.surge]
-name = "Surge"
-kind = "appimage"
-repo = "SurgeDM/Surge"
-asset = '^Surge_.*_linux_x86_64\.AppImage$'
-dest = "~/.local/bin/surge.AppImage"
-probe = false

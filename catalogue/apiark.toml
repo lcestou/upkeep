@@ -1,8 +1,0 @@
-# Drafted from berbicanes/apiark's v0.4.6 release; its version is the one Upkeep installed.
-[apps.apiark]
-name = "ApiArk"
-kind = "appimage"
-repo = "berbicanes/apiark"
-asset = '^ApiArk_.*_amd64\.AppImage$'
-dest = "~/.local/bin/apiark.AppImage"
-probe = false

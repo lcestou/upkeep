@@ -1,8 +1,0 @@
-# Drafted from UZDoom/UZDoom's 5.0.3 release; its version is the one Upkeep installed.
-[apps.uzdoom-release]
-name = "UZDoom-Release"
-kind = "appimage"
-repo = "UZDoom/UZDoom"
-asset = '^Linux-UZDoom-Release-x86_64\.AppImage$'
-dest = "~/.local/bin/uzdoom-release.AppImage"
-probe = false

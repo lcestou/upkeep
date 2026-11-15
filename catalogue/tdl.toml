@@ -1,9 +1,0 @@
-# Drafted from iyear/tdl's v0.20.4 release; its version is the one Upkeep installed.
-[apps.tdl]
-name = "tdl"
-kind = "archive"
-repo = "iyear/tdl"
-asset = '^tdl_Linux_64bit\.tar\.gz$'
-dest = "~/.local/bin/tdl"
-bins = ["tdl"]
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from vifm/vifm's v0.14.5 release; its version is the one Upkeep installed.
-[apps.vifm]
-name = "vifm"
-kind = "appimage"
-repo = "vifm/vifm"
-asset = '^vifm-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/vifm.AppImage"
-probe = false

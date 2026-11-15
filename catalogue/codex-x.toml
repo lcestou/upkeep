@@ -1,8 +1,0 @@
-# Drafted from yynxxxxx/Codex-X's v0.3.34 release; its version is the one Upkeep installed.
-[apps.codex-x]
-name = "Codex-X"
-kind = "appimage"
-repo = "yynxxxxx/Codex-X"
-asset = '^Codex-X-.*-linux-x64\.AppImage$'
-dest = "~/.local/bin/codex-x.AppImage"
-probe = false

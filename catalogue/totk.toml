@@ -1,8 +1,0 @@
-# Drafted from valentderah/totk-pc-recomp's v0.4.0 release; its version is the one Upkeep installed.
-[apps.totk]
-name = "TotK"
-kind = "appimage"
-repo = "valentderah/totk-pc-recomp"
-asset = '^TotK-Setup-x86_64-.*-linux\.AppImage$'
-dest = "~/.local/bin/totk.AppImage"
-probe = false

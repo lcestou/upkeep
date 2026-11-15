@@ -1,8 +1,0 @@
-# Drafted from Mooshieblob1/MooshieUI's v2.3.46 release; its version is the one Upkeep installed.
-[apps.mooshieui]
-name = "MooshieUI"
-kind = "appimage"
-repo = "Mooshieblob1/MooshieUI"
-asset = '^MooshieUI_.*_amd64\.AppImage$'
-dest = "~/.local/bin/mooshieui.AppImage"
-probe = false

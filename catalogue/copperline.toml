@@ -1,8 +1,0 @@
-# Drafted from CopperlineHQ/Copperline's v1.1.0 release; its version is the one Upkeep installed.
-[apps.copperline]
-name = "Copperline"
-kind = "appimage"
-repo = "CopperlineHQ/Copperline"
-asset = '^Copperline-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/copperline.AppImage"
-probe = false

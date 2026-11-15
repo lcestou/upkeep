@@ -1,8 +1,0 @@
-# Drafted from mortbopet/Ripes's v2.3.1 release; its version is the one Upkeep installed.
-[apps.ripes]
-name = "Ripes"
-kind = "appimage"
-repo = "mortbopet/Ripes"
-asset = '^Ripes-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/ripes.AppImage"
-probe = false

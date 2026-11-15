@@ -1,8 +1,0 @@
-# Drafted from inlets/inlets-pro's 0.12.2 release; its version is the one Upkeep installed.
-[apps.inlets-pro]
-name = "Inlets Pro"
-kind = "file"
-repo = "inlets/inlets-pro"
-asset = '^inlets-pro$'
-dest = "~/.local/bin/inlets-pro"
-probe = false

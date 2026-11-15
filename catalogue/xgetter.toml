@@ -1,8 +1,0 @@
-# Drafted from xgetter-team/xgetter's v1.8.9 release; its version is the one Upkeep installed.
-[apps.xgetter]
-name = "XGetter"
-kind = "appimage"
-repo = "xgetter-team/xgetter"
-asset = '^XGetter_.*_amd64\.AppImage$'
-dest = "~/.local/bin/xgetter.AppImage"
-probe = false

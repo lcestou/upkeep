@@ -1,9 +1,0 @@
-# Drafted from yaklang/yakit's v1.4.9-1113 release; its version is the one Upkeep installed.
-[apps.yakit]
-name = "Yakit"
-kind = "appimage"
-repo = "yaklang/yakit"
-asset = '^Yakit-.*-1113-linux-amd64\.AppImage$'
-asset_aarch64 = '^Yakit-.*-1113-linux-arm64\.AppImage$'
-dest = "~/.local/bin/yakit.AppImage"
-probe = false

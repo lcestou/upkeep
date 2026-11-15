@@ -1,9 +1,0 @@
-# Drafted from zvec-ai/zvec-studio's v0.1.15 release; its version is the one Upkeep installed.
-[apps.zvec-studio]
-name = "Zvec-Studio"
-kind = "appimage"
-repo = "zvec-ai/zvec-studio"
-asset = '^Zvec\.Studio_.*_amd64\.AppImage$'
-asset_aarch64 = '^Zvec\.Studio_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/zvec-studio.AppImage"
-probe = false

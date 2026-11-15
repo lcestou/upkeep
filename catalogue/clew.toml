@@ -1,9 +1,0 @@
-# Drafted from miuuyy/Clew's v1.0.0 release; its version is the one Upkeep installed.
-[apps.clew]
-name = "Clew"
-kind = "appimage"
-repo = "miuuyy/Clew"
-asset = '^Clew-.*-linux-x64\.AppImage$'
-asset_aarch64 = '^Clew-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/clew.AppImage"
-probe = false

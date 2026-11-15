@@ -1,8 +1,0 @@
-# Drafted from Yuelioi/bdl's v0.10.5 release; its version is the one Upkeep installed.
-[apps.bdl]
-name = "BDL"
-kind = "appimage"
-repo = "Yuelioi/bdl"
-asset = '^BDL_.*_amd64\.AppImage$'
-dest = "~/.local/bin/bdl.AppImage"
-probe = false

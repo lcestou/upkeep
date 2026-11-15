@@ -1,9 +1,0 @@
-# Drafted from gtsteffaniak/filebrowser's v2.0.2-stable release; its version is the one Upkeep installed.
-[apps.filebrowser]
-name = "filebrowser"
-kind = "file"
-repo = "gtsteffaniak/filebrowser"
-asset = '^linux-amd64-filebrowser$'
-asset_aarch64 = '^linux-arm64-filebrowser$'
-dest = "~/.local/bin/filebrowser"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from TED-H-com/multi-ai-chat-desktop's v1.9.8 release; its version is the one Upkeep installed.
-[apps.multi-ai-chat-desktop]
-name = "Multi-AI-Chat-Desktop"
-kind = "appimage"
-repo = "TED-H-com/multi-ai-chat-desktop"
-asset = '^Multi-AI\.Chat\.Desktop_.*_amd64\.AppImage$'
-dest = "~/.local/bin/multi-ai-chat-desktop.AppImage"
-probe = false

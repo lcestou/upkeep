@@ -1,8 +1,0 @@
-# Drafted from chaaz/versio's v0.8.5 release; its version is the one Upkeep installed.
-[apps.versio]
-name = "versio"
-kind = "file"
-repo = "chaaz/versio"
-asset = '^versio__x86_64-unknown-linux-gnu$'
-dest = "~/.local/bin/versio"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from kodjodevf/mangayomi's v0.9.96 release; its version is the one Upkeep installed.
-[apps.mangayomi]
-name = "Mangayomi"
-kind = "appimage"
-repo = "kodjodevf/mangayomi"
-asset = '^Mangayomi-.*-linux\.AppImage$'
-dest = "~/.local/bin/mangayomi.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from NomaDamas/bananatape's v0.3.3 release; its version is the one Upkeep installed.
-[apps.bananatape]
-name = "BananaTape"
-kind = "appimage"
-repo = "NomaDamas/bananatape"
-asset = '^BananaTape-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/bananatape.AppImage"
-probe = false

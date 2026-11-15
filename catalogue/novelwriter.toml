@@ -1,8 +1,0 @@
-# Drafted from saga-soft/novelWriter's v26.2.3 release; its version is the one Upkeep installed.
-[apps.novelwriter]
-name = "NovelWriter"
-kind = "appimage"
-repo = "saga-soft/novelWriter"
-asset = '^novelwriter-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/novelwriter.AppImage"
-probe = false

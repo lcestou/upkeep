@@ -1,9 +1,0 @@
-# Drafted from tinyhumansai/openhuman's v0.64.15 release; its version is the one Upkeep installed.
-[apps.openhuman]
-name = "OpenHuman"
-kind = "appimage"
-repo = "tinyhumansai/openhuman"
-asset = '^OpenHuman_.*_amd64\.AppImage$'
-asset_aarch64 = '^OpenHuman_.*_aarch64\.AppImage$'
-dest = "~/.local/bin/openhuman.AppImage"
-probe = false

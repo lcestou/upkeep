@@ -1,9 +1,0 @@
-# Drafted from abrignoni/VLEAPP's v2026.4.5 release; its version is the one Upkeep installed.
-[apps.vleapp]
-name = "VLEAPP"
-kind = "appimage"
-repo = "abrignoni/VLEAPP"
-asset = '^VLEAPP-.*-linux-x64\.AppImage$'
-asset_aarch64 = '^VLEAPP-.*-linux-arm64\.AppImage$'
-dest = "~/.local/bin/vleapp.AppImage"
-probe = false

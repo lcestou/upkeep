@@ -1,8 +1,0 @@
-# Drafted from Azure/BatchExplorer's v2.23.0-stable.1210 release; its version is the one Upkeep installed.
-[apps.batchexplorer-stable]
-name = "BatchExplorer-stable"
-kind = "appimage"
-repo = "Azure/BatchExplorer"
-asset = '^BatchExplorer-.*-stable\.1210\.AppImage$'
-dest = "~/.local/bin/batchexplorer-stable.AppImage"
-probe = false

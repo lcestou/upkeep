@@ -1,9 +1,0 @@
-# Drafted from jorio/gitfourchette's v1.12.1 release; its version is the one Upkeep installed.
-[apps.gitfourchette]
-name = "GitFourchette"
-kind = "appimage"
-repo = "jorio/gitfourchette"
-asset = '^GitFourchette-.*-x86_64\.AppImage$'
-asset_aarch64 = '^GitFourchette-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/gitfourchette.AppImage"
-probe = false

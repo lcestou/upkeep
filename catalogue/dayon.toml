@@ -1,8 +1,0 @@
-# Drafted from RetGal/Dayon's v19.0.0 release; its version is the one Upkeep installed.
-[apps.dayon]
-name = "Dayon"
-kind = "appimage"
-repo = "RetGal/Dayon"
-asset = '^dayon-x86_64\.AppImage$'
-dest = "~/.local/bin/dayon.AppImage"
-probe = false

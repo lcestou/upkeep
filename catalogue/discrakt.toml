@@ -1,9 +1,0 @@
-# Drafted from afonsojramos/discrakt's v4.1.5 release; its version is the one Upkeep installed.
-[apps.discrakt]
-name = "Discrakt"
-kind = "appimage"
-repo = "afonsojramos/discrakt"
-asset = '^Discrakt-.*-x86_64\.AppImage$'
-asset_aarch64 = '^Discrakt-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/discrakt.AppImage"
-probe = false

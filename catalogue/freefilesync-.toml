@@ -1,9 +1,0 @@
-# Drafted from hkneptune/FreeFileSync's v14.13 release; its version is the one Upkeep installed.
-[apps.freefilesync-]
-name = "FreeFileSync"
-kind = "archive"
-repo = "hkneptune/FreeFileSync"
-asset = '^FreeFileSync_.*_Linux_x86_64\.tar\.gz$'
-dest = "~/.local/bin/freefilesync_"
-bins = ["FreeFileSync_*"]
-probe = false

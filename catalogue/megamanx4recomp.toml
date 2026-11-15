@@ -1,8 +1,0 @@
-# Drafted from mstan/MegaManX4Recomp's v1.0.29 release; its version is the one Upkeep installed.
-[apps.megamanx4recomp]
-name = "MegaManX4Recomp"
-kind = "appimage"
-repo = "mstan/MegaManX4Recomp"
-asset = '^MegaManX4Recomp-.*-linux-x86_64\.AppImage$'
-dest = "~/.local/bin/megamanx4recomp.AppImage"
-probe = false

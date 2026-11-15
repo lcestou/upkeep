@@ -1,9 +1,0 @@
-# Drafted from bazelbuild/bazelisk's v1.30.0 release; its version is the one Upkeep installed.
-[apps.bazelisk]
-name = "bazelisk"
-kind = "file"
-repo = "bazelbuild/bazelisk"
-asset = '^bazelisk-linux-amd64$'
-asset_aarch64 = '^bazelisk-linux-arm64$'
-dest = "~/.local/bin/bazelisk"
-probe = false

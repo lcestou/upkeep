@@ -1,8 +1,0 @@
-# Drafted from Lemonochka/keqdroid's v0.37.0 release; its version is the one Upkeep installed.
-[apps.keqdroid]
-name = "keqdroid"
-kind = "appimage"
-repo = "Lemonochka/keqdroid"
-asset = '^keqdroid-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/keqdroid.AppImage"
-probe = false

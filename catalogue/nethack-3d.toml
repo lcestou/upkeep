@@ -1,8 +1,0 @@
-# Drafted from JamesIV4/nethack-3d's 1.6.2 release; its version is the one Upkeep installed.
-[apps.nethack-3d]
-name = "NetHack-3D"
-kind = "appimage"
-repo = "JamesIV4/nethack-3d"
-asset = '^NetHack\.3D\..*\.AppImage$'
-dest = "~/.local/bin/nethack-3d.AppImage"
-probe = false

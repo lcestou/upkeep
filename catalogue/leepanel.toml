@@ -1,8 +1,0 @@
-# Drafted from gna1280072/LeePanel's v1.0.23 release; its version is the one Upkeep installed.
-[apps.leepanel]
-name = "LeePanel"
-kind = "appimage"
-repo = "gna1280072/LeePanel"
-asset = '^LeePanel_.*_amd64\.AppImage$'
-dest = "~/.local/bin/leepanel.AppImage"
-probe = false

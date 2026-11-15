@@ -1,8 +1,0 @@
-# Drafted from Ishidawg/LeShade's 2.5.0 release; its version is the one Upkeep installed.
-[apps.leshade]
-name = "LeShade"
-kind = "appimage"
-repo = "Ishidawg/LeShade"
-asset = '^LeShade-x86_64\.AppImage$'
-dest = "~/.local/bin/leshade.AppImage"
-probe = false

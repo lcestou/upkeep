@@ -1,8 +1,0 @@
-# Drafted from artisan-roaster-scope/artisan's v5.0.0 release; its version is the one Upkeep installed.
-[apps.artisan]
-name = "artisan"
-kind = "appimage"
-repo = "artisan-roaster-scope/artisan"
-asset = '^artisan-linux-.*\.AppImage$'
-dest = "~/.local/bin/artisan.AppImage"
-probe = false

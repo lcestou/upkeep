@@ -1,8 +1,0 @@
-# Drafted from muse-sequencer/muse's 4.3.0 release; its version is the one Upkeep installed.
-[apps.muse]
-name = "MusE"
-kind = "appimage"
-repo = "muse-sequencer/muse"
-asset = '^MusE-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/muse.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from LCE-Hub/LCE-Emerald-Launcher's v1.6.1 release; its version is the one Upkeep installed.
-[apps.lce-emerald-launcher]
-name = "LCE-Emerald-Launcher"
-kind = "appimage"
-repo = "LCE-Hub/LCE-Emerald-Launcher"
-asset = '^LCE\.Emerald\.Launcher_.*_amd64\.AppImage$'
-dest = "~/.local/bin/lce-emerald-launcher.AppImage"
-probe = false

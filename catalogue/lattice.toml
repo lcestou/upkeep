@@ -1,8 +1,0 @@
-# Drafted from leo1oel/lattice's v0.16.17 release; its version is the one Upkeep installed.
-[apps.lattice]
-name = "Lattice"
-kind = "appimage"
-repo = "leo1oel/lattice"
-asset = '^Lattice_.*_amd64\.AppImage$'
-dest = "~/.local/bin/lattice.AppImage"
-probe = false

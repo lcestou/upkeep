@@ -1,8 +1,0 @@
-# Drafted from hiddify/hiddify-app's v5.5.5 release; its version is the one Upkeep installed.
-[apps.hiddify]
-name = "Hiddify"
-kind = "appimage"
-repo = "hiddify/hiddify-app"
-asset = '^Hiddify-Linux-x64-AppImage\.AppImage$'
-dest = "~/.local/bin/hiddify.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from CityOfZion/neon-wallet's v2.25.1 release; its version is the one Upkeep installed.
-[apps.neon]
-name = "Neon"
-kind = "appimage"
-repo = "CityOfZion/neon-wallet"
-asset = '^Neon\..*\.AppImage$'
-dest = "~/.local/bin/neon.AppImage"
-probe = false

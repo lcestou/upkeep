@@ -1,8 +1,0 @@
-# Drafted from gnoviawan/troupe's v0.4.60 release; its version is the one Upkeep installed.
-[apps.termul-server]
-name = "Termul-Manager"
-kind = "appimage"
-repo = "gnoviawan/troupe"
-asset = '^Termul\.Manager_.*_amd64\.AppImage$'
-dest = "~/.local/bin/termul-server.AppImage"
-probe = false

@@ -1,8 +1,0 @@
-# Drafted from alagrede/znote-app's v4.10.0 release; its version is the one Upkeep installed.
-[apps.znote]
-name = "Znote App"
-kind = "appimage"
-repo = "alagrede/znote-app"
-asset = '^znote-[0-9][0-9A-Za-z.]*\.AppImage$'
-dest = "~/.local/bin/znote.AppImage"
-probe = false

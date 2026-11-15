@@ -1,8 +1,0 @@
-# Drafted from ErikKalkoken/evebuddy's v0.78.0 release; its version is the one Upkeep installed.
-[apps.evebuddy]
-name = "EVE-Buddy"
-kind = "appimage"
-repo = "ErikKalkoken/evebuddy"
-asset = '^EVE_Buddy-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/evebuddy.AppImage"
-probe = false

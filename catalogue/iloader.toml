@@ -1,9 +1,0 @@
-# Drafted from nab138/iloader's v2.4.1 release; its version is the one Upkeep installed.
-[apps.iloader]
-name = "iloader"
-kind = "appimage"
-repo = "nab138/iloader"
-asset = '^iloader-linux-amd64\.AppImage$'
-asset_aarch64 = '^iloader-linux-aarch64\.AppImage$'
-dest = "~/.local/bin/iloader.AppImage"
-probe = false

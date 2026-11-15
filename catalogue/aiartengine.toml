@@ -1,8 +1,0 @@
-# Drafted from Justin-sky/ai-art-engine's v9.0.2 release; its version is the one Upkeep installed.
-[apps.aiartengine]
-name = "AIArtEngine"
-kind = "appimage"
-repo = "Justin-sky/ai-art-engine"
-asset = '^AIArtEngine-.*\.AppImage$'
-dest = "~/.local/bin/aiartengine.AppImage"
-probe = false

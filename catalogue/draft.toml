@@ -1,9 +1,0 @@
-# Drafted from Azure/draft's v0.17.17 release; its version is the one Upkeep installed.
-[apps.draft]
-name = "draft"
-kind = "file"
-repo = "Azure/draft"
-asset = '^draft-linux-amd64$'
-asset_aarch64 = '^draft-linux-arm64$'
-dest = "~/.local/bin/draft"
-probe = false

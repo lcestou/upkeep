@@ -1,8 +1,0 @@
-# Drafted from rpelorosso/pcb-tracer's 1.0.8 release; its version is the one Upkeep installed.
-[apps.pcb-tracer]
-name = "PCB-Tracer"
-kind = "appimage"
-repo = "rpelorosso/pcb-tracer"
-asset = '^PCB_Tracer-x86_64\.AppImage$'
-dest = "~/.local/bin/pcb-tracer.AppImage"
-probe = false

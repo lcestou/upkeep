@@ -1,8 +1,0 @@
-# Drafted from cloudmus/cloudmus's 0.7.0 release; its version is the one Upkeep installed.
-[apps.cloudmus]
-name = "CloudMus"
-kind = "appimage"
-repo = "cloudmus/cloudmus"
-asset = '^CloudMus-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/cloudmus.AppImage"
-probe = false

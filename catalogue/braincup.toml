@@ -1,8 +1,0 @@
-# Drafted from SimonSchubert/Braincup's v3.9.0 release; its version is the one Upkeep installed.
-[apps.braincup]
-name = "Braincup"
-kind = "appimage"
-repo = "SimonSchubert/Braincup"
-asset = '^Braincup-.*-linux\.AppImage$'
-dest = "~/.local/bin/braincup.AppImage"
-probe = false

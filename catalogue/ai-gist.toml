@@ -1,8 +1,0 @@
-# Drafted from yarin-zhang/AI-Gist's v3.1.5 release; its version is the one Upkeep installed.
-[apps.ai-gist]
-name = "AI-Gist"
-kind = "appimage"
-repo = "yarin-zhang/AI-Gist"
-asset = '^AI-Gist-.*-linux\.AppImage$'
-dest = "~/.local/bin/ai-gist.AppImage"
-probe = false

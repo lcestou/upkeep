@@ -1,8 +1,0 @@
-# Drafted from ventic/ventic's v0.8.2 release; its version is the one Upkeep installed.
-[apps.ventic]
-name = "Ventic"
-kind = "appimage"
-repo = "ventic/ventic"
-asset = '^Ventic_.*_amd64\.AppImage$'
-dest = "~/.local/bin/ventic.AppImage"
-probe = false

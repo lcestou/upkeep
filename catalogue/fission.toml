@@ -1,9 +1,0 @@
-# Drafted from fission/fission's v1.27.0 release; its version is the one Upkeep installed.
-[apps.fission]
-name = "fission"
-kind = "file"
-repo = "fission/fission"
-asset = '^fission-.*-linux-amd64$'
-asset_aarch64 = '^fission-.*-linux-arm64$'
-dest = "~/.local/bin/fission"
-probe = false

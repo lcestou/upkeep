@@ -1,8 +1,0 @@
-# Drafted from nomifun/nomifun-desktop's v0.8.22 release; its version is the one Upkeep installed.
-[apps.nomifun]
-name = "NomiFun"
-kind = "appimage"
-repo = "nomifun/nomifun-desktop"
-asset = '^NomiFun_.*_amd64\.AppImage$'
-dest = "~/.local/bin/nomifun.AppImage"
-probe = false

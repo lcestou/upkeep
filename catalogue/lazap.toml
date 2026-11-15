@@ -1,8 +1,0 @@
-# Drafted from Lazap-Development/Lazap's v0.10.0 release; its version is the one Upkeep installed.
-[apps.lazap]
-name = "Lazap"
-kind = "appimage"
-repo = "Lazap-Development/Lazap"
-asset = '^Lazap-.*-x86_64\.AppImage$'
-dest = "~/.local/bin/lazap.AppImage"
-probe = false

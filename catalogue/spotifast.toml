@@ -1,9 +1,0 @@
-# Drafted from crmne/spotifast's v0.17.1 release; its version is the one Upkeep installed.
-[apps.spotifast]
-name = "spotifast"
-kind = "appimage"
-repo = "crmne/spotifast"
-asset = '^spotifast-.*-x86_64\.AppImage$'
-asset_aarch64 = '^spotifast-.*-aarch64\.AppImage$'
-dest = "~/.local/bin/spotifast.AppImage"
-probe = false

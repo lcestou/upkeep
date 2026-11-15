@@ -1,8 +1,0 @@
-# Drafted from flareteam/flare-game's v1.15 release; its version is the one Upkeep installed.
-[apps.flare-win]
-name = "Flare Game"
-kind = "appimage"
-repo = "flareteam/flare-game"
-asset = '^flare-linux64-.*\.AppImage$'
-dest = "~/.local/bin/flare-win.AppImage"
-probe = false

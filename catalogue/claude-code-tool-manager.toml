@@ -1,8 +1,0 @@
-# Drafted from tylergraydev/claude-code-tool-manager's v3.10.0 release; its version is the one Upkeep installed.
-[apps.claude-code-tool-manager]
-name = "Claude-Code-Tool-Manager"
-kind = "appimage"
-repo = "tylergraydev/claude-code-tool-manager"
-asset = '^Claude\.Code\.Tool\.Manager_.*_amd64\.AppImage$'
-dest = "~/.local/bin/claude-code-tool-manager.AppImage"
-probe = false
