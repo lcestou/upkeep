@@ -1,0 +1,10 @@
+# kitty runs from its whole folder (bin/ beside lib/ and share/): the archive unpacks into folder and its programs are linked.
+[apps.kitty]
+name = "kitty"
+kind = "archive"
+repo = "kovidgoyal/kitty"
+asset = '^kitty-[0-9.]+-x86_64\.txz$'
+asset_aarch64 = '^kitty-[0-9.]+-arm64\.txz$'
+dest = "~/.local/bin/kitty"
+folder = "~/.local/share/kitty"
+bins = ["bin/kitty", "bin/kitten"]

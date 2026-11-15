@@ -1,4 +1,32 @@
 {
+	"ab-download-manager": {
+		"repo": "amir1376/ab-download-manager",
+		"tag": "v1.11.4",
+		"assets": [
+			"ABDownloadManager_1.11.4_android_universal.apk",
+			"ABDownloadManager_1.11.4_android_universal.apk.md5",
+			"ABDownloadManager_1.11.4_linux_arm64.tar.gz",
+			"ABDownloadManager_1.11.4_linux_arm64.tar.gz.md5",
+			"ABDownloadManager_1.11.4_linux_x64.tar.gz",
+			"ABDownloadManager_1.11.4_linux_x64.tar.gz.md5",
+			"ABDownloadManager_1.11.4_mac_arm64.dmg",
+			"ABDownloadManager_1.11.4_mac_arm64.dmg.md5",
+			"ABDownloadManager_1.11.4_mac_arm64.tar.gz",
+			"ABDownloadManager_1.11.4_mac_arm64.tar.gz.md5",
+			"ABDownloadManager_1.11.4_mac_x64.dmg",
+			"ABDownloadManager_1.11.4_mac_x64.dmg.md5",
+			"ABDownloadManager_1.11.4_mac_x64.tar.gz",
+			"ABDownloadManager_1.11.4_mac_x64.tar.gz.md5",
+			"ABDownloadManager_1.11.4_windows_arm64.exe",
+			"ABDownloadManager_1.11.4_windows_arm64.exe.md5",
+			"ABDownloadManager_1.11.4_windows_arm64.zip",
+			"ABDownloadManager_1.11.4_windows_arm64.zip.md5",
+			"ABDownloadManager_1.11.4_windows_x64.exe",
+			"ABDownloadManager_1.11.4_windows_x64.exe.md5",
+			"ABDownloadManager_1.11.4_windows_x64.zip",
+			"ABDownloadManager_1.11.4_windows_x64.zip.md5"
+		]
+	},
 	"appflowy": {
 		"repo": "AppFlowy-IO/AppFlowy",
 		"tag": "0.15.0",
@@ -116,6 +144,22 @@
 			"source.tar.gz.sha256"
 		]
 	},
+	"bandwhich": {
+		"repo": "imsnif/bandwhich",
+		"tag": "v0.23.1",
+		"assets": [
+			"bandwhich-v0.23.1-aarch64-apple-darwin.tar.gz",
+			"bandwhich-v0.23.1-aarch64-linux-android.tar.gz",
+			"bandwhich-v0.23.1-aarch64-unknown-linux-gnu.tar.gz",
+			"bandwhich-v0.23.1-aarch64-unknown-linux-musl.tar.gz",
+			"bandwhich-v0.23.1-armv7-unknown-linux-gnueabihf.tar.gz",
+			"bandwhich-v0.23.1-armv7-unknown-linux-musleabihf.tar.gz",
+			"bandwhich-v0.23.1-x86_64-apple-darwin.tar.gz",
+			"bandwhich-v0.23.1-x86_64-pc-windows-msvc.zip",
+			"bandwhich-v0.23.1-x86_64-unknown-linux-gnu.tar.gz",
+			"bandwhich-v0.23.1-x86_64-unknown-linux-musl.tar.gz"
+		]
+	},
 	"bat": {
 		"repo": "sharkdp/bat",
 		"tag": "v0.26.1",
@@ -179,6 +223,23 @@
 			"latest-linux.yml",
 			"latest-mac.yml",
 			"latest.yml"
+		]
+	},
+	"bore": {
+		"repo": "ekzhang/bore",
+		"tag": "v0.6.0",
+		"assets": [
+			"bore-v0.6.0-aarch64-apple-darwin.tar.gz",
+			"bore-v0.6.0-aarch64-unknown-linux-musl.tar.gz",
+			"bore-v0.6.0-arm-unknown-linux-gnueabi.tar.gz",
+			"bore-v0.6.0-arm-unknown-linux-musleabi.tar.gz",
+			"bore-v0.6.0-armv7-unknown-linux-gnueabihf.tar.gz",
+			"bore-v0.6.0-armv7-unknown-linux-musleabihf.tar.gz",
+			"bore-v0.6.0-i686-pc-windows-msvc.zip",
+			"bore-v0.6.0-i686-unknown-linux-musl.tar.gz",
+			"bore-v0.6.0-x86_64-apple-darwin.tar.gz",
+			"bore-v0.6.0-x86_64-pc-windows-msvc.zip",
+			"bore-v0.6.0-x86_64-unknown-linux-musl.tar.gz"
 		]
 	},
 	"borg": {
@@ -341,6 +402,16 @@
 			"bun-windows-x64.zip",
 			"SHASUMS256.txt",
 			"SHASUMS256.txt.asc"
+		]
+	},
+	"carbonyl": {
+		"repo": "fathyb/carbonyl",
+		"tag": "v0.0.3",
+		"assets": [
+			"carbonyl.linux-amd64.zip",
+			"carbonyl.linux-arm64.zip",
+			"carbonyl.macos-amd64.zip",
+			"carbonyl.macos-arm64.zip"
 		]
 	},
 	"chat2db": {
@@ -1618,6 +1689,47 @@
 			"k9s_Windows_arm64.zip.sbom.json"
 		]
 	},
+	"kitty": {
+		"repo": "kovidgoyal/kitty",
+		"tag": "v0.50.0",
+		"assets": [
+			"kitten-darwin-amd64",
+			"kitten-darwin-amd64.sig",
+			"kitten-darwin-arm64",
+			"kitten-darwin-arm64.sig",
+			"kitten-dragonfly-amd64",
+			"kitten-dragonfly-amd64.sig",
+			"kitten-freebsd-amd64",
+			"kitten-freebsd-amd64.sig",
+			"kitten-freebsd-arm64",
+			"kitten-freebsd-arm64.sig",
+			"kitten-linux-386",
+			"kitten-linux-386.sig",
+			"kitten-linux-amd64",
+			"kitten-linux-amd64.sig",
+			"kitten-linux-arm",
+			"kitten-linux-arm.sig",
+			"kitten-linux-arm64",
+			"kitten-linux-arm64.sig",
+			"kitten-netbsd-amd64",
+			"kitten-netbsd-amd64.sig",
+			"kitten-netbsd-arm64",
+			"kitten-netbsd-arm64.sig",
+			"kitten-openbsd-amd64",
+			"kitten-openbsd-amd64.sig",
+			"kitten-openbsd-arm64",
+			"kitten-openbsd-arm64.sig",
+			"kitty-0.50.0-arm64.txz",
+			"kitty-0.50.0-arm64.txz.sig",
+			"kitty-0.50.0-x86_64.txz",
+			"kitty-0.50.0-x86_64.txz.sig",
+			"kitty-0.50.0.dmg",
+			"kitty-0.50.0.dmg.sig",
+			"kitty-0.50.0.tar.xz",
+			"kitty-0.50.0.tar.xz.sig",
+			"kitty-0.50.0.tar.xz.spdx.json"
+		]
+	},
 	"lapce": {
 		"repo": "lapce/lapce",
 		"tag": "v0.4.6",
@@ -1684,6 +1796,35 @@
 			"lazygit_0.66.3_windows_32-bit.zip",
 			"lazygit_0.66.3_windows_arm64.zip",
 			"lazygit_0.66.3_windows_x86_64.zip"
+		]
+	},
+	"listen1": {
+		"repo": "listen1/listen1_desktop",
+		"tag": "v2.33.0",
+		"assets": [
+			"latest-linux.yml",
+			"latest-mac.yml",
+			"latest.yml",
+			"listen1_2.33.0_linux_amd64.deb",
+			"listen1_2.33.0_linux_x64.tar.gz",
+			"listen1_2.33.0_linux_x86_64.AppImage",
+			"listen1_2.33.0_mac_arm64.dmg",
+			"listen1_2.33.0_mac_arm64.dmg.blockmap",
+			"listen1_2.33.0_mac_universal.dmg",
+			"listen1_2.33.0_mac_universal.dmg.blockmap",
+			"listen1_2.33.0_mac_x64.dmg",
+			"listen1_2.33.0_mac_x64.dmg.blockmap",
+			"listen1_2.33.0_win.exe",
+			"listen1_2.33.0_win.exe.blockmap",
+			"listen1_2.33.0_win_arm64.7z",
+			"listen1_2.33.0_win_arm64.exe",
+			"listen1_2.33.0_win_arm64.exe.blockmap",
+			"listen1_2.33.0_win_ia32.7z",
+			"listen1_2.33.0_win_ia32.exe",
+			"listen1_2.33.0_win_ia32.exe.blockmap",
+			"listen1_2.33.0_win_x64.7z",
+			"listen1_2.33.0_win_x64.exe",
+			"listen1_2.33.0_win_x64.exe.blockmap"
 		]
 	},
 	"localsend": {
@@ -2034,6 +2175,11 @@
 			"Nuclear_1.55.0_x86_64.flatpak"
 		]
 	},
+	"nvtop": {
+		"repo": "Syllo/nvtop",
+		"tag": "3.4.0",
+		"assets": ["nvtop-3.4.0-aarch64.AppImage", "nvtop-3.4.0-x86_64.AppImage"]
+	},
 	"obsidian": {
 		"repo": "obsidianmd/obsidian-releases",
 		"tag": "v1.15.1",
@@ -2047,6 +2193,17 @@
 			"Obsidian-1.15.1.exe",
 			"obsidian-1.15.1.tar.gz",
 			"obsidian_1.15.1_amd64.deb"
+		]
+	},
+	"onefetch": {
+		"repo": "o2sh/onefetch",
+		"tag": "3.2.0",
+		"assets": [
+			"onefetch-linux.tar.gz",
+			"onefetch-mac.tar.gz",
+			"onefetch-setup.exe",
+			"onefetch-win.tar.gz",
+			"onefetch_amd64.deb"
 		]
 	},
 	"pakeplus": {
@@ -2136,6 +2293,44 @@
 			"youtube-music_3.12.0_amd64.snap",
 			"youtube-music_3.12.0_arm64.deb",
 			"youtube-music_3.12.0_armv7l.deb"
+		]
+	},
+	"rapidraw": {
+		"repo": "CyberTimon/RapidRAW",
+		"tag": "v1.6.9",
+		"assets": [
+			"01_RapidRAW_v1.6.9_windows-11-arm_arm64.exe",
+			"01_RapidRAW_v1.6.9_windows-11-arm_arm64.msi",
+			"01_RapidRAW_v1.6.9_windows_x64.exe",
+			"01_RapidRAW_v1.6.9_windows_x64.msi",
+			"02_RapidRAW_v1.6.9_macos-15-intel_x64.app.tar.gz",
+			"02_RapidRAW_v1.6.9_macos-15-intel_x64.dmg",
+			"02_RapidRAW_v1.6.9_macos-15_aarch64.app.tar.gz",
+			"02_RapidRAW_v1.6.9_macos-15_aarch64.dmg",
+			"02_tethering_RapidRAW_v1.6.9_macos-15-intel_x64.app.tar.gz",
+			"02_tethering_RapidRAW_v1.6.9_macos-15-intel_x64.dmg",
+			"02_tethering_RapidRAW_v1.6.9_macos-15_aarch64.app.tar.gz",
+			"02_tethering_RapidRAW_v1.6.9_macos-15_aarch64.dmg",
+			"03_RapidRAW_v1.6.9_ubuntu-22.04-arm_aarch64.AppImage",
+			"03_RapidRAW_v1.6.9_ubuntu-22.04-arm_aarch64.rpm",
+			"03_RapidRAW_v1.6.9_ubuntu-22.04-arm_arm64.deb",
+			"03_RapidRAW_v1.6.9_ubuntu-22.04_amd64.AppImage",
+			"03_RapidRAW_v1.6.9_ubuntu-22.04_amd64.deb",
+			"03_RapidRAW_v1.6.9_ubuntu-22.04_x86_64.rpm",
+			"03_RapidRAW_v1.6.9_ubuntu-24.04-arm_aarch64.AppImage",
+			"03_RapidRAW_v1.6.9_ubuntu-24.04-arm_aarch64.rpm",
+			"03_RapidRAW_v1.6.9_ubuntu-24.04-arm_arm64.deb",
+			"03_RapidRAW_v1.6.9_ubuntu-24.04_amd64.AppImage",
+			"03_RapidRAW_v1.6.9_ubuntu-24.04_amd64.deb",
+			"03_RapidRAW_v1.6.9_ubuntu-24.04_x86_64.rpm",
+			"03_tethering_RapidRAW_v1.6.9_ubuntu-22.04_amd64.AppImage",
+			"03_tethering_RapidRAW_v1.6.9_ubuntu-22.04_amd64.deb",
+			"03_tethering_RapidRAW_v1.6.9_ubuntu-22.04_x86_64.rpm",
+			"03_tethering_RapidRAW_v1.6.9_ubuntu-24.04_amd64.AppImage",
+			"03_tethering_RapidRAW_v1.6.9_ubuntu-24.04_amd64.deb",
+			"03_tethering_RapidRAW_v1.6.9_ubuntu-24.04_x86_64.rpm",
+			"04_RapidRAW_v1.6.9_android_aarch64.aab",
+			"04_RapidRAW_v1.6.9_android_aarch64.apk"
 		]
 	},
 	"readest": {
@@ -2383,6 +2578,18 @@
 			"VERSION.sig"
 		]
 	},
+	"slides": {
+		"repo": "maaslalani/slides",
+		"tag": "v0.9.0",
+		"assets": [
+			"slides_0.9.0_checksums.txt",
+			"slides_0.9.0_darwin_amd64.tar.gz",
+			"slides_0.9.0_darwin_arm64.tar.gz",
+			"slides_0.9.0_linux_386.tar.gz",
+			"slides_0.9.0_linux_amd64.tar.gz",
+			"slides_0.9.0_linux_arm64.tar.gz"
+		]
+	},
 	"sniffnet": {
 		"repo": "GyulyVGC/sniffnet",
 		"tag": "v1.5.1",
@@ -2402,6 +2609,18 @@
 			"Sniffnet_Windows_arm64.msi",
 			"Sniffnet_Windows_x64.msi",
 			"Sniffnet_Windows_x86.msi"
+		]
+	},
+	"spicetify": {
+		"repo": "spicetify/cli",
+		"tag": "v2.46.7",
+		"assets": [
+			"spicetify-2.46.7-darwin-amd64.tar.gz",
+			"spicetify-2.46.7-darwin-arm64.tar.gz",
+			"spicetify-2.46.7-linux-amd64.tar.gz",
+			"spicetify-2.46.7-windows-arm64.zip",
+			"spicetify-2.46.7-windows-x32.zip",
+			"spicetify-2.46.7-windows-x64.zip"
 		]
 	},
 	"spotube": {

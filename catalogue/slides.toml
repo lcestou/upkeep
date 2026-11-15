@@ -1,0 +1,10 @@
+# slides has no version flag: Upkeep reads the version it installed.
+[apps.slides]
+name = "slides"
+kind = "archive"
+repo = "maaslalani/slides"
+asset = '^slides_[0-9.]+_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^slides_[0-9.]+_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/slides"
+bins = ["slides"]
+probe = false

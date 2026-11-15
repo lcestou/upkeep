@@ -1,0 +1,8 @@
+[apps.bore]
+name = "bore"
+kind = "archive"
+repo = "ekzhang/bore"
+asset = '^bore-v[0-9.]+-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^bore-v[0-9.]+-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/bore"
+bins = ["bore"]

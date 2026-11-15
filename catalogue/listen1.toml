@@ -1,0 +1,8 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron app opens its window when asked for --version.
+[apps.listen1]
+name = "Listen 1"
+kind = "appimage"
+repo = "listen1/listen1_desktop"
+asset = '^listen1_[0-9.]+_linux_x86_64\.AppImage$'
+dest = "~/.local/bin/listen1.AppImage"
+meta_path = "listen1.desktop"

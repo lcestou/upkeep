@@ -1,0 +1,11 @@
+# A desktop app with its own runtime in lib/, which starts its window when asked for a version: Upkeep reads the one it installed.
+[apps.ab-download-manager]
+name = "AB Download Manager"
+kind = "archive"
+repo = "amir1376/ab-download-manager"
+asset = '^ABDownloadManager_[0-9.]+_linux_x64\.tar\.gz$'
+asset_aarch64 = '^ABDownloadManager_[0-9.]+_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ABDownloadManager"
+folder = "~/.local/share/ab-download-manager"
+bins = ["bin/ABDownloadManager"]
+probe = false

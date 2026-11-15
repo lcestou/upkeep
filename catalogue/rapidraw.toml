@@ -1,0 +1,10 @@
+# RapidRAW names no version inside its AppImage, and asking it starts the app: Upkeep reads the version it installed.
+# The Ubuntu 22.04 build, which runs on more systems than the 24.04 one.
+[apps.rapidraw]
+name = "RapidRAW"
+kind = "appimage"
+repo = "CyberTimon/RapidRAW"
+asset = '^[0-9]+_RapidRAW_v[0-9.]+_ubuntu-22\.04_amd64\.AppImage$'
+asset_aarch64 = '^[0-9]+_RapidRAW_v[0-9.]+_ubuntu-22\.04-arm_aarch64\.AppImage$'
+dest = "~/.local/bin/rapidraw.AppImage"
+probe = false

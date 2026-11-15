@@ -1,0 +1,10 @@
+# carbonyl needs the Chromium libraries beside it: the archive unpacks into folder and the program is linked.
+[apps.carbonyl]
+name = "Carbonyl"
+kind = "archive"
+repo = "fathyb/carbonyl"
+asset = '^carbonyl\.linux-amd64\.zip$'
+asset_aarch64 = '^carbonyl\.linux-arm64\.zip$'
+dest = "~/.local/bin/carbonyl"
+folder = "~/.local/share/carbonyl"
+bins = ["carbonyl"]
