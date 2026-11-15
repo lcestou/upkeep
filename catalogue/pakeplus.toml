@@ -1,0 +1,10 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): a Tauri app opens its window when asked for --version. The tag is PakePlus-v2.2.8.
+[apps.pakeplus]
+name = "PakePlus"
+kind = "appimage"
+repo = "Sjj1024/PakePlus"
+asset = '^PakePlus_[0-9.]+_amd64\.AppImage$'
+dest = "~/.local/bin/pakeplus.AppImage"
+meta_path = "PakePlus.desktop"
+process = "PakePlus"
+relaunch = true

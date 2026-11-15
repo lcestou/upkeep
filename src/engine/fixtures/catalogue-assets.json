@@ -1652,6 +1652,34 @@
 			"obsidian_1.15.1_amd64.deb"
 		]
 	},
+	"pakeplus": {
+		"repo": "Sjj1024/PakePlus",
+		"tag": "PakePlus-v2.2.8",
+		"assets": [
+			"latest.json",
+			"PakePlus-2.2.8-1.x86_64.rpm",
+			"PakePlus-2.2.8-1.x86_64.rpm.sig",
+			"PakePlus_2.2.8_aarch64.dmg",
+			"PakePlus_2.2.8_amd64.AppImage",
+			"PakePlus_2.2.8_amd64.AppImage.sig",
+			"PakePlus_2.2.8_amd64.deb",
+			"PakePlus_2.2.8_amd64.deb.sig",
+			"PakePlus_2.2.8_arm64-setup.exe",
+			"PakePlus_2.2.8_arm64-setup.exe.sig",
+			"PakePlus_2.2.8_arm64_en-US.msi",
+			"PakePlus_2.2.8_arm64_en-US.msi.sig",
+			"PakePlus_2.2.8_x64-setup.exe",
+			"PakePlus_2.2.8_x64-setup.exe.sig",
+			"PakePlus_2.2.8_x64.dmg",
+			"PakePlus_2.2.8_x64_en-US.msi",
+			"PakePlus_2.2.8_x64_en-US.msi.sig",
+			"PakePlus_aarch64.app.tar.gz",
+			"PakePlus_aarch64.app.tar.gz.sig",
+			"PakePlus_x64.app.tar.gz",
+			"PakePlus_x64.app.tar.gz.sig",
+			"ppupdate.json"
+		]
+	},
 	"pastel": {
 		"repo": "sharkdp/pastel",
 		"tag": "v0.12.0",
