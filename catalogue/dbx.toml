@@ -1,0 +1,9 @@
+# DBX names no version inside its AppImage, and asking it starts the app: Upkeep reads the version it installed.
+[apps.dbx]
+name = "DBX"
+kind = "appimage"
+repo = "t8y2/dbx"
+asset = '^DBX_[0-9.]+_amd64\.AppImage$'
+asset_aarch64 = '^DBX_[0-9.]+_arm64\.AppImage$'
+dest = "~/.local/bin/dbx.AppImage"
+probe = false

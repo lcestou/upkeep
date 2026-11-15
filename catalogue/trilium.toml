@@ -1,0 +1,9 @@
+# Trilium prints its version only by starting the app: Upkeep reads the version it installed.
+[apps.trilium]
+name = "Trilium Notes"
+kind = "appimage"
+repo = "TriliumNext/Trilium"
+asset = '^TriliumNotes-v[0-9.]+-linux-x64\.AppImage$'
+asset_aarch64 = '^TriliumNotes-v[0-9.]+-linux-arm64\.AppImage$'
+dest = "~/.local/bin/trilium.AppImage"
+probe = false

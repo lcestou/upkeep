@@ -554,6 +554,56 @@
 			"SHA256SUMS"
 		]
 	},
+	"dbx": {
+		"repo": "t8y2/dbx",
+		"tag": "v0.6.70",
+		"assets": [
+			"DBX-0.6.70-1.x86_64.rpm",
+			"DBX-0.6.70-beta.20261112.1-1.x86_64.rpm",
+			"dbx-jdbc-plugin-0.1.52.zip",
+			"dbx-jdbc-plugin-latest.zip",
+			"dbx-web_0.6.70_x86_64-browser-static.zip",
+			"dbx-web_0.6.70_x86_64-browser-static.zip.sha256",
+			"DBX_0.6.70-beta.20261112.1_amd64.AppImage",
+			"DBX_0.6.70-beta.20261112.1_amd64.deb",
+			"DBX_0.6.70-beta.20261112.1_arm64-setup.exe",
+			"DBX_0.6.70-beta.20261112.1_arm64.app.tar.gz",
+			"DBX_0.6.70-beta.20261112.1_arm64.AppImage",
+			"DBX_0.6.70-beta.20261112.1_arm64.deb",
+			"DBX_0.6.70-beta.20261112.1_arm64.dmg",
+			"DBX_0.6.70-beta.20261112.1_arm64.rpm",
+			"DBX_0.6.70-beta.20261112.1_arm64_en-US.msi",
+			"DBX_0.6.70-beta.20261112.1_fnos.fpk",
+			"DBX_0.6.70-beta.20261112.1_fnos.fpk.sha256",
+			"DBX_0.6.70-beta.20261112.1_x64-setup.exe",
+			"DBX_0.6.70-beta.20261112.1_x64.dmg",
+			"DBX_0.6.70-beta.20261112.1_x64_en-US.msi",
+			"DBX_0.6.70_amd64.AppImage",
+			"DBX_0.6.70_amd64.deb",
+			"DBX_0.6.70_arm64-browser-static.tar.gz",
+			"DBX_0.6.70_arm64-browser-static.tar.gz.sha256",
+			"DBX_0.6.70_arm64-portable.zip",
+			"DBX_0.6.70_arm64-portable.zip.sig",
+			"DBX_0.6.70_arm64-setup.exe",
+			"DBX_0.6.70_arm64.AppImage",
+			"DBX_0.6.70_arm64.deb",
+			"DBX_0.6.70_arm64.dmg",
+			"DBX_0.6.70_arm64.rpm",
+			"DBX_0.6.70_arm64_en-US.msi",
+			"DBX_0.6.70_x64-browser-static.tar.gz",
+			"DBX_0.6.70_x64-browser-static.tar.gz.sha256",
+			"DBX_0.6.70_x64-offline-setup.exe",
+			"DBX_0.6.70_x64-portable.zip",
+			"DBX_0.6.70_x64-portable.zip.sig",
+			"DBX_0.6.70_x64-setup.exe",
+			"DBX_0.6.70_x64-win7-server2008r2-offline-setup.exe",
+			"DBX_0.6.70_x64-win7-server2008r2-offline-setup.exe.sha256",
+			"DBX_0.6.70_x64.dmg",
+			"DBX_0.6.70_x64_en-US.msi",
+			"DBX_x64.app.tar.gz",
+			"latest.json"
+		]
+	},
 	"delta": {
 		"repo": "dandavison/delta",
 		"tag": "0.20.1",
@@ -1220,6 +1270,23 @@
 			"gping-macOS-x86_64.tar.gz",
 			"gping-Windows-msvc-x86_64.zip",
 			"gping.1"
+		]
+	},
+	"gron": {
+		"repo": "tomnomnom/gron",
+		"tag": "v0.7.1",
+		"assets": [
+			"gron-darwin-amd64-0.7.1.tgz",
+			"gron-darwin-arm64-0.7.1.tgz",
+			"gron-freebsd-386-0.7.1.tgz",
+			"gron-freebsd-amd64-0.7.1.tgz",
+			"gron-freebsd-arm64-0.7.1.tgz",
+			"gron-linux-386-0.7.1.tgz",
+			"gron-linux-amd64-0.7.1.tgz",
+			"gron-linux-arm64-0.7.1.tgz",
+			"gron-windows-386-0.7.1.zip",
+			"gron-windows-amd64-0.7.1.zip",
+			"gron-windows-arm64-0.7.1.zip"
 		]
 	},
 	"gws": {
@@ -1889,6 +1956,28 @@
 			"notable_1.8.4_amd64.snap"
 		]
 	},
+	"notegen": {
+		"repo": "codexu/note-gen",
+		"tag": "note-gen-v0.39.2",
+		"assets": [
+			"latest.json",
+			"NoteGen-0.39.2-1.x86_64.rpm",
+			"NoteGen_0.39.2_aarch64.dmg",
+			"NoteGen_0.39.2_amd64.AppImage",
+			"NoteGen_0.39.2_amd64.AppImage.sig",
+			"NoteGen_0.39.2_amd64.deb",
+			"NoteGen_0.39.2_android-arm64.apk",
+			"NoteGen_0.39.2_x64-setup.exe",
+			"NoteGen_0.39.2_x64-setup.exe.sig",
+			"NoteGen_0.39.2_x64.dmg",
+			"NoteGen_0.39.2_x64_en-US.msi",
+			"NoteGen_0.39.2_x64_en-US.msi.sig",
+			"NoteGen_aarch64.app.tar.gz",
+			"NoteGen_aarch64.app.tar.gz.sig",
+			"NoteGen_x64.app.tar.gz",
+			"NoteGen_x64.app.tar.gz.sig"
+		]
+	},
 	"notesnook": {
 		"repo": "streetwriters/notesnook",
 		"tag": "v3.4.13",
@@ -2047,6 +2136,47 @@
 			"youtube-music_3.12.0_amd64.snap",
 			"youtube-music_3.12.0_arm64.deb",
 			"youtube-music_3.12.0_armv7l.deb"
+		]
+	},
+	"readest": {
+		"repo": "readest/readest",
+		"tag": "v0.12.20",
+		"assets": [
+			"latest.json",
+			"Readest-0.12.20-1.aarch64.rpm",
+			"Readest-0.12.20-1.aarch64.rpm.sig",
+			"Readest-0.12.20-1.koplugin.zip",
+			"Readest-0.12.20-1.x86_64.rpm",
+			"Readest-0.12.20-1.x86_64.rpm.sig",
+			"Readest-0.12.20.calibre-plugin.zip",
+			"Readest-0.12.20.crosspoint-plugin.zip",
+			"Readest_0.12.20_aarch64.AppImage",
+			"Readest_0.12.20_aarch64.AppImage.sig",
+			"Readest_0.12.20_amd64.AppImage",
+			"Readest_0.12.20_amd64.AppImage.sig",
+			"Readest_0.12.20_amd64.deb",
+			"Readest_0.12.20_amd64.deb.sig",
+			"Readest_0.12.20_arm64-portable.exe",
+			"Readest_0.12.20_arm64-portable.exe.sig",
+			"Readest_0.12.20_arm64-setup.exe",
+			"Readest_0.12.20_arm64-setup.exe.sig",
+			"Readest_0.12.20_arm64.apk",
+			"Readest_0.12.20_arm64.apk.sig",
+			"Readest_0.12.20_arm64.deb",
+			"Readest_0.12.20_arm64.deb.sig",
+			"Readest_0.12.20_armv7.apk",
+			"Readest_0.12.20_armv7.apk.sig",
+			"Readest_0.12.20_legacy.apk",
+			"Readest_0.12.20_legacy.apk.sig",
+			"Readest_0.12.20_universal.app.tar.gz",
+			"Readest_0.12.20_universal.app.tar.gz.sig",
+			"Readest_0.12.20_universal.dmg",
+			"Readest_0.12.20_x64-portable.exe",
+			"Readest_0.12.20_x64-portable.exe.sig",
+			"Readest_0.12.20_x64-setup.exe",
+			"Readest_0.12.20_x64-setup.exe.sig",
+			"release-notes.json",
+			"send-to-readest-0.2.1.zip"
 		]
 	},
 	"recordly": {
@@ -2424,6 +2554,32 @@
 			"tabby-1.0.238-setup-x64.exe.blockmap"
 		]
 	},
+	"trilium": {
+		"repo": "TriliumNext/Trilium",
+		"tag": "v0.107.0",
+		"assets": [
+			"TriliumNotes-Server-v0.107.0-linux-arm64.tar.xz",
+			"TriliumNotes-Server-v0.107.0-linux-x64.tar.xz",
+			"TriliumNotes-v0.107.0-linux-arm64.AppImage",
+			"TriliumNotes-v0.107.0-linux-arm64.deb",
+			"TriliumNotes-v0.107.0-linux-arm64.flatpak",
+			"TriliumNotes-v0.107.0-linux-arm64.rpm",
+			"TriliumNotes-v0.107.0-linux-arm64.zip",
+			"TriliumNotes-v0.107.0-linux-x64.AppImage",
+			"TriliumNotes-v0.107.0-linux-x64.deb",
+			"TriliumNotes-v0.107.0-linux-x64.flatpak",
+			"TriliumNotes-v0.107.0-linux-x64.rpm",
+			"TriliumNotes-v0.107.0-linux-x64.zip",
+			"TriliumNotes-v0.107.0-macos-arm64.dmg",
+			"TriliumNotes-v0.107.0-macos-arm64.zip",
+			"TriliumNotes-v0.107.0-macos-x64.dmg",
+			"TriliumNotes-v0.107.0-macos-x64.zip",
+			"TriliumNotes-v0.107.0-windows-arm64.exe",
+			"TriliumNotes-v0.107.0-windows-arm64.zip",
+			"TriliumNotes-v0.107.0-windows-x64.exe",
+			"TriliumNotes-v0.107.0-windows-x64.zip"
+		]
+	},
 	"uv": {
 		"repo": "astral-sh/uv",
 		"tag": "0.13.8",
@@ -2603,6 +2759,43 @@
 			"xh-v0.26.3-x86_64-apple-darwin.tar.gz",
 			"xh-v0.26.3-x86_64-pc-windows-msvc.zip",
 			"xh-v0.26.3-x86_64-unknown-linux-musl.tar.gz"
+		]
+	},
+	"yaak": {
+		"repo": "mountain-loop/yaak",
+		"tag": "v2026.9.1",
+		"assets": [
+			"latest.json",
+			"yaak-2026.9.1-1.aarch64.rpm",
+			"yaak-2026.9.1-1.aarch64.rpm.sig",
+			"yaak-2026.9.1-1.x86_64.rpm",
+			"yaak-2026.9.1-1.x86_64.rpm.sig",
+			"yaak-cef_2026.9.1_amd64.deb",
+			"yaak-cef_2026.9.1_arm64.deb",
+			"yaak-cef_2026.9.1_linux_arm64.tar.gz",
+			"yaak-cef_2026.9.1_linux_x64.tar.gz",
+			"yaak_2026.9.1_aarch64.AppImage",
+			"yaak_2026.9.1_aarch64.AppImage.sig",
+			"Yaak_2026.9.1_aarch64.dmg",
+			"yaak_2026.9.1_amd64.AppImage",
+			"yaak_2026.9.1_amd64.AppImage.sig",
+			"yaak_2026.9.1_amd64.deb",
+			"yaak_2026.9.1_amd64.deb.sig",
+			"Yaak_2026.9.1_arm64-setup-machine.exe",
+			"Yaak_2026.9.1_arm64-setup-machine.exe.sig",
+			"Yaak_2026.9.1_arm64-setup.exe",
+			"Yaak_2026.9.1_arm64-setup.exe.sig",
+			"yaak_2026.9.1_arm64.deb",
+			"yaak_2026.9.1_arm64.deb.sig",
+			"Yaak_2026.9.1_x64-setup-machine.exe",
+			"Yaak_2026.9.1_x64-setup-machine.exe.sig",
+			"Yaak_2026.9.1_x64-setup.exe",
+			"Yaak_2026.9.1_x64-setup.exe.sig",
+			"Yaak_2026.9.1_x64.dmg",
+			"Yaak_aarch64.app.tar.gz",
+			"Yaak_aarch64.app.tar.gz.sig",
+			"Yaak_x64.app.tar.gz",
+			"Yaak_x64.app.tar.gz.sig"
 		]
 	},
 	"yazi": {

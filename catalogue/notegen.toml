@@ -1,0 +1,8 @@
+# NoteGen names no version inside its AppImage, and asking it starts the app: Upkeep reads the version it installed.
+[apps.notegen]
+name = "NoteGen"
+kind = "appimage"
+repo = "codexu/note-gen"
+asset = '^NoteGen_[0-9.]+_amd64\.AppImage$'
+dest = "~/.local/bin/notegen.AppImage"
+probe = false
