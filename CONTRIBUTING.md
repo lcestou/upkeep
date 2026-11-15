@@ -20,7 +20,8 @@ The catalogue is what Add app looks in first when someone types an app's name. E
 2. Copy its table from `~/.config/upkeep/apps.toml` into `catalogue/<key>.toml`. Use paths under `~`, never your own home folder's name.
 3. If the release has an arm64 build of the same kind, add `asset_aarch64` with the pattern that picks it.
 4. Add the release's file names to `src/engine/fixtures/catalogue-assets.json` under the app's key, with the tag they came from. A test holds each `asset` pattern to exactly one of those names.
-5. Run `bun test src/engine/catalogue` and open a pull request.
+5. Raise the catalogue's counts by one: the total and the count for your app's kind in `src/engine/manifest.test.ts`, the arm64 count in `src/engine/catalogue.assets.test.ts` if you added `asset_aarch64`, and the three numbers in `README.md` (the badge, its alt text and "apps come ready-made").
+6. Run `bun test src/engine/catalogue src/engine/manifest` and open a pull request.
 
 A catalogue table runs on other people's machines, so `src/engine/catalogue.policy.test.ts` holds every table to a short list of fields and refuses commands that fetch and run code, delete folders or use `sudo` beyond `sudo make install`. A table never sets `auto`. Apps built from source name a person's own folders and services, so they stay out of the catalogue; [docs/source-builds.md](docs/source-builds.md) shows how to write one for yourself.
 

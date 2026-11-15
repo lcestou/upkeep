@@ -4,10 +4,12 @@ import {
 	existsSync,
 	mkdirSync,
 	readdirSync,
+	readFileSync,
 	realpathSync,
 	renameSync,
 	rmSync,
 	statSync,
+	writeFileSync,
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
@@ -205,6 +207,19 @@ function findFile(dir: string, matches: (name: string) => boolean): string | nul
 	return null;
 }
 
+/** The file inside a folder app's folder that says Upkeep made it, holding the app's key. */
+const OWN_MARK = ".upkeep";
+
+/** Whether folder is free for key's install: not there yet, or made by Upkeep for that same app. */
+function folderFree(folder: string, key: string): boolean {
+	if (!existsSync(folder)) return true;
+	try {
+		return readFileSync(join(folder, OWN_MARK), "utf8").trim() === key;
+	} catch {
+		return false;
+	}
+}
+
 /** A test for a bin path: whether dir holds it as a regular file. */
 const holds = (dir: string) => (b: string) => existsSync(join(dir, b)) && statSync(join(dir, b)).isFile();
 
@@ -222,6 +237,7 @@ function placeFolder(spec: AppSpec, dest: string, extract: string, ctx: KindCtx)
 	const absent = bins.find((b) => !holds(top)(b));
 	if (absent) return basename(absent);
 	const folder = expandHome(spec.folder ?? "", ctx.paths.home);
+	writeFileSync(join(top, OWN_MARK), `${spec.key}\n`);
 	swapFolder(top, folder, ctx.paths);
 	mkdirSync(dirname(dest), { recursive: true });
 	for (const b of bins) relink(join(folder, b), join(dirname(dest), basename(b)));
@@ -255,6 +271,14 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 	const targets = installedFiles(spec, dest, ctx.paths.home);
 	let backupVersion: string | null = null;
 	const finish = (o: Omit<Outcome, "stages">): Outcome => ({ ...o, stages: clock.stop() });
+	// Before any download or restore point: a folder Upkeep did not make is never copied, renamed or replaced.
+	if (spec.folder && !folderFree(expandHome(spec.folder, ctx.paths.home), spec.key))
+		return finish({
+			result: "failed",
+			installed: target.from,
+			detail: MESSAGES.folderNotOurs(expandHome(spec.folder, ctx.paths.home)),
+			restartToApply: false,
+		});
 	try {
 		clock.start("download", 0);
 		ctx.log(`Downloading ${asset.name}`);

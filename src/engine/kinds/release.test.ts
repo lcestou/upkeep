@@ -862,3 +862,23 @@ test("a folder app whose archive lacks a bin changes nothing", async () => {
 	expect(existsSync(join(t.paths.home, ".local/share/kitty"))).toBe(false);
 	expect(existsSync(join(t.paths.home, ".local/bin/kitty"))).toBe(false);
 });
+
+test("a folder app never replaces a folder Upkeep did not make, and keeps nothing of it", async () => {
+	const folder = join(t.paths.home, ".local/share/kitty");
+	mkdirSync(folder, { recursive: true });
+	writeFileSync(join(folder, "notes.txt"), "mine");
+	publish("0.44.0", { "kitty-0.44.0-x86_64.tar.gz": await kittyTarball("0.44.0") });
+	const c = ctx();
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({
+		result: "failed",
+		detail: `${folder} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new.`,
+	});
+	expect(readFileSync(join(folder, "notes.txt"), "utf8")).toBe("mine");
+	expect(existsSync(join(t.paths.data, "backups/kitty"))).toBe(false);
+	expect(existsSync(join(t.paths.cache, "dl"))).toBe(false);
+	// One Upkeep made for this app is its own to replace.
+	writeFileSync(join(folder, ".upkeep"), "kitty\n");
+	expect(await installRelease(kitty(), await checkAndTarget(kitty(), c), c)).toMatchObject({ result: "done" });
+	expect(readFileSync(join(folder, ".upkeep"), "utf8")).toBe("kitty\n");
+	expect(existsSync(join(folder, "notes.txt"))).toBe(false);
+});

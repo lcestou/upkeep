@@ -1463,3 +1463,20 @@ test("scan finds a catalogue package app installed outside home, at its table's 
 	// Already in the list: not offered again.
 	expect((await scan({ ...ctx([deb]).c, catalogue: [deb] })).suggestions).toEqual([]);
 });
+
+test("Add app names the program a tarball needs when the system lacks it", async () => {
+	releases["o/needxz"] = { tag_name: "v1.0", assets: [{ name: "needxz-1.0-x86_64-linux.tar.xz", size: 3 }] };
+	bodies["needxz-1.0-x86_64-linux.tar.xz"] = new Uint8Array([1, 2, 3]);
+	const base = ctx().c;
+	// GNU tar on a system without xz (Ubuntu's minimal images).
+	const run = Object.assign(
+		async (argv: string[], opts?: Parameters<typeof base.run>[1]) =>
+			argv[0] === "tar"
+				? { code: 2, stdout: "", stderr: "tar (child): xz: Cannot exec: No such file or directory", timedOut: false }
+				: base.run(argv, opts),
+		base.run,
+	);
+	expect((await suggest("o/needxz", { ...base, run })).problem).toBe(
+		"Opening needxz-1.0-x86_64-linux.tar.xz needs the xz program, which is not installed. Install xz from the system's packages, then try again.",
+	);
+});

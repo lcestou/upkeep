@@ -142,6 +142,8 @@ export const ENGINE_COPY = {
 	noReleaseAssetFor: (v0: string) => `No release asset for ${v0}.`,
 	couldNotInstallFile: (v0: string) => `Could not install ${v0}.`,
 	couldNotExtract: (v0: string) => `Could not extract ${v0}.`,
+	folderNotOurs: (v0: string) =>
+		`${v0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new.`,
 	archiveNeedsTool: (v0: string, v1: string) =>
 		`Opening ${v0} needs the ${v1} program, which is not installed. Install ${v1} from the system's packages, then try again.`,
 	couldNotInstallRestored: (v0: string, v1: string) => `Could not install ${v0}. Restored ${v1}.`,
@@ -177,6 +179,7 @@ export const ENGINE_COPY = {
 	liftAssetNotRegex: (v0: string, v1: string) => `${v0}: ${v1} is not a valid regular expression`,
 	liftVersionlessOnly: (v0: string) => `${v0}: versionless is only for kind claude-plugins`,
 	liftAppimageRepoOrLatest: (v0: string) => `${v0}: repo or latest is required for kind appimage`,
+	liftFolderPlace: (v0: string) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	liftLatestScheme: (v0: string) =>
 		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,
 	liftJsonOnlyAppimage: (v0: string) => `${v0}: a json: latest is only for kind appimage`,

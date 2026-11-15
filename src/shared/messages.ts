@@ -270,6 +270,9 @@ export const MESSAGES = {
 	couldNotInstallFile: (v0: Value) => `Could not install ${v0}.`,
 	/** kinds/release.ts. {0} asset name */
 	couldNotExtract: (v0: Value) => `Could not extract ${v0}.`,
+	/** kinds/release.ts. {0} the folder's path */
+	folderNotOurs: (v0: Value) =>
+		`${v0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new.`,
 	/** kinds/release.ts, discover.ts. {0} archive file name; {1} the program tar needed: xz, bzip2 or zstd */
 	archiveNeedsTool: (v0: Value, v1: Value) =>
 		`Opening ${v0} needs the ${v1} program, which is not installed. Install ${v1} from the system's packages, then try again.`,
@@ -338,6 +341,8 @@ export const MESSAGES = {
 	liftVersionlessOnly: (v0: Value) => `${v0}: versionless is only for kind claude-plugins`,
 	/** manifest.ts. {0} app key */
 	liftAppimageRepoOrLatest: (v0: Value) => `${v0}: repo or latest is required for kind appimage`,
+	/** manifest.ts. {0} app key */
+	liftFolderPlace: (v0: Value) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	/** manifest.ts. {0} app key */
 	liftLatestScheme: (v0: Value) =>
 		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,

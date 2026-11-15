@@ -127,6 +127,9 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	if (spec.kind === "claude-plugins") spec.versionless = true;
 	else if (spec.versionless) return MESSAGES.liftVersionlessOnly(key);
 	if (spec.kind === "appimage" && !spec.repo && !spec.latest) return MESSAGES.liftAppimageRepoOrLatest(key);
+	// An install swaps the whole folder out: never home itself, a folder holding others (~/.local) or one outside home.
+	if (spec.folder !== undefined && (!/^~\/[^/]+\/[^/]+/.test(spec.folder) || /(^|\/)\.\.(\/|$)/.test(spec.folder)))
+		return MESSAGES.liftFolderPlace(key);
 	const refused = liftRepo(key, table, spec);
 	if (refused) return refused;
 	// A source the check cannot read fails here, at load, not later at every check.

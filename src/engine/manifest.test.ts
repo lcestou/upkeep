@@ -499,3 +499,12 @@ asset_aarch64 = 'arm64$'
 dest = "~/x"
 `);
 });
+
+test("a folder app's folder is a folder of its own under home, never home, a top folder in it, or a path out of it", () => {
+	const archive = ['kind = "archive"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/.local/bin/x"', 'bins = ["bin/x"]'];
+	expect(one(...archive, 'folder = "~/.local/share/x"')).toMatchObject({ folder: "~/.local/share/x" });
+	expect(one(...archive, 'folder = "~/Apps/x"')).toMatchObject({ folder: "~/Apps/x" });
+	const refused = "x: folder must be a folder of its own under home, such as ~/.local/share/x";
+	for (const bad of ["~", "~/", "~/.local", "/opt/x", "~/a/../../etc", "~/../other/x"])
+		expect(one(...archive, `folder = "${bad}"`)).toBe(refused);
+});

@@ -2711,3 +2711,13 @@ msgstr "{0} не сообщает свою версию, а эту копию с
 #: src/mainview/lib/engine-text.ts
 msgid "Opening {0} needs the {1} program, which is not installed. Install {2} from the system's packages, then try again."
 msgstr "Чтобы открыть {0}, нужна программа {1}, а она не установлена. Установите {2} из пакетов системы и попробуйте снова."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new."
+msgstr "{0} уже существует и создан не Upkeep, поэтому он не тронут. Переместите его или укажите в таблице другой folder."
+
+#. 0: v0; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: folder must be a folder of its own under home, such as ~/.local/share/{1}"
+msgstr "{0}: folder должен быть отдельной папкой в домашнем каталоге, например ~/.local/share/{1}"

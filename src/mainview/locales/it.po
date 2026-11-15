@@ -2690,3 +2690,13 @@ msgstr "{0} non indica la sua versione e questa copia non l'ha installata Upkeep
 #: src/mainview/lib/engine-text.ts
 msgid "Opening {0} needs the {1} program, which is not installed. Install {2} from the system's packages, then try again."
 msgstr "Per aprire {0} serve il programma {1}, che non è installato. Installa {2} dai pacchetti del sistema, poi riprova."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new."
+msgstr "{0} esiste già e non l'ha creata Upkeep, quindi resta com'è. Spostala, o indica un altro folder nella tabella."
+
+#. 0: v0; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: folder must be a folder of its own under home, such as ~/.local/share/{1}"
+msgstr "{0}: folder deve essere una cartella a sé dentro la home, come ~/.local/share/{1}"
