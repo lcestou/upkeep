@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): an Electron or Flutter app opens its window when asked for --version.
+[apps.zettlr]
+name = "Zettlr"
+kind = "appimage"
+repo = "Zettlr/Zettlr"
+asset = '^Zettlr-[0-9.]+-x86_64\.AppImage$'
+asset_aarch64 = '^Zettlr-[0-9.]+-arm64\.AppImage$'
+dest = "~/.local/bin/zettlr.AppImage"
+meta_path = "Zettlr.desktop"
+process = "Zettlr"
+relaunch = true

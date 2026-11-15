@@ -2082,6 +2082,22 @@
 			"zen.source.tar.zst"
 		]
 	},
+	"zettlr": {
+		"repo": "Zettlr/Zettlr",
+		"tag": "v4.10.0",
+		"assets": [
+			"SHA256SUMS.txt",
+			"Zettlr-4.10.0-aarch64.rpm",
+			"Zettlr-4.10.0-amd64.deb",
+			"Zettlr-4.10.0-arm64.AppImage",
+			"Zettlr-4.10.0-arm64.deb",
+			"Zettlr-4.10.0-arm64.dmg",
+			"Zettlr-4.10.0-x64.dmg",
+			"Zettlr-4.10.0-x64.exe",
+			"Zettlr-4.10.0-x86_64.AppImage",
+			"Zettlr-4.10.0-x86_64.rpm"
+		]
+	},
 	"zoxide": {
 		"repo": "ajeetdsouza/zoxide",
 		"tag": "v0.10.0",
