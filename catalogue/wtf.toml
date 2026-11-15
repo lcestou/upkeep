@@ -1,0 +1,9 @@
+# The release also ships tessera-* files, a different program; the wtf_ prefix keeps them out of the match.
+[apps.wtf]
+name = "WTF"
+kind = "archive"
+repo = "wtfutil/wtf"
+asset = '^wtf_[0-9.]+_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^wtf_[0-9.]+_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/wtfutil"
+bins = ["wtfutil"]

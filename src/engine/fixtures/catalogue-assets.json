@@ -2194,6 +2194,23 @@
 			"witr.1"
 		]
 	},
+	"wtf": {
+		"repo": "wtfutil/wtf",
+		"tag": "v0.51.0",
+		"assets": [
+			"tessera--v0.51.0--darwin-amd64.tar.gz",
+			"tessera--v0.51.0--darwin-arm64.tar.gz",
+			"tessera--v0.51.0--linux-amd64.tar.gz",
+			"tessera--v0.51.0--linux-arm64.tar.gz",
+			"tessera--v0.51.0--linux-armv7.tar.gz",
+			"tessera_0.51.0_checksums.txt",
+			"wtf_0.51.0_darwin_amd64.tar.gz",
+			"wtf_0.51.0_darwin_arm64.tar.gz",
+			"wtf_0.51.0_linux_amd64.tar.gz",
+			"wtf_0.51.0_linux_arm64.tar.gz",
+			"wtf_0.51.0_linux_armv6.tar.gz"
+		]
+	},
 	"xh": {
 		"repo": "ducaale/xh",
 		"tag": "v0.26.3",
