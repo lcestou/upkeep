@@ -53,5 +53,5 @@ test("every catalogue aarch64 pattern matches exactly one aarch64 asset of the t
 		}
 	}
 	expect(broken).toEqual([]);
-	expect(checked).toBe(62);
+	expect(checked).toBe(63);
 });

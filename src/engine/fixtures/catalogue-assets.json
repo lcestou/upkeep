@@ -1390,6 +1390,18 @@
 			"Motrix_2.4.1_arm64.deb"
 		]
 	},
+	"navi": {
+		"repo": "denisidoro/navi",
+		"tag": "v2.24.0",
+		"assets": [
+			"navi-v2.24.0-aarch64-linux-android.tar.gz",
+			"navi-v2.24.0-aarch64-unknown-linux-gnu.tar.gz",
+			"navi-v2.24.0-armv7-linux-androideabi.tar.gz",
+			"navi-v2.24.0-armv7-unknown-linux-musleabihf.tar.gz",
+			"navi-v2.24.0-x86_64-pc-windows-gnu.zip",
+			"navi-v2.24.0-x86_64-unknown-linux-musl.tar.gz"
+		]
+	},
 	"neovim": {
 		"repo": "neovim/neovim",
 		"tag": "v0.12.6",

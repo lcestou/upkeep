@@ -1,0 +1,9 @@
+# The only Linux x86_64 file navi ships is the musl build; the other tar.gz is armv7 and the zip is Windows.
+[apps.navi]
+name = "navi"
+kind = "archive"
+repo = "denisidoro/navi"
+asset = '^navi-v[0-9.]+-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^navi-v[0-9.]+-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/navi"
+bins = ["navi"]
