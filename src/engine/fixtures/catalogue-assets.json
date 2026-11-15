@@ -25,6 +25,11 @@
 			"native-appcast-windows-x86_64.xml"
 		]
 	},
+	"arnis": {
+		"repo": "louis-e/arnis",
+		"tag": "v3.4.0",
+		"assets": ["arnis-linux-appimage.tar.gz", "arnis-linux.tar.gz", "arnis-mac-universal.tar.gz", "arnis-windows.exe"]
+	},
 	"asciinema": {
 		"repo": "asciinema/asciinema",
 		"tag": "v3.2.1",
