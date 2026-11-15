@@ -322,6 +322,41 @@
 			"SHASUMS256.txt.asc"
 		]
 	},
+	"chat2db": {
+		"repo": "OtterMind/Chat2DB",
+		"tag": "v5.3.8",
+		"assets": [
+			"Chat2DB-Community-5.3.8-aarch64.rpm",
+			"Chat2DB-Community-5.3.8-amd64.deb",
+			"Chat2DB-Community-5.3.8-arm64.AppImage",
+			"Chat2DB-Community-5.3.8-arm64.deb",
+			"Chat2DB-Community-5.3.8-arm64.dmg",
+			"Chat2DB-Community-5.3.8-x64.dmg",
+			"Chat2DB-Community-5.3.8-x86_64.AppImage",
+			"Chat2DB-Community-5.3.8-x86_64.rpm",
+			"Chat2DB-Community-5.3.8.msi",
+			"manifest-community-linux-arm64-linux-appimage.json",
+			"manifest-community-linux-arm64-linux-deb.json",
+			"manifest-community-linux-arm64-linux-rpm.json",
+			"manifest-community-linux-x64-linux-appimage.json",
+			"manifest-community-linux-x64-linux-deb.json",
+			"manifest-community-linux-x64-linux-rpm.json",
+			"manifest-community-macos-arm64-macos-app-archive.json",
+			"manifest-community-macos-x64-macos-app-archive.json",
+			"manifest-community-windows-x64-windows-exe.json",
+			"package-community-linux-arm64-linux-appimage.AppImage",
+			"package-community-linux-arm64-linux-deb.deb",
+			"package-community-linux-arm64-linux-rpm.rpm",
+			"package-community-linux-x64-linux-appimage.AppImage",
+			"package-community-linux-x64-linux-deb.deb",
+			"package-community-linux-x64-linux-rpm.rpm",
+			"package-community-macos-arm64-macos-app-archive.tar.gz",
+			"package-community-macos-x64-macos-app-archive.tar.gz",
+			"package-community-windows-x64-windows-exe.exe",
+			"release-index.json",
+			"SHA256SUMS"
+		]
+	},
 	"chezmoi": {
 		"repo": "twpayne/chezmoi",
 		"tag": "v2.74.1",
