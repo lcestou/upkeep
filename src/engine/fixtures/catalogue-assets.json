@@ -25,6 +25,17 @@
 			"native-appcast-windows-x86_64.xml"
 		]
 	},
+	"asciinema": {
+		"repo": "asciinema/asciinema",
+		"tag": "v3.2.1",
+		"assets": [
+			"asciinema-aarch64-apple-darwin",
+			"asciinema-aarch64-unknown-linux-gnu",
+			"asciinema-x86_64-apple-darwin",
+			"asciinema-x86_64-unknown-linux-gnu",
+			"asciinema-x86_64-unknown-linux-musl"
+		]
+	},
 	"atuin": {
 		"repo": "atuinsh/atuin",
 		"tag": "v18.24.6",
