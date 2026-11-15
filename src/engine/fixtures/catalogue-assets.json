@@ -2102,6 +2102,32 @@
 			"vhs_0.12.1_x86_64.apk"
 		]
 	},
+	"witr": {
+		"repo": "pranshuparmar/witr",
+		"tag": "v0.3.4",
+		"assets": [
+			"SHA256SUMS",
+			"witr-0.3.4-linux-amd64.apk",
+			"witr-0.3.4-linux-amd64.deb",
+			"witr-0.3.4-linux-amd64.rpm",
+			"witr-0.3.4-linux-arm64.apk",
+			"witr-0.3.4-linux-arm64.deb",
+			"witr-0.3.4-linux-arm64.rpm",
+			"witr-0.3.4-linux-loong64.apk",
+			"witr-0.3.4-linux-loong64.deb",
+			"witr-0.3.4-linux-loong64.rpm",
+			"witr-darwin-amd64",
+			"witr-darwin-arm64",
+			"witr-freebsd-amd64",
+			"witr-freebsd-arm64",
+			"witr-linux-amd64",
+			"witr-linux-arm64",
+			"witr-linux-loong64",
+			"witr-windows-amd64.zip",
+			"witr-windows-arm64.zip",
+			"witr.1"
+		]
+	},
 	"xh": {
 		"repo": "ducaale/xh",
 		"tag": "v0.26.3",

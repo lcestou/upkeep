@@ -1,0 +1,7 @@
+[apps.witr]
+name = "witr"
+kind = "file"
+repo = "pranshuparmar/witr"
+asset = '^witr-linux-amd64$'
+asset_aarch64 = '^witr-linux-arm64$'
+dest = "~/.local/bin/witr"
