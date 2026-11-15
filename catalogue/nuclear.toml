@@ -1,0 +1,11 @@
+# The version is read from the AppImage's own .desktop file (X-AppImage-Version): the app opens its window when asked for --version.
+# process is the kernel's 15-character cut of nuclear-music-player, the Exec= name of the image's .desktop file.
+[apps.nuclear]
+name = "Nuclear"
+kind = "appimage"
+repo = "nukeop/nuclear"
+asset = '^Nuclear_[0-9.]+_amd64\.AppImage$'
+dest = "~/.local/bin/nuclear.AppImage"
+meta_path = "Nuclear.desktop"
+process = "nuclear-music-p"
+relaunch = true

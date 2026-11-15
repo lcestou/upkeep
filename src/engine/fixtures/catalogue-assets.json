@@ -1571,6 +1571,31 @@
 			"notable_1.8.4_amd64.snap"
 		]
 	},
+	"nuclear": {
+		"repo": "nukeop/nuclear",
+		"tag": "player@1.55.0",
+		"assets": [
+			"latest.json",
+			"Nuclear-1.55.0-1.x86_64.rpm",
+			"Nuclear-1.55.0-1.x86_64.rpm.sig",
+			"Nuclear_1.55.0_aarch64.app.tar.gz",
+			"Nuclear_1.55.0_aarch64.app.tar.gz.sig",
+			"Nuclear_1.55.0_aarch64.dmg",
+			"Nuclear_1.55.0_amd64.AppImage",
+			"Nuclear_1.55.0_amd64.AppImage.sig",
+			"Nuclear_1.55.0_amd64.deb",
+			"Nuclear_1.55.0_amd64.deb.sig",
+			"nuclear_1.55.0_amd64.snap",
+			"Nuclear_1.55.0_x64-setup.exe",
+			"Nuclear_1.55.0_x64-setup.exe.sig",
+			"Nuclear_1.55.0_x64.app.tar.gz",
+			"Nuclear_1.55.0_x64.app.tar.gz.sig",
+			"Nuclear_1.55.0_x64.dmg",
+			"Nuclear_1.55.0_x64_en-US.msi",
+			"Nuclear_1.55.0_x64_en-US.msi.sig",
+			"Nuclear_1.55.0_x86_64.flatpak"
+		]
+	},
 	"obsidian": {
 		"repo": "obsidianmd/obsidian-releases",
 		"tag": "v1.15.1",
