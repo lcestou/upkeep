@@ -27,7 +27,7 @@ import {
 	rootNames,
 } from "./github";
 import { isPackage, PACKAGE_TOOL } from "./kinds/package";
-import { installedFiles } from "./kinds/release";
+import { installedFiles, unpackProblem } from "./kinds/release";
 import { listTools, toolSpec, toolKey } from "./managers";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
@@ -609,7 +609,12 @@ export async function programsIn(
 		verifyAsset(await download(asset.url, file, { fetch: ctx.fetch }), asset);
 		const zip = asset.name.toLowerCase().endsWith(".zip");
 		const list = await ctx.run(zip ? ["unzip", "-Z1", file] : ["tar", "tf", file], { timeoutMs: 60_000 });
-		if (list.code !== 0) return { problem: MESSAGES.noProgramInArchive(asset.name) };
+		if (list.code !== 0)
+			return {
+				problem: /Cannot exec/.test(list.stderr)
+					? unpackProblem(asset.name, list)
+					: MESSAGES.noProgramInArchive(asset.name),
+			};
 		const listed = new Set(
 			list.stdout
 				.split("\n")

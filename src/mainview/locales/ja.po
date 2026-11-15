@@ -2643,3 +2643,8 @@ msgstr "{0} Linux 向けビルドは .7z のアーカイブで、Upkeep はま�
 #: src/mainview/lib/engine-text.ts
 msgid "{0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it."
 msgstr "{0} は自身のバージョンを報告せず、このコピーは Upkeep がインストールしたものではありません。最新版をインストールすると Upkeep が追跡できるようになります。"
+
+#. 0: v0; 1: v1; 2: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Opening {0} needs the {1} program, which is not installed. Install {2} from the system's packages, then try again."
+msgstr "{0} を開くには {1} プログラムが必要ですが、インストールされていません。システムのパッケージから {2} をインストールしてから、もう一度試してください。"

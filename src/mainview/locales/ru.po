@@ -2706,3 +2706,8 @@ msgstr "{0} Сборки для Linux там в архивах .7z, которы
 #: src/mainview/lib/engine-text.ts
 msgid "{0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it."
 msgstr "{0} не сообщает свою версию, а эту копию ставил не Upkeep. После установки последней версии Upkeep сможет её отслеживать."
+
+#. 0: v0; 1: v1; 2: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Opening {0} needs the {1} program, which is not installed. Install {2} from the system's packages, then try again."
+msgstr "Чтобы открыть {0}, нужна программа {1}, а она не установлена. Установите {2} из пакетов системы и попробуйте снова."

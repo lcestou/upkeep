@@ -270,6 +270,9 @@ export const MESSAGES = {
 	couldNotInstallFile: (v0: Value) => `Could not install ${v0}.`,
 	/** kinds/release.ts. {0} asset name */
 	couldNotExtract: (v0: Value) => `Could not extract ${v0}.`,
+	/** kinds/release.ts, discover.ts. {0} archive file name; {1} the program tar needed: xz, bzip2 or zstd */
+	archiveNeedsTool: (v0: Value, v1: Value) =>
+		`Opening ${v0} needs the ${v1} program, which is not installed. Install ${v1} from the system's packages, then try again.`,
 	/** kinds/release.ts. {0} program (bin) name; {1} restore point version */
 	couldNotInstallRestored: (v0: Value, v1: Value) => `Could not install ${v0}. Restored ${v1}.`,
 	/** kinds/release.ts. {0} program (bin) name; {1} restoreBackup detail (backup.ts sentences or run.ts SUDO_PASSWORD) */

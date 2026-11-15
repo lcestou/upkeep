@@ -142,6 +142,8 @@ export const ENGINE_COPY = {
 	noReleaseAssetFor: (v0: string) => `No release asset for ${v0}.`,
 	couldNotInstallFile: (v0: string) => `Could not install ${v0}.`,
 	couldNotExtract: (v0: string) => `Could not extract ${v0}.`,
+	archiveNeedsTool: (v0: string, v1: string) =>
+		`Opening ${v0} needs the ${v1} program, which is not installed. Install ${v1} from the system's packages, then try again.`,
 	couldNotInstallRestored: (v0: string, v1: string) => `Could not install ${v0}. Restored ${v1}.`,
 	couldNotInstallRestoreFailed: (v0: string, v1: string) => `Could not install ${v0}. Restore failed: ${v1}`,
 	couldNotInstallNoPoint: (v0: string) => `Could not install ${v0}. No restore point was taken.`,

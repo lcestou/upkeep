@@ -766,3 +766,22 @@ test("install: a .tar.xz archive opens like a .tar.gz, and a * in a bin stands f
 	expect(existsSync(join(t.paths.home, ".local/bin/uv-0.9.2-linux-amd64"))).toBe(false);
 	expect(readdirSync(join(t.paths.data, "backups/uv/0.9.1")).toSorted()).toEqual(["meta.json", "uv"]);
 });
+
+test("install: a tarball whose decompressor is missing says which program to install, and keeps the old copy", async () => {
+	script(join(t.paths.home, ".local/bin/uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.xz": new Uint8Array([1, 2, 3]) });
+	const { run } = recordingRun(t.paths, (argv) =>
+		argv[0] === "tar"
+			? { code: 2, stdout: "", stderr: "tar (child): xz: Cannot exec: No such file or directory", timedOut: false }
+			: undefined,
+	);
+	const spec = { ...uv(["uv"]), asset: "linux-gnu\\.tar\\.xz$" };
+	const c = ctx(run);
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		installed: "0.9.1",
+		detail:
+			"Opening uv-x86_64-unknown-linux-gnu.tar.xz needs the xz program, which is not installed. Install xz from the system's packages, then try again.",
+	});
+	expect(readFileSync(join(t.paths.home, ".local/bin/uv"), "utf8")).toContain("uv 0.9.1");
+});

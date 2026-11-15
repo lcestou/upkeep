@@ -2664,3 +2664,8 @@ msgstr "{0} Die Linux-Builds sind .7z-Archive, die Upkeep noch nicht öffnen kan
 #: src/mainview/lib/engine-text.ts
 msgid "{0} does not report its version, and this copy was not installed by Upkeep. Installing the latest lets Upkeep keep track of it."
 msgstr "{0} nennt seine Version nicht, und diese Kopie hat nicht Upkeep installiert. Nach der Installation der neuesten Version behält Upkeep sie im Blick."
+
+#. 0: v0; 1: v1; 2: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Opening {0} needs the {1} program, which is not installed. Install {2} from the system's packages, then try again."
+msgstr "Zum Öffnen von {0} wird das Programm {1} gebraucht, das nicht installiert ist. Installiere {2} aus den Paketen des Systems und versuche es dann erneut."

@@ -19,7 +19,7 @@ import { forgeRelease, linksRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
-import { asRoot, installAside, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
+import { asRoot, installAside, type ProcessResult, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { isRunning } from "../running";
 import { clearInflight, stampedVersion, stampInstalled, writeInflight } from "../store";
 import { isNewer } from "../version";
@@ -59,6 +59,15 @@ export function installedFiles(spec: AppSpec, dest: string): string[] {
 /** The name a bin installs under: its base name, or dest's for one with a * in it (ipatool-*-linux-amd64 is ipatool). */
 function binName(bin: string, dest: string): string {
 	return basename(bin).includes("*") ? basename(dest) : basename(bin);
+}
+
+/**
+ * Why tar could not open an archive, as a sentence: the program it hands xz, bzip2 or zstd to is missing on a minimal
+ * system (Ubuntu's cloud image has no xz), which GNU tar reports as "xz: Cannot exec". Anything else is couldNotExtract.
+ */
+export function unpackProblem(asset: string, r: ProcessResult): string {
+	const tool = /(\w+): Cannot exec/.exec(r.stderr)?.[1];
+	return tool ? MESSAGES.archiveNeedsTool(asset, tool) : MESSAGES.couldNotExtract(asset);
 }
 
 /** Whether an archive file name is the bin's base name, where a * stands for any run of characters (a version). */
@@ -290,7 +299,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				: // GNU tar tells gzip, xz, bzip2 and zstd apart on its own when it reads a file.
 					["tar", "xf", dl, "-C", extract];
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
-			if (x.code !== 0) throw new StepError(MESSAGES.couldNotExtract(asset.name));
+			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x));
 			// A bin this run added has no restore point, so a failure takes it out again.
 			const added: string[] = [];
 			for (const bin of bins) {

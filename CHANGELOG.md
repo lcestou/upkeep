@@ -4,7 +4,7 @@
 
 First version.
 
-- Apps whose Linux build is a `.tar.xz`, `.tar.bz2` or `.tar.zst` archive (fish, kitty and many command-line tools) can be added and updated like `.tar.gz` ones. Source tarballs and Arch Linux packages in a release are no longer offered as builds.
+- Apps whose Linux build is a `.tar.xz`, `.tar.bz2` or `.tar.zst` archive (fish, kitty and many command-line tools) can be added and updated like `.tar.gz` ones. On a system without the program such an archive needs (Ubuntu's minimal images have no `xz`), Upkeep names the program to install instead of saying the archive holds nothing. Source tarballs and Arch Linux packages in a release are no longer offered as builds.
 - An app that opens its window when asked for its version, or never names one (many Tauri apps, a binary built without its version stamped in), can be kept up to date: its table says `probe = false`, and Upkeep reads the version it installed instead of starting the program. A copy installed some other way is offered the latest, since Upkeep cannot tell which version it is.
 - An archive whose program carries the version in its file name (`ipatool-2.1.4-linux-amd64`) installs it under its plain name: the table's `bins` entry takes a `*` for the version.
 - An AppImage's version is read from its metainfo whatever order the `<release>` element's attributes come in; one that wrote `date` before `version` was read at an older release.
