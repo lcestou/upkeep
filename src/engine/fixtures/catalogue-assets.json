@@ -1246,6 +1246,21 @@
 			"hyperfine_2.0.0_i686.deb"
 		]
 	},
+	"imageglass": {
+		"repo": "d2phap/ImageGlass",
+		"tag": "10.0.6.906",
+		"assets": [
+			"ImageGlass_10.0.6.906_linux-x64.AppImage",
+			"ImageGlass_10.0.6.906_linux-x64.flatpak",
+			"ImageGlass_10.0.6.906_linux-x64.tar.gz",
+			"ImageGlass_10.0.6.906_mac-arm64.dmg",
+			"ImageGlass_10.0.6.906_win-arm64.msix",
+			"ImageGlass_10.0.6.906_win-arm64.zip",
+			"ImageGlass_10.0.6.906_win-x64.msi",
+			"ImageGlass_10.0.6.906_win-x64.msix",
+			"ImageGlass_10.0.6.906_win-x64.zip"
+		]
+	},
 	"joplin": {
 		"repo": "laurent22/joplin",
 		"tag": "v3.7.22",
