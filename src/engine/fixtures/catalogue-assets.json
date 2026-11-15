@@ -572,6 +572,33 @@
 			"git-delta_0.20.1_i386.deb"
 		]
 	},
+	"devpod": {
+		"repo": "loft-sh/devpod",
+		"tag": "v0.6.15",
+		"assets": [
+			"devpod-darwin-amd64",
+			"devpod-darwin-arm64",
+			"devpod-linux-amd64",
+			"devpod-linux-arm64",
+			"devpod-windows-amd64.exe",
+			"DevPod.desktop",
+			"DevPod.metainfo.xml",
+			"DevPod_0.6.15_amd64.AppImage.sig",
+			"DevPod_0.6.15_amd64.deb",
+			"DevPod_0.6.15_x64-setup.exe",
+			"DevPod_linux_amd64.AppImage",
+			"DevPod_linux_amd64.AppImage.tar.gz",
+			"DevPod_linux_x86_64.tar.gz",
+			"DevPod_macos_aarch64.app.tar.gz",
+			"DevPod_macos_aarch64.dmg",
+			"DevPod_macos_x64.app.tar.gz",
+			"DevPod_macos_x64.dmg",
+			"DevPod_windows_x64_en-US.msi",
+			"DevPod_windows_x64_en-US.msi.zip",
+			"latest.json",
+			"provider.yaml"
+		]
+	},
 	"difftastic": {
 		"repo": "Wilfred/difftastic",
 		"tag": "0.72.0",
