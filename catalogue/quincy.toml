@@ -1,0 +1,8 @@
+# Drafted from quincy-rs/quincy's 3.1.1 release; its version is the one Upkeep installed.
+[apps.quincy]
+name = "quincy"
+kind = "appimage"
+repo = "quincy-rs/quincy"
+asset = '^quincy-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/quincy.AppImage"
+probe = false

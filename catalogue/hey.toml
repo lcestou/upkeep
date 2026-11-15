@@ -1,0 +1,10 @@
+# Drafted from basecamp/hey-cli's v1.13.1 release; its version is the one Upkeep installed.
+[apps.hey]
+name = "Hey Cli"
+kind = "archive"
+repo = "basecamp/hey-cli"
+asset = '^hey_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^hey_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/hey"
+bins = ["hey"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from dupitydumb/Audion's v1.4.3 release; its version is the one Upkeep installed.
+[apps.audion]
+name = "Audion"
+kind = "appimage"
+repo = "dupitydumb/Audion"
+asset = '^audion_.*_x86_64\.AppImage$'
+dest = "~/.local/bin/audion.AppImage"
+probe = false

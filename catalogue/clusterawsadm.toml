@@ -1,0 +1,9 @@
+# Drafted from kubernetes-sigs/cluster-api-provider-aws's v2.13.1 release; its version is the one Upkeep installed.
+[apps.clusterawsadm]
+name = "Cluster Api Provider Aws"
+kind = "file"
+repo = "kubernetes-sigs/cluster-api-provider-aws"
+asset = '^clusterawsadm-linux-amd64$'
+asset_aarch64 = '^clusterawsadm-linux-arm64$'
+dest = "~/.local/bin/clusterawsadm"
+probe = false

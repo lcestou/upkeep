@@ -1,0 +1,8 @@
+# Drafted from axpdev-lab/aeroftp's v4.2.7 release; its version is the one Upkeep installed.
+[apps.aeroftp]
+name = "AeroFTP"
+kind = "appimage"
+repo = "axpdev-lab/aeroftp"
+asset = '^AeroFTP_.*_amd64\.AppImage$'
+dest = "~/.local/bin/aeroftp.AppImage"
+probe = false

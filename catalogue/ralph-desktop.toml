@@ -1,0 +1,8 @@
+# Drafted from liuxiaopai-ai/ralph-desktop's v0.1.17 release; its version is the one Upkeep installed.
+[apps.ralph-desktop]
+name = "Ralph-Desktop"
+kind = "appimage"
+repo = "liuxiaopai-ai/ralph-desktop"
+asset = '^Ralph\.Desktop_.*_amd64\.AppImage$'
+dest = "~/.local/bin/ralph-desktop.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from cin12211/orca-q's v1.1.17 release; its version is the one Upkeep installed.
+[apps.orcaq]
+name = "Orca Q"
+kind = "appimage"
+repo = "cin12211/orca-q"
+asset = '^orcaq-.*\.AppImage$'
+dest = "~/.local/bin/orcaq.AppImage"
+probe = false

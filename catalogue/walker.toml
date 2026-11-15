@@ -1,0 +1,9 @@
+# Drafted from abenz1267/walker's v2.17.2 release; its version is the one Upkeep installed.
+[apps.walker]
+name = "walker"
+kind = "archive"
+repo = "abenz1267/walker"
+asset = '^walker-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/walker"
+bins = ["walker"]
+probe = false

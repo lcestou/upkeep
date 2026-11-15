@@ -1,0 +1,8 @@
+# Drafted from davidsmorais/kuro's v9.1.3 release; its version is the one Upkeep installed.
+[apps.kuro]
+name = "Kuro"
+kind = "appimage"
+repo = "davidsmorais/kuro"
+asset = '^Kuro-.*\.AppImage$'
+dest = "~/.local/bin/kuro.AppImage"
+probe = false

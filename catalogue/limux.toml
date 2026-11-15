@@ -1,0 +1,8 @@
+# Drafted from am-will/limux's v0.1.35 release; its version is the one Upkeep installed.
+[apps.limux]
+name = "Limux"
+kind = "appimage"
+repo = "am-will/limux"
+asset = '^Limux-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/limux.AppImage"
+probe = false

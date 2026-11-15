@@ -1,0 +1,8 @@
+# Drafted from eunseo9311/commit-cat's v0.5.0 release; its version is the one Upkeep installed.
+[apps.commit-cat]
+name = "Commit-Cat"
+kind = "appimage"
+repo = "eunseo9311/commit-cat"
+asset = '^Commit\.Cat_.*_amd64\.AppImage$'
+dest = "~/.local/bin/commit-cat.AppImage"
+probe = false

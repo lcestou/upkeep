@@ -1,0 +1,8 @@
+# Drafted from Wyze3306/BedrockOnLinux's v2.3.1 release; its version is the one Upkeep installed.
+[apps.bedrock-on]
+name = "BedrockOnLinux"
+kind = "appimage"
+repo = "Wyze3306/BedrockOnLinux"
+asset = '^BedrockOnLinux-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/bedrock-on.AppImage"
+probe = false

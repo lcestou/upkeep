@@ -1,0 +1,8 @@
+# Drafted from Bforartists/Bforartists's v5.2.3 release; its version is the one Upkeep installed.
+[apps.bforartists]
+name = "Bforartists"
+kind = "appimage"
+repo = "Bforartists/Bforartists"
+asset = '^Bforartists-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/bforartists.AppImage"
+probe = false

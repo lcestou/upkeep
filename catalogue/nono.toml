@@ -1,0 +1,10 @@
+# Drafted from nolabs-ai/nono's v0.82.0 release; its version is the one Upkeep installed.
+[apps.nono]
+name = "nono"
+kind = "archive"
+repo = "nolabs-ai/nono"
+asset = '^nono-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^nono-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/nono"
+bins = ["nono"]
+probe = false

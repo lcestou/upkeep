@@ -1,0 +1,10 @@
+# Drafted from turbot/powerpipe's v1.6.0 release; its version is the one Upkeep installed.
+[apps.powerpipe]
+name = "powerpipe"
+kind = "archive"
+repo = "turbot/powerpipe"
+asset = '^powerpipe\.linux\.amd64\.tar\.gz$'
+asset_aarch64 = '^powerpipe\.linux\.arm64\.tar\.gz$'
+dest = "~/.local/bin/powerpipe"
+bins = ["powerpipe"]
+probe = false

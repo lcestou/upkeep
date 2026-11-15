@@ -1,0 +1,9 @@
+# Drafted from JMBeresford/retrom's v0.8.4 release; its version is the one Upkeep installed.
+[apps.retrom]
+name = "Retrom"
+kind = "appimage"
+repo = "JMBeresford/retrom"
+asset = '^Retrom_.*_amd64\.AppImage$'
+asset_aarch64 = '^Retrom_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/retrom.AppImage"
+probe = false

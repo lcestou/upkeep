@@ -1,0 +1,8 @@
+# Drafted from Kesomannen/gale's 1.23.3 release; its version is the one Upkeep installed.
+[apps.gale]
+name = "Gale"
+kind = "appimage"
+repo = "Kesomannen/gale"
+asset = '^Gale_.*_amd64\.AppImage$'
+dest = "~/.local/bin/gale.AppImage"
+probe = false

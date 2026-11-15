@@ -1,0 +1,10 @@
+# Drafted from vicanso/zedis's v0.16.0 release; its version is the one Upkeep installed.
+[apps.zedis]
+name = "zedis"
+kind = "archive"
+repo = "vicanso/zedis"
+asset = '^zedis-linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^zedis-linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/zedis"
+bins = ["zedis"]
+probe = false

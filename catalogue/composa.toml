@@ -1,0 +1,9 @@
+# Drafted from dvdstelt/Composa's v1.4.0 release; its version is the one Upkeep installed.
+[apps.composa]
+name = "Composa"
+kind = "appimage"
+repo = "dvdstelt/Composa"
+asset = '^Composa-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Composa-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/composa.AppImage"
+probe = false

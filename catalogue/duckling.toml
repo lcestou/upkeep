@@ -1,0 +1,8 @@
+# Drafted from l1xnan/duckling's v0.60.0 release; its version is the one Upkeep installed.
+[apps.duckling]
+name = "Duckling"
+kind = "appimage"
+repo = "l1xnan/duckling"
+asset = '^Duckling_.*_amd64\.AppImage$'
+dest = "~/.local/bin/duckling.AppImage"
+probe = false

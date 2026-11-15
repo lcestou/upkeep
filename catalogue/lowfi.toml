@@ -1,0 +1,8 @@
+# Drafted from talwat/lowfi's 2.0.7 release; its version is the one Upkeep installed.
+[apps.lowfi]
+name = "lowfi"
+kind = "file"
+repo = "talwat/lowfi"
+asset = '^lowfi-linux-x86_64$'
+dest = "~/.local/bin/lowfi"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from lusingander/stu's v0.7.6 release; its version is the one Upkeep installed.
+[apps.stu]
+name = "stu"
+kind = "archive"
+repo = "lusingander/stu"
+asset = '^stu-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^stu-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/stu"
+bins = ["stu"]
+probe = false

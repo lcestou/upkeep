@@ -1,0 +1,8 @@
+# Drafted from teaGod-s/UnBox's v1.0.0 release; its version is the one Upkeep installed.
+[apps.unbox]
+name = "UnBox"
+kind = "appimage"
+repo = "teaGod-s/UnBox"
+asset = '^UnBox-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/unbox.AppImage"
+probe = false

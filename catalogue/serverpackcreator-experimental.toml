@@ -1,0 +1,9 @@
+# Drafted from Griefed/ServerPackCreator's 9.4.1 release; its version is the one Upkeep installed.
+[apps.serverpackcreator-experimental]
+name = "ServerPackCreator-experimental"
+kind = "appimage"
+repo = "Griefed/ServerPackCreator"
+asset = '^ServerPackCreator-.*-x86_64_experimental\.AppImage$'
+asset_aarch64 = '^ServerPackCreator-.*-aarch64_experimental\.AppImage$'
+dest = "~/.local/bin/serverpackcreator-experimental.AppImage"
+probe = false

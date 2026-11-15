@@ -1,0 +1,9 @@
+# Drafted from appium/appium-inspector's v2026.11.6 release; its version is the one Upkeep installed.
+[apps.appium-inspector]
+name = "Appium-Inspector"
+kind = "appimage"
+repo = "appium/appium-inspector"
+asset = '^Appium-Inspector-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Appium-Inspector-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/appium-inspector.AppImage"
+probe = false

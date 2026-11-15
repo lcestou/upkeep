@@ -1,0 +1,8 @@
+# Drafted from Lumieducation/Lumi's v1.0.3 release; its version is the one Upkeep installed.
+[apps.lumi]
+name = "Lumi"
+kind = "appimage"
+repo = "Lumieducation/Lumi"
+asset = '^Lumi-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/lumi.AppImage"
+probe = false

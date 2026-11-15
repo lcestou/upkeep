@@ -1,0 +1,8 @@
+# Drafted from adamgell/cmtraceopen's v1.6.3 release; its version is the one Upkeep installed.
+[apps.cmtrace-open]
+name = "CMTrace-Open"
+kind = "appimage"
+repo = "adamgell/cmtraceopen"
+asset = '^CMTrace\.Open_.*_amd64\.AppImage$'
+dest = "~/.local/bin/cmtrace-open.AppImage"
+probe = false

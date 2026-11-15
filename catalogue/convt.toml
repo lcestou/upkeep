@@ -1,0 +1,8 @@
+# Drafted from opencoredev/convt's v0.5.0 release; its version is the one Upkeep installed.
+[apps.convt]
+name = "convt"
+kind = "appimage"
+repo = "opencoredev/convt"
+asset = '^convt-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/convt.AppImage"
+probe = false

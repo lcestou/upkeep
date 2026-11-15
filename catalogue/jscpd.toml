@@ -1,0 +1,10 @@
+# Drafted from kucherenko/jscpd's v5.4.3 release; its version is the one Upkeep installed.
+[apps.jscpd]
+name = "jscpd"
+kind = "archive"
+repo = "kucherenko/jscpd"
+asset = '^jscpd-linux-x64-gnu\.tar\.gz$'
+asset_aarch64 = '^jscpd-linux-arm64-gnu\.tar\.gz$'
+dest = "~/.local/bin/jscpd"
+bins = ["jscpd"]
+probe = false

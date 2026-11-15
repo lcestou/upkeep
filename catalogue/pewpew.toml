@@ -1,0 +1,10 @@
+# Drafted from bengadbois/pewpew's v1.1.0 release; its version is the one Upkeep installed.
+[apps.pewpew]
+name = "pewpew"
+kind = "archive"
+repo = "bengadbois/pewpew"
+asset = '^pewpew_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^pewpew_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/pewpew"
+bins = ["pewpew"]
+probe = false

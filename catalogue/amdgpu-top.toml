@@ -1,0 +1,9 @@
+# Drafted from Umio-Yasuno/amdgpu_top's v0.11.5 release; its version is the one Upkeep installed.
+[apps.amdgpu-top]
+name = "Amdgpu Top"
+kind = "appimage"
+repo = "Umio-Yasuno/amdgpu_top"
+asset = '^amdgpu_top-x86_64\.AppImage$'
+asset_aarch64 = '^amdgpu_top-aarch64\.AppImage$'
+dest = "~/.local/bin/amdgpu-top.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from VkRainB/ccMesh's v0.2.11 release; its version is the one Upkeep installed.
+[apps.ccmesh]
+name = "ccMesh"
+kind = "appimage"
+repo = "VkRainB/ccMesh"
+asset = '^ccMesh_.*_amd64\.AppImage$'
+dest = "~/.local/bin/ccmesh.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from Javis603/token-monitor's v0.92.0 release; its version is the one Upkeep installed.
+[apps.token-monitor]
+name = "Token-Monitor"
+kind = "appimage"
+repo = "Javis603/token-monitor"
+asset = '^Token-Monitor-.*\.AppImage$'
+dest = "~/.local/bin/token-monitor.AppImage"
+probe = false

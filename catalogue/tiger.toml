@@ -1,0 +1,8 @@
+# Drafted from jtaoufik/tiger's v0.9.0 release; its version is the one Upkeep installed.
+[apps.tiger]
+name = "Tiger"
+kind = "appimage"
+repo = "jtaoufik/tiger"
+asset = '^Tiger-linux-x64\.AppImage$'
+dest = "~/.local/bin/tiger.AppImage"
+probe = false

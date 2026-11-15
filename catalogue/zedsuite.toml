@@ -1,0 +1,8 @@
+# Drafted from LeZed97/ZedSuite's v1.2.6 release; its version is the one Upkeep installed.
+[apps.zedsuite]
+name = "ZedSuite"
+kind = "appimage"
+repo = "LeZed97/ZedSuite"
+asset = '^ZedSuite_.*_linux-x86_64\.AppImage$'
+dest = "~/.local/bin/zedsuite.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from yukiarrr/ecsk's v0.9.5 release; its version is the one Upkeep installed.
+[apps.ecsk]
+name = "ecsk"
+kind = "archive"
+repo = "yukiarrr/ecsk"
+asset = '^ecsk_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^ecsk_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ecsk"
+bins = ["ecsk"]
+probe = false

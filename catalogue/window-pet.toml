@@ -1,0 +1,8 @@
+# Drafted from SeakMengs/WindowPet's v0.0.9 release; its version is the one Upkeep installed.
+[apps.window-pet]
+name = "WindowPet"
+kind = "appimage"
+repo = "SeakMengs/WindowPet"
+asset = '^window-pet_.*_amd64\.AppImage$'
+dest = "~/.local/bin/window-pet.AppImage"
+probe = false

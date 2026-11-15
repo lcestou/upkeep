@@ -1,0 +1,8 @@
+# Drafted from greymass/anchor's v1.4.0 release; its version is the one Upkeep installed.
+[apps.anchor-wallet]
+name = "anchor"
+kind = "appimage"
+repo = "greymass/anchor"
+asset = '^linux-anchor-wallet-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/anchor-wallet.AppImage"
+probe = false

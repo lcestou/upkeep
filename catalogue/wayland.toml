@@ -1,0 +1,9 @@
+# Drafted from FerroxLabs/wayland's v0.13.2 release; its version is the one Upkeep installed.
+[apps.wayland]
+name = "Wayland"
+kind = "appimage"
+repo = "FerroxLabs/wayland"
+asset = '^Wayland-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Wayland-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/wayland.AppImage"
+probe = false

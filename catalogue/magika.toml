@@ -1,0 +1,10 @@
+# Drafted from google/magika's cli/v1.1.0 release; its version is the one Upkeep installed.
+[apps.magika]
+name = "magika"
+kind = "archive"
+repo = "google/magika"
+asset = '^magika-cli-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^magika-cli-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/magika"
+bins = ["magika-cli-x86_64-unknown-linux-gnu/magika"]
+probe = false

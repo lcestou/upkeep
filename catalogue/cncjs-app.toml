@@ -1,0 +1,9 @@
+# Drafted from cncjs/cncjs's v1.12.0 release; its version is the one Upkeep installed.
+[apps.cncjs-app]
+name = "cncjs"
+kind = "appimage"
+repo = "cncjs/cncjs"
+asset = '^cncjs-app-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^cncjs-app-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/cncjs-app.AppImage"
+probe = false

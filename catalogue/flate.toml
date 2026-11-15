@@ -1,0 +1,10 @@
+# Drafted from home-operations/flate's v0.7.3 release; its version is the one Upkeep installed.
+[apps.flate]
+name = "flate"
+kind = "archive"
+repo = "home-operations/flate"
+asset = '^flate_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^flate_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/flate"
+bins = ["flate"]
+probe = false

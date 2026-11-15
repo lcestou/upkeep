@@ -1,0 +1,8 @@
+# Drafted from crazyriddler/xbased's v1.0.104 release; its version is the one Upkeep installed.
+[apps.xbased]
+name = "xbased"
+kind = "appimage"
+repo = "crazyriddler/xbased"
+asset = '^xbased-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/xbased.AppImage"
+probe = false

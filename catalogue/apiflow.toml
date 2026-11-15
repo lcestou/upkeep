@@ -1,0 +1,9 @@
+# Drafted from trueleaf/apiflow's v0.9.83 release; its version is the one Upkeep installed.
+[apps.apiflow]
+name = "ApiFlow"
+kind = "appimage"
+repo = "trueleaf/apiflow"
+asset = '^ApiFlow_.*_amd64\.AppImage$'
+asset_aarch64 = '^ApiFlow_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/apiflow.AppImage"
+probe = false

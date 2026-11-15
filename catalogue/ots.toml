@@ -1,0 +1,10 @@
+# Drafted from sniptt-official/ots's v0.3.1 release; its version is the one Upkeep installed.
+[apps.ots]
+name = "ots"
+kind = "archive"
+repo = "sniptt-official/ots"
+asset = '^ots_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ots_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ots"
+bins = ["ots"]
+probe = false

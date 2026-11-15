@@ -1,0 +1,8 @@
+# Drafted from dfgHiatus/VRCFaceTracking.Avalonia's v1.1.1.0 release; its version is the one Upkeep installed.
+[apps.vrcfacetracking-avalonia]
+name = "VRCFaceTracking-Avalonia"
+kind = "appimage"
+repo = "dfgHiatus/VRCFaceTracking.Avalonia"
+asset = '^VRCFaceTracking\.Avalonia\..*\.x64\.AppImage$'
+dest = "~/.local/bin/vrcfacetracking-avalonia.AppImage"
+probe = false

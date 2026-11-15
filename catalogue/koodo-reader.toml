@@ -1,0 +1,9 @@
+# Drafted from koodo-reader/koodo-reader's v2.4.7 release; its version is the one Upkeep installed.
+[apps.koodo-reader]
+name = "Koodo-Reader"
+kind = "appimage"
+repo = "koodo-reader/koodo-reader"
+asset = '^Koodo-Reader-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Koodo-Reader-.*-arm64\.AppImage$'
+dest = "~/.local/bin/koodo-reader.AppImage"
+probe = false

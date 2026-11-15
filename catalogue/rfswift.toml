@@ -1,0 +1,9 @@
+# Drafted from PentHertz/RF-Swift's v4.1.1 release; its version is the one Upkeep installed.
+[apps.rfswift]
+name = "RF Swift"
+kind = "appimage"
+repo = "PentHertz/RF-Swift"
+asset = '^rfswift-workbench_Linux_x86_64\.AppImage$'
+asset_aarch64 = '^rfswift-workbench_Linux_arm64\.AppImage$'
+dest = "~/.local/bin/rfswift.AppImage"
+probe = false

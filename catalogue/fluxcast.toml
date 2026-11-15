@@ -1,0 +1,8 @@
+# Drafted from IlyaP358/fluxcast's v0.3.0 release; its version is the one Upkeep installed.
+[apps.fluxcast]
+name = "FluxCast"
+kind = "appimage"
+repo = "IlyaP358/fluxcast"
+asset = '^FluxCast-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/fluxcast.AppImage"
+probe = false

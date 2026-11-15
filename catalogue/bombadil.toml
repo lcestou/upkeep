@@ -1,0 +1,9 @@
+# Drafted from oknozor/toml-bombadil's 4.2.0 release; its version is the one Upkeep installed.
+[apps.bombadil]
+name = "Toml Bombadil"
+kind = "archive"
+repo = "oknozor/toml-bombadil"
+asset = '^bombadil-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/bombadil"
+bins = ["x86_64-unknown-linux-musl/bombadil"]
+probe = false

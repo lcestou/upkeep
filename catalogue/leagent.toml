@@ -1,0 +1,8 @@
+# Drafted from vixues/LeAgent's v1.2.7 release; its version is the one Upkeep installed.
+[apps.leagent]
+name = "LeAgent"
+kind = "appimage"
+repo = "vixues/LeAgent"
+asset = '^LeAgent-.*\.AppImage$'
+dest = "~/.local/bin/leagent.AppImage"
+probe = false

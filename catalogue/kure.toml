@@ -1,0 +1,10 @@
+# Drafted from GGP1/kure's v1.3.0 release; its version is the one Upkeep installed.
+[apps.kure]
+name = "kure"
+kind = "archive"
+repo = "GGP1/kure"
+asset = '^kure_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kure_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kure"
+bins = ["kure"]
+probe = false

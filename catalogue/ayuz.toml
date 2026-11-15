@@ -1,0 +1,8 @@
+# Drafted from Traciges/Ayuz's v1.1.10 release; its version is the one Upkeep installed.
+[apps.ayuz]
+name = "Ayuz"
+kind = "appimage"
+repo = "Traciges/Ayuz"
+asset = '^ayuz-.*-1\.AppImage$'
+dest = "~/.local/bin/ayuz.AppImage"
+probe = false

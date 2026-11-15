@@ -1,0 +1,10 @@
+# Drafted from google/addlicense's v1.2.0 release; its version is the one Upkeep installed.
+[apps.addlicense]
+name = "addlicense"
+kind = "archive"
+repo = "google/addlicense"
+asset = '^addlicense_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^addlicense_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/addlicense"
+bins = ["addlicense"]
+probe = false

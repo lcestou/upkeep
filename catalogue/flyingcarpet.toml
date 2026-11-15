@@ -1,8 +1,0 @@
-# Drafted from spieglt/FlyingCarpet's v10.0.0 release; its version is the one Upkeep installed.
-[apps.flyingcarpet]
-name = "FlyingCarpet"
-kind = "appimage"
-repo = "spieglt/FlyingCarpet"
-asset = '^linux_FlyingCarpet_10\.0\.5_amd64\.AppImage$'
-dest = "~/.local/bin/flyingcarpet.AppImage"
-probe = false

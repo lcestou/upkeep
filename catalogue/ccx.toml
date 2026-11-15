@@ -1,0 +1,9 @@
+# Drafted from BenedictKing/ccx's v2.9.37 release; its version is the one Upkeep installed.
+[apps.ccx]
+name = "CCX-Desktop"
+kind = "appimage"
+repo = "BenedictKing/ccx"
+asset = '^CCX-Desktop-.*-linux-amd64\.AppImage$'
+asset_aarch64 = '^CCX-Desktop-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/ccx.AppImage"
+probe = false

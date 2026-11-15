@@ -1,0 +1,8 @@
+# Drafted from AstralVixen/GeForce-Infinity's 1.2.2 release; its version is the one Upkeep installed.
+[apps.geforceinfinity]
+name = "GeForceInfinity"
+kind = "appimage"
+repo = "AstralVixen/GeForce-Infinity"
+asset = '^GeForceInfinity-linux-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/geforceinfinity.AppImage"
+probe = false

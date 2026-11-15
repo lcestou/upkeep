@@ -1,0 +1,8 @@
+# Drafted from sethyuan/orca-note's v1.100.1 release; its version is the one Upkeep installed.
+[apps.orcanote]
+name = "Orca Note"
+kind = "appimage"
+repo = "sethyuan/orca-note"
+asset = '^orcanote-linux-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/orcanote.AppImage"
+probe = false

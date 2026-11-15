@@ -1,0 +1,8 @@
+# Drafted from babyvibe/deplao-builder's v26.11.1 release; its version is the one Upkeep installed.
+[apps.deplao]
+name = "Deplao"
+kind = "appimage"
+repo = "babyvibe/deplao-builder"
+asset = '^Deplao-.*\.AppImage$'
+dest = "~/.local/bin/deplao.AppImage"
+probe = false

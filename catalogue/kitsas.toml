@@ -1,0 +1,8 @@
+# Drafted from artoh/kitupiikki's v5.11.1 release; its version is the one Upkeep installed.
+[apps.kitsas]
+name = "Kitsas"
+kind = "appimage"
+repo = "artoh/kitupiikki"
+asset = '^Kitsas-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/kitsas.AppImage"
+probe = false

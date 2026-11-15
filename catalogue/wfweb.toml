@@ -1,0 +1,9 @@
+# Drafted from adecarolis/wfweb's v0.9.5 release; its version is the one Upkeep installed.
+[apps.wfweb]
+name = "wfweb"
+kind = "appimage"
+repo = "adecarolis/wfweb"
+asset = '^wfweb_.*-x86_64\.AppImage$'
+asset_aarch64 = '^wfweb_.*-aarch64\.AppImage$'
+dest = "~/.local/bin/wfweb.AppImage"
+probe = false

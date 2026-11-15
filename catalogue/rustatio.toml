@@ -1,0 +1,8 @@
+# Drafted from takitsu21/rustatio's v2.14.1 release; its version is the one Upkeep installed.
+[apps.rustatio]
+name = "Rustatio"
+kind = "appimage"
+repo = "takitsu21/rustatio"
+asset = '^Rustatio_.*_amd64\.AppImage$'
+dest = "~/.local/bin/rustatio.AppImage"
+probe = false

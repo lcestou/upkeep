@@ -1,0 +1,9 @@
+# Drafted from SpacingBat3/WebCord's v4.14.0 release; its version is the one Upkeep installed.
+[apps.webcord]
+name = "WebCord"
+kind = "appimage"
+repo = "SpacingBat3/WebCord"
+asset = '^WebCord-.*-x64\.AppImage$'
+asset_aarch64 = '^WebCord-.*-arm64\.AppImage$'
+dest = "~/.local/bin/webcord.AppImage"
+probe = false

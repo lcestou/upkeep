@@ -1,0 +1,8 @@
+# Drafted from Dwarf-Therapist/Dwarf-Therapist's v42.1.21 release; its version is the one Upkeep installed.
+[apps.dwarftherapist]
+name = "DwarfTherapist"
+kind = "appimage"
+repo = "Dwarf-Therapist/Dwarf-Therapist"
+asset = '^DwarfTherapist-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/dwarftherapist.AppImage"
+probe = false

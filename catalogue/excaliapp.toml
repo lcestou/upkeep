@@ -1,0 +1,8 @@
+# Drafted from tyrchen/excaliapp's v0.3.2 release; its version is the one Upkeep installed.
+[apps.excaliapp]
+name = "ExcaliApp"
+kind = "appimage"
+repo = "tyrchen/excaliapp"
+asset = '^ExcaliApp-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/excaliapp.AppImage"
+probe = false

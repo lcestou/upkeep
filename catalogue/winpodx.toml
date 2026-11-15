@@ -1,0 +1,8 @@
+# Drafted from kernalix7/winpodx's v0.12.1 release; its version is the one Upkeep installed.
+[apps.winpodx]
+name = "winpodx"
+kind = "appimage"
+repo = "kernalix7/winpodx"
+asset = '^winpodx-x86_64\.AppImage$'
+dest = "~/.local/bin/winpodx.AppImage"
+probe = false

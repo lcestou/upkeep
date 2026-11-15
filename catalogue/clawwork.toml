@@ -1,0 +1,8 @@
+# Drafted from clawwork-ai/ClawWork's v0.0.16 release; its version is the one Upkeep installed.
+[apps.clawwork]
+name = "ClawWork"
+kind = "appimage"
+repo = "clawwork-ai/ClawWork"
+asset = '^ClawWork-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/clawwork.AppImage"
+probe = false

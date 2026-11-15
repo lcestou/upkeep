@@ -1,0 +1,8 @@
+# Drafted from WowUp/WowUp's v2.25.5 release; its version is the one Upkeep installed.
+[apps.wowup]
+name = "WowUp"
+kind = "appimage"
+repo = "WowUp/WowUp"
+asset = '^WowUp-.*\.AppImage$'
+dest = "~/.local/bin/wowup.AppImage"
+probe = false

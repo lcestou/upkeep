@@ -1,0 +1,9 @@
+# Drafted from magicapple123/ResumeForge's v2.1.0 release; its version is the one Upkeep installed.
+[apps.resumeforge]
+name = "ResumeForge"
+kind = "appimage"
+repo = "magicapple123/ResumeForge"
+asset = '^ResumeForge-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^ResumeForge-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/resumeforge.AppImage"
+probe = false

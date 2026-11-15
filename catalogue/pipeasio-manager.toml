@@ -1,0 +1,8 @@
+# Drafted from M0n7y5/pipeasio's v1.10.0 release; its version is the one Upkeep installed.
+[apps.pipeasio-manager]
+name = "pipeasio"
+kind = "appimage"
+repo = "M0n7y5/pipeasio"
+asset = '^pipeasio-manager-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/pipeasio-manager.AppImage"
+probe = false

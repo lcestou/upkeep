@@ -1,0 +1,8 @@
+# Drafted from xmoto/xmoto's v0.6.3 release; its version is the one Upkeep installed.
+[apps.xmoto]
+name = "xmoto"
+kind = "appimage"
+repo = "xmoto/xmoto"
+asset = '^xmoto-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/xmoto.AppImage"
+probe = false

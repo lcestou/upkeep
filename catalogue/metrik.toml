@@ -1,0 +1,8 @@
+# Drafted from keros68/metrik's v0.23.4 release; its version is the one Upkeep installed.
+[apps.metrik]
+name = "Metrik"
+kind = "appimage"
+repo = "keros68/metrik"
+asset = '^Metrik_.*_amd64\.AppImage$'
+dest = "~/.local/bin/metrik.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from setvisible/ArrowDL's v4.2.1 release; its version is the one Upkeep installed.
+[apps.arrowdl]
+name = "ArrowDL"
+kind = "archive"
+repo = "setvisible/ArrowDL"
+asset = '^ArrowDL_.*_x86_64\.tar\.gz$'
+dest = "~/.local/bin/ArrowDL"
+folder = "~/.local/share/arrowdl"
+bins = ["ArrowDL"]
+probe = false

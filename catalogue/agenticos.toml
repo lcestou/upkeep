@@ -1,0 +1,8 @@
+# Drafted from vstorm-co/agenticos's v1.74.0 release; its version is the one Upkeep installed.
+[apps.agenticos]
+name = "AgenticOS"
+kind = "appimage"
+repo = "vstorm-co/agenticos"
+asset = '^AgenticOS_.*_amd64\.AppImage$'
+dest = "~/.local/bin/agenticos.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from cars10/elasticvue's v1.17.0 release; its version is the one Upkeep installed.
+[apps.elasticvue]
+name = "elasticvue"
+kind = "appimage"
+repo = "cars10/elasticvue"
+asset = '^elasticvue_.*_amd64\.AppImage$'
+dest = "~/.local/bin/elasticvue.AppImage"
+probe = false

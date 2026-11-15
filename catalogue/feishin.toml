@@ -1,0 +1,9 @@
+# Drafted from jeffvli/feishin's v1.17.0 release; its version is the one Upkeep installed.
+[apps.feishin]
+name = "Feishin"
+kind = "appimage"
+repo = "jeffvli/feishin"
+asset = '^Feishin-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Feishin-linux-arm64\.AppImage$'
+dest = "~/.local/bin/feishin.AppImage"
+probe = false

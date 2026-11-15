@@ -1,0 +1,10 @@
+# Drafted from ldez/prm's v3.6.4 release; its version is the one Upkeep installed.
+[apps.prm]
+name = "prm"
+kind = "archive"
+repo = "ldez/prm"
+asset = '^prm_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^prm_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/prm"
+bins = ["prm"]
+probe = false

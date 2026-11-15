@@ -1,0 +1,8 @@
+# Drafted from RafaelGoulartB/Heronite's v1.7.0 release; its version is the one Upkeep installed.
+[apps.heronite]
+name = "Heronite"
+kind = "appimage"
+repo = "RafaelGoulartB/Heronite"
+asset = '^Heronite-x86_64\.AppImage$'
+dest = "~/.local/bin/heronite.AppImage"
+probe = false

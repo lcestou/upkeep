@@ -1,0 +1,10 @@
+# Drafted from gridcoin-community/Gridcoin-Research's 5.5.2.0 release; its version is the one Upkeep installed.
+[apps.gridcoinresearch]
+name = "Gridcoin Research"
+kind = "archive"
+repo = "gridcoin-community/Gridcoin-Research"
+asset = '^gridcoinresearch-.*-x86_64\.tar\.gz$'
+dest = "~/.local/bin/gridcoinresearch"
+folder = "~/.local/share/gridcoinresearch"
+bins = ["bin/gridcoinresearch", "bin/gridcoinresearchd"]
+probe = false

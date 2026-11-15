@@ -1,0 +1,8 @@
+# Drafted from SinaXhpm/Submarine's v0.3.8 release; its version is the one Upkeep installed.
+[apps.submarine]
+name = "Submarine"
+kind = "appimage"
+repo = "SinaXhpm/Submarine"
+asset = '^Submarine_.*_amd64\.AppImage$'
+dest = "~/.local/bin/submarine.AppImage"
+probe = false

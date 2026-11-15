@@ -1,0 +1,9 @@
+# Drafted from 0xErwin1/dbflux's v0.10.1 release; its version is the one Upkeep installed.
+[apps.dbflux]
+name = "dbflux"
+kind = "appimage"
+repo = "0xErwin1/dbflux"
+asset = '^dbflux-x86_64\.AppImage$'
+asset_aarch64 = '^dbflux-aarch64\.AppImage$'
+dest = "~/.local/bin/dbflux.AppImage"
+probe = false

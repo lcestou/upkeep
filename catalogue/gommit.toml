@@ -1,0 +1,9 @@
+# Drafted from antham/gommit's v2.13.0 release; its version is the one Upkeep installed.
+[apps.gommit]
+name = "gommit"
+kind = "archive"
+repo = "antham/gommit"
+asset = '^gommit_.*_linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/gommit"
+bins = ["gommit"]
+probe = false

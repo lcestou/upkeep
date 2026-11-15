@@ -1,0 +1,8 @@
+# Drafted from HarjjotSinghh/helicon's v0.23.2 release; its version is the one Upkeep installed.
+[apps.helicon]
+name = "Helicon"
+kind = "appimage"
+repo = "HarjjotSinghh/helicon"
+asset = '^Helicon_.*_amd64\.AppImage$'
+dest = "~/.local/bin/helicon.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from surrealdb/surrealist's surrealist-v3.9.13 release; its version is the one Upkeep installed.
+[apps.surrealist]
+name = "Surrealist"
+kind = "appimage"
+repo = "surrealdb/surrealist"
+asset = '^Surrealist_.*_amd64\.AppImage$'
+dest = "~/.local/bin/surrealist.AppImage"
+probe = false

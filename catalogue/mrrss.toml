@@ -1,0 +1,8 @@
+# Drafted from DevXDojo/MrRSS's v1.3.43 release; its version is the one Upkeep installed.
+[apps.mrrss]
+name = "MrRSS"
+kind = "appimage"
+repo = "DevXDojo/MrRSS"
+asset = '^MrRSS-.*-linux-amd64\.AppImage$'
+dest = "~/.local/bin/mrrss.AppImage"
+probe = false

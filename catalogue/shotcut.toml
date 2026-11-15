@@ -1,8 +1,0 @@
-# Drafted from mltframework/shotcut's v26.9.27 release; its version is the one Upkeep installed.
-[apps.shotcut]
-name = "shotcut"
-kind = "appimage"
-repo = "mltframework/shotcut"
-asset = '^shotcut-linux-x86_64-26\.10\.3\.AppImage$'
-dest = "~/.local/bin/shotcut.AppImage"
-probe = false

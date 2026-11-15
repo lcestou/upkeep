@@ -1,0 +1,9 @@
+# Drafted from zolaware/reblue's v1.3.1 release; its version is the one Upkeep installed.
+[apps.reblue]
+name = "reblue"
+kind = "appimage"
+repo = "zolaware/reblue"
+asset = '^reblue-.*-x86_64\.AppImage$'
+asset_aarch64 = '^reblue-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/reblue.AppImage"
+probe = false

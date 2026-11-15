@@ -1,0 +1,9 @@
+# Drafted from cdavid817/vanehub-ai's v1.5.0 release; its version is the one Upkeep installed.
+[apps.vanehub-ai]
+name = "VaneHub-AI"
+kind = "appimage"
+repo = "cdavid817/vanehub-ai"
+asset = '^VaneHub\.AI_.*_amd64-linux-x64\.AppImage$'
+asset_aarch64 = '^VaneHub\.AI_.*_aarch64-linux-arm64\.AppImage$'
+dest = "~/.local/bin/vanehub-ai.AppImage"
+probe = false

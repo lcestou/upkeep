@@ -1,0 +1,8 @@
+# Drafted from gdm-settings/gdm-settings's v5.0 release; its version is the one Upkeep installed.
+[apps.gdm-settings]
+name = "GDM-Settings"
+kind = "appimage"
+repo = "gdm-settings/gdm-settings"
+asset = '^GDM_Settings\.AppImage$'
+dest = "~/.local/bin/gdm-settings.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from jaisurya-dev-art/rigby2d's v0.5.1 release; its version is the one Upkeep installed.
+[apps.rigby2d]
+name = "Rigby2D"
+kind = "appimage"
+repo = "jaisurya-dev-art/rigby2d"
+asset = '^Rigby2D_amd64\.AppImage$'
+dest = "~/.local/bin/rigby2d.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from bmf-san/ggc's v8.7.7 release; its version is the one Upkeep installed.
+[apps.ggc]
+name = "ggc"
+kind = "archive"
+repo = "bmf-san/ggc"
+asset = '^ggc_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ggc_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ggc"
+bins = ["ggc"]
+probe = false

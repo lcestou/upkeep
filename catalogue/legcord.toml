@@ -1,0 +1,9 @@
+# Drafted from Legcord/Legcord's v1.3.1 release; its version is the one Upkeep installed.
+[apps.legcord]
+name = "Legcord"
+kind = "appimage"
+repo = "Legcord/Legcord"
+asset = '^Legcord-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Legcord-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/legcord.AppImage"
+probe = false

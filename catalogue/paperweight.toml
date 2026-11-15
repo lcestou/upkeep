@@ -1,0 +1,8 @@
+# Drafted from wslyvh/paperweight's v1.0.0 release; its version is the one Upkeep installed.
+[apps.paperweight]
+name = "Paperweight"
+kind = "appimage"
+repo = "wslyvh/paperweight"
+asset = '^Paperweight-.*\.AppImage$'
+dest = "~/.local/bin/paperweight.AppImage"
+probe = false

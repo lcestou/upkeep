@@ -1,0 +1,8 @@
+# Drafted from totoshko88/RustConn's v0.25.1 release; its version is the one Upkeep installed.
+[apps.rustconn]
+name = "RustConn"
+kind = "appimage"
+repo = "totoshko88/RustConn"
+asset = '^linuxdeploy-x86_64\.AppImage$'
+dest = "~/.local/bin/rustconn.AppImage"
+probe = false

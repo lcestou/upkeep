@@ -1,0 +1,9 @@
+# Drafted from Oleafly/Oleafly's v0.4.12 release; its version is the one Upkeep installed.
+[apps.oleafly]
+name = "Oleafly"
+kind = "appimage"
+repo = "Oleafly/Oleafly"
+asset = '^Oleafly_.*_amd64\.AppImage$'
+asset_aarch64 = '^Oleafly_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/oleafly.AppImage"
+probe = false

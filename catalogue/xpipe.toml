@@ -1,0 +1,9 @@
+# Drafted from xpipe-io/xpipe's 24.11 release; its version is the one Upkeep installed.
+[apps.xpipe]
+name = "xpipe"
+kind = "appimage"
+repo = "xpipe-io/xpipe"
+asset = '^xpipe-portable-linux-x86_64\.AppImage$'
+asset_aarch64 = '^xpipe-portable-linux-arm64\.AppImage$'
+dest = "~/.local/bin/xpipe.AppImage"
+probe = false

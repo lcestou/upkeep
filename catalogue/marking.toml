@@ -1,0 +1,8 @@
+# Drafted from l06066hb/MarKing's v1.6.4 release; its version is the one Upkeep installed.
+[apps.marking]
+name = "MarKing"
+kind = "appimage"
+repo = "l06066hb/MarKing"
+asset = '^MarKing_.*_amd64\.AppImage$'
+dest = "~/.local/bin/marking.AppImage"
+probe = false

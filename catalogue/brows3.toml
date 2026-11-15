@@ -1,0 +1,9 @@
+# Drafted from rgcsekaraa/brows3's app-v0.2.46 release; its version is the one Upkeep installed.
+[apps.brows3]
+name = "Brows3"
+kind = "appimage"
+repo = "rgcsekaraa/brows3"
+asset = '^Brows3_.*_amd64\.AppImage$'
+asset_aarch64 = '^Brows3_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/brows3.AppImage"
+probe = false

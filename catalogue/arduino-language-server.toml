@@ -1,0 +1,9 @@
+# Drafted from arduino/arduino-language-server's 0.7.7 release; its version is the one Upkeep installed.
+[apps.arduino-language-server]
+name = "Arduino Language Server"
+kind = "archive"
+repo = "arduino/arduino-language-server"
+asset = '^arduino-language-server_.*_Linux_64bit\.tar\.gz$'
+dest = "~/.local/bin/arduino-language-server"
+bins = ["arduino-language-server"]
+probe = false

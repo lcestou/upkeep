@@ -1,0 +1,8 @@
+# Drafted from openfaas/faas-cli's 0.18.18 release; its version is the one Upkeep installed.
+[apps.faas-cli]
+name = "Faas Cli"
+kind = "file"
+repo = "openfaas/faas-cli"
+asset = '^faas-cli$'
+dest = "~/.local/bin/faas-cli"
+probe = false

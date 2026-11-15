@@ -1,0 +1,8 @@
+# Drafted from 11273/QzonePhoto's v2.9.0 release; its version is the one Upkeep installed.
+[apps.qzonephoto]
+name = "QzonePhoto"
+kind = "appimage"
+repo = "11273/QzonePhoto"
+asset = '^QzonePhoto-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/qzonephoto.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from simion/termic's v1.23.0 release; its version is the one Upkeep installed.
+[apps.termic]
+name = "Termic"
+kind = "appimage"
+repo = "simion/termic"
+asset = '^Termic_.*_amd64\.AppImage$'
+dest = "~/.local/bin/termic.AppImage"
+probe = false

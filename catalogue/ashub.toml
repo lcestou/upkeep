@@ -1,0 +1,8 @@
+# Drafted from firslov/asHub's v0.21.6 release; its version is the one Upkeep installed.
+[apps.ashub]
+name = "asHub"
+kind = "appimage"
+repo = "firslov/asHub"
+asset = '^asHub-.*\.AppImage$'
+dest = "~/.local/bin/ashub.AppImage"
+probe = false

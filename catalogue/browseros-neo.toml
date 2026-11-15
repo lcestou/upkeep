@@ -1,9 +1,0 @@
-# Drafted from browseros-ai/BrowserOS's browserclaw/v0.52.0 release; its version is the one Upkeep installed.
-[apps.browseros-neo]
-name = "BrowserOS-neo"
-kind = "appimage"
-repo = "browseros-ai/BrowserOS"
-asset = '^BrowserOS_neo_v0\.52\.1_x64\.AppImage$'
-asset_aarch64 = '^BrowserOS_neo_v0\.52\.1_arm64\.AppImage$'
-dest = "~/.local/bin/browseros-neo.AppImage"
-probe = false

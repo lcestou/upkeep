@@ -1,0 +1,8 @@
+# Drafted from flyinghead/flycast's v2.7 release; its version is the one Upkeep installed.
+[apps.flycast]
+name = "flycast"
+kind = "appimage"
+repo = "flyinghead/flycast"
+asset = '^flycast-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/flycast.AppImage"
+probe = false

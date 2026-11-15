@@ -1,0 +1,8 @@
+# Drafted from robert7/nixnote2's v2.1.11 release; its version is the one Upkeep installed.
+[apps.nixnote2]
+name = "NixNote2"
+kind = "appimage"
+repo = "robert7/nixnote2"
+asset = '^NixNote2-x86_64\.AppImage$'
+dest = "~/.local/bin/nixnote2.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from sftwrdotdev/Markpad's v2.9.2 release; its version is the one Upkeep installed.
+[apps.markpad]
+name = "Markpad"
+kind = "appimage"
+repo = "sftwrdotdev/Markpad"
+asset = '^Markpad_.*_amd64\.AppImage$'
+dest = "~/.local/bin/markpad.AppImage"
+probe = false

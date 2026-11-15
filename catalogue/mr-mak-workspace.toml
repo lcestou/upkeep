@@ -1,0 +1,8 @@
+# Drafted from witnesstodark/mr-mak-workspace's v0.6.4 release; its version is the one Upkeep installed.
+[apps.mr-mak-workspace]
+name = "Mr-Mak-Workspace"
+kind = "appimage"
+repo = "witnesstodark/mr-mak-workspace"
+asset = '^Mr-Mak-Workspace-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/mr-mak-workspace.AppImage"
+probe = false

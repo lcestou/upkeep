@@ -1,0 +1,8 @@
+# Drafted from ilia3101/MLV-App's Qtv1.16 release; its version is the one Upkeep installed.
+[apps.mlvapp]
+name = "MLVApp"
+kind = "appimage"
+repo = "ilia3101/MLV-App"
+asset = '^MLVApp\..*\.Linux\.x86_64\.AppImage$'
+dest = "~/.local/bin/mlvapp.AppImage"
+probe = false

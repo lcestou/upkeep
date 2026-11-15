@@ -1,0 +1,10 @@
+# Drafted from cloudspannerecosystem/wrench's v1.15.0 release; its version is the one Upkeep installed.
+[apps.wrench]
+name = "wrench"
+kind = "archive"
+repo = "cloudspannerecosystem/wrench"
+asset = '^wrench-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^wrench-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/wrench"
+bins = ["wrench"]
+probe = false

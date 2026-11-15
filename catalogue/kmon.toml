@@ -1,0 +1,9 @@
+# Drafted from orhun/kmon's v1.7.1 release; its version is the one Upkeep installed.
+[apps.kmon]
+name = "kmon"
+kind = "archive"
+repo = "orhun/kmon"
+asset = '^kmon-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/kmon"
+bins = ["kmon-1.7.1/kmon"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from kool-dev/kool's 3.9.0 release; its version is the one Upkeep installed.
+[apps.kool]
+name = "kool"
+kind = "file"
+repo = "kool-dev/kool"
+asset = '^kool-linux-amd64$'
+asset_aarch64 = '^kool-linux-arm64$'
+dest = "~/.local/bin/kool"
+probe = false

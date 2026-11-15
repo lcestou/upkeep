@@ -1,0 +1,8 @@
+# Drafted from morapelker/hive's v1.3.0 release; its version is the one Upkeep installed.
+[apps.hive]
+name = "Hive"
+kind = "appimage"
+repo = "morapelker/hive"
+asset = '^Hive-.*\.AppImage$'
+dest = "~/.local/bin/hive.AppImage"
+probe = false

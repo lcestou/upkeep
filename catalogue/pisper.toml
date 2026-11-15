@@ -1,0 +1,8 @@
+# Drafted from ling-kong-ran/pisper's v0.6.39 release; its version is the one Upkeep installed.
+[apps.pisper]
+name = "Pisper"
+kind = "appimage"
+repo = "ling-kong-ran/pisper"
+asset = '^Pisper_.*_linux_x86_64\.AppImage$'
+dest = "~/.local/bin/pisper.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from uber/mockolo's 2.7.0 release; its version is the one Upkeep installed.
+[apps.mockolo]
+name = "mockolo"
+kind = "archive"
+repo = "uber/mockolo"
+asset = '^mockolo\.ubuntu-x86_64\.tar\.gz$'
+asset_aarch64 = '^mockolo\.ubuntu-aarch64\.tar\.gz$'
+dest = "~/.local/bin/mockolo"
+bins = ["mockolo"]
+probe = false

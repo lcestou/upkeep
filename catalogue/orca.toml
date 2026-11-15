@@ -1,0 +1,8 @@
+# Drafted from stablyai/orca's v1.4.259 release; its version is the one Upkeep installed.
+[apps.orca]
+name = "orca"
+kind = "appimage"
+repo = "stablyai/orca"
+asset = '^orca-linux\.AppImage$'
+dest = "~/.local/bin/orca.AppImage"
+probe = false

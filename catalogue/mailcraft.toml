@@ -1,0 +1,9 @@
+# Drafted from UCS-Care-Group/mailcraft's v0.13.0 release; its version is the one Upkeep installed.
+[apps.mailcraft]
+name = "mailcraft"
+kind = "appimage"
+repo = "UCS-Care-Group/mailcraft"
+asset = '^mailcraft-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^mailcraft-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/mailcraft.AppImage"
+probe = false

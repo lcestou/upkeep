@@ -1,0 +1,10 @@
+# Drafted from flux-iac/tofu-controller's v0.16.6 release; its version is the one Upkeep installed.
+[apps.tfctl]
+name = "Tofu Controller"
+kind = "archive"
+repo = "flux-iac/tofu-controller"
+asset = '^tfctl_Linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tfctl_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tfctl"
+bins = ["tfctl"]
+probe = false

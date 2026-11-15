@@ -1,0 +1,10 @@
+# Drafted from jdx/jactionlint's v2.6.0 release; its version is the one Upkeep installed.
+[apps.jactionlint]
+name = "jactionlint"
+kind = "archive"
+repo = "jdx/jactionlint"
+asset = '^jactionlint_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^jactionlint_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/jactionlint"
+bins = ["jactionlint"]
+probe = false

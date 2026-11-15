@@ -1,0 +1,8 @@
+# Drafted from Tom94/tev's v2.14.0 release; its version is the one Upkeep installed.
+[apps.tev]
+name = "tev"
+kind = "appimage"
+repo = "Tom94/tev"
+asset = '^tev\.appimage$'
+dest = "~/.local/bin/tev.AppImage"
+probe = false

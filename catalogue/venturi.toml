@@ -1,0 +1,9 @@
+# Drafted from VenturiVideo/Venturi's v0.8.3 release; its version is the one Upkeep installed.
+[apps.venturi]
+name = "Venturi"
+kind = "appimage"
+repo = "VenturiVideo/Venturi"
+asset = '^Venturi-x86_64\.AppImage$'
+asset_aarch64 = '^Venturi-aarch64\.AppImage$'
+dest = "~/.local/bin/venturi.AppImage"
+probe = false

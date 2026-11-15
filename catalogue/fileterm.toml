@@ -1,0 +1,9 @@
+# Drafted from St0ff3l/fileterm's v2.3.3 release; its version is the one Upkeep installed.
+[apps.fileterm]
+name = "FileTerm"
+kind = "appimage"
+repo = "St0ff3l/fileterm"
+asset = '^FileTerm-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^FileTerm-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/fileterm.AppImage"
+probe = false

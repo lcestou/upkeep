@@ -1,0 +1,8 @@
+# Drafted from DDULDDUCK/pose-nudge's pose-nudge-v1.5.1 release; its version is the one Upkeep installed.
+[apps.pose-nudge]
+name = "Pose-Nudge"
+kind = "appimage"
+repo = "DDULDDUCK/pose-nudge"
+asset = '^Pose\.Nudge_.*_amd64\.AppImage$'
+dest = "~/.local/bin/pose-nudge.AppImage"
+probe = false

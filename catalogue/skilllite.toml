@@ -1,0 +1,8 @@
+# Drafted from EXboys/skilllite's v0.1.30 release; its version is the one Upkeep installed.
+[apps.skilllite]
+name = "SkillLite-Assistant"
+kind = "appimage"
+repo = "EXboys/skilllite"
+asset = '^SkillLite\.Assistant_.*_amd64\.AppImage$'
+dest = "~/.local/bin/skilllite.AppImage"
+probe = false

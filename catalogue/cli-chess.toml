@@ -1,0 +1,9 @@
+# Drafted from trb346/cli-chess's v1.8.0 release; its version is the one Upkeep installed.
+[apps.cli-chess]
+name = "Cli Chess"
+kind = "appimage"
+repo = "trb346/cli-chess"
+asset = '^cli-chess-.*-x86_64\.AppImage$'
+asset_aarch64 = '^cli-chess-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/cli-chess.AppImage"
+probe = false

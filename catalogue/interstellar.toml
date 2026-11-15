@@ -1,0 +1,9 @@
+# Drafted from interstellar-app/interstellar's v0.11.4 release; its version is the one Upkeep installed.
+[apps.interstellar]
+name = "interstellar"
+kind = "appimage"
+repo = "interstellar-app/interstellar"
+asset = '^interstellar-linux-x86_64\.AppImage$'
+asset_aarch64 = '^interstellar-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/interstellar.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from stffnb/edentext's v0.14.0 release; its version is the one Upkeep installed.
+[apps.edentext]
+name = "EdenText"
+kind = "appimage"
+repo = "stffnb/edentext"
+asset = '^EdenText-.*\.AppImage$'
+dest = "~/.local/bin/edentext.AppImage"
+probe = false

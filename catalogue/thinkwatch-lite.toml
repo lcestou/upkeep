@@ -1,0 +1,9 @@
+# Drafted from ThinkWatchProject/ThinkWatch-Lite's v2026.11.15 release; its version is the one Upkeep installed.
+[apps.thinkwatch-lite]
+name = "ThinkWatch-Lite"
+kind = "appimage"
+repo = "ThinkWatchProject/ThinkWatch-Lite"
+asset = '^ThinkWatch-Lite-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^ThinkWatch-Lite-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/thinkwatch-lite.AppImage"
+probe = false

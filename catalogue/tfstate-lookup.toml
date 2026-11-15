@@ -1,0 +1,10 @@
+# Drafted from fujiwara/tfstate-lookup's v1.12.2 release; its version is the one Upkeep installed.
+[apps.tfstate-lookup]
+name = "Tfstate Lookup"
+kind = "archive"
+repo = "fujiwara/tfstate-lookup"
+asset = '^tfstate-lookup_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tfstate-lookup_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tfstate-lookup"
+bins = ["tfstate-lookup"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from hnykda/wifi-heatmapper's v0.10.0 release; its version is the one Upkeep installed.
+[apps.wifi-heatmapper]
+name = "WiFi-Heatmapper"
+kind = "appimage"
+repo = "hnykda/wifi-heatmapper"
+asset = '^WiFi\.Heatmapper_.*_amd64\.AppImage$'
+asset_aarch64 = '^WiFi\.Heatmapper_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/wifi-heatmapper.AppImage"
+probe = false

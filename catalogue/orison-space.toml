@@ -1,0 +1,8 @@
+# Drafted from LumenStorm/OrisonSpace's v0.3.0 release; its version is the one Upkeep installed.
+[apps.orison-space]
+name = "Orison-Space"
+kind = "appimage"
+repo = "LumenStorm/OrisonSpace"
+asset = '^Orison-Space-.*\.AppImage$'
+dest = "~/.local/bin/orison-space.AppImage"
+probe = false

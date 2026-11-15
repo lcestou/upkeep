@@ -1,0 +1,8 @@
+# Drafted from kaya-go/kaya's v0.4.18 release; its version is the one Upkeep installed.
+[apps.kaya]
+name = "Kaya"
+kind = "appimage"
+repo = "kaya-go/kaya"
+asset = '^Kaya_.*_amd64\.AppImage$'
+dest = "~/.local/bin/kaya.AppImage"
+probe = false

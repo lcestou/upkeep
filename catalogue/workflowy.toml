@@ -1,0 +1,8 @@
+# Drafted from workflowy/desktop's v4.3.2611120800 release; its version is the one Upkeep installed.
+[apps.workflowy]
+name = "WorkFlowy"
+kind = "appimage"
+repo = "workflowy/desktop"
+asset = '^WorkFlowy-x86_64\.AppImage$'
+dest = "~/.local/bin/workflowy.AppImage"
+probe = false

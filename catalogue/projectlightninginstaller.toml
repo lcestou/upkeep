@@ -1,0 +1,8 @@
+# Drafted from LightnigFast/Project-Lightning's v5.0.11.0 release; its version is the one Upkeep installed.
+[apps.projectlightninginstaller]
+name = "ProjectLightningInstaller"
+kind = "appimage"
+repo = "LightnigFast/Project-Lightning"
+asset = '^ProjectLightningInstaller\.AppImage$'
+dest = "~/.local/bin/projectlightninginstaller.AppImage"
+probe = false

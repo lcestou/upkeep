@@ -1,0 +1,8 @@
+# Drafted from sahithvibudhi/vibe-tree's v0.2.0 release; its version is the one Upkeep installed.
+[apps.vibetree]
+name = "VibeTree"
+kind = "appimage"
+repo = "sahithvibudhi/vibe-tree"
+asset = '^VibeTree-.*\.AppImage$'
+dest = "~/.local/bin/vibetree.AppImage"
+probe = false

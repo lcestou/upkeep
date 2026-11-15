@@ -1,0 +1,10 @@
+# Drafted from AlexsJones/llmfit's v1.1.20 release; its version is the one Upkeep installed.
+[apps.llmfit]
+name = "llmfit"
+kind = "archive"
+repo = "AlexsJones/llmfit"
+asset = '^llmfit-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^llmfit-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/llmfit"
+bins = ["llmfit-v1.1.20-x86_64-unknown-linux-gnu/llmfit"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from try2love/codex-mobile-bridge's v2.2.1 release; its version is the one Upkeep installed.
+[apps.codex-mobile-bridge]
+name = "Codex-Mobile-Bridge"
+kind = "appimage"
+repo = "try2love/codex-mobile-bridge"
+asset = '^Codex-Mobile-Bridge-.*-Linux-x86_64\.AppImage$'
+asset_aarch64 = '^Codex-Mobile-Bridge-.*-Linux-arm64\.AppImage$'
+dest = "~/.local/bin/codex-mobile-bridge.AppImage"
+probe = false

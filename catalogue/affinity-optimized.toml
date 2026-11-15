@@ -1,0 +1,8 @@
+# Drafted from ryzendew/Linux-Affinity-Installer's 3.3.1 release; its version is the one Upkeep installed.
+[apps.affinity-optimized]
+name = "Affinity-optimized"
+kind = "appimage"
+repo = "ryzendew/Linux-Affinity-Installer"
+asset = '^Affinity-.*\.4940-x86_64-optimized\.AppImage$'
+dest = "~/.local/bin/affinity-optimized.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from fast4x/RiPlay's v0.8.6 release; its version is the one Upkeep installed.
+[apps.riplay]
+name = "RiPlay"
+kind = "appimage"
+repo = "fast4x/RiPlay"
+asset = '^RiPlay-.*-Linux-x86_64\.AppImage$'
+dest = "~/.local/bin/riplay.AppImage"
+probe = false

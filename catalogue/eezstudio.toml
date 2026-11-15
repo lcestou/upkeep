@@ -1,0 +1,8 @@
+# Drafted from eez-open/studio's v0.29.0 release; its version is the one Upkeep installed.
+[apps.eezstudio]
+name = "EEZ-Studio"
+kind = "appimage"
+repo = "eez-open/studio"
+asset = '^EEZ-Studio-.*\.AppImage$'
+dest = "~/.local/bin/eezstudio.AppImage"
+probe = false

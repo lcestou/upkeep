@@ -1,0 +1,9 @@
+# Drafted from engasnm111/lnwjud's v5.9.3 release; its version is the one Upkeep installed.
+[apps.lnwjud]
+name = "lnwjud"
+kind = "appimage"
+repo = "engasnm111/lnwjud"
+asset = '^lnwjud-.*-x64\.AppImage$'
+asset_aarch64 = '^lnwjud-.*-arm64\.AppImage$'
+dest = "~/.local/bin/lnwjud.AppImage"
+probe = false

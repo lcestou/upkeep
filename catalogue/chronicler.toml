@@ -1,0 +1,8 @@
+# Drafted from mak-kirkland/chronicler's v0.64.1-alpha release; its version is the one Upkeep installed.
+[apps.chronicler]
+name = "Chronicler"
+kind = "appimage"
+repo = "mak-kirkland/chronicler"
+asset = '^Chronicler_.*_amd64\.AppImage$'
+dest = "~/.local/bin/chronicler.AppImage"
+probe = false

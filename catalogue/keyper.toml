@@ -1,0 +1,9 @@
+# Drafted from pinkpixel-dev/keyper's v1.3.3 release; its version is the one Upkeep installed.
+[apps.keyper]
+name = "Keyper"
+kind = "appimage"
+repo = "pinkpixel-dev/keyper"
+asset = '^Keyper-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Keyper-.*-arm64\.AppImage$'
+dest = "~/.local/bin/keyper.AppImage"
+probe = false

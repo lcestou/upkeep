@@ -1,0 +1,8 @@
+# Drafted from PCSX2/pcsx2's v2.8.2 release; its version is the one Upkeep installed.
+[apps.pcsx2-qt]
+name = "pcsx2-Qt"
+kind = "appimage"
+repo = "PCSX2/pcsx2"
+asset = '^pcsx2-.*-linux-appimage-x64-Qt\.AppImage$'
+dest = "~/.local/bin/pcsx2-qt.AppImage"
+probe = false

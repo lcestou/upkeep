@@ -1,0 +1,8 @@
+# Drafted from center2055/DNS-Hop's v2.4.9 release; its version is the one Upkeep installed.
+[apps.dns-hop]
+name = "DNS-Hop"
+kind = "appimage"
+repo = "center2055/DNS-Hop"
+asset = '^DNS-Hop-AppImage-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/dns-hop.AppImage"
+probe = false

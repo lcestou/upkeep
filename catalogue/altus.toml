@@ -1,0 +1,8 @@
+# Drafted from amanharwara/altus's 5.8.2 release; its version is the one Upkeep installed.
+[apps.altus]
+name = "Altus"
+kind = "appimage"
+repo = "amanharwara/altus"
+asset = '^Altus-.*\.AppImage$'
+dest = "~/.local/bin/altus.AppImage"
+probe = false

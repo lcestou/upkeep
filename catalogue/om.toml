@@ -1,0 +1,10 @@
+# Drafted from pivotal-cf/om's 7.22.4 release; its version is the one Upkeep installed.
+[apps.om]
+name = "om"
+kind = "archive"
+repo = "pivotal-cf/om"
+asset = '^om-linux-amd64-.*\.tar\.gz$'
+asset_aarch64 = '^om-linux-arm64-.*\.tar\.gz$'
+dest = "~/.local/bin/om"
+bins = ["om"]
+probe = false

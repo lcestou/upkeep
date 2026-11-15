@@ -1,0 +1,10 @@
+# Drafted from janet-lang/janet's v1.43.0 release; its version is the one Upkeep installed.
+[apps.janet]
+name = "janet"
+kind = "archive"
+repo = "janet-lang/janet"
+asset = '^janet-.*-linux-x64\.tar\.gz$'
+dest = "~/.local/bin/janet"
+folder = "~/.local/share/janet"
+bins = ["bin/janet"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from deggja/netfetch's v0.5.4 release; its version is the one Upkeep installed.
+[apps.netfetch]
+name = "netfetch"
+kind = "archive"
+repo = "deggja/netfetch"
+asset = '^netfetch_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^netfetch_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/netfetch"
+bins = ["netfetch_0.5.4_linux_amd64/netfetch"]
+probe = false

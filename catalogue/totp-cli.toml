@@ -1,0 +1,10 @@
+# Drafted from yitsushi/totp-cli's v1.9.2 release; its version is the one Upkeep installed.
+[apps.totp-cli]
+name = "Totp Cli"
+kind = "archive"
+repo = "yitsushi/totp-cli"
+asset = '^totp-cli_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^totp-cli_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/totp-cli"
+bins = ["totp-cli"]
+probe = false

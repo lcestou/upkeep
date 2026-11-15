@@ -1,0 +1,8 @@
+# Drafted from Mag1cFall/AIStudio2API's v0.3.9 release; its version is the one Upkeep installed.
+[apps.aistudio2api]
+name = "AIStudio2API"
+kind = "appimage"
+repo = "Mag1cFall/AIStudio2API"
+asset = '^aistudio2api-.*-linux-amd64\.AppImage$'
+dest = "~/.local/bin/aistudio2api.AppImage"
+probe = false

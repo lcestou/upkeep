@@ -1,0 +1,8 @@
+# Drafted from marswaveai/ColaMD's v2.7.12 release; its version is the one Upkeep installed.
+[apps.colamd]
+name = "ColaMD"
+kind = "appimage"
+repo = "marswaveai/ColaMD"
+asset = '^ColaMD-.*\.AppImage$'
+dest = "~/.local/bin/colamd.AppImage"
+probe = false

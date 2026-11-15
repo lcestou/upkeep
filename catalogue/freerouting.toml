@@ -1,0 +1,8 @@
+# Drafted from freerouting/freerouting's v2.5.0 release; its version is the one Upkeep installed.
+[apps.freerouting]
+name = "freerouting"
+kind = "appimage"
+repo = "freerouting/freerouting"
+asset = '^freerouting-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/freerouting.AppImage"
+probe = false

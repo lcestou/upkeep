@@ -1,0 +1,9 @@
+# Drafted from orhun/gpg-tui's v0.11.2 release; its version is the one Upkeep installed.
+[apps.gpg-tui]
+name = "Gpg Tui"
+kind = "archive"
+repo = "orhun/gpg-tui"
+asset = '^gpg-tui-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/gpg-tui"
+bins = ["gpg-tui-0.11.2/gpg-tui"]
+probe = false

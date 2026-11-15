@@ -1,0 +1,8 @@
+# Drafted from nervosnetwork/neuron's v0.204.1 release; its version is the one Upkeep installed.
+[apps.neuron]
+name = "Neuron"
+kind = "appimage"
+repo = "nervosnetwork/neuron"
+asset = '^Neuron-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/neuron.AppImage"
+probe = false

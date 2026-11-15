@@ -1,0 +1,9 @@
+# Drafted from Lightricks/LTX-Desktop's v1.3.2 release; its version is the one Upkeep installed.
+[apps.ltx-desktop]
+name = "LTX-Desktop"
+kind = "appimage"
+repo = "Lightricks/LTX-Desktop"
+asset = '^LTX-Desktop-x86_64\.AppImage$'
+asset_aarch64 = '^LTX-Desktop-arm64\.AppImage$'
+dest = "~/.local/bin/ltx-desktop.AppImage"
+probe = false

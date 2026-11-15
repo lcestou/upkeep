@@ -1,0 +1,8 @@
+# Drafted from hardbeat920/monocode's v0.16.0 release; its version is the one Upkeep installed.
+[apps.monocode]
+name = "MonoCode"
+kind = "appimage"
+repo = "hardbeat920/monocode"
+asset = '^MonoCode_.*_amd64\.AppImage$'
+dest = "~/.local/bin/monocode.AppImage"
+probe = false

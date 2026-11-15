@@ -1,0 +1,9 @@
+# Drafted from GRVYDEV/marky's v0.1.3 release; its version is the one Upkeep installed.
+[apps.marky]
+name = "Marky"
+kind = "appimage"
+repo = "GRVYDEV/marky"
+asset = '^Marky_.*_amd64\.AppImage$'
+asset_aarch64 = '^Marky_.*_arm64\.AppImage$'
+dest = "~/.local/bin/marky.AppImage"
+probe = false

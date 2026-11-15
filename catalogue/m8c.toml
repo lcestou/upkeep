@@ -1,0 +1,9 @@
+# Drafted from laamaa/m8c's v2.2.3 release; its version is the one Upkeep installed.
+[apps.m8c]
+name = "m8c"
+kind = "archive"
+repo = "laamaa/m8c"
+asset = '^m8c-.*-linux-x86_64\.AppImage\.zip$'
+dest = "~/.local/bin/m8c"
+bins = ["m8c*"]
+probe = false

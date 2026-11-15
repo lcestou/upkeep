@@ -1,0 +1,8 @@
+# Drafted from owncloud/client's v7.1.1 release; its version is the one Upkeep installed.
+[apps.owncloud]
+name = "ownCloud"
+kind = "appimage"
+repo = "owncloud/client"
+asset = '^ownCloud-.*\.19543-x86_64\.AppImage$'
+dest = "~/.local/bin/owncloud.AppImage"
+probe = false

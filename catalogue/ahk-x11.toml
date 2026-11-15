@@ -1,0 +1,8 @@
+# Drafted from phil294/AHK_X11's 1.0.7 release; its version is the one Upkeep installed.
+[apps.ahk-x11]
+name = "AHK X11"
+kind = "appimage"
+repo = "phil294/AHK_X11"
+asset = '^ahk_x11\.AppImage$'
+dest = "~/.local/bin/ahk-x11.AppImage"
+probe = false

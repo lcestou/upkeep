@@ -1,0 +1,9 @@
+# Drafted from Milkshiift/GoofCord's v2.3.1 release; its version is the one Upkeep installed.
+[apps.goofcord]
+name = "GoofCord"
+kind = "appimage"
+repo = "Milkshiift/GoofCord"
+asset = '^GoofCord-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^GoofCord-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/goofcord.AppImage"
+probe = false

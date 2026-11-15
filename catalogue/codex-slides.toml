@@ -1,0 +1,8 @@
+# Drafted from nexu-io/codex-slides's v0.2.1 release; its version is the one Upkeep installed.
+[apps.codex-slides]
+name = "Codex-Slides"
+kind = "appimage"
+repo = "nexu-io/codex-slides"
+asset = '^Codex-Slides-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/codex-slides.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from fuzhengwei/WaLiAPI's waliapi-v0.4.5 release; its version is the one Upkeep installed.
+[apps.waliapi]
+name = "WaLiAPI"
+kind = "appimage"
+repo = "fuzhengwei/WaLiAPI"
+asset = '^WaLiAPI_.*_amd64\.AppImage$'
+dest = "~/.local/bin/waliapi.AppImage"
+probe = false

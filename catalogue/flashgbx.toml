@@ -1,0 +1,9 @@
+# Drafted from Lesserkuma/FlashGBX's 5.2.1 release; its version is the one Upkeep installed.
+[apps.flashgbx]
+name = "FlashGBX"
+kind = "appimage"
+repo = "Lesserkuma/FlashGBX"
+asset = '^FlashGBX-.*_Linux-x86_64\.AppImage$'
+asset_aarch64 = '^FlashGBX-.*_Linux-arm64\.AppImage$'
+dest = "~/.local/bin/flashgbx.AppImage"
+probe = false

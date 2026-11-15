@@ -1,0 +1,9 @@
+# Drafted from fiatjaf/nak's v0.22.3 release; its version is the one Upkeep installed.
+[apps.nak]
+name = "nak"
+kind = "file"
+repo = "fiatjaf/nak"
+asset = '^nak-v[0-9][0-9A-Za-z.]*-linux-amd64$'
+asset_aarch64 = '^nak-v[0-9][0-9A-Za-z.]*-linux-arm64$'
+dest = "~/.local/bin/nak"
+probe = false

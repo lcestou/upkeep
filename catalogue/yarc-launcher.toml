@@ -1,0 +1,8 @@
+# Drafted from YARC-Official/YARC-Launcher's v1.3.0 release; its version is the one Upkeep installed.
+[apps.yarc-launcher]
+name = "YARC-Launcher"
+kind = "appimage"
+repo = "YARC-Official/YARC-Launcher"
+asset = '^YARC\.Launcher_.*_amd64\.AppImage$'
+dest = "~/.local/bin/yarc-launcher.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from gminustwo/msr2ds's v2.0.8 release; its version is the one Upkeep installed.
+[apps.msr2ds]
+name = "msr2ds"
+kind = "appimage"
+repo = "gminustwo/msr2ds"
+asset = '^msr2ds-.*-x86_64\.AppImage$'
+asset_aarch64 = '^msr2ds-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/msr2ds.AppImage"
+probe = false

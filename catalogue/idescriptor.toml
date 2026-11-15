@@ -1,0 +1,9 @@
+# Drafted from iDescriptor/iDescriptor's v0.6.2 release; its version is the one Upkeep installed.
+[apps.idescriptor]
+name = "iDescriptor"
+kind = "appimage"
+repo = "iDescriptor/iDescriptor"
+asset = '^iDescriptor-.*-Linux_x86_64\.AppImage$'
+asset_aarch64 = '^iDescriptor-.*-Linux_arm64\.AppImage$'
+dest = "~/.local/bin/idescriptor.AppImage"
+probe = false

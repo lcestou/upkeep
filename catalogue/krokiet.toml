@@ -1,0 +1,11 @@
+# Drafted from qarmin/czkawka's 12.0.2 release; its version is the one Upkeep installed.
+[apps.krokiet]
+name = "czkawka"
+kind = "archive"
+repo = "qarmin/czkawka"
+asset = '^linux_krokiet_all_backends_x86_64\.zip$'
+asset_aarch64 = '^linux_krokiet_all_backends_arm64\.zip$'
+dest = "~/.local/bin/krokiet"
+folder = "~/.local/share/krokiet"
+bins = ["krokiet"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from toanbku/fmess's v0.1.36 release; its version is the one Upkeep installed.
+[apps.fmess]
+name = "fMess"
+kind = "appimage"
+repo = "toanbku/fmess"
+asset = '^fMess_.*_amd64\.AppImage$'
+dest = "~/.local/bin/fmess.AppImage"
+probe = false

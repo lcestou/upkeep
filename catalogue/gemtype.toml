@@ -1,0 +1,8 @@
+# Drafted from riponcm/GemType's v0.1.5 release; its version is the one Upkeep installed.
+[apps.gemtype]
+name = "GemType"
+kind = "appimage"
+repo = "riponcm/GemType"
+asset = '^GemType-.*\.AppImage$'
+dest = "~/.local/bin/gemtype.AppImage"
+probe = false

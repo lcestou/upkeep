@@ -1,0 +1,8 @@
+# Drafted from js8call/js8call's v2.3.1 release; its version is the one Upkeep installed.
+[apps.js8call]
+name = "js8call"
+kind = "appimage"
+repo = "js8call/js8call"
+asset = '^js8call_.*-x86_64\.AppImage$'
+dest = "~/.local/bin/js8call.AppImage"
+probe = false

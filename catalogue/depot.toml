@@ -1,0 +1,10 @@
+# Drafted from depot/cli's v2.103.18 release; its version is the one Upkeep installed.
+[apps.depot]
+name = "depot"
+kind = "archive"
+repo = "depot/cli"
+asset = '^depot_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^depot_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/depot"
+bins = ["bin/depot"]
+probe = false

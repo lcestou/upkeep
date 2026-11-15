@@ -1,0 +1,8 @@
+# Drafted from jackharvest/shapecraft's v0.8.5-alpha release; its version is the one Upkeep installed.
+[apps.shapecraft]
+name = "shapecraft"
+kind = "appimage"
+repo = "jackharvest/shapecraft"
+asset = '^shapecraft-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/shapecraft.AppImage"
+probe = false

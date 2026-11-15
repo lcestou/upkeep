@@ -1,0 +1,8 @@
+# Drafted from hades-emu/Hades's v1.1.1 release; its version is the one Upkeep installed.
+[apps.hades]
+name = "Hades"
+kind = "appimage"
+repo = "hades-emu/Hades"
+asset = '^hades-.*-linux\.appimage$'
+dest = "~/.local/bin/hades.AppImage"
+probe = false

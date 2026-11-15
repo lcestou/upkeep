@@ -1,0 +1,8 @@
+# Drafted from DonutWare/Fladder's v0.11.1 release; its version is the one Upkeep installed.
+[apps.fladder]
+name = "Fladder"
+kind = "appimage"
+repo = "DonutWare/Fladder"
+asset = '^Fladder-Linux-.*\.AppImage$'
+dest = "~/.local/bin/fladder.AppImage"
+probe = false

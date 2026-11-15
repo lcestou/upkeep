@@ -1,0 +1,8 @@
+# Drafted from haorendashu/nostrmo's 3.5.1 release; its version is the one Upkeep installed.
+[apps.nostrmo]
+name = "nostrmo"
+kind = "appimage"
+repo = "haorendashu/nostrmo"
+asset = '^nostrmo-.*\+37-linux\.AppImage$'
+dest = "~/.local/bin/nostrmo.AppImage"
+probe = false

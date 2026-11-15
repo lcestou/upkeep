@@ -1,0 +1,10 @@
+# Drafted from tilt-dev/ctlptl's v0.9.6 release; its version is the one Upkeep installed.
+[apps.ctlptl]
+name = "ctlptl"
+kind = "archive"
+repo = "tilt-dev/ctlptl"
+asset = '^ctlptl\..*\.linux\.x86_64\.tar\.gz$'
+asset_aarch64 = '^ctlptl\..*\.linux\.arm64\.tar\.gz$'
+dest = "~/.local/bin/ctlptl"
+bins = ["ctlptl"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from nashsu/llm_wiki's v0.6.13 release; its version is the one Upkeep installed.
+[apps.llm-wiki]
+name = "LLM-Wiki"
+kind = "appimage"
+repo = "nashsu/llm_wiki"
+asset = '^LLM\.Wiki_.*_amd64\.AppImage$'
+asset_aarch64 = '^LLM\.Wiki_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/llm-wiki.AppImage"
+probe = false

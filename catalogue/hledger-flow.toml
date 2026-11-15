@@ -1,0 +1,10 @@
+# Drafted from apauley/hledger-flow's v0.20.0 release; its version is the one Upkeep installed.
+[apps.hledger-flow]
+name = "Hledger Flow"
+kind = "archive"
+repo = "apauley/hledger-flow"
+asset = '^hledger-flow-linux-x64\.tar\.gz$'
+asset_aarch64 = '^hledger-flow-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/hledger-flow"
+bins = ["hledger-flow"]
+probe = false

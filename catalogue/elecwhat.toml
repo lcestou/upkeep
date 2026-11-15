@@ -1,0 +1,8 @@
+# Drafted from piec/elecwhat's v1.14.0 release; its version is the one Upkeep installed.
+[apps.elecwhat]
+name = "elecwhat"
+kind = "appimage"
+repo = "piec/elecwhat"
+asset = '^elecwhat-.*\.AppImage$'
+dest = "~/.local/bin/elecwhat.AppImage"
+probe = false

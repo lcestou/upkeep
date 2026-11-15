@@ -1,0 +1,9 @@
+# Drafted from shiwenwen/hope-agent's v0.74.0 release; its version is the one Upkeep installed.
+[apps.hope-agent]
+name = "Hope-Agent"
+kind = "appimage"
+repo = "shiwenwen/hope-agent"
+asset = '^Hope\.Agent_.*_amd64\.AppImage$'
+asset_aarch64 = '^Hope\.Agent_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/hope-agent.AppImage"
+probe = false

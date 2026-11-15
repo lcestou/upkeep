@@ -1,0 +1,8 @@
+# Drafted from xixihhhh/hotclip's v0.33.0 release; its version is the one Upkeep installed.
+[apps.hotclip]
+name = "HotClip"
+kind = "appimage"
+repo = "xixihhhh/hotclip"
+asset = '^HotClip-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/hotclip.AppImage"
+probe = false

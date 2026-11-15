@@ -1,0 +1,8 @@
+# Drafted from ingelibre/ingecad's v0.8.0 release; its version is the one Upkeep installed.
+[apps.ingecad]
+name = "IngeCAD"
+kind = "appimage"
+repo = "ingelibre/ingecad"
+asset = '^IngeCAD-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ingecad.AppImage"
+probe = false

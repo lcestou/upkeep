@@ -1,0 +1,8 @@
+# Drafted from hluk/CopyQ's v17.0.0 release; its version is the one Upkeep installed.
+[apps.copyq]
+name = "CopyQ"
+kind = "appimage"
+repo = "hluk/CopyQ"
+asset = '^CopyQ-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/copyq.AppImage"
+probe = false

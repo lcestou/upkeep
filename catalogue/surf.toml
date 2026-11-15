@@ -1,0 +1,8 @@
+# Drafted from deta/surf's 1.4.7-beta.0 release; its version is the one Upkeep installed.
+[apps.surf]
+name = "Surf"
+kind = "appimage"
+repo = "deta/surf"
+asset = '^Surf-.*\.x86_64\.AppImage$'
+dest = "~/.local/bin/surf.AppImage"
+probe = false

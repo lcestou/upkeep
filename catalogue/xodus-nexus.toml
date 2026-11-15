@@ -1,0 +1,9 @@
+# Drafted from domsvoboda/nexus-launcher's v0.5.0 release; its version is the one Upkeep installed.
+[apps.xodus-nexus]
+name = "Xodus-Nexus"
+kind = "appimage"
+repo = "domsvoboda/nexus-launcher"
+asset = '^Xodus-Nexus-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Xodus-Nexus-.*-arm64\.AppImage$'
+dest = "~/.local/bin/xodus-nexus.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from rotki/rotki's v1.44.3 release; its version is the one Upkeep installed.
+[apps.rotki]
+name = "rotki"
+kind = "appimage"
+repo = "rotki/rotki"
+asset = '^rotki-linux_x86_64-.*\.AppImage$'
+dest = "~/.local/bin/rotki.AppImage"
+probe = false

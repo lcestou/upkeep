@@ -1,0 +1,10 @@
+# Drafted from muquit/mailsend-go's v1.0.14 release; its version is the one Upkeep installed.
+[apps.mailsend-go]
+name = "Mailsend Go"
+kind = "archive"
+repo = "muquit/mailsend-go"
+asset = '^mailsend-go-.*-linux-amd64\.d\.tar\.gz$'
+asset_aarch64 = '^mailsend-go-.*-linux-arm64\.d\.tar\.gz$'
+dest = "~/.local/bin/mailsend-go"
+bins = ["mailsend-go*"]
+probe = false

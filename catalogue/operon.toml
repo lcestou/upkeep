@@ -1,0 +1,8 @@
+# Drafted from swaruplab/operon's v1.0.9 release; its version is the one Upkeep installed.
+[apps.operon]
+name = "Operon"
+kind = "appimage"
+repo = "swaruplab/operon"
+asset = '^Operon_.*_amd64\.AppImage$'
+dest = "~/.local/bin/operon.AppImage"
+probe = false

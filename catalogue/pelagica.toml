@@ -1,0 +1,8 @@
+# Drafted from PelagicaApp/pelagica's 4.15.0 release; its version is the one Upkeep installed.
+[apps.pelagica]
+name = "pelagica"
+kind = "appimage"
+repo = "PelagicaApp/pelagica"
+asset = '^pelagica-linux-amd64-.*\.AppImage$'
+dest = "~/.local/bin/pelagica.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from Remocn/remocn-studio's v1.1.1 release; its version is the one Upkeep installed.
+[apps.remocn-studio]
+name = "Remocn-Studio"
+kind = "appimage"
+repo = "Remocn/remocn-studio"
+asset = '^Remocn\.Studio_.*_amd64\.AppImage$'
+asset_aarch64 = '^Remocn\.Studio_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/remocn-studio.AppImage"
+probe = false

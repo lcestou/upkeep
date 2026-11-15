@@ -1,0 +1,8 @@
+# Drafted from newljs/Layerive's v0.1.9 release; its version is the one Upkeep installed.
+[apps.layerive]
+name = "Layerive"
+kind = "appimage"
+repo = "newljs/Layerive"
+asset = '^Layerive-.*\.AppImage$'
+dest = "~/.local/bin/layerive.AppImage"
+probe = false

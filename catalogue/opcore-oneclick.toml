@@ -1,0 +1,8 @@
+# Drafted from redpersongpt/OpCore-OneClick's v6.0.0 release; its version is the one Upkeep installed.
+[apps.opcore-oneclick]
+name = "OpCore-OneClick"
+kind = "appimage"
+repo = "redpersongpt/OpCore-OneClick"
+asset = '^OpCore-OneClick_.*_amd64\.AppImage$'
+dest = "~/.local/bin/opcore-oneclick.AppImage"
+probe = false

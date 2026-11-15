@@ -1,0 +1,8 @@
+# Drafted from OpenOnyx/OpenOnyx's v1.0.5 release; its version is the one Upkeep installed.
+[apps.openonyx]
+name = "OpenOnyx"
+kind = "appimage"
+repo = "OpenOnyx/OpenOnyx"
+asset = '^OpenOnyx-.*\.AppImage$'
+dest = "~/.local/bin/openonyx.AppImage"
+probe = false

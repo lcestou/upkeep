@@ -1,0 +1,8 @@
+# Drafted from cables-gl/cables_electron's v0.12.1 release; its version is the one Upkeep installed.
+[apps.cables]
+name = "Cables Electron"
+kind = "appimage"
+repo = "cables-gl/cables_electron"
+asset = '^cables-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/cables.AppImage"
+probe = false

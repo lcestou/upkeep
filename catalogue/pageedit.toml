@@ -1,0 +1,8 @@
+# Drafted from Sigil-Ebook/PageEdit's 2.7.6 release; its version is the one Upkeep installed.
+[apps.pageedit]
+name = "PageEdit"
+kind = "appimage"
+repo = "Sigil-Ebook/PageEdit"
+asset = '^PageEdit-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/pageedit.AppImage"
+probe = false

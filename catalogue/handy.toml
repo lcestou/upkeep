@@ -1,0 +1,9 @@
+# Drafted from cjpais/Handy's v0.10.1 release; its version is the one Upkeep installed.
+[apps.handy]
+name = "Handy"
+kind = "appimage"
+repo = "cjpais/Handy"
+asset = '^Handy_.*_amd64\.AppImage$'
+asset_aarch64 = '^Handy_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/handy.AppImage"
+probe = false

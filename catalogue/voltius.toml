@@ -1,0 +1,9 @@
+# Drafted from VoltiusApp/voltius's v0.74.0 release; its version is the one Upkeep installed.
+[apps.voltius]
+name = "Voltius"
+kind = "appimage"
+repo = "VoltiusApp/voltius"
+asset = '^Voltius_.*_amd64\.AppImage$'
+asset_aarch64 = '^Voltius_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/voltius.AppImage"
+probe = false

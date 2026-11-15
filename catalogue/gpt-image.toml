@@ -1,0 +1,8 @@
+# Drafted from Wangnov/gpt-image-2-skill's v0.8.0 release; its version is the one Upkeep installed.
+[apps.gpt-image]
+name = "GPT-Image"
+kind = "appimage"
+repo = "Wangnov/gpt-image-2-skill"
+asset = '^GPT\.Image\.2_.*_amd64\.AppImage$'
+dest = "~/.local/bin/gpt-image.AppImage"
+probe = false

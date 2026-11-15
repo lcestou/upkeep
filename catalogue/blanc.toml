@@ -1,0 +1,8 @@
+# Drafted from bnfy/blanc's v1.49.0 release; its version is the one Upkeep installed.
+[apps.blanc]
+name = "Blanc"
+kind = "appimage"
+repo = "bnfy/blanc"
+asset = '^Blanc-.*\.AppImage$'
+dest = "~/.local/bin/blanc.AppImage"
+probe = false

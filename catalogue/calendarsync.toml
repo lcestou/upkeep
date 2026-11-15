@@ -1,0 +1,10 @@
+# Drafted from inovex/CalendarSync's v0.11.0 release; its version is the one Upkeep installed.
+[apps.calendarsync]
+name = "CalendarSync"
+kind = "archive"
+repo = "inovex/CalendarSync"
+asset = '^CalendarSync_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^CalendarSync_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/CalendarSync"
+bins = ["CalendarSync"]
+probe = false

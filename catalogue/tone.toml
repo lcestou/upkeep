@@ -1,0 +1,10 @@
+# Drafted from sandreas/tone's v0.2.5 release; its version is the one Upkeep installed.
+[apps.tone]
+name = "tone"
+kind = "archive"
+repo = "sandreas/tone"
+asset = '^tone-.*-linux-musl-x64\.tar\.gz$'
+asset_aarch64 = '^tone-.*-linux-musl-arm64\.tar\.gz$'
+dest = "~/.local/bin/tone"
+bins = ["tone-0.2.5-linux-musl-x64/tone"]
+probe = false

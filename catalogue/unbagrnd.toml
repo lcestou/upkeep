@@ -1,0 +1,8 @@
+# Drafted from zidniryi/unbagrnd's v0.6.0 release; its version is the one Upkeep installed.
+[apps.unbagrnd]
+name = "unbagrnd"
+kind = "appimage"
+repo = "zidniryi/unbagrnd"
+asset = '^unbagrnd_.*_amd64\.AppImage$'
+dest = "~/.local/bin/unbagrnd.AppImage"
+probe = false

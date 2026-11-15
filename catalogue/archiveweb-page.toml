@@ -1,0 +1,8 @@
+# Drafted from webrecorder/archiveweb.page's v0.17.1 release; its version is the one Upkeep installed.
+[apps.archiveweb-page]
+name = "ArchiveWeb-page"
+kind = "appimage"
+repo = "webrecorder/archiveweb.page"
+asset = '^ArchiveWeb\.page-.*\.AppImage$'
+dest = "~/.local/bin/archiveweb-page.AppImage"
+probe = false

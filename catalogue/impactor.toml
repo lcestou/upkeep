@@ -1,0 +1,9 @@
+# Drafted from claration/impactor's v2.7.2 release; its version is the one Upkeep installed.
+[apps.impactor]
+name = "Impactor"
+kind = "appimage"
+repo = "claration/impactor"
+asset = '^Impactor-linux-x86_64\.appimage$'
+asset_aarch64 = '^Impactor-linux-aarch64\.appimage$'
+dest = "~/.local/bin/impactor.AppImage"
+probe = false

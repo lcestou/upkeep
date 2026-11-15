@@ -1,0 +1,8 @@
+# Drafted from BuildWithAIs/voicekey's v0.3.5 release; its version is the one Upkeep installed.
+[apps.voice-key]
+name = "Voice-Key"
+kind = "appimage"
+repo = "BuildWithAIs/voicekey"
+asset = '^Voice\.Key-Linux-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/voice-key.AppImage"
+probe = false

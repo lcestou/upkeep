@@ -1,0 +1,9 @@
+# Drafted from ikatson/rqbit's v9.1.0 release; its version is the one Upkeep installed.
+[apps.rqbit]
+name = "rqbit"
+kind = "appimage"
+repo = "ikatson/rqbit"
+asset = '^rqbit-desktop_.*_amd64\.AppImage$'
+asset_aarch64 = '^rqbit-desktop_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/rqbit.AppImage"
+probe = false

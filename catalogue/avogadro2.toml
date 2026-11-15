@@ -1,0 +1,9 @@
+# Drafted from OpenChemistry/avogadroapp's 2.1.0 release; its version is the one Upkeep installed.
+[apps.avogadro2]
+name = "Avogadro2"
+kind = "appimage"
+repo = "OpenChemistry/avogadroapp"
+asset = '^Avogadro2-x86_64\.AppImage$'
+asset_aarch64 = '^Avogadro2-aarch64\.AppImage$'
+dest = "~/.local/bin/avogadro2.AppImage"
+probe = false

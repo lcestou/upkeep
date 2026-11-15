@@ -1,0 +1,8 @@
+# Drafted from komi-store/komi-store's v1.9.4 release; its version is the one Upkeep installed.
+[apps.komi-store]
+name = "Komi-Store"
+kind = "appimage"
+repo = "komi-store/komi-store"
+asset = '^Komi-Store-x86_64\.AppImage$'
+dest = "~/.local/bin/komi-store.AppImage"
+probe = false

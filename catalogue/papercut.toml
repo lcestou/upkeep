@@ -1,0 +1,8 @@
+# Drafted from LLCOOLT/paper-cut's v0.5.0 release; its version is the one Upkeep installed.
+[apps.papercut]
+name = "Paper-Cut"
+kind = "appimage"
+repo = "LLCOOLT/paper-cut"
+asset = '^Paper_Cut-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/papercut.AppImage"
+probe = false

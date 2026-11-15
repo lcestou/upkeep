@@ -1,9 +1,0 @@
-# Drafted from aaddrick/claude-desktop-debian's v3.3.17+claude5.11492.5 release; its version is the one Upkeep installed.
-[apps.claude-desktop]
-name = "Claude Desktop Debian"
-kind = "appimage"
-repo = "aaddrick/claude-desktop-debian"
-asset = '^claude-desktop-unofficial-5\.11492\.5-.*-amd64\.AppImage$'
-asset_aarch64 = '^claude-desktop-unofficial-5\.11492\.5-.*-arm64\.AppImage$'
-dest = "~/.local/bin/claude-desktop.AppImage"
-probe = false

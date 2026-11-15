@@ -1,0 +1,9 @@
+# Drafted from cheney-plus/happy-friday-lite's 3.0.7 release; its version is the one Upkeep installed.
+[apps.happy-friday-lite]
+name = "Happy-Friday-Lite"
+kind = "appimage"
+repo = "cheney-plus/happy-friday-lite"
+asset = '^Happy\.Friday\.Lite-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Happy\.Friday\.Lite-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/happy-friday-lite.AppImage"
+probe = false

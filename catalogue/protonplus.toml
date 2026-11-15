@@ -1,0 +1,9 @@
+# Drafted from Vysp3r/ProtonPlus's v0.6.8 release; its version is the one Upkeep installed.
+[apps.protonplus]
+name = "ProtonPlus-anylinux"
+kind = "appimage"
+repo = "Vysp3r/ProtonPlus"
+asset = '^ProtonPlus-.*-anylinux-x86_64\.AppImage$'
+asset_aarch64 = '^ProtonPlus-.*-anylinux-aarch64\.AppImage$'
+dest = "~/.local/bin/protonplus-anylinux.AppImage"
+probe = false

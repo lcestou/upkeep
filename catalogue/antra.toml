@@ -1,0 +1,8 @@
+# Drafted from anandprtp/Antra's v1.1.8 release; its version is the one Upkeep installed.
+[apps.antra]
+name = "Antra"
+kind = "appimage"
+repo = "anandprtp/Antra"
+asset = '^Antra-Linux\.AppImage$'
+dest = "~/.local/bin/antra.AppImage"
+probe = false

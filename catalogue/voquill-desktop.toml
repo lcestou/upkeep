@@ -1,0 +1,8 @@
+# Drafted from voquill/voquill's desktop-v0.0.652 release; its version is the one Upkeep installed.
+[apps.voquill-desktop]
+name = "voquill"
+kind = "appimage"
+repo = "voquill/voquill"
+asset = '^voquill-desktop_.*_amd64\.AppImage$'
+dest = "~/.local/bin/voquill-desktop.AppImage"
+probe = false

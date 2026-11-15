@@ -1,0 +1,8 @@
+# Drafted from peakflo/20x's v0.0.191 release; its version is the one Upkeep installed.
+[apps.20x]
+name = "20x"
+kind = "appimage"
+repo = "peakflo/20x"
+asset = '^20x-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/20x.AppImage"
+probe = false

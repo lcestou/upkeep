@@ -1,0 +1,8 @@
+# Drafted from neovide/neovide's 0.17.2 release; its version is the one Upkeep installed.
+[apps.neovide]
+name = "neovide"
+kind = "appimage"
+repo = "neovide/neovide"
+asset = '^neovide\.AppImage$'
+dest = "~/.local/bin/neovide.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from Kindness-Kismet/stelliberty's v2.0.40 release; its version is the one Upkeep installed.
+[apps.stelliberty]
+name = "stelliberty"
+kind = "appimage"
+repo = "Kindness-Kismet/stelliberty"
+asset = '^stelliberty-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^stelliberty-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/stelliberty.AppImage"
+probe = false

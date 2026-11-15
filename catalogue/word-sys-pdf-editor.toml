@@ -1,0 +1,9 @@
+# Drafted from word-sys/word-sys-pdf-editor's v1.12.0 release; its version is the one Upkeep installed.
+[apps.word-sys-pdf-editor]
+name = "Word Sys Pdf Editor"
+kind = "appimage"
+repo = "word-sys/word-sys-pdf-editor"
+asset = '^word-sys-pdf-editor-x86_64\.AppImage$'
+asset_aarch64 = '^word-sys-pdf-editor-aarch64\.AppImage$'
+dest = "~/.local/bin/word-sys-pdf-editor.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from namannn04/Veronica's v0.1.23 release; its version is the one Upkeep installed.
+[apps.veronica]
+name = "Veronica"
+kind = "appimage"
+repo = "namannn04/Veronica"
+asset = '^Veronica_.*_amd64\.AppImage$'
+dest = "~/.local/bin/veronica.AppImage"
+probe = false

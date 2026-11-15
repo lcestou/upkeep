@@ -1,0 +1,9 @@
+# Drafted from radiolamp/mangojuice's 1.0.0 release; its version is the one Upkeep installed.
+[apps.mangojuice]
+name = "MangoJuice"
+kind = "appimage"
+repo = "radiolamp/mangojuice"
+asset = '^MangoJuice-.*-x86_64\.AppImage$'
+asset_aarch64 = '^MangoJuice-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/mangojuice.AppImage"
+probe = false

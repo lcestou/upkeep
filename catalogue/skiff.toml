@@ -1,0 +1,8 @@
+# Drafted from DrizzleTime/Skiff's v1.0.0.beta.2 release; its version is the one Upkeep installed.
+[apps.skiff]
+name = "Skiff"
+kind = "appimage"
+repo = "DrizzleTime/Skiff"
+asset = '^skiff_.*_amd64\.AppImage$'
+dest = "~/.local/bin/skiff.AppImage"
+probe = false

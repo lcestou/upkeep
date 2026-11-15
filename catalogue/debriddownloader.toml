@@ -1,0 +1,9 @@
+# Drafted from CasaVargas/DebridDownloader's v1.8.0 release; its version is the one Upkeep installed.
+[apps.debriddownloader]
+name = "DebridDownloader"
+kind = "appimage"
+repo = "CasaVargas/DebridDownloader"
+asset = '^DebridDownloader_.*_amd64\.AppImage$'
+asset_aarch64 = '^DebridDownloader_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/debriddownloader.AppImage"
+probe = false

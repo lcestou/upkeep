@@ -1,0 +1,8 @@
+# Drafted from mfat/sshpilot's v6.4.2 release; its version is the one Upkeep installed.
+[apps.sshpilot]
+name = "sshpilot"
+kind = "appimage"
+repo = "mfat/sshpilot"
+asset = '^sshpilot-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/sshpilot.AppImage"
+probe = false

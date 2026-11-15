@@ -1,0 +1,10 @@
+# Drafted from tigerbeetle/tigerbeetle's 0.17.9 release; its version is the one Upkeep installed.
+[apps.tigerbeetle]
+name = "tigerbeetle"
+kind = "archive"
+repo = "tigerbeetle/tigerbeetle"
+asset = '^tigerbeetle-x86_64-linux\.zip$'
+asset_aarch64 = '^tigerbeetle-aarch64-linux\.zip$'
+dest = "~/.local/bin/tigerbeetle"
+bins = ["tigerbeetle"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from liseami/CCBaga's v0.2.50 release; its version is the one Upkeep installed.
+[apps.ccbaga]
+name = "CCBaga"
+kind = "appimage"
+repo = "liseami/CCBaga"
+asset = '^CCBaga-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/ccbaga.AppImage"
+probe = false

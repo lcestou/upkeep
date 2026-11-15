@@ -1,0 +1,8 @@
+# Drafted from JuiceBoxxGames/utsuwa's v0.21.4 release; its version is the one Upkeep installed.
+[apps.utsuwa]
+name = "Utsuwa"
+kind = "appimage"
+repo = "JuiceBoxxGames/utsuwa"
+asset = '^Utsuwa_.*_amd64\.AppImage$'
+dest = "~/.local/bin/utsuwa.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from slsa-framework/slsa-verifier's v2.7.1 release; its version is the one Upkeep installed.
+[apps.slsa-verifier]
+name = "Slsa Verifier"
+kind = "file"
+repo = "slsa-framework/slsa-verifier"
+asset = '^slsa-verifier-linux-amd64$'
+asset_aarch64 = '^slsa-verifier-linux-arm64$'
+dest = "~/.local/bin/slsa-verifier"
+probe = false

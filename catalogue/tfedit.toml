@@ -1,0 +1,10 @@
+# Drafted from minamijoyo/tfedit's v0.2.3 release; its version is the one Upkeep installed.
+[apps.tfedit]
+name = "tfedit"
+kind = "archive"
+repo = "minamijoyo/tfedit"
+asset = '^tfedit_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tfedit_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tfedit"
+bins = ["tfedit"]
+probe = false

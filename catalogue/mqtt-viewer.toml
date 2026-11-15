@@ -1,0 +1,9 @@
+# Drafted from mqtt-viewer/mqtt-viewer's v1.2.0 release; its version is the one Upkeep installed.
+[apps.mqtt-viewer]
+name = "MQTT-Viewer"
+kind = "appimage"
+repo = "mqtt-viewer/mqtt-viewer"
+asset = '^MQTT_Viewer_.*_linux_amd64\.AppImage$'
+asset_aarch64 = '^MQTT_Viewer_.*_linux_arm64\.AppImage$'
+dest = "~/.local/bin/mqtt-viewer.AppImage"
+probe = false

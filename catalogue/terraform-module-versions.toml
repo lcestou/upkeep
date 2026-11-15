@@ -1,0 +1,10 @@
+# Drafted from keilerkonzept/terraform-module-versions's v3.3.13 release; its version is the one Upkeep installed.
+[apps.terraform-module-versions]
+name = "Terraform Module Versions"
+kind = "archive"
+repo = "keilerkonzept/terraform-module-versions"
+asset = '^terraform-module-versions_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^terraform-module-versions_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/terraform-module-versions"
+bins = ["terraform-module-versions"]
+probe = false

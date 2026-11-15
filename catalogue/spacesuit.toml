@@ -1,0 +1,9 @@
+# Drafted from lightmode-laboratories/spacesuit's v1.20.0 release; its version is the one Upkeep installed.
+[apps.spacesuit]
+name = "Spacesuit"
+kind = "appimage"
+repo = "lightmode-laboratories/spacesuit"
+asset = '^Spacesuit-x86_64\.AppImage$'
+asset_aarch64 = '^Spacesuit-arm64\.AppImage$'
+dest = "~/.local/bin/spacesuit.AppImage"
+probe = false

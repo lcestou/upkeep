@@ -1,0 +1,9 @@
+# Drafted from xyproto/png2svg's v1.7.1 release; its version is the one Upkeep installed.
+[apps.png2svg]
+name = "png2svg"
+kind = "archive"
+repo = "xyproto/png2svg"
+asset = '^png2svg-.*-rpi\.tar\.xz$'
+dest = "~/.local/bin/png2svg"
+bins = ["png2svg-1.7.1-rpi/png2svg"]
+probe = false

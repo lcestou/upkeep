@@ -1,0 +1,9 @@
+# Drafted from rodrigorc/papercraft's v2.13 release; its version is the one Upkeep installed.
+[apps.papercraft]
+name = "Papercraft"
+kind = "appimage"
+repo = "rodrigorc/papercraft"
+asset = '^Papercraft-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Papercraft-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/papercraft.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from nicolettas-muggelbude/RechnungsFee's v0.7.11 release; its version is the one Upkeep installed.
+[apps.rechnungsfee]
+name = "RechnungsFee"
+kind = "appimage"
+repo = "nicolettas-muggelbude/RechnungsFee"
+asset = '^RechnungsFee_amd64\.AppImage$'
+dest = "~/.local/bin/rechnungsfee.AppImage"
+probe = false

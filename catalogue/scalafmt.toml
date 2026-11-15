@@ -1,0 +1,10 @@
+# Drafted from scalameta/scalafmt's v3.11.5 release; its version is the one Upkeep installed.
+[apps.scalafmt]
+name = "scalafmt"
+kind = "archive"
+repo = "scalameta/scalafmt"
+asset = '^scalafmt-x86_64-pc-linux\.zip$'
+asset_aarch64 = '^scalafmt-aarch64-pc-linux\.zip$'
+dest = "~/.local/bin/scalafmt"
+bins = ["scalafmt"]
+probe = false

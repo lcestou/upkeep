@@ -1,0 +1,8 @@
+# Drafted from samuelkriegerbonini-dev/AstroBurst's v0.9.0 release; its version is the one Upkeep installed.
+[apps.astroburst]
+name = "AstroBurst"
+kind = "appimage"
+repo = "samuelkriegerbonini-dev/AstroBurst"
+asset = '^AstroBurst_.*_amd64\.AppImage$'
+dest = "~/.local/bin/astroburst.AppImage"
+probe = false

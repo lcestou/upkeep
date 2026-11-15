@@ -1,0 +1,10 @@
+# Drafted from devmatteini/dra's 0.10.3 release; its version is the one Upkeep installed.
+[apps.dra]
+name = "dra"
+kind = "archive"
+repo = "devmatteini/dra"
+asset = '^dra-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^dra-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/dra"
+bins = ["dra-0.10.3-x86_64-unknown-linux-gnu/dra"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from xpipe-io/kickstartfx's 1.2.1 release; its version is the one Upkeep installed.
+[apps.kickstartfx]
+name = "kickstartfx"
+kind = "appimage"
+repo = "xpipe-io/kickstartfx"
+asset = '^kickstartfx-portable-linux-x86_64\.AppImage$'
+asset_aarch64 = '^kickstartfx-portable-linux-arm64\.AppImage$'
+dest = "~/.local/bin/kickstartfx.AppImage"
+probe = false

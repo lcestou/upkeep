@@ -1,0 +1,10 @@
+# Drafted from SagerNet/sing-box's v1.14.4 release; its version is the one Upkeep installed.
+[apps.sing-box]
+name = "Sing Box"
+kind = "archive"
+repo = "SagerNet/sing-box"
+asset = '^sing-box-.*-linux-amd64-musl\.tar\.gz$'
+asset_aarch64 = '^sing-box-.*-linux-arm64-musl\.tar\.gz$'
+dest = "~/.local/bin/sing-box"
+bins = ["sing-box-1.14.4-linux-amd64-musl/sing-box"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from fzn0x/mixmusic's v0.5.11 release; its version is the one Upkeep installed.
+[apps.mixmusic]
+name = "mixmusic"
+kind = "appimage"
+repo = "fzn0x/mixmusic"
+asset = '^mixmusic-.*-linux-amd64\.AppImage$'
+asset_aarch64 = '^mixmusic-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/mixmusic.AppImage"
+probe = false

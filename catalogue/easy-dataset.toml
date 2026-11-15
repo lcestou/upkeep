@@ -1,0 +1,8 @@
+# Drafted from ConardLi/easy-dataset's 1.7.3 release; its version is the one Upkeep installed.
+[apps.easy-dataset]
+name = "Easy-Dataset"
+kind = "appimage"
+repo = "ConardLi/easy-dataset"
+asset = '^Easy\.Dataset-.*\.AppImage$'
+dest = "~/.local/bin/easy-dataset.AppImage"
+probe = false

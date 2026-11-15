@@ -1,0 +1,10 @@
+# Drafted from ismaelgv/rnr's v0.5.1 release; its version is the one Upkeep installed.
+[apps.rnr]
+name = "rnr"
+kind = "archive"
+repo = "ismaelgv/rnr"
+asset = '^rnr-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^rnr-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/rnr"
+bins = ["rnr-v0.5.1-x86_64-unknown-linux-gnu/rnr"]
+probe = false

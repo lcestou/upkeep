@@ -1,0 +1,8 @@
+# Drafted from Luuxis/Selvania-Launcher's 2.2.2 release; its version is the one Upkeep installed.
+[apps.selvania-launcher]
+name = "Selvania-Launcher"
+kind = "appimage"
+repo = "Luuxis/Selvania-Launcher"
+asset = '^Selvania-Launcher-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/selvania-launcher.AppImage"
+probe = false
