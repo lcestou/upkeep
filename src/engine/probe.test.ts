@@ -63,7 +63,7 @@ test("the AppImage meta probe reads the mount point from stdout, reads metainfo 
 	mkdirSync(join(mnt, "usr/share/metainfo"), { recursive: true });
 	writeFileSync(
 		join(mnt, "usr/share/metainfo/LRCGET.metainfo.xml"),
-		'<component><releases><release version="1.0.1" date="2026-10-01"/><release version="0.9.0"/></releases></component>',
+		'<component><releases><release date="2026-10-01" version="1.0.1"/><release version="0.9.0"/></releases></component>',
 	);
 	mkdirSync(join(t.dir, "mount_stale"), { recursive: true });
 	const img = script(

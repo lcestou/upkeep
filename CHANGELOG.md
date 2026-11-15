@@ -4,6 +4,7 @@
 
 First version.
 
+- An AppImage's version is read from its metainfo whatever order the `<release>` element's attributes come in; one that wrote `date` before `version` was read at an older release.
 - A release file that spells the architecture `x86.64` (DB Browser for SQLite does) is taken as the x86_64 build; it was dropped as a 32-bit one.
 - The catalogue Add app looks in first has 35 more apps: Obsidian, LocalSend, Heroic Games Launcher, Joplin, Logseq, Vesktop, Bruno, Beekeeper Studio, yt-dlp, fastfetch, Tabby, MarkText, Motrix, dive, Spotube, SiYuan, Sniffnet, ShellCheck, AppFlowy, Lapce, Micro, gitleaks, Cool Retro Term, superfile, gitui, vhs, fx, hurl, asciinema, navi, ast-grep, gping, Espanso, Zettlr and DB Browser for SQLite. Each was installed for real and read back at its release's version, and an app whose version can only be read by opening its window reads it from the files inside the AppImage instead.
 - Add app and Scan this computer say when something else already keeps an app up to date: a Flatpak or Snap of it, an apt repository for a package app, or a table in the list on the same project or install path. Adding is still allowed, for two versions side by side; a scanned app with such a note starts unticked. Scan also finds catalogue apps installed from a .deb or .rpm.

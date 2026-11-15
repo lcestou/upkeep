@@ -52,7 +52,8 @@ export type MetaOpts = ProbeOpts & { pollMs?: number; polls?: number; stopMs?: n
 
 /**
  * For an AppImage with no version flag: mount it, read the metainfo, unmount that exact path (old lines 394 to 429).
- * A .desktop path reads X-AppImage-Version, a .json path its "version" key, anything else a metainfo release line.
+ * A .desktop path reads X-AppImage-Version, a .json path its "version" key, anything else the first metainfo
+ * `<release>` element's version, whichever attribute comes first (Zeal writes `date` before `version`).
  */
 export async function probeAppImageMeta(file: string, metaPath: string, opts: MetaOpts): Promise<ProbeResult> {
 	if (!existsSync(file)) return { state: "absent" };
@@ -80,7 +81,7 @@ export async function probeAppImageMeta(file: string, metaPath: string, opts: Me
 			? jsonVersion(text)
 			: (metaPath.endsWith(".desktop")
 					? /^X-AppImage-Version=(.*)$/m.exec(text)
-					: /release version="([^"]+)"/.exec(text)
+					: /<release\b[^>]*?\sversion="([^"]+)"/.exec(text)
 				)?.[1]?.trim();
 		return version ? { version } : { state: "unknown", detail: MESSAGES.metaNoVersion(metaPath) };
 	} catch (err) {
