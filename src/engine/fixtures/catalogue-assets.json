@@ -36,6 +36,21 @@
 			"asciinema-x86_64-unknown-linux-musl"
 		]
 	},
+	"ast-grep": {
+		"repo": "ast-grep/ast-grep",
+		"tag": "0.51.2",
+		"assets": [
+			"app-aarch64-apple-darwin.zip",
+			"app-aarch64-pc-windows-msvc.zip",
+			"app-aarch64-unknown-linux-gnu.zip",
+			"app-aarch64-unknown-linux-musl.zip",
+			"app-i686-pc-windows-msvc.zip",
+			"app-x86_64-apple-darwin.zip",
+			"app-x86_64-pc-windows-msvc.zip",
+			"app-x86_64-unknown-linux-gnu.zip",
+			"app-x86_64-unknown-linux-musl.zip"
+		]
+	},
 	"atuin": {
 		"repo": "atuinsh/atuin",
 		"tag": "v18.24.6",
