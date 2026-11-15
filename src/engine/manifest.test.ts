@@ -45,13 +45,13 @@ test("the source-build examples load with no errors", () => {
 	]);
 });
 
-test("the catalogue loads 79 apps, one per file, none of them installing without asking", () => {
+test("the catalogue loads 80 apps, one per file, none of them installing without asking", () => {
 	const { apps, errors } = loadCatalogue(CATALOGUE);
 	expect(errors).toEqual([]);
-	expect(apps.length).toBe(79);
+	expect(apps.length).toBe(80);
 	const counts: Record<string, number> = {};
 	for (const a of apps) counts[a.kind] = (counts[a.kind] ?? 0) + 1;
-	expect(counts).toEqual({ appimage: 22, archive: 41, file: 7, deb: 2, source: 2, command: 5 });
+	expect(counts).toEqual({ appimage: 22, archive: 42, file: 7, deb: 2, source: 2, command: 5 });
 	expect(apps.filter((a) => a.auto)).toEqual([]);
 	const fd = apps.find((a) => a.key === "fd");
 	expect(fd).toEqual({

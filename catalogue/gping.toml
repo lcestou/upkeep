@@ -1,0 +1,8 @@
+[apps.gping]
+name = "gping"
+kind = "archive"
+repo = "orf/gping"
+asset = '^gping-Linux-gnu-x86_64\.tar\.gz$'
+asset_aarch64 = '^gping-Linux-gnu-arm64\.tar\.gz$'
+dest = "~/.local/bin/gping"
+bins = ["gping"]

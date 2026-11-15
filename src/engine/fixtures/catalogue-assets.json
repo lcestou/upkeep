@@ -908,6 +908,23 @@
 			"glow_3.0.0_x86_64.apk"
 		]
 	},
+	"gping": {
+		"repo": "orf/gping",
+		"tag": "gping-v1.21.0",
+		"assets": [
+			"gping-Linux-androideabi-armv7.tar.gz",
+			"gping-Linux-gnu-arm64.tar.gz",
+			"gping-Linux-gnu-x86_64.tar.gz",
+			"gping-Linux-gnueabihf-armv7.tar.gz",
+			"gping-Linux-musl-arm64.tar.gz",
+			"gping-Linux-musl-x86_64.tar.gz",
+			"gping-Linux-musleabihf-armv7.tar.gz",
+			"gping-macOS-arm64.tar.gz",
+			"gping-macOS-x86_64.tar.gz",
+			"gping-Windows-msvc-x86_64.zip",
+			"gping.1"
+		]
+	},
 	"helix": {
 		"repo": "helix-editor/helix",
 		"tag": "25.07.1",
