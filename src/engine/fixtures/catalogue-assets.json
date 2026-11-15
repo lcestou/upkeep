@@ -1608,6 +1608,17 @@
 			"micro-2.0.15-win64.zip.sha"
 		]
 	},
+	"microsoft-edit": {
+		"repo": "microsoft/edit",
+		"tag": "v2.0.0",
+		"assets": [
+			"edit-2.0.0-aarch64-apple-darwin.tar.gz",
+			"edit-2.0.0-aarch64-linux-gnu.tar.gz",
+			"edit-2.0.0-aarch64-windows.zip",
+			"edit-2.0.0-x86_64-linux-gnu.tar.gz",
+			"edit-2.0.0-x86_64-windows.zip"
+		]
+	},
 	"motrix": {
 		"repo": "agalwood/Motrix",
 		"tag": "v2.4.1",
