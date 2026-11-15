@@ -1504,6 +1504,42 @@
 			"pastel_0.12.0_i686.deb"
 		]
 	},
+	"pear-desktop": {
+		"repo": "pear-devs/pear-desktop",
+		"tag": "v3.12.0",
+		"assets": [
+			"latest-linux-arm.yml",
+			"latest-linux-arm64.yml",
+			"latest-linux.yml",
+			"latest-mac.yml",
+			"latest.yml",
+			"YouTube-Music-3.12.0-arm64.AppImage",
+			"YouTube-Music-3.12.0-arm64.dmg",
+			"YouTube-Music-3.12.0-arm64.dmg.blockmap",
+			"youtube-music-3.12.0-arm64.freebsd",
+			"youtube-music-3.12.0-arm64.nsis.7z",
+			"youtube-music-3.12.0-arm64.tar.gz",
+			"YouTube-Music-3.12.0-armv7l.AppImage",
+			"youtube-music-3.12.0-armv7l.freebsd",
+			"youtube-music-3.12.0-armv7l.tar.gz",
+			"youtube-music-3.12.0-ia32.nsis.7z",
+			"youtube-music-3.12.0-x64.nsis.7z",
+			"YouTube-Music-3.12.0-x86_64.flatpak",
+			"youtube-music-3.12.0.aarch64.rpm",
+			"YouTube-Music-3.12.0.AppImage",
+			"YouTube-Music-3.12.0.dmg",
+			"YouTube-Music-3.12.0.dmg.blockmap",
+			"YouTube-Music-3.12.0.exe",
+			"youtube-music-3.12.0.freebsd",
+			"youtube-music-3.12.0.tar.gz",
+			"youtube-music-3.12.0.x86_64.rpm",
+			"YouTube-Music-Web-Setup-3.12.0.exe",
+			"youtube-music_3.12.0_amd64.deb",
+			"youtube-music_3.12.0_amd64.snap",
+			"youtube-music_3.12.0_arm64.deb",
+			"youtube-music_3.12.0_armv7l.deb"
+		]
+	},
 	"recordly": {
 		"repo": "webadderallorg/Recordly",
 		"tag": "v1.4.0",
