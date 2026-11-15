@@ -1550,6 +1550,27 @@
 			"nvim-win64.zip"
 		]
 	},
+	"notable": {
+		"repo": "notable/notable",
+		"tag": "v1.8.4",
+		"assets": [
+			"latest-linux.yml",
+			"latest-mac.yml",
+			"latest.yml",
+			"Notable-1.8.4-ia32-win.zip",
+			"Notable-1.8.4-mac.zip",
+			"Notable-1.8.4-win.zip",
+			"Notable-1.8.4.AppImage",
+			"Notable-1.8.4.dmg",
+			"Notable-1.8.4.dmg.blockmap",
+			"notable-1.8.4.pacman",
+			"notable-1.8.4.x86_64.rpm",
+			"Notable.Setup.1.8.4.exe",
+			"Notable.Setup.1.8.4.exe.blockmap",
+			"notable_1.8.4_amd64.deb",
+			"notable_1.8.4_amd64.snap"
+		]
+	},
 	"obsidian": {
 		"repo": "obsidianmd/obsidian-releases",
 		"tag": "v1.15.1",
