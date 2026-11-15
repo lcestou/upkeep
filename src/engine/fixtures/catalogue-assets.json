@@ -2003,6 +2003,11 @@
 			"rustdesk.sbom.json"
 		]
 	},
+	"sampler": {
+		"repo": "sqshq/sampler",
+		"tag": "v1.1.0",
+		"assets": ["sampler-1.1.0-darwin-amd64", "sampler-1.1.0-linux-amd64", "sampler-1.1.0-windows-amd64.exe"]
+	},
 	"shellcheck": {
 		"repo": "koalaman/shellcheck",
 		"tag": "v0.11.0",
