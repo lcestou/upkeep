@@ -1,0 +1,8 @@
+# Jan names no version inside its AppImage, and asking it starts the app: Upkeep reads the version it installed.
+[apps.jan]
+name = "Jan"
+kind = "appimage"
+repo = "janhq/jan"
+asset = '^Jan_[0-9.]+_amd64\.AppImage$'
+dest = "~/.local/bin/jan.AppImage"
+probe = false

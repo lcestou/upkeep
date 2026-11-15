@@ -933,6 +933,18 @@
 			"fd_10.5.2_i686.deb"
 		]
 	},
+	"fish": {
+		"repo": "fish-shell/fish-shell",
+		"tag": "4.9.3",
+		"assets": [
+			"fish-4.9.3-linux-aarch64.tar.xz",
+			"fish-4.9.3-linux-x86_64.tar.xz",
+			"fish-4.9.3.app.zip",
+			"fish-4.9.3.pkg",
+			"fish-4.9.3.tar.xz",
+			"fish-4.9.3.tar.xz.asc"
+		]
+	},
 	"fx": {
 		"repo": "antonmedv/fx",
 		"tag": "40.0.1",
@@ -1377,6 +1389,43 @@
 			"ImageGlass_10.0.6.906_win-x64.msi",
 			"ImageGlass_10.0.6.906_win-x64.msix",
 			"ImageGlass_10.0.6.906_win-x64.zip"
+		]
+	},
+	"ipatool": {
+		"repo": "majd/ipatool",
+		"tag": "v2.8.1",
+		"assets": [
+			"ipatool-2.8.1-ios-arm64.tar.gz",
+			"ipatool-2.8.1-ios-arm64.tar.gz.sha256sum",
+			"ipatool-2.8.1-linux-amd64.tar.gz",
+			"ipatool-2.8.1-linux-amd64.tar.gz.sha256sum",
+			"ipatool-2.8.1-linux-arm64.tar.gz",
+			"ipatool-2.8.1-linux-arm64.tar.gz.sha256sum",
+			"ipatool-2.8.1-macos-amd64.tar.gz",
+			"ipatool-2.8.1-macos-amd64.tar.gz.sha256sum",
+			"ipatool-2.8.1-macos-arm64.tar.gz",
+			"ipatool-2.8.1-macos-arm64.tar.gz.sha256sum",
+			"ipatool-2.8.1-windows-amd64.tar.gz",
+			"ipatool-2.8.1-windows-amd64.tar.gz.sha256sum",
+			"ipatool-2.8.1-windows-arm64.tar.gz",
+			"ipatool-2.8.1-windows-arm64.tar.gz.sha256sum"
+		]
+	},
+	"jan": {
+		"repo": "janhq/jan",
+		"tag": "v0.8.8",
+		"assets": [
+			"jan-cargo-vendor-v0.8.8.tar.gz",
+			"jan-dependency-tarballs-v0.8.8.sha256",
+			"jan-mac-universal-0.8.8.zip",
+			"jan-yarn-cache-v0.8.8.tar.gz",
+			"Jan.app.tar.gz",
+			"Jan_0.8.8_amd64.AppImage",
+			"Jan_0.8.8_amd64.deb",
+			"Jan_0.8.8_arm64-setup.exe",
+			"Jan_0.8.8_universal.dmg",
+			"Jan_0.8.8_x64-setup.exe",
+			"latest.json"
 		]
 	},
 	"joplin": {
