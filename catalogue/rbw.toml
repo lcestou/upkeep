@@ -1,0 +1,9 @@
+# Drafted from doy/rbw's 1.15.0 release; its version is the one Upkeep installed.
+[apps.rbw]
+name = "rbw"
+kind = "archive"
+repo = "doy/rbw"
+asset = '^rbw_.*_linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/rbw"
+bins = ["rbw", "rbw-agent"]
+probe = false

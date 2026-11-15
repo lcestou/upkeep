@@ -1,0 +1,10 @@
+# Drafted from GoogleCloudPlatform/kubectl-ai's v0.0.31 release; its version is the one Upkeep installed.
+[apps.kubectl-ai]
+name = "Kubectl Ai"
+kind = "archive"
+repo = "GoogleCloudPlatform/kubectl-ai"
+asset = '^kubectl-ai_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^kubectl-ai_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubectl-ai"
+bins = ["kubectl-ai"]
+probe = false

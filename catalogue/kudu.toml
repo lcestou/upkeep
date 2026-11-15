@@ -1,0 +1,9 @@
+# Drafted from AdventDevInc/kudu's v3.13.0 release; its version is the one Upkeep installed.
+[apps.kudu]
+name = "Kudu"
+kind = "appimage"
+repo = "AdventDevInc/kudu"
+asset = '^Kudu-x86_64\.AppImage$'
+asset_aarch64 = '^Kudu-arm64\.AppImage$'
+dest = "~/.local/bin/kudu.AppImage"
+probe = false

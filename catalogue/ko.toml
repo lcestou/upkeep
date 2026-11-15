@@ -1,0 +1,10 @@
+# Drafted from ko-build/ko's v0.19.1 release; its version is the one Upkeep installed.
+[apps.ko]
+name = "ko"
+kind = "archive"
+repo = "ko-build/ko"
+asset = '^ko_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^ko_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ko"
+bins = ["ko"]
+probe = false

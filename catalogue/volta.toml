@@ -1,0 +1,9 @@
+# Drafted from volta-cli/volta's v2.0.2 release; its version is the one Upkeep installed.
+[apps.volta]
+name = "volta"
+kind = "archive"
+repo = "volta-cli/volta"
+asset = '^volta-.*-linux\.tar\.gz$'
+dest = "~/.local/bin/volta"
+bins = ["volta", "volta-migrate", "volta-shim"]
+probe = false

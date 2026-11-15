@@ -1,0 +1,8 @@
+# Drafted from Qv2ray/Qv2ray's v2.7.0 release; its version is the one Upkeep installed.
+[apps.qv2ray]
+name = "Qv2ray"
+kind = "appimage"
+repo = "Qv2ray/Qv2ray"
+asset = '^Qv2ray-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/qv2ray.AppImage"
+probe = false

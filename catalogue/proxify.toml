@@ -1,0 +1,10 @@
+# Drafted from projectdiscovery/proxify's v0.0.16 release; its version is the one Upkeep installed.
+[apps.proxify]
+name = "proxify"
+kind = "archive"
+repo = "projectdiscovery/proxify"
+asset = '^proxify_.*_linux_amd64\.zip$'
+asset_aarch64 = '^proxify_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/proxify"
+bins = ["proxify"]
+probe = false

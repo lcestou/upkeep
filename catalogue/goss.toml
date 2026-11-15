@@ -1,0 +1,10 @@
+# Drafted from goss-org/goss's v0.4.10 release; its version is the one Upkeep installed.
+[apps.goss]
+name = "goss"
+kind = "archive"
+repo = "goss-org/goss"
+asset = '^goss_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^goss_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/goss"
+bins = ["goss"]
+probe = false

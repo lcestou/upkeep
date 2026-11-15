@@ -1,0 +1,10 @@
+# Drafted from containerd/stargz-snapshotter's v0.19.1 release; its version is the one Upkeep installed.
+[apps.containerd-stargz-grpc]
+name = "Stargz Snapshotter"
+kind = "archive"
+repo = "containerd/stargz-snapshotter"
+asset = '^stargz-snapshotter-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^stargz-snapshotter-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/containerd-stargz-grpc"
+bins = ["containerd-stargz-grpc"]
+probe = false

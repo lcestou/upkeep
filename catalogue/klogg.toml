@@ -1,0 +1,8 @@
+# Drafted from variar/klogg's v22.06 release; its version is the one Upkeep installed.
+[apps.klogg]
+name = "klogg"
+kind = "appimage"
+repo = "variar/klogg"
+asset = '^klogg-.*\.0\.1289-Linux-amd64\.AppImage$'
+dest = "~/.local/bin/klogg.AppImage"
+probe = false

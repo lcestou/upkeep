@@ -1,0 +1,8 @@
+# Drafted from AntiMicroX/antimicrox's 3.6.2 release; its version is the one Upkeep installed.
+[apps.antimicrox]
+name = "AntiMicroX"
+kind = "appimage"
+repo = "AntiMicroX/antimicrox"
+asset = '^AntiMicroX-x86_64\.AppImage$'
+dest = "~/.local/bin/antimicrox.AppImage"
+probe = false

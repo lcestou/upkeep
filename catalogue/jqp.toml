@@ -1,0 +1,10 @@
+# Drafted from noahgorstein/jqp's v0.8.0 release; its version is the one Upkeep installed.
+[apps.jqp]
+name = "jqp"
+kind = "archive"
+repo = "noahgorstein/jqp"
+asset = '^jqp_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^jqp_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/jqp"
+bins = ["jqp"]
+probe = false

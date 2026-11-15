@@ -1,0 +1,11 @@
+# Drafted from upx/upx's v5.3.0 release; its version is the one Upkeep installed.
+[apps.upx]
+name = "upx"
+kind = "archive"
+repo = "upx/upx"
+asset = '^upx-.*-amd64_linux\.tar\.xz$'
+asset_aarch64 = '^upx-.*-arm64_linux\.tar\.xz$'
+dest = "~/.local/bin/upx"
+folder = "~/.local/share/upx"
+bins = ["upx"]
+probe = false

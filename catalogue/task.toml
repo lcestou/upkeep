@@ -1,0 +1,10 @@
+# Drafted from go-task/task's v3.54.0 release; its version is the one Upkeep installed.
+[apps.task]
+name = "task"
+kind = "archive"
+repo = "go-task/task"
+asset = '^task_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^task_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/task"
+bins = ["task"]
+probe = false

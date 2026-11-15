@@ -1,0 +1,11 @@
+# Drafted from replicatedhq/kots's v1.134.3 release; its version is the one Upkeep installed.
+[apps.kots]
+name = "kots"
+kind = "archive"
+repo = "replicatedhq/kots"
+asset = '^kots_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kots_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kots"
+folder = "~/.local/share/kots"
+bins = ["kots"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from str4d/rage's v0.12.1 release; its version is the one Upkeep installed.
+[apps.rage]
+name = "rage"
+kind = "archive"
+repo = "str4d/rage"
+asset = '^rage-.*-x86_64-linux\.tar\.gz$'
+asset_aarch64 = '^rage-.*-arm64-linux\.tar\.gz$'
+dest = "~/.local/bin/rage"
+bins = ["rage/rage", "rage/rage-keygen", "rage/rage-mount"]
+probe = false

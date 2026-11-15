@@ -1,0 +1,9 @@
+# Drafted from chmln/sd's v1.1.0 release; its version is the one Upkeep installed.
+[apps.sd]
+name = "sd"
+kind = "archive"
+repo = "chmln/sd"
+asset = '^sd-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/sd"
+bins = ["sd-v1.1.0-x86_64-unknown-linux-gnu/sd"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from ipfs/ipfs-desktop's v0.50.1 release; its version is the one Upkeep installed.
+[apps.ipfs-desktop]
+name = "Ipfs Desktop"
+kind = "appimage"
+repo = "ipfs/ipfs-desktop"
+asset = '^ipfs-desktop-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/ipfs-desktop.AppImage"
+probe = false

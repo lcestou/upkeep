@@ -1,0 +1,10 @@
+# Drafted from bahdotsh/wrkflw's v0.8.0 release; its version is the one Upkeep installed.
+[apps.wrkflw]
+name = "wrkflw"
+kind = "archive"
+repo = "bahdotsh/wrkflw"
+asset = '^wrkflw-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^wrkflw-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/wrkflw"
+bins = ["wrkflw"]
+probe = false

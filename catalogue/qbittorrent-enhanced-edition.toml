@@ -1,0 +1,9 @@
+# Drafted from c0re100/qBittorrent-Enhanced-Edition's release-5.2.4.10 release; its version is the one Upkeep installed.
+[apps.qbittorrent-enhanced-edition]
+name = "qBittorrent-Enhanced-Edition"
+kind = "appimage"
+repo = "c0re100/qBittorrent-Enhanced-Edition"
+asset = '^qBittorrent-Enhanced-Edition-x86_64\.AppImage$'
+asset_aarch64 = '^qBittorrent-Enhanced-Edition-aarch64\.AppImage$'
+dest = "~/.local/bin/qbittorrent-enhanced-edition.AppImage"
+probe = false

@@ -1,0 +1,11 @@
+# Drafted from GitGuardian/ggshield's v1.56.1 release; its version is the one Upkeep installed.
+[apps.ggshield]
+name = "ggshield"
+kind = "archive"
+repo = "GitGuardian/ggshield"
+asset = '^ggshield-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^ggshield-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/ggshield"
+folder = "~/.local/share/ggshield"
+bins = ["ggshield", "ggshield-py"]
+probe = false

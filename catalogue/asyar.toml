@@ -1,0 +1,9 @@
+# Drafted from Xoshbin/asyar's v0.1.1 release; its version is the one Upkeep installed.
+[apps.asyar]
+name = "asyar"
+kind = "appimage"
+repo = "Xoshbin/asyar"
+asset = '^asyar_.*_amd64\.AppImage$'
+asset_aarch64 = '^asyar_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/asyar.AppImage"
+probe = false

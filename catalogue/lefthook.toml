@@ -1,0 +1,9 @@
+# Drafted from evilmartians/lefthook's v2.2.2 release; its version is the one Upkeep installed.
+[apps.lefthook]
+name = "lefthook"
+kind = "file"
+repo = "evilmartians/lefthook"
+asset = '^lefthook_.*_Linux_x86_64$'
+asset_aarch64 = '^lefthook_.*_Linux_arm64$'
+dest = "~/.local/bin/lefthook"
+probe = false

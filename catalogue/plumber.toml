@@ -1,0 +1,8 @@
+# Drafted from streamdal/plumber's v2.9.0 release; its version is the one Upkeep installed.
+[apps.plumber]
+name = "plumber"
+kind = "file"
+repo = "streamdal/plumber"
+asset = '^plumber-linux$'
+dest = "~/.local/bin/plumber"
+probe = false

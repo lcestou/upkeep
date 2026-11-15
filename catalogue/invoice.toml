@@ -1,0 +1,10 @@
+# Drafted from maaslalani/invoice's v0.1.0 release; its version is the one Upkeep installed.
+[apps.invoice]
+name = "invoice"
+kind = "archive"
+repo = "maaslalani/invoice"
+asset = '^invoice_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^invoice_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/invoice"
+bins = ["invoice"]
+probe = false

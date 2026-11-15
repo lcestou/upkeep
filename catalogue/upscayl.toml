@@ -1,0 +1,8 @@
+# Drafted from upscayl/upscayl's v2.15.0 release; its version is the one Upkeep installed.
+[apps.upscayl]
+name = "upscayl"
+kind = "appimage"
+repo = "upscayl/upscayl"
+asset = '^upscayl-.*-linux\.AppImage$'
+dest = "~/.local/bin/upscayl.AppImage"
+probe = false

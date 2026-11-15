@@ -1,0 +1,10 @@
+# Drafted from golang-migrate/migrate's v4.20.1 release; its version is the one Upkeep installed.
+[apps.migrate]
+name = "migrate"
+kind = "archive"
+repo = "golang-migrate/migrate"
+asset = '^migrate\.linux-amd64\.tar\.gz$'
+asset_aarch64 = '^migrate\.linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/migrate"
+bins = ["migrate"]
+probe = false

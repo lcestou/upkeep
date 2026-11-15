@@ -1,0 +1,10 @@
+# Drafted from fallow-rs/fallow's v3.43.1 release; its version is the one Upkeep installed.
+[apps.fallow]
+name = "fallow"
+kind = "archive"
+repo = "fallow-rs/fallow"
+asset = '^fallow-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^fallow-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/fallow"
+bins = ["fallow", "fallow-lsp", "fallow-mcp", "fallow-similar-code"]
+probe = false

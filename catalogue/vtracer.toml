@@ -1,0 +1,8 @@
+# Drafted from visioncortex/vtracer's 1.0.0-alpha.4 release; its version is the one Upkeep installed.
+[apps.vtracer]
+name = "VTracer"
+kind = "appimage"
+repo = "visioncortex/vtracer"
+asset = '^VTracer_.*_x64\.AppImage$'
+dest = "~/.local/bin/vtracer.AppImage"
+probe = false

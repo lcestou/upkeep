@@ -1,0 +1,10 @@
+# Drafted from sinclairtarget/git-who's v1.3 release; its version is the one Upkeep installed.
+[apps.git-who]
+name = "Git Who"
+kind = "archive"
+repo = "sinclairtarget/git-who"
+asset = '^gitwho_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^gitwho_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/git-who"
+bins = ["linux_amd64/git-who"]
+probe = false

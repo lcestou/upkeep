@@ -1,0 +1,11 @@
+# Drafted from charmbracelet/gum's v2.0.2 release; its version is the one Upkeep installed.
+[apps.gum]
+name = "gum"
+kind = "archive"
+repo = "charmbracelet/gum"
+asset = '^gum_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^gum_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gum"
+folder = "~/.local/share/gum"
+bins = ["gum"]
+probe = false

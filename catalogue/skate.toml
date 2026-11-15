@@ -1,0 +1,10 @@
+# Drafted from charmbracelet/skate's v1.1.0 release; its version is the one Upkeep installed.
+[apps.skate]
+name = "skate"
+kind = "archive"
+repo = "charmbracelet/skate"
+asset = '^skate_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^skate_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/skate"
+bins = ["skate_1.1.0_Linux_x86_64/skate"]
+probe = false

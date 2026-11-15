@@ -1,0 +1,8 @@
+# Drafted from PlotJuggler/PlotJuggler's 4.1.0 release; its version is the one Upkeep installed.
+[apps.plotjuggler]
+name = "PlotJuggler"
+kind = "appimage"
+repo = "PlotJuggler/PlotJuggler"
+asset = '^PlotJuggler-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/plotjuggler.AppImage"
+probe = false

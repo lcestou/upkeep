@@ -1,0 +1,10 @@
+# Drafted from zegl/kube-score's v1.20.0 release; its version is the one Upkeep installed.
+[apps.kube-score]
+name = "Kube Score"
+kind = "archive"
+repo = "zegl/kube-score"
+asset = '^kube-score_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kube-score_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kube-score"
+bins = ["kube-score"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from vale-cli/vale's v3.27.0 release; its version is the one Upkeep installed.
+[apps.vale]
+name = "vale"
+kind = "archive"
+repo = "vale-cli/vale"
+asset = '^vale_.*_Linux_64-bit\.tar\.gz$'
+dest = "~/.local/bin/vale"
+bins = ["vale"]
+probe = false

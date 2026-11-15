@@ -1,0 +1,10 @@
+# Drafted from axllent/mailpit's v1.33.1 release; its version is the one Upkeep installed.
+[apps.mailpit]
+name = "mailpit"
+kind = "archive"
+repo = "axllent/mailpit"
+asset = '^mailpit-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^mailpit-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/mailpit"
+bins = ["mailpit"]
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from sharkdp/vivid's v0.11.1 release; its version is the one Upkeep installed.
+[apps.vivid]
+name = "vivid"
+kind = "archive"
+repo = "sharkdp/vivid"
+asset = '^vivid-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^vivid-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/vivid"
+bins = ["vivid-v0.11.1-x86_64-unknown-linux-gnu/vivid"]
+probe = false

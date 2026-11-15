@@ -1,0 +1,10 @@
+# Drafted from runmedev/runme's v3.17.8 release; its version is the one Upkeep installed.
+[apps.runme]
+name = "runme"
+kind = "archive"
+repo = "runmedev/runme"
+asset = '^runme_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^runme_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/runme"
+bins = ["runme"]
+probe = false

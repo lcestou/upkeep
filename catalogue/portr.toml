@@ -1,0 +1,10 @@
+# Drafted from amalshaji/portr's v2.1.0 release; its version is the one Upkeep installed.
+[apps.portr]
+name = "portr"
+kind = "archive"
+repo = "amalshaji/portr"
+asset = '^portr_.*_Linux_x86_64\.zip$'
+asset_aarch64 = '^portr_.*_Linux_arm64\.zip$'
+dest = "~/.local/bin/portr"
+bins = ["portr"]
+probe = false

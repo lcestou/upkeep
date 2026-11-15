@@ -1,0 +1,8 @@
+# Drafted from keeweb/keeweb's v1.18.7 release; its version is the one Upkeep installed.
+[apps.keeweb]
+name = "KeeWeb"
+kind = "appimage"
+repo = "keeweb/keeweb"
+asset = '^KeeWeb-.*\.linux\.AppImage$'
+dest = "~/.local/bin/keeweb.AppImage"
+probe = false

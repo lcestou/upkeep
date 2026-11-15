@@ -1,0 +1,11 @@
+# Drafted from pulumi/pulumi's v3.276.0 release; its version is the one Upkeep installed.
+[apps.pulumi]
+name = "pulumi"
+kind = "archive"
+repo = "pulumi/pulumi"
+asset = '^pulumi-.*-linux-x64\.tar\.gz$'
+asset_aarch64 = '^pulumi-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/pulumi"
+folder = "~/.local/share/pulumi"
+bins = ["pulumi", "pulumi-language-bun", "pulumi-language-dotnet", "pulumi-language-go", "pulumi-language-nodejs", "pulumi-language-pcl"]
+probe = false

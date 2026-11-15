@@ -1,0 +1,10 @@
+# Drafted from EmbarkStudios/cargo-deny's 0.20.2 release; its version is the one Upkeep installed.
+[apps.cargo-deny]
+name = "Cargo Deny"
+kind = "archive"
+repo = "EmbarkStudios/cargo-deny"
+asset = '^cargo-deny-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^cargo-deny-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/cargo-deny"
+bins = ["cargo-deny-0.20.2-x86_64-unknown-linux-musl/cargo-deny"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from phiresky/ripgrep-all's v0.10.10 release; its version is the one Upkeep installed.
+[apps.rga]
+name = "Ripgrep All"
+kind = "archive"
+repo = "phiresky/ripgrep-all"
+asset = '^ripgrep_all-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/rga"
+bins = ["ripgrep_all-v0.10.10-x86_64-unknown-linux-musl/rga", "ripgrep_all-v0.10.10-x86_64-unknown-linux-musl/rga-fzf", "ripgrep_all-v0.10.10-x86_64-unknown-linux-musl/rga-fzf-open", "ripgrep_all-v0.10.10-x86_64-unknown-linux-musl/rga-preproc"]
+probe = false

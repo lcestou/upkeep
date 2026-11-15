@@ -1,0 +1,8 @@
+# Drafted from kefir500/apk-editor-studio's v1.7.2 release; its version is the one Upkeep installed.
+[apps.apk-editor-studio]
+name = "Apk Editor Studio"
+kind = "appimage"
+repo = "kefir500/apk-editor-studio"
+asset = '^apk-editor-studio_linux_.*\.AppImage$'
+dest = "~/.local/bin/apk-editor-studio.AppImage"
+probe = false

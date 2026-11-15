@@ -1,0 +1,10 @@
+# Drafted from sigoden/aichat's v0.30.0 release; its version is the one Upkeep installed.
+[apps.aichat]
+name = "aichat"
+kind = "archive"
+repo = "sigoden/aichat"
+asset = '^aichat-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^aichat-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/aichat"
+bins = ["aichat"]
+probe = false

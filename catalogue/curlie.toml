@@ -1,0 +1,10 @@
+# Drafted from rs/curlie's v1.8.2 release; its version is the one Upkeep installed.
+[apps.curlie]
+name = "curlie"
+kind = "archive"
+repo = "rs/curlie"
+asset = '^curlie_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^curlie_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/curlie"
+bins = ["curlie"]
+probe = false

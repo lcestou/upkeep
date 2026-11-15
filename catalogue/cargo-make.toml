@@ -1,0 +1,9 @@
+# Drafted from sagiegurari/cargo-make's 0.37.24 release; its version is the one Upkeep installed.
+[apps.cargo-make]
+name = "Cargo Make"
+kind = "archive"
+repo = "sagiegurari/cargo-make"
+asset = '^cargo-make-.*-x86_64-unknown-linux-gnu\.zip$'
+dest = "~/.local/bin/cargo-make"
+bins = ["cargo-make-v0.37.24-x86_64-unknown-linux-gnu/cargo-make"]
+probe = false

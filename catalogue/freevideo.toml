@@ -1,0 +1,8 @@
+# Drafted from FlashML-org/FreeVideo's v0.5.4 release; its version is the one Upkeep installed.
+[apps.freevideo]
+name = "FreeVideo"
+kind = "appimage"
+repo = "FlashML-org/FreeVideo"
+asset = '^FreeVideo-Linux-x86_64\.AppImage$'
+dest = "~/.local/bin/freevideo.AppImage"
+probe = false

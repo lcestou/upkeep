@@ -1,0 +1,11 @@
+# Drafted from terramate-io/terramate's v0.17.4 release; its version is the one Upkeep installed.
+[apps.terramate]
+name = "terramate"
+kind = "archive"
+repo = "terramate-io/terramate"
+asset = '^terramate_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^terramate_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/terramate"
+folder = "~/.local/share/terramate"
+bins = ["terramate", "terramate-ls"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from Toinane/colorpicker's 2.3.0 release; its version is the one Upkeep installed.
+[apps.colorpicker]
+name = "Colorpicker"
+kind = "appimage"
+repo = "Toinane/colorpicker"
+asset = '^Colorpicker-.*\.AppImage$'
+dest = "~/.local/bin/colorpicker.AppImage"
+probe = false

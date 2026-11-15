@@ -1,0 +1,10 @@
+# Drafted from x-motemen/ghq's v1.12.0 release; its version is the one Upkeep installed.
+[apps.ghq]
+name = "ghq"
+kind = "archive"
+repo = "x-motemen/ghq"
+asset = '^ghq_linux_amd64\.zip$'
+asset_aarch64 = '^ghq_linux_arm64\.zip$'
+dest = "~/.local/bin/ghq"
+bins = ["ghq_linux_amd64/ghq"]
+probe = false

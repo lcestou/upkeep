@@ -1,0 +1,10 @@
+# Drafted from kubernetes/kompose's v1.38.0 release; its version is the one Upkeep installed.
+[apps.kompose]
+name = "kompose"
+kind = "archive"
+repo = "kubernetes/kompose"
+asset = '^kompose-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^kompose-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/kompose"
+bins = ["kompose*"]
+probe = false

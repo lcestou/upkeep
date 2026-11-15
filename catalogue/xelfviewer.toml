@@ -1,0 +1,8 @@
+# Drafted from horsicq/XELFViewer's 0.05 release; its version is the one Upkeep installed.
+[apps.xelfviewer]
+name = "XELFViewer"
+kind = "appimage"
+repo = "horsicq/XELFViewer"
+asset = '^XELFViewer-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/xelfviewer.AppImage"
+probe = false

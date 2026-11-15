@@ -1,0 +1,10 @@
+# Drafted from thought-machine/please's v17.35.1 release; its version is the one Upkeep installed.
+[apps.please]
+name = "please"
+kind = "archive"
+repo = "thought-machine/please"
+asset = '^please_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^please_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/please"
+bins = ["please/please", "please/please_sandbox"]
+probe = false

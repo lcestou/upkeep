@@ -1,0 +1,10 @@
+# Drafted from env0/terratag's v0.8.3 release; its version is the one Upkeep installed.
+[apps.terratag]
+name = "terratag"
+kind = "archive"
+repo = "env0/terratag"
+asset = '^terratag_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^terratag_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/terratag"
+bins = ["terratag"]
+probe = false

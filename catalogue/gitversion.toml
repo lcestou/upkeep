@@ -1,0 +1,10 @@
+# Drafted from GitTools/GitVersion's 6.8.2 release; its version is the one Upkeep installed.
+[apps.gitversion]
+name = "GitVersion"
+kind = "archive"
+repo = "GitTools/GitVersion"
+asset = '^gitversion-linux-musl-x64-.*\.tar\.gz$'
+asset_aarch64 = '^gitversion-linux-musl-arm64-.*\.tar\.gz$'
+dest = "~/.local/bin/gitversion"
+bins = ["gitversion"]
+probe = false

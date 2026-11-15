@@ -1,0 +1,10 @@
+# Drafted from mfontanini/presenterm's v0.16.1 release; its version is the one Upkeep installed.
+[apps.presenterm]
+name = "presenterm"
+kind = "archive"
+repo = "mfontanini/presenterm"
+asset = '^presenterm-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^presenterm-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/presenterm"
+bins = ["presenterm-0.16.1/presenterm"]
+probe = false

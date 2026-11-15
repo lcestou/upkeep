@@ -1,0 +1,10 @@
+# Drafted from kubescape/kubescape's v4.0.21 release; its version is the one Upkeep installed.
+[apps.kubescape]
+name = "kubescape"
+kind = "archive"
+repo = "kubescape/kubescape"
+asset = '^kubescape_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kubescape_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubescape"
+bins = ["kubescape"]
+probe = false

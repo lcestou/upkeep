@@ -1,0 +1,10 @@
+# Drafted from xremap/xremap's v0.15.18 release; its version is the one Upkeep installed.
+[apps.xremap]
+name = "xremap"
+kind = "archive"
+repo = "xremap/xremap"
+asset = '^xremap-linux-x86_64-kde\.zip$'
+asset_aarch64 = '^xremap-linux-aarch64-kde\.zip$'
+dest = "~/.local/bin/xremap"
+bins = ["xremap"]
+probe = false

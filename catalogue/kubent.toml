@@ -1,0 +1,10 @@
+# Drafted from doitintl/kube-no-trouble's 0.7.3 release; its version is the one Upkeep installed.
+[apps.kubent]
+name = "Kube No Trouble"
+kind = "archive"
+repo = "doitintl/kube-no-trouble"
+asset = '^kubent-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^kubent-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/kubent"
+bins = ["kubent"]
+probe = false

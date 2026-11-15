@@ -1,0 +1,10 @@
+# Drafted from zitadel/zitadel's v4.20.3 release; its version is the one Upkeep installed.
+[apps.zitadel]
+name = "zitadel"
+kind = "archive"
+repo = "zitadel/zitadel"
+asset = '^zitadel-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^zitadel-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/zitadel"
+bins = ["zitadel-linux-amd64/zitadel"]
+probe = false

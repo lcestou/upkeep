@@ -1,0 +1,9 @@
+# Drafted from selkies-project/selkies's 2.2.1 release; its version is the one Upkeep installed.
+[apps.selkies]
+name = "selkies"
+kind = "appimage"
+repo = "selkies-project/selkies"
+asset = '^selkies-.*-x86_64\.AppImage$'
+asset_aarch64 = '^selkies-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/selkies.AppImage"
+probe = false

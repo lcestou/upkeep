@@ -1,0 +1,8 @@
+# Drafted from JonMagon/KDiskMark's 3.3.0 release; its version is the one Upkeep installed.
+[apps.kdiskmark]
+name = "KDiskMark-fio"
+kind = "appimage"
+repo = "JonMagon/KDiskMark"
+asset = '^KDiskMark-.*-fio-3\.42-x86_64\.AppImage$'
+dest = "~/.local/bin/kdiskmark.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from orhun/git-cliff's v2.14.2 release; its version is the one Upkeep installed.
+[apps.git-cliff]
+name = "Git Cliff"
+kind = "archive"
+repo = "orhun/git-cliff"
+asset = '^git-cliff-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^git-cliff-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/git-cliff"
+bins = ["git-cliff-2.14.2/git-cliff", "git-cliff-2.14.2/git-cliff-completions", "git-cliff-2.14.2/git-cliff-mangen"]
+probe = false

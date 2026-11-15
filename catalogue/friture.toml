@@ -1,0 +1,8 @@
+# Drafted from tlecomte/friture's v0.54 release; its version is the one Upkeep installed.
+[apps.friture]
+name = "friture"
+kind = "appimage"
+repo = "tlecomte/friture"
+asset = '^friture-.*-20250914\.AppImage$'
+dest = "~/.local/bin/friture.AppImage"
+probe = false

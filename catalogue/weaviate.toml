@@ -1,0 +1,10 @@
+# Drafted from weaviate/weaviate's v1.40.5 release; its version is the one Upkeep installed.
+[apps.weaviate]
+name = "weaviate"
+kind = "archive"
+repo = "weaviate/weaviate"
+asset = '^weaviate-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^weaviate-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/weaviate"
+bins = ["weaviate"]
+probe = false

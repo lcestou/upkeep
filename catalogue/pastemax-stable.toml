@@ -1,0 +1,8 @@
+# Drafted from kleneway/pastemax's v1.1.1-stable release; its version is the one Upkeep installed.
+[apps.pastemax-stable]
+name = "PasteMax-stable"
+kind = "appimage"
+repo = "kleneway/pastemax"
+asset = '^PasteMax-.*-stable\.AppImage$'
+dest = "~/.local/bin/pastemax-stable.AppImage"
+probe = false

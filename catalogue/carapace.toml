@@ -1,0 +1,10 @@
+# Drafted from carapace-sh/carapace-bin's v1.8.2 release; its version is the one Upkeep installed.
+[apps.carapace]
+name = "Carapace Bin"
+kind = "archive"
+repo = "carapace-sh/carapace-bin"
+asset = '^carapace-bin_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^carapace-bin_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/carapace"
+bins = ["carapace"]
+probe = false

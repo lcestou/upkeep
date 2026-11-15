@@ -1,0 +1,8 @@
+# Drafted from sqfcyily/deva's v0.1.15 release; its version is the one Upkeep installed.
+[apps.deva]
+name = "Deva"
+kind = "appimage"
+repo = "sqfcyily/deva"
+asset = '^Deva-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/deva.AppImage"
+probe = false

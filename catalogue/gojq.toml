@@ -1,0 +1,11 @@
+# Drafted from itchyny/gojq's v0.12.20 release; its version is the one Upkeep installed.
+[apps.gojq]
+name = "gojq"
+kind = "archive"
+repo = "itchyny/gojq"
+asset = '^gojq_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^gojq_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gojq"
+folder = "~/.local/share/gojq"
+bins = ["gojq"]
+probe = false

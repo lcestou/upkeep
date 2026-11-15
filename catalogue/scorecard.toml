@@ -1,0 +1,10 @@
+# Drafted from ossf/scorecard's v5.6.0 release; its version is the one Upkeep installed.
+[apps.scorecard]
+name = "scorecard"
+kind = "archive"
+repo = "ossf/scorecard"
+asset = '^scorecard_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^scorecard_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/scorecard"
+bins = ["scorecard"]
+probe = false

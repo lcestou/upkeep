@@ -1,0 +1,10 @@
+# Drafted from eksctl-io/eksctl's v0.231.0 release; its version is the one Upkeep installed.
+[apps.eksctl]
+name = "eksctl"
+kind = "archive"
+repo = "eksctl-io/eksctl"
+asset = '^eksctl_Linux_amd64\.tar\.gz$'
+asset_aarch64 = '^eksctl_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/eksctl"
+bins = ["eksctl"]
+probe = false

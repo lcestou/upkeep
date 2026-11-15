@@ -1,0 +1,10 @@
+# Drafted from FairwindsOps/rbac-lookup's v0.10.3 release; its version is the one Upkeep installed.
+[apps.rbac-lookup]
+name = "Rbac Lookup"
+kind = "archive"
+repo = "FairwindsOps/rbac-lookup"
+asset = '^rbac-lookup_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^rbac-lookup_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/rbac-lookup"
+bins = ["rbac-lookup"]
+probe = false

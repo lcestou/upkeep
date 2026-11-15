@@ -1,0 +1,9 @@
+# Drafted from databricks/click's v0.6.3 release; its version is the one Upkeep installed.
+[apps.click]
+name = "click"
+kind = "archive"
+repo = "databricks/click"
+asset = '^click-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/click"
+bins = ["click-v0.6.3-x86_64-unknown-linux-musl/click"]
+probe = false

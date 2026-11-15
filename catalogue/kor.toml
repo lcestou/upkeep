@@ -1,0 +1,10 @@
+# Drafted from yonahd/kor's v0.7.0 release; its version is the one Upkeep installed.
+[apps.kor]
+name = "kor"
+kind = "archive"
+repo = "yonahd/kor"
+asset = '^kor_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^kor_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kor"
+bins = ["kor"]
+probe = false

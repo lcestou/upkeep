@@ -1,0 +1,9 @@
+# Drafted from kotatogram/kotatogram-desktop's k1.4.8 release; its version is the one Upkeep installed.
+[apps.kotatogram]
+name = "Kotatogram Desktop"
+kind = "archive"
+repo = "kotatogram/kotatogram-desktop"
+asset = '^.*-linux\.tar\.xz$'
+dest = "~/.local/bin/Kotatogram"
+bins = ["Kotatogram/Kotatogram"]
+probe = false

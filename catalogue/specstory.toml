@@ -1,0 +1,10 @@
+# Drafted from specstoryai/getspecstory's v2.17.0 release; its version is the one Upkeep installed.
+[apps.specstory]
+name = "SpecStoryCLI"
+kind = "archive"
+repo = "specstoryai/getspecstory"
+asset = '^SpecStoryCLI_Linux_x86_64\.zip$'
+asset_aarch64 = '^SpecStoryCLI_Linux_arm64\.zip$'
+dest = "~/.local/bin/specstory"
+bins = ["specstory"]
+probe = false

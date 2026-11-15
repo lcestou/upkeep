@@ -1,0 +1,10 @@
+# Drafted from openziti/zrok's v2.0.9 release; its version is the one Upkeep installed.
+[apps.zrok2]
+name = "zrok"
+kind = "archive"
+repo = "openziti/zrok"
+asset = '^zrok_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^zrok_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/zrok2"
+bins = ["zrok2"]
+probe = false

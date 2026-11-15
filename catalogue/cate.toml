@@ -1,0 +1,8 @@
+# Drafted from 0-AI-UG/cate's v2.0.5 release; its version is the one Upkeep installed.
+[apps.cate]
+name = "Cate"
+kind = "appimage"
+repo = "0-AI-UG/cate"
+asset = '^Cate-.*\.AppImage$'
+dest = "~/.local/bin/cate.AppImage"
+probe = false

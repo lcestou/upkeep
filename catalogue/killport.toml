@@ -1,0 +1,10 @@
+# Drafted from jkfran/killport's v2.0.2 release; its version is the one Upkeep installed.
+[apps.killport]
+name = "killport"
+kind = "archive"
+repo = "jkfran/killport"
+asset = '^killport-x86_64-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^killport-aarch64-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/killport"
+bins = ["killport-x86_64-linux-gnu/killport"]
+probe = false

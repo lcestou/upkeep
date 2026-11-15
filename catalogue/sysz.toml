@@ -1,0 +1,8 @@
+# Drafted from joehillen/sysz's 1.4.3 release; its version is the one Upkeep installed.
+[apps.sysz]
+name = "sysz"
+kind = "file"
+repo = "joehillen/sysz"
+asset = '^sysz$'
+dest = "~/.local/bin/sysz"
+probe = false

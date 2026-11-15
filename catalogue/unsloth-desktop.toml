@@ -1,0 +1,8 @@
+# Drafted from unslothai/unsloth's v0.1.917-beta release; its version is the one Upkeep installed.
+[apps.unsloth-desktop]
+name = "Unsloth-Desktop"
+kind = "appimage"
+repo = "unslothai/unsloth"
+asset = '^Unsloth-Desktop-Linux\.AppImage$'
+dest = "~/.local/bin/unsloth-desktop.AppImage"
+probe = false

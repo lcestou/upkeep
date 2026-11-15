@@ -1,0 +1,10 @@
+# Drafted from pseudomuto/protoc-gen-doc's v1.5.1 release; its version is the one Upkeep installed.
+[apps.protoc-gen-doc]
+name = "Protoc Gen Doc"
+kind = "archive"
+repo = "pseudomuto/protoc-gen-doc"
+asset = '^protoc-gen-doc_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^protoc-gen-doc_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/protoc-gen-doc"
+bins = ["protoc-gen-doc"]
+probe = false

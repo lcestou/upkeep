@@ -1,0 +1,8 @@
+# Drafted from igdmapps/igdm's v3.0.4 release; its version is the one Upkeep installed.
+[apps.igdm]
+name = "IGdm"
+kind = "appimage"
+repo = "igdmapps/igdm"
+asset = '^IGdm-.*\.AppImage$'
+dest = "~/.local/bin/igdm.AppImage"
+probe = false

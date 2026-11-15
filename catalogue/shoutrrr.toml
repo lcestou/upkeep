@@ -1,0 +1,10 @@
+# Drafted from containrrr/shoutrrr's v0.8.0 release; its version is the one Upkeep installed.
+[apps.shoutrrr]
+name = "shoutrrr"
+kind = "archive"
+repo = "containrrr/shoutrrr"
+asset = '^shoutrrr_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^shoutrrr_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/shoutrrr"
+bins = ["shoutrrr"]
+probe = false

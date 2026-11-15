@@ -1,0 +1,10 @@
+# Drafted from johnkerl/miller's v6.22.0 release; its version is the one Upkeep installed.
+[apps.mlr]
+name = "miller"
+kind = "archive"
+repo = "johnkerl/miller"
+asset = '^miller-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^miller-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/mlr"
+bins = ["miller-6.22.0-linux-amd64/mlr"]
+probe = false

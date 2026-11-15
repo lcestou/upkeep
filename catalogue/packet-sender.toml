@@ -1,0 +1,8 @@
+# Drafted from dannagle/PacketSender's v8.11.3 release; its version is the one Upkeep installed.
+[apps.packet-sender]
+name = "Packet-Sender"
+kind = "appimage"
+repo = "dannagle/PacketSender"
+asset = '^Packet_Sender-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/packet-sender.AppImage"
+probe = false

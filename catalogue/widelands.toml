@@ -1,0 +1,8 @@
+# Drafted from widelands/widelands's v1.3.1 release; its version is the one Upkeep installed.
+[apps.widelands]
+name = "Widelands"
+kind = "appimage"
+repo = "widelands/widelands"
+asset = '^Widelands-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/widelands.AppImage"
+probe = false

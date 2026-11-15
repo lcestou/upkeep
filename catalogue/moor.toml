@@ -1,0 +1,9 @@
+# Drafted from walles/moor's v2.19.7 release; its version is the one Upkeep installed.
+[apps.moor]
+name = "moor"
+kind = "file"
+repo = "walles/moor"
+asset = '^moor-.*-linux-amd64$'
+asset_aarch64 = '^moor-.*-linux-arm64$'
+dest = "~/.local/bin/moor"
+probe = false

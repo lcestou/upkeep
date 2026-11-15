@@ -1,0 +1,9 @@
+# Drafted from foresterre/cargo-msrv's v0.19.6 release; its version is the one Upkeep installed.
+[apps.cargo-msrv]
+name = "Cargo Msrv"
+kind = "archive"
+repo = "foresterre/cargo-msrv"
+asset = '^cargo-msrv-x86_64-unknown-linux-gnu-.*\.tgz$'
+dest = "~/.local/bin/cargo-msrv"
+bins = ["cargo-msrv-x86_64-unknown-linux-gnu-v0.19.6/cargo-msrv"]
+probe = false

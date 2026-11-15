@@ -1,0 +1,10 @@
+# Drafted from rust-cross/cargo-zigbuild's v0.24.1 release; its version is the one Upkeep installed.
+[apps.cargo-zigbuild]
+name = "Cargo Zigbuild"
+kind = "archive"
+repo = "rust-cross/cargo-zigbuild"
+asset = '^cargo-zigbuild-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^cargo-zigbuild-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/cargo-zigbuild"
+bins = ["cargo-zigbuild-x86_64-unknown-linux-gnu/cargo-zigbuild"]
+probe = false

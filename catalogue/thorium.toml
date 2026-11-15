@@ -1,0 +1,9 @@
+# Drafted from edrlab/thorium-reader's v3.5.1 release; its version is the one Upkeep installed.
+[apps.thorium]
+name = "Thorium"
+kind = "appimage"
+repo = "edrlab/thorium-reader"
+asset = '^Thorium-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Thorium-.*-arm64\.AppImage$'
+dest = "~/.local/bin/thorium.AppImage"
+probe = false

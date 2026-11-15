@@ -1,0 +1,8 @@
+# Drafted from nimbalyst/nimbalyst's v0.83.0 release; its version is the one Upkeep installed.
+[apps.nimbalyst]
+name = "Nimbalyst"
+kind = "appimage"
+repo = "nimbalyst/nimbalyst"
+asset = '^Nimbalyst-Linux\.AppImage$'
+dest = "~/.local/bin/nimbalyst.AppImage"
+probe = false

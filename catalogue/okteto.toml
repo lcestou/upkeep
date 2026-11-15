@@ -1,0 +1,9 @@
+# Drafted from okteto/okteto's 3.25.0 release; its version is the one Upkeep installed.
+[apps.okteto]
+name = "okteto"
+kind = "file"
+repo = "okteto/okteto"
+asset = '^okteto-Linux-x86_64$'
+asset_aarch64 = '^okteto-Linux-arm64$'
+dest = "~/.local/bin/okteto"
+probe = false

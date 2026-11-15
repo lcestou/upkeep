@@ -1,0 +1,8 @@
+# Drafted from RetroShare/RetroShare's v0.6.7.2 release; its version is the one Upkeep installed.
+[apps.retroshare-glibc2]
+name = "RetroShare-glibc2"
+kind = "appimage"
+repo = "RetroShare/RetroShare"
+asset = '^RetroShare-0\.6\.7-2\.glibc2\.29-x86_64\.AppImage$'
+dest = "~/.local/bin/retroshare-glibc2.AppImage"
+probe = false

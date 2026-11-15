@@ -1,0 +1,10 @@
+# Drafted from kubecolor/kubecolor's v0.8.0 release; its version is the one Upkeep installed.
+[apps.kubecolor]
+name = "kubecolor"
+kind = "archive"
+repo = "kubecolor/kubecolor"
+asset = '^kubecolor_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kubecolor_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubecolor"
+bins = ["kubecolor"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from nuttyartist/notes's v2.3.1 release; its version is the one Upkeep installed.
+[apps.notes-qt6]
+name = "Notes-Qt6"
+kind = "appimage"
+repo = "nuttyartist/notes"
+asset = '^Notes_.*-Qt6\.4\.3-x86_64\.AppImage$'
+dest = "~/.local/bin/notes-qt6.AppImage"
+probe = false

@@ -1,0 +1,11 @@
+# Drafted from noborus/trdsql's v1.2.3 release; its version is the one Upkeep installed.
+[apps.trdsql]
+name = "trdsql"
+kind = "archive"
+repo = "noborus/trdsql"
+asset = '^trdsql_.*_linux_amd64\.zip$'
+asset_aarch64 = '^trdsql_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/trdsql"
+folder = "~/.local/share/trdsql"
+bins = ["trdsql"]
+probe = false

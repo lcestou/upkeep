@@ -1,0 +1,11 @@
+# Drafted from domcyrus/rustnet's v1.7.0 release; its version is the one Upkeep installed.
+[apps.rustnet]
+name = "rustnet"
+kind = "archive"
+repo = "domcyrus/rustnet"
+asset = '^rustnet-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^rustnet-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/rustnet"
+folder = "~/.local/share/rustnet"
+bins = ["rustnet"]
+probe = false

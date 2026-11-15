@@ -1,0 +1,10 @@
+# Drafted from pgrok/pgrok's v1.8.0 release; its version is the one Upkeep installed.
+[apps.pgrok]
+name = "pgrok"
+kind = "archive"
+repo = "pgrok/pgrok"
+asset = '^pgrok_.*_linux_amd64\.zip$'
+asset_aarch64 = '^pgrok_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/pgrok"
+bins = ["pgrok"]
+probe = false

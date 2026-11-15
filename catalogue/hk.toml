@@ -1,0 +1,10 @@
+# Drafted from jdx/hk's v2.12.0 release; its version is the one Upkeep installed.
+[apps.hk]
+name = "hk"
+kind = "archive"
+repo = "jdx/hk"
+asset = '^hk-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^hk-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/hk"
+bins = ["hk"]
+probe = false

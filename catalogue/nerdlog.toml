@@ -1,0 +1,10 @@
+# Drafted from dimonomid/nerdlog's v1.13.0 release; its version is the one Upkeep installed.
+[apps.nerdlog]
+name = "nerdlog"
+kind = "archive"
+repo = "dimonomid/nerdlog"
+asset = '^nerdlog_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^nerdlog_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/nerdlog"
+bins = ["nerdlog"]
+probe = false

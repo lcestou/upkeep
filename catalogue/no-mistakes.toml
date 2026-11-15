@@ -1,0 +1,10 @@
+# Drafted from kunchenguid/no-mistakes's v1.106.1 release; its version is the one Upkeep installed.
+[apps.no-mistakes]
+name = "No Mistakes"
+kind = "archive"
+repo = "kunchenguid/no-mistakes"
+asset = '^no-mistakes-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^no-mistakes-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/no-mistakes"
+bins = ["no-mistakes"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from bryanthaboi/gen1recomp's v0.4.5 release; its version is the one Upkeep installed.
+[apps.gen1recomp]
+name = "gen1recomp"
+kind = "appimage"
+repo = "bryanthaboi/gen1recomp"
+asset = '^gen1recomp-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^gen1recomp-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/gen1recomp.AppImage"
+probe = false

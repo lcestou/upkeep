@@ -1,0 +1,8 @@
+# Drafted from debpalash/VoiceStudio's v0.5.8 release; its version is the one Upkeep installed.
+[apps.voicestudio]
+name = "VoiceStudio"
+kind = "appimage"
+repo = "debpalash/VoiceStudio"
+asset = '^VoiceStudio-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/voicestudio.AppImage"
+probe = false

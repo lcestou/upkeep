@@ -1,0 +1,10 @@
+# Drafted from cloudflare/cf-terraforming's v0.31.0 release; its version is the one Upkeep installed.
+[apps.cf-terraforming]
+name = "Cf Terraforming"
+kind = "archive"
+repo = "cloudflare/cf-terraforming"
+asset = '^cf-terraforming_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^cf-terraforming_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/cf-terraforming"
+bins = ["cf-terraforming"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from SadeghHayeri/GreenTunnel's v3.0.5 release; its version is the one Upkeep installed.
+[apps.greentunnel]
+name = "GreenTunnel"
+kind = "appimage"
+repo = "SadeghHayeri/GreenTunnel"
+asset = '^GreenTunnel-.*\.AppImage$'
+dest = "~/.local/bin/greentunnel.AppImage"
+probe = false

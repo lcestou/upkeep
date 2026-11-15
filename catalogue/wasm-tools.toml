@@ -1,0 +1,10 @@
+# Drafted from bytecodealliance/wasm-tools's v1.263.0 release; its version is the one Upkeep installed.
+[apps.wasm-tools]
+name = "Wasm Tools"
+kind = "archive"
+repo = "bytecodealliance/wasm-tools"
+asset = '^wasm-tools-.*-x86_64-musl\.tar\.gz$'
+asset_aarch64 = '^wasm-tools-.*-aarch64-musl\.tar\.gz$'
+dest = "~/.local/bin/wasm-tools"
+bins = ["wasm-tools-1.263.0-x86_64-musl/wasm-tools"]
+probe = false

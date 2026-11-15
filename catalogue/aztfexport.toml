@@ -1,0 +1,10 @@
+# Drafted from Azure/aztfexport's v0.21.0 release; its version is the one Upkeep installed.
+[apps.aztfexport]
+name = "aztfexport"
+kind = "archive"
+repo = "Azure/aztfexport"
+asset = '^aztfexport_.*_linux_amd64\.zip$'
+asset_aarch64 = '^aztfexport_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/aztfexport"
+bins = ["aztfexport"]
+probe = false

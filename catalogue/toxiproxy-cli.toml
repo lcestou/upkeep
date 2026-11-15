@@ -1,0 +1,10 @@
+# Drafted from Shopify/toxiproxy's v2.13.0 release; its version is the one Upkeep installed.
+[apps.toxiproxy-cli]
+name = "toxiproxy"
+kind = "archive"
+repo = "Shopify/toxiproxy"
+asset = '^toxiproxy_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^toxiproxy_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/toxiproxy-cli"
+bins = ["toxiproxy-cli", "toxiproxy-server"]
+probe = false

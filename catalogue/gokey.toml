@@ -1,0 +1,9 @@
+# Drafted from cloudflare/gokey's v0.2.1 release; its version is the one Upkeep installed.
+[apps.gokey]
+name = "gokey"
+kind = "file"
+repo = "cloudflare/gokey"
+asset = '^gokey-.*-linux-amd64$'
+asset_aarch64 = '^gokey-.*-linux-arm64$'
+dest = "~/.local/bin/gokey"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from infracost/infracost's v0.10.49 release; its version is the one Upkeep installed.
+[apps.infracost]
+name = "infracost"
+kind = "archive"
+repo = "infracost/infracost"
+asset = '^infracost-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^infracost-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/infracost"
+bins = ["infracost*"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from Qovery/Replibyte's v0.10.0 release; its version is the one Upkeep installed.
+[apps.replibyte]
+name = "Replibyte"
+kind = "archive"
+repo = "Qovery/Replibyte"
+asset = '^replibyte_.*_x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/replibyte"
+bins = ["replibyte"]
+probe = false

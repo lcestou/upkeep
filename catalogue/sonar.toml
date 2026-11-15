@@ -1,0 +1,10 @@
+# Drafted from raskrebs/sonar's v0.10.1 release; its version is the one Upkeep installed.
+[apps.sonar]
+name = "sonar"
+kind = "archive"
+repo = "raskrebs/sonar"
+asset = '^sonar_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^sonar_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/sonar"
+bins = ["sonar"]
+probe = false

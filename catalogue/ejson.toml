@@ -1,0 +1,10 @@
+# Drafted from Shopify/ejson's v1.6.0 release; its version is the one Upkeep installed.
+[apps.ejson]
+name = "ejson"
+kind = "archive"
+repo = "Shopify/ejson"
+asset = '^ejson_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ejson_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ejson"
+bins = ["ejson"]
+probe = false
