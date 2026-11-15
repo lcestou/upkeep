@@ -2370,6 +2370,19 @@
 			"vhs_0.12.1_x86_64.apk"
 		]
 	},
+	"vnote": {
+		"repo": "vnotex/vnote",
+		"tag": "v4.14.4",
+		"assets": [
+			"VNote-4.14.4-linux-x64.AppImage",
+			"VNote-4.14.4-mac-universal-macos12.dmg",
+			"VNote-4.14.4-mac-universal.dmg",
+			"VNote-4.14.4-win64.delta.zip",
+			"VNote-4.14.4-win64.manifest.json",
+			"VNote-4.14.4-win64.manifest.json.minisig",
+			"VNote-4.14.4-win64.zip"
+		]
+	},
 	"witr": {
 		"repo": "pranshuparmar/witr",
 		"tag": "v0.3.4",

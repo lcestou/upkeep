@@ -1,0 +1,9 @@
+# process is the name the kernel reports for the app's own process (seen in the VM); AppRun, its parent, is a name other AppImages share, so a relaunch must not ask it to quit.
+[apps.vnote]
+name = "VNote"
+kind = "appimage"
+repo = "vnotex/vnote"
+asset = '^VNote-[0-9.]+-linux-x64\.AppImage$'
+dest = "~/.local/bin/vnote.AppImage"
+process = "vnote.AppImage"
+relaunch = true
