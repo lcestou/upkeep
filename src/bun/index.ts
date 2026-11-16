@@ -18,7 +18,7 @@ import { startSchedule } from "./schedule";
 import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
 import { entryArgv, SELF_FILES } from "./self-shim";
-import { uninstallUpkeep } from "./uninstall";
+import { desktopShortcuts, uninstallUpkeep } from "./uninstall";
 import { MESSAGES } from "../shared/messages";
 import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
@@ -312,6 +312,7 @@ function makeRpc(onSnapshot?: () => void) {
 				root,
 				launcher,
 				menu: menuEntry,
+				shortcuts: desktopShortcuts(deps.paths.home, dirname(deps.paths.config)),
 				pid: process.pid,
 				paths: deps.paths,
 				purge,

@@ -7,7 +7,7 @@ import { script } from "../engine/testkit";
 import { autostartFile, syncAutostart } from "./autostart";
 import { commandFile, syncCommand } from "./command";
 import { entryArgv, SELF_FILES } from "./self-shim";
-import { FINISH, LAUNCH, uninstallUpkeep } from "./uninstall";
+import { desktopShortcuts, FINISH, LAUNCH, uninstallUpkeep } from "./uninstall";
 
 let dir = "";
 let p: Paths;
@@ -44,6 +44,7 @@ const ctx = (purge: boolean, spawnDetached: (argv: string[]) => void) => ({
 	root,
 	launcher,
 	menu,
+	shortcuts: desktopShortcuts(p.home, dirname(p.config)),
 	pid: Number(GONE),
 	paths: p,
 	purge,
@@ -107,4 +108,31 @@ test("the finish waits for Upkeep's process to end before it deletes anything", 
 	expect(Bun.spawnSync(["sh", "-c", FINISH, root, pid]).exitCode).toBe(0);
 	expect(Date.now() - t0).toBeGreaterThan(1000);
 	expect(existsSync(root)).toBe(false);
+});
+
+test("the installer's desktop shortcut goes with the install, in a translated desktop folder too; one the person made stays", () => {
+	// The installer's own shortcut in ~/Desktop, and one in the desktop folder user-dirs.dirs names.
+	const plain = join(p.home, "Desktop/Upkeep.desktop");
+	const named = join(p.home, "Escritorio/Upkeep.desktop");
+	for (const f of [plain, named]) {
+		mkdirSync(dirname(f), { recursive: true });
+		writeFileSync(f, `[Desktop Entry]\nName=Upkeep\nExec=${launcher}\n`);
+	}
+	writeFileSync(join(dirname(p.config), "user-dirs.dirs"), 'XDG_DESKTOP_DIR="$HOME/Escritorio"\n');
+	expect(desktopShortcuts(p.home, dirname(p.config))).toEqual([named, plain]);
+	expect(uninstallUpkeep(ctx(false, now))).toBe(true);
+	expect(existsSync(plain)).toBe(false);
+	expect(existsSync(named)).toBe(false);
+});
+
+test("a desktop shortcut the person made with Upkeep's name but another command stays", () => {
+	const mine = join(p.home, "Desktop/Upkeep.desktop");
+	mkdirSync(dirname(mine), { recursive: true });
+	writeFileSync(mine, "[Desktop Entry]\nName=Upkeep\nExec=my-wrapper --upkeep\n");
+	expect(uninstallUpkeep(ctx(false, now))).toBe(true);
+	expect(readFileSync(mine, "utf8")).toContain("my-wrapper");
+	// No user-dirs.dirs, or one naming a relative path: ~/Desktop only.
+	expect(desktopShortcuts(p.home, join(dir, "nowhere"))).toEqual([mine]);
+	writeFileSync(join(dirname(p.config), "user-dirs.dirs"), 'XDG_DESKTOP_DIR="Escritorio"\n');
+	expect(desktopShortcuts(p.home, dirname(p.config))).toEqual([mine]);
 });
