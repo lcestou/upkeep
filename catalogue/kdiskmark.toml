@@ -1,0 +1,8 @@
+# Its .desktop names the bundled fio too (3.3.0-fio-3.42) and its metainfo lags a release, so Upkeep reads the version it installed.
+[apps.kdiskmark]
+name = "KDiskMark"
+kind = "appimage"
+repo = "JonMagon/KDiskMark"
+asset = '^KDiskMark-[0-9.]+-fio-[0-9.]+-x86_64\.AppImage$'
+dest = "~/.local/bin/kdiskmark.AppImage"
+probe = false

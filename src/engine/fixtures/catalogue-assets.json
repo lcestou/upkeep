@@ -27938,6 +27938,21 @@
 			"install.sh"
 		]
 	},
+	"kdiskmark": {
+		"repo": "JonMagon/KDiskMark",
+		"tag": "3.3.0",
+		"assets": [
+			"kdiskmark-3.3.0-1.aarch64.rpm",
+			"kdiskmark-3.3.0-1.x86_64.rpm",
+			"KDiskMark-3.3.0-fio-3.42-x86_64.AppImage",
+			"KDiskMark-3.3.0-fio-3.42-x86_64.AppImage.sig",
+			"KDiskMark-3.3.0-fio-3.42-x86_64.AppImage.zsync",
+			"kdiskmark-3.3.0-source.tar.gz",
+			"kdiskmark_3.3.0_amd64.deb",
+			"kdiskmark_3.3.0_arm64.deb",
+			"package-signing-key.pub"
+		]
+	},
 	"keep-sorted": {
 		"repo": "google/keep-sorted",
 		"tag": "v0.11.0",
