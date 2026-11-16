@@ -19,6 +19,8 @@ export const ENGINE_COPY = {
 	latestNotComparable: (v0: string) => `The latest tag ${v0} is not a version Upkeep can compare.`,
 	noAssetForMachine: (v0: string) => `No asset of ${v0}'s latest release runs on this machine.`,
 	unopenedArchives: (v0: string) => `${v0} Its Linux builds are .7z archives, which Upkeep cannot open yet.`,
+	otherProgramAtDest: (v0: string) =>
+		`${v0} is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first.`,
 	itInstalls: (v0: string) => `It installs ${v0}.`,
 	archiveHoldsMore: (v0: string, v1: string) => ` The archive holds ${v0} programs; only the first ${v1} are listed.`,
 	matchedAsset: (v0: string) => `Matched ${v0} for this machine.`,

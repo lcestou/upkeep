@@ -311,6 +311,18 @@ export const isAppImage = (b: Buffer | null) =>
 /** A path under home written with ~, as apps.toml keeps it. A path elsewhere is returned as given. */
 const tilde = (p: string, home: string) => (p === home || p.startsWith(`${home}/`) ? `~${p.slice(home.length)}` : p);
 
+/**
+ * The sentence for a program the table would replace that is not one: a kind that installs a program (an AppImage, an
+ * archive's bin, a bare file) finding a script or any other non-program at dest. Another tool with the same name (a
+ * Python httpx where the table installs ProjectDiscovery's) would be overwritten. Null when dest is free or a program;
+ * a symlink is read through.
+ */
+function otherAtDest(kind: AppKind, dest: string, home: string): string | null {
+	if (kind !== "appimage" && kind !== "archive" && kind !== "file") return null;
+	if (!existsSync(dest)) return null;
+	return isElf(head(dest, 4)) ? null : MESSAGES.otherProgramAtDest(tilde(dest, home));
+}
+
 /** The installed AppImage of a repo: a regular file in the owner's app folders named after it. */
 function findAppImage(ctx: DiscoverCtx, bin: string): string | null {
 	for (const dir of [".local/bin", "Applications", "bin"]) {
@@ -512,6 +524,10 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	};
 	if (opts.file) suggestion.path = opts.file.path;
 	if (ctx.specs.some((s) => s.key === key)) suggestion.problem = MESSAGES.alreadyInList(name);
+	else if (!opts.file) {
+		const other = otherAtDest(kind, dest, home);
+		if (other) suggestion.problem = other;
+	}
 	return { suggestion };
 }
 
@@ -911,7 +927,10 @@ async function fromCatalogue(
 	// A picked file whose name could not be made a pattern says so, as Add app does for a repo.
 	const widen = asset && r.suggestion.why.includes(MESSAGES.patternNeedsWidening());
 	const why = widen ? `${CATALOGUE_WHY} ${MESSAGES.patternNeedsWidening()}` : CATALOGUE_WHY;
-	return { suggestions: [{ ...r.suggestion, spec, ...sure, why }] };
+	const other = entry.dest ? otherAtDest(entry.kind, expandHome(entry.dest, ctx.paths.home), ctx.paths.home) : null;
+	const found: Suggestion = { ...r.suggestion, spec, ...sure, why };
+	if (!found.problem && other) found.problem = other;
+	return { suggestions: [found] };
 }
 
 /**

@@ -1497,3 +1497,37 @@ test("Add app names unzip when a zip release meets a system without it", async (
 		"Opening needzip-1.0-x86_64-linux.zip needs the unzip program, which is not installed. Install unzip from the system's packages, then try again.",
 	);
 });
+
+test("Add app refuses a table whose dest holds a script or another tool, and adds over a program", async () => {
+	releases["o/httpx"] = { tag_name: "v1.6.0", assets: [{ name: "httpx-1.6.0-linux-amd64", size: 1 }] };
+	const entry: AppSpec = {
+		key: "httpx",
+		name: "httpx",
+		kind: "file",
+		repo: "o/httpx",
+		asset: "linux-amd64$",
+		dest: "~/.local/bin/httpx",
+	};
+	const dest = join(t.paths.home, ".local/bin/httpx");
+	// A Python tool of the same name, installed some other way.
+	mkdirSync(join(dest, ".."), { recursive: true });
+	writeFileSync(dest, "#!/usr/bin/python3\nprint('httpx')\n");
+	expect((await suggest("httpx", { ...ctx().c, catalogue: [entry] })).suggestions[0]?.problem).toBe(
+		"~/.local/bin/httpx is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first.",
+	);
+	// The app's own program there is no problem.
+	rmSync(dest);
+	elf(dest);
+	expect((await suggest("httpx", { ...ctx().c, catalogue: [entry] })).suggestions[0]?.problem).toBeUndefined();
+});
+
+test("Add app from a repo refuses when the program it would replace on PATH is a script", async () => {
+	releases["o/tool"] = { tag_name: "v2.0.0", assets: [{ name: "tool-2.0.0-linux-amd64", size: 1 }] };
+	const script = join(t.paths.home, ".local/bin/tool");
+	mkdirSync(join(script, ".."), { recursive: true });
+	writeFileSync(script, "#!/bin/sh\nexec node tool.js\n");
+	onPath.tool = script;
+	expect((await suggest("o/tool", ctx().c)).suggestions[0]?.problem).toBe(
+		"~/.local/bin/tool is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first.",
+	);
+});

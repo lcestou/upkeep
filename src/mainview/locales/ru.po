@@ -2726,3 +2726,8 @@ msgstr "{0}: folder должен быть отдельной папкой в д�
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: probe = false is only for an app installed from a release file"
 msgstr "{0}: probe = false подходит только для приложения, установленного из файла релиза"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first."
+msgstr "{0} уже существует, и это не программа этого приложения (скрипт или другой инструмент с тем же именем). Добавление заменит его; сначала удалите или переименуйте его."
