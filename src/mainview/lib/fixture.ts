@@ -61,6 +61,8 @@ type Seed = {
 	restarts?: "relaunch" | "restart";
 	commits?: { sha: string; title: string }[];
 	ahead?: number;
+	/** What else keeps it up to date, as the engine words it. */
+	also?: string[];
 };
 
 export const ZEN_NOTES =
@@ -80,6 +82,7 @@ const SEEDS: Seed[] = [
 		size: 108_940_288,
 		running: true,
 		dest: "~/.local/bin/zen-browser.AppImage",
+		also: [MESSAGES.alsoFlatpak("Zen Browser", "app.zen_browser.zen")],
 		restore: ["1.23.4b"],
 		restarts: "relaunch",
 		stages: [
@@ -320,6 +323,7 @@ function toApp(seed: Seed): AppState {
 		detail: seed.detail,
 		size: seed.size,
 		notes: seed.notes,
+		also: seed.also,
 		releaseUrl: seed.repo ? `https://github.com/${seed.repo}/releases/latest` : undefined,
 		publishedAt: seed.publishedDaysAgo === undefined ? undefined : iso(NOW - seed.publishedDaysAgo * DAY),
 		running: seed.running ?? false,

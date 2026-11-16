@@ -2718,3 +2718,12 @@ msgstr "Pausar"
 #: src/mainview/lib/copy.ts
 msgid "Follow new lines"
 msgstr "Acompanhar novas linhas"
+
+#: src/mainview/lib/engine-text.ts
+msgid "From Upkeep's catalogue online: a table added after this version of Upkeep came out."
+msgstr "Do catálogo do Upkeep online: uma tabela adicionada depois desta versão do Upkeep."
+
+#. 0: v1; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} has installed {1} too: two copies, each updated by its own manager. Remove one of them to keep one."
+msgstr "{0} também instalou {1}: duas cópias, cada uma atualizada pelo próprio gerenciador. Remova uma para ficar com uma só."

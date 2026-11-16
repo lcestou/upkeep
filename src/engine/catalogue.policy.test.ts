@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../shared/types";
 import { isPackage } from "./kinds/package";
@@ -84,4 +85,12 @@ test("the policy catches what it is for", () => {
 		expect(RESTART.test(ok)).toBe(true);
 	for (const bad of ["systemctl stop rustdesk", "systemctl restart a; rm x", "sudo systemctl restart x"])
 		expect(RESTART.test(bad)).toBe(false);
+});
+
+test("catalogue/index.txt lists every table's key, sorted, so Add app can match a name online without sending it", () => {
+	const { apps } = loadCatalogue(join(import.meta.dir, "../../catalogue"));
+	const listed = readFileSync(join(import.meta.dir, "../../catalogue/index.txt"), "utf8")
+		.split("\n")
+		.filter(Boolean);
+	expect(listed).toEqual(apps.map((a) => a.key).toSorted());
 });

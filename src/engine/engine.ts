@@ -17,7 +17,8 @@ import type {
 import { MESSAGES } from "../shared/messages";
 import type { Arch } from "./arch";
 import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
-import { scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
+import { alsoOf, scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
+import { readCopies } from "./extras/system";
 import { managedSpecs } from "./managers";
 import { type FetchLike, githubToken, type Rate } from "./github";
 import { checkClaudePlugins, installClaudePlugins } from "./kinds/plugins";
@@ -74,6 +75,8 @@ export type EngineDeps = {
 	seedManifest: string;
 	/** The folder of tested tables Add app looks in first, one file per app. Without it Add app only guesses. */
 	catalogueDir?: string;
+	/** Where Add app asks for a catalogue table the shipped copy lacks: <url>/<key>.toml. Without it, the shipped copy only. */
+	catalogueUrl?: string;
 	fetch: FetchLike;
 	run: Run;
 	now: () => Date;
@@ -394,6 +397,9 @@ export function createEngine(deps: EngineDeps): Engine {
 		return { status: spec.kind === "manual" ? "manual" : "ready", held };
 	}
 
+	// What else keeps each app up to date, worked out once per check from the system's Flatpak and Snap lists.
+	let alsoNotes = new Map<string, string[]>();
+
 	function buildApp(spec: AppSpec, c: Checked, history: HistoryRow[]): AppState {
 		const state = loadState(paths);
 		const restorable = canRestore(spec);
@@ -424,6 +430,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			run: spec.run,
 			note: spec.note,
 			dest: spec.dest,
+			also: alsoNotes.get(spec.key),
 			stages: stageWeights(
 				history,
 				spec.key,
@@ -487,6 +494,12 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 		token = await githubToken(deps.run);
 		const history = readHistory(paths, 1000);
+		const all = loadSpecs();
+		// The notes are a nicety: a list that cannot be read leaves them out and never stops the check.
+		const copies = await readCopies({ run: deps.run }).catch(() => ({ flatpaks: [], snaps: [] }));
+		alsoNotes = new Map(
+			all.map((s) => [s.key, alsoOf(s, all, copies, paths.home)] as const).filter(([, a]) => a.length > 0),
+		);
 		const fetchSlot = limiter(8);
 		const probeSlot = limiter(4);
 		const limitedFetch: FetchLike = (url, init) => fetchSlot(() => deps.fetch(url, init));
@@ -1086,6 +1099,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			token,
 			specs,
 			catalogue: catalogue.apps,
+			catalogueUrl: deps.catalogueUrl,
 			log: (text) => say(null, text),
 			api: deps.api,
 			arch: deps.arch,

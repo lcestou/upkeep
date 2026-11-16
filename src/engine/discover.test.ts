@@ -1568,3 +1568,82 @@ test("a catalogue table checks its own dest: a script elsewhere on PATH is not i
 	};
 	expect((await suggest("rt", { ...ctx().c, catalogue: [rt] })).suggestions[0]?.problem).toBeUndefined();
 });
+
+test("a name the shipped catalogue lacks is read from the catalogue online; a table there that runs commands is not", async () => {
+	releases["o/newtool"] = { tag_name: "v1.0.0", assets: [{ name: "newtool-linux-amd64", size: 1 }] };
+	const online: Record<string, string> = {
+		newtool:
+			'[apps.newtool]\nname = "New Tool"\nkind = "file"\nrepo = "o/newtool"\nasset = \'linux-amd64$\'\ndest = "~/.local/bin/newtool"\n',
+		runs: '[apps.runs]\nname = "Runs"\nkind = "command"\ncheck = ["runs", "--version"]\nlatest = "npm:runs"\nupdate = ["runs", "up"]\n',
+	};
+	const asked: string[] = [];
+	const c = {
+		...ctx().c,
+		catalogueUrl: "https://raw.test/catalogue",
+		fetch: (async (url: string, init?: RequestInit) => {
+			if (url.startsWith("https://raw.test/catalogue/")) {
+				asked.push(url);
+				if (url.endsWith("/index.txt")) return new Response("newtool\nruns\n");
+				const key =
+					url
+						.split("/")
+						.at(-1)
+						?.replace(/\.toml$/, "") ?? "";
+				return online[key] ? new Response(online[key]) : new Response("404: Not Found", { status: 404 });
+			}
+			return fakeFetch(url, init);
+		}) satisfies FetchLike,
+	};
+	const found = await suggest("newtool", c);
+	expect(found.suggestions[0]).toMatchObject({
+		source: "catalogue",
+		spec: { key: "newtool", kind: "file", repo: "o/newtool" },
+		why: "From Upkeep's catalogue online: a table added after this version of Upkeep came out.",
+	});
+	expect(asked).toContain("https://raw.test/catalogue/newtool.toml");
+	// A command table online is never taken: only the shipped copy may run a command.
+	expect((await suggest("runs", c)).suggestions).toEqual([]);
+	// Not on the public list: the usual answer, and the name itself is never sent.
+	asked.length = 0;
+	expect((await suggest("my-private-tool", c)).problem).toBe(BAD_INPUT);
+	expect(asked.some((u) => u.includes("my-private-tool"))).toBe(false);
+	// A link or a path is never looked up there.
+	asked.length = 0;
+	await suggest("o/newtool", c);
+	expect(asked).toEqual([]);
+});
+
+test("the same tool from two managers is one scan row, and its card says the other manager has a copy too", async () => {
+	managers.uv = "black v24.8.0\n- black\n";
+	uvTool("black", `[tool]\nrequirements = [{ name = "black" }]\n`);
+	managers.pipx = JSON.stringify({
+		venvs: {
+			black: { metadata: { main_package: { package: "black", package_version: "24.1.0", package_or_url: "black" } } },
+		},
+	});
+	const rows = (await scan(ctx().c)).suggestions.filter((s) => s.spec.key === "black");
+	expect(rows).toHaveLength(1);
+	expect(rows[0]?.why).toBe("Installed with uv. Upkeep updates it the same way.");
+	expect(rows[0]?.also).toEqual([
+		"pipx has installed black too: two copies, each updated by its own manager. Remove one of them to keep one.",
+	]);
+});
+
+test("a table online that carries a command, root or a process to close is refused, kind file or not", async () => {
+	releases["o/sneaky"] = { tag_name: "v1.0.0", assets: [{ name: "sneaky-linux-amd64", size: 1 }] };
+	const base =
+		'[apps.sneaky]\nname = "Sneaky"\nkind = "file"\nrepo = "o/sneaky"\nasset = \'linux-amd64$\'\ndest = "~/.local/bin/sneaky"\n';
+	const online = (extra: string): FetchLike =>
+		(async (url: string, init?: RequestInit) =>
+			url.startsWith("https://raw.test/sneaky/")
+				? new Response(url.endsWith("/index.txt") ? "sneaky\n" : base + extra)
+				: fakeFetch(url, init)) satisfies FetchLike;
+	const c = (extra: string) => ({ ...ctx().c, catalogueUrl: "https://raw.test/sneaky", fetch: online(extra) });
+	expect((await suggest("sneaky", c(""))).suggestions[0]?.spec.key).toBe("sneaky");
+	const refused = await Promise.all(
+		['restart = ["systemctl", "restart", "x"]\n', "sudo = true\n", 'process = "sneaky"\nrelaunch = true\n'].map(
+			async (extra) => (await suggest("sneaky", c(extra))).suggestions,
+		),
+	);
+	expect(refused).toEqual([[], [], []]);
+});

@@ -2676,3 +2676,12 @@ msgstr "暂停"
 #: src/mainview/lib/copy.ts
 msgid "Follow new lines"
 msgstr "跟随新行"
+
+#: src/mainview/lib/engine-text.ts
+msgid "From Upkeep's catalogue online: a table added after this version of Upkeep came out."
+msgstr "来自 Upkeep 的在线目录：在此版本的 Upkeep 发布之后添加的条目。"
+
+#. 0: v1; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} has installed {1} too: two copies, each updated by its own manager. Remove one of them to keep one."
+msgstr "{0} 也安装了 {1}：两份副本，各由自己的管理器更新。删除其中一份，只保留一份。"

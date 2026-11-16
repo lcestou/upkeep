@@ -19,6 +19,7 @@ import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
 import { entryArgv, SELF_FILES } from "./self-shim";
 import { desktopShortcuts, uninstallUpkeep } from "./uninstall";
+import { CATALOGUE_URL } from "./about";
 import { MESSAGES } from "../shared/messages";
 import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
@@ -48,7 +49,12 @@ const background = process.env.UPKEEP_BACKGROUND === "1";
 const selftest = process.env.UPKEEP_SELFTEST ?? "";
 
 const deps = {
-	...realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml"), join(import.meta.dir, "../catalogue")),
+	...realDeps(
+		process.env,
+		join(import.meta.dir, "../manifest/apps.toml"),
+		join(import.meta.dir, "../catalogue"),
+		CATALOGUE_URL,
+	),
 	version: VERSION,
 };
 
