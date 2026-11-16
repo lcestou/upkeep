@@ -2705,3 +2705,8 @@ msgstr "{0}: folder deve essere una cartella a sé dentro la home, come ~/.local
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: probe = false is only for an app installed from a release file"
 msgstr "{0}: probe = false vale solo per un'app installata da un file di release"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first."
+msgstr "{0} esiste già e non è il programma di questa app (uno script o un altro strumento con lo stesso nome). Aggiungerla lo sostituirebbe; rimuovilo o rinominalo prima."

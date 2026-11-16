@@ -36,6 +36,9 @@ export const MESSAGES = {
 	noAssetForMachine: (v0: Value) => `No asset of ${v0}'s latest release runs on this machine.`,
 	/** discover.ts. {0} noAssetForMachine sentence */
 	unopenedArchives: (v0: Value) => `${v0} Its Linux builds are .7z archives, which Upkeep cannot open yet.`,
+	/** discover.ts. {0} the path, with ~ for home */
+	otherProgramAtDest: (v0: Value) =>
+		`${v0} is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first.`,
 	/** discover.ts. {0} program names joined with ', ' (358) or the single bin name (370) */
 	itInstalls: (v0: Value) => `It installs ${v0}.`,
 	/** discover.ts. {0} count of programs found (always more than 6); {1} MAX_BINS (6) */

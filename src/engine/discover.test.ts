@@ -1497,3 +1497,74 @@ test("Add app names unzip when a zip release meets a system without it", async (
 		"Opening needzip-1.0-x86_64-linux.zip needs the unzip program, which is not installed. Install unzip from the system's packages, then try again.",
 	);
 });
+
+test("Add app refuses a table whose dest holds a script or another tool, and adds over a program", async () => {
+	releases["o/httpx"] = { tag_name: "v1.6.0", assets: [{ name: "httpx-1.6.0-linux-amd64", size: 1 }] };
+	const entry: AppSpec = {
+		key: "httpx",
+		name: "httpx",
+		kind: "file",
+		repo: "o/httpx",
+		asset: "linux-amd64$",
+		dest: "~/.local/bin/httpx",
+	};
+	const dest = join(t.paths.home, ".local/bin/httpx");
+	// A Python tool of the same name, installed some other way.
+	mkdirSync(join(dest, ".."), { recursive: true });
+	writeFileSync(dest, "#!/usr/bin/python3\nprint('httpx')\n");
+	expect((await suggest("httpx", { ...ctx().c, catalogue: [entry] })).suggestions[0]?.problem).toBe(
+		"~/.local/bin/httpx is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first.",
+	);
+	// The app's own program there is no problem.
+	rmSync(dest);
+	elf(dest);
+	expect((await suggest("httpx", { ...ctx().c, catalogue: [entry] })).suggestions[0]?.problem).toBeUndefined();
+});
+
+test("Add app from a repo refuses when the program it would replace on PATH is a script", async () => {
+	releases["o/tool"] = { tag_name: "v2.0.0", assets: [{ name: "tool-2.0.0-linux-amd64", size: 1 }] };
+	const script = join(t.paths.home, ".local/bin/tool");
+	mkdirSync(join(script, ".."), { recursive: true });
+	writeFileSync(script, "#!/bin/sh\nexec node tool.js\n");
+	onPath.tool = script;
+	expect((await suggest("o/tool", ctx().c)).suggestions[0]?.problem).toBe(
+		"~/.local/bin/tool is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first.",
+	);
+});
+
+test("a catalogue table checks its own dest: a script elsewhere on PATH is not it, and a folder app's own link is its own", async () => {
+	releases["o/httpx"] = { tag_name: "v1.6.0", assets: [{ name: "httpx-1.6.0-linux-amd64", size: 1 }] };
+	const entry: AppSpec = {
+		key: "httpx",
+		name: "httpx",
+		kind: "file",
+		repo: "o/httpx",
+		asset: "linux-amd64$",
+		dest: "~/.local/bin/httpx",
+	};
+	// A script of the same name earlier on PATH, outside the table's dest: the table installs to its own dest, which is free.
+	const elsewhere = join(t.paths.home, "go/bin/httpx");
+	mkdirSync(join(elsewhere, ".."), { recursive: true });
+	writeFileSync(elsewhere, "#!/bin/sh\n");
+	onPath.httpx = elsewhere;
+	expect((await suggest("httpx", { ...ctx().c, catalogue: [entry] })).suggestions[0]?.problem).toBeUndefined();
+	// A folder app whose program is a launcher script, linked from dest into its own folder.
+	releases["o/rt"] = { tag_name: "v1.0.0", assets: [{ name: "rt-1.0.0-linux-amd64.tar.gz", size: 1 }] };
+	const folder = join(t.paths.home, ".local/share/rt");
+	mkdirSync(join(folder, "bin"), { recursive: true });
+	writeFileSync(join(folder, "bin/rt"), "#!/bin/sh\nexec ../lib/rt-real\n");
+	mkdirSync(join(t.paths.home, ".local/bin"), { recursive: true });
+	symlinkSync(join(folder, "bin/rt"), join(t.paths.home, ".local/bin/rt"));
+	const rt: AppSpec = {
+		key: "rt",
+		name: "rt",
+		kind: "archive",
+		repo: "o/rt",
+		asset: "linux-amd64\\.tar\\.gz$",
+		dest: "~/.local/bin/rt",
+		folder: "~/.local/share/rt",
+		bins: ["bin/rt"],
+		probe: false,
+	};
+	expect((await suggest("rt", { ...ctx().c, catalogue: [rt] })).suggestions[0]?.problem).toBeUndefined();
+});

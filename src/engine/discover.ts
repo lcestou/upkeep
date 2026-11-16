@@ -2,6 +2,7 @@ import {
 	closeSync,
 	existsSync,
 	lstatSync,
+	realpathSync,
 	mkdtempSync,
 	openSync,
 	readdirSync,
@@ -311,6 +312,26 @@ export const isAppImage = (b: Buffer | null) =>
 /** A path under home written with ~, as apps.toml keeps it. A path elsewhere is returned as given. */
 const tilde = (p: string, home: string) => (p === home || p.startsWith(`${home}/`) ? `~${p.slice(home.length)}` : p);
 
+/**
+ * The sentence for a program the table would replace that is not one: a kind that installs a program (an AppImage, an
+ * archive's bin, a bare file) finding a script or any other non-program at dest. Another tool with the same name (a
+ * Python httpx where the table installs ProjectDiscovery's) would be overwritten. Null when dest is free or a program;
+ * a symlink is read through, and a folder app's link into its own folder is its own, whatever it points at (a launcher
+ * script). Wrong for a table whose bin is itself a script with no folder: none in the catalogue, whose bins are ELF.
+ */
+function otherAtDest(kind: AppKind, dest: string, home: string, folder?: string): string | null {
+	if (kind !== "appimage" && kind !== "archive" && kind !== "file") return null;
+	if (!existsSync(dest)) return null;
+	if (folder) {
+		try {
+			if (lstatSync(dest).isSymbolicLink() && realpathSync(dest).startsWith(`${realpathSync(folder)}/`)) return null;
+		} catch {
+			// the folder is not there yet: whatever sits at dest is not its link
+		}
+	}
+	return isElf(head(dest, 4)) ? null : MESSAGES.otherProgramAtDest(tilde(dest, home));
+}
+
 /** The installed AppImage of a repo: a regular file in the owner's app folders named after it. */
 function findAppImage(ctx: DiscoverCtx, bin: string): string | null {
 	for (const dir of [".local/bin", "Applications", "bin"]) {
@@ -359,6 +380,8 @@ export type RepoOpts = {
 	probe?: boolean;
 	/** false: dest is never run for its version, though the archive may still be opened (a table with probe = false). */
 	askVersion?: boolean;
+	/** false: no check of what sits at the dest fromRepo works out; a catalogue table checks its own dest instead. */
+	destCheck?: boolean;
 	/** The forge of a repo on a self-hosted host, as its table or the link says. */
 	forge?: ForgeKind;
 };
@@ -512,6 +535,10 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	};
 	if (opts.file) suggestion.path = opts.file.path;
 	if (ctx.specs.some((s) => s.key === key)) suggestion.problem = MESSAGES.alreadyInList(name);
+	else if (!opts.file && opts.destCheck !== false) {
+		const other = otherAtDest(kind, dest, home);
+		if (other) suggestion.problem = other;
+	}
 	return { suggestion };
 }
 
@@ -897,6 +924,7 @@ async function fromCatalogue(
 		...(asset ? { asset } : { pattern }),
 		versionArgs: entry.version_args,
 		askVersion: entry.probe !== false,
+		destCheck: false,
 		forge: entry.forge,
 		probe,
 	});
@@ -911,7 +939,13 @@ async function fromCatalogue(
 	// A picked file whose name could not be made a pattern says so, as Add app does for a repo.
 	const widen = asset && r.suggestion.why.includes(MESSAGES.patternNeedsWidening());
 	const why = widen ? `${CATALOGUE_WHY} ${MESSAGES.patternNeedsWidening()}` : CATALOGUE_WHY;
-	return { suggestions: [{ ...r.suggestion, spec, ...sure, why }] };
+	const folder = entry.folder ? expandHome(entry.folder, ctx.paths.home) : undefined;
+	const other = entry.dest
+		? otherAtDest(entry.kind, expandHome(entry.dest, ctx.paths.home), ctx.paths.home, folder)
+		: null;
+	const found: Suggestion = { ...r.suggestion, spec, ...sure, why };
+	if (!found.problem && other) found.problem = other;
+	return { suggestions: [found] };
 }
 
 /**

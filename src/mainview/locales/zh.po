@@ -2663,3 +2663,8 @@ msgstr "{0}：folder 必须是主目录下一个单独的文件夹，例如 ~/.l
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: probe = false is only for an app installed from a release file"
 msgstr "{0}：probe = false 仅适用于从发布文件安装的应用"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first."
+msgstr "{0} 已存在，但不是此应用的程序（是脚本，或同名的其他工具）。添加会替换它；请先删除或重命名它。"
