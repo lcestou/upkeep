@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from "bun:te
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { download, statedSize, verifyAsset } from "./download";
+import { download, signedIn, statedSize, verifyAsset } from "./download";
 import type { FetchLike } from "./github";
 
 const PAYLOAD = new Uint8Array(200_000).map((_, i) => i % 251);
@@ -100,6 +100,52 @@ test("an HTTP error answer is not retried", async () => {
 		"Download failed: the server answered 404.",
 	);
 	expect(calls).toBe(1);
+});
+
+test("a private repo's file: the public link's 404 is asked again at GitHub's API with the token", async () => {
+	const api = "https://api.github.com/repos/me/tool/releases/assets/7";
+	const seen: { url: string; headers: Headers }[] = [];
+	const gh: FetchLike = async (url, init) => {
+		seen.push({ url: String(url), headers: new Headers(init?.headers) });
+		return fetch(String(url) === api ? `${base()}/asset` : url, init);
+	};
+	const r = await download(`${base()}/private`, join(dir, "private.bin"), {
+		fetch: gh,
+		retryMs: 10,
+		signedIn: { url: api, token: "tok" },
+	});
+	expect(r.sha256).toBe(SHA);
+	expect(seen.map((s) => s.url)).toEqual([`${base()}/private`, api]);
+	expect(seen[0]?.headers.get("authorization")).toBeNull();
+	expect(seen[1]?.headers.get("authorization")).toBe("Bearer tok");
+	expect(seen[1]?.headers.get("accept")).toBe("application/octet-stream");
+
+	// A public file that downloads never touches the API, and the token never goes anywhere but api.github.com.
+	seen.length = 0;
+	await download(`${base()}/asset`, join(dir, "public.bin"), { fetch: gh, signedIn: { url: api, token: "tok" } });
+	expect(seen.map((s) => s.url)).toEqual([`${base()}/asset`]);
+	seen.length = 0;
+	await expect(
+		download(`${base()}/private`, join(dir, "elsewhere.bin"), {
+			fetch: gh,
+			retryMs: 10,
+			signedIn: { url: `${base()}/asset`, token: "tok" },
+		}),
+	).rejects.toThrow("Download failed: the server answered 404.");
+	expect(seen.map((s) => s.url)).toEqual([`${base()}/private`]);
+});
+
+test("signedIn: the API way only for an asset with an API address and a person with a token", () => {
+	const asset = {
+		name: "t",
+		url: "u",
+		size: 1,
+		digest: null,
+		api: "https://api.github.com/repos/a/b/releases/assets/1",
+	};
+	expect(signedIn(asset, "tok")).toEqual({ url: asset.api, token: "tok" });
+	expect(signedIn(asset, null)).toBeUndefined();
+	expect(signedIn({ ...asset, api: undefined }, "tok")).toBeUndefined();
 });
 
 test("a slow download that keeps sending is not stalled", async () => {

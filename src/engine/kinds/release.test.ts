@@ -192,6 +192,38 @@ test("install: an AppImage is downloaded, backed up, swapped in with its mode, a
 	expect(existsSync(`${dest}.upkeep-new`)).toBe(false);
 });
 
+test("install: a private repo's file comes through GitHub's API with the person's gh token", async () => {
+	installZen("1.17.9b");
+	const body = bash('echo "zen 1.18.0b"');
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": body });
+	release.assets = [
+		{
+			name: "zen.linux-x86_64.AppImage",
+			browser_download_url: "https://dl.test/zen.linux-x86_64.AppImage",
+			url: "https://api.github.com/repos/o/r/releases/assets/9",
+			size: body.length,
+			digest: sha(body),
+		},
+	];
+	const asked: string[] = [];
+	const privateFetch: FetchLike = async (url, init) => {
+		const auth = new Headers(init?.headers).get("authorization");
+		asked.push(`${url} ${auth ?? "-"}`);
+		if (url.endsWith("/releases/assets/9"))
+			return auth === "Bearer tok" ? new Response(body) : new Response("Not Found", { status: 404 });
+		// The public link is GitHub's 404 for a private repo, as it is to anyone not signed in in a browser.
+		if (url.startsWith("https://dl.test/")) return new Response("Not Found", { status: 404 });
+		return fakeFetch(url, init);
+	};
+	const c = { ...ctx(), fetch: privateFetch, token: "tok" };
+	const outcome = await installRelease(zen(), await checkAndTarget(zen(), c), c);
+	expect(outcome).toMatchObject({ result: "done", installed: "1.18.0b" });
+	expect(asked.filter((a) => !a.includes("/releases/latest"))).toEqual([
+		"https://dl.test/zen.linux-x86_64.AppImage -",
+		"https://api.github.com/repos/o/r/releases/assets/9 Bearer tok",
+	]);
+});
+
 test("install: a running app is replaced and marked restart to apply", async () => {
 	installZen("1.17.9b");
 	mkdirSync(join(proc, "4242"));

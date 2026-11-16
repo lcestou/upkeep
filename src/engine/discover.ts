@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { AppKind, AppSpec, Suggestion } from "../shared/types";
 import { type Arch, assetField, assetFor } from "./arch";
-import { download, verifyAsset } from "./download";
+import { download, signedIn, verifyAsset } from "./download";
 import { draftFor } from "./draft";
 import { type ForgeKind, forgeOf, forgeRelease, hostKind, hostOf } from "./forge";
 import {
@@ -637,7 +637,7 @@ export async function programsIn(
 	const file = join(dl, `discover-${key}-${asset.name}`);
 	let dir = "";
 	try {
-		verifyAsset(await download(asset.url, file, { fetch: ctx.fetch }), asset);
+		verifyAsset(await download(asset.url, file, { fetch: ctx.fetch, signedIn: signedIn(asset, ctx.token) }), asset);
 		const zip = asset.name.toLowerCase().endsWith(".zip");
 		const list = await ctx.run(zip ? ["unzip", "-Z1", file] : ["tar", "tf", file], { timeoutMs: 60_000 });
 		if (list.code !== 0)
