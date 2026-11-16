@@ -1,0 +1,45 @@
+# Builds Upkeep on an arm64 machine and attaches its files to a published release, beside the x86_64 files that
+# scripts/release.sh builds on the owner's machine. Run it by hand for a release published before this existed.
+name: arm64 release files
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to build and attach to, such as v0.1.0
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  arm64:
+    runs-on: ubuntu-24.04-arm
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq zstd
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      # The same checks scripts/release.sh makes: an arm64 build of the tag's version, asking this repo for updates.
+      - name: Check the build
+        run: |
+          VERSION="${TAG#v}"
+          ls artifacts
+          test -f artifacts/linux-arm64-Upkeep-Setup.tar.gz
+          grep -q "\"version\":\"$VERSION\"" artifacts/stable-linux-arm64-update-v2.json
+          BAKED=$(zstd -dc artifacts/stable-linux-arm64-*.tar.zst | tar -xO --wildcards '*/Resources/version.json')
+          echo "$BAKED"
+          echo "$BAKED" | grep -q "\"version\":\"$VERSION\""
+          echo "$BAKED" | grep -q "\"baseUrl\":\"https://github.com/${GITHUB_REPOSITORY}/releases/latest/download\""
+      - name: Attach to the release
+        run: gh release upload "$TAG" artifacts/*linux-arm64* --clobber --repo "$GITHUB_REPOSITORY"
