@@ -1,0 +1,10 @@
+# Drafted from bitnami/charts-syncer's v2.5.1 release.
+[apps.charts-syncer]
+name = "Charts Syncer"
+kind = "archive"
+repo = "bitnami/charts-syncer"
+asset = '^charts-syncer_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^charts-syncer_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/charts-syncer"
+bins = ["charts-syncer"]
+version_args = ["version"]

@@ -1,0 +1,8 @@
+# Drafted from digimezzo/dopamine's v3.0.12 release.
+[apps.dopamine]
+name = "Dopamine"
+kind = "appimage"
+repo = "digimezzo/dopamine"
+asset = '^Dopamine-.*\.AppImage$'
+dest = "~/.local/bin/dopamine.AppImage"
+meta_path = "dopamine.desktop"

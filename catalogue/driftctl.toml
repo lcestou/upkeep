@@ -1,0 +1,9 @@
+# Drafted from snyk/driftctl's v0.40.0 release.
+[apps.driftctl]
+name = "driftctl"
+kind = "file"
+repo = "snyk/driftctl"
+asset = '^driftctl_linux_amd64$'
+asset_aarch64 = '^driftctl_linux_arm64$'
+dest = "~/.local/bin/driftctl"
+version_args = ["version"]

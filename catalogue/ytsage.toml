@@ -1,0 +1,8 @@
+# Drafted from oop7/YTSage's v5.6.5 release.
+[apps.ytsage]
+name = "YTSage"
+kind = "appimage"
+repo = "oop7/YTSage"
+asset = '^YTSage-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ytsage.AppImage"
+meta_path = "ytsage.desktop"

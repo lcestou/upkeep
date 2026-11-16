@@ -1,0 +1,8 @@
+# Drafted from mitcad/Mitcad's v0.62.0 release; its version is the one Upkeep installed.
+[apps.mitcad]
+name = "Mitcad"
+kind = "appimage"
+repo = "mitcad/Mitcad"
+asset = '^Mitcad-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/mitcad.AppImage"
+probe = false

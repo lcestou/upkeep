@@ -1,0 +1,9 @@
+# Drafted from keidarcy/e1s's v2.0.0 release.
+[apps.e1s]
+name = "e1s"
+kind = "archive"
+repo = "keidarcy/e1s"
+asset = '^e1s_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^e1s_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/e1s"
+bins = ["e1s"]

@@ -1,0 +1,8 @@
+# Drafted from supertriodo/Arena-Tracker's v25.10 release; its version is the one Upkeep installed.
+[apps.arenatracker]
+name = "ArenaTracker"
+kind = "appimage"
+repo = "supertriodo/Arena-Tracker"
+asset = '^ArenaTracker\.Linux\.AppImage$'
+dest = "~/.local/bin/arenatracker.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from elirantutia/vibeyard's v0.3.10 release.
+[apps.vibeyard]
+name = "Vibeyard"
+kind = "appimage"
+repo = "elirantutia/vibeyard"
+asset = '^Vibeyard-.*\.AppImage$'
+dest = "~/.local/bin/vibeyard.AppImage"
+meta_path = "vibeyard.desktop"

@@ -1,0 +1,10 @@
+# Drafted from ldc-developers/ldc's v1.43.0 release.
+[apps.ddemangle]
+name = "ldc"
+kind = "archive"
+repo = "ldc-developers/ldc"
+asset = '^ldc2-.*-linux-x86_64\.tar\.xz$'
+asset_aarch64 = '^ldc2-.*-linux-aarch64\.tar\.xz$'
+dest = "~/.local/bin/ddemangle"
+folder = "~/.local/share/ddemangle"
+bins = ["bin/ddemangle", "bin/ldc-build-plugin", "bin/ldc-build-runtime", "bin/ldc-profdata"]

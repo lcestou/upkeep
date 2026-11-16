@@ -1,0 +1,9 @@
+# Drafted from ahmetb/kubectx's v0.11.0 release.
+[apps.kubectx]
+name = "kubectx"
+kind = "archive"
+repo = "ahmetb/kubectx"
+asset = '^kubectx_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^kubectx_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubectx"
+bins = ["kubectx"]

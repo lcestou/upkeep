@@ -1,0 +1,9 @@
+# Drafted from remko/age-plugin-se's v0.2.1 release.
+[apps.age-plugin-se]
+name = "Age Plugin Se"
+kind = "archive"
+repo = "remko/age-plugin-se"
+asset = '^age-plugin-se-.*-x86_64-linux\.tgz$'
+asset_aarch64 = '^age-plugin-se-.*-aarch64-linux\.tgz$'
+dest = "~/.local/bin/age-plugin-se"
+bins = ["age-plugin-se-v0.2.1-x86_64-linux/usr/bin/age-plugin-se"]

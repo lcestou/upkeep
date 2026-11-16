@@ -1,0 +1,9 @@
+# Drafted from grafana/loki's v3.7.10 release.
+[apps.loki]
+name = "loki"
+kind = "archive"
+repo = "grafana/loki"
+asset = '^loki-linux-amd64\.zip$'
+asset_aarch64 = '^loki-linux-arm64\.zip$'
+dest = "~/.local/bin/loki"
+bins = ["loki*"]

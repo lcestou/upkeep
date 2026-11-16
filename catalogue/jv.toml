@@ -1,0 +1,10 @@
+# Drafted from santhosh-tekuri/jsonschema's v6.0.3 release; its version is the one Upkeep installed.
+[apps.jv]
+name = "jv"
+kind = "archive"
+repo = "santhosh-tekuri/jsonschema"
+asset = '^jv-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^jv-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/jv"
+bins = ["jv"]
+probe = false

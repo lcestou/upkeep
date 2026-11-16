@@ -1,0 +1,8 @@
+# Drafted from OhMyGuus/BetterCrewLink's v3.2.2 release.
+[apps.better-crewlink]
+name = "Better-CrewLink"
+kind = "appimage"
+repo = "OhMyGuus/BetterCrewLink"
+asset = '^Better-CrewLink-.*\.AppImage$'
+dest = "~/.local/bin/better-crewlink.AppImage"
+meta_path = "bettercrewlink.desktop"

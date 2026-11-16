@@ -1,0 +1,9 @@
+# Drafted from aaif-goose/goose's v1.59.1 release.
+[apps.goose]
+name = "goose"
+kind = "archive"
+repo = "aaif-goose/goose"
+asset = '^goose-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^goose-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/goose"
+bins = ["goose"]

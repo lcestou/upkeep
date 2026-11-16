@@ -1,0 +1,10 @@
+# Drafted from koka-lang/koka's v3.2.9 release.
+[apps.koka]
+name = "koka"
+kind = "archive"
+repo = "koka-lang/koka"
+asset = '^koka-.*-linux-x64\.tar\.gz$'
+asset_aarch64 = '^koka-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/koka"
+folder = "~/.local/share/koka"
+bins = ["bin/koka"]

@@ -1,0 +1,9 @@
+# Drafted from operator-framework/operator-registry's v2.0.0-alpha-3 release.
+[apps.opm]
+name = "Operator Registry"
+kind = "file"
+repo = "operator-framework/operator-registry"
+asset = '^linux-amd64-opm$'
+asset_aarch64 = '^linux-arm64-opm$'
+dest = "~/.local/bin/opm"
+version_args = ["version"]

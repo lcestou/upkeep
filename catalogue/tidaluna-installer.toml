@@ -1,0 +1,8 @@
+# Drafted from jxnxsdev/TidaLuna-Installer's v3.0.18 release; its version is the one Upkeep installed.
+[apps.tidaluna-installer]
+name = "TidaLuna Installer"
+kind = "appimage"
+repo = "jxnxsdev/TidaLuna-Installer"
+asset = '^installer-linux-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/tidaluna-installer.AppImage"
+probe = false

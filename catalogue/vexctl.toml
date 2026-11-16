@@ -1,0 +1,9 @@
+# Drafted from openvex/vexctl's v0.4.4 release.
+[apps.vexctl]
+name = "vexctl"
+kind = "file"
+repo = "openvex/vexctl"
+asset = '^vexctl-linux-amd64$'
+asset_aarch64 = '^vexctl-linux-arm64$'
+dest = "~/.local/bin/vexctl"
+version_args = ["version"]

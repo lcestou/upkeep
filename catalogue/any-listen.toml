@@ -1,0 +1,9 @@
+# Drafted from any-listen/any-listen-desktop's v0.10.0 release.
+[apps.any-listen]
+name = "Any Listen Desktop"
+kind = "appimage"
+repo = "any-listen/any-listen-desktop"
+asset = '^any-listen_.*_x86_64\.AppImage$'
+asset_aarch64 = '^any-listen_.*_arm64\.AppImage$'
+dest = "~/.local/bin/any-listen.AppImage"
+meta_path = "any-listen.desktop"

@@ -1,0 +1,9 @@
+# Drafted from a8m/envsubst's v1.4.3 release; its version is the one Upkeep installed.
+[apps.envsubst]
+name = "envsubst"
+kind = "file"
+repo = "a8m/envsubst"
+asset = '^envsubst-Linux-x86_64$'
+asset_aarch64 = '^envsubst-Linux-arm64$'
+dest = "~/.local/bin/envsubst"
+probe = false

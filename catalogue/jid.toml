@@ -1,0 +1,9 @@
+# Drafted from simeji/jid's v1.1.3 release.
+[apps.jid]
+name = "jid"
+kind = "archive"
+repo = "simeji/jid"
+asset = '^jid_linux_amd64\.zip$'
+asset_aarch64 = '^jid_linux_arm64\.zip$'
+dest = "~/.local/bin/jid"
+bins = ["jid"]

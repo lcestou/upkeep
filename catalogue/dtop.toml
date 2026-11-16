@@ -1,0 +1,9 @@
+# Drafted from amir20/dtop's v0.11.1 release.
+[apps.dtop]
+name = "dtop"
+kind = "archive"
+repo = "amir20/dtop"
+asset = '^dtop-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^dtop-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/dtop"
+bins = ["dtop-x86_64-unknown-linux-gnu/dtop"]

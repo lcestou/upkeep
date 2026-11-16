@@ -1,0 +1,9 @@
+# Drafted from Yakitrak/notesmd-cli's v0.3.8 release.
+[apps.notesmd-cli]
+name = "Notesmd Cli"
+kind = "archive"
+repo = "Yakitrak/notesmd-cli"
+asset = '^notesmd-cli_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^notesmd-cli_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/notesmd-cli"
+bins = ["notesmd-cli"]

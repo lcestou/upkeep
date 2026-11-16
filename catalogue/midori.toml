@@ -1,0 +1,8 @@
+# Drafted from goastian/midori-desktop's v11.9.1 release.
+[apps.midori]
+name = "Midori"
+kind = "appimage"
+repo = "goastian/midori-desktop"
+asset = '^Midori-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/midori.AppImage"
+meta_path = "midori.desktop"

@@ -1,0 +1,9 @@
+# Drafted from aardappel/treesheets's v2.23.11 release.
+[apps.treesheets]
+name = "TreeSheets"
+kind = "appimage"
+repo = "aardappel/treesheets"
+asset = '^TreeSheets-.*-x86_64\.AppImage$'
+asset_aarch64 = '^TreeSheets-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/treesheets.AppImage"
+meta_path = "com.strlen.TreeSheets.desktop"

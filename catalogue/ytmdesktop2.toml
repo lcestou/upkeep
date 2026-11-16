@@ -1,0 +1,8 @@
+# Drafted from Venipa/ytmdesktop2's v1.8.6 release.
+[apps.ytmdesktop2]
+name = "YouTube-Music-for-Desktop"
+kind = "appimage"
+repo = "Venipa/ytmdesktop2"
+asset = '^YouTube-Music-for-Desktop-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/ytmdesktop2.AppImage"
+meta_path = "net.venipa.ytmdesktop.desktop"

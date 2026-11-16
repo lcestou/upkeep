@@ -1,0 +1,8 @@
+# Drafted from RongleCat/grok-app's v0.2.51 release; its version is the one Upkeep installed.
+[apps.grok]
+name = "Grok"
+kind = "appimage"
+repo = "RongleCat/grok-app"
+asset = '^Grok_linux_x64\.AppImage$'
+dest = "~/.local/bin/grok.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from solemnwarning/rehex's 0.64.0 release; its version is the one Upkeep installed.
+[apps.rehex-win]
+name = "rehex"
+kind = "appimage"
+repo = "solemnwarning/rehex"
+asset = '^rehex-.*-linux-generic-x86_64\.AppImage$'
+dest = "~/.local/bin/rehex-win.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from bjornbytes/lovr's v0.19.1 release; its version is the one Upkeep installed.
+[apps.lovr]
+name = "lovr"
+kind = "appimage"
+repo = "bjornbytes/lovr"
+asset = '^lovr-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/lovr.AppImage"
+probe = false

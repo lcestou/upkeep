@@ -1,0 +1,9 @@
+# Drafted from bojand/ghz's v0.121.0 release.
+[apps.ghz]
+name = "ghz"
+kind = "archive"
+repo = "bojand/ghz"
+asset = '^ghz-linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^ghz-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/ghz"
+bins = ["ghz", "ghz-web"]

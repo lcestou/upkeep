@@ -1,0 +1,9 @@
+# Drafted from axodotdev/cargo-dist's v0.34.0 release.
+[apps.dist]
+name = "Cargo Dist"
+kind = "archive"
+repo = "axodotdev/cargo-dist"
+asset = '^cargo-dist-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^cargo-dist-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/dist"
+bins = ["cargo-dist-x86_64-unknown-linux-gnu/dist"]

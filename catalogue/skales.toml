@@ -1,0 +1,8 @@
+# Drafted from skalesapp/skales's v12.9.65 release.
+[apps.skales]
+name = "Skales"
+kind = "appimage"
+repo = "skalesapp/skales"
+asset = '^Skales-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/skales.AppImage"
+meta_path = "skales.desktop"

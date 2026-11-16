@@ -1,0 +1,10 @@
+# Drafted from dtan4/k8sec's v0.9.0 release.
+[apps.k8sec]
+name = "k8sec"
+kind = "archive"
+repo = "dtan4/k8sec"
+asset = '^k8sec_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^k8sec_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/k8sec"
+bins = ["k8sec"]
+version_args = ["version"]

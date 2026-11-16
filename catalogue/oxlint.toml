@@ -1,0 +1,9 @@
+# Drafted from oxc-project/oxc's oxlint_v1.93.0 release.
+[apps.oxlint]
+name = "oxc"
+kind = "archive"
+repo = "oxc-project/oxc"
+asset = '^oxlint-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^oxlint-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/oxlint"
+bins = ["oxlint*"]

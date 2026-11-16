@@ -1,0 +1,10 @@
+# Drafted from Canop/broot's v1.62.0 release; its version is the one Upkeep installed.
+[apps.broot]
+name = "broot"
+kind = "archive"
+repo = "Canop/broot"
+asset = '^broot_.*\.zip$'
+dest = "~/.local/bin/broot"
+folder = "~/.local/share/broot"
+bins = ["aarch64-unknown-linux-gnu/broot", "aarch64-unknown-linux-musl/broot", "armv7-unknown-linux-gnueabihf/broot", "armv7-unknown-linux-musleabi/broot", "x86_64-linux-android/broot", "x86_64-unknown-linux-gnu.2.28/broot"]
+probe = false

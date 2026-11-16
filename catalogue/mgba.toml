@@ -1,0 +1,9 @@
+# Drafted from mgba-emu/mgba's 0.10.5 release; its version is the one Upkeep installed.
+[apps.mgba]
+name = "mGBA"
+kind = "appimage"
+repo = "mgba-emu/mgba"
+asset = '^mGBA-.*-appimage-x64\.appimage$'
+asset_aarch64 = '^mGBA-.*-appimage-arm64\.appimage$'
+dest = "~/.local/bin/mgba.AppImage"
+probe = false

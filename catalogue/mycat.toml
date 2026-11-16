@@ -1,0 +1,8 @@
+# Drafted from yumiaura/myCat's 0.1.38 release.
+[apps.mycat]
+name = "MyCat"
+kind = "appimage"
+repo = "yumiaura/myCat"
+asset = '^mycat-x86_64\.AppImage$'
+dest = "~/.local/bin/mycat.AppImage"
+meta_path = "usr/share/metainfo/io.github.yumiaura.myCat.metainfo.xml"

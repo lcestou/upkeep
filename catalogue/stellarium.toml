@@ -1,0 +1,8 @@
+# Drafted from Stellarium/stellarium's v26.3 release; its version is the one Upkeep installed.
+[apps.stellarium]
+name = "Stellarium-qt5"
+kind = "appimage"
+repo = "Stellarium/stellarium"
+asset = '^Stellarium-.*-qt5-x86_64\.AppImage$'
+dest = "~/.local/bin/stellarium.AppImage"
+probe = false

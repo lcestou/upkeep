@@ -1,0 +1,7 @@
+# Drafted from kahing/goofys's v0.24.0 release.
+[apps.goofys]
+name = "goofys"
+kind = "file"
+repo = "kahing/goofys"
+asset = '^goofys$'
+dest = "~/.local/bin/goofys"

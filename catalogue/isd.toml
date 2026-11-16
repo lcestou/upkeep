@@ -1,0 +1,9 @@
+# Drafted from kainctl/isd's v0.6.3 release; its version is the one Upkeep installed.
+[apps.isd]
+name = "isd"
+kind = "appimage"
+repo = "kainctl/isd"
+asset = '^isd\.x86_64-linux\.AppImage$'
+asset_aarch64 = '^isd\.aarch64-linux\.AppImage$'
+dest = "~/.local/bin/isd.AppImage"
+probe = false

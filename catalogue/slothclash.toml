@@ -1,0 +1,9 @@
+# Drafted from Nemu-x/SlothClash's v0.10.1 release.
+[apps.slothclash]
+name = "SlothClash"
+kind = "appimage"
+repo = "Nemu-x/SlothClash"
+asset = '^SlothClash-x86_64\.AppImage$'
+asset_aarch64 = '^SlothClash-aarch64\.AppImage$'
+dest = "~/.local/bin/slothclash.AppImage"
+meta_path = "sloth-clash.desktop"

@@ -1,0 +1,8 @@
+# Drafted from devsy-org/devsy's v1.27.0 release.
+[apps.devsy]
+name = "Devsy"
+kind = "appimage"
+repo = "devsy-org/devsy"
+asset = '^Devsy_linux_x86_64\.AppImage$'
+dest = "~/.local/bin/devsy.AppImage"
+meta_path = "sh.devsy.app.desktop"

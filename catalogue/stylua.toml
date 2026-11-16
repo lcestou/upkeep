@@ -1,0 +1,9 @@
+# Drafted from JohnnyMorganz/StyLua's v2.6.0 release.
+[apps.stylua]
+name = "StyLua"
+kind = "archive"
+repo = "JohnnyMorganz/StyLua"
+asset = '^stylua-linux-x86_64-musl\.zip$'
+asset_aarch64 = '^stylua-linux-aarch64-musl\.zip$'
+dest = "~/.local/bin/stylua"
+bins = ["stylua"]

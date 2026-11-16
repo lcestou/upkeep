@@ -1,0 +1,9 @@
+# Drafted from mysteryx93/HanumanInstituteApps's v3.5.2 release.
+[apps.player432hz]
+name = "Player432Hz"
+kind = "appimage"
+repo = "mysteryx93/HanumanInstituteApps"
+asset = '^Player432Hz-.*_Linux_x64\.AppImage$'
+asset_aarch64 = '^Player432Hz-.*_Linux_arm64\.AppImage$'
+dest = "~/.local/bin/player432hz.AppImage"
+meta_path = "player432hz.desktop"

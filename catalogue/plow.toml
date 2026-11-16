@@ -1,0 +1,9 @@
+# Drafted from six-ddc/plow's v1.4.0 release.
+[apps.plow]
+name = "plow"
+kind = "archive"
+repo = "six-ddc/plow"
+asset = '^plow_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^plow_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/plow"
+bins = ["plow"]

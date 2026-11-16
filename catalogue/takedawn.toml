@@ -1,0 +1,8 @@
+# Drafted from xenophobentx/takedawn's v0.3.1 release; its version is the one Upkeep installed.
+[apps.takedawn]
+name = "Takedawn"
+kind = "appimage"
+repo = "xenophobentx/takedawn"
+asset = '^Takedawn-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/takedawn.AppImage"
+probe = false

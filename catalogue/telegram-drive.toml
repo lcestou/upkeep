@@ -1,0 +1,8 @@
+# Drafted from caamer20/Telegram-Drive's v4.1.5 release; its version is the one Upkeep installed.
+[apps.telegram-drive]
+name = "Telegram-Drive"
+kind = "appimage"
+repo = "caamer20/Telegram-Drive"
+asset = '^Telegram\.Drive_.*_amd64\.AppImage$'
+dest = "~/.local/bin/telegram-drive.AppImage"
+probe = false

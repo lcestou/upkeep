@@ -1,0 +1,10 @@
+# Drafted from kyma-project/cli's 3.5.0 release.
+[apps.kyma]
+name = "Kyma Project"
+kind = "archive"
+repo = "kyma-project/cli"
+asset = '^kyma_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^kyma_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kyma"
+bins = ["kyma"]
+version_args = ["version"]

@@ -1,0 +1,8 @@
+# Drafted from perarnia/fSpy's v1.0.3 release.
+[apps.fspy]
+name = "FSpy"
+kind = "appimage"
+repo = "perarnia/fSpy"
+asset = '^fspy-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/fspy.AppImage"
+meta_path = "fspy.desktop"

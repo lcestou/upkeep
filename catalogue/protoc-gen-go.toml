@@ -1,0 +1,9 @@
+# Drafted from protocolbuffers/protobuf-go's v1.36.12 release.
+[apps.protoc-gen-go]
+name = "Protobuf Go"
+kind = "archive"
+repo = "protocolbuffers/protobuf-go"
+asset = '^protoc-gen-go\..*\.linux\.amd64\.tar\.gz$'
+asset_aarch64 = '^protoc-gen-go\..*\.linux\.arm64\.tar\.gz$'
+dest = "~/.local/bin/protoc-gen-go"
+bins = ["protoc-gen-go"]

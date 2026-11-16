@@ -1,0 +1,8 @@
+# Drafted from Lexus2016/claude-code-studio's v8.1.0 release.
+[apps.claude-code-studio]
+name = "Claude Code Studio"
+kind = "appimage"
+repo = "Lexus2016/claude-code-studio"
+asset = '^claude-code-studio-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/claude-code-studio.AppImage"
+meta_path = "claude-code-studio.desktop"

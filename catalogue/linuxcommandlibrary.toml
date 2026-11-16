@@ -1,0 +1,8 @@
+# Drafted from SimonSchubert/LinuxCommandLibrary's v4.9.2 release; its version is the one Upkeep installed.
+[apps.linuxcommandlibrary]
+name = "LinuxCommandLibrary"
+kind = "appimage"
+repo = "SimonSchubert/LinuxCommandLibrary"
+asset = '^LinuxCommandLibrary-.*-linux\.AppImage$'
+dest = "~/.local/bin/linuxcommandlibrary.AppImage"
+probe = false

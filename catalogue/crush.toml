@@ -1,0 +1,10 @@
+# Drafted from charmbracelet/crush's v0.101.0 release.
+[apps.crush]
+name = "crush"
+kind = "archive"
+repo = "charmbracelet/crush"
+asset = '^crush_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^crush_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/crush"
+folder = "~/.local/share/crush"
+bins = ["crush"]

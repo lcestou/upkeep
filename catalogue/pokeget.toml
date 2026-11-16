@@ -1,0 +1,9 @@
+# Drafted from talwat/pokeget-rs's 1.6.7 release.
+[apps.pokeget]
+name = "Pokeget Rs"
+kind = "archive"
+repo = "talwat/pokeget-rs"
+asset = '^pokeget-Linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^pokeget-Linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/pokeget"
+bins = ["pokeget"]

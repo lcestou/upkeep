@@ -1,0 +1,10 @@
+# Drafted from busser/murmur's v0.7.0 release; its version is the one Upkeep installed.
+[apps.murmur]
+name = "murmur"
+kind = "archive"
+repo = "busser/murmur"
+asset = '^murmur_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^murmur_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/murmur"
+bins = ["murmur"]
+probe = false

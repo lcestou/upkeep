@@ -1,0 +1,8 @@
+# Drafted from mtgatool/mtgatool-desktop's v7.2.4 release.
+[apps.mtgatool-desktop]
+name = "Mtgatool Desktop"
+kind = "appimage"
+repo = "mtgatool/mtgatool-desktop"
+asset = '^mtgatool-desktop-.*\.AppImage$'
+dest = "~/.local/bin/mtgatool-desktop.AppImage"
+meta_path = "mtgatool-desktop.desktop"

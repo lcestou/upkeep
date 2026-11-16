@@ -1,0 +1,8 @@
+# Drafted from karansinghgit/speaktype's v2.0.0 release; its version is the one Upkeep installed.
+[apps.speaktype]
+name = "SpeakType"
+kind = "appimage"
+repo = "karansinghgit/speaktype"
+asset = '^SpeakType_.*_amd64\.AppImage$'
+dest = "~/.local/bin/speaktype.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from since2006/shell-rs's v0.1.19 release.
+[apps.shellrs]
+name = "ShellRS"
+kind = "appimage"
+repo = "since2006/shell-rs"
+asset = '^ShellRS-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/shellrs.AppImage"
+meta_path = "shellrs.desktop"

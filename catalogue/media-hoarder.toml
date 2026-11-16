@@ -1,0 +1,8 @@
+# Drafted from theMK2k/Media-Hoarder's v1.5.5 release.
+[apps.media-hoarder]
+name = "Media Hoarder"
+kind = "appimage"
+repo = "theMK2k/Media-Hoarder"
+asset = '^media-hoarder-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/media-hoarder.AppImage"
+meta_path = "media-hoarder.desktop"

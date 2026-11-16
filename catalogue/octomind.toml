@@ -1,0 +1,9 @@
+# Drafted from Muvon/octomind's 0.71.0 release.
+[apps.octomind]
+name = "octomind"
+kind = "archive"
+repo = "Muvon/octomind"
+asset = '^octomind-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^octomind-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/octomind"
+bins = ["octomind"]

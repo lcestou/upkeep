@@ -1,0 +1,8 @@
+# Drafted from opensteno/plover's v5.4.2 release.
+[apps.plover]
+name = "plover"
+kind = "appimage"
+repo = "opensteno/plover"
+asset = '^plover-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/plover.AppImage"
+meta_path = "plover.desktop"

@@ -1,0 +1,7 @@
+# Drafted from streamdal/plumber's v2.9.0 release.
+[apps.plumber]
+name = "plumber"
+kind = "file"
+repo = "streamdal/plumber"
+asset = '^plumber-linux$'
+dest = "~/.local/bin/plumber"

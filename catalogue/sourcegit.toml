@@ -1,0 +1,9 @@
+# Drafted from sourcegit-scm/sourcegit's v2026.24 release.
+[apps.sourcegit]
+name = "sourcegit"
+kind = "appimage"
+repo = "sourcegit-scm/sourcegit"
+asset = '^sourcegit-.*\.linux\.amd64\.AppImage$'
+asset_aarch64 = '^sourcegit-.*\.linux\.arm64\.AppImage$'
+dest = "~/.local/bin/sourcegit.AppImage"
+meta_path = "com.sourcegit_scm.SourceGit.desktop"

@@ -1,0 +1,9 @@
+# Drafted from mq1/TinyWiiBackupManager's v6.2.0 release.
+[apps.tinywiibackupmanager]
+name = "TinyWiiBackupManager"
+kind = "appimage"
+repo = "mq1/TinyWiiBackupManager"
+asset = '^TinyWiiBackupManager-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^TinyWiiBackupManager-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/tinywiibackupmanager.AppImage"
+meta_path = "it.mq1.TinyWiiBackupManager.desktop"

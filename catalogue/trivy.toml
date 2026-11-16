@@ -1,0 +1,8 @@
+# Drafted from aquasecurity/trivy's v0.76.2 release.
+[apps.trivy]
+name = "trivy"
+kind = "archive"
+repo = "aquasecurity/trivy"
+asset = '^trivy_.*_Linux-64bit\.tar\.gz$'
+dest = "~/.local/bin/trivy"
+bins = ["trivy"]

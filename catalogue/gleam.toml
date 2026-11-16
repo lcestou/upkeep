@@ -1,0 +1,9 @@
+# Drafted from gleam-lang/gleam's v1.19.2 release.
+[apps.gleam]
+name = "gleam"
+kind = "archive"
+repo = "gleam-lang/gleam"
+asset = '^gleam-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^gleam-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/gleam"
+bins = ["gleam"]

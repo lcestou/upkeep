@@ -1,0 +1,8 @@
+# Drafted from Parallel-7/FlashForgeUI-Electron's v1.0.5 release.
+[apps.flashforgeui]
+name = "FlashForgeUI"
+kind = "appimage"
+repo = "Parallel-7/FlashForgeUI-Electron"
+asset = '^FlashForgeUI-.*\.AppImage$'
+dest = "~/.local/bin/flashforgeui.AppImage"
+meta_path = "FlashForgeUI.desktop"

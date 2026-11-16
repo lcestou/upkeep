@@ -1,0 +1,8 @@
+# Drafted from ikanago/omekasy's v1.3.3 release.
+[apps.omekasy]
+name = "omekasy"
+kind = "archive"
+repo = "ikanago/omekasy"
+asset = '^omekasy-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/omekasy"
+bins = ["archive/omekasy"]

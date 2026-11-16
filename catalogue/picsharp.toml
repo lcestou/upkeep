@@ -1,0 +1,9 @@
+# Drafted from AkiraBit/PicSharp's v2.2.7 release; its version is the one Upkeep installed.
+[apps.picsharp]
+name = "PicSharp"
+kind = "appimage"
+repo = "AkiraBit/PicSharp"
+asset = '^PicSharp_.*_amd64\.AppImage$'
+asset_aarch64 = '^PicSharp_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/picsharp.AppImage"
+probe = false

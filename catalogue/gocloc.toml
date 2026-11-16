@@ -1,0 +1,9 @@
+# Drafted from hhatto/gocloc's v0.7.0 release.
+[apps.gocloc]
+name = "gocloc"
+kind = "archive"
+repo = "hhatto/gocloc"
+asset = '^gocloc_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^gocloc_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gocloc"
+bins = ["gocloc"]

@@ -1,0 +1,8 @@
+# Drafted from linshenkx/prompt-optimizer's v2.15.2 release.
+[apps.promptoptimizer]
+name = "PromptOptimizer"
+kind = "appimage"
+repo = "linshenkx/prompt-optimizer"
+asset = '^PromptOptimizer-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/promptoptimizer.AppImage"
+meta_path = "PromptOptimizer.desktop"

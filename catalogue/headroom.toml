@@ -1,0 +1,8 @@
+# Drafted from gglucass/headroom-desktop's v0.9.62 release; its version is the one Upkeep installed.
+[apps.headroom]
+name = "Headroom"
+kind = "appimage"
+repo = "gglucass/headroom-desktop"
+asset = '^Headroom_.*_amd64\.AppImage$'
+dest = "~/.local/bin/headroom.AppImage"
+probe = false

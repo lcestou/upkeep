@@ -1,0 +1,8 @@
+# Drafted from drawpile/Drawpile's 2.3.1 release.
+[apps.drawpile]
+name = "Drawpile"
+kind = "appimage"
+repo = "drawpile/Drawpile"
+asset = '^Drawpile-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/drawpile.AppImage"
+meta_path = "net.drawpile.drawpile.desktop"

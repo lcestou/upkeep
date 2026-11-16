@@ -1,0 +1,9 @@
+# Drafted from openai/codex's rust-v0.169.0 release.
+[apps.codex]
+name = "codex"
+kind = "archive"
+repo = "openai/codex"
+asset = '^codex-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^codex-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/codex"
+bins = ["codex*"]

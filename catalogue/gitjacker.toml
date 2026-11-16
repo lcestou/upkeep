@@ -1,0 +1,8 @@
+# Drafted from liamg/gitjacker's v0.1.0 release.
+[apps.gitjacker]
+name = "gitjacker"
+kind = "file"
+repo = "liamg/gitjacker"
+asset = '^gitjacker-linux-amd64$'
+dest = "~/.local/bin/gitjacker"
+version_args = ["version"]

@@ -1,0 +1,11 @@
+# Drafted from mattn/efm-langserver's v0.0.57 release.
+[apps.efm-langserver]
+name = "Efm Langserver"
+kind = "archive"
+repo = "mattn/efm-langserver"
+asset = '^efm-langserver_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^efm-langserver_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/efm-langserver"
+folder = "~/.local/share/efm-langserver"
+bins = ["efm-langserver"]
+version_args = ["-v"]

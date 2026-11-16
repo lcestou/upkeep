@@ -1,0 +1,9 @@
+# Drafted from tombi-toml/tombi's v1.11.2 release.
+[apps.tombi]
+name = "tombi"
+kind = "archive"
+repo = "tombi-toml/tombi"
+asset = '^tombi-cli-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^tombi-cli-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/tombi"
+bins = ["tombi-cli-1.11.2-x86_64-unknown-linux-musl/tombi"]

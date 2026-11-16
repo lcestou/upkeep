@@ -1,0 +1,9 @@
+# Drafted from jorgerojas26/lazysql's v0.7.0 release.
+[apps.lazysql]
+name = "lazysql"
+kind = "archive"
+repo = "jorgerojas26/lazysql"
+asset = '^lazysql_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^lazysql_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/lazysql"
+bins = ["lazysql"]

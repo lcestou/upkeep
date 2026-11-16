@@ -1,0 +1,9 @@
+# Drafted from CherryHQ/cherry-studio's v2.2.2 release.
+[apps.cherry-studio]
+name = "Cherry-Studio"
+kind = "appimage"
+repo = "CherryHQ/cherry-studio"
+asset = '^Cherry-Studio-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^Cherry-Studio-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/cherry-studio.AppImage"
+meta_path = "CherryStudio.desktop"

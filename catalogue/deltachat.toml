@@ -1,0 +1,9 @@
+# Drafted from deltachat/deltachat-desktop's v2.65.0 release.
+[apps.deltachat]
+name = "DeltaChat"
+kind = "appimage"
+repo = "deltachat/deltachat-desktop"
+asset = '^DeltaChat-.*-x86_64\.AppImage$'
+asset_aarch64 = '^DeltaChat-.*-arm64\.AppImage$'
+dest = "~/.local/bin/deltachat.AppImage"
+meta_path = "deltachat-desktop.desktop"

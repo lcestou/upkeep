@@ -1,0 +1,11 @@
+# Drafted from maxpert/marmot's v2.8.0 release; its version is the one Upkeep installed.
+[apps.marmot]
+name = "marmot"
+kind = "archive"
+repo = "maxpert/marmot"
+asset = '^marmot-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^marmot-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/marmot"
+folder = "~/.local/share/marmot"
+bins = ["marmot"]
+probe = false

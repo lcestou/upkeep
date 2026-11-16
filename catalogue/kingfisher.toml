@@ -1,0 +1,10 @@
+# Drafted from mongodb/kingfisher's v2.18.1 release.
+[apps.kingfisher]
+name = "kingfisher"
+kind = "archive"
+repo = "mongodb/kingfisher"
+asset = '^kingfisher-linux-x64\.tgz$'
+asset_aarch64 = '^kingfisher-linux-arm64\.tgz$'
+dest = "~/.local/bin/kingfisher"
+folder = "~/.local/share/kingfisher"
+bins = ["kingfisher"]

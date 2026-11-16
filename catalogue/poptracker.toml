@@ -1,0 +1,8 @@
+# Drafted from black-sliver/PopTracker's v0.36.0 release.
+[apps.poptracker]
+name = "PopTracker"
+kind = "appimage"
+repo = "black-sliver/PopTracker"
+asset = '^PopTracker-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/poptracker.AppImage"
+meta_path = "com.evermizer.poptracker.desktop"

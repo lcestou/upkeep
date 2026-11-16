@@ -1,0 +1,9 @@
+# Drafted from qr243vbi/nekobox's 5.11.28.3 release; its version is the one Upkeep installed.
+[apps.nekobox]
+name = "nekobox"
+kind = "appimage"
+repo = "qr243vbi/nekobox"
+asset = '^nekobox-.*-x86_64-linux\.AppImage$'
+asset_aarch64 = '^nekobox-.*-aarch64-linux\.AppImage$'
+dest = "~/.local/bin/nekobox.AppImage"
+probe = false

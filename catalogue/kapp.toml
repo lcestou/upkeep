@@ -1,0 +1,8 @@
+# Drafted from carvel-dev/kapp's v0.66.2 release.
+[apps.kapp]
+name = "kapp"
+kind = "file"
+repo = "carvel-dev/kapp"
+asset = '^kapp-linux-amd64$'
+asset_aarch64 = '^kapp-linux-arm64$'
+dest = "~/.local/bin/kapp"

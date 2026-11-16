@@ -1,0 +1,8 @@
+# Drafted from babashka/babashka's v1.13.229 release.
+[apps.babashka]
+name = "babashka"
+kind = "archive"
+repo = "babashka/babashka"
+asset = '^babashka-.*-linux-amd64\.tar\.gz$'
+dest = "~/.local/bin/bb"
+bins = ["bb"]

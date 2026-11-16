@@ -1,0 +1,8 @@
+# Drafted from github/git-sizer's v1.6.0 release.
+[apps.git-sizer]
+name = "Git Sizer"
+kind = "archive"
+repo = "github/git-sizer"
+asset = '^git-sizer-.*-linux-amd64\.zip$'
+dest = "~/.local/bin/git-sizer"
+bins = ["git-sizer"]

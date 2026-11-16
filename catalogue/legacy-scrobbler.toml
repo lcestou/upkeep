@@ -1,0 +1,8 @@
+# Drafted from wistoff/legacy-scrobbler's v1.0.7 release.
+[apps.legacy-scrobbler]
+name = "Legacy-Scrobbler"
+kind = "appimage"
+repo = "wistoff/legacy-scrobbler"
+asset = '^Legacy\.Scrobbler-.*-x64\.AppImage$'
+dest = "~/.local/bin/legacy-scrobbler.AppImage"
+meta_path = "Legacy Scrobbler.desktop"

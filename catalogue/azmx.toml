@@ -1,0 +1,9 @@
+# Drafted from AzmxAI/azmx's v0.69.44 release; its version is the one Upkeep installed.
+[apps.azmx]
+name = "AZMX"
+kind = "appimage"
+repo = "AzmxAI/azmx"
+asset = '^AZMX_.*_amd64\.AppImage$'
+asset_aarch64 = '^AZMX_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/azmx.AppImage"
+probe = false

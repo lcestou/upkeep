@@ -1,0 +1,8 @@
+# Drafted from nikkiluzader/mapng's v0.3.2 release.
+[apps.mapng]
+name = "MapNG"
+kind = "appimage"
+repo = "nikkiluzader/mapng"
+asset = '^MapNG-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/mapng.AppImage"
+meta_path = "mapng-desktop.desktop"

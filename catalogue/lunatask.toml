@@ -1,0 +1,8 @@
+# Drafted from lunatask/lunatask's v2.1.29 release.
+[apps.lunatask]
+name = "Lunatask"
+kind = "appimage"
+repo = "lunatask/lunatask"
+asset = '^Lunatask-.*\.AppImage$'
+dest = "~/.local/bin/lunatask.AppImage"
+meta_path = "lunatask.desktop"

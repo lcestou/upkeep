@@ -1,0 +1,8 @@
+# Drafted from leozide/leocad's v26.09 release.
+[apps.leocad]
+name = "LeoCAD"
+kind = "appimage"
+repo = "leozide/leocad"
+asset = '^LeoCAD-Linux-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/leocad.AppImage"
+meta_path = "usr/share/metainfo/leocad.appdata.xml"

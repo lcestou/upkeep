@@ -1,0 +1,9 @@
+# Drafted from httptoolkit/httptoolkit-desktop's v1.27.4 release.
+[apps.httptoolkit]
+name = "HttpToolkit"
+kind = "appimage"
+repo = "httptoolkit/httptoolkit-desktop"
+asset = '^HttpToolkit-.*-x64\.AppImage$'
+asset_aarch64 = '^HttpToolkit-.*-arm64\.AppImage$'
+dest = "~/.local/bin/httptoolkit.AppImage"
+meta_path = "httptoolkit.desktop"

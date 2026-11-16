@@ -1,0 +1,8 @@
+# Drafted from ahpxex/Aictionary's v3.6.0 release; its version is the one Upkeep installed.
+[apps.aictionary]
+name = "Aictionary"
+kind = "appimage"
+repo = "ahpxex/Aictionary"
+asset = '^Aictionary-.*_linux_x86_64\.AppImage$'
+dest = "~/.local/bin/aictionary.AppImage"
+probe = false

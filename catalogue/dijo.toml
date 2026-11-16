@@ -1,0 +1,7 @@
+# Drafted from oppiliappan/dijo's v0.2.7 release.
+[apps.dijo]
+name = "dijo"
+kind = "file"
+repo = "oppiliappan/dijo"
+asset = '^dijo-x86_64-linux$'
+dest = "~/.local/bin/dijo"

@@ -1,0 +1,9 @@
+# Drafted from javinizer/javinizer-go's v1.6.6 release; its version is the one Upkeep installed.
+[apps.javinizer]
+name = "Javinizer Go"
+kind = "appimage"
+repo = "javinizer/javinizer-go"
+asset = '^javinizer-desktop-linux-x86_64\.AppImage$'
+asset_aarch64 = '^javinizer-desktop-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/javinizer.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from kasper9n/kadium's v1.8.1 release; its version is the one Upkeep installed.
+[apps.kadium]
+name = "Kadium"
+kind = "appimage"
+repo = "kasper9n/kadium"
+asset = '^Kadium_.*_amd64\.AppImage$'
+dest = "~/.local/bin/kadium.AppImage"
+probe = false

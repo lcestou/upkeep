@@ -1,0 +1,9 @@
+# Drafted from SabakiHQ/Sabaki's v0.60.0 release.
+[apps.sabaki]
+name = "Sabaki"
+kind = "appimage"
+repo = "SabakiHQ/Sabaki"
+asset = '^sabaki-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^sabaki-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/sabaki.AppImage"
+meta_path = "sabaki.desktop"

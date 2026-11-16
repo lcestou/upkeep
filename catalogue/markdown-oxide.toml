@@ -1,0 +1,9 @@
+# Drafted from Feel-ix-343/markdown-oxide's v0.25.12 release.
+[apps.markdown-oxide]
+name = "Markdown Oxide"
+kind = "archive"
+repo = "Feel-ix-343/markdown-oxide"
+asset = '^markdown-oxide-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^markdown-oxide-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/markdown-oxide"
+bins = ["markdown-oxide-v0.25.12-x86_64-unknown-linux-gnu/markdown-oxide"]

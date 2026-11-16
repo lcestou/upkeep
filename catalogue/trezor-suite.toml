@@ -1,0 +1,9 @@
+# Drafted from trezor/trezor-suite's v26.10.3 release.
+[apps.trezor-suite]
+name = "Trezor-Suite"
+kind = "appimage"
+repo = "trezor/trezor-suite"
+asset = '^Trezor-Suite-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Trezor-Suite-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/trezor-suite.AppImage"
+meta_path = "trezor-suite.desktop"

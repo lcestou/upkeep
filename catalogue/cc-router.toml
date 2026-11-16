@@ -1,0 +1,9 @@
+# Drafted from finch-xu/cc-router's v6.7.0 release; its version is the one Upkeep installed.
+[apps.cc-router]
+name = "Cc Router"
+kind = "appimage"
+repo = "finch-xu/cc-router"
+asset = '^cc-router_linux-x64\.AppImage$'
+asset_aarch64 = '^cc-router_linux-arm64\.AppImage$'
+dest = "~/.local/bin/cc-router.AppImage"
+probe = false

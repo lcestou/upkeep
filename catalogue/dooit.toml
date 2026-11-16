@@ -1,0 +1,7 @@
+# Drafted from dooit-org/dooit's v3.3.4 release.
+[apps.dooit]
+name = "dooit"
+kind = "file"
+repo = "dooit-org/dooit"
+asset = '^linux-dooit$'
+dest = "~/.local/bin/dooit"

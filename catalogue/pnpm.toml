@@ -1,0 +1,10 @@
+# Drafted from pnpm/pnpm's v12.18.0 release.
+[apps.pnpm]
+name = "pnpm"
+kind = "archive"
+repo = "pnpm/pnpm"
+asset = '^pnpm-linux-x64-musl\.tar\.gz$'
+asset_aarch64 = '^pnpm-linux-arm64-musl\.tar\.gz$'
+dest = "~/.local/bin/pnpm"
+folder = "~/.local/share/pnpm"
+bins = ["pnpm"]

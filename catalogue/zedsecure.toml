@@ -1,0 +1,8 @@
+# Drafted from CluvexStudio/ZedSecure's v3.1.8 release; its version is the one Upkeep installed.
+[apps.zedsecure]
+name = "ZedSecure"
+kind = "appimage"
+repo = "CluvexStudio/ZedSecure"
+asset = '^ZedSecure-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/zedsecure.AppImage"
+probe = false

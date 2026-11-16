@@ -1,0 +1,8 @@
+# Drafted from mbezruchko/Snowhush's v0.13.2 release; its version is the one Upkeep installed.
+[apps.snowhush]
+name = "Snowhush"
+kind = "appimage"
+repo = "mbezruchko/Snowhush"
+asset = '^Snowhush-x86_64\.AppImage$'
+dest = "~/.local/bin/snowhush.AppImage"
+probe = false

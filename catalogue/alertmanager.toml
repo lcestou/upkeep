@@ -1,0 +1,10 @@
+# Drafted from prometheus/alertmanager's v0.35.0 release.
+[apps.alertmanager]
+name = "alertmanager"
+kind = "archive"
+repo = "prometheus/alertmanager"
+asset = '^alertmanager-.*\.linux-amd64\.tar\.gz$'
+asset_aarch64 = '^alertmanager-.*\.linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/alertmanager"
+folder = "~/.local/share/alertmanager"
+bins = ["alertmanager"]

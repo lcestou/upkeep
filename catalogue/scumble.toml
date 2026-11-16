@@ -1,0 +1,8 @@
+# Drafted from DenRakEiw/scumble's v0.1.55 release.
+[apps.scumble]
+name = "scumble"
+kind = "appimage"
+repo = "DenRakEiw/scumble"
+asset = '^scumble-.*\.AppImage$'
+dest = "~/.local/bin/scumble.AppImage"
+meta_path = "scumble.desktop"

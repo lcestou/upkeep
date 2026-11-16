@@ -1,0 +1,9 @@
+# Drafted from supernovae-st/nika's v0.124.4 release.
+[apps.nika]
+name = "nika"
+kind = "archive"
+repo = "supernovae-st/nika"
+asset = '^nika-linux-x64-.*\.tar\.gz$'
+asset_aarch64 = '^nika-linux-arm64-.*\.tar\.gz$'
+dest = "~/.local/bin/nika"
+bins = ["nika"]

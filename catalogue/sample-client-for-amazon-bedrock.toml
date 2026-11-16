@@ -1,0 +1,8 @@
+# Drafted from aws-samples/sample-client-for-amazon-bedrock's app-v1.2.7 release; its version is the one Upkeep installed.
+[apps.sample-client-for-amazon-bedrock]
+name = "Sample Client For Amazon Bedrock"
+kind = "appimage"
+repo = "aws-samples/sample-client-for-amazon-bedrock"
+asset = '^sample-client-for-amazon-bedrock_.*_amd64\.AppImage$'
+dest = "~/.local/bin/sample-client-for-amazon-bedrock.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from suzuki-shunsuke/ghalint's v1.6.0 release.
+[apps.ghalint]
+name = "ghalint"
+kind = "archive"
+repo = "suzuki-shunsuke/ghalint"
+asset = '^ghalint_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ghalint_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ghalint"
+bins = ["ghalint"]

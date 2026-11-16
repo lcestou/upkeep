@@ -1,0 +1,8 @@
+# Drafted from laurent512/opencalque's v1.9.0 release.
+[apps.opencalque]
+name = "OpenCalque"
+kind = "appimage"
+repo = "laurent512/opencalque"
+asset = '^OpenCalque-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/opencalque.AppImage"
+meta_path = "opencalque.desktop"

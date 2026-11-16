@@ -1,0 +1,8 @@
+# Drafted from Colorado-Mesh/mesh-client's v6.7.1 release.
+[apps.mesh-client]
+name = "Mesh-client"
+kind = "appimage"
+repo = "Colorado-Mesh/mesh-client"
+asset = '^Mesh-client-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/mesh-client.AppImage"
+meta_path = "mesh-client.desktop"

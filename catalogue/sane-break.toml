@@ -1,0 +1,8 @@
+# Drafted from AllanChain/sane-break's v0.10.7 release.
+[apps.sane-break]
+name = "Sane Break"
+kind = "appimage"
+repo = "AllanChain/sane-break"
+asset = '^sane-break-x86_64\.AppImage$'
+dest = "~/.local/bin/sane-break.AppImage"
+meta_path = "usr/share/metainfo/io.github.AllanChain.sane-break.appdata.xml"

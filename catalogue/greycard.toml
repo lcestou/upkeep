@@ -1,0 +1,8 @@
+# Drafted from jessolmstead/greycard's v0.11.0 release.
+[apps.greycard]
+name = "greycard"
+kind = "appimage"
+repo = "jessolmstead/greycard"
+asset = '^greycard-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/greycard.AppImage"
+meta_path = "greycard.desktop"

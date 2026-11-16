@@ -1,0 +1,9 @@
+# Drafted from wader/fq's v0.18.0 release.
+[apps.fq]
+name = "fq"
+kind = "archive"
+repo = "wader/fq"
+asset = '^fq_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^fq_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/fq"
+bins = ["fq"]

@@ -1,0 +1,8 @@
+# Drafted from RetGal/Dayon's v19.0.0 release.
+[apps.dayon]
+name = "Dayon"
+kind = "appimage"
+repo = "RetGal/Dayon"
+asset = '^dayon-x86_64\.AppImage$'
+dest = "~/.local/bin/dayon.AppImage"
+meta_path = "assisted.desktop"

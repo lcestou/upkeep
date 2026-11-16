@@ -1,0 +1,8 @@
+# Drafted from beltromatti/get-it's v1.4.0 release.
+[apps.get-it]
+name = "Get-It"
+kind = "appimage"
+repo = "beltromatti/get-it"
+asset = '^Get\.It-.*\.AppImage$'
+dest = "~/.local/bin/get-it.AppImage"
+meta_path = "get-it.desktop"

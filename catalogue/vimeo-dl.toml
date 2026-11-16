@@ -1,0 +1,9 @@
+# Drafted from akiomik/vimeo-dl's v0.3.2 release.
+[apps.vimeo-dl]
+name = "Vimeo Dl"
+kind = "archive"
+repo = "akiomik/vimeo-dl"
+asset = '^vimeo-dl_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^vimeo-dl_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/vimeo-dl"
+bins = ["vimeo-dl"]

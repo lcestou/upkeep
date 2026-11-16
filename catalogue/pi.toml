@@ -1,0 +1,10 @@
+# Drafted from earendil-works/pi's v1.5.2 release.
+[apps.pi]
+name = "pi"
+kind = "archive"
+repo = "earendil-works/pi"
+asset = '^pi-linux-x64\.tar\.gz$'
+asset_aarch64 = '^pi-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/pi"
+folder = "~/.local/share/pi"
+bins = ["pi"]

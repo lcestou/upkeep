@@ -1,0 +1,8 @@
+# Drafted from jjsvs/Hashcat-Reactor's v1.0.10 release.
+[apps.hashcat-reactor]
+name = "Hashcat-Reactor"
+kind = "appimage"
+repo = "jjsvs/Hashcat-Reactor"
+asset = '^Hashcat\.Reactor-.*\.AppImage$'
+dest = "~/.local/bin/hashcat-reactor.AppImage"
+meta_path = "hashcat-reactor.desktop"

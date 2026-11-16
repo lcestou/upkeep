@@ -1,0 +1,9 @@
+# Drafted from projectdiscovery/katana's v1.8.0 release.
+[apps.katana]
+name = "katana"
+kind = "archive"
+repo = "projectdiscovery/katana"
+asset = '^katana_.*_linux_amd64\.zip$'
+asset_aarch64 = '^katana_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/katana"
+bins = ["katana"]

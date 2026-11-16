@@ -1,0 +1,8 @@
+# Drafted from xplshn/dbin's 1.7 release.
+[apps.dbin]
+name = "dbin"
+kind = "file"
+repo = "xplshn/dbin"
+asset = '^dbin_amd64$'
+asset_aarch64 = '^dbin_arm64$'
+dest = "~/.local/bin/dbin"

@@ -1,0 +1,8 @@
+# Drafted from FreeLanguageTools/vocabsieve's v0.12.5 release; its version is the one Upkeep installed.
+[apps.vocabsieve]
+name = "VocabSieve"
+kind = "appimage"
+repo = "FreeLanguageTools/vocabsieve"
+asset = '^VocabSieve-.*-linux-amd64\.AppImage$'
+dest = "~/.local/bin/vocabsieve.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from trzsz/trzsz-go's v1.2.0 release.
+[apps.trzsz]
+name = "Trzsz Go"
+kind = "archive"
+repo = "trzsz/trzsz-go"
+asset = '^trzsz_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^trzsz_.*_linux_aarch64\.tar\.gz$'
+dest = "~/.local/bin/trzsz"
+bins = ["trzsz_1.2.0_linux_x86_64/trzsz", "trzsz_1.2.0_linux_x86_64/trz"]

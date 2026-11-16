@@ -1,0 +1,8 @@
+# Drafted from jeremyckahn/farmhand's 1.24.4 release.
+[apps.farmhand]
+name = "Farmhand"
+kind = "appimage"
+repo = "jeremyckahn/farmhand"
+asset = '^Farmhand-.*\.AppImage$'
+dest = "~/.local/bin/farmhand.AppImage"
+meta_path = "farmhand.desktop"

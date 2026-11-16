@@ -1,0 +1,8 @@
+# Drafted from bvaisvil/zenith's 0.15.1 release.
+[apps.zenith]
+name = "zenith"
+kind = "archive"
+repo = "bvaisvil/zenith"
+asset = '^zenith-Linux-gnu-x86_64\.tar\.gz$'
+dest = "~/.local/bin/zenith"
+bins = ["zenith"]

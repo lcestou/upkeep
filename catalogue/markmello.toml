@@ -1,0 +1,8 @@
+# Drafted from dartdavros/MarkMello's v0.7.0 release.
+[apps.markmello]
+name = "MarkMello"
+kind = "appimage"
+repo = "dartdavros/MarkMello"
+asset = '^MarkMello-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/markmello.AppImage"
+meta_path = "markmello.desktop"

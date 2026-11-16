@@ -1,0 +1,9 @@
+# Drafted from wkjarosz/hdrview's v3.1.0 release.
+[apps.hdrview]
+name = "HDRView"
+kind = "appimage"
+repo = "wkjarosz/hdrview"
+asset = '^HDRView-.*-x86_64\.appimage$'
+asset_aarch64 = '^HDRView-.*-aarch64\.appimage$'
+dest = "~/.local/bin/hdrview.AppImage"
+meta_path = "io.github.wkjarosz.hdrview.desktop"

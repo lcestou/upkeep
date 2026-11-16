@@ -1,0 +1,9 @@
+# Drafted from tldr-pages/tlrc's v1.13.1 release.
+[apps.tldr]
+name = "tlrc"
+kind = "archive"
+repo = "tldr-pages/tlrc"
+asset = '^tlrc-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^tlrc-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/tldr"
+bins = ["tldr"]

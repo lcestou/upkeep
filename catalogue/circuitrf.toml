@@ -1,0 +1,9 @@
+# Drafted from potatobeanradio/circuitRF's 1.8.4 release; its version is the one Upkeep installed.
+[apps.circuitrf]
+name = "circuitRF"
+kind = "appimage"
+repo = "potatobeanradio/circuitRF"
+asset = '^circuitRF-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^circuitRF-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/circuitrf.AppImage"
+probe = false

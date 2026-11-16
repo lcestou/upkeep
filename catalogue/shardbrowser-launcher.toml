@@ -1,0 +1,8 @@
+# Drafted from ProxyShard/ShardBrowser's v2.1.5 release; its version is the one Upkeep installed.
+[apps.shardbrowser-launcher]
+name = "ShardBrowser-Launcher"
+kind = "appimage"
+repo = "ProxyShard/ShardBrowser"
+asset = '^ShardBrowser\.Launcher_.*_amd64\.AppImage$'
+dest = "~/.local/bin/shardbrowser-launcher.AppImage"
+probe = false

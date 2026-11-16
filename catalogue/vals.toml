@@ -1,0 +1,10 @@
+# Drafted from helmfile/vals's v0.51.1 release.
+[apps.vals]
+name = "vals"
+kind = "archive"
+repo = "helmfile/vals"
+asset = '^vals_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^vals_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/vals"
+bins = ["vals"]
+version_args = ["version"]

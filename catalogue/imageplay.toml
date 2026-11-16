@@ -1,0 +1,8 @@
+# Drafted from cpvrlab/ImagePlay's 6.1.0 release; its version is the one Upkeep installed.
+[apps.imageplay]
+name = "ImagePlay"
+kind = "appimage"
+repo = "cpvrlab/ImagePlay"
+asset = '^ImagePlay-.*\.appimage$'
+dest = "~/.local/bin/imageplay.AppImage"
+probe = false

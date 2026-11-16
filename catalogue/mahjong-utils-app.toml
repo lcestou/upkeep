@@ -1,0 +1,8 @@
+# Drafted from ssttkkl/mahjong-utils-app's v1.1.4 release; its version is the one Upkeep installed.
+[apps.mahjong-utils-app]
+name = "Mahjong Utils App"
+kind = "appimage"
+repo = "ssttkkl/mahjong-utils-app"
+asset = '^mahjong-utils-app-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/mahjong-utils-app.AppImage"
+probe = false

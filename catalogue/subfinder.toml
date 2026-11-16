@@ -1,0 +1,9 @@
+# Drafted from projectdiscovery/subfinder's v2.17.0 release.
+[apps.subfinder]
+name = "subfinder"
+kind = "archive"
+repo = "projectdiscovery/subfinder"
+asset = '^subfinder_.*_linux_amd64\.zip$'
+asset_aarch64 = '^subfinder_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/subfinder"
+bins = ["subfinder"]

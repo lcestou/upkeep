@@ -1,0 +1,9 @@
+# Drafted from notdxbi/dxbi-stremio's v2.37.2 release.
+[apps.dxbi]
+name = "Dxbi Stremio"
+kind = "appimage"
+repo = "notdxbi/dxbi-stremio"
+asset = '^dxbi-linux-x86_64\.AppImage$'
+asset_aarch64 = '^dxbi-linux-arm64\.AppImage$'
+dest = "~/.local/bin/dxbi.AppImage"
+meta_path = "dxbi.desktop"

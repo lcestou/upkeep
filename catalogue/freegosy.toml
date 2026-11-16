@@ -1,0 +1,8 @@
+# Drafted from abduznik/Freegosy's v0.6.0 release; its version is the one Upkeep installed.
+[apps.freegosy]
+name = "Freegosy"
+kind = "appimage"
+repo = "abduznik/Freegosy"
+asset = '^Freegosy-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/freegosy.AppImage"
+probe = false

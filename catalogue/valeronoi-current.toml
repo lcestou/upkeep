@@ -1,0 +1,9 @@
+# Drafted from ccoors/Valeronoi's v0.4.2 release.
+[apps.valeronoi-current]
+name = "Valeronoi-current"
+kind = "appimage"
+repo = "ccoors/Valeronoi"
+asset = '^Valeronoi-current-x86_64\.AppImage$'
+asset_aarch64 = '^Valeronoi-current-aarch64\.AppImage$'
+dest = "~/.local/bin/valeronoi-current.AppImage"
+meta_path = "usr/share/metainfo/de.ccoors.valeronoi.metainfo.xml"

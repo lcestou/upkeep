@@ -1,0 +1,9 @@
+# Drafted from jreisinger/checkip's v0.55.0 release; its version is the one Upkeep installed.
+[apps.checkip]
+name = "checkip"
+kind = "archive"
+repo = "jreisinger/checkip"
+asset = '^checkip_.*_linux_amd64\.tar\.gz$'
+dest = "~/.local/bin/checkip"
+bins = ["checkip"]
+probe = false

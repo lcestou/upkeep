@@ -1,0 +1,8 @@
+# Drafted from OpenCoworkAI/open-codesign's v0.3.0 release.
+[apps.open-codesign]
+name = "Open Codesign"
+kind = "appimage"
+repo = "OpenCoworkAI/open-codesign"
+asset = '^open-codesign-.*-x64\.AppImage$'
+dest = "~/.local/bin/open-codesign.AppImage"
+meta_path = "open-codesign.desktop"

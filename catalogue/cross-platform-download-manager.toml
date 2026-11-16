@@ -1,0 +1,9 @@
+# Drafted from adel-bakhshi/CrossPlatformDownloadManager's v0.30.0 release.
+[apps.cross-platform-download-manager]
+name = "Cross-platform-Download-Manager"
+kind = "appimage"
+repo = "adel-bakhshi/CrossPlatformDownloadManager"
+asset = '^Cross-platform\.Download\.Manager\..*\.linux-x64\.AppImage$'
+asset_aarch64 = '^Cross-platform\.Download\.Manager\..*\.linux-arm64\.AppImage$'
+dest = "~/.local/bin/cross-platform-download-manager.AppImage"
+meta_path = "adel.bakhshi.cdm.desktop"

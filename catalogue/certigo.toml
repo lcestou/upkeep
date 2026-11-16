@@ -1,0 +1,8 @@
+# Drafted from square/certigo's v1.18.2 release.
+[apps.certigo]
+name = "certigo"
+kind = "file"
+repo = "square/certigo"
+asset = '^certigo-linux-amd64$'
+asset_aarch64 = '^certigo-linux-arm64$'
+dest = "~/.local/bin/certigo"

@@ -1,0 +1,8 @@
+# Drafted from spel987/PolyUploader's v1.7.2 release; its version is the one Upkeep installed.
+[apps.polyuploader]
+name = "PolyUploader"
+kind = "appimage"
+repo = "spel987/PolyUploader"
+asset = '^PolyUploader_.*_amd64\.AppImage$'
+dest = "~/.local/bin/polyuploader.AppImage"
+probe = false

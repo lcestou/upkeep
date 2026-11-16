@@ -1,0 +1,10 @@
+# Drafted from dolthub/dolt's v2.7.3 release.
+[apps.dolt]
+name = "dolt"
+kind = "archive"
+repo = "dolthub/dolt"
+asset = '^dolt-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^dolt-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/dolt"
+bins = ["dolt-linux-amd64/bin/dolt"]
+version_args = ["version"]

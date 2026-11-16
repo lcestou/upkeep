@@ -1,0 +1,9 @@
+# Drafted from laktak/zfind's v0.4.7 release.
+[apps.zfind]
+name = "zfind"
+kind = "archive"
+repo = "laktak/zfind"
+asset = '^zfind-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^zfind-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/zfind"
+bins = ["zfind"]

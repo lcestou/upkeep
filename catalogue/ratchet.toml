@@ -1,0 +1,9 @@
+# Drafted from sethvargo/ratchet's v0.12.0 release.
+[apps.ratchet]
+name = "ratchet"
+kind = "archive"
+repo = "sethvargo/ratchet"
+asset = '^ratchet_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ratchet_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ratchet"
+bins = ["ratchet"]

@@ -1,0 +1,9 @@
+# Drafted from crate-ci/committed's v1.1.12 release.
+[apps.committed]
+name = "committed"
+kind = "archive"
+repo = "crate-ci/committed"
+asset = '^committed-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^committed-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/committed"
+bins = ["committed"]

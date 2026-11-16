@@ -1,0 +1,10 @@
+# Drafted from crate-ci/cargo-release's v1.1.7 release.
+[apps.cargo-release]
+name = "Cargo Release"
+kind = "archive"
+repo = "crate-ci/cargo-release"
+asset = '^cargo-release-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^cargo-release-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/cargo-release"
+bins = ["cargo-release"]
+version_args = ["release", "--version"]

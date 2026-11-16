@@ -1,0 +1,8 @@
+# Drafted from Novum/vkQuake's 1.37.0 release.
+[apps.vkquake]
+name = "vkQuake"
+kind = "appimage"
+repo = "Novum/vkQuake"
+asset = '^vkQuake-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/vkquake.AppImage"
+meta_path = "vkquake.desktop"

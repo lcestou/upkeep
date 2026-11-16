@@ -1,0 +1,8 @@
+# Drafted from onemnemo/mnemo's v0.8.2 release.
+[apps.mnemo]
+name = "Mnemo-Desktop-stable"
+kind = "appimage"
+repo = "onemnemo/mnemo"
+asset = '^Mnemo\.Desktop\.V2-linux-x64-stable\.AppImage$'
+dest = "~/.local/bin/mnemo.AppImage"
+meta_path = "Mnemo.Desktop.V2.desktop"

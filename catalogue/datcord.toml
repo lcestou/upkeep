@@ -1,0 +1,9 @@
+# Drafted from gamingdoom/datcord's 0.6.2 release; its version is the one Upkeep installed.
+[apps.datcord]
+name = "Datcord"
+kind = "appimage"
+repo = "gamingdoom/datcord"
+asset = '^Datcord-x86_64\.AppImage$'
+asset_aarch64 = '^Datcord-aarch64\.AppImage$'
+dest = "~/.local/bin/datcord.AppImage"
+probe = false

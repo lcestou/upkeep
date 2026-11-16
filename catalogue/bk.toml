@@ -1,0 +1,9 @@
+# Drafted from buildkite/cli's v3.68.0 release.
+[apps.bk]
+name = "bk"
+kind = "archive"
+repo = "buildkite/cli"
+asset = '^bk_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^bk_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/bk"
+bins = ["bk_3.68.0_linux_amd64/bk"]

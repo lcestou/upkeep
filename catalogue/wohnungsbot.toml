@@ -1,0 +1,8 @@
+# Drafted from neopostmodern/wohnungsbot's v1.8.2 release.
+[apps.wohnungsbot]
+name = "Wohnungsbot"
+kind = "appimage"
+repo = "neopostmodern/wohnungsbot"
+asset = '^Wohnungsbot-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/wohnungsbot.AppImage"
+meta_path = "wohnungsbot.desktop"

@@ -1,0 +1,8 @@
+# Drafted from bambulab/BambuStudio's v02.09.01.70 release.
+[apps.bambu-studio-win]
+name = "BambuStudio-ubu22"
+kind = "appimage"
+repo = "bambulab/BambuStudio"
+asset = '^BambuStudio_ubu22_.*-20261103183404\.AppImage$'
+dest = "~/.local/bin/bambu-studio-win.AppImage"
+meta_path = "BambuStudio.desktop"

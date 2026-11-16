@@ -1,0 +1,9 @@
+# Drafted from bellicose100xp/jiq's v3.35.0 release.
+[apps.jiq]
+name = "jiq"
+kind = "archive"
+repo = "bellicose100xp/jiq"
+asset = '^jiq-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^jiq-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/jiq"
+bins = ["jiq-x86_64-unknown-linux-gnu/jiq"]

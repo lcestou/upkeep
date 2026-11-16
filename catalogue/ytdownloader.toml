@@ -1,0 +1,8 @@
+# Drafted from aandrew-me/ytDownloader's v4.1.0 release.
+[apps.ytdownloader]
+name = "YTDownloader"
+kind = "appimage"
+repo = "aandrew-me/ytDownloader"
+asset = '^YTDownloader_Linux\.AppImage$'
+dest = "~/.local/bin/ytdownloader.AppImage"
+meta_path = "ytdownloader.desktop"

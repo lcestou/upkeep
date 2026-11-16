@@ -1,0 +1,8 @@
+# Drafted from sharkwouter/minigalaxy's 1.4.2 release.
+[apps.minigalaxy]
+name = "Minigalaxy"
+kind = "appimage"
+repo = "sharkwouter/minigalaxy"
+asset = '^Minigalaxy-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/minigalaxy.AppImage"
+meta_path = "Minigalaxy.desktop"

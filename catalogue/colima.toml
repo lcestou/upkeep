@@ -1,0 +1,8 @@
+# Drafted from abiosoft/colima's v0.10.3 release.
+[apps.colima]
+name = "colima"
+kind = "file"
+repo = "abiosoft/colima"
+asset = '^colima-Linux-x86_64$'
+asset_aarch64 = '^colima-Linux-aarch64$'
+dest = "~/.local/bin/colima"

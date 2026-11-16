@@ -1,0 +1,8 @@
+# Drafted from stevibe/BenchLocal's v0.4.0 release.
+[apps.benchlocal]
+name = "BenchLocal"
+kind = "appimage"
+repo = "stevibe/BenchLocal"
+asset = '^BenchLocal-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/benchlocal.AppImage"
+meta_path = "benchlocal-app.desktop"

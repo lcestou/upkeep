@@ -1,0 +1,10 @@
+# Drafted from kyverno/chainsaw's v0.2.15 release.
+[apps.chainsaw]
+name = "chainsaw"
+kind = "archive"
+repo = "kyverno/chainsaw"
+asset = '^chainsaw_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^chainsaw_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/chainsaw"
+bins = ["chainsaw"]
+version_args = ["version"]

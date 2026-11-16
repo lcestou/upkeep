@@ -1,0 +1,9 @@
+# Drafted from TheZwiss/backspace's v1.11.0 release.
+[apps.backspace]
+name = "Backspace"
+kind = "appimage"
+repo = "TheZwiss/backspace"
+asset = '^Backspace-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Backspace-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/backspace.AppImage"
+meta_path = "Backspace.desktop"

@@ -1,0 +1,8 @@
+# Drafted from yusufipk/dikte's v2.4.0 release.
+[apps.dikte]
+name = "Dikte"
+kind = "appimage"
+repo = "yusufipk/dikte"
+asset = '^Dikte-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/dikte.AppImage"
+meta_path = "dikte.desktop"

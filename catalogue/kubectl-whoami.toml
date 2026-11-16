@@ -1,0 +1,9 @@
+# Drafted from rajatjindal/kubectl-whoami's v0.0.48 release.
+[apps.kubectl-whoami]
+name = "Kubectl Whoami"
+kind = "archive"
+repo = "rajatjindal/kubectl-whoami"
+asset = '^kubectl-whoami_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kubectl-whoami_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubectl-whoami"
+bins = ["kubectl-whoami"]

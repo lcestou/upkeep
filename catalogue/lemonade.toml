@@ -1,0 +1,10 @@
+# Drafted from lemonade-sdk/lemonade's v2026.46.2 release.
+[apps.lemonade]
+name = "lemonade"
+kind = "archive"
+repo = "lemonade-sdk/lemonade"
+asset = '^lemonade-embeddable-.*-ubuntu-x64\.tar\.gz$'
+asset_aarch64 = '^lemonade-embeddable-.*-ubuntu-arm64\.tar\.gz$'
+dest = "~/.local/bin/lemonade"
+folder = "~/.local/share/lemonade"
+bins = ["lemonade"]

@@ -1,0 +1,8 @@
+# Drafted from PaulCombal/SamRewritten's v1.6.5 release.
+[apps.samrewritten-adw]
+name = "SamRewritten"
+kind = "appimage"
+repo = "PaulCombal/SamRewritten"
+asset = '^samrewritten-adw\.AppImage$'
+dest = "~/.local/bin/samrewritten-adw.AppImage"
+meta_path = "cargo-appimage.desktop"

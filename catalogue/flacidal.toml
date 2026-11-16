@@ -1,0 +1,8 @@
+# Drafted from kushiemoon-dev/FLACidal's v4.18.2 release; its version is the one Upkeep installed.
+[apps.flacidal]
+name = "FLACidal"
+kind = "appimage"
+repo = "kushiemoon-dev/FLACidal"
+asset = '^flacidal_linux_amd64\.AppImage$'
+dest = "~/.local/bin/flacidal.AppImage"
+probe = false

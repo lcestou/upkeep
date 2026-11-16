@@ -1,0 +1,9 @@
+# Drafted from martinkoutecky/tine's v0.8.4 release; its version is the one Upkeep installed.
+[apps.tine]
+name = "Tine"
+kind = "appimage"
+repo = "martinkoutecky/tine"
+asset = '^Tine_.*_amd64\.AppImage$'
+asset_aarch64 = '^Tine_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/tine.AppImage"
+probe = false

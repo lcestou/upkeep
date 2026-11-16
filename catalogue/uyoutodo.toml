@@ -1,0 +1,8 @@
+# Drafted from tonylu110/uyou-todo-electron's 3.2.0 release.
+[apps.uyoutodo]
+name = "uyou-ToDo"
+kind = "appimage"
+repo = "tonylu110/uyou-todo-electron"
+asset = '^uyou\.ToDo-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/uyoutodo.AppImage"
+meta_path = "uyoutodo.desktop"

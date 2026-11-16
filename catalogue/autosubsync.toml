@@ -1,0 +1,8 @@
+# Drafted from denizsafak/AutoSubSync's v6.6 release.
+[apps.autosubsync]
+name = "AutoSubSync"
+kind = "appimage"
+repo = "denizsafak/AutoSubSync"
+asset = '^AutoSubSync-linux-amd64\.AppImage$'
+dest = "~/.local/bin/autosubsync.AppImage"
+meta_path = "AutoSubSync.desktop"

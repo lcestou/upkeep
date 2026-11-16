@@ -1,0 +1,9 @@
+# Drafted from controlplaneio-fluxcd/flux-operator's v0.62.1 release.
+[apps.flux-operator]
+name = "Flux Operator"
+kind = "archive"
+repo = "controlplaneio-fluxcd/flux-operator"
+asset = '^flux-operator_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^flux-operator_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/flux-operator"
+bins = ["flux-operator"]

@@ -1,0 +1,8 @@
+# Drafted from minghinmatthewlam/pi-gui's v1.0.1 release.
+[apps.pi-gui]
+name = "Pi Gui"
+kind = "appimage"
+repo = "minghinmatthewlam/pi-gui"
+asset = '^pi-gui-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/pi-gui.AppImage"
+meta_path = "pi-gui.desktop"

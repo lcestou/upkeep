@@ -1,0 +1,9 @@
+# Drafted from hashicorp/terraform-plugin-docs's v0.25.0 release.
+[apps.tfplugindocs]
+name = "Terraform Plugin Docs"
+kind = "archive"
+repo = "hashicorp/terraform-plugin-docs"
+asset = '^tfplugindocs_.*_linux_amd64\.zip$'
+asset_aarch64 = '^tfplugindocs_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/tfplugindocs"
+bins = ["tfplugindocs"]

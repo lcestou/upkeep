@@ -1,0 +1,8 @@
+# Drafted from rubenCodeforges/ardudeck's v0.1.2 release.
+[apps.ardudeck]
+name = "ArduDeck"
+kind = "appimage"
+repo = "rubenCodeforges/ardudeck"
+asset = '^ArduDeck-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ardudeck.AppImage"
+meta_path = "ardudeck.desktop"

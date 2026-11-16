@@ -1,0 +1,9 @@
+# Drafted from nyakang/nyaterm's v2.0.5 release; its version is the one Upkeep installed.
+[apps.nyaterm]
+name = "NyaTerm"
+kind = "appimage"
+repo = "nyakang/nyaterm"
+asset = '^NyaTerm_.*_linux_x64\.AppImage$'
+asset_aarch64 = '^NyaTerm_.*_linux_arm64\.AppImage$'
+dest = "~/.local/bin/nyaterm.AppImage"
+probe = false

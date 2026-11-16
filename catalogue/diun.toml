@@ -1,0 +1,9 @@
+# Drafted from crazy-max/diun's v4.33.1 release.
+[apps.diun]
+name = "diun"
+kind = "archive"
+repo = "crazy-max/diun"
+asset = '^diun_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^diun_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/diun"
+bins = ["diun"]

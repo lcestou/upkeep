@@ -1,0 +1,9 @@
+# Drafted from ahmetb/kubectl-tree's v0.6.0 release.
+[apps.kubectl-tree]
+name = "Kubectl Tree"
+kind = "archive"
+repo = "ahmetb/kubectl-tree"
+asset = '^kubectl-tree_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kubectl-tree_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubectl-tree"
+bins = ["kubectl-tree"]

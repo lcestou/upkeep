@@ -1,0 +1,9 @@
+# Drafted from aretext/aretext's v1.7.0 release.
+[apps.aretext]
+name = "aretext"
+kind = "archive"
+repo = "aretext/aretext"
+asset = '^aretext_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^aretext_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/aretext"
+bins = ["aretext_v1.7.0_linux_amd64/aretext"]

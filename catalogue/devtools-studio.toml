@@ -1,0 +1,8 @@
+# Drafted from the-dev-tools/dev-tools's desktop@1.2.0 release.
+[apps.devtools-studio]
+name = "DevTools-Studio"
+kind = "appimage"
+repo = "the-dev-tools/dev-tools"
+asset = '^DevTools-Studio-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/devtools-studio.AppImage"
+meta_path = "devtools-studio.desktop"

@@ -1,0 +1,8 @@
+# Drafted from ferdium/ferdium-app's v7.2.3 release.
+[apps.ferdium]
+name = "Ferdium"
+kind = "appimage"
+repo = "ferdium/ferdium-app"
+asset = '^Ferdium-linux-Portable-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ferdium.AppImage"
+meta_path = "ferdium.desktop"

@@ -1,0 +1,10 @@
+# Drafted from mongodb/mongodb-atlas-cli's v1.60.0 release.
+[apps.atlas]
+name = "Mongodb Atlas Cli"
+kind = "archive"
+repo = "mongodb/mongodb-atlas-cli"
+asset = '^mongodb-atlas-cli_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^mongodb-atlas-cli_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/atlas"
+folder = "~/.local/share/atlas"
+bins = ["bin/atlas"]

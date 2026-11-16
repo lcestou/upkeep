@@ -1,0 +1,10 @@
+# Drafted from openai/tunnel-client's v0.0.21 release.
+[apps.tunnel-client]
+name = "Tunnel Client"
+kind = "archive"
+repo = "openai/tunnel-client"
+asset = '^tunnel-client-v[0-9][0-9A-Za-z.]*-linux-amd64\.zip$'
+asset_aarch64 = '^tunnel-client-v[0-9][0-9A-Za-z.]*-linux-arm64\.zip$'
+dest = "~/.local/bin/tunnel-client"
+folder = "~/.local/share/tunnel-client"
+bins = ["tunnel-client"]

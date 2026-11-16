@@ -1,0 +1,8 @@
+# Drafted from Ryderwe/Sollin-Music-Desktop's v1.3.8-fix release.
+[apps.sollin]
+name = "Sollin"
+kind = "appimage"
+repo = "Ryderwe/Sollin-Music-Desktop"
+asset = '^Sollin-.*\.AppImage$'
+dest = "~/.local/bin/sollin.AppImage"
+meta_path = "sollin.desktop"

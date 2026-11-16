@@ -1,0 +1,8 @@
+# Drafted from hasherezade/pe-bear's v0.7.2 release; its version is the one Upkeep installed.
+[apps.pe-bear-qt6]
+name = "PE-bear-qt6"
+kind = "appimage"
+repo = "hasherezade/pe-bear"
+asset = '^PE-bear_.*_qt6_x86_64_linux\.AppImage$'
+dest = "~/.local/bin/pe-bear-qt6.AppImage"
+probe = false

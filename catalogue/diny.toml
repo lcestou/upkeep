@@ -1,0 +1,10 @@
+# Drafted from dinoDanic/diny's v0.7.8 release.
+[apps.diny]
+name = "diny"
+kind = "archive"
+repo = "dinoDanic/diny"
+asset = '^diny_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^diny_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/diny"
+folder = "~/.local/share/diny"
+bins = ["diny"]

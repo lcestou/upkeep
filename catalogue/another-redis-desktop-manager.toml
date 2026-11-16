@@ -1,0 +1,9 @@
+# Drafted from qishibo/AnotherRedisDesktopManager's v1.7.4 release.
+[apps.another-redis-desktop-manager]
+name = "Another-Redis-Desktop-Manager"
+kind = "appimage"
+repo = "qishibo/AnotherRedisDesktopManager"
+asset = '^Another-Redis-Desktop-Manager-linux-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Another-Redis-Desktop-Manager-linux-.*-arm64\.AppImage$'
+dest = "~/.local/bin/another-redis-desktop-manager.AppImage"
+meta_path = "another-redis-desktop-manager.desktop"

@@ -1,0 +1,9 @@
+# Drafted from snyk/parlay's v0.11.0 release.
+[apps.parlay]
+name = "parlay"
+kind = "archive"
+repo = "snyk/parlay"
+asset = '^parlay_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^parlay_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/parlay"
+bins = ["parlay"]

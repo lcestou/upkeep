@@ -1,0 +1,9 @@
+# Drafted from harry0703/MangoDisk's v2.0.0 release; its version is the one Upkeep installed.
+[apps.mangodisk]
+name = "MangoDisk"
+kind = "appimage"
+repo = "harry0703/MangoDisk"
+asset = '^MangoDisk-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^MangoDisk-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/mangodisk.AppImage"
+probe = false

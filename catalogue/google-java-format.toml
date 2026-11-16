@@ -1,0 +1,8 @@
+# Drafted from google/google-java-format's v2.0.0 release.
+[apps.google-java-format]
+name = "Google Java Format"
+kind = "file"
+repo = "google/google-java-format"
+asset = '^google-java-format_linux-x86-64$'
+asset_aarch64 = '^google-java-format_linux-arm64$'
+dest = "~/.local/bin/google-java-format"

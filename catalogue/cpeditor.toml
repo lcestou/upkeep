@@ -1,0 +1,8 @@
+# Drafted from cpeditor/cpeditor's 7.1.2 release.
+[apps.cpeditor]
+name = "cpeditor"
+kind = "appimage"
+repo = "cpeditor/cpeditor"
+asset = '^cpeditor-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/cpeditor.AppImage"
+meta_path = "default.desktop"

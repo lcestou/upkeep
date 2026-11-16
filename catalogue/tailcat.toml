@@ -1,0 +1,9 @@
+# Drafted from tailscale/tailcat's v0.7.0 release.
+[apps.tailcat]
+name = "tailcat"
+kind = "archive"
+repo = "tailscale/tailcat"
+asset = '^tailcat_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tailcat_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tailcat"
+bins = ["tailcat"]

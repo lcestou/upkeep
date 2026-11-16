@@ -1,0 +1,9 @@
+# Drafted from UltimateHackingKeyboard/agent's v11.0.0 release.
+[apps.uhk-agent]
+name = "UHK-Agent"
+kind = "appimage"
+repo = "UltimateHackingKeyboard/agent"
+asset = '^UHK\.Agent-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^UHK\.Agent-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/uhk-agent.AppImage"
+meta_path = "uhk-agent.desktop"

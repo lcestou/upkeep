@@ -1,0 +1,8 @@
+# Drafted from mypaint/mypaint's v2.0.1 release; its version is the one Upkeep installed.
+[apps.mypaint]
+name = "MyPaint"
+kind = "appimage"
+repo = "mypaint/mypaint"
+asset = '^MyPaint-v[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/mypaint.AppImage"
+probe = false

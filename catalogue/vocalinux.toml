@@ -1,0 +1,9 @@
+# Drafted from VocaHQ/vocalinux's v0.18.6 release; its version is the one Upkeep installed.
+[apps.vocalinux]
+name = "Vocalinux"
+kind = "appimage"
+repo = "VocaHQ/vocalinux"
+asset = '^Vocalinux-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Vocalinux-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/vocalinux.AppImage"
+probe = false

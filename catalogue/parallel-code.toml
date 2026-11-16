@@ -1,0 +1,8 @@
+# Drafted from johannesjo/parallel-code's v5.1.0 release.
+[apps.parallel-code]
+name = "Parallel-Code"
+kind = "appimage"
+repo = "johannesjo/parallel-code"
+asset = '^Parallel-Code-.*\.AppImage$'
+dest = "~/.local/bin/parallel-code.AppImage"
+meta_path = "parallel-code.desktop"

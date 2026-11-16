@@ -1,0 +1,9 @@
+# Drafted from erikjuhani/basalt's basalt/v0.13.0 release.
+[apps.basalt]
+name = "basalt"
+kind = "archive"
+repo = "erikjuhani/basalt"
+asset = '^basalt-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^basalt-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/basalt"
+bins = ["basalt-0.13.0-x86_64-unknown-linux-gnu/basalt"]

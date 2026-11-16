@@ -1,0 +1,8 @@
+# Drafted from neondatabase/neonctl's v9.3.2 release.
+[apps.neonctl]
+name = "neonctl"
+kind = "file"
+repo = "neondatabase/neonctl"
+asset = '^neonctl-linux-x64$'
+asset_aarch64 = '^neonctl-linux-arm64$'
+dest = "~/.local/bin/neonctl"

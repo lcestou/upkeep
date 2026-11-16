@@ -1,0 +1,9 @@
+# Drafted from cloudflare/cfssl's v1.7.1 release.
+[apps.cfssl]
+name = "cfssl"
+kind = "file"
+repo = "cloudflare/cfssl"
+asset = '^cfssl_.*_linux_amd64$'
+asset_aarch64 = '^cfssl_.*_linux_arm64$'
+dest = "~/.local/bin/cfssl"
+version_args = ["version"]

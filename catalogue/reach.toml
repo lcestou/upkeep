@@ -1,0 +1,8 @@
+# Drafted from alexandrosnt/Reach's v0.9.2 release.
+[apps.reach]
+name = "Reach"
+kind = "appimage"
+repo = "alexandrosnt/Reach"
+asset = '^Reach_.*_amd64\.AppImage$'
+dest = "~/.local/bin/reach.AppImage"
+meta_path = "usr/share/metainfo/com.reach.desktop.metainfo.xml"

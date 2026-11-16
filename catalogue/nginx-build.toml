@@ -1,0 +1,9 @@
+# Drafted from cubicdaiya/nginx-build's v0.16.33 release.
+[apps.nginx-build]
+name = "Nginx Build"
+kind = "archive"
+repo = "cubicdaiya/nginx-build"
+asset = '^nginx-build-linux-amd64-.*\.tar\.gz$'
+asset_aarch64 = '^nginx-build-linux-arm64-.*\.tar\.gz$'
+dest = "~/.local/bin/nginx-build"
+bins = ["nginx-build"]

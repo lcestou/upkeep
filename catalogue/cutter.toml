@@ -1,0 +1,8 @@
+# Drafted from rizinorg/cutter's v2.5.0 release.
+[apps.cutter]
+name = "Cutter"
+kind = "appimage"
+repo = "rizinorg/cutter"
+asset = '^Cutter-.*-Linux-x86_64\.AppImage$'
+dest = "~/.local/bin/cutter.AppImage"
+meta_path = "usr/share/metainfo/re.rizin.cutter.appdata.xml"

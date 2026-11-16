@@ -1,0 +1,9 @@
+# Drafted from Berny23/virtual-surround-manager's v1.3.1 release; its version is the one Upkeep installed.
+[apps.virtual-surround-manager]
+name = "Virtual Surround Manager"
+kind = "appimage"
+repo = "Berny23/virtual-surround-manager"
+asset = '^virtual-surround-manager-.*-x86_64\.AppImage$'
+asset_aarch64 = '^virtual-surround-manager-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/virtual-surround-manager.AppImage"
+probe = false

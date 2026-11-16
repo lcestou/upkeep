@@ -1,0 +1,9 @@
+# Drafted from wangdabaoqq/LinJun's v1.0.7-beta.1 release; its version is the one Upkeep installed.
+[apps.linjun-beta]
+name = "LinJun-beta"
+kind = "appimage"
+repo = "wangdabaoqq/LinJun"
+asset = '^LinJun-.*-beta\.1-x86_64\.AppImage$'
+asset_aarch64 = '^LinJun-.*-beta\.1-arm64\.AppImage$'
+dest = "~/.local/bin/linjun-beta.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from 5rahim/seanime's v3.10.4 release.
+[apps.seanime]
+name = "seanime"
+kind = "appimage"
+repo = "5rahim/seanime"
+asset = '^seanime-denshi-.*_Linux_x86_64\.AppImage$'
+dest = "~/.local/bin/seanime.AppImage"
+meta_path = "seanime-denshi.desktop"

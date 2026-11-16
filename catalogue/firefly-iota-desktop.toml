@@ -1,0 +1,8 @@
+# Drafted from iotaledger/firefly's desktop-iota-2.1.2 release.
+[apps.firefly-iota-desktop]
+name = "firefly"
+kind = "appimage"
+repo = "iotaledger/firefly"
+asset = '^firefly-iota-desktop-.*\.AppImage$'
+dest = "~/.local/bin/firefly-iota-desktop.AppImage"
+meta_path = "desktop.desktop"

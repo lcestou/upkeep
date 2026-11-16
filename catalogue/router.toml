@@ -1,0 +1,9 @@
+# Drafted from apollographql/router's v2.19.0 release.
+[apps.router]
+name = "router"
+kind = "archive"
+repo = "apollographql/router"
+asset = '^router-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^router-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/router"
+bins = ["dist/router"]

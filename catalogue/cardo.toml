@@ -1,0 +1,8 @@
+# Drafted from cardo-podcast/cardo's 1.12.0 release; its version is the one Upkeep installed.
+[apps.cardo]
+name = "cardo"
+kind = "appimage"
+repo = "cardo-podcast/cardo"
+asset = '^cardo_.*_amd64_linux\.AppImage$'
+dest = "~/.local/bin/cardo.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from FilenCloudDienste/filen-desktop's v3.0.53 release.
+[apps.filen]
+name = "Filen"
+kind = "appimage"
+repo = "FilenCloudDienste/filen-desktop"
+asset = '^Filen_linux_x86_64\.AppImage$'
+asset_aarch64 = '^Filen_linux_arm64\.AppImage$'
+dest = "~/.local/bin/filen.AppImage"
+meta_path = "Filen.desktop"

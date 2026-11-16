@@ -1,0 +1,9 @@
+# Drafted from kubernetes-sigs/aws-iam-authenticator's v0.7.24 release.
+[apps.aws-iam-authenticator]
+name = "Aws Iam Authenticator"
+kind = "file"
+repo = "kubernetes-sigs/aws-iam-authenticator"
+asset = '^aws-iam-authenticator_.*_linux_amd64$'
+asset_aarch64 = '^aws-iam-authenticator_.*_linux_arm64$'
+dest = "~/.local/bin/aws-iam-authenticator"
+version_args = ["version"]

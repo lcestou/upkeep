@@ -1,0 +1,9 @@
+# Drafted from databricks/cli's v1.26.0 release.
+[apps.databricks]
+name = "databricks-cli"
+kind = "archive"
+repo = "databricks/cli"
+asset = '^databricks_cli_.*_linux_amd64\.zip$'
+asset_aarch64 = '^databricks_cli_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/databricks"
+bins = ["databricks"]

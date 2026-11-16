@@ -1,0 +1,8 @@
+# Drafted from zealsprince/rox's v1.35.1 release.
+[apps.rox]
+name = "rox"
+kind = "appimage"
+repo = "zealsprince/rox"
+asset = '^rox-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/rox.AppImage"
+meta_path = "com.zealsprince.rox.desktop"

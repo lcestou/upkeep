@@ -1,0 +1,9 @@
+# Drafted from varunsalian/debrify's v0.10.0-beta.1 release; its version is the one Upkeep installed.
+[apps.debrify]
+name = "debrify"
+kind = "appimage"
+repo = "varunsalian/debrify"
+asset = '^debrify-.*-x86_64\.AppImage$'
+asset_aarch64 = '^debrify-.*-arm64\.AppImage$'
+dest = "~/.local/bin/debrify.AppImage"
+probe = false

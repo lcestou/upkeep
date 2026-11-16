@@ -1,0 +1,8 @@
+# Drafted from BilibiliVideoDownload/BilibiliVideoDownload's v3.3.3 release.
+[apps.bilibilivideodownload]
+name = "BilibiliVideoDownload"
+kind = "appimage"
+repo = "BilibiliVideoDownload/BilibiliVideoDownload"
+asset = '^BilibiliVideoDownload-.*\.AppImage$'
+dest = "~/.local/bin/bilibilivideodownload.AppImage"
+meta_path = "bilibilivideodownload.desktop"

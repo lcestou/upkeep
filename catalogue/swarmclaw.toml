@@ -1,0 +1,8 @@
+# Drafted from swarmclawai/swarmclaw's v1.9.40 release.
+[apps.swarmclaw]
+name = "SwarmClaw"
+kind = "appimage"
+repo = "swarmclawai/swarmclaw"
+asset = '^SwarmClaw-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/swarmclaw.AppImage"
+meta_path = "@swarmclawaiswarmclaw.desktop"

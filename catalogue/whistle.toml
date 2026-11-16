@@ -1,0 +1,9 @@
+# Drafted from avwo/whistle-client's v1.6.15 release.
+[apps.whistle]
+name = "Whistle"
+kind = "appimage"
+repo = "avwo/whistle-client"
+asset = '^Whistle-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Whistle-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/whistle.AppImage"
+meta_path = "whistle.desktop"

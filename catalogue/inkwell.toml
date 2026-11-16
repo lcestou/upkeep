@@ -1,0 +1,8 @@
+# Drafted from coros-hq/inkwell's v2.3.0 release; its version is the one Upkeep installed.
+[apps.inkwell]
+name = "inkwell"
+kind = "appimage"
+repo = "coros-hq/inkwell"
+asset = '^inkwell_.*_amd64\.AppImage$'
+dest = "~/.local/bin/inkwell.AppImage"
+probe = false

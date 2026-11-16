@@ -1,0 +1,9 @@
+# Drafted from AbhishekBarali/SpeakoFlow's v2.2.0 release; its version is the one Upkeep installed.
+[apps.speakoflow]
+name = "SpeakoFlow"
+kind = "appimage"
+repo = "AbhishekBarali/SpeakoFlow"
+asset = '^SpeakoFlow_.*_amd64\.AppImage$'
+asset_aarch64 = '^SpeakoFlow_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/speakoflow.AppImage"
+probe = false

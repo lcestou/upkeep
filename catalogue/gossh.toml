@@ -1,0 +1,9 @@
+# Drafted from windvalley/gossh's v1.15.2 release.
+[apps.gossh]
+name = "gossh"
+kind = "file"
+repo = "windvalley/gossh"
+asset = '^gossh-.*-linux-amd64$'
+asset_aarch64 = '^gossh-.*-linux-arm64$'
+dest = "~/.local/bin/gossh"
+version_args = ["version"]

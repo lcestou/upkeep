@@ -1,0 +1,10 @@
+# Drafted from google/go-containerregistry's v0.22.1 release.
+[apps.crane]
+name = "Go Containerregistry"
+kind = "archive"
+repo = "google/go-containerregistry"
+asset = '^go-containerregistry_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^go-containerregistry_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/crane"
+bins = ["crane"]
+version_args = ["version"]

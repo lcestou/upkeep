@@ -1,0 +1,10 @@
+# Drafted from BeryJu/korb's v2.3.4 release; its version is the one Upkeep installed.
+[apps.korb]
+name = "korb"
+kind = "archive"
+repo = "BeryJu/korb"
+asset = '^korb_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^korb_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/korb"
+bins = ["korb"]
+probe = false

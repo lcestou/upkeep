@@ -1,0 +1,9 @@
+# Drafted from YUCLing/open-orpheus's v0.20.0 release.
+[apps.open-orpheus]
+name = "Open Orpheus"
+kind = "appimage"
+repo = "YUCLing/open-orpheus"
+asset = '^open-orpheus-.*-x86_64\.AppImage$'
+asset_aarch64 = '^open-orpheus-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/open-orpheus.AppImage"
+meta_path = "open-orpheus.desktop"

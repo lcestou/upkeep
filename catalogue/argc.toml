@@ -1,0 +1,10 @@
+# Drafted from sigoden/argc's v1.24.0 release.
+[apps.argc]
+name = "argc"
+kind = "archive"
+repo = "sigoden/argc"
+asset = '^argc-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^argc-.*-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/argc"
+bins = ["argc"]
+version_args = ["--argc-version"]

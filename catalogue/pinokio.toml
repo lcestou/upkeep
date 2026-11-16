@@ -1,0 +1,8 @@
+# Drafted from pinokiocomputer/pinokio's v8.3.7 release.
+[apps.pinokio]
+name = "Pinokio"
+kind = "appimage"
+repo = "pinokiocomputer/pinokio"
+asset = '^Pinokio-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/pinokio.AppImage"
+meta_path = "pinokio.desktop"

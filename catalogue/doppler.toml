@@ -1,0 +1,9 @@
+# Drafted from DopplerHQ/cli's 3.77.1 release.
+[apps.doppler]
+name = "DopplerHQ"
+kind = "archive"
+repo = "DopplerHQ/cli"
+asset = '^doppler_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^doppler_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/doppler"
+bins = ["doppler"]

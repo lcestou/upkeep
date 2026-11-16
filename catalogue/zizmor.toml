@@ -1,0 +1,9 @@
+# Drafted from zizmorcore/zizmor's v1.32.0 release.
+[apps.zizmor]
+name = "zizmor"
+kind = "archive"
+repo = "zizmorcore/zizmor"
+asset = '^zizmor-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^zizmor-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/zizmor"
+bins = ["zizmor"]

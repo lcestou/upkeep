@@ -1,0 +1,9 @@
+# Drafted from antares-sql/antares's v0.7.35 release.
+[apps.antares]
+name = "Antares"
+kind = "appimage"
+repo = "antares-sql/antares"
+asset = '^Antares-.*-linux_x86_64\.AppImage$'
+asset_aarch64 = '^Antares-.*-linux_arm64\.AppImage$'
+dest = "~/.local/bin/antares.AppImage"
+meta_path = "antares.desktop"

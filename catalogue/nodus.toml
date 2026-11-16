@@ -1,0 +1,8 @@
+# Drafted from jorgepb96/nodus's v5.18.0 release.
+[apps.nodus]
+name = "Nodus"
+kind = "appimage"
+repo = "jorgepb96/nodus"
+asset = '^Nodus-x86_64\.AppImage$'
+dest = "~/.local/bin/nodus.AppImage"
+meta_path = "nodus.desktop"

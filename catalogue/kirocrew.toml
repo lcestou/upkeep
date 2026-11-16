@@ -1,0 +1,9 @@
+# Drafted from kirodotdev/KiroCrew's v0.12.2 release.
+[apps.kirocrew]
+name = "KiroCrew"
+kind = "appimage"
+repo = "kirodotdev/KiroCrew"
+asset = '^KiroCrew-.*-x86_64\.AppImage$'
+asset_aarch64 = '^KiroCrew-.*-arm64\.AppImage$'
+dest = "~/.local/bin/kirocrew.AppImage"
+meta_path = "kirocrew-desktop.desktop"

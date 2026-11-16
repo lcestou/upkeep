@@ -1,0 +1,8 @@
+# Drafted from AKJ7/CANExplorer's v1.8.0 release; its version is the one Upkeep installed.
+[apps.canexplorer]
+name = "CANExplorer"
+kind = "appimage"
+repo = "AKJ7/CANExplorer"
+asset = '^CANExplorer-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/canexplorer.AppImage"
+probe = false

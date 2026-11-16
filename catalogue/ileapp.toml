@@ -1,0 +1,9 @@
+# Drafted from abrignoni/iLEAPP's v2026.4.6 release.
+[apps.ileapp]
+name = "iLEAPP"
+kind = "appimage"
+repo = "abrignoni/iLEAPP"
+asset = '^iLEAPP-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^iLEAPP-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/ileapp.AppImage"
+meta_path = "ileapp.desktop"

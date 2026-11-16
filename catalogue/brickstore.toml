@@ -1,0 +1,8 @@
+# Drafted from rgriebl/brickstore's v2026.9.1 release.
+[apps.brickstore]
+name = "BrickStore"
+kind = "appimage"
+repo = "rgriebl/brickstore"
+asset = '^Linux-AppImage-BrickStore-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/brickstore.AppImage"
+meta_path = "dev.brickstore.BrickStore.desktop"

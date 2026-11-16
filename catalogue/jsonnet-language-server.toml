@@ -1,0 +1,8 @@
+# Drafted from grafana/jsonnet-language-server's v0.17.0 release.
+[apps.jsonnet-language-server]
+name = "Jsonnet Language Server"
+kind = "file"
+repo = "grafana/jsonnet-language-server"
+asset = '^jsonnet-language-server_.*_linux_amd64$'
+asset_aarch64 = '^jsonnet-language-server_.*_linux_arm64$'
+dest = "~/.local/bin/jsonnet-language-server"

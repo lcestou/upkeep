@@ -1,0 +1,8 @@
+# Drafted from satisfactorymodding/SatisfactoryModManager's v3.2.0 release; its version is the one Upkeep installed.
+[apps.satisfactorymodmanager]
+name = "SatisfactoryModManager"
+kind = "appimage"
+repo = "satisfactorymodding/SatisfactoryModManager"
+asset = '^SatisfactoryModManager_linux_amd64\.AppImage$'
+dest = "~/.local/bin/satisfactorymodmanager.AppImage"
+probe = false

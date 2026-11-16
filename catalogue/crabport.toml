@@ -1,0 +1,9 @@
+# Drafted from chi11321/CrabPort's v0.1.6 release.
+[apps.crabport]
+name = "CrabPort"
+kind = "appimage"
+repo = "chi11321/CrabPort"
+asset = '^CrabPort-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^CrabPort-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/crabport.AppImage"
+meta_path = "CrabPort.desktop"

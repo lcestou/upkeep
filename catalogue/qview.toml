@@ -1,0 +1,8 @@
+# Drafted from jurplel/qView's 7.1 release; its version is the one Upkeep installed.
+[apps.qview]
+name = "qView"
+kind = "appimage"
+repo = "jurplel/qView"
+asset = '^qView-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/qview.AppImage"
+probe = false

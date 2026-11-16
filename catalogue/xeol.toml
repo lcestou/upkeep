@@ -1,0 +1,9 @@
+# Drafted from xeol-io/xeol's v0.10.8 release.
+[apps.xeol]
+name = "xeol"
+kind = "archive"
+repo = "xeol-io/xeol"
+asset = '^xeol_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^xeol_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/xeol"
+bins = ["xeol"]

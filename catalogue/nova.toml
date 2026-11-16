@@ -1,0 +1,10 @@
+# Drafted from FairwindsOps/nova's v3.12.3 release.
+[apps.nova]
+name = "nova"
+kind = "archive"
+repo = "FairwindsOps/nova"
+asset = '^nova_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^nova_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/nova"
+bins = ["nova"]
+version_args = ["version"]

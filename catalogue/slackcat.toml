@@ -1,0 +1,7 @@
+# Drafted from bcicen/slackcat's 1.7.3 release.
+[apps.slackcat]
+name = "slackcat"
+kind = "file"
+repo = "bcicen/slackcat"
+asset = '^slackcat-.*-linux-amd64$'
+dest = "~/.local/bin/slackcat"

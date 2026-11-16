@@ -1,0 +1,7 @@
+# Drafted from nil0x42/dnsanity's v1.4.2 release.
+[apps.dnsanity]
+name = "dnsanity"
+kind = "file"
+repo = "nil0x42/dnsanity"
+asset = '^dnsanity-linux-x64-.*$'
+dest = "~/.local/bin/dnsanity"

@@ -1,0 +1,8 @@
+# Drafted from purescript/purescript's v0.15.17 release.
+[apps.purs]
+name = "purescript"
+kind = "archive"
+repo = "purescript/purescript"
+asset = '^linux64\.tar\.gz$'
+dest = "~/.local/bin/purs"
+bins = ["purescript/purs"]

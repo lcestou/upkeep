@@ -1,0 +1,8 @@
+# Drafted from OpenWhispr/openwhispr's v1.11.0 release.
+[apps.openwhispr]
+name = "OpenWhispr"
+kind = "appimage"
+repo = "OpenWhispr/openwhispr"
+asset = '^OpenWhispr-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/openwhispr.AppImage"
+meta_path = "open-whispr.desktop"

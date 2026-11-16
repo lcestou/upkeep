@@ -1,0 +1,8 @@
+# Drafted from AndyMik90/Aperant's v2.7.6 release.
+[apps.auto-claude]
+name = "Auto-Claude"
+kind = "appimage"
+repo = "AndyMik90/Aperant"
+asset = '^Auto-Claude-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/auto-claude.AppImage"
+meta_path = "auto-claude-ui.desktop"

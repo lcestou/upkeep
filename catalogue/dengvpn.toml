@@ -1,0 +1,8 @@
+# Drafted from code3-dev/dengvpn's v1.5.0 release.
+[apps.dengvpn]
+name = "DengVPN"
+kind = "appimage"
+repo = "code3-dev/dengvpn"
+asset = '^DengVPN-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/dengvpn.AppImage"
+meta_path = "dengvpn.desktop"

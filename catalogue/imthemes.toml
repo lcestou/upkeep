@@ -1,0 +1,8 @@
+# Drafted from Patitotective/ImThemes's 0.3.0 release.
+[apps.imthemes]
+name = "ImThemes"
+kind = "appimage"
+repo = "Patitotective/ImThemes"
+asset = '^ImThemes-.*-amd64\.AppImage$'
+dest = "~/.local/bin/imthemes.AppImage"
+meta_path = "ImThemes.desktop"

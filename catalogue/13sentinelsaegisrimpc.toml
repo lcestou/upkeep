@@ -1,0 +1,8 @@
+# Drafted from saulob/13-sentinels-aegis-rim-pc's v0.1.0 release; its version is the one Upkeep installed.
+[apps.13sentinelsaegisrimpc]
+name = "13SentinelsAegisRimPC"
+kind = "appimage"
+repo = "saulob/13-sentinels-aegis-rim-pc"
+asset = '^13SentinelsAegisRimPC-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/13sentinelsaegisrimpc.AppImage"
+probe = false

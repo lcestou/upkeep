@@ -1,0 +1,9 @@
+# Drafted from PaulJuliusMartinez/jless's v0.9.0 release; its version is the one Upkeep installed.
+[apps.jless]
+name = "jless"
+kind = "archive"
+repo = "PaulJuliusMartinez/jless"
+asset = '^jless-.*-x86_64-unknown-linux-gnu\.zip$'
+dest = "~/.local/bin/jless"
+bins = ["jless"]
+probe = false

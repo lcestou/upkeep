@@ -1,0 +1,8 @@
+# Drafted from skillsgate/skillsgate's desktop-v0.8.5 release.
+[apps.skillsgate]
+name = "SkillsGate"
+kind = "appimage"
+repo = "skillsgate/skillsgate"
+asset = '^SkillsGate-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/skillsgate.AppImage"
+meta_path = "skillsgate.desktop"

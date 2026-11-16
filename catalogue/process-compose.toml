@@ -1,0 +1,10 @@
+# Drafted from F1bonacc1/process-compose's v1.124.0 release.
+[apps.process-compose]
+name = "Process Compose"
+kind = "archive"
+repo = "F1bonacc1/process-compose"
+asset = '^process-compose_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^process-compose_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/process-compose"
+bins = ["process-compose"]
+version_args = ["version"]

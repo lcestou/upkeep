@@ -1,0 +1,10 @@
+# Drafted from owenlamont/ryl's v0.29.0 release.
+[apps.ryl]
+name = "ryl"
+kind = "archive"
+repo = "owenlamont/ryl"
+asset = '^ryl-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^ryl-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/ryl"
+folder = "~/.local/share/ryl"
+bins = ["ryl"]

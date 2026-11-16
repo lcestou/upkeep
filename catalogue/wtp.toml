@@ -1,0 +1,9 @@
+# Drafted from satococoa/wtp's v2.11.1 release.
+[apps.wtp]
+name = "wtp"
+kind = "archive"
+repo = "satococoa/wtp"
+asset = '^wtp_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^wtp_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/wtp"
+bins = ["wtp"]

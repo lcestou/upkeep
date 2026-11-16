@@ -1,0 +1,8 @@
+# Drafted from Mikescher/better-docker-ps's v1.18 release.
+[apps.dops]
+name = "Better Docker Ps"
+kind = "file"
+repo = "Mikescher/better-docker-ps"
+asset = '^dops_linux-amd64$'
+asset_aarch64 = '^dops_linux-arm64$'
+dest = "~/.local/bin/dops"

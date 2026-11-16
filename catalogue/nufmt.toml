@@ -1,0 +1,9 @@
+# Drafted from nushell/nufmt's v0.1.6 release.
+[apps.nufmt]
+name = "nufmt"
+kind = "archive"
+repo = "nushell/nufmt"
+asset = '^nufmt-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^nufmt-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/nufmt"
+bins = ["nufmt-x86_64-unknown-linux-gnu/nufmt"]

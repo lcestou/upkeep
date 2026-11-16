@@ -1,0 +1,8 @@
+# Drafted from archisvaze/arcdlp's v1.5.1 release.
+[apps.arcdlp]
+name = "ArcDLP"
+kind = "appimage"
+repo = "archisvaze/arcdlp"
+asset = '^ArcDLP-.*\.AppImage$'
+dest = "~/.local/bin/arcdlp.AppImage"
+meta_path = "arcdlp.desktop"

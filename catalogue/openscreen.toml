@@ -1,0 +1,8 @@
+# Drafted from getopenscreen/openscreen's v2.2.2 release.
+[apps.openscreen]
+name = "Openscreen"
+kind = "appimage"
+repo = "getopenscreen/openscreen"
+asset = '^Openscreen-Linux-.*\.AppImage$'
+dest = "~/.local/bin/openscreen.AppImage"
+meta_path = "openscreen.desktop"

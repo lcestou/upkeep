@@ -1,0 +1,8 @@
+# Drafted from pmbstyle/Alice's v1.5.0 release.
+[apps.alice-ai-app]
+name = "Alice-AI-App"
+kind = "appimage"
+repo = "pmbstyle/Alice"
+asset = '^Alice-AI-App-Linux-.*\.AppImage$'
+dest = "~/.local/bin/alice-ai-app.AppImage"
+meta_path = "alice-ai-app.desktop"

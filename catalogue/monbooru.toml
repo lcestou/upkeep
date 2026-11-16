@@ -1,0 +1,9 @@
+# Drafted from monbooru/monbooru's v1.24.0 release.
+[apps.monbooru]
+name = "monbooru"
+kind = "appimage"
+repo = "monbooru/monbooru"
+asset = '^monbooru_.*_x86_64\.AppImage$'
+asset_aarch64 = '^monbooru_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/monbooru.AppImage"
+meta_path = "usr/share/metainfo/io.github.monbooru.Monbooru.appdata.xml"

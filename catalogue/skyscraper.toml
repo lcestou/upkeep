@@ -1,0 +1,9 @@
+# Drafted from Gemba/skyscraper's 3.21.1 release.
+[apps.skyscraper]
+name = "Skyscraper"
+kind = "appimage"
+repo = "Gemba/skyscraper"
+asset = '^Skyscraper-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Skyscraper-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/skyscraper.AppImage"
+meta_path = "skyscraper.desktop"

@@ -1,0 +1,9 @@
+# Drafted from fujiwara/tracer's v1.1.3 release.
+[apps.tracer]
+name = "tracer"
+kind = "archive"
+repo = "fujiwara/tracer"
+asset = '^tracer_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tracer_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tracer"
+bins = ["tracer"]

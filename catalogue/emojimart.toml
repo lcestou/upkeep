@@ -1,0 +1,8 @@
+# Drafted from vemonet/EmojiMart's v0.3.2 release; its version is the one Upkeep installed.
+[apps.emojimart]
+name = "EmojiMart"
+kind = "appimage"
+repo = "vemonet/EmojiMart"
+asset = '^EmojiMart_.*_amd64\.AppImage$'
+dest = "~/.local/bin/emojimart.AppImage"
+probe = false

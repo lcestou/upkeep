@@ -1,0 +1,8 @@
+# Drafted from memospot/memospot's v1.0.5 release; its version is the one Upkeep installed.
+[apps.memospot]
+name = "Memospot"
+kind = "appimage"
+repo = "memospot/memospot"
+asset = '^Memospot_.*_amd64\.AppImage$'
+dest = "~/.local/bin/memospot.AppImage"
+probe = false

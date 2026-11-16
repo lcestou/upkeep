@@ -1,0 +1,10 @@
+# Drafted from tofuutils/tenv's v4.15.1 release.
+[apps.tenv]
+name = "tenv"
+kind = "archive"
+repo = "tofuutils/tenv"
+asset = '^tenv_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^tenv_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tenv"
+folder = "~/.local/share/tenv"
+bins = ["tenv"]

@@ -1,0 +1,9 @@
+# Drafted from oligot/go-mod-upgrade's v0.13.0 release.
+[apps.go-mod-upgrade]
+name = "Go Mod Upgrade"
+kind = "archive"
+repo = "oligot/go-mod-upgrade"
+asset = '^go-mod-upgrade_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^go-mod-upgrade_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/go-mod-upgrade"
+bins = ["go-mod-upgrade"]

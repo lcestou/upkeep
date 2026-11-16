@@ -1,0 +1,8 @@
+# Drafted from Nezara/OpenCrown-PC's v1.1 release; its version is the one Upkeep installed.
+[apps.opencrown]
+name = "OpenCrown"
+kind = "appimage"
+repo = "Nezara/OpenCrown-PC"
+asset = '^OpenCrown-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/opencrown.AppImage"
+probe = false

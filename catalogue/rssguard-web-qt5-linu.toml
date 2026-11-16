@@ -1,0 +1,8 @@
+# Drafted from martinrotter/rssguard's 5.3.0 release.
+[apps.rssguard-web-qt5-linu]
+name = "rssguard"
+kind = "appimage"
+repo = "martinrotter/rssguard"
+asset = '^rssguard-.*-web-qt5-linux64\.AppImage$'
+dest = "~/.local/bin/rssguard-web-qt5-linu.AppImage"
+meta_path = "io.github.martinrotter.rssguard.desktop"

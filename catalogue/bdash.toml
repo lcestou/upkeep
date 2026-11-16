@@ -1,0 +1,8 @@
+# Drafted from bdash-app/bdash's v1.35.4 release.
+[apps.bdash]
+name = "Bdash"
+kind = "appimage"
+repo = "bdash-app/bdash"
+asset = '^Bdash-.*\.AppImage$'
+dest = "~/.local/bin/bdash.AppImage"
+meta_path = "bdash.desktop"

@@ -1,0 +1,10 @@
+# Drafted from vultr/vultr-cli's v3.11.0 release.
+[apps.vultr-cli]
+name = "Vultr Cli"
+kind = "archive"
+repo = "vultr/vultr-cli"
+asset = '^vultr-cli_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^vultr-cli_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/vultr-cli"
+bins = ["vultr-cli"]
+version_args = ["version"]

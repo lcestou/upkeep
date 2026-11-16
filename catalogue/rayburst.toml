@@ -1,0 +1,9 @@
+# Drafted from AnInsomniacy/rayburst's v4.1.2 release; its version is the one Upkeep installed.
+[apps.rayburst]
+name = "Rayburst"
+kind = "appimage"
+repo = "AnInsomniacy/rayburst"
+asset = '^Rayburst_.*_amd64\.AppImage$'
+asset_aarch64 = '^Rayburst_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/rayburst.AppImage"
+probe = false

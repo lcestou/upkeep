@@ -1,0 +1,9 @@
+# Drafted from SpartanJ/ecode's ecode-0.9.0 release; its version is the one Upkeep installed.
+[apps.ecode]
+name = "ecode"
+kind = "appimage"
+repo = "SpartanJ/ecode"
+asset = '^ecode-linux-.*-x86_64\.AppImage$'
+asset_aarch64 = '^ecode-linux-.*-arm64\.AppImage$'
+dest = "~/.local/bin/ecode.AppImage"
+probe = false

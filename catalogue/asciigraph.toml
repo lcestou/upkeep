@@ -1,0 +1,10 @@
+# Drafted from guptarohit/asciigraph's v0.10.0 release; its version is the one Upkeep installed.
+[apps.asciigraph]
+name = "asciigraph"
+kind = "archive"
+repo = "guptarohit/asciigraph"
+asset = '^asciigraph_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^asciigraph_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/asciigraph"
+bins = ["asciigraph"]
+probe = false

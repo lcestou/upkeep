@@ -1,0 +1,10 @@
+# Drafted from openshift/rosa's v1.2.68 release.
+[apps.rosa]
+name = "rosa"
+kind = "archive"
+repo = "openshift/rosa"
+asset = '^rosa_linux_amd64\.zip$'
+asset_aarch64 = '^rosa_linux_arm64\.zip$'
+dest = "~/.local/bin/rosa"
+bins = ["rosa"]
+version_args = ["version"]

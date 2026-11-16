@@ -1,0 +1,9 @@
+# Drafted from trypsynth/paperback's 1.1.0 release; its version is the one Upkeep installed.
+[apps.paperback]
+name = "paperback"
+kind = "appimage"
+repo = "trypsynth/paperback"
+asset = '^paperback-x64\.AppImage$'
+asset_aarch64 = '^paperback-arm64\.AppImage$'
+dest = "~/.local/bin/paperback.AppImage"
+probe = false

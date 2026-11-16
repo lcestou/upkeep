@@ -1,0 +1,8 @@
+# Drafted from jindrapetrik/jpexs-decompiler's version26.5.0 release.
+[apps.ffdec]
+name = "Jpexs Decompiler"
+kind = "appimage"
+repo = "jindrapetrik/jpexs-decompiler"
+asset = '^ffdec_.*\.AppImage$'
+dest = "~/.local/bin/ffdec.AppImage"
+meta_path = "com.jpexs.decompiler.flash.desktop"

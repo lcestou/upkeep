@@ -1,0 +1,8 @@
+# Drafted from socnetv/app's v3.8 release.
+[apps.socnetv]
+name = "SocNetV"
+kind = "appimage"
+repo = "socnetv/app"
+asset = '^SocNetV-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/socnetv.AppImage"
+meta_path = "usr/share/metainfo/socnetv.appdata.xml"

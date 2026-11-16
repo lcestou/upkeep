@@ -1,0 +1,8 @@
+# Drafted from lokus-ai/lokus's v1.3.0 release; its version is the one Upkeep installed.
+[apps.lokus]
+name = "Lokus"
+kind = "appimage"
+repo = "lokus-ai/lokus"
+asset = '^Lokus_.*_amd64\.AppImage$'
+dest = "~/.local/bin/lokus.AppImage"
+probe = false

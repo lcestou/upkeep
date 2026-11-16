@@ -1,0 +1,8 @@
+# Drafted from zync-sh/zync's v2.40.0 release; its version is the one Upkeep installed.
+[apps.zync]
+name = "zync"
+kind = "appimage"
+repo = "zync-sh/zync"
+asset = '^zync_.*_amd64\.AppImage$'
+dest = "~/.local/bin/zync.AppImage"
+probe = false

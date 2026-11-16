@@ -1,0 +1,9 @@
+# Drafted from ouch-org/ouch's 0.8.3 release; its version is the one Upkeep installed.
+[apps.ouch]
+name = "ouch"
+kind = "appimage"
+repo = "ouch-org/ouch"
+asset = '^ouch-x86_64-unknown-linux-musl\.AppImage$'
+asset_aarch64 = '^ouch-aarch64-unknown-linux-musl\.AppImage$'
+dest = "~/.local/bin/ouch.AppImage"
+probe = false

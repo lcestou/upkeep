@@ -1,0 +1,8 @@
+# Drafted from sue445/plant_erd's v0.4.12 release.
+[apps.plant-erd]
+name = "Plant Erd"
+kind = "archive"
+repo = "sue445/plant_erd"
+asset = '^plant_erd_linux_amd64\.zip$'
+dest = "~/.local/bin/plant_erd"
+bins = ["plant_erd*"]

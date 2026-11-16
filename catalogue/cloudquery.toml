@@ -1,0 +1,9 @@
+# Drafted from cloudquery/cloudquery's cli-v6.51.0 release.
+[apps.cloudquery]
+name = "cloudquery"
+kind = "archive"
+repo = "cloudquery/cloudquery"
+asset = '^cloudquery_linux_amd64\.zip$'
+asset_aarch64 = '^cloudquery_linux_arm64\.zip$'
+dest = "~/.local/bin/cloudquery"
+bins = ["cloudquery"]

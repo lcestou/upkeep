@@ -1,0 +1,8 @@
+# Drafted from CuteTenshii/deezer-discord-rpc's 1.5.1 release.
+[apps.deezerdiscordrpc]
+name = "DeezerDiscordRPC"
+kind = "appimage"
+repo = "CuteTenshii/deezer-discord-rpc"
+asset = '^DeezerDiscordRPC-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/deezerdiscordrpc.AppImage"
+meta_path = "deezer-discord-rpc.desktop"

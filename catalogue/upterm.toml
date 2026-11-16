@@ -1,0 +1,11 @@
+# Drafted from owenthereal/upterm's v0.41.1 release.
+[apps.upterm]
+name = "upterm"
+kind = "archive"
+repo = "owenthereal/upterm"
+asset = '^upterm_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^upterm_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/upterm"
+folder = "~/.local/share/upterm"
+bins = ["upterm"]
+version_args = ["version"]

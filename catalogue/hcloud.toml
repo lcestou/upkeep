@@ -1,0 +1,10 @@
+# Drafted from hetznercloud/cli's v1.70.2 release.
+[apps.hcloud]
+name = "hcloud"
+kind = "archive"
+repo = "hetznercloud/cli"
+asset = '^hcloud-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^hcloud-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/hcloud"
+bins = ["hcloud"]
+version_args = ["version"]

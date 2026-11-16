@@ -1,0 +1,8 @@
+# Drafted from happy-loki/codexhub's v0.4.30 release.
+[apps.codexhub]
+name = "CodexHub"
+kind = "appimage"
+repo = "happy-loki/codexhub"
+asset = '^CodexHub\.Linux\.x86_64\.AppImage$'
+dest = "~/.local/bin/codexhub.AppImage"
+meta_path = "codexhub.desktop"

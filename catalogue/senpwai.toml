@@ -1,0 +1,9 @@
+# Drafted from SenZmaKi/Senpwai's v3.0.1 release.
+[apps.senpwai]
+name = "Senpwai"
+kind = "appimage"
+repo = "SenZmaKi/Senpwai"
+asset = '^Senpwai-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Senpwai-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/senpwai.AppImage"
+meta_path = "com.senpwai.app.desktop"

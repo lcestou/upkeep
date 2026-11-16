@@ -1,0 +1,9 @@
+# Drafted from iongion/container-desktop's 6.0.0 release; its version is the one Upkeep installed.
+[apps.container-desktop]
+name = "Container Desktop"
+kind = "appimage"
+repo = "iongion/container-desktop"
+asset = '^container-desktop-linux-x86_64-.*\.AppImage$'
+asset_aarch64 = '^container-desktop-linux-arm64-.*\.AppImage$'
+dest = "~/.local/bin/container-desktop.AppImage"
+probe = false

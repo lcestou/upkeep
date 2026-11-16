@@ -1,0 +1,8 @@
+# Drafted from wojciech-graj/doom-ascii's v0.3.2 release.
+[apps.doom-ascii]
+name = "Doom Ascii"
+kind = "appimage"
+repo = "wojciech-graj/doom-ascii"
+asset = '^doom-ascii-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/doom-ascii.AppImage"
+meta_path = "usr/share/metainfo/io.github.wojciech_graj.doom_ascii.appdata.xml"

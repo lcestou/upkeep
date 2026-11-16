@@ -1,0 +1,8 @@
+# Drafted from yjid/kensaku's v1.0.17 release; its version is the one Upkeep installed.
+[apps.kensaku]
+name = "kensaku"
+kind = "appimage"
+repo = "yjid/kensaku"
+asset = '^kensaku_.*_amd64\.AppImage$'
+dest = "~/.local/bin/kensaku.AppImage"
+probe = false

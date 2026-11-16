@@ -1,0 +1,8 @@
+# Drafted from truelockmc/streambert's 2.7.0 release.
+[apps.streambert]
+name = "Streambert"
+kind = "appimage"
+repo = "truelockmc/streambert"
+asset = '^Streambert-.*\.AppImage$'
+dest = "~/.local/bin/streambert.AppImage"
+meta_path = "streambert.desktop"

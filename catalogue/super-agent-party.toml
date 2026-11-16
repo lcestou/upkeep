@@ -1,0 +1,9 @@
+# Drafted from heshengtao/super-agent-party's v0.4.3 release; its version is the one Upkeep installed.
+[apps.super-agent-party]
+name = "Super-Agent-Party"
+kind = "appimage"
+repo = "heshengtao/super-agent-party"
+asset = '^Super-Agent-Party-.*-Linux-x86_64\.AppImage$'
+asset_aarch64 = '^Super-Agent-Party-.*-Linux-arm64\.AppImage$'
+dest = "~/.local/bin/super-agent-party.AppImage"
+probe = false

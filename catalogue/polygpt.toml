@@ -1,0 +1,8 @@
+# Drafted from ncvgl/polygpt's v0.2.8 release.
+[apps.polygpt]
+name = "polygpt"
+kind = "appimage"
+repo = "ncvgl/polygpt"
+asset = '^polygpt\.AppImage$'
+dest = "~/.local/bin/polygpt.AppImage"
+meta_path = "polygpt.desktop"

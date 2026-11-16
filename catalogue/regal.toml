@@ -1,0 +1,9 @@
+# Drafted from open-policy-agent/regal's v0.43.0 release.
+[apps.regal]
+name = "regal"
+kind = "file"
+repo = "open-policy-agent/regal"
+asset = '^regal_Linux_x86_64$'
+asset_aarch64 = '^regal_Linux_arm64$'
+dest = "~/.local/bin/regal"
+version_args = ["version"]

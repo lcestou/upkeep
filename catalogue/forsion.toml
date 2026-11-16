@@ -1,0 +1,8 @@
+# Drafted from Changan-Su/Forsion's v2.14.1 release.
+[apps.forsion]
+name = "Forsion"
+kind = "appimage"
+repo = "Changan-Su/Forsion"
+asset = '^Forsion-[0-9][0-9A-Za-z.]*-x86_64\.AppImage$'
+dest = "~/.local/bin/forsion.AppImage"
+meta_path = "forsion-desktop.desktop"

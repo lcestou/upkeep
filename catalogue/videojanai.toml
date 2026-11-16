@@ -1,0 +1,8 @@
+# Drafted from the-database/VideoJaNai's 2.13.0 release; its version is the one Upkeep installed.
+[apps.videojanai]
+name = "VideoJaNai"
+kind = "appimage"
+repo = "the-database/VideoJaNai"
+asset = '^VideoJaNai-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/videojanai.AppImage"
+probe = false

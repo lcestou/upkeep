@@ -1,0 +1,9 @@
+# Drafted from p10node/k10s's v0.1.10 release.
+[apps.k10s]
+name = "k10s"
+kind = "archive"
+repo = "p10node/k10s"
+asset = '^k10s_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^k10s_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/k10s"
+bins = ["k10s"]

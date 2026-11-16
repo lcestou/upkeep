@@ -1,0 +1,9 @@
+# Drafted from mihaigalos/aim's 1.9.0 release.
+[apps.aim]
+name = "aim"
+kind = "archive"
+repo = "mihaigalos/aim"
+asset = '^aim-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^aim-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/aim"
+bins = ["aim"]

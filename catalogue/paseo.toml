@@ -1,0 +1,8 @@
+# Drafted from getpaseo/paseo's v0.15.4 release.
+[apps.paseo]
+name = "Paseo"
+kind = "appimage"
+repo = "getpaseo/paseo"
+asset = '^Paseo-x86_64\.AppImage$'
+dest = "~/.local/bin/paseo.AppImage"
+meta_path = "Paseo.desktop"

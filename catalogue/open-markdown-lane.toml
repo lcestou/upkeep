@@ -1,0 +1,8 @@
+# Drafted from AniChikage/open-markdown-lane's v0.26.2 release.
+[apps.open-markdown-lane]
+name = "Open-Markdown-Lane"
+kind = "appimage"
+repo = "AniChikage/open-markdown-lane"
+asset = '^Open-Markdown-Lane-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/open-markdown-lane.AppImage"
+meta_path = "open-markdown-lane.desktop"

@@ -1,0 +1,8 @@
+# Drafted from CutWire-Studios/Drift's v0.9.2 release.
+[apps.drift]
+name = "Drift"
+kind = "appimage"
+repo = "CutWire-Studios/Drift"
+asset = '^Drift-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/drift.AppImage"
+meta_path = "org.cutwire.Drift.desktop"

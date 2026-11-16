@@ -1,0 +1,8 @@
+# Drafted from baptisterajaut/radmin-vpn-linux's v1.1.1 release; its version is the one Upkeep installed.
+[apps.radminvpn]
+name = "RadminVPN"
+kind = "appimage"
+repo = "baptisterajaut/radmin-vpn-linux"
+asset = '^RadminVPN-Linux-x86_64\.AppImage$'
+dest = "~/.local/bin/radminvpn.AppImage"
+probe = false

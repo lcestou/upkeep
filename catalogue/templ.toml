@@ -1,0 +1,9 @@
+# Drafted from a-h/templ's v0.3.1118 release.
+[apps.templ]
+name = "templ"
+kind = "archive"
+repo = "a-h/templ"
+asset = '^templ_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^templ_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/templ"
+bins = ["templ"]

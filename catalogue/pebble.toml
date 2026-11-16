@@ -1,0 +1,8 @@
+# Drafted from QingJ01/Pebble's v0.1.6 release; its version is the one Upkeep installed.
+[apps.pebble]
+name = "Pebble"
+kind = "appimage"
+repo = "QingJ01/Pebble"
+asset = '^Pebble_.*_amd64\.AppImage$'
+dest = "~/.local/bin/pebble.AppImage"
+probe = false

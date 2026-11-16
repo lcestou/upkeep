@@ -1,0 +1,10 @@
+# Drafted from kubernetes-sigs/ingress2gateway's v1.2.0 release.
+[apps.ingress2gateway]
+name = "ingress2gateway"
+kind = "archive"
+repo = "kubernetes-sigs/ingress2gateway"
+asset = '^ingress2gateway_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^ingress2gateway_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ingress2gateway"
+bins = ["ingress2gateway"]
+version_args = ["version"]

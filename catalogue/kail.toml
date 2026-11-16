@@ -1,0 +1,10 @@
+# Drafted from boz/kail's v0.17.4 release.
+[apps.kail]
+name = "kail"
+kind = "archive"
+repo = "boz/kail"
+asset = '^kail_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kail_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kail"
+bins = ["kail"]
+version_args = ["version"]

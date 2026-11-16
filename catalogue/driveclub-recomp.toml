@@ -1,0 +1,8 @@
+# Drafted from OverkillLabs3/driveclub-recomp's v0.4.2 release; its version is the one Upkeep installed.
+[apps.driveclub-recomp]
+name = "Driveclub Recomp"
+kind = "appimage"
+repo = "OverkillLabs3/driveclub-recomp"
+asset = '^driveclub-recomp-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/driveclub-recomp.AppImage"
+probe = false

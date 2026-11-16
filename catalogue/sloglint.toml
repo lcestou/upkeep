@@ -1,0 +1,10 @@
+# Drafted from go-simpler/sloglint's v0.12.0 release.
+[apps.sloglint]
+name = "sloglint"
+kind = "archive"
+repo = "go-simpler/sloglint"
+asset = '^sloglint_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^sloglint_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/sloglint"
+bins = ["sloglint"]
+version_args = ["-V"]

@@ -1,0 +1,8 @@
+# Drafted from Levminer/authme's 7.1.2 release; its version is the one Upkeep installed.
+[apps.authme]
+name = "authme"
+kind = "appimage"
+repo = "Levminer/authme"
+asset = '^authme-.*-linux-x64\.appimage$'
+dest = "~/.local/bin/authme.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from 86Box/86Box's v6.0 release.
+[apps.86box-b9001]
+name = "86Box-b9001"
+kind = "appimage"
+repo = "86Box/86Box"
+asset = '^86Box-Linux-x86_64-b9001\.AppImage$'
+dest = "~/.local/bin/86box-b9001.AppImage"
+meta_path = "usr/share/metainfo/net.86box.86Box.appdata.xml"

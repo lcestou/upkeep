@@ -1,0 +1,11 @@
+# Drafted from eventure/hide.client.linux's v0.9.14 release; its version is the one Upkeep installed.
+[apps.hide-me]
+name = "hide.client.linux"
+kind = "archive"
+repo = "eventure/hide.client.linux"
+asset = '^hide\.me-linux-amd64-.*\.tar\.gz$'
+asset_aarch64 = '^hide\.me-linux-arm64-.*\.tar\.gz$'
+dest = "~/.local/bin/hide.me"
+folder = "~/.local/share/hide-me"
+bins = ["hide.me"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from hust-open-atom-club/oh-dsh's v0.2.0 release.
+[apps.oh-dsh-tui]
+name = "Oh-DSH-Desktop"
+kind = "appimage"
+repo = "hust-open-atom-club/oh-dsh"
+asset = '^Oh-DSH-Desktop-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/oh-dsh-tui.AppImage"
+meta_path = "oh-dsh-desktop.desktop"

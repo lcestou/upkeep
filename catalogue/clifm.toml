@@ -1,0 +1,10 @@
+# Drafted from leo-arch/clifm's v1.29 release; its version is the one Upkeep installed.
+[apps.clifm]
+name = "clifm"
+kind = "archive"
+repo = "leo-arch/clifm"
+asset = '^clifm-.*-linux-x86_64\.tar\.gz$'
+dest = "~/.local/bin/clifm"
+folder = "~/.local/share/clifm"
+bins = ["bin/clifm"]
+probe = false

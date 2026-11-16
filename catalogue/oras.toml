@@ -1,0 +1,10 @@
+# Drafted from oras-project/oras's v1.3.6 release.
+[apps.oras]
+name = "oras"
+kind = "archive"
+repo = "oras-project/oras"
+asset = '^oras_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^oras_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/oras"
+bins = ["oras"]
+version_args = ["version"]

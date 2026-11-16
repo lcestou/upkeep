@@ -1,0 +1,8 @@
+# Drafted from TaKO8Ki/gobang's v0.1.0-alpha.5 release.
+[apps.gobang]
+name = "gobang"
+kind = "archive"
+repo = "TaKO8Ki/gobang"
+asset = '^gobang-.*-alpha\.5-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/gobang"
+bins = ["gobang-0.1.0-alpha.5-x86_64-unknown-linux-musl/gobang"]

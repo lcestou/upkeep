@@ -1,0 +1,9 @@
+# Drafted from OneKeyHQ/app-monorepo's v6.7.0 release; its version is the one Upkeep installed.
+[apps.onekey-wallet]
+name = "OneKey-Wallet"
+kind = "appimage"
+repo = "OneKeyHQ/app-monorepo"
+asset = '^OneKey-Wallet-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^OneKey-Wallet-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/onekey-wallet.AppImage"
+probe = false

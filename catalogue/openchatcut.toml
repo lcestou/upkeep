@@ -1,0 +1,8 @@
+# Drafted from 0xsline/OpenChatCut's v0.2.17 release.
+[apps.openchatcut]
+name = "OpenChatCut"
+kind = "appimage"
+repo = "0xsline/OpenChatCut"
+asset = '^OpenChatCut-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/openchatcut.AppImage"
+meta_path = "openchatcut.desktop"

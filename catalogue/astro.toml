@@ -1,0 +1,10 @@
+# Drafted from astronomer/astro-cli's v1.47.0 release.
+[apps.astro]
+name = "Astro Cli"
+kind = "archive"
+repo = "astronomer/astro-cli"
+asset = '^astro_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^astro_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/astro"
+bins = ["astro"]
+version_args = ["version"]

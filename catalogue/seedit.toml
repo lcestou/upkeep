@@ -1,0 +1,8 @@
+# Drafted from bitsocialnet/seedit's v0.6.3 release.
+[apps.seedit]
+name = "seedit"
+kind = "appimage"
+repo = "bitsocialnet/seedit"
+asset = '^seedit-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/seedit.AppImage"
+meta_path = "seedit.desktop"

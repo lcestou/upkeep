@@ -1,0 +1,8 @@
+# Drafted from inulute/ai-gate's v4.8.0 release.
+[apps.ai-gate]
+name = "AI-Gate"
+kind = "appimage"
+repo = "inulute/ai-gate"
+asset = '^AI\.Gate-.*\.AppImage$'
+dest = "~/.local/bin/ai-gate.AppImage"
+meta_path = "ai-gate.desktop"

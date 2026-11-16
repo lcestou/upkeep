@@ -1,0 +1,10 @@
+# Drafted from k8sgpt-ai/k8sgpt's v0.4.41 release.
+[apps.k8sgpt]
+name = "k8sgpt"
+kind = "archive"
+repo = "k8sgpt-ai/k8sgpt"
+asset = '^k8sgpt_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^k8sgpt_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/k8sgpt"
+bins = ["k8sgpt"]
+version_args = ["version"]

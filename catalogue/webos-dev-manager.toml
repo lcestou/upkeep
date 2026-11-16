@@ -1,0 +1,9 @@
+# Drafted from webosbrew/dev-manager-desktop's v1.99.21 release; its version is the one Upkeep installed.
+[apps.webos-dev-manager]
+name = "Dev Manager Desktop"
+kind = "appimage"
+repo = "webosbrew/dev-manager-desktop"
+asset = '^webos-dev-manager_.*_amd64\.AppImage$'
+asset_aarch64 = '^webos-dev-manager_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/webos-dev-manager.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from CESNET/UltraGrid's v1.10.8 release.
+[apps.ultragrid]
+name = "UltraGrid"
+kind = "appimage"
+repo = "CESNET/UltraGrid"
+asset = '^UltraGrid-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ultragrid.AppImage"
+meta_path = "cz.cesnet.ultragrid.desktop"

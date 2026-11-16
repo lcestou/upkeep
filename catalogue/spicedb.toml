@@ -1,0 +1,10 @@
+# Drafted from authzed/spicedb's v1.57.1 release.
+[apps.spicedb]
+name = "spicedb"
+kind = "archive"
+repo = "authzed/spicedb"
+asset = '^spicedb_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^spicedb_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/spicedb"
+bins = ["spicedb"]
+version_args = ["version"]

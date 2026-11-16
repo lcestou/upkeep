@@ -1,0 +1,8 @@
+# Drafted from stepchowfun/docuum's v0.27.3 release.
+[apps.docuum]
+name = "docuum"
+kind = "file"
+repo = "stepchowfun/docuum"
+asset = '^docuum-x86_64-unknown-linux-gnu$'
+asset_aarch64 = '^docuum-aarch64-unknown-linux-gnu$'
+dest = "~/.local/bin/docuum"

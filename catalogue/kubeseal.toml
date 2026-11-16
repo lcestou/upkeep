@@ -1,0 +1,9 @@
+# Drafted from bitnami/sealed-secrets's v0.41.2 release.
+[apps.kubeseal]
+name = "Sealed Secrets"
+kind = "archive"
+repo = "bitnami/sealed-secrets"
+asset = '^kubeseal-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^kubeseal-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/kubeseal"
+bins = ["kubeseal"]

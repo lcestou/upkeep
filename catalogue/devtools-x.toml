@@ -1,0 +1,8 @@
+# Drafted from fosslife/devtools-x's devtoolsx-v3.4.1 release; its version is the one Upkeep installed.
+[apps.devtools-x]
+name = "Devtools X"
+kind = "appimage"
+repo = "fosslife/devtools-x"
+asset = '^devtools-x_.*_amd64\.AppImage$'
+dest = "~/.local/bin/devtools-x.AppImage"
+probe = false

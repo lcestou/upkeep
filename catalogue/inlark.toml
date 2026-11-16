@@ -1,0 +1,8 @@
+# Drafted from inlark/inlark's v0.6.1 release.
+[apps.inlark]
+name = "inlark"
+kind = "appimage"
+repo = "inlark/inlark"
+asset = '^inlark-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/inlark.AppImage"
+meta_path = "inlark.desktop"

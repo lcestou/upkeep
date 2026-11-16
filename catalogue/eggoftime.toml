@@ -1,0 +1,8 @@
+# Drafted from power-pudu/egg-of-time's v1.4.0 release; its version is the one Upkeep installed.
+[apps.eggoftime]
+name = "EggOfTime"
+kind = "appimage"
+repo = "power-pudu/egg-of-time"
+asset = '^EggOfTime-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/eggoftime.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from typstyle-rs/typstyle's v0.15.2 release.
+[apps.typstyle]
+name = "typstyle"
+kind = "file"
+repo = "typstyle-rs/typstyle"
+asset = '^typstyle-x86_64-unknown-linux-gnu$'
+asset_aarch64 = '^typstyle-aarch64-unknown-linux-gnu$'
+dest = "~/.local/bin/typstyle"

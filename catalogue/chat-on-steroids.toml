@@ -1,0 +1,9 @@
+# Drafted from totec448-spec/chat-on-steroids's v2.1.53 release.
+[apps.chat-on-steroids]
+name = "Chat-On-Steroids"
+kind = "appimage"
+repo = "totec448-spec/chat-on-steroids"
+asset = '^Chat-On-Steroids-Linux-x64\.AppImage$'
+asset_aarch64 = '^Chat-On-Steroids-Linux-arm64\.AppImage$'
+dest = "~/.local/bin/chat-on-steroids.AppImage"
+meta_path = "com.chatonsteroids.app.desktop"

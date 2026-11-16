@@ -1,0 +1,9 @@
+# Drafted from toshimaru/nyan's v1.2.6 release.
+[apps.nyan]
+name = "nyan"
+kind = "archive"
+repo = "toshimaru/nyan"
+asset = '^nyan_Linux_amd64\.tar\.gz$'
+asset_aarch64 = '^nyan_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/nyan"
+bins = ["nyan"]

@@ -1,0 +1,8 @@
+# Drafted from devhubapp/devhub's v0.102.0 release.
+[apps.devhub]
+name = "DevHub"
+kind = "appimage"
+repo = "devhubapp/devhub"
+asset = '^DevHub-.*\.AppImage$'
+dest = "~/.local/bin/devhub.AppImage"
+meta_path = "devhub.desktop"

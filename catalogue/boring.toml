@@ -1,0 +1,10 @@
+# Drafted from alebeck/boring's v0.17.0 release.
+[apps.boring]
+name = "boring"
+kind = "archive"
+repo = "alebeck/boring"
+asset = '^boring-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^boring-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/boring"
+bins = ["boring"]
+version_args = ["version"]

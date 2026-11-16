@@ -1,0 +1,8 @@
+# Drafted from mangfufu/director-desk's v0.5.5.1 release.
+[apps.directordesk]
+name = "DirectorDesk"
+kind = "appimage"
+repo = "mangfufu/director-desk"
+asset = '^DirectorDesk-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/directordesk.AppImage"
+meta_path = "DirectorDesk.desktop"

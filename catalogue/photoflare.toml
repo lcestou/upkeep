@@ -1,0 +1,8 @@
+# Drafted from PhotoFlare/photoflare's v1.7.5 release.
+[apps.photoflare]
+name = "PhotoFlare"
+kind = "appimage"
+repo = "PhotoFlare/photoflare"
+asset = '^PhotoFlare-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/photoflare.AppImage"
+meta_path = "usr/share/metainfo/io.photoflare.photoflare.appdata.xml"

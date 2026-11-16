@@ -1,0 +1,8 @@
+# Drafted from NihilDigit/piko's v1.5.0 release.
+[apps.piko]
+name = "piko"
+kind = "appimage"
+repo = "NihilDigit/piko"
+asset = '^piko-linux-x64-.*\.AppImage$'
+dest = "~/.local/bin/piko.AppImage"
+meta_path = "dev.nihildigit.Piko.desktop"

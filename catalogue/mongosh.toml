@@ -1,0 +1,10 @@
+# Drafted from mongodb-js/mongosh's v2.14.2 release.
+[apps.mongosh]
+name = "mongosh"
+kind = "archive"
+repo = "mongodb-js/mongosh"
+asset = '^mongosh-.*-linux-x64\.tgz$'
+asset_aarch64 = '^mongosh-.*-linux-arm64\.tgz$'
+dest = "~/.local/bin/mongosh"
+folder = "~/.local/share/mongosh"
+bins = ["bin/mongosh"]

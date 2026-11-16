@@ -1,0 +1,8 @@
+# Drafted from hackjutsu/Lepton's v2.0.0 release.
+[apps.lepton]
+name = "Lepton"
+kind = "appimage"
+repo = "hackjutsu/Lepton"
+asset = '^Lepton-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/lepton.AppImage"
+meta_path = "lepton.desktop"

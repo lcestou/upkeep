@@ -1,0 +1,9 @@
+# Drafted from fioncat/otree's v0.7.1 release.
+[apps.otree]
+name = "otree"
+kind = "archive"
+repo = "fioncat/otree"
+asset = '^otree-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^otree-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/otree"
+bins = ["otree"]

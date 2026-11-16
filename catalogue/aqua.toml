@@ -1,0 +1,10 @@
+# Drafted from aquaproj/aqua's v2.66.1 release.
+[apps.aqua]
+name = "aqua"
+kind = "archive"
+repo = "aquaproj/aqua"
+asset = '^aqua_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^aqua_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/aqua"
+folder = "~/.local/share/aqua"
+bins = ["aqua"]

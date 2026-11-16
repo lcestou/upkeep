@@ -1,0 +1,9 @@
+# Drafted from NerfTrack/NerfTrack's v1.1.7 release; its version is the one Upkeep installed.
+[apps.nerftrack]
+name = "NerfTrack"
+kind = "appimage"
+repo = "NerfTrack/NerfTrack"
+asset = '^NerfTrack-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^NerfTrack-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/nerftrack.AppImage"
+probe = false

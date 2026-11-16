@@ -1,0 +1,8 @@
+# Drafted from session-foundation/session-desktop's v1.18.4 release.
+[apps.session-desktop]
+name = "Session Desktop"
+kind = "appimage"
+repo = "session-foundation/session-desktop"
+asset = '^session-desktop-linux-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/session-desktop.AppImage"
+meta_path = "session-desktop.desktop"

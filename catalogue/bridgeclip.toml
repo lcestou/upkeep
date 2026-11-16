@@ -1,0 +1,8 @@
+# Drafted from bridge-mind/bridgeclip's v0.1.19 release.
+[apps.bridgeclip]
+name = "BridgeClip"
+kind = "appimage"
+repo = "bridge-mind/bridgeclip"
+asset = '^BridgeClip-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/bridgeclip.AppImage"
+meta_path = "bridgeclip.desktop"

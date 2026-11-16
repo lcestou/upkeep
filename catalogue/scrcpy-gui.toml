@@ -1,0 +1,8 @@
+# Drafted from SimonAKing/scrcpy-gui's v2.5.0 release.
+[apps.scrcpy-gui]
+name = "Scrcpy-GUI"
+kind = "appimage"
+repo = "SimonAKing/scrcpy-gui"
+asset = '^Scrcpy\.GUI-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/scrcpy-gui.AppImage"
+meta_path = "scrcpy-gui.desktop"

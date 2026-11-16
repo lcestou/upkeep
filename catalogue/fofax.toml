@@ -1,0 +1,9 @@
+# Drafted from xiecat/fofax's v0.1.48 release.
+[apps.fofax]
+name = "fofax"
+kind = "archive"
+repo = "xiecat/fofax"
+asset = '^fofax_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^fofax_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/fofax"
+bins = ["fofax"]

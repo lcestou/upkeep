@@ -1,0 +1,9 @@
+# Drafted from moncho/dry's v0.13.0 release.
+[apps.dry]
+name = "dry"
+kind = "archive"
+repo = "moncho/dry"
+asset = '^dry-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^dry-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/dry"
+bins = ["dry"]

@@ -1,0 +1,9 @@
+# Drafted from suzuki-shunsuke/github-comment's v6.4.2 release.
+[apps.github-comment]
+name = "Github Comment"
+kind = "archive"
+repo = "suzuki-shunsuke/github-comment"
+asset = '^github-comment_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^github-comment_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/github-comment"
+bins = ["github-comment"]

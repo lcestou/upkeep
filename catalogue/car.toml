@@ -1,0 +1,10 @@
+# Drafted from ipld/go-car's v2.17.0 release; its version is the one Upkeep installed.
+[apps.car]
+name = "Go Car"
+kind = "archive"
+repo = "ipld/go-car"
+asset = '^go-car_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^go-car_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/car"
+bins = ["car"]
+probe = false

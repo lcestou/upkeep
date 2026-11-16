@@ -1,0 +1,8 @@
+# Drafted from OpenPetsHQ/openpets's v4.1.0 release.
+[apps.openpets]
+name = "OpenPets"
+kind = "appimage"
+repo = "OpenPetsHQ/openpets"
+asset = '^OpenPets-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/openpets.AppImage"
+meta_path = "openpets.desktop"

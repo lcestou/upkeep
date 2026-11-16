@@ -1,0 +1,9 @@
+# Drafted from zidoro/pomatez's v1.11.0 release.
+[apps.pomatez]
+name = "Pomatez"
+kind = "appimage"
+repo = "zidoro/pomatez"
+asset = '^Pomatez-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Pomatez-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/pomatez.AppImage"
+meta_path = "pomatez.desktop"

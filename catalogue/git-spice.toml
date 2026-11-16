@@ -1,0 +1,10 @@
+# Drafted from abhinav/git-spice's v0.33.0 release; its version is the one Upkeep installed.
+[apps.git-spice]
+name = "Git Spice"
+kind = "archive"
+repo = "abhinav/git-spice"
+asset = '^git-spice\.Linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^git-spice\.Linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/git-spice"
+bins = ["git-spice"]
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from project-copacetic/copacetic's v0.15.0 release.
+[apps.copa]
+name = "copacetic"
+kind = "archive"
+repo = "project-copacetic/copacetic"
+asset = '^copa_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^copa_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/copa"
+bins = ["copa"]

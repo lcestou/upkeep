@@ -1,0 +1,7 @@
+# Drafted from Anomalocaridid/handlr-regex's v0.13.0 release.
+[apps.handlr]
+name = "Handlr Regex"
+kind = "file"
+repo = "Anomalocaridid/handlr-regex"
+asset = '^handlr$'
+dest = "~/.local/bin/handlr"

@@ -1,0 +1,8 @@
+# Drafted from whyubel1eve/Mars-Editor-APP's v0.1.4 release; its version is the one Upkeep installed.
+[apps.mars-editor]
+name = "Mars-Editor"
+kind = "appimage"
+repo = "whyubel1eve/Mars-Editor-APP"
+asset = '^Mars-Editor_.*_amd64\.AppImage$'
+dest = "~/.local/bin/mars-editor.AppImage"
+probe = false

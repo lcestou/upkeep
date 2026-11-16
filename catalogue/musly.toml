@@ -1,0 +1,8 @@
+# Drafted from dddevid/Musly's v2.0.3 release; its version is the one Upkeep installed.
+[apps.musly]
+name = "Musly"
+kind = "appimage"
+repo = "dddevid/Musly"
+asset = '^musly-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/musly.AppImage"
+probe = false

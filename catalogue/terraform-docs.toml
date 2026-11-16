@@ -1,0 +1,9 @@
+# Drafted from terraform-docs/terraform-docs's v0.25.1 release.
+[apps.terraform-docs]
+name = "Terraform Docs"
+kind = "archive"
+repo = "terraform-docs/terraform-docs"
+asset = '^terraform-docs-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^terraform-docs-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/terraform-docs"
+bins = ["terraform-docs"]

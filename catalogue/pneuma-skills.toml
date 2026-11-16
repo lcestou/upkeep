@@ -1,0 +1,8 @@
+# Drafted from pandazki/pneuma-skills's v3.63.0 release.
+[apps.pneuma-skills]
+name = "Pneuma-Skills"
+kind = "appimage"
+repo = "pandazki/pneuma-skills"
+asset = '^Pneuma-Skills-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/pneuma-skills.AppImage"
+meta_path = "pneuma-skills-desktop.desktop"

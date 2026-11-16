@@ -1,0 +1,9 @@
+# Drafted from speakeasy-api/speakeasy's v1.809.0 release.
+[apps.speakeasy]
+name = "speakeasy"
+kind = "archive"
+repo = "speakeasy-api/speakeasy"
+asset = '^speakeasy_linux_amd64\.zip$'
+asset_aarch64 = '^speakeasy_linux_arm64\.zip$'
+dest = "~/.local/bin/speakeasy"
+bins = ["speakeasy"]

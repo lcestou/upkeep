@@ -1,0 +1,9 @@
+# Drafted from timmo001/system-bridge's 5.28.5 release; its version is the one Upkeep installed.
+[apps.system-bridge]
+name = "System Bridge"
+kind = "archive"
+repo = "timmo001/system-bridge"
+asset = '^system-bridge-.*-linux-x86_64\.tar\.gz$'
+dest = "~/.local/bin/system-bridge"
+bins = ["system-bridge"]
+probe = false

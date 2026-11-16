@@ -1,0 +1,9 @@
+# Drafted from gaozhangmin/boxplayer's v5.0.43 release.
+[apps.boxplayer]
+name = "boxplayer"
+kind = "appimage"
+repo = "gaozhangmin/boxplayer"
+asset = '^boxplayer-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^boxplayer-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/boxplayer.AppImage"
+meta_path = "boxplayer.desktop"

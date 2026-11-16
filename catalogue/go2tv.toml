@@ -1,0 +1,8 @@
+# Drafted from alexballas/go2tv's v2.9.0 release.
+[apps.go2tv]
+name = "go2tv"
+kind = "appimage"
+repo = "alexballas/go2tv"
+asset = '^go2tv_.*_amd64\.AppImage$'
+dest = "~/.local/bin/go2tv.AppImage"
+meta_path = "usr/share/metainfo/app.go2tv.go2tv.appdata.xml"

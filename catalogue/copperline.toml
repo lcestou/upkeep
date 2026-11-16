@@ -1,0 +1,8 @@
+# Drafted from CopperlineHQ/Copperline's v1.1.0 release.
+[apps.copperline]
+name = "Copperline"
+kind = "appimage"
+repo = "CopperlineHQ/Copperline"
+asset = '^Copperline-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/copperline.AppImage"
+meta_path = "dev.copperline.Copperline.desktop"

@@ -1,0 +1,8 @@
+# Drafted from tailwindlabs/tailwindcss's v4.3.5 release.
+[apps.tailwindcss]
+name = "tailwindcss"
+kind = "file"
+repo = "tailwindlabs/tailwindcss"
+asset = '^tailwindcss-linux-x64$'
+asset_aarch64 = '^tailwindcss-linux-arm64$'
+dest = "~/.local/bin/tailwindcss"

@@ -1,0 +1,11 @@
+# Drafted from helm/chart-testing's v3.15.0 release.
+[apps.ct]
+name = "Chart Testing"
+kind = "archive"
+repo = "helm/chart-testing"
+asset = '^chart-testing_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^chart-testing_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ct"
+folder = "~/.local/share/ct"
+bins = ["ct"]
+version_args = ["version"]

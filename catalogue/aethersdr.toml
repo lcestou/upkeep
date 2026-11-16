@@ -1,0 +1,9 @@
+# Drafted from aethersdr/AetherSDR's v26.11.2 release.
+[apps.aethersdr]
+name = "AetherSDR"
+kind = "appimage"
+repo = "aethersdr/AetherSDR"
+asset = '^AetherSDR-.*-x86_64\.AppImage$'
+asset_aarch64 = '^AetherSDR-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/aethersdr.AppImage"
+meta_path = "usr/share/metainfo/io.github.aethersdr.aethersdr.metainfo.xml"

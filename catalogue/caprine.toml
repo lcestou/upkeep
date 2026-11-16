@@ -1,0 +1,8 @@
+# Drafted from sindresorhus/caprine's v2.61.0 release.
+[apps.caprine]
+name = "Caprine"
+kind = "appimage"
+repo = "sindresorhus/caprine"
+asset = '^Caprine-.*\.AppImage$'
+dest = "~/.local/bin/caprine.AppImage"
+meta_path = "caprine.desktop"

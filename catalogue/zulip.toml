@@ -1,0 +1,8 @@
+# Drafted from zulip/zulip-desktop's v5.14.2 release.
+[apps.zulip]
+name = "Zulip"
+kind = "appimage"
+repo = "zulip/zulip-desktop"
+asset = '^Zulip-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/zulip.AppImage"
+meta_path = "org.zulip.Zulip.desktop"

@@ -1,0 +1,8 @@
+# Drafted from tg-prplx/vellium's v1.9.5 release.
+[apps.vellium]
+name = "Vellium"
+kind = "appimage"
+repo = "tg-prplx/vellium"
+asset = '^Vellium-.*\.AppImage$'
+dest = "~/.local/bin/vellium.AppImage"
+meta_path = "vellium.desktop"

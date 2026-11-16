@@ -1,0 +1,10 @@
+# Drafted from orhun/menyoki's v1.8.0 release; its version is the one Upkeep installed.
+[apps.menyoki]
+name = "menyoki"
+kind = "archive"
+repo = "orhun/menyoki"
+asset = '^menyoki-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/menyoki"
+folder = "~/.local/share/menyoki"
+bins = ["menyoki"]
+probe = false

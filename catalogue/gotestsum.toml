@@ -1,0 +1,9 @@
+# Drafted from gotestyourself/gotestsum's v1.13.0 release.
+[apps.gotestsum]
+name = "gotestsum"
+kind = "archive"
+repo = "gotestyourself/gotestsum"
+asset = '^gotestsum_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^gotestsum_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gotestsum"
+bins = ["gotestsum"]

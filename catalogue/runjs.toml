@@ -1,0 +1,8 @@
+# Drafted from lukehaas/RunJS's v4.1.0 release.
+[apps.runjs]
+name = "RunJS"
+kind = "appimage"
+repo = "lukehaas/RunJS"
+asset = '^RunJS-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/runjs.AppImage"
+meta_path = "runjs.desktop"

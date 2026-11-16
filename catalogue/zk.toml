@@ -1,0 +1,9 @@
+# Drafted from zk-org/zk's v0.15.7 release.
+[apps.zk]
+name = "zk"
+kind = "archive"
+repo = "zk-org/zk"
+asset = '^zk-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^zk-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/zk"
+bins = ["zk"]

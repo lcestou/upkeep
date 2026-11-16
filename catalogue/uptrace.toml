@@ -1,0 +1,9 @@
+# Drafted from uptrace/uptrace's v2.1.0 release.
+[apps.uptrace]
+name = "uptrace"
+kind = "file"
+repo = "uptrace/uptrace"
+asset = '^uptrace_linux_amd64$'
+asset_aarch64 = '^uptrace_linux_arm64$'
+dest = "~/.local/bin/uptrace"
+version_args = ["version"]

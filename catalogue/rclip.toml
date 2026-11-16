@@ -1,0 +1,8 @@
+# Drafted from yurijmikhalevich/rclip's v4.1.2 release.
+[apps.rclip]
+name = "rclip"
+kind = "appimage"
+repo = "yurijmikhalevich/rclip"
+asset = '^rclip-.*-amd64\.AppImage$'
+dest = "~/.local/bin/rclip.AppImage"
+meta_path = "org.yurijmikhalevich.rclip.desktop"

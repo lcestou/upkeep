@@ -1,0 +1,8 @@
+# Drafted from TechxArtisanStudio/Openterface_QT's 0.5.33 release; its version is the one Upkeep installed.
+[apps.openterfaceqt]
+name = "openterfaceQT"
+kind = "appimage"
+repo = "TechxArtisanStudio/Openterface_QT"
+asset = '^openterfaceQT_Linux_amd64\.AppImage$'
+dest = "~/.local/bin/openterfaceqt.AppImage"
+probe = false

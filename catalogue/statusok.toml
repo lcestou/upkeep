@@ -1,0 +1,10 @@
+# Drafted from sanathp/statusok's 0.1.1 release; its version is the one Upkeep installed.
+[apps.statusok]
+name = "statusok"
+kind = "archive"
+repo = "sanathp/statusok"
+asset = '^statusok_linux\.zip$'
+dest = "~/.local/bin/statusok"
+folder = "~/.local/share/statusok"
+bins = ["statusok_linux/statusok"]
+probe = false

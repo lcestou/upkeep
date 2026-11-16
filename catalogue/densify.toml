@@ -1,0 +1,8 @@
+# Drafted from hkdb/Densify's v0.4.2 release.
+[apps.densify]
+name = "Densify"
+kind = "appimage"
+repo = "hkdb/Densify"
+asset = '^Densify-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/densify.AppImage"
+meta_path = "io._3df.osi.densify.desktop"

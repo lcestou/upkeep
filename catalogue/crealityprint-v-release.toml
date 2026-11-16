@@ -1,0 +1,8 @@
+# Drafted from CrealityOfficial/CrealityPrint's v7.3.1 release; its version is the one Upkeep installed.
+[apps.crealityprint-v-release]
+name = "CrealityPrint-V-Release"
+kind = "appimage"
+repo = "CrealityOfficial/CrealityPrint"
+asset = '^CrealityPrint-V.*\.6378-x86_64-Release\.AppImage$'
+dest = "~/.local/bin/crealityprint-v-release.AppImage"
+probe = false

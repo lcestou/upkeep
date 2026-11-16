@@ -1,0 +1,8 @@
+# Drafted from unknownskl/greenlight's v2.4.2 release.
+[apps.greenlight]
+name = "Greenlight"
+kind = "appimage"
+repo = "unknownskl/greenlight"
+asset = '^Greenlight-.*\.AppImage$'
+dest = "~/.local/bin/greenlight.AppImage"
+meta_path = "greenlight-desktop.desktop"

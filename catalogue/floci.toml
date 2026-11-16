@@ -1,0 +1,8 @@
+# Drafted from floci-io/floci-cli's 0.4.0 release.
+[apps.floci]
+name = "Floci Cli"
+kind = "file"
+repo = "floci-io/floci-cli"
+asset = '^floci-linux-amd64$'
+asset_aarch64 = '^floci-linux-arm64$'
+dest = "~/.local/bin/floci"

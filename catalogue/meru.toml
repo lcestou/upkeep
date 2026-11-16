@@ -1,0 +1,9 @@
+# Drafted from zoidsh/meru's v3.64.2 release.
+[apps.meru]
+name = "Meru"
+kind = "appimage"
+repo = "zoidsh/meru"
+asset = '^Meru-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Meru-.*-arm64\.AppImage$'
+dest = "~/.local/bin/meru.AppImage"
+meta_path = "meru.desktop"

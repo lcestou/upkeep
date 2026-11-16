@@ -1,0 +1,11 @@
+# Drafted from updatecli/updatecli's v0.123.0 release.
+[apps.updatecli]
+name = "updatecli"
+kind = "archive"
+repo = "updatecli/updatecli"
+asset = '^updatecli_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^updatecli_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/updatecli"
+folder = "~/.local/share/updatecli"
+bins = ["updatecli"]
+version_args = ["version"]

@@ -1,0 +1,9 @@
+# Drafted from lycheeverse/lychee's lychee-v0.24.2 release.
+[apps.lychee]
+name = "lychee"
+kind = "archive"
+repo = "lycheeverse/lychee"
+asset = '^lychee-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^lychee-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/lychee"
+bins = ["lychee-x86_64-unknown-linux-gnu/lychee"]

@@ -1,0 +1,9 @@
+# Drafted from hooosberg/WitNote's v2.0.1 release.
+[apps.witnote]
+name = "WitNote"
+kind = "appimage"
+repo = "hooosberg/WitNote"
+asset = '^WitNote-.*-x86_64\.AppImage$'
+asset_aarch64 = '^WitNote-.*-arm64\.AppImage$'
+dest = "~/.local/bin/witnote.AppImage"
+meta_path = "witnote.desktop"

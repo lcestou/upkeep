@@ -1,0 +1,8 @@
+# Drafted from Jmgr/actiona's v3.11.5 release; its version is the one Upkeep installed.
+[apps.actiona]
+name = "actiona"
+kind = "appimage"
+repo = "Jmgr/actiona"
+asset = '^actiona-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/actiona.AppImage"
+probe = false

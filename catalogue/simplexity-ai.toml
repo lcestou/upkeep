@@ -1,0 +1,8 @@
+# Drafted from inulute/simplexity-ai-app's v5.2.0 release.
+[apps.simplexity-ai]
+name = "Simplexity-AI"
+kind = "appimage"
+repo = "inulute/simplexity-ai-app"
+asset = '^Simplexity\.AI-.*\.AppImage$'
+dest = "~/.local/bin/simplexity-ai.AppImage"
+meta_path = "simplexity-ai-app.desktop"

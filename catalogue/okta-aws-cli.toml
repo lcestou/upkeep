@@ -1,0 +1,9 @@
+# Drafted from okta/okta-aws-cli's v2.6.0 release.
+[apps.okta-aws-cli]
+name = "Okta Aws Cli"
+kind = "archive"
+repo = "okta/okta-aws-cli"
+asset = '^okta-aws-cli_.*_linux_amd64\.zip$'
+asset_aarch64 = '^okta-aws-cli_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/okta-aws-cli"
+bins = ["okta-aws-cli"]

@@ -1,0 +1,9 @@
+# Drafted from miniscruff/changie's v1.26.0 release.
+[apps.changie]
+name = "changie"
+kind = "archive"
+repo = "miniscruff/changie"
+asset = '^changie_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^changie_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/changie"
+bins = ["changie"]

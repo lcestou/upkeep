@@ -1,0 +1,8 @@
+# Drafted from mapeditor/tiled's v1.12.2 release.
+[apps.tiled]
+name = "Tiled"
+kind = "appimage"
+repo = "mapeditor/tiled"
+asset = '^Tiled-.*_Linux_x86_64\.AppImage$'
+dest = "~/.local/bin/tiled.AppImage"
+meta_path = "usr/share/metainfo/org.mapeditor.Tiled.appdata.xml"

@@ -1,0 +1,8 @@
+# Drafted from emqx/MQTTX's v1.13.3 release.
+[apps.mqttx]
+name = "MQTTX"
+kind = "appimage"
+repo = "emqx/MQTTX"
+asset = '^MQTTX-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/mqttx.AppImage"
+meta_path = "mqttx.desktop"

@@ -1,0 +1,10 @@
+# Drafted from grafana/mcp-grafana's v2.3.0 release.
+[apps.mcp-grafana]
+name = "Mcp Grafana"
+kind = "archive"
+repo = "grafana/mcp-grafana"
+asset = '^linux\.x64\.grafana\.tar\.gz$'
+asset_aarch64 = '^linux\.arm64\.grafana\.tar\.gz$'
+dest = "~/.local/bin/mcp-grafana"
+folder = "~/.local/share/mcp-grafana"
+bins = ["mcp-grafana"]

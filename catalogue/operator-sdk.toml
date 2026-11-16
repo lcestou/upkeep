@@ -1,0 +1,9 @@
+# Drafted from operator-framework/operator-sdk's v1.42.3 release.
+[apps.operator-sdk]
+name = "Operator Sdk"
+kind = "file"
+repo = "operator-framework/operator-sdk"
+asset = '^operator-sdk_linux_amd64$'
+asset_aarch64 = '^operator-sdk_linux_arm64$'
+dest = "~/.local/bin/operator-sdk"
+version_args = ["version"]

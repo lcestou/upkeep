@@ -1,0 +1,8 @@
+# Drafted from chasem-dev/sms-launcher's v1.1.0 release.
+[apps.sms-launcher]
+name = "SMS-Launcher"
+kind = "appimage"
+repo = "chasem-dev/sms-launcher"
+asset = '^SMS-Launcher\.AppImage$'
+dest = "~/.local/bin/sms-launcher.AppImage"
+meta_path = "sms-launcher.desktop"

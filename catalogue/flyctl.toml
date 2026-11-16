@@ -1,0 +1,9 @@
+# Drafted from superfly/flyctl's v0.5.10 release.
+[apps.flyctl]
+name = "flyctl"
+kind = "archive"
+repo = "superfly/flyctl"
+asset = '^flyctl_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^flyctl_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/flyctl"
+bins = ["flyctl"]

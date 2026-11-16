@@ -1,0 +1,8 @@
+# Drafted from ontio/OWallet's v0.10.4 release.
+[apps.owallet]
+name = "OWallet"
+kind = "appimage"
+repo = "ontio/OWallet"
+asset = '^OWallet-.*-linux\.AppImage$'
+dest = "~/.local/bin/owallet.AppImage"
+meta_path = "owallet.desktop"

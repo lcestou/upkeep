@@ -1,0 +1,9 @@
+# Drafted from version-fox/vfox's v1.1.0 release.
+[apps.vfox]
+name = "vfox"
+kind = "archive"
+repo = "version-fox/vfox"
+asset = '^vfox_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^vfox_.*_linux_aarch64\.tar\.gz$'
+dest = "~/.local/bin/vfox"
+bins = ["vfox_1.1.0_linux_x86_64/vfox"]

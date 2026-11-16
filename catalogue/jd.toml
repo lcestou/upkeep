@@ -1,0 +1,8 @@
+# Drafted from josephburnett/jd's v2.5.0 release.
+[apps.jd]
+name = "jd"
+kind = "file"
+repo = "josephburnett/jd"
+asset = '^jd-amd64-linux$'
+asset_aarch64 = '^jd-arm64-linux$'
+dest = "~/.local/bin/jd"

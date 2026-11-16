@@ -1,0 +1,9 @@
+# Drafted from kashav/fsql's v0.5.2 release.
+[apps.fsql]
+name = "fsql"
+kind = "archive"
+repo = "kashav/fsql"
+asset = '^fsql-.*-fsql-linux-amd64\.zip$'
+asset_aarch64 = '^fsql-.*-fsql-linux-arm64\.zip$'
+dest = "~/.local/bin/fsql"
+bins = ["fsql-linux-amd64/fsql"]

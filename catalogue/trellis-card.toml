@@ -1,0 +1,8 @@
+# Drafted from czm15053/trellis-card's v0.2.6 release; its version is the one Upkeep installed.
+[apps.trellis-card]
+name = "Trellis-Card"
+kind = "appimage"
+repo = "czm15053/trellis-card"
+asset = '^Trellis-Card_.*_amd64\.AppImage$'
+dest = "~/.local/bin/trellis-card.AppImage"
+probe = false

@@ -1,0 +1,10 @@
+# Drafted from prometheus/prometheus's v3.16.0 release.
+[apps.prometheus]
+name = "prometheus"
+kind = "archive"
+repo = "prometheus/prometheus"
+asset = '^prometheus-.*\.linux-amd64\.tar\.gz$'
+asset_aarch64 = '^prometheus-.*\.linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/prometheus"
+folder = "~/.local/share/prometheus"
+bins = ["prometheus"]

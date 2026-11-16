@@ -1,0 +1,9 @@
+# Drafted from norwoodj/helm-docs's v1.14.2 release.
+[apps.helm-docs]
+name = "Helm Docs"
+kind = "archive"
+repo = "norwoodj/helm-docs"
+asset = '^helm-docs_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^helm-docs_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/helm-docs"
+bins = ["helm-docs"]

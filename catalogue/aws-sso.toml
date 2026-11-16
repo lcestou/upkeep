@@ -1,0 +1,9 @@
+# Drafted from synfinatic/aws-sso-cli's v2.4.1 release.
+[apps.aws-sso]
+name = "Aws Sso Cli"
+kind = "file"
+repo = "synfinatic/aws-sso-cli"
+asset = '^aws-sso-.*-linux-amd64$'
+asset_aarch64 = '^aws-sso-.*-linux-arm64$'
+dest = "~/.local/bin/aws-sso"
+version_args = ["version"]

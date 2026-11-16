@@ -1,0 +1,9 @@
+# Drafted from xushengfeng/eSearch's 15.8.0 release.
+[apps.esearch]
+name = "eSearch"
+kind = "appimage"
+repo = "xushengfeng/eSearch"
+asset = '^eSearch-.*-linux-x64\.AppImage$'
+asset_aarch64 = '^eSearch-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/esearch.AppImage"
+meta_path = "e-search.desktop"

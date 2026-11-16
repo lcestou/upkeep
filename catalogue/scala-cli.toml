@@ -1,0 +1,9 @@
+# Drafted from VirtusLab/scala-cli's v1.19.0 release.
+[apps.scala-cli]
+name = "Scala Cli"
+kind = "archive"
+repo = "VirtusLab/scala-cli"
+asset = '^scala-cli-x86_64-pc-linux-static-sdk\.zip$'
+asset_aarch64 = '^scala-cli-aarch64-pc-linux-static-sdk\.zip$'
+dest = "~/.local/bin/scala-cli"
+bins = ["scala-cli-x86_64-pc-linux-static-sdk/bin/scala-cli"]

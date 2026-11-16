@@ -1,0 +1,8 @@
+# Drafted from spieglt/Cloaker's v5.0.0 release; its version is the one Upkeep installed.
+[apps.cloaker]
+name = "Cloaker"
+kind = "appimage"
+repo = "spieglt/Cloaker"
+asset = '^Cloaker-x86_64\.AppImage$'
+dest = "~/.local/bin/cloaker.AppImage"
+probe = false

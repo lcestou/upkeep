@@ -1,0 +1,8 @@
+# Drafted from tealdeer-rs/tealdeer's v1.9.1 release.
+[apps.tealdeer]
+name = "tealdeer"
+kind = "file"
+repo = "tealdeer-rs/tealdeer"
+asset = '^tealdeer-linux-x86_64-musl$'
+asset_aarch64 = '^tealdeer-linux-aarch64-musl$'
+dest = "~/.local/bin/tealdeer"

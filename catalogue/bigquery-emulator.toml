@@ -1,0 +1,9 @@
+# Drafted from goccy/bigquery-emulator's v0.8.1 release.
+[apps.bigquery-emulator]
+name = "Bigquery Emulator"
+kind = "archive"
+repo = "goccy/bigquery-emulator"
+asset = '^bigquery-emulator_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^bigquery-emulator_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/bigquery-emulator"
+bins = ["bigquery-emulator"]

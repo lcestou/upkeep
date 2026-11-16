@@ -1,0 +1,9 @@
+# Drafted from inlets/inletsctl's 0.9.1 release.
+[apps.inletsctl]
+name = "inletsctl"
+kind = "archive"
+repo = "inlets/inletsctl"
+asset = '^inletsctl\.tgz$'
+dest = "~/.local/bin/inletsctl"
+bins = ["inletsctl"]
+version_args = ["version"]

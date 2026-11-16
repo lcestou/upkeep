@@ -1,0 +1,9 @@
+# Drafted from segmentio/chamber's v3.1.5 release.
+[apps.chamber]
+name = "chamber"
+kind = "file"
+repo = "segmentio/chamber"
+asset = '^chamber-.*-linux-amd64$'
+asset_aarch64 = '^chamber-.*-linux-arm64$'
+dest = "~/.local/bin/chamber"
+version_args = ["version"]

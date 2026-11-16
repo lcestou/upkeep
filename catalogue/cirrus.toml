@@ -1,0 +1,9 @@
+# Drafted from cirruslabs/cirrus-cli's v1.0.0 release.
+[apps.cirrus]
+name = "Cirrus Cli"
+kind = "archive"
+repo = "cirruslabs/cirrus-cli"
+asset = '^cirrus-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^cirrus-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/cirrus"
+bins = ["cirrus"]

@@ -1,0 +1,8 @@
+# Drafted from 777genius/agent-teams-ai's v2.18.7 release.
+[apps.agent-teams-ai]
+name = "Agent-Teams-AI"
+kind = "appimage"
+repo = "777genius/agent-teams-ai"
+asset = '^Agent\.Teams\.AI\.AppImage$'
+dest = "~/.local/bin/agent-teams-ai.AppImage"
+meta_path = "agent-teams-ai.desktop"

@@ -1,0 +1,10 @@
+# Drafted from mkubaczyk/helmsman's v4.0.5 release.
+[apps.helmsman]
+name = "helmsman"
+kind = "archive"
+repo = "mkubaczyk/helmsman"
+asset = '^helmsman_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^helmsman_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/helmsman"
+bins = ["helmsman"]
+version_args = ["-v"]

@@ -1,0 +1,8 @@
+# Drafted from c3er/mdview's v4.0.2 release.
+[apps.mdview]
+name = "mdview"
+kind = "appimage"
+repo = "c3er/mdview"
+asset = '^mdview-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/mdview.AppImage"
+meta_path = "mdview.desktop"

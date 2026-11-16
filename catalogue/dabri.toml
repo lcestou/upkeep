@@ -1,0 +1,9 @@
+# Drafted from AshBuk/dabri's v2.4.1 release.
+[apps.dabri]
+name = "dabri"
+kind = "appimage"
+repo = "AshBuk/dabri"
+asset = '^dabri-.*-x86_64\.AppImage$'
+asset_aarch64 = '^dabri-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/dabri.AppImage"
+meta_path = "io.github.ashbuk.dabri.desktop"

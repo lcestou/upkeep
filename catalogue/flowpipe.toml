@@ -1,0 +1,9 @@
+# Drafted from turbot/flowpipe's v1.2.4 release.
+[apps.flowpipe]
+name = "flowpipe"
+kind = "archive"
+repo = "turbot/flowpipe"
+asset = '^flowpipe\.linux\.amd64\.tar\.gz$'
+asset_aarch64 = '^flowpipe\.linux\.arm64\.tar\.gz$'
+dest = "~/.local/bin/flowpipe"
+bins = ["flowpipe"]

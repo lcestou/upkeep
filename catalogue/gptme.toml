@@ -1,0 +1,8 @@
+# Drafted from gptme/gptme's v0.36.0 release; its version is the one Upkeep installed.
+[apps.gptme]
+name = "gptme"
+kind = "appimage"
+repo = "gptme/gptme"
+asset = '^gptme_.*_amd64\.AppImage$'
+dest = "~/.local/bin/gptme.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from reviewdog/reviewdog's v0.21.3 release.
+[apps.reviewdog]
+name = "reviewdog"
+kind = "archive"
+repo = "reviewdog/reviewdog"
+asset = '^reviewdog_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^reviewdog_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/reviewdog"
+bins = ["reviewdog"]

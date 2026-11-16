@@ -1,0 +1,9 @@
+# Drafted from max-sixty/worktrunk's v0.82.0 release.
+[apps.worktrunk]
+name = "worktrunk"
+kind = "archive"
+repo = "max-sixty/worktrunk"
+asset = '^worktrunk-x86_64-unknown-linux-musl\.tar\.xz$'
+asset_aarch64 = '^worktrunk-aarch64-unknown-linux-musl\.tar\.xz$'
+dest = "~/.local/bin/git-wt"
+bins = ["worktrunk-x86_64-unknown-linux-musl/git-wt"]

@@ -1,0 +1,9 @@
+# Drafted from materializr-cad/materializr's v1.7.7 release; its version is the one Upkeep installed.
+[apps.materializr]
+name = "Materializr"
+kind = "appimage"
+repo = "materializr-cad/materializr"
+asset = '^Materializr-x86_64\.AppImage$'
+asset_aarch64 = '^Materializr-aarch64\.AppImage$'
+dest = "~/.local/bin/materializr.AppImage"
+probe = false

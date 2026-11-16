@@ -1,0 +1,7 @@
+# Drafted from tsl0922/ttyd's 1.7.7 release.
+[apps.ttyd]
+name = "ttyd"
+kind = "file"
+repo = "tsl0922/ttyd"
+asset = '^ttyd\.x86_64$'
+dest = "~/.local/bin/ttyd"

@@ -1,0 +1,8 @@
+# Drafted from Hunlongyu/ZY-Player's v2.8.8 release.
+[apps.zy-player]
+name = "ZY-Player"
+kind = "appimage"
+repo = "Hunlongyu/ZY-Player"
+asset = '^ZY-Player-.*\.AppImage$'
+dest = "~/.local/bin/zy-player.AppImage"
+meta_path = "zy.desktop"

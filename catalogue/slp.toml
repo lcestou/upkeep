@@ -1,0 +1,9 @@
+# Drafted from tkuchiki/slp's v0.2.3 release.
+[apps.slp]
+name = "slp"
+kind = "archive"
+repo = "tkuchiki/slp"
+asset = '^slp_linux_amd64\.zip$'
+asset_aarch64 = '^slp_linux_arm64\.zip$'
+dest = "~/.local/bin/slp"
+bins = ["slp"]

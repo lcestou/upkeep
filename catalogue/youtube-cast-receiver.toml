@@ -1,0 +1,8 @@
+# Drafted from GarrettBlackmon/youtube-cast-receiver's v1.0.3 release.
+[apps.youtube-cast-receiver]
+name = "Youtube Cast Receiver"
+kind = "appimage"
+repo = "GarrettBlackmon/youtube-cast-receiver"
+asset = '^youtube-cast-receiver-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/youtube-cast-receiver.AppImage"
+meta_path = "youtube-cast-receiver.desktop"

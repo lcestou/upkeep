@@ -1,0 +1,8 @@
+# Drafted from AlanHJ/qEmby's v0.0.9 release; its version is the one Upkeep installed.
+[apps.qemby]
+name = "QEmby"
+kind = "appimage"
+repo = "AlanHJ/qEmby"
+asset = '^qemby-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/qemby.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from LorenDB/kaon's v0.4.0 release; its version is the one Upkeep installed.
+[apps.kaon]
+name = "Kaon"
+kind = "appimage"
+repo = "LorenDB/kaon"
+asset = '^Kaon-x86_64\.AppImage$'
+asset_aarch64 = '^Kaon-aarch64\.AppImage$'
+dest = "~/.local/bin/kaon.AppImage"
+probe = false

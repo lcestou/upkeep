@@ -1,0 +1,9 @@
+# Drafted from cilium/hubble's v1.20.4 release.
+[apps.hubble]
+name = "hubble"
+kind = "archive"
+repo = "cilium/hubble"
+asset = '^hubble-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^hubble-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/hubble"
+bins = ["hubble"]

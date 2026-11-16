@@ -1,0 +1,7 @@
+# Drafted from bloznelis/typioca's 3.1.0 release.
+[apps.typioca]
+name = "typioca"
+kind = "file"
+repo = "bloznelis/typioca"
+asset = '^typioca-linux-amd64$'
+dest = "~/.local/bin/typioca"

@@ -1,0 +1,10 @@
+# Drafted from openfga/cli's v0.9.0 release.
+[apps.fga]
+name = "OpenFGA CLI"
+kind = "archive"
+repo = "openfga/cli"
+asset = '^fga_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^fga_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/fga"
+folder = "~/.local/share/fga"
+bins = ["fga"]

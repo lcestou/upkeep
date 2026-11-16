@@ -1,0 +1,8 @@
+# Drafted from slok/agebox's v0.8.0 release.
+[apps.agebox]
+name = "agebox"
+kind = "file"
+repo = "slok/agebox"
+asset = '^agebox-linux-amd64$'
+asset_aarch64 = '^agebox-linux-arm64$'
+dest = "~/.local/bin/agebox"

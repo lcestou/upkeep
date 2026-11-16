@@ -1,0 +1,8 @@
+# Drafted from badabing2005/PixelFlasher's v10.3.0.0 release; its version is the one Upkeep installed.
+[apps.pixelflasher]
+name = "PixelFlasher"
+kind = "appimage"
+repo = "badabing2005/PixelFlasher"
+asset = '^PixelFlasher-x86_64\.AppImage$'
+dest = "~/.local/bin/pixelflasher.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from bhaoo/endfield-gacha's 0.7.2 release; its version is the one Upkeep installed.
+[apps.endfield-gacha]
+name = "Endfield-Gacha"
+kind = "appimage"
+repo = "bhaoo/endfield-gacha"
+asset = '^Endfield\.Gacha_.*_amd64\.AppImage$'
+dest = "~/.local/bin/endfield-gacha.AppImage"
+probe = false

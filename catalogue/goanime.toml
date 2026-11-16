@@ -1,0 +1,9 @@
+# Drafted from alvarorichard/GoAnime's v2.0.0 release.
+[apps.goanime]
+name = "GoAnime"
+kind = "archive"
+repo = "alvarorichard/GoAnime"
+asset = '^goanime-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^goanime-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/goanime"
+bins = ["goanime*"]

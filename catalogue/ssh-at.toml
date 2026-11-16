@@ -1,0 +1,8 @@
+# Drafted from baerwang/ssh-at's v0.1.1 release; its version is the one Upkeep installed.
+[apps.ssh-at]
+name = "SSH-AT"
+kind = "appimage"
+repo = "baerwang/ssh-at"
+asset = '^SSH-AT_.*_amd64\.AppImage$'
+dest = "~/.local/bin/ssh-at.AppImage"
+probe = false

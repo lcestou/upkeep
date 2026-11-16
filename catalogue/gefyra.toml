@@ -1,0 +1,9 @@
+# Drafted from gefyrahq/gefyra's 2.5.7 release.
+[apps.gefyra]
+name = "gefyra"
+kind = "archive"
+repo = "gefyrahq/gefyra"
+asset = '^gefyra-.*-linux-amd64\.zip$'
+dest = "~/.local/bin/gefyra"
+bins = ["gefyra"]
+version_args = ["version"]

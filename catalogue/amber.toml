@@ -1,0 +1,9 @@
+# Drafted from amber-lang/amber's 0.6.0-alpha release.
+[apps.amber]
+name = "amber"
+kind = "archive"
+repo = "amber-lang/amber"
+asset = '^amber-linux-gnu-x86_64\.tar\.xz$'
+asset_aarch64 = '^amber-linux-gnu-aarch64\.tar\.xz$'
+dest = "~/.local/bin/amber"
+bins = ["amber"]

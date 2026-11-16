@@ -1,0 +1,8 @@
+# Drafted from poooi/poi's v12.0.1 release.
+[apps.poi]
+name = "poi"
+kind = "appimage"
+repo = "poooi/poi"
+asset = '^poi-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/poi.AppImage"
+meta_path = "poi.desktop"

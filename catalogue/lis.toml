@@ -1,0 +1,9 @@
+# Drafted from ivov/lisette's lisette-v0.13.0 release.
+[apps.lis]
+name = "lisette"
+kind = "archive"
+repo = "ivov/lisette"
+asset = '^lisette-x86_64-unknown-linux-musl\.tar\.xz$'
+asset_aarch64 = '^lisette-aarch64-unknown-linux-musl\.tar\.xz$'
+dest = "~/.local/bin/lis"
+bins = ["lisette-x86_64-unknown-linux-musl/lis"]

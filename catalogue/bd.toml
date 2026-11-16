@@ -1,0 +1,9 @@
+# Drafted from gastownhall/beads's v1.3.4 release.
+[apps.bd]
+name = "beads"
+kind = "archive"
+repo = "gastownhall/beads"
+asset = '^beads_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^beads_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/bd"
+bins = ["bd"]

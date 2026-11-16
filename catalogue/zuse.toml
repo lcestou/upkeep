@@ -1,0 +1,8 @@
+# Drafted from swarajbachu/zuse's v0.25.0 release.
+[apps.zuse]
+name = "Zuse"
+kind = "appimage"
+repo = "swarajbachu/zuse"
+asset = '^Zuse-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/zuse.AppImage"
+meta_path = "zuse.desktop"

@@ -1,0 +1,8 @@
+# Drafted from hluk/CopyQ's v17.0.0 release.
+[apps.copyq]
+name = "CopyQ"
+kind = "appimage"
+repo = "hluk/CopyQ"
+asset = '^CopyQ-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/copyq.AppImage"
+meta_path = "usr/share/metainfo/com.github.hluk.copyq.metainfo.xml"

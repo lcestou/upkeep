@@ -1,0 +1,9 @@
+# Drafted from KittyCAD/modeling-app's v1.5.5 release.
+[apps.zoo-design-studio]
+name = "Zoo-Design-Studio"
+kind = "appimage"
+repo = "KittyCAD/modeling-app"
+asset = '^Zoo\.Design\.Studio-.*-x86_64-linux\.AppImage$'
+asset_aarch64 = '^Zoo\.Design\.Studio-.*-arm64-linux\.AppImage$'
+dest = "~/.local/bin/zoo-design-studio.AppImage"
+meta_path = "zoo-modeling-app.desktop"

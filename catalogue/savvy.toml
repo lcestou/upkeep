@@ -1,0 +1,9 @@
+# Drafted from getsavvyinc/savvy-cli's 0.23.0 release.
+[apps.savvy]
+name = "Savvy Cli"
+kind = "file"
+repo = "getsavvyinc/savvy-cli"
+asset = '^savvy_linux_x86_64$'
+asset_aarch64 = '^savvy_linux_arm64$'
+dest = "~/.local/bin/savvy"
+version_args = ["version"]

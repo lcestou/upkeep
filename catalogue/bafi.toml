@@ -1,0 +1,11 @@
+# Drafted from mmalcek/bafi's v1.5.2 release.
+[apps.bafi]
+name = "bafi"
+kind = "archive"
+repo = "mmalcek/bafi"
+asset = '^bafi_.*_linux_amd64\.tgz$'
+asset_aarch64 = '^bafi_.*_linux_arm64\.tgz$'
+dest = "~/.local/bin/bafi"
+folder = "~/.local/share/bafi"
+bins = ["bafi"]
+version_args = ["-v"]

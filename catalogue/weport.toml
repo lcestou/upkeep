@@ -1,0 +1,8 @@
+# Drafted from Panther114/Weport's v1.3.2 release.
+[apps.weport]
+name = "Weport"
+kind = "appimage"
+repo = "Panther114/Weport"
+asset = '^Weport-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/weport.AppImage"
+meta_path = "weport.desktop"

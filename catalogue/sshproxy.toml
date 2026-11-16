@@ -1,0 +1,8 @@
+# Drafted from cea-hpc/sshproxy's v2.1.1 release.
+[apps.sshproxy]
+name = "sshproxy"
+kind = "archive"
+repo = "cea-hpc/sshproxy"
+asset = '^sshproxy_.*_Linux_x86_64\.tar\.gz$'
+dest = "~/.local/bin/sshproxy"
+bins = ["sshproxy_2.1.1_Linux_x86_64/sshproxy", "sshproxy_2.1.1_Linux_x86_64/sshproxy-dumpd", "sshproxy_2.1.1_Linux_x86_64/sshproxy-replay", "sshproxy_2.1.1_Linux_x86_64/sshproxyctl"]

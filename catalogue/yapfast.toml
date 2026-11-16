@@ -1,0 +1,8 @@
+# Drafted from yapfast/yapfast's v0.4.1 release.
+[apps.yapfast]
+name = "Yapfast"
+kind = "appimage"
+repo = "yapfast/yapfast"
+asset = '^Yapfast-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/yapfast.AppImage"
+meta_path = "usr/share/metainfo/io.github.yapfast.Yapfast.metainfo.xml"

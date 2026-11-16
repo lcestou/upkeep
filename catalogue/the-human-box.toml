@@ -1,0 +1,8 @@
+# Drafted from 1homsi/thehumanbox's v0.7.74 release.
+[apps.the-human-box]
+name = "The-Human-Box"
+kind = "appimage"
+repo = "1homsi/thehumanbox"
+asset = '^The-Human-Box-.*\.AppImage$'
+dest = "~/.local/bin/the-human-box.AppImage"
+meta_path = "thehumanbox-desktop.desktop"

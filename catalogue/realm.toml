@@ -1,0 +1,8 @@
+# Drafted from 31Carlton7/realm's v2.13.1 release.
+[apps.realm]
+name = "Realm"
+kind = "appimage"
+repo = "31Carlton7/realm"
+asset = '^Realm-.*\.AppImage$'
+dest = "~/.local/bin/realm.AppImage"
+meta_path = "realm.desktop"

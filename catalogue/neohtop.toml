@@ -1,0 +1,9 @@
+# Drafted from Abdenasser/neohtop's v1.3.0 release; its version is the one Upkeep installed.
+[apps.neohtop]
+name = "NeoHtop"
+kind = "appimage"
+repo = "Abdenasser/neohtop"
+asset = '^NeoHtop_.*_x86_64\.AppImage$'
+asset_aarch64 = '^NeoHtop_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/neohtop.AppImage"
+probe = false

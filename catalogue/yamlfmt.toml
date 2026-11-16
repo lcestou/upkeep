@@ -1,0 +1,9 @@
+# Drafted from google/yamlfmt's v0.21.0 release.
+[apps.yamlfmt]
+name = "yamlfmt"
+kind = "archive"
+repo = "google/yamlfmt"
+asset = '^yamlfmt_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^yamlfmt_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/yamlfmt"
+bins = ["yamlfmt"]

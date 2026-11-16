@@ -1,0 +1,9 @@
+# Drafted from coder3101/protols's 0.14.1 release.
+[apps.protols]
+name = "protols"
+kind = "archive"
+repo = "coder3101/protols"
+asset = '^protols-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^protols-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/protols"
+bins = ["protols"]

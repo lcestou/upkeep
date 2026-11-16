@@ -1,0 +1,9 @@
+# Drafted from obbyworld/obby's v0.4.0 release; its version is the one Upkeep installed.
+[apps.obby]
+name = "Obby"
+kind = "appimage"
+repo = "obbyworld/obby"
+asset = '^Obby_.*_amd64\.AppImage$'
+asset_aarch64 = '^Obby_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/obby.AppImage"
+probe = false

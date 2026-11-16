@@ -1,0 +1,8 @@
+# Drafted from Jeffrey0117/SpeakSlow's v1.0.38 release.
+[apps.speakslow]
+name = "SpeakSlow"
+kind = "appimage"
+repo = "Jeffrey0117/SpeakSlow"
+asset = '^SpeakSlow\.AppImage$'
+dest = "~/.local/bin/speakslow.AppImage"
+meta_path = "speakslow.desktop"

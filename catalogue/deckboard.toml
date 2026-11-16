@@ -1,0 +1,8 @@
+# Drafted from rivafarabi/deckboard's v3.2.0 release.
+[apps.deckboard]
+name = "Deckboard"
+kind = "appimage"
+repo = "rivafarabi/deckboard"
+asset = '^Deckboard-.*\.AppImage$'
+dest = "~/.local/bin/deckboard.AppImage"
+meta_path = "deckboard.desktop"

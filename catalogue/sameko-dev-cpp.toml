@@ -1,0 +1,8 @@
+# Drafted from QuangquyNguyenvo/Sameko-Dev-CPP's v1.4.0 release.
+[apps.sameko-dev-cpp]
+name = "Sameko Dev CPP"
+kind = "appimage"
+repo = "QuangquyNguyenvo/Sameko-Dev-CPP"
+asset = '^sameko-dev-cpp-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/sameko-dev-cpp.AppImage"
+meta_path = "sameko-dev-cpp.desktop"

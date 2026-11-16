@@ -1,0 +1,8 @@
+# Drafted from kristofferR/IPTVChecker's v2.3.2 release; its version is the one Upkeep installed.
+[apps.iptv-checker-lin]
+name = "IPTV-Checker-lin"
+kind = "appimage"
+repo = "kristofferR/IPTVChecker"
+asset = '^IPTV\.Checker_.*_lin_x64\.AppImage$'
+dest = "~/.local/bin/iptv-checker-lin.AppImage"
+probe = false

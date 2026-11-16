@@ -1,0 +1,10 @@
+# Drafted from fujiwara/ecsta's v0.8.2 release.
+[apps.ecsta]
+name = "ecsta"
+kind = "archive"
+repo = "fujiwara/ecsta"
+asset = '^ecsta_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ecsta_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ecsta"
+bins = ["ecsta"]
+version_args = ["version"]

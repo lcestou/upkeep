@@ -1,0 +1,8 @@
+# Drafted from IsmaelMartinez/teams-for-linux's v2.28.0 release.
+[apps.teams-for]
+name = "Teams For Linux"
+kind = "appimage"
+repo = "IsmaelMartinez/teams-for-linux"
+asset = '^teams-for-linux-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/teams-for.AppImage"
+meta_path = "teams-for-linux.desktop"

@@ -1,0 +1,8 @@
+# Drafted from dynobo/normcap's v0.6.0 release.
+[apps.normcap]
+name = "NormCap"
+kind = "appimage"
+repo = "dynobo/normcap"
+asset = '^NormCap-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/normcap.AppImage"
+meta_path = "eu.dynobo.normcap.desktop"

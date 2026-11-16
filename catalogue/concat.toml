@@ -1,0 +1,9 @@
+# Drafted from jub0t/Concat's v0.2.11 release.
+[apps.concat]
+name = "Concat"
+kind = "appimage"
+repo = "jub0t/Concat"
+asset = '^Concat-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Concat-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/concat.AppImage"
+meta_path = "concat.desktop"

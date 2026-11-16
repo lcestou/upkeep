@@ -1,0 +1,8 @@
+# Drafted from dekomote/vermouth's v2.7.0 release.
+[apps.vermouth]
+name = "Vermouth"
+kind = "appimage"
+repo = "dekomote/vermouth"
+asset = '^Vermouth-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/vermouth.AppImage"
+meta_path = "com.dekomote.vermouth.desktop"

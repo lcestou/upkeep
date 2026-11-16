@@ -1,0 +1,9 @@
+# Drafted from VictoriaMetrics/VictoriaMetrics's v1.156.0 release.
+[apps.victoria-metrics-prod]
+name = "VictoriaMetrics"
+kind = "archive"
+repo = "VictoriaMetrics/VictoriaMetrics"
+asset = '^victoria-metrics-linux-amd64-v[0-9][0-9A-Za-z.]*\.tar\.gz$'
+asset_aarch64 = '^victoria-metrics-linux-arm64-v[0-9][0-9A-Za-z.]*\.tar\.gz$'
+dest = "~/.local/bin/victoria-metrics-prod"
+bins = ["victoria-metrics-prod"]

@@ -1,0 +1,8 @@
+# Drafted from lone-cloud/gerbil's v1.29.2 release.
+[apps.gerbil]
+name = "Gerbil"
+kind = "appimage"
+repo = "lone-cloud/gerbil"
+asset = '^Gerbil-.*\.AppImage$'
+dest = "~/.local/bin/gerbil.AppImage"
+meta_path = "gerbil.desktop"

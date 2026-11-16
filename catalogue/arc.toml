@@ -1,0 +1,8 @@
+# Drafted from advanced-rest-client/arc-electron's v17.0.9 release.
+[apps.arc]
+name = "Arc Electron"
+kind = "appimage"
+repo = "advanced-rest-client/arc-electron"
+asset = '^arc-linux-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/arc.AppImage"
+meta_path = "advanced-rest-client.desktop"

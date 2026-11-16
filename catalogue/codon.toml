@@ -1,0 +1,11 @@
+# Drafted from exaloop/codon's v0.20.6 release; its version is the one Upkeep installed.
+[apps.codon]
+name = "codon"
+kind = "archive"
+repo = "exaloop/codon"
+asset = '^codon-linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^codon-linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/codon"
+folder = "~/.local/share/codon"
+bins = ["bin/codon"]
+probe = false

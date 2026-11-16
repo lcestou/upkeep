@@ -1,0 +1,8 @@
+# Drafted from berkon/wireless-microphone-analyzer's V2.5.0 release.
+[apps.wireless-microphone-analyzer]
+name = "Wireless-Microphone-Analyzer"
+kind = "appimage"
+repo = "berkon/wireless-microphone-analyzer"
+asset = '^Wireless_Microphone_Analyzer_.*\.AppImage$'
+dest = "~/.local/bin/wireless-microphone-analyzer.AppImage"
+meta_path = "wireless-microphone-analyzer.desktop"

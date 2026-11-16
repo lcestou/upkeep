@@ -1,0 +1,8 @@
+# Drafted from kdheepak/taskwarrior-tui's v0.27.0 release.
+[apps.taskwarrior-tui]
+name = "Taskwarrior Tui"
+kind = "archive"
+repo = "kdheepak/taskwarrior-tui"
+asset = '^taskwarrior-tui-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/taskwarrior-tui"
+bins = ["taskwarrior-tui"]

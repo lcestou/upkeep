@@ -1,0 +1,9 @@
+# Drafted from arttor/helmify's v0.4.20 release.
+[apps.helmify]
+name = "helmify"
+kind = "archive"
+repo = "arttor/helmify"
+asset = '^helmify_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^helmify_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/helmify"
+bins = ["helmify"]

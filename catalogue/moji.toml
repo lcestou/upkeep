@@ -1,0 +1,8 @@
+# Drafted from alexishida/Moji's v1.0.7 release.
+[apps.moji]
+name = "Moji"
+kind = "appimage"
+repo = "alexishida/Moji"
+asset = '^Moji-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/moji.AppImage"
+meta_path = "moji.desktop"

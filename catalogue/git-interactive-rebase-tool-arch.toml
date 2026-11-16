@@ -1,0 +1,8 @@
+# Drafted from MitMaro/git-interactive-rebase-tool's 2.4.1 release.
+[apps.git-interactive-rebase-tool-arch]
+name = "Git Interactive Rebase Tool"
+kind = "file"
+repo = "MitMaro/git-interactive-rebase-tool"
+asset = '^git-interactive-rebase-tool-.*-arch_amd64$'
+asset_aarch64 = '^git-interactive-rebase-tool-.*-arch_arm64$'
+dest = "~/.local/bin/git-interactive-rebase-tool-arch"

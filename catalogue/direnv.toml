@@ -1,0 +1,8 @@
+# Drafted from direnv/direnv's v2.38.2 release.
+[apps.direnv]
+name = "direnv"
+kind = "file"
+repo = "direnv/direnv"
+asset = '^direnv\.linux-amd64$'
+asset_aarch64 = '^direnv\.linux-arm64$'
+dest = "~/.local/bin/direnv"

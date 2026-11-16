@@ -1,0 +1,8 @@
+# Drafted from harshsinghsv/swiftdl's v0.4.1 release; its version is the one Upkeep installed.
+[apps.swiftdl]
+name = "SwiftDL"
+kind = "appimage"
+repo = "harshsinghsv/swiftdl"
+asset = '^SwiftDL_.*_amd64\.AppImage$'
+dest = "~/.local/bin/swiftdl.AppImage"
+probe = false

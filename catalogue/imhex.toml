@@ -1,0 +1,9 @@
+# Drafted from WerWolv/ImHex's v1.38.1 release.
+[apps.imhex]
+name = "ImHex"
+kind = "appimage"
+repo = "WerWolv/ImHex"
+asset = '^imhex-.*-x86_64\.AppImage$'
+asset_aarch64 = '^imhex-.*-arm64\.AppImage$'
+dest = "~/.local/bin/imhex.AppImage"
+meta_path = "imhex.desktop"

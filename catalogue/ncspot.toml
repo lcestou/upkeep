@@ -1,0 +1,10 @@
+# Drafted from hrkfdn/ncspot's v1.5.1 release; its version is the one Upkeep installed.
+[apps.ncspot]
+name = "ncspot"
+kind = "archive"
+repo = "hrkfdn/ncspot"
+asset = '^ncspot-.*-linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^ncspot-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/ncspot"
+bins = ["ncspot"]
+probe = false

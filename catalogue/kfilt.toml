@@ -1,0 +1,8 @@
+# Drafted from ryane/kfilt's v1.0.0 release.
+[apps.kfilt]
+name = "kfilt"
+kind = "file"
+repo = "ryane/kfilt"
+asset = '^kfilt_linux_amd64$'
+asset_aarch64 = '^kfilt_linux_arm64$'
+dest = "~/.local/bin/kfilt"

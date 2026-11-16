@@ -1,0 +1,9 @@
+# Drafted from iawia002/lux's v0.24.1 release.
+[apps.lux]
+name = "lux"
+kind = "archive"
+repo = "iawia002/lux"
+asset = '^lux_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^lux_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/lux"
+bins = ["lux"]

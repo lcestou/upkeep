@@ -1,0 +1,9 @@
+# Drafted from Schniz/fnm's v1.39.0 release; its version is the one Upkeep installed.
+[apps.fnm]
+name = "fnm"
+kind = "archive"
+repo = "Schniz/fnm"
+asset = '^fnm-arm32\.zip$'
+dest = "~/.local/bin/fnm"
+bins = ["fnm"]
+probe = false

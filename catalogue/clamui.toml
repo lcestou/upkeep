@@ -1,0 +1,8 @@
+# Drafted from linx-systems/clamui's v0.6.0 release; its version is the one Upkeep installed.
+[apps.clamui]
+name = "ClamUI"
+kind = "appimage"
+repo = "linx-systems/clamui"
+asset = '^ClamUI-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/clamui.AppImage"
+probe = false

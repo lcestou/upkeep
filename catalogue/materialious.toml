@@ -1,0 +1,9 @@
+# Drafted from Materialious/Materialious's 1.18.26 release.
+[apps.materialious]
+name = "Materialious"
+kind = "appimage"
+repo = "Materialious/Materialious"
+asset = '^Materialious-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Materialious-linux-arm64\.AppImage$'
+dest = "~/.local/bin/materialious.AppImage"
+meta_path = "materialious.desktop"

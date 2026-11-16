@@ -1,0 +1,8 @@
+# Drafted from tassiovirginio/try-rs's v1.7.14 release.
+[apps.try-rs]
+name = "Try Rs"
+kind = "archive"
+repo = "tassiovirginio/try-rs"
+asset = '^try-rs-.*-linux-x86_64\.tar\.gz$'
+dest = "~/.local/bin/try-rs"
+bins = ["try-rs"]

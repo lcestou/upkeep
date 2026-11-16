@@ -1,0 +1,9 @@
+# Drafted from arriven/db1000n's v0.9.23 release.
+[apps.db1000n]
+name = "db1000n"
+kind = "archive"
+repo = "arriven/db1000n"
+asset = '^db1000n_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^db1000n_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/db1000n"
+bins = ["db1000n"]

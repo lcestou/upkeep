@@ -1,0 +1,8 @@
+# Drafted from YuriyLin/PaperRead's v1.5.3 release.
+[apps.paperread]
+name = "PaperRead"
+kind = "appimage"
+repo = "YuriyLin/PaperRead"
+asset = '^PaperRead-.*\.AppImage$'
+dest = "~/.local/bin/paperread.AppImage"
+meta_path = "paperread-desktop.desktop"

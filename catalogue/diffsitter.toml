@@ -1,0 +1,10 @@
+# Drafted from afnanenayet/diffsitter's v0.9.0 release.
+[apps.diffsitter]
+name = "diffsitter"
+kind = "archive"
+repo = "afnanenayet/diffsitter"
+asset = '^diffsitter-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^diffsitter-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/diffsitter"
+folder = "~/.local/share/diffsitter"
+bins = ["diffsitter"]

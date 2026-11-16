@@ -1,0 +1,9 @@
+# Drafted from helmfile/helmfile's v1.8.4 release.
+[apps.helmfile]
+name = "helmfile"
+kind = "archive"
+repo = "helmfile/helmfile"
+asset = '^helmfile_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^helmfile_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/helmfile"
+bins = ["helmfile"]

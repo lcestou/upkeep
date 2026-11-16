@@ -1,0 +1,9 @@
+# Drafted from skyjt/teahouse's v0.64.3 release.
+[apps.teahouse]
+name = "Teahouse"
+kind = "appimage"
+repo = "skyjt/teahouse"
+asset = '^Teahouse-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Teahouse-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/teahouse.AppImage"
+meta_path = "pantry.desktop"

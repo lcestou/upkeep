@@ -1,0 +1,8 @@
+# Drafted from doctly/switchboard's v0.0.36 release.
+[apps.switchboard]
+name = "Switchboard"
+kind = "appimage"
+repo = "doctly/switchboard"
+asset = '^Switchboard-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/switchboard.AppImage"
+meta_path = "switchboard.desktop"

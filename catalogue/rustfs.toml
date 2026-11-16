@@ -1,0 +1,10 @@
+# Drafted from rustfs/rustfs's 1.0.5 release.
+[apps.rustfs]
+name = "rustfs"
+kind = "archive"
+repo = "rustfs/rustfs"
+asset = '^rustfs-linux-x86_64-gnu-latest\.zip$'
+asset_aarch64 = '^rustfs-linux-aarch64-gnu-latest\.zip$'
+dest = "~/.local/bin/rustfs"
+folder = "~/.local/share/rustfs"
+bins = ["rustfs"]

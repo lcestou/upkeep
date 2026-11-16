@@ -1,0 +1,10 @@
+# Drafted from gopasspw/gopass's v1.17.4 release.
+[apps.gopass]
+name = "gopass"
+kind = "archive"
+repo = "gopasspw/gopass"
+asset = '^gopass-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^gopass-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/gopass"
+folder = "~/.local/share/gopass"
+bins = ["gopass"]

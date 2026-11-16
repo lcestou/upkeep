@@ -1,0 +1,8 @@
+# Drafted from qdrant/qdrant's v1.20.1 release; its version is the one Upkeep installed.
+[apps.qdrant]
+name = "qdrant"
+kind = "appimage"
+repo = "qdrant/qdrant"
+asset = '^qdrant-x86_64\.AppImage$'
+dest = "~/.local/bin/qdrant.AppImage"
+probe = false

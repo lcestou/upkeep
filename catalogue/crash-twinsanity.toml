@@ -1,0 +1,8 @@
+# Drafted from GioPixelGH/Crash-Twinsanity-Windows's v1.2.0 release.
+[apps.crash-twinsanity]
+name = "Crash-Twinsanity"
+kind = "appimage"
+repo = "GioPixelGH/Crash-Twinsanity-Windows"
+asset = '^Crash-Twinsanity-Linux-x86_64\.AppImage$'
+dest = "~/.local/bin/crash-twinsanity.AppImage"
+meta_path = "crash-twinsanity.desktop"

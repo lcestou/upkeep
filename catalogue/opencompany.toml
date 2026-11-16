@@ -1,0 +1,8 @@
+# Drafted from zeenie-ai/OpenCompany's v0.3.2 release.
+[apps.opencompany]
+name = "OpenCompany"
+kind = "appimage"
+repo = "zeenie-ai/OpenCompany"
+asset = '^OpenCompany-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/opencompany.AppImage"
+meta_path = "opencompany-desktop.desktop"

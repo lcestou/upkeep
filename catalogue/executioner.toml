@@ -1,0 +1,8 @@
+# Drafted from dbx0/executioner's v0.0.9 release.
+[apps.executioner]
+name = "Executioner"
+kind = "appimage"
+repo = "dbx0/executioner"
+asset = '^Executioner-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/executioner.AppImage"
+meta_path = "executioner.desktop"

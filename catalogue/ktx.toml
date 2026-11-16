@@ -1,0 +1,10 @@
+# Drafted from KhronosGroup/KTX-Software's v4.4.2 release.
+[apps.ktx]
+name = "KTX-Software"
+kind = "archive"
+repo = "KhronosGroup/KTX-Software"
+asset = '^KTX-Software-.*-Linux-x86_64\.tar\.bz2$'
+asset_aarch64 = '^KTX-Software-.*-Linux-arm64\.tar\.bz2$'
+dest = "~/.local/bin/ktx"
+folder = "~/.local/share/ktx"
+bins = ["bin/ktx"]

@@ -1,0 +1,9 @@
+# Drafted from containers/podlet's v0.3.2 release.
+[apps.podlet]
+name = "podlet"
+kind = "archive"
+repo = "containers/podlet"
+asset = '^podlet-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^podlet-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/podlet"
+bins = ["podlet-x86_64-unknown-linux-gnu/podlet"]

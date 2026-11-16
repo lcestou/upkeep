@@ -1,0 +1,8 @@
+# Drafted from rixinhahaha/snip's v1.3.14 release.
+[apps.snip]
+name = "Snip"
+kind = "appimage"
+repo = "rixinhahaha/snip"
+asset = '^Snip-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/snip.AppImage"
+meta_path = "snip.desktop"

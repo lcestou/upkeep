@@ -1,0 +1,8 @@
+# Drafted from undergroundwires/privacy.sexy's 0.13.8 release.
+[apps.privacy-sexy]
+name = "privacy.sexy"
+kind = "appimage"
+repo = "undergroundwires/privacy.sexy"
+asset = '^privacy\.sexy-.*\.AppImage$'
+dest = "~/.local/bin/privacy-sexy.AppImage"
+meta_path = "privacy.sexy.desktop"

@@ -1,0 +1,8 @@
+# Drafted from ogham/exa's v0.10.1 release.
+[apps.exa]
+name = "exa"
+kind = "archive"
+repo = "ogham/exa"
+asset = '^exa-linux-x86_64-musl-.*\.zip$'
+dest = "~/.local/bin/exa"
+bins = ["bin/exa"]

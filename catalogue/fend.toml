@@ -1,0 +1,9 @@
+# Drafted from printfn/fend's v1.5.9 release.
+[apps.fend]
+name = "fend"
+kind = "archive"
+repo = "printfn/fend"
+asset = '^fend-.*-linux-x86_64-gnu\.zip$'
+asset_aarch64 = '^fend-.*-linux-aarch64-gnu\.zip$'
+dest = "~/.local/bin/fend"
+bins = ["fend"]

@@ -1,0 +1,10 @@
+# Drafted from alcideio/rbac-tool's v1.20.0 release.
+[apps.rbac-tool]
+name = "Rbac Tool"
+kind = "archive"
+repo = "alcideio/rbac-tool"
+asset = '^rbac-tool_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^rbac-tool_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/rbac-tool"
+bins = ["rbac-tool"]
+version_args = ["version"]

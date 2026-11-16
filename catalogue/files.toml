@@ -1,0 +1,11 @@
+# Drafted from mattn/files's v0.3.11 release.
+[apps.files]
+name = "files"
+kind = "archive"
+repo = "mattn/files"
+asset = '^files_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^files_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/files"
+folder = "~/.local/share/files"
+bins = ["files"]
+version_args = ["-v"]

@@ -1,0 +1,9 @@
+# Drafted from luochang212/skill-zoo's v0.4.12 release; its version is the one Upkeep installed.
+[apps.skill-zoo]
+name = "Skill-Zoo"
+kind = "appimage"
+repo = "luochang212/skill-zoo"
+asset = '^Skill-Zoo-.*-Linux-x86_64\.AppImage$'
+asset_aarch64 = '^Skill-Zoo-.*-Linux-aarch64\.AppImage$'
+dest = "~/.local/bin/skill-zoo.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from zugaldia/speedofsound's v0.14.0 release.
+[apps.speedofsound]
+name = "speedofsound"
+kind = "appimage"
+repo = "zugaldia/speedofsound"
+asset = '^speedofsound-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/speedofsound.AppImage"
+meta_path = "usr/share/metainfo/io.speedofsound.SpeedOfSound.appdata.xml"

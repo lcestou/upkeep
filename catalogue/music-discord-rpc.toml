@@ -1,0 +1,7 @@
+# Drafted from patryk-ku/music-discord-rpc's v0.7.0 release.
+[apps.music-discord-rpc]
+name = "Music Discord Rpc"
+kind = "file"
+repo = "patryk-ku/music-discord-rpc"
+asset = '^music-discord-rpc$'
+dest = "~/.local/bin/music-discord-rpc"

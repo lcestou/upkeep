@@ -1,0 +1,8 @@
+# Drafted from AutoMaker-Org/automaker's v1.0.0 release.
+[apps.automaker]
+name = "Automaker"
+kind = "appimage"
+repo = "AutoMaker-Org/automaker"
+asset = '^Automaker-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/automaker.AppImage"
+meta_path = "automaker.desktop"

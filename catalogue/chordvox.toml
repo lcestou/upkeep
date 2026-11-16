@@ -1,0 +1,8 @@
+# Drafted from GravityPoet/ChordVox's v1.5.146 release.
+[apps.chordvox]
+name = "ChordVox"
+kind = "appimage"
+repo = "GravityPoet/ChordVox"
+asset = '^ChordVox-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/chordvox.AppImage"
+meta_path = "chordvox.desktop"

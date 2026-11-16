@@ -1,0 +1,8 @@
+# Drafted from mpc-qt/mpc-qt's v26.07 release.
+[apps.mpc-qt]
+name = "Mpc Qt"
+kind = "appimage"
+repo = "mpc-qt/mpc-qt"
+asset = '^mpc-qt-linux-x64-.*\.AppImage$'
+dest = "~/.local/bin/mpc-qt.AppImage"
+meta_path = "usr/share/metainfo/io.github.mpc_qt.mpc-qt.metainfo.xml"

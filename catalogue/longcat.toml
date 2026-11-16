@@ -1,0 +1,11 @@
+# Drafted from mattn/longcat's v0.0.21 release.
+[apps.longcat]
+name = "longcat"
+kind = "archive"
+repo = "mattn/longcat"
+asset = '^longcat_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^longcat_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/longcat"
+folder = "~/.local/share/longcat"
+bins = ["longcat"]
+version_args = ["-v"]

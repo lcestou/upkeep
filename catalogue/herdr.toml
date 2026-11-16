@@ -1,0 +1,8 @@
+# Drafted from herdrdev/herdr's v0.9.5 release.
+[apps.herdr]
+name = "herdr"
+kind = "file"
+repo = "herdrdev/herdr"
+asset = '^herdr-linux-x86_64$'
+asset_aarch64 = '^herdr-linux-aarch64$'
+dest = "~/.local/bin/herdr"

@@ -1,0 +1,8 @@
+# Drafted from kirby-letsgo/oracles-decomp's v1.0.6 release; its version is the one Upkeep installed.
+[apps.oracles]
+name = "Oracles"
+kind = "appimage"
+repo = "kirby-letsgo/oracles-decomp"
+asset = '^Oracles-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/oracles.AppImage"
+probe = false

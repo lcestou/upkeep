@@ -1,0 +1,8 @@
+# Drafted from Dygmalab/Bazecor's v1.11.0 release.
+[apps.bazecor]
+name = "Bazecor"
+kind = "appimage"
+repo = "Dygmalab/Bazecor"
+asset = '^Bazecor-.*-x64\.AppImage$'
+dest = "~/.local/bin/bazecor.AppImage"
+meta_path = "Bazecor.desktop"

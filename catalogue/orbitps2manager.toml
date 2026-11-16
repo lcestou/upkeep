@@ -1,0 +1,8 @@
+# Drafted from Luden02/OrbitPS2-Manager's v1.4.0 release.
+[apps.orbitps2manager]
+name = "OrbitPS2Manager"
+kind = "appimage"
+repo = "Luden02/OrbitPS2-Manager"
+asset = '^OrbitPS2Manager-.*\.AppImage$'
+dest = "~/.local/bin/orbitps2manager.AppImage"
+meta_path = "orbitps2-manager.desktop"

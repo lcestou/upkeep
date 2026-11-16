@@ -1,0 +1,8 @@
+# Drafted from nonbili/meron's v0.5.2 release; its version is the one Upkeep installed.
+[apps.meron]
+name = "meron"
+kind = "appimage"
+repo = "nonbili/meron"
+asset = '^meron-linux-amd64\.AppImage$'
+dest = "~/.local/bin/meron.AppImage"
+probe = false

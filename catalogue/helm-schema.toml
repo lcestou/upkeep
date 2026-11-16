@@ -1,0 +1,10 @@
+# Drafted from dadav/helm-schema's 0.24.0 release.
+[apps.helm-schema]
+name = "Helm Schema"
+kind = "archive"
+repo = "dadav/helm-schema"
+asset = '^helm-schema_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^helm-schema_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/helm-schema"
+folder = "~/.local/share/helm-schema"
+bins = ["helm-schema"]

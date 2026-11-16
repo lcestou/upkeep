@@ -1,0 +1,8 @@
+# Drafted from cemu-project/Cemu's v2.6 release; its version is the one Upkeep installed.
+[apps.cemu]
+name = "Cemu"
+kind = "appimage"
+repo = "cemu-project/Cemu"
+asset = '^Cemu-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/cemu.AppImage"
+probe = false

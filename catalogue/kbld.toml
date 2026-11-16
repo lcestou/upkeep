@@ -1,0 +1,8 @@
+# Drafted from carvel-dev/kbld's v0.49.2 release.
+[apps.kbld]
+name = "kbld"
+kind = "file"
+repo = "carvel-dev/kbld"
+asset = '^kbld-linux-amd64$'
+asset_aarch64 = '^kbld-linux-arm64$'
+dest = "~/.local/bin/kbld"

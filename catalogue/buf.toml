@@ -1,0 +1,9 @@
+# Drafted from bufbuild/buf's v1.75.0 release.
+[apps.buf]
+name = "buf"
+kind = "archive"
+repo = "bufbuild/buf"
+asset = '^buf-Linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^buf-Linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/buf"
+bins = ["buf/bin/buf"]

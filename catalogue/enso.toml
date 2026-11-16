@@ -1,0 +1,8 @@
+# Drafted from enso-org/enso's 2025.3.4 release.
+[apps.enso]
+name = "enso"
+kind = "appimage"
+repo = "enso-org/enso"
+asset = '^enso-linux-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/enso.AppImage"
+meta_path = "enso.desktop"

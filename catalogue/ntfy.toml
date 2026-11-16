@@ -1,0 +1,10 @@
+# Drafted from binwiederhier/ntfy's v2.38.0 release.
+[apps.ntfy]
+name = "ntfy"
+kind = "archive"
+repo = "binwiederhier/ntfy"
+asset = '^ntfy_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ntfy_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ntfy"
+folder = "~/.local/share/ntfy"
+bins = ["ntfy"]

@@ -1,0 +1,8 @@
+# Drafted from MrAlaux/Nugget-Doom's nugget-doom-6.1.0 release.
+[apps.nugget-doom]
+name = "Nugget-Doom"
+kind = "appimage"
+repo = "MrAlaux/Nugget-Doom"
+asset = '^Nugget-Doom-.*-Linux\.AppImage$'
+dest = "~/.local/bin/nugget-doom.AppImage"
+meta_path = "io.github.MrAlaux.Nugget-Doom.desktop"

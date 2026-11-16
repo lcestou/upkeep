@@ -1,0 +1,8 @@
+# Drafted from feigeCode/navop's v0.23.2 release.
+[apps.navop]
+name = "navop"
+kind = "appimage"
+repo = "feigeCode/navop"
+asset = '^navop_.*_amd64\.AppImage$'
+dest = "~/.local/bin/navop.AppImage"
+meta_path = "navop.desktop"

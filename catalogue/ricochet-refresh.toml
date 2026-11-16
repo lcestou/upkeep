@@ -1,0 +1,8 @@
+# Drafted from blueprint-freespeech/ricochet-refresh's v3.0.47-release release; its version is the one Upkeep installed.
+[apps.ricochet-refresh]
+name = "Ricochet Refresh"
+kind = "appimage"
+repo = "blueprint-freespeech/ricochet-refresh"
+asset = '^ricochet-refresh-.*-x86_64\.appimage$'
+dest = "~/.local/bin/ricochet-refresh.AppImage"
+probe = false

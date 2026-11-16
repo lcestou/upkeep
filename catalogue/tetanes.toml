@@ -1,0 +1,9 @@
+# Drafted from lukexor/tetanes's tetanes-v0.17.0 release; its version is the one Upkeep installed.
+[apps.tetanes]
+name = "TetaNES"
+kind = "appimage"
+repo = "lukexor/tetanes"
+asset = '^TetaNES-.*-x86_64\.AppImage$'
+asset_aarch64 = '^TetaNES-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/tetanes.AppImage"
+probe = false

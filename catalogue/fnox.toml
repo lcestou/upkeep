@@ -1,0 +1,9 @@
+# Drafted from jdx/fnox's v1.48.0 release.
+[apps.fnox]
+name = "fnox"
+kind = "archive"
+repo = "jdx/fnox"
+asset = '^fnox-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^fnox-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/fnox"
+bins = ["fnox"]

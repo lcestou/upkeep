@@ -1,0 +1,9 @@
+# Drafted from zmwangx/ets's v0.2.2 release.
+[apps.ets]
+name = "ets"
+kind = "archive"
+repo = "zmwangx/ets"
+asset = '^ets_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ets_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ets"
+bins = ["ets"]

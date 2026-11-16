@@ -1,0 +1,9 @@
+# Drafted from gopinath-langote/1build's v1.10.4 release.
+[apps.1build]
+name = "1build"
+kind = "archive"
+repo = "gopinath-langote/1build"
+asset = '^1build_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^1build_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/1build"
+bins = ["1build"]

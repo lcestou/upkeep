@@ -1,0 +1,8 @@
+# Drafted from lyswhut/lx-music-desktop's v2.12.6 release.
+[apps.lx-music-desktop]
+name = "Lx Music Desktop"
+kind = "appimage"
+repo = "lyswhut/lx-music-desktop"
+asset = '^lx-music-desktop_.*_x64\.AppImage$'
+dest = "~/.local/bin/lx-music-desktop.AppImage"
+meta_path = "lx-music-desktop.desktop"

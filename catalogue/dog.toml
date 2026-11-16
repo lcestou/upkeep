@@ -1,0 +1,9 @@
+# Drafted from ogham/dog's v0.1.0 release; its version is the one Upkeep installed.
+[apps.dog]
+name = "dog"
+kind = "archive"
+repo = "ogham/dog"
+asset = '^dog-.*-x86_64-unknown-linux-gnu\.zip$'
+dest = "~/.local/bin/dog"
+bins = ["bin/dog"]
+probe = false

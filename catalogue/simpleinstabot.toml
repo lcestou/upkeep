@@ -1,0 +1,8 @@
+# Drafted from mifi/SimpleInstaBot's SimpleInstaBot/v1.11.16 release.
+[apps.simpleinstabot]
+name = "SimpleInstaBot"
+kind = "appimage"
+repo = "mifi/SimpleInstaBot"
+asset = '^SimpleInstaBot-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/simpleinstabot.AppImage"
+meta_path = "simpleinstabot.desktop"

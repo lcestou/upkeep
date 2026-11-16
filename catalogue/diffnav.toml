@@ -1,0 +1,9 @@
+# Drafted from dlvhdr/diffnav's v0.13.1 release.
+[apps.diffnav]
+name = "diffnav"
+kind = "archive"
+repo = "dlvhdr/diffnav"
+asset = '^diffnav_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^diffnav_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/diffnav"
+bins = ["diffnav"]

@@ -1,0 +1,9 @@
+# Drafted from kattouf/ProgressLine's 0.2.4 release.
+[apps.progressline]
+name = "ProgressLine"
+kind = "archive"
+repo = "kattouf/ProgressLine"
+asset = '^progressline-.*-x86_64-unknown-linux-gnu\.zip$'
+asset_aarch64 = '^progressline-.*-aarch64-unknown-linux-gnu\.zip$'
+dest = "~/.local/bin/progressline"
+bins = ["progressline"]

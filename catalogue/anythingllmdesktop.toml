@@ -1,0 +1,8 @@
+# Drafted from Mintplex-Labs/anything-llm's v1.19.0 release.
+[apps.anythingllmdesktop]
+name = "AnythingLLMDesktop"
+kind = "appimage"
+repo = "Mintplex-Labs/anything-llm"
+asset = '^AnythingLLMDesktop\.AppImage$'
+dest = "~/.local/bin/anythingllmdesktop.AppImage"
+meta_path = "anythingllm-desktop.desktop"

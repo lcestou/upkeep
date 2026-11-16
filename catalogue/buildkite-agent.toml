@@ -1,0 +1,10 @@
+# Drafted from buildkite/agent's v4.10.2 release.
+[apps.buildkite-agent]
+name = "agent"
+kind = "archive"
+repo = "buildkite/agent"
+asset = '^buildkite-agent-linux-amd64-.*\.tar\.gz$'
+asset_aarch64 = '^buildkite-agent-linux-arm64-.*\.tar\.gz$'
+dest = "~/.local/bin/buildkite-agent"
+folder = "~/.local/share/buildkite-agent"
+bins = ["buildkite-agent"]

@@ -1,0 +1,10 @@
+# Drafted from FairwindsOps/pluto's v5.24.5 release.
+[apps.pluto]
+name = "pluto"
+kind = "archive"
+repo = "FairwindsOps/pluto"
+asset = '^pluto_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^pluto_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/pluto"
+bins = ["pluto"]
+version_args = ["version"]

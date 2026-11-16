@@ -1,0 +1,9 @@
+# Drafted from enzo1982/freac's v1.1.7 release.
+[apps.freac]
+name = "freac"
+kind = "appimage"
+repo = "enzo1982/freac"
+asset = '^freac-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^freac-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/freac.AppImage"
+meta_path = "usr/share/metainfo/org.freac.freac.appdata.xml"

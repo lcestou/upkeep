@@ -1,0 +1,8 @@
+# Drafted from PapilotAI/papilot's v0.10.4 release.
+[apps.papilot]
+name = "Papilot"
+kind = "appimage"
+repo = "PapilotAI/papilot"
+asset = '^Papilot-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/papilot.AppImage"
+meta_path = "ai.papilot.desktop.desktop"

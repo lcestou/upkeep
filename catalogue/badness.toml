@@ -1,0 +1,9 @@
+# Drafted from jolars/badness's v0.29.1 release.
+[apps.badness]
+name = "badness"
+kind = "archive"
+repo = "jolars/badness"
+asset = '^badness-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^badness-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/badness"
+bins = ["badness"]

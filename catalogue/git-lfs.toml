@@ -1,0 +1,10 @@
+# Drafted from git-lfs/git-lfs's v3.8.1 release.
+[apps.git-lfs]
+name = "Git Lfs"
+kind = "archive"
+repo = "git-lfs/git-lfs"
+asset = '^git-lfs-linux-amd64-.*\.tar\.gz$'
+asset_aarch64 = '^git-lfs-linux-arm64-.*\.tar\.gz$'
+dest = "~/.local/bin/git-lfs"
+folder = "~/.local/share/git-lfs"
+bins = ["git-lfs"]

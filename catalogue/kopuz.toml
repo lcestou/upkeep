@@ -1,0 +1,8 @@
+# Drafted from Kopuz-org/kopuz's v0.67.1 release; its version is the one Upkeep installed.
+[apps.kopuz]
+name = "Kopuz"
+kind = "appimage"
+repo = "Kopuz-org/kopuz"
+asset = '^Kopuz_.*_x86_64\.AppImage$'
+dest = "~/.local/bin/kopuz.AppImage"
+probe = false

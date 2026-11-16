@@ -1,0 +1,8 @@
+# Drafted from arduino/arduino-ide's 2.3.11 release.
+[apps.arduino-ide-64bit]
+name = "Arduino Ide"
+kind = "appimage"
+repo = "arduino/arduino-ide"
+asset = '^arduino-ide_.*_Linux_64bit\.AppImage$'
+dest = "~/.local/bin/arduino-ide-64bit.AppImage"
+meta_path = "arduino-ide.desktop"

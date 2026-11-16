@@ -1,0 +1,9 @@
+# Drafted from AgregoreWeb/agregore-browser's v2.24.0 release.
+[apps.agregore-browser]
+name = "Agregore Browser"
+kind = "appimage"
+repo = "AgregoreWeb/agregore-browser"
+asset = '^agregore-browser-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^agregore-browser-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/agregore-browser.AppImage"
+meta_path = "agregore-browser.desktop"

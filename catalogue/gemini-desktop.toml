@@ -1,0 +1,8 @@
+# Drafted from bwendell/gemini-desktop's v0.12.1 release.
+[apps.gemini-desktop]
+name = "Gemini-Desktop"
+kind = "appimage"
+repo = "bwendell/gemini-desktop"
+asset = '^Gemini-Desktop-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/gemini-desktop.AppImage"
+meta_path = "gemini-desktop.desktop"

@@ -1,0 +1,10 @@
+# Drafted from viaduct-ai/kustomize-sops's v4.5.1 release; its version is the one Upkeep installed.
+[apps.ksops]
+name = "Kustomize Sops"
+kind = "archive"
+repo = "viaduct-ai/kustomize-sops"
+asset = '^ksops_[0-9][0-9A-Za-z.]*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^ksops_[0-9][0-9A-Za-z.]*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ksops"
+bins = ["ksops"]
+probe = false

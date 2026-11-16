@@ -1,0 +1,9 @@
+# Drafted from clj-kondo/clj-kondo's v2026.10.26 release.
+[apps.clj-kondo]
+name = "Clj Kondo"
+kind = "archive"
+repo = "clj-kondo/clj-kondo"
+asset = '^clj-kondo-.*-linux-amd64\.zip$'
+asset_aarch64 = '^clj-kondo-.*-linux-aarch64\.zip$'
+dest = "~/.local/bin/clj-kondo"
+bins = ["clj-kondo"]

@@ -1,0 +1,8 @@
+# Drafted from VoidenHQ/voiden's v2.4.0 release.
+[apps.voiden]
+name = "voiden"
+kind = "appimage"
+repo = "VoidenHQ/voiden"
+asset = '^voiden-.*\.AppImage$'
+dest = "~/.local/bin/voiden.AppImage"
+meta_path = "Voiden.desktop"

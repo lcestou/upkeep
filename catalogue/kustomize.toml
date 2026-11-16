@@ -1,0 +1,10 @@
+# Drafted from kubernetes-sigs/kustomize's kustomize/v5.8.3 release.
+[apps.kustomize]
+name = "kustomize"
+kind = "archive"
+repo = "kubernetes-sigs/kustomize"
+asset = '^kustomize_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^kustomize_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kustomize"
+bins = ["kustomize"]
+version_args = ["version"]

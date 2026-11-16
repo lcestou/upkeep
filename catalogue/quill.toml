@@ -1,0 +1,9 @@
+# Drafted from anchore/quill's v0.7.1 release.
+[apps.quill]
+name = "quill"
+kind = "archive"
+repo = "anchore/quill"
+asset = '^quill_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^quill_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/quill"
+bins = ["quill"]

@@ -1,0 +1,9 @@
+# Drafted from luigifcruz/CyberEther's v1.19.2 release.
+[apps.cyberether]
+name = "CyberEther"
+kind = "appimage"
+repo = "luigifcruz/CyberEther"
+asset = '^CyberEther-linux-x64\.AppImage$'
+asset_aarch64 = '^CyberEther-linux-arm64\.AppImage$'
+dest = "~/.local/bin/cyberether.AppImage"
+meta_path = "CyberEther.desktop"

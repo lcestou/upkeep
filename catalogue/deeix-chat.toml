@@ -1,0 +1,8 @@
+# Drafted from DEEIX-AI/DEEIX-Chat's v0.4.6 release; its version is the one Upkeep installed.
+[apps.deeix-chat]
+name = "DEEIX-Chat"
+kind = "appimage"
+repo = "DEEIX-AI/DEEIX-Chat"
+asset = '^DEEIX-Chat-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/deeix-chat.AppImage"
+probe = false

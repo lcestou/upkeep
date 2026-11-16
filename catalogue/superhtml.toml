@@ -1,0 +1,9 @@
+# Drafted from kristoff-it/superhtml's v0.7.1 release.
+[apps.superhtml]
+name = "superhtml"
+kind = "archive"
+repo = "kristoff-it/superhtml"
+asset = '^x86_64-linux-musl\.tar\.xz$'
+dest = "~/.local/bin/superhtml"
+bins = ["superhtml"]
+version_args = ["version"]

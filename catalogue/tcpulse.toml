@@ -1,0 +1,9 @@
+# Drafted from yuuki/tcpulse's v0.9.0 release.
+[apps.tcpulse]
+name = "tcpulse"
+kind = "archive"
+repo = "yuuki/tcpulse"
+asset = '^tcpulse_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tcpulse_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tcpulse"
+bins = ["tcpulse"]

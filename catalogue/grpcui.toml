@@ -1,0 +1,9 @@
+# Drafted from fullstorydev/grpcui's v1.5.4 release.
+[apps.grpcui]
+name = "grpcui"
+kind = "archive"
+repo = "fullstorydev/grpcui"
+asset = '^grpcui_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^grpcui_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/grpcui"
+bins = ["grpcui"]

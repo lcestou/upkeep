@@ -1,0 +1,8 @@
+# Drafted from fcavallarin/wirebrowser's v0.7.0 release.
+[apps.wirebrowser]
+name = "Wirebrowser"
+kind = "appimage"
+repo = "fcavallarin/wirebrowser"
+asset = '^Wirebrowser-.*\.AppImage$'
+dest = "~/.local/bin/wirebrowser.AppImage"
+meta_path = "wirebrowser.desktop"

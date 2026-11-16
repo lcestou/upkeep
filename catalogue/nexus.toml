@@ -1,0 +1,8 @@
+# Drafted from kd9taw/Nexus's v1.24.0 release; its version is the one Upkeep installed.
+[apps.nexus]
+name = "Nexus"
+kind = "appimage"
+repo = "kd9taw/Nexus"
+asset = '^Nexus_.*_amd64\.AppImage$'
+dest = "~/.local/bin/nexus.AppImage"
+probe = false

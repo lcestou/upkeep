@@ -1,0 +1,9 @@
+# Drafted from ewhauser/shuck's v0.2.7 release.
+[apps.shuck]
+name = "shuck"
+kind = "archive"
+repo = "ewhauser/shuck"
+asset = '^shuck-cli-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^shuck-cli-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/shuck"
+bins = ["shuck-cli-x86_64-unknown-linux-gnu/shuck"]

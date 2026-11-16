@@ -1,0 +1,9 @@
+# Drafted from Zxilly/go-size-analyzer's v1.14.1 release.
+[apps.gsa]
+name = "Go Size Analyzer"
+kind = "archive"
+repo = "Zxilly/go-size-analyzer"
+asset = '^go-size-analyzer_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^go-size-analyzer_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gsa"
+bins = ["gsa"]

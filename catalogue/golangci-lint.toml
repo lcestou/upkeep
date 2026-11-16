@@ -1,0 +1,9 @@
+# Drafted from golangci/golangci-lint's v2.15.0 release.
+[apps.golangci-lint]
+name = "Golangci Lint"
+kind = "archive"
+repo = "golangci/golangci-lint"
+asset = '^golangci-lint-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^golangci-lint-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/golangci-lint"
+bins = ["golangci-lint-2.15.0-linux-amd64/golangci-lint"]

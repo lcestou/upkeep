@@ -1,0 +1,10 @@
+# Drafted from sunny0826/kubecm's v0.36.0 release.
+[apps.kubecm]
+name = "kubecm"
+kind = "archive"
+repo = "sunny0826/kubecm"
+asset = '^kubecm_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^kubecm_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubecm"
+bins = ["kubecm"]
+version_args = ["version"]

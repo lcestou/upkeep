@@ -1,0 +1,8 @@
+# Drafted from RoderickQiu/wnr's v1.35.0-patch release; its version is the one Upkeep installed.
+[apps.wnr-patch]
+name = "wnr"
+kind = "appimage"
+repo = "RoderickQiu/wnr"
+asset = '^wnr-.*-patch-Linux\.AppImage$'
+dest = "~/.local/bin/wnr-patch.AppImage"
+probe = false

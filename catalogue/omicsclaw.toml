@@ -1,0 +1,9 @@
+# Drafted from TianGzlab/OmicsClaw's v0.1.8 release.
+[apps.omicsclaw]
+name = "OmicsClaw"
+kind = "appimage"
+repo = "TianGzlab/OmicsClaw"
+asset = '^OmicsClaw-.*-x86_64\.AppImage$'
+asset_aarch64 = '^OmicsClaw-.*-arm64\.AppImage$'
+dest = "~/.local/bin/omicsclaw.AppImage"
+meta_path = "omicsclaw-app.desktop"

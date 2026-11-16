@@ -1,0 +1,8 @@
+# Drafted from Kotlin/ktfmt's v0.65 release.
+[apps.ktfmt]
+name = "ktfmt"
+kind = "archive"
+repo = "Kotlin/ktfmt"
+asset = '^ktfmt-linux-x86_64-.*\.tar\.gz$'
+dest = "~/.local/bin/ktfmt"
+bins = ["ktfmt-linux-x86_64-0.65/ktfmt"]

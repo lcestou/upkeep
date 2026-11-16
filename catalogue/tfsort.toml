@@ -1,0 +1,9 @@
+# Drafted from AlexNabokikh/tfsort's v0.7.5 release.
+[apps.tfsort]
+name = "tfsort"
+kind = "archive"
+repo = "AlexNabokikh/tfsort"
+asset = '^tfsort_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tfsort_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tfsort"
+bins = ["tfsort"]

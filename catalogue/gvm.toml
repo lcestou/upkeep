@@ -1,0 +1,8 @@
+# Drafted from andrewkroh/gvm's v0.6.0 release.
+[apps.gvm]
+name = "gvm"
+kind = "file"
+repo = "andrewkroh/gvm"
+asset = '^gvm-linux-amd64$'
+asset_aarch64 = '^gvm-linux-arm64$'
+dest = "~/.local/bin/gvm"

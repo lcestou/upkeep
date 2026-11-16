@@ -1,0 +1,8 @@
+# Drafted from yancharkin/SpelunkyClassicHD's 1.2.2 release; its version is the one Upkeep installed.
+[apps.spelunky-classic-hd]
+name = "SpelunkyClassicHD"
+kind = "appimage"
+repo = "yancharkin/SpelunkyClassicHD"
+asset = '^spelunky_classic_hd-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/spelunky-classic-hd.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from jfernandez/bpftop's v0.9.1 release.
+[apps.bpftop]
+name = "bpftop"
+kind = "file"
+repo = "jfernandez/bpftop"
+asset = '^bpftop-x86_64-unknown-linux-gnu$'
+asset_aarch64 = '^bpftop-aarch64-unknown-linux-gnu$'
+dest = "~/.local/bin/bpftop"

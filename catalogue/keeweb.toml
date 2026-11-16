@@ -1,0 +1,8 @@
+# Drafted from keeweb/keeweb's v1.18.7 release.
+[apps.keeweb]
+name = "KeeWeb"
+kind = "appimage"
+repo = "keeweb/keeweb"
+asset = '^KeeWeb-.*\.linux\.AppImage$'
+dest = "~/.local/bin/keeweb.AppImage"
+meta_path = "keeweb.desktop"

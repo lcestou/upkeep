@@ -1,0 +1,8 @@
+# Drafted from tweakphp/tweakphp's v0.14.0 release.
+[apps.tweakphp]
+name = "TweakPHP"
+kind = "appimage"
+repo = "tweakphp/tweakphp"
+asset = '^TweakPHP-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/tweakphp.AppImage"
+meta_path = "tweakphp.desktop"

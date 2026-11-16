@@ -1,0 +1,10 @@
+# Drafted from charmbracelet/pop's v0.5.0 release.
+[apps.pop]
+name = "pop"
+kind = "archive"
+repo = "charmbracelet/pop"
+asset = '^pop_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^pop_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/pop"
+folder = "~/.local/share/pop"
+bins = ["pop"]

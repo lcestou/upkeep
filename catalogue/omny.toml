@@ -1,0 +1,8 @@
+# Drafted from timhartmann7/omnyssh's v1.1.5 release; its version is the one Upkeep installed.
+[apps.omny]
+name = "OmnySSH"
+kind = "appimage"
+repo = "timhartmann7/omnyssh"
+asset = '^OmnySSH-x86_64\.AppImage$'
+dest = "~/.local/bin/omny.AppImage"
+probe = false

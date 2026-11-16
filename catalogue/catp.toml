@@ -1,0 +1,8 @@
+# Drafted from yujqiao/catproc's v0.2.0 release.
+[apps.catp]
+name = "catproc"
+kind = "archive"
+repo = "yujqiao/catproc"
+asset = '^catp-x86_64-unknown-linux-gnu\.zip$'
+dest = "~/.local/bin/catp"
+bins = ["catp"]

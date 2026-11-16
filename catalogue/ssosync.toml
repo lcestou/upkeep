@@ -1,0 +1,9 @@
+# Drafted from awslabs/ssosync's v2.11.1 release.
+[apps.ssosync]
+name = "ssosync"
+kind = "archive"
+repo = "awslabs/ssosync"
+asset = '^ssosync_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^ssosync_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ssosync"
+bins = ["ssosync"]

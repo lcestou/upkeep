@@ -1,0 +1,8 @@
+# Drafted from carvel-dev/ytt's v0.55.4 release.
+[apps.ytt]
+name = "ytt"
+kind = "file"
+repo = "carvel-dev/ytt"
+asset = '^ytt-linux-amd64$'
+asset_aarch64 = '^ytt-linux-arm64$'
+dest = "~/.local/bin/ytt"

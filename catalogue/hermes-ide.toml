@@ -1,0 +1,9 @@
+# Drafted from hermes-hq/hermes-ide's v2.3.7 release; its version is the one Upkeep installed.
+[apps.hermes-ide]
+name = "HERMES-IDE"
+kind = "appimage"
+repo = "hermes-hq/hermes-ide"
+asset = '^HERMES-IDE_.*_amd64\.AppImage$'
+asset_aarch64 = '^HERMES-IDE_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/hermes-ide.AppImage"
+probe = false

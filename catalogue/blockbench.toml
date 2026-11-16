@@ -1,0 +1,8 @@
+# Drafted from JannisX11/blockbench's v5.2.2 release.
+[apps.blockbench]
+name = "Blockbench"
+kind = "appimage"
+repo = "JannisX11/blockbench"
+asset = '^Blockbench_.*\.AppImage$'
+dest = "~/.local/bin/blockbench.AppImage"
+meta_path = "net.blockbench.blockbench.desktop"

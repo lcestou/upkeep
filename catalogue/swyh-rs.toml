@@ -1,0 +1,8 @@
+# Drafted from dheijl/swyh-rs's 1.21.1 release; its version is the one Upkeep installed.
+[apps.swyh-rs]
+name = "Swyh Rs"
+kind = "appimage"
+repo = "dheijl/swyh-rs"
+asset = '^swyh-rs-x86_64\.AppImage$'
+dest = "~/.local/bin/swyh-rs.AppImage"
+probe = false

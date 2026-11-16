@@ -1,0 +1,8 @@
+# Drafted from bvschaik/julius's v1.8.0 release.
+[apps.julius]
+name = "julius"
+kind = "appimage"
+repo = "bvschaik/julius"
+asset = '^julius-.*-linux\.AppImage$'
+dest = "~/.local/bin/julius.AppImage"
+meta_path = "usr/share/metainfo/com.github.bvschaik.julius.metainfo.xml"

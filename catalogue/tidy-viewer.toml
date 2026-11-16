@@ -1,0 +1,8 @@
+# Drafted from alexhallam/tv's 1.8.93 release.
+[apps.tidy-viewer]
+name = "tv"
+kind = "archive"
+repo = "alexhallam/tv"
+asset = '^tidy-viewer-.*\.tgz$'
+dest = "~/.local/bin/tidy-viewer"
+bins = ["tidy-viewer"]

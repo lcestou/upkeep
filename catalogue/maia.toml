@@ -1,0 +1,9 @@
+# Drafted from yappologistic/Maia's v0.7.0 release.
+[apps.maia]
+name = "Maia"
+kind = "appimage"
+repo = "yappologistic/Maia"
+asset = '^Maia-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Maia-.*-aarch64\.AppImage$'
+dest = "~/.local/bin/maia.AppImage"
+meta_path = "usr/share/metainfo/io.github.yappologistic.Maia.metainfo.xml"

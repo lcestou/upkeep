@@ -1,0 +1,9 @@
+# Drafted from ParsonLabs/parson's v1.0.1 release.
+[apps.parson]
+name = "Parson"
+kind = "appimage"
+repo = "ParsonLabs/parson"
+asset = '^Parson_.*_x86_64\.AppImage$'
+asset_aarch64 = '^Parson_.*_arm64\.AppImage$'
+dest = "~/.local/bin/parson.AppImage"
+meta_path = "com.parsonlabs.parson.desktop"

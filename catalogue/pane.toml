@@ -1,0 +1,9 @@
+# Drafted from greenfield-inc/Pane's v2.4.225 release.
+[apps.pane]
+name = "Pane"
+kind = "appimage"
+repo = "greenfield-inc/Pane"
+asset = '^Pane-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^Pane-.*-linux-arm64\.AppImage$'
+dest = "~/.local/bin/pane.AppImage"
+meta_path = "pane.desktop"

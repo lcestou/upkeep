@@ -1,0 +1,8 @@
+# Drafted from jpbruinsslot/slack-term's v0.5.0 release; its version is the one Upkeep installed.
+[apps.slack-term]
+name = "Slack Term"
+kind = "file"
+repo = "jpbruinsslot/slack-term"
+asset = '^slack-term-linux-amd64$'
+dest = "~/.local/bin/slack-term"
+probe = false

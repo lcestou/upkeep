@@ -1,0 +1,8 @@
+# Drafted from getstation/desktop-app's v4.0.0 release.
+[apps.station]
+name = "Station"
+kind = "appimage"
+repo = "getstation/desktop-app"
+asset = '^Station-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/station.AppImage"
+meta_path = "station-desktop-app.desktop"

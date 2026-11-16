@@ -1,0 +1,8 @@
+# Drafted from goodwithtech/dockle's v0.4.15 release.
+[apps.dockle]
+name = "dockle"
+kind = "archive"
+repo = "goodwithtech/dockle"
+asset = '^dockle_.*_Linux-64bit\.tar\.gz$'
+dest = "~/.local/bin/dockle"
+bins = ["dockle"]

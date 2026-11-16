@@ -1,0 +1,9 @@
+# Drafted from bornova/numara-calculator's v7.6.3 release.
+[apps.numara]
+name = "Numara"
+kind = "appimage"
+repo = "bornova/numara-calculator"
+asset = '^Numara-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Numara-.*-arm64\.AppImage$'
+dest = "~/.local/bin/numara.AppImage"
+meta_path = "numara.desktop"

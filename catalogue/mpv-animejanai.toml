@@ -1,0 +1,8 @@
+# Drafted from the-database/mpv-AnimeJaNai's 3.11.1 release; its version is the one Upkeep installed.
+[apps.mpv-animejanai]
+name = "mpv-AnimeJaNai"
+kind = "appimage"
+repo = "the-database/mpv-AnimeJaNai"
+asset = '^mpv-AnimeJaNai-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/mpv-animejanai.AppImage"
+probe = false

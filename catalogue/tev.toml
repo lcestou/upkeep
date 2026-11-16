@@ -1,0 +1,8 @@
+# Drafted from Tom94/tev's v2.14.0 release.
+[apps.tev]
+name = "tev"
+kind = "appimage"
+repo = "Tom94/tev"
+asset = '^tev\.appimage$'
+dest = "~/.local/bin/tev.AppImage"
+meta_path = "tev.desktop"

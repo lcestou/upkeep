@@ -1,0 +1,9 @@
+# Drafted from create-go-app/cli's v4.1.0 release.
+[apps.cgapp]
+name = "cgapp"
+kind = "archive"
+repo = "create-go-app/cli"
+asset = '^cgapp_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^cgapp_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/cgapp"
+bins = ["cgapp"]

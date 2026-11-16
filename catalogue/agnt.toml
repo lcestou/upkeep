@@ -1,0 +1,8 @@
+# Drafted from agnt-gg/agnt's v0.6.8 release.
+[apps.agnt]
+name = "AGNT"
+kind = "appimage"
+repo = "agnt-gg/agnt"
+asset = '^AGNT-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/agnt.AppImage"
+meta_path = "agnt.desktop"

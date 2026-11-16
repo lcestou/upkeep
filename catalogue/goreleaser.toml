@@ -1,0 +1,10 @@
+# Drafted from goreleaser/goreleaser's v2.20.2 release.
+[apps.goreleaser]
+name = "goreleaser"
+kind = "archive"
+repo = "goreleaser/goreleaser"
+asset = '^goreleaser_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^goreleaser_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/goreleaser"
+folder = "~/.local/share/goreleaser"
+bins = ["goreleaser"]

@@ -1,0 +1,9 @@
+# Drafted from dagger/container-use's v0.4.2 release.
+[apps.container-use]
+name = "Container Use"
+kind = "archive"
+repo = "dagger/container-use"
+asset = '^container-use_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^container-use_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/container-use"
+bins = ["container-use"]

@@ -1,0 +1,8 @@
+# Drafted from AutoPTZ/autoptz's v2.2.0 release; its version is the one Upkeep installed.
+[apps.autoptz]
+name = "AutoPTZ"
+kind = "appimage"
+repo = "AutoPTZ/autoptz"
+asset = '^AutoPTZ-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/autoptz.AppImage"
+probe = false

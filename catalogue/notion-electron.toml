@@ -1,0 +1,9 @@
+# Drafted from anechunaev/notion-electron's v2.5.0 release.
+[apps.notion-electron]
+name = "Notion-Electron"
+kind = "appimage"
+repo = "anechunaev/notion-electron"
+asset = '^Notion_Electron-.*-x86_64\.AppImage$'
+asset_aarch64 = '^Notion_Electron-.*-arm64\.AppImage$'
+dest = "~/.local/bin/notion-electron.AppImage"
+meta_path = "notion-electron.desktop"

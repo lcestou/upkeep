@@ -1,0 +1,9 @@
+# Drafted from zhitongblog/solomd's v5.2.0 release; its version is the one Upkeep installed.
+[apps.solomd]
+name = "SoloMD"
+kind = "appimage"
+repo = "zhitongblog/solomd"
+asset = '^SoloMD_.*_amd64\.AppImage$'
+asset_aarch64 = '^SoloMD_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/solomd.AppImage"
+probe = false

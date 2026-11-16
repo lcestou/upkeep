@@ -1,0 +1,8 @@
+# Drafted from bearlyai/OpenADE's v0.81.2 release.
+[apps.openade]
+name = "OpenADE"
+kind = "appimage"
+repo = "bearlyai/OpenADE"
+asset = '^OpenADE-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/openade.AppImage"
+meta_path = "openade.desktop"

@@ -1,0 +1,9 @@
+# Drafted from rhysd/actionlint's v1.7.12 release.
+[apps.actionlint]
+name = "actionlint"
+kind = "archive"
+repo = "rhysd/actionlint"
+asset = '^actionlint_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^actionlint_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/actionlint"
+bins = ["actionlint"]

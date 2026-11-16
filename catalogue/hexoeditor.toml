@@ -1,0 +1,8 @@
+# Drafted from zhuzhuyule/HexoEditor's v1.5.30 release.
+[apps.hexoeditor]
+name = "HexoEditor"
+kind = "appimage"
+repo = "zhuzhuyule/HexoEditor"
+asset = '^HexoEditor_.*_linux_x64\.AppImage$'
+dest = "~/.local/bin/hexoeditor.AppImage"
+meta_path = "hexoeditor.desktop"

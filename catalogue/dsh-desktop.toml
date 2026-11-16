@@ -1,0 +1,8 @@
+# Drafted from myYangyunfan/dsh_desktop's v1.1.0 release; its version is the one Upkeep installed.
+[apps.dsh-desktop]
+name = "DSH-Desktop"
+kind = "appimage"
+repo = "myYangyunfan/dsh_desktop"
+asset = '^DSH-Desktop-.*-linux-x64\.AppImage$'
+dest = "~/.local/bin/dsh-desktop.AppImage"
+probe = false

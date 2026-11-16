@@ -1,0 +1,8 @@
+# Drafted from no1msd/seance's v0.1.7 release.
+[apps.seance]
+name = "seance"
+kind = "appimage"
+repo = "no1msd/seance"
+asset = '^seance-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/seance.AppImage"
+meta_path = "com.seance.app.desktop"

@@ -1,0 +1,8 @@
+# Drafted from freekode/tp2intervals's v0.12.3 release.
+[apps.tp2intervals]
+name = "tp2intervals"
+kind = "appimage"
+repo = "freekode/tp2intervals"
+asset = '^tp2intervals-.*\.AppImage$'
+dest = "~/.local/bin/tp2intervals.AppImage"
+meta_path = "tp2intervals.desktop"

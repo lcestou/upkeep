@@ -1,0 +1,8 @@
+# Drafted from huxingyi/autoremesher's 1.2.0 release; its version is the one Upkeep installed.
+[apps.autoremesher]
+name = "autoremesher"
+kind = "appimage"
+repo = "huxingyi/autoremesher"
+asset = '^autoremesher-.*\.AppImage$'
+dest = "~/.local/bin/autoremesher.AppImage"
+probe = false

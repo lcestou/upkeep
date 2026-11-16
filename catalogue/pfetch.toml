@@ -1,0 +1,8 @@
+# Drafted from Gobidev/pfetch-rs's v3.1.1 release.
+[apps.pfetch]
+name = "Pfetch Rs"
+kind = "archive"
+repo = "Gobidev/pfetch-rs"
+asset = '^pfetch-linux-gnu-x86_64\.tar\.gz$'
+dest = "~/.local/bin/pfetch"
+bins = ["pfetch"]

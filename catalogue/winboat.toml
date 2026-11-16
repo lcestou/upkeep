@@ -1,0 +1,8 @@
+# Drafted from winboat-org/winboat's v0.9.2 release.
+[apps.winboat]
+name = "winboat"
+kind = "appimage"
+repo = "winboat-org/winboat"
+asset = '^winboat-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/winboat.AppImage"
+meta_path = "winboat.desktop"

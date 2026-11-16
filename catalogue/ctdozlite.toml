@@ -1,0 +1,8 @@
+# Drafted from ctdoteam1110/ctdozlite's v0.1.1 release.
+[apps.ctdozlite]
+name = "ctdozlite"
+kind = "appimage"
+repo = "ctdoteam1110/ctdozlite"
+asset = '^ctdozlite-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ctdozlite.AppImage"
+meta_path = "ctdozlite.desktop"

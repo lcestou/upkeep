@@ -1,0 +1,9 @@
+# Drafted from hmlendea/gfn-electron's v3.1.0 release.
+[apps.geforcenow-electron]
+name = "Gfn Electron"
+kind = "appimage"
+repo = "hmlendea/gfn-electron"
+asset = '^geforcenow-electron_.*_linux_x86_64\.AppImage$'
+asset_aarch64 = '^geforcenow-electron_.*_linux_arm64\.AppImage$'
+dest = "~/.local/bin/geforcenow-electron.AppImage"
+meta_path = "geforcenow-electron.desktop"

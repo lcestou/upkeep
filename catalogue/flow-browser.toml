@@ -1,0 +1,9 @@
+# Drafted from MultiboxLabs/flow-browser's v0.12.0 release.
+[apps.flow-browser]
+name = "Flow Browser"
+kind = "appimage"
+repo = "MultiboxLabs/flow-browser"
+asset = '^flow-browser-.*-x86_64\.AppImage$'
+asset_aarch64 = '^flow-browser-.*-arm64\.AppImage$'
+dest = "~/.local/bin/flow-browser.AppImage"
+meta_path = "flow-browser.desktop"

@@ -1,0 +1,10 @@
+# Drafted from anomalyco/sst's v4.17.2 release.
+[apps.sst]
+name = "sst"
+kind = "archive"
+repo = "anomalyco/sst"
+asset = '^sst-linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^sst-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/sst"
+bins = ["sst"]
+version_args = ["version"]

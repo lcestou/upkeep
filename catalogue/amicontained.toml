@@ -1,0 +1,8 @@
+# Drafted from genuinetools/amicontained's v0.4.9 release.
+[apps.amicontained]
+name = "amicontained"
+kind = "file"
+repo = "genuinetools/amicontained"
+asset = '^amicontained-linux-amd64$'
+dest = "~/.local/bin/amicontained"
+version_args = ["version"]

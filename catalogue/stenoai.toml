@@ -1,0 +1,8 @@
+# Drafted from stenolabs/stenoai's v0.8.0 release; its version is the one Upkeep installed.
+[apps.stenoai]
+name = "stenoAI"
+kind = "appimage"
+repo = "stenolabs/stenoai"
+asset = '^stenoAI-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/stenoai.AppImage"
+probe = false

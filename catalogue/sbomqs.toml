@@ -1,0 +1,10 @@
+# Drafted from interlynk-io/sbomqs's v2.1.3 release.
+[apps.sbomqs]
+name = "sbomqs"
+kind = "archive"
+repo = "interlynk-io/sbomqs"
+asset = '^sbomqs_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^sbomqs_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/sbomqs"
+bins = ["sbomqs"]
+version_args = ["version"]

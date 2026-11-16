@@ -1,0 +1,9 @@
+# Drafted from fujiapple852/trippy's 0.13.0 release.
+[apps.trip]
+name = "trippy"
+kind = "archive"
+repo = "fujiapple852/trippy"
+asset = '^trippy-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^trippy-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/trip"
+bins = ["trippy-0.13.0-x86_64-unknown-linux-gnu/trip"]

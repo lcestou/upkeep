@@ -1,0 +1,8 @@
+# Drafted from vladimiry/ElectronMail's v5.3.10 release.
+[apps.electron-mail]
+name = "ElectronMail"
+kind = "appimage"
+repo = "vladimiry/ElectronMail"
+asset = '^electron-mail-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/electron-mail.AppImage"
+meta_path = "electron-mail.desktop"

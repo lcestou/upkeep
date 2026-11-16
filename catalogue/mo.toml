@@ -1,0 +1,9 @@
+# Drafted from k1LoW/mo's v1.8.0 release.
+[apps.mo]
+name = "mo"
+kind = "archive"
+repo = "k1LoW/mo"
+asset = '^mo_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^mo_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/mo"
+bins = ["mo"]

@@ -1,0 +1,8 @@
+# Drafted from vercel-labs/agent-browser's v0.43.0 release.
+[apps.agent-browser]
+name = "Agent Browser"
+kind = "file"
+repo = "vercel-labs/agent-browser"
+asset = '^agent-browser-linux-x64$'
+asset_aarch64 = '^agent-browser-linux-arm64$'
+dest = "~/.local/bin/agent-browser"

@@ -1,0 +1,8 @@
+# Drafted from emberr-app/Emberr's v1.3.0 release; its version is the one Upkeep installed.
+[apps.emberr]
+name = "Emberr"
+kind = "appimage"
+repo = "emberr-app/Emberr"
+asset = '^Emberr-x86_64\.AppImage$'
+dest = "~/.local/bin/emberr.AppImage"
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from Razz19/Exort's v0.4.2 release.
+[apps.exort]
+name = "Exort"
+kind = "appimage"
+repo = "Razz19/Exort"
+asset = '^Exort-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/exort.AppImage"
+meta_path = "exort.desktop"

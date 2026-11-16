@@ -1,0 +1,8 @@
+# Drafted from kubie-org/kubie's v0.28.0 release.
+[apps.kubie]
+name = "kubie"
+kind = "file"
+repo = "kubie-org/kubie"
+asset = '^kubie-linux-amd64$'
+asset_aarch64 = '^kubie-linux-arm64$'
+dest = "~/.local/bin/kubie"

@@ -1,0 +1,8 @@
+# Drafted from asfaraguest/tatap's v2.12.7 release; its version is the one Upkeep installed.
+[apps.tatap]
+name = "Tatap"
+kind = "appimage"
+repo = "asfaraguest/tatap"
+asset = '^Tatap-x86_64\.AppImage$'
+dest = "~/.local/bin/tatap.AppImage"
+probe = false

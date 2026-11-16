@@ -1,0 +1,8 @@
+# Drafted from Zfinix/another's v0.4.4 release; its version is the one Upkeep installed.
+[apps.another]
+name = "Another"
+kind = "appimage"
+repo = "Zfinix/another"
+asset = '^Another_.*_amd64\.AppImage$'
+dest = "~/.local/bin/another.AppImage"
+probe = false

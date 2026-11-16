@@ -1,0 +1,8 @@
+# Drafted from Kolovatoff/lampa-desktop's v1.7.0 release.
+[apps.lampa]
+name = "Lampa Desktop"
+kind = "appimage"
+repo = "Kolovatoff/lampa-desktop"
+asset = '^lampa-x86_64-.*\.AppImage$'
+dest = "~/.local/bin/lampa.AppImage"
+meta_path = "lampa-desktop.desktop"

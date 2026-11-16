@@ -1,0 +1,9 @@
+# Drafted from projectdiscovery/pdtm's v0.1.5 release.
+[apps.pdtm]
+name = "pdtm"
+kind = "archive"
+repo = "projectdiscovery/pdtm"
+asset = '^pdtm_.*_linux_amd64\.zip$'
+asset_aarch64 = '^pdtm_.*_linux_arm64\.zip$'
+dest = "~/.local/bin/pdtm"
+bins = ["pdtm"]

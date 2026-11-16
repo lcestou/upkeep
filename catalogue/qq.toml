@@ -1,0 +1,9 @@
+# Drafted from JFryy/qq's v0.5.0 release.
+[apps.qq]
+name = "qq"
+kind = "archive"
+repo = "JFryy/qq"
+asset = '^qq-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^qq-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/qq"
+bins = ["qq"]

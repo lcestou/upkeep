@@ -1,0 +1,8 @@
+# Drafted from dyndynjyxa/aio-coding-hub's aio-coding-hub-v0.60.26 release; its version is the one Upkeep installed.
+[apps.aio-coding-hub]
+name = "Aio Coding Hub"
+kind = "appimage"
+repo = "dyndynjyxa/aio-coding-hub"
+asset = '^aio-coding-hub-linux-amd64\.AppImage$'
+dest = "~/.local/bin/aio-coding-hub.AppImage"
+probe = false

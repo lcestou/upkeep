@@ -1,0 +1,8 @@
+# Drafted from oozebot/preFlight's v1.4.1 release; its version is the one Upkeep installed.
+[apps.preflight]
+name = "preFlight"
+kind = "appimage"
+repo = "oozebot/preFlight"
+asset = '^preFlight-.*-linux-amd64\.AppImage$'
+dest = "~/.local/bin/preflight.AppImage"
+probe = false

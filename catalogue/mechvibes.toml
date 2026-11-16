@@ -1,0 +1,8 @@
+# Drafted from hainguyents13/mechvibes's v3.5.7 release.
+[apps.mechvibes]
+name = "mechvibes"
+kind = "appimage"
+repo = "hainguyents13/mechvibes"
+asset = '^mechvibes-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/mechvibes.AppImage"
+meta_path = "mechvibes.desktop"

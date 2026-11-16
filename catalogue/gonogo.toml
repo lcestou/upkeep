@@ -1,0 +1,10 @@
+# Drafted from FairwindsOps/gonogo's v0.4.0 release.
+[apps.gonogo]
+name = "gonogo"
+kind = "archive"
+repo = "FairwindsOps/gonogo"
+asset = '^gonogo_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^gonogo_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gonogo"
+bins = ["gonogo"]
+version_args = ["version"]

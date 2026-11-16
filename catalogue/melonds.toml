@@ -1,0 +1,10 @@
+# Drafted from melonDS-emu/melonDS's 1.1 release; its version is the one Upkeep installed.
+[apps.melonds]
+name = "melonDS-ubuntu"
+kind = "archive"
+repo = "melonDS-emu/melonDS"
+asset = '^melonDS-.*-ubuntu-x86_64\.zip$'
+asset_aarch64 = '^melonDS-.*-ubuntu-aarch64\.zip$'
+dest = "~/.local/bin/melonDS"
+bins = ["melonDS"]
+probe = false

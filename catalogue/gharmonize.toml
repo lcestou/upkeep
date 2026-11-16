@@ -1,0 +1,8 @@
+# Drafted from G-grbz/Gharmonize's v2.0.0 release.
+[apps.gharmonize]
+name = "Gharmonize"
+kind = "appimage"
+repo = "G-grbz/Gharmonize"
+asset = '^Gharmonize-x86_64\..*\.AppImage$'
+dest = "~/.local/bin/gharmonize.AppImage"
+meta_path = "gharmonize.desktop"

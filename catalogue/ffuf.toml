@@ -1,0 +1,10 @@
+# Drafted from ffuf/ffuf's v2.3.0 release.
+[apps.ffuf]
+name = "ffuf"
+kind = "archive"
+repo = "ffuf/ffuf"
+asset = '^ffuf_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^ffuf_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/ffuf"
+bins = ["ffuf"]
+version_args = ["-V"]

@@ -1,0 +1,8 @@
+# Drafted from buildpacks/pack's v0.40.11 release.
+[apps.pack]
+name = "pack"
+kind = "archive"
+repo = "buildpacks/pack"
+asset = '^pack-.*-linux\.tgz$'
+dest = "~/.local/bin/pack"
+bins = ["pack"]

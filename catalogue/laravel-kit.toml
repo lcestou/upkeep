@@ -1,0 +1,8 @@
+# Drafted from tmdh/laravel-kit's v2.0.9 release.
+[apps.laravel-kit]
+name = "Laravel-Kit"
+kind = "appimage"
+repo = "tmdh/laravel-kit"
+asset = '^Laravel-Kit-.*\.AppImage$'
+dest = "~/.local/bin/laravel-kit.AppImage"
+meta_path = "laravel-kit.desktop"

@@ -1,0 +1,8 @@
+# Drafted from nilbuild/pennywise's v0.8.0 release.
+[apps.pennywise]
+name = "pennywise"
+kind = "appimage"
+repo = "nilbuild/pennywise"
+asset = '^pennywise-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/pennywise.AppImage"
+meta_path = "pennywise.desktop"

@@ -1,0 +1,10 @@
+# Drafted from benbjohnson/litestream's v0.5.18 release.
+[apps.litestream]
+name = "litestream"
+kind = "archive"
+repo = "benbjohnson/litestream"
+asset = '^litestream-.*-linux-x86_64\.tar\.gz$'
+dest = "~/.local/bin/litestream"
+folder = "~/.local/share/litestream"
+bins = ["litestream"]
+version_args = ["version"]

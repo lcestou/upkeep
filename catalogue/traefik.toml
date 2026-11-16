@@ -1,0 +1,10 @@
+# Drafted from traefik/traefik's v3.7.19 release.
+[apps.traefik]
+name = "traefik"
+kind = "archive"
+repo = "traefik/traefik"
+asset = '^traefik_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^traefik_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/traefik"
+bins = ["traefik"]
+version_args = ["version"]

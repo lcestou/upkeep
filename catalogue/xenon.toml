@@ -1,0 +1,8 @@
+# Drafted from marcimastro98/Xenon's v5.1.0 release; its version is the one Upkeep installed.
+[apps.xenon]
+name = "Xenon"
+kind = "appimage"
+repo = "marcimastro98/Xenon"
+asset = '^Xenon_.*_amd64\.AppImage$'
+dest = "~/.local/bin/xenon.AppImage"
+probe = false

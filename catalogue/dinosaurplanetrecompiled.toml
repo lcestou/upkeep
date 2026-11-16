@@ -1,0 +1,8 @@
+# Drafted from DinosaurPlanetRecomp/dino-recomp's v0.3.0 release.
+[apps.dinosaurplanetrecompiled]
+name = "DinosaurPlanetRecompiled"
+kind = "appimage"
+repo = "DinosaurPlanetRecomp/dino-recomp"
+asset = '^DinosaurPlanetRecompiled-.*-Linux-x64\.AppImage$'
+dest = "~/.local/bin/dinosaurplanetrecompiled.AppImage"
+meta_path = "usr/share/metainfo/io.github.dinosaurplanetrecomp.dino_recomp.metainfo.xml"

@@ -1,0 +1,10 @@
+# Drafted from kubernetes/node-problem-detector's v1.37.0 release.
+[apps.node-problem-detector]
+name = "Node Problem Detector"
+kind = "archive"
+repo = "kubernetes/node-problem-detector"
+asset = '^node-problem-detector-.*-linux_amd64\.tar\.gz$'
+asset_aarch64 = '^node-problem-detector-.*-linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/node-problem-detector"
+folder = "~/.local/share/node-problem-detector"
+bins = ["bin/node-problem-detector"]

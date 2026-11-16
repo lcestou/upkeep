@@ -1,0 +1,10 @@
+# Drafted from fe3dback/go-arch-lint's v1.19.1 release.
+[apps.go-arch-lint]
+name = "Go Arch Lint"
+kind = "archive"
+repo = "fe3dback/go-arch-lint"
+asset = '^go-arch-lint_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^go-arch-lint_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/go-arch-lint"
+bins = ["go-arch-lint"]
+version_args = ["version"]

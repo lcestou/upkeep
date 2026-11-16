@@ -1,0 +1,10 @@
+# Drafted from jenkins-x/jx's v3.17.120 release.
+[apps.jx]
+name = "jx"
+kind = "archive"
+repo = "jenkins-x/jx"
+asset = '^jx-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^jx-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/jx"
+bins = ["jx"]
+version_args = ["version"]

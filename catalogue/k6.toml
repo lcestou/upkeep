@@ -1,0 +1,9 @@
+# Drafted from grafana/k6's v2.4.0 release.
+[apps.k6]
+name = "k6"
+kind = "archive"
+repo = "grafana/k6"
+asset = '^k6-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^k6-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/k6"
+bins = ["k6-v2.4.0-linux-amd64/k6"]

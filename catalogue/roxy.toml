@@ -1,0 +1,8 @@
+# Drafted from roxy-gg/roxy's v1.2.2 release.
+[apps.roxy]
+name = "roxy"
+kind = "appimage"
+repo = "roxy-gg/roxy"
+asset = '^roxy-.*\.AppImage$'
+dest = "~/.local/bin/roxy.AppImage"
+meta_path = "roxy.desktop"

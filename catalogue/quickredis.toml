@@ -1,0 +1,8 @@
+# Drafted from quick123official/quick_redis_blog's v2.7.1 release.
+[apps.quickredis]
+name = "QuickRedis"
+kind = "appimage"
+repo = "quick123official/quick_redis_blog"
+asset = '^QuickRedis-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/quickredis.AppImage"
+meta_path = "quickredis.desktop"

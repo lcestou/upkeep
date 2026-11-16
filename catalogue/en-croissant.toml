@@ -1,0 +1,8 @@
+# Drafted from franciscoBSalgueiro/en-croissant's v0.16.1 release; its version is the one Upkeep installed.
+[apps.en-croissant]
+name = "En Croissant"
+kind = "appimage"
+repo = "franciscoBSalgueiro/en-croissant"
+asset = '^en-croissant_.*_amd64\.AppImage$'
+dest = "~/.local/bin/en-croissant.AppImage"
+probe = false

@@ -1,0 +1,9 @@
+# Drafted from Rigellute/spotify-tui's v0.25.0 release; its version is the one Upkeep installed.
+[apps.spt]
+name = "Spotify Tui"
+kind = "archive"
+repo = "Rigellute/spotify-tui"
+asset = '^spotify-tui-linux\.tar\.gz$'
+dest = "~/.local/bin/spt"
+bins = ["spt"]
+probe = false

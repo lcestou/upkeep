@@ -1,0 +1,10 @@
+# Drafted from chainguard-dev/apko's v1.5.0 release.
+[apps.apko]
+name = "apko"
+kind = "archive"
+repo = "chainguard-dev/apko"
+asset = '^apko_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^apko_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/apko"
+bins = ["apko_1.5.0_linux_amd64/apko"]
+version_args = ["version"]

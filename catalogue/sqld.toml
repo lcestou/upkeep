@@ -1,0 +1,9 @@
+# Drafted from tursodatabase/libsql's libsql-server-v0.24.32 release.
+[apps.sqld]
+name = "libsql"
+kind = "archive"
+repo = "tursodatabase/libsql"
+asset = '^libsql-server-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^libsql-server-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/sqld"
+bins = ["libsql-server-x86_64-unknown-linux-gnu/sqld"]

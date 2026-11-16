@@ -1,0 +1,8 @@
+# Drafted from cedricp/ddt4all's v3.1.5.2 release; its version is the one Upkeep installed.
+[apps.ddt4all]
+name = "ddt4all"
+kind = "appimage"
+repo = "cedricp/ddt4all"
+asset = '^ddt4all-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/ddt4all.AppImage"
+probe = false

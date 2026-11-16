@@ -1,0 +1,9 @@
+# Drafted from bridgecrewio/yor's 0.1.200 release.
+[apps.yor]
+name = "yor"
+kind = "archive"
+repo = "bridgecrewio/yor"
+asset = '^yor_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^yor_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/yor"
+bins = ["yor"]

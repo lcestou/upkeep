@@ -1,0 +1,9 @@
+# Drafted from Devin-AXIS/iPolloWork's v0.50.36 release.
+[apps.ipollowork]
+name = "IPolloWork"
+kind = "appimage"
+repo = "Devin-AXIS/iPolloWork"
+asset = '^ipollowork-linux-x86_64-.*\.AppImage$'
+asset_aarch64 = '^ipollowork-linux-arm64-.*\.AppImage$'
+dest = "~/.local/bin/ipollowork.AppImage"
+meta_path = "@ipolloworkdesktop.desktop"

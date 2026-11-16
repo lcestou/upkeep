@@ -1,0 +1,9 @@
+# Drafted from storytold/craft-anything's v0.6.1 release.
+[apps.craft-anything]
+name = "Craft Anything"
+kind = "appimage"
+repo = "storytold/craft-anything"
+asset = '^craft-anything-.*-linux-x86_64\.AppImage$'
+asset_aarch64 = '^craft-anything-.*-linux-aarch64\.AppImage$'
+dest = "~/.local/bin/craft-anything.AppImage"
+meta_path = "ai.storyteller.craft-anything.desktop"

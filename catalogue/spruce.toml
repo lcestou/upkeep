@@ -1,0 +1,8 @@
+# Drafted from geofffranks/spruce's v1.35.26 release.
+[apps.spruce]
+name = "spruce"
+kind = "file"
+repo = "geofffranks/spruce"
+asset = '^spruce-linux-amd64$'
+asset_aarch64 = '^spruce-linux-arm64$'
+dest = "~/.local/bin/spruce"

@@ -1,0 +1,8 @@
+# Drafted from hydralauncher/hydra's v4.4.1 release.
+[apps.hydralauncher]
+name = "Hydra Launcher"
+kind = "appimage"
+repo = "hydralauncher/hydra"
+asset = '^hydralauncher-.*\.AppImage$'
+dest = "~/.local/bin/hydralauncher.AppImage"
+meta_path = "hydralauncher.desktop"

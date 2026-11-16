@@ -1,0 +1,10 @@
+# Drafted from spinframework/spin's v4.3.0 release.
+[apps.spin]
+name = "spin"
+kind = "archive"
+repo = "spinframework/spin"
+asset = '^spin-v[0-9][0-9A-Za-z.]*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^spin-v[0-9][0-9A-Za-z.]*-linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/spin"
+folder = "~/.local/share/spin"
+bins = ["spin"]

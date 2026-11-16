@@ -1,0 +1,9 @@
+# Drafted from moonrepo/moon's v2.6.5 release.
+[apps.moon]
+name = "moon"
+kind = "archive"
+repo = "moonrepo/moon"
+asset = '^moon_cli-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^moon_cli-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/moon"
+bins = ["moon_cli-x86_64-unknown-linux-gnu/moon", "moon_cli-x86_64-unknown-linux-gnu/moonx"]

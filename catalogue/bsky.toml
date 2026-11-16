@@ -1,0 +1,8 @@
+# Drafted from mattn/bsky's v0.0.82 release.
+[apps.bsky]
+name = "bsky"
+kind = "archive"
+repo = "mattn/bsky"
+asset = '^bsky-linux-.*\.zip$'
+dest = "~/.local/bin/bsky"
+bins = ["bsky"]

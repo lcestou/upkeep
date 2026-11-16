@@ -1,0 +1,8 @@
+# Drafted from estelwalks/aitracker's v1.0.8 release.
+[apps.aitracker]
+name = "AITracker"
+kind = "appimage"
+repo = "estelwalks/aitracker"
+asset = '^AITracker-Linux-x64\.AppImage$'
+dest = "~/.local/bin/aitracker.AppImage"
+meta_path = "aitracker.desktop"

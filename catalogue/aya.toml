@@ -1,0 +1,8 @@
+# Drafted from liriliri/aya's v1.14.2 release.
+[apps.aya]
+name = "AYA"
+kind = "appimage"
+repo = "liriliri/aya"
+asset = '^AYA-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/aya.AppImage"
+meta_path = "aya.desktop"

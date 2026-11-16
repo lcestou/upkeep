@@ -1,0 +1,8 @@
+# Drafted from huang-sh/PiX's v0.0.36 release.
+[apps.pix]
+name = "PiX"
+kind = "appimage"
+repo = "huang-sh/PiX"
+asset = '^PiX-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/pix.AppImage"
+meta_path = "pix.desktop"

@@ -1,0 +1,8 @@
+# Drafted from dduan/tre's v0.4.0 release.
+[apps.tre]
+name = "tre"
+kind = "archive"
+repo = "dduan/tre"
+asset = '^tre-.*-x86_64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/tre"
+bins = ["tre"]

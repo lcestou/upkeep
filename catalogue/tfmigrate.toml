@@ -1,0 +1,9 @@
+# Drafted from minamijoyo/tfmigrate's v0.4.6 release.
+[apps.tfmigrate]
+name = "tfmigrate"
+kind = "archive"
+repo = "minamijoyo/tfmigrate"
+asset = '^tfmigrate_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^tfmigrate_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/tfmigrate"
+bins = ["tfmigrate"]

@@ -1,0 +1,8 @@
+# Drafted from xing-shuyin/pi-web-ui's v0.121.0 release.
+[apps.pi-web-ui-desktop]
+name = "Pi Web Ui"
+kind = "appimage"
+repo = "xing-shuyin/pi-web-ui"
+asset = '^pi-web-ui-desktop-.*\.AppImage$'
+dest = "~/.local/bin/pi-web-ui-desktop.AppImage"
+meta_path = "pi-web-ui.desktop"

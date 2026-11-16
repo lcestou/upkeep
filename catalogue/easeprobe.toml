@@ -1,0 +1,10 @@
+# Drafted from megaease/easeprobe's v2.3.0 release.
+[apps.easeprobe]
+name = "easeprobe"
+kind = "archive"
+repo = "megaease/easeprobe"
+asset = '^easeprobe-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^easeprobe-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/easeprobe"
+bins = ["bin/easeprobe"]
+version_args = ["-v"]

@@ -1,0 +1,8 @@
+# Drafted from elie222/rakazo's v0.11.0 release.
+[apps.rakazo]
+name = "Rakazo"
+kind = "appimage"
+repo = "elie222/rakazo"
+asset = '^Rakazo-.*\.AppImage$'
+dest = "~/.local/bin/rakazo.AppImage"
+meta_path = "rakazo.desktop"

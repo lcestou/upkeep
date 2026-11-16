@@ -1,0 +1,9 @@
+# Drafted from pvolok/dekit's v0.10.3 release.
+[apps.dekit]
+name = "dekit"
+kind = "archive"
+repo = "pvolok/dekit"
+asset = '^dekit-x86_64-unknown-linux-musl\.tar\.gz$'
+asset_aarch64 = '^dekit-aarch64-unknown-linux-musl\.tar\.gz$'
+dest = "~/.local/bin/dekit"
+bins = ["dekit"]

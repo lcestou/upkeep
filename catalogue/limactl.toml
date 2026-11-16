@@ -1,0 +1,10 @@
+# Drafted from lima-vm/lima's v2.3.0 release.
+[apps.limactl]
+name = "lima"
+kind = "archive"
+repo = "lima-vm/lima"
+asset = '^lima-[0-9][0-9A-Za-z.]*-Linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^lima-[0-9][0-9A-Za-z.]*-Linux-aarch64\.tar\.gz$'
+dest = "~/.local/bin/limactl"
+folder = "~/.local/share/limactl"
+bins = ["bin/limactl", "libexec/lima/limactl-mcp", "libexec/lima/limactl-menu", "libexec/lima/privileged/lima-privileged-net"]

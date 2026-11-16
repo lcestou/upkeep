@@ -1,0 +1,8 @@
+# Drafted from Parachord/parachord's v0.9.12 release.
+[apps.parachord]
+name = "Parachord"
+kind = "appimage"
+repo = "Parachord/parachord"
+asset = '^Parachord-.*\.AppImage$'
+dest = "~/.local/bin/parachord.AppImage"
+meta_path = "parachord-desktop.desktop"

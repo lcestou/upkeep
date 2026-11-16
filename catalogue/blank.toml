@@ -1,0 +1,8 @@
+# Drafted from FPurchess/blank's v3.0.0 release.
+[apps.blank]
+name = "blank"
+kind = "appimage"
+repo = "FPurchess/blank"
+asset = '^blank_.*_amd64\.AppImage$'
+dest = "~/.local/bin/blank.AppImage"
+meta_path = "usr/share/metainfo/io.github.fpurchess.blank.metainfo.xml"

@@ -1,0 +1,9 @@
+# Drafted from sachaos/viddy's v1.3.1 release.
+[apps.viddy]
+name = "viddy"
+kind = "archive"
+repo = "sachaos/viddy"
+asset = '^viddy-.*-linux-x86_64\.tar\.gz$'
+asset_aarch64 = '^viddy-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/viddy"
+bins = ["viddy"]

@@ -1,0 +1,9 @@
+# Drafted from 0xle0ne/wireguard-gui's 0.1.13-stable release; its version is the one Upkeep installed.
+[apps.wireguard-gui]
+name = "Wireguard Gui"
+kind = "appimage"
+repo = "0xle0ne/wireguard-gui"
+asset = '^wireguard-gui_.*_amd64\.AppImage$'
+asset_aarch64 = '^wireguard-gui_.*_aarch64\.AppImage$'
+dest = "~/.local/bin/wireguard-gui.AppImage"
+probe = false

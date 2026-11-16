@@ -1,0 +1,9 @@
+# Drafted from tribgames/mixdog's v1.4.5 release.
+[apps.mixdog-desktop]
+name = "mixdog"
+kind = "appimage"
+repo = "tribgames/mixdog"
+asset = '^mixdog-desktop-linux-x86_64\.AppImage$'
+asset_aarch64 = '^mixdog-desktop-linux-arm64\.AppImage$'
+dest = "~/.local/bin/mixdog-desktop.AppImage"
+meta_path = "mixdog-desktop.desktop"

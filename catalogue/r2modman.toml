@@ -1,0 +1,8 @@
+# Drafted from ebkr/r2modmanPlus's v3.2.21 release.
+[apps.r2modman]
+name = "R2modmanPlus"
+kind = "appimage"
+repo = "ebkr/r2modmanPlus"
+asset = '^r2modman-.*\.AppImage$'
+dest = "~/.local/bin/r2modman.AppImage"
+meta_path = "r2modman.desktop"

@@ -1,0 +1,8 @@
+# Drafted from hovancik/stretchly's v1.22.1 release.
+[apps.stretchly]
+name = "Stretchly"
+kind = "appimage"
+repo = "hovancik/stretchly"
+asset = '^Stretchly-[0-9][0-9A-Za-z.]*\.AppImage$'
+dest = "~/.local/bin/stretchly.AppImage"
+meta_path = "stretchly.desktop"

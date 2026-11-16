@@ -1,0 +1,9 @@
+# Drafted from sn4k3/UVtools's v7.1.2 release; its version is the one Upkeep installed.
+[apps.uvtools]
+name = "UVtools"
+kind = "appimage"
+repo = "sn4k3/UVtools"
+asset = '^UVtools_linux-x64_.*\.AppImage$'
+asset_aarch64 = '^UVtools_linux-arm64_.*\.AppImage$'
+dest = "~/.local/bin/uvtools.AppImage"
+probe = false

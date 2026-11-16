@@ -1,0 +1,10 @@
+# Drafted from mutagen-io/mutagen's v0.18.1 release.
+[apps.mutagen]
+name = "mutagen"
+kind = "archive"
+repo = "mutagen-io/mutagen"
+asset = '^mutagen_linux_amd64_.*\.tar\.gz$'
+asset_aarch64 = '^mutagen_linux_arm64_.*\.tar\.gz$'
+dest = "~/.local/bin/mutagen"
+folder = "~/.local/share/mutagen"
+bins = ["mutagen"]

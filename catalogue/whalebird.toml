@@ -1,0 +1,8 @@
+# Drafted from h3poteto/whalebird-desktop's v6.3.1 release.
+[apps.whalebird]
+name = "Whalebird"
+kind = "appimage"
+repo = "h3poteto/whalebird-desktop"
+asset = '^Whalebird-.*-linux-x86_64\.AppImage$'
+dest = "~/.local/bin/whalebird.AppImage"
+meta_path = "whalebird.desktop"

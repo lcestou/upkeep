@@ -1,0 +1,10 @@
+# Drafted from Songmu/gocredits's v1.1.0 release.
+[apps.gocredits]
+name = "gocredits"
+kind = "archive"
+repo = "Songmu/gocredits"
+asset = '^gocredits_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^gocredits_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/gocredits"
+folder = "~/.local/share/gocredits"
+bins = ["gocredits"]

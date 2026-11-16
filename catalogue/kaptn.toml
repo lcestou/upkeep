@@ -1,0 +1,8 @@
+# Drafted from oslabs-beta/kaptn's v3.0.0 release.
+[apps.kaptn]
+name = "Kaptn"
+kind = "appimage"
+repo = "oslabs-beta/kaptn"
+asset = '^Kaptn-.*\.Linux\.AppImage$'
+dest = "~/.local/bin/kaptn.AppImage"
+meta_path = "react.desktop"

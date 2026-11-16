@@ -1,0 +1,10 @@
+# Drafted from helm/chart-releaser's v1.10.1 release.
+[apps.cr]
+name = "Chart Releaser"
+kind = "archive"
+repo = "helm/chart-releaser"
+asset = '^chart-releaser_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^chart-releaser_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/cr"
+bins = ["cr"]
+version_args = ["version"]

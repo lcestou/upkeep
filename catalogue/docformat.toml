@@ -1,0 +1,9 @@
+# Drafted from KaguraNanaga/docformat-gui's v1.8.8.5 release; its version is the one Upkeep installed.
+[apps.docformat]
+name = "Docformat Gui"
+kind = "appimage"
+repo = "KaguraNanaga/docformat-gui"
+asset = '^docformat_linux_amd64\.AppImage$'
+asset_aarch64 = '^docformat_linux_aarch64\.AppImage$'
+dest = "~/.local/bin/docformat.AppImage"
+probe = false

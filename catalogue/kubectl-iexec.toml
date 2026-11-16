@@ -1,0 +1,10 @@
+# Drafted from gabeduke/kubectl-iexec's v1.19.15-alphav1 release; its version is the one Upkeep installed.
+[apps.kubectl-iexec]
+name = "Kubectl Iexec"
+kind = "archive"
+repo = "gabeduke/kubectl-iexec"
+asset = '^kubectl-iexec_.*_Linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^kubectl-iexec_.*_Linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/kubectl-iexec"
+bins = ["kubectl-iexec"]
+probe = false

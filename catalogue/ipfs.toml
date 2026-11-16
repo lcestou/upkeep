@@ -1,0 +1,10 @@
+# Drafted from ipfs/kubo's v0.43.1 release.
+[apps.ipfs]
+name = "kubo"
+kind = "archive"
+repo = "ipfs/kubo"
+asset = '^kubo_.*_linux-amd64\.tar\.gz$'
+asset_aarch64 = '^kubo_.*_linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/ipfs"
+folder = "~/.local/share/ipfs"
+bins = ["ipfs"]

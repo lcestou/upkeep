@@ -1,0 +1,9 @@
+# Drafted from sonatype-nexus-community/nancy's v2.1.1 release.
+[apps.nancy]
+name = "nancy"
+kind = "archive"
+repo = "sonatype-nexus-community/nancy"
+asset = '^nancy-.*-linux-amd64\.tar\.gz$'
+asset_aarch64 = '^nancy-.*-linux-arm64\.tar\.gz$'
+dest = "~/.local/bin/nancy"
+bins = ["nancy"]

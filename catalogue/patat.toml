@@ -1,0 +1,8 @@
+# Drafted from jaspervdj/patat's v0.15.2.0 release.
+[apps.patat]
+name = "patat"
+kind = "archive"
+repo = "jaspervdj/patat"
+asset = '^patat-.*-linux-x86_64\.tar\.gz$'
+dest = "~/.local/bin/patat"
+bins = ["patat-v0.15.2.0-linux-x86_64/patat"]

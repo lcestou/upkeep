@@ -1,0 +1,10 @@
+# Drafted from orhun/rustypaste's v0.18.2 release; its version is the one Upkeep installed.
+[apps.rustypaste]
+name = "rustypaste"
+kind = "archive"
+repo = "orhun/rustypaste"
+asset = '^rustypaste-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/rustypaste"
+folder = "~/.local/share/rustypaste"
+bins = ["rustypaste"]
+probe = false

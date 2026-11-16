@@ -1,0 +1,8 @@
+# Drafted from kemalai/FreeCrawl-SEO-Tool's v1.1.5 release.
+[apps.freecrawl-seo-tool]
+name = "FreeCrawl-SEO-Tool"
+kind = "appimage"
+repo = "kemalai/FreeCrawl-SEO-Tool"
+asset = '^FreeCrawl-SEO-Tool-.*-Linux-x86_64\.AppImage$'
+dest = "~/.local/bin/freecrawl-seo-tool.AppImage"
+meta_path = "freecrawl-seo.desktop"

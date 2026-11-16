@@ -1,0 +1,8 @@
+# Drafted from Bithack/principia's 2026.10.22 release.
+[apps.principia]
+name = "principia"
+kind = "appimage"
+repo = "Bithack/principia"
+asset = '^principia_.*_x86_64\.AppImage$'
+dest = "~/.local/bin/principia.AppImage"
+meta_path = "usr/share/metainfo/se.principia_web.principia.metainfo.xml"

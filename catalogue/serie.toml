@@ -1,0 +1,9 @@
+# Drafted from lusingander/serie's v0.10.2 release.
+[apps.serie]
+name = "serie"
+kind = "archive"
+repo = "lusingander/serie"
+asset = '^serie-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
+asset_aarch64 = '^serie-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
+dest = "~/.local/bin/serie"
+bins = ["serie"]

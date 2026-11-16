@@ -1,0 +1,9 @@
+# Drafted from chriswalz/bit's v1.1.2 release.
+[apps.bit]
+name = "bit"
+kind = "archive"
+repo = "chriswalz/bit"
+asset = '^bit_.*_linux_amd64\.tar\.gz$'
+asset_aarch64 = '^bit_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/bit"
+bins = ["bit"]

@@ -1,0 +1,8 @@
+# Drafted from romenkova/doska's v0.29.0 release; its version is the one Upkeep installed.
+[apps.doska]
+name = "Doska"
+kind = "appimage"
+repo = "romenkova/doska"
+asset = '^Doska_.*_amd64\.AppImage$'
+dest = "~/.local/bin/doska.AppImage"
+probe = false

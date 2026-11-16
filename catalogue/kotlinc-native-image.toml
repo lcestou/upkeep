@@ -1,0 +1,10 @@
+# Drafted from JetBrains/kotlin's v2.4.21 release; its version is the one Upkeep installed.
+[apps.kotlinc-native-image]
+name = "kotlin"
+kind = "archive"
+repo = "JetBrains/kotlin"
+asset = '^kotlin-native-image-linux-x86_64-.*\.tar\.gz$'
+dest = "~/.local/bin/kotlinc-native-image"
+folder = "~/.local/share/kotlinc-native-image"
+bins = ["bin/kotlinc-native-image"]
+probe = false

@@ -1,0 +1,8 @@
+# Drafted from siderolabs/omni's v1.13.3 release.
+[apps.omni]
+name = "omni"
+kind = "file"
+repo = "siderolabs/omni"
+asset = '^omni-linux-amd64$'
+asset_aarch64 = '^omni-linux-arm64$'
+dest = "~/.local/bin/omni"

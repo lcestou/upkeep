@@ -1,0 +1,9 @@
+# Drafted from Skardyy/mcat's v0.6.8 release.
+[apps.mcat]
+name = "mcat"
+kind = "archive"
+repo = "Skardyy/mcat"
+asset = '^mcat-.*-x86_64-unknown-linux-gnu\.tar\.xz$'
+asset_aarch64 = '^mcat-.*-aarch64-unknown-linux-gnu\.tar\.xz$'
+dest = "~/.local/bin/mcat"
+bins = ["mcat-v0.6.8-x86_64-unknown-linux-gnu/mcat"]

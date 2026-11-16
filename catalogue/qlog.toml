@@ -1,0 +1,8 @@
+# Drafted from foldynl/QLog's v0.54.2 release.
+[apps.qlog]
+name = "QLog"
+kind = "appimage"
+repo = "foldynl/QLog"
+asset = '^QLog-.*-x86_64\.AppImage$'
+dest = "~/.local/bin/qlog.AppImage"
+meta_path = "usr/share/metainfo/io.github.foldynl.QLog.metainfo.xml"

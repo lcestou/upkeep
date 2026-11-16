@@ -1,0 +1,9 @@
+# Drafted from stripe/stripe-cli's v1.55.11 release.
+[apps.stripe]
+name = "Stripe Cli"
+kind = "archive"
+repo = "stripe/stripe-cli"
+asset = '^stripe_.*_linux_x86_64\.tar\.gz$'
+asset_aarch64 = '^stripe_.*_linux_arm64\.tar\.gz$'
+dest = "~/.local/bin/stripe"
+bins = ["stripe"]

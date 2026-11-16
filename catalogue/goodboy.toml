@@ -1,0 +1,8 @@
+# Drafted from akhayam99/goodboy's v0.35.0 release; its version is the one Upkeep installed.
+[apps.goodboy]
+name = "Goodboy"
+kind = "appimage"
+repo = "akhayam99/goodboy"
+asset = '^Goodboy_.*_amd64\.AppImage$'
+dest = "~/.local/bin/goodboy.AppImage"
+probe = false
