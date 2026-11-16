@@ -314,11 +314,14 @@ describe("the inspector and the add pane", () => {
 });
 
 describe("engine events", () => {
-	test("the log keeps the newest 2000 lines", async () => {
+	test("the log keeps the newest 500 lines, each numbered once so a keyed list redraws only what changed", async () => {
 		const m = await started("empty");
-		for (let i = 0; i < 2005; i++) m.apply({ type: "log", line: { at: "t", key: null, text: String(i) } });
-		expect(m.log.length).toBe(2000);
+		for (let i = 0; i < 505; i++) m.apply({ type: "log", line: { at: "t", key: null, text: String(i) } });
+		expect(m.log.length).toBe(500);
 		expect(m.log[0]?.text).toBe("5");
+		expect(new Set(m.log.map((l) => l.id)).size).toBe(500);
+		expect(m.log[0]?.id).toBe(6);
+		expect(m.log.at(-1)?.id).toBe(505);
 	});
 
 	test("chrome, extras and meta replace what the window shows", async () => {
@@ -441,7 +444,7 @@ describe("what the components read and write", () => {
 		m.view = "history";
 		m.dropProblem = "Could not read that file.";
 		m.reveal++;
-		m.log = [{ at: "t", key: null, text: "x" }];
+		m.log = [{ at: "t", key: null, text: "x", id: 1 }];
 		expect([m.view, m.dropProblem, m.reveal, m.log.length]).toEqual(["history", "Could not read that file.", 1, 1]);
 		expect(m.allFresh).toBe(false);
 		expect(m.restarts).toEqual([]);

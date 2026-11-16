@@ -502,10 +502,11 @@ const BUILT_SEEDS: Seed[] = [
 	},
 ];
 
-/** The recorded window and System operations the specs read back from the page. */
+/** The recorded window and System operations the specs read back from the page, and the log flood a spec sends. */
 declare global {
 	var upkeepOps: string[] | undefined;
 	var upkeepSysOps: string[] | undefined;
+	var upkeepFlood: ((lines: number) => void) | undefined;
 }
 
 /** How each built row's scripted run ends in the built variant: the starred sentences of plan 5 E. */
@@ -689,6 +690,14 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const offered = new Map<string, Suggestion>();
 	const sysOps: string[] = [];
 	globalThis.upkeepSysOps = sysOps;
+	// A build's compiler warnings, as many lines at once as a spec asks: the load that froze the window at 2000 kept.
+	globalThis.upkeepFlood = (lines) => {
+		for (let i = 0; i < lines; i++)
+			emit({
+				type: "log",
+				line: { at: iso(Date.now()), key: null, text: `warning #128-D: loop is not reachable (${i})` },
+			});
+	};
 	const installing = opts.system === "install" || opts.system === "refuse";
 	const systemSettings: ExtrasSettings =
 		!opts.system || opts.system === "off"

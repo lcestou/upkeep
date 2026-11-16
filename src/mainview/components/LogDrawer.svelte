@@ -9,14 +9,28 @@
 
 	let scroller = $state<HTMLElement | null>(null);
 	const names = $derived(new Map(model.apps.map((a) => [a.key, a.name])));
+	// Following the newest line is on when the drawer opens, even with lines already in it; scrolling up to read an
+	// older line pauses it, and so does the Pause button.
+	let following = $state(true);
 
 	$effect(() => {
-		// Follow new lines unless the reader has scrolled up to read an older one.
 		void model.log.length;
 		const el = scroller;
-		if (!el) return;
-		if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) el.scrollTop = el.scrollHeight;
+		if (el && following) el.scrollTop = el.scrollHeight;
 	});
+
+	/** A scroll the reader made: up away from the bottom pauses following, back down to the bottom follows again. */
+	function scrolled(): void {
+		const el = scroller;
+		if (el) following = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+	}
+
+	/** Pauses following where the reader is, or follows again from the newest line. */
+	function toggleFollow(): void {
+		following = !following;
+		const el = scroller;
+		if (following && el) el.scrollTop = el.scrollHeight;
+	}
 </script>
 
 <section
@@ -29,16 +43,26 @@
 >
 	<header>
 		<h2>{TEXT.logTitle}</h2>
-		<button type="button" class="btn small" data-testid="open-log" onclick={() => model.send("open", { what: "log" })}
-			>{TEXT.openLog}</button
-		>
+		<div class="actions">
+			<button
+				type="button"
+				class="btn small"
+				id="log-follow"
+				data-testid="log-follow"
+				aria-pressed={!following}
+				onclick={toggleFollow}>{following ? TEXT.logPause : TEXT.logFollow}</button
+			>
+			<button type="button" class="btn small" data-testid="open-log" onclick={() => model.send("open", { what: "log" })}
+				>{TEXT.openLog}</button
+			>
+		</div>
 	</header>
-	<div class="scroll" bind:this={scroller}>
+	<div class="scroll" bind:this={scroller} onscroll={scrolled}>
 		{#if model.log.length === 0}
 			<p class="empty">{TEXT.noLog}</p>
 		{:else}
 			<ol class="lines mono">
-				{#each model.log as line, i (i)}
+				{#each model.log as line (line.id)}
 					<li>
 						<time>{clockTime(line.at)}</time>
 						<span class="who">{line.key ? (names.get(line.key) ?? line.key) : ""}</span>
@@ -70,6 +94,10 @@
 		justify-content: space-between;
 		padding: var(--s2) var(--s3) var(--s2) var(--s4);
 		border-bottom: 1px solid var(--line-soft);
+	}
+	.actions {
+		display: flex;
+		gap: var(--s2);
 	}
 	h2 {
 		margin: 0;

@@ -74,6 +74,14 @@ test("the Log drawer fills during a run and History gains the run", async ({ pag
 	await page.getByTestId("install").click();
 	await expect(page.getByTestId("log-drawer")).toContainText("Run started: 4 apps.");
 	await expect(page.getByTestId("log-drawer")).toContainText("Downloading Zen Browser 1.24.1b.");
+	// It follows new lines from the start; Pause holds the place, and following again jumps to the newest line.
+	const follow = page.getByTestId("log-follow");
+	await expect(follow).toHaveText("Pause");
+	await follow.click();
+	await expect(follow).toHaveText("Follow new lines");
+	await expect(follow).toHaveAttribute("aria-pressed", "true");
+	await follow.click();
+	await expect(follow).toHaveText("Pause");
 	await page.keyboard.press("Escape");
 	await expect(page.getByTestId("log-drawer")).toHaveCount(0);
 	await expect(page.getByTestId("log-toggle")).toBeFocused();
@@ -96,4 +104,19 @@ test("Check for updates offers every 6 hours, once a day or only when asked, and
 	await page.getByTestId("tab-updates").click();
 	await page.getByTestId("tab-settings").click();
 	await expect(page.getByTestId("setting-check-every")).toHaveValue("ask");
+});
+
+test("a build that floods the Log keeps the window answering, and the Log keeps the newest 500 lines", async ({
+	page,
+}) => {
+	await load(page, "fixture");
+	await page.getByTestId("log-toggle").click();
+	// A CUDA compile's warnings: 3000 lines in bursts. Before, at 2000 kept, every line redrew the whole list.
+	for (let i = 0; i < 6; i++) await page.evaluate(() => globalThis.upkeepFlood?.(500));
+	const started = Date.now();
+	await page.getByTestId("log-follow").click();
+	await expect(page.getByTestId("log-follow")).toHaveText("Follow new lines");
+	expect(Date.now() - started).toBeLessThan(2000);
+	await expect(page.getByTestId("log-drawer").locator("li")).toHaveCount(500);
+	await expect(page.getByTestId("log-drawer").locator("li").last()).toContainText("(499)");
 });
