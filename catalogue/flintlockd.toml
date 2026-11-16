@@ -1,4 +1,4 @@
-# Drafted from liquidmetal-dev/flintlock's v0.16.0 release; its version is the one Upkeep installed.
+# Drafted from liquidmetal-dev/flintlock's v0.16.0 release.
 [apps.flintlockd]
 name = "flintlock"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "liquidmetal-dev/flintlock"
 asset = '^flintlockd_amd64$'
 asset_aarch64 = '^flintlockd_arm64$'
 dest = "~/.local/bin/flintlockd"
-probe = false
+version_args = ["version"]

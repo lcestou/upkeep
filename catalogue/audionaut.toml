@@ -1,8 +1,8 @@
-# Drafted from kvoltmer/Audionaut's v1.7.0 release; its version is the one Upkeep installed.
+# Drafted from kvoltmer/Audionaut's v1.7.0 release.
 [apps.audionaut]
 name = "Audionaut"
 kind = "appimage"
 repo = "kvoltmer/Audionaut"
 asset = '^Audionaut-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/audionaut.AppImage"
-probe = false
+meta_path = "audionaut.desktop"

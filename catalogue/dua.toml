@@ -1,4 +1,4 @@
-# Drafted from Byron/dua-cli's v3.0.3 release; its version is the one Upkeep installed.
+# Drafted from Byron/dua-cli's v3.0.3 release.
 [apps.dua]
 name = "Dua Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^dua-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^dua-.*-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/dua"
 bins = ["dua-v3.0.3-x86_64-unknown-linux-musl/dua"]
-probe = false

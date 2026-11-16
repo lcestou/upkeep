@@ -1,4 +1,4 @@
-# Drafted from suzuki-shunsuke/ghtkn's v0.4.3 release; its version is the one Upkeep installed.
+# Drafted from suzuki-shunsuke/ghtkn's v0.4.3 release.
 [apps.ghtkn]
 name = "ghtkn"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ghtkn_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^ghtkn_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ghtkn"
 bins = ["ghtkn"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from noborus/ov's v0.55.0 release; its version is the one Upkeep installed.
+# Drafted from noborus/ov's v0.55.0 release.
 [apps.ov]
 name = "ov"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^ov_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/ov"
 folder = "~/.local/share/ov"
 bins = ["ov"]
-probe = false

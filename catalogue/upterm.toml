@@ -1,4 +1,4 @@
-# Drafted from owenthereal/upterm's v0.41.1 release; its version is the one Upkeep installed.
+# Drafted from owenthereal/upterm's v0.41.1 release.
 [apps.upterm]
 name = "upterm"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^upterm_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/upterm"
 folder = "~/.local/share/upterm"
 bins = ["upterm"]
-probe = false
+version_args = ["version"]

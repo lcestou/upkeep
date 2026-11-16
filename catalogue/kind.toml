@@ -1,4 +1,4 @@
-# Drafted from kubernetes-sigs/kind's v0.33.0 release; its version is the one Upkeep installed.
+# Drafted from kubernetes-sigs/kind's v0.33.0 release.
 [apps.kind]
 name = "kind"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "kubernetes-sigs/kind"
 asset = '^kind-linux-amd64$'
 asset_aarch64 = '^kind-linux-arm64$'
 dest = "~/.local/bin/kind"
-probe = false

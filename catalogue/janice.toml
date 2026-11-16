@@ -1,8 +1,8 @@
-# Drafted from ErikKalkoken/janice's v0.10.0 release; its version is the one Upkeep installed.
+# Drafted from ErikKalkoken/janice's v0.10.0 release.
 [apps.janice]
 name = "Janice"
 kind = "appimage"
 repo = "ErikKalkoken/janice"
 asset = '^Janice-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/janice.AppImage"
-probe = false
+meta_path = "io.github.erikkalkoken.janice.desktop"

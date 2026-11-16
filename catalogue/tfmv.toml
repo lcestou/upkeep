@@ -1,4 +1,4 @@
-# Drafted from suzuki-shunsuke/tfmv's v1.0.1 release; its version is the one Upkeep installed.
+# Drafted from suzuki-shunsuke/tfmv's v1.0.1 release.
 [apps.tfmv]
 name = "tfmv"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^tfmv_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/tfmv"
 folder = "~/.local/share/tfmv"
 bins = ["tfmv"]
-probe = false

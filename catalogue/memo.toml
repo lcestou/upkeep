@@ -1,4 +1,4 @@
-# Drafted from mattn/memo's v0.0.22 release; its version is the one Upkeep installed.
+# Drafted from mattn/memo's v0.0.22 release.
 [apps.memo]
 name = "memo"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^memo_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/memo"
 folder = "~/.local/share/memo"
 bins = ["memo"]
-probe = false

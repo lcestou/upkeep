@@ -1,8 +1,8 @@
-# Drafted from suyiiyii/AutoGLM-GUI's v1.5.21 release; its version is the one Upkeep installed.
+# Drafted from suyiiyii/AutoGLM-GUI's v1.5.21 release.
 [apps.autoglm-gui]
 name = "AutoGLM-GUI"
 kind = "appimage"
 repo = "suyiiyii/AutoGLM-GUI"
 asset = '^AutoGLM-GUI-.*\.AppImage$'
 dest = "~/.local/bin/autoglm-gui.AppImage"
-probe = false
+meta_path = "autoglm-gui.desktop"

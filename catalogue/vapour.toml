@@ -1,8 +1,8 @@
-# Drafted from Daniel-Griffiths/vapour's 2.0.1 release; its version is the one Upkeep installed.
+# Drafted from Daniel-Griffiths/vapour's 2.0.1 release.
 [apps.vapour]
 name = "Vapour"
 kind = "appimage"
 repo = "Daniel-Griffiths/vapour"
 asset = '^Vapour-Linux-.*\.AppImage$'
 dest = "~/.local/bin/vapour.AppImage"
-probe = false
+meta_path = "vapour.desktop"

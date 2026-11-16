@@ -1,4 +1,4 @@
-# Drafted from firecow/gitlab-ci-local's 4.77.1 release; its version is the one Upkeep installed.
+# Drafted from firecow/gitlab-ci-local's 4.77.1 release.
 [apps.gitlab-ci-local]
 name = "Gitlab Ci Local"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gitlab-ci-local-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^gitlab-ci-local-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/gitlab-ci-local"
 bins = ["gitlab-ci-local"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from iffse/pay-respects's v0.9.0 release; its version is the one Upkeep installed.
+# Drafted from iffse/pay-respects's v0.9.0 release.
 [apps.pay-respects]
 name = "Pay Respects"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^pay-respects-.*-x86_64-unknown-linux-musl\.tar\.zst$'
 asset_aarch64 = '^pay-respects-.*-aarch64-unknown-linux-musl\.tar\.zst$'
 dest = "~/.local/bin/pay-respects"
 bins = ["pay-respects", "_pay-respects-fallback-100-request-ai", "_pay-respects-module-100-runtime-rules"]
-probe = false

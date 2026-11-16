@@ -1,4 +1,4 @@
-# Drafted from bep/s3deploy's v2.16.0 release; its version is the one Upkeep installed.
+# Drafted from bep/s3deploy's v2.16.0 release.
 [apps.s3deploy]
 name = "s3deploy"
 kind = "archive"
@@ -6,4 +6,4 @@ repo = "bep/s3deploy"
 asset = '^s3deploy_.*_linux-amd64\.tar\.gz$'
 dest = "~/.local/bin/s3deploy"
 bins = ["s3deploy"]
-probe = false
+version_args = ["-V"]

@@ -1,4 +1,4 @@
-# Drafted from rclone/rclone's v1.76.0 release; its version is the one Upkeep installed.
+# Drafted from rclone/rclone's v1.76.0 release.
 [apps.rclone]
 name = "rclone"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^rclone-.*-linux-amd64\.zip$'
 asset_aarch64 = '^rclone-.*-linux-arm64\.zip$'
 dest = "~/.local/bin/rclone"
 bins = ["rclone-v1.76.0-linux-amd64/rclone"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from gurgeous/tennis's v0.8.0 release; its version is the one Upkeep installed.
+# Drafted from gurgeous/tennis's v0.8.0 release.
 [apps.tennis]
 name = "tennis"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tennis_.*_linux_amd64\.tar\.gz$'
 dest = "~/.local/bin/tennis"
 folder = "~/.local/share/tennis"
 bins = ["tennis"]
-probe = false

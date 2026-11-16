@@ -1,8 +1,8 @@
-# Drafted from InstaZDLL/WaveFlow's v2.1.0 release; its version is the one Upkeep installed.
+# Drafted from InstaZDLL/WaveFlow's v2.1.0 release.
 [apps.waveflow]
 name = "WaveFlow"
 kind = "appimage"
 repo = "InstaZDLL/WaveFlow"
 asset = '^WaveFlow_.*_linux-x86_64\.AppImage$'
 dest = "~/.local/bin/waveflow.AppImage"
-probe = false
+meta_path = "WaveFlow.desktop"

@@ -1,4 +1,4 @@
-# Drafted from tummychow/git-absorb's 0.9.0 release; its version is the one Upkeep installed.
+# Drafted from tummychow/git-absorb's 0.9.0 release.
 [apps.git-absorb]
 name = "Git Absorb"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "tummychow/git-absorb"
 asset = '^git-absorb-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/git-absorb"
 bins = ["git-absorb-0.9.0-x86_64-unknown-linux-musl/git-absorb"]
-probe = false

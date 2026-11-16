@@ -1,4 +1,4 @@
-# Drafted from lc/gau's v2.2.4 release; its version is the one Upkeep installed.
+# Drafted from lc/gau's v2.2.4 release.
 [apps.gau]
 name = "gau"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gau_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^gau_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gau"
 bins = ["gau"]
-probe = false

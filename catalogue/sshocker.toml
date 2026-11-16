@@ -1,4 +1,4 @@
-# Drafted from lima-vm/sshocker's v0.3.11 release; its version is the one Upkeep installed.
+# Drafted from lima-vm/sshocker's v0.3.11 release.
 [apps.sshocker]
 name = "sshocker"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "lima-vm/sshocker"
 asset = '^sshocker-Linux-x86_64$'
 asset_aarch64 = '^sshocker-Linux-aarch64$'
 dest = "~/.local/bin/sshocker"
-probe = false

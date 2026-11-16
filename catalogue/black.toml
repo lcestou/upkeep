@@ -1,8 +1,7 @@
-# Drafted from psf/black's 26.10.1 release; its version is the one Upkeep installed.
+# Drafted from psf/black's 26.10.1 release.
 [apps.black]
 name = "black"
 kind = "file"
 repo = "psf/black"
 asset = '^black_linux$'
 dest = "~/.local/bin/black"
-probe = false

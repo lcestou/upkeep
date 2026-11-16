@@ -1,4 +1,4 @@
-# Drafted from WebAssembly/wabt's 1.0.42 release; its version is the one Upkeep installed.
+# Drafted from WebAssembly/wabt's 1.0.42 release.
 [apps.spectest-interp]
 name = "wabt"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^wabt-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/spectest-interp"
 folder = "~/.local/share/spectest-interp"
 bins = ["bin/spectest-interp"]
-probe = false

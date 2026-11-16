@@ -1,4 +1,4 @@
-# Drafted from akiomik/mado's v0.4.0 release; its version is the one Upkeep installed.
+# Drafted from akiomik/mado's v0.4.0 release.
 [apps.mado]
 name = "mado"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^mado-Linux-gnu-x86_64\.tar\.gz$'
 asset_aarch64 = '^mado-Linux-gnu-arm64\.tar\.gz$'
 dest = "~/.local/bin/mado"
 bins = ["mado"]
-probe = false

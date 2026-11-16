@@ -1,4 +1,4 @@
-# Drafted from ekristen/aws-nuke's v3.69.1 release; its version is the one Upkeep installed.
+# Drafted from ekristen/aws-nuke's v3.69.1 release.
 [apps.aws-nuke]
 name = "Aws Nuke"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^aws-nuke-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^aws-nuke-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/aws-nuke"
 bins = ["aws-nuke"]
-probe = false

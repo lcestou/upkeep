@@ -1,4 +1,4 @@
-# Drafted from cocogitto/cocogitto's 7.0.0 release; its version is the one Upkeep installed.
+# Drafted from cocogitto/cocogitto's 7.0.0 release.
 [apps.cog]
 name = "cocogitto"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "cocogitto/cocogitto"
 asset = '^cocogitto-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/cog"
 bins = ["x86_64-unknown-linux-musl/cog"]
-probe = false

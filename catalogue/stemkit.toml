@@ -1,8 +1,8 @@
-# Drafted from danielravina/stemkit's v0.3.0 release; its version is the one Upkeep installed.
+# Drafted from danielravina/stemkit's v0.3.0 release.
 [apps.stemkit]
 name = "StemKit"
 kind = "appimage"
 repo = "danielravina/stemkit"
 asset = '^StemKit-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/stemkit.AppImage"
-probe = false
+meta_path = "stemkit.desktop"

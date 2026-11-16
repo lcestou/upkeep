@@ -1,4 +1,4 @@
-# Drafted from int128/kubelogin's v1.36.4 release; its version is the one Upkeep installed.
+# Drafted from int128/kubelogin's v1.36.4 release.
 [apps.kubelogin]
 name = "kubelogin"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^kubelogin_linux_amd64\.zip$'
 asset_aarch64 = '^kubelogin_linux_arm64\.zip$'
 dest = "~/.local/bin/kubelogin"
 bins = ["kubelogin"]
-probe = false

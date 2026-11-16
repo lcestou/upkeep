@@ -1,4 +1,4 @@
-# Drafted from postfinance/topf's v0.6.2 release; its version is the one Upkeep installed.
+# Drafted from postfinance/topf's v0.6.2 release.
 [apps.topf]
 name = "topf"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^topf_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^topf_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/topf"
 bins = ["topf"]
-probe = false

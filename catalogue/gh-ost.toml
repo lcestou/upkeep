@@ -1,4 +1,4 @@
-# Drafted from github/gh-ost's v1.1.11 release; its version is the one Upkeep installed.
+# Drafted from github/gh-ost's v1.1.11 release.
 [apps.gh-ost]
 name = "Gh Ost"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gh-ost-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^gh-ost-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/gh-ost"
 bins = ["gh-ost"]
-probe = false

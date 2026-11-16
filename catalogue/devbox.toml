@@ -1,4 +1,4 @@
-# Drafted from jetify-com/devbox's 0.21.0 release; its version is the one Upkeep installed.
+# Drafted from jetify-com/devbox's 0.21.0 release.
 [apps.devbox]
 name = "devbox"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^devbox_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^devbox_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/devbox"
 bins = ["devbox"]
-probe = false
+version_args = ["version"]

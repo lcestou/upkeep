@@ -1,8 +1,8 @@
-# Drafted from Kong/insomnia's core@13.4.0 release; its version is the one Upkeep installed.
+# Drafted from Kong/insomnia's core@13.4.0 release.
 [apps.inso]
 name = "Insomnia-Core"
 kind = "appimage"
 repo = "Kong/insomnia"
 asset = '^Insomnia\.Core-.*\.AppImage$'
 dest = "~/.local/bin/inso.AppImage"
-probe = false
+meta_path = "insomnia.desktop"

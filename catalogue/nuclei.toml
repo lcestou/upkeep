@@ -1,4 +1,4 @@
-# Drafted from projectdiscovery/nuclei's v3.11.1 release; its version is the one Upkeep installed.
+# Drafted from projectdiscovery/nuclei's v3.11.1 release.
 [apps.nuclei]
 name = "nuclei"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^nuclei_.*_linux_amd64\.zip$'
 asset_aarch64 = '^nuclei_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/nuclei"
 bins = ["nuclei"]
-probe = false

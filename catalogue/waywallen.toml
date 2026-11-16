@@ -1,4 +1,4 @@
-# Drafted from waywallen/waywallen's v0.6.0 release; its version is the one Upkeep installed.
+# Drafted from waywallen/waywallen's v0.6.0 release.
 [apps.waywallen]
 name = "waywallen"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "waywallen/waywallen"
 asset = '^waywallen-.*-x86_64\.AppImage$'
 asset_aarch64 = '^waywallen-.*-aarch64\.AppImage$'
 dest = "~/.local/bin/waywallen.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/org.waywallen.waywallen.metainfo.xml"

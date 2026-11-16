@@ -1,4 +1,4 @@
-# Drafted from busser/tfautomv's v0.7.0 release; its version is the one Upkeep installed.
+# Drafted from busser/tfautomv's v0.7.0 release.
 [apps.tfautomv]
 name = "tfautomv"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tfautomv_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^tfautomv_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/tfautomv"
 bins = ["tfautomv"]
-probe = false

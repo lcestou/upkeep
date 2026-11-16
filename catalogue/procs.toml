@@ -1,4 +1,4 @@
-# Drafted from dalance/procs's v0.14.12 release; its version is the one Upkeep installed.
+# Drafted from dalance/procs's v0.14.12 release.
 [apps.procs]
 name = "procs"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^procs-.*-x86_64-linux\.zip$'
 asset_aarch64 = '^procs-.*-aarch64-linux\.zip$'
 dest = "~/.local/bin/procs"
 bins = ["procs"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from securego/gosec's v2.30.0 release; its version is the one Upkeep installed.
+# Drafted from securego/gosec's v2.30.0 release.
 [apps.gosec]
 name = "gosec"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gosec_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^gosec_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gosec"
 bins = ["gosec"]
-probe = false

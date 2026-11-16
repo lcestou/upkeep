@@ -1,4 +1,4 @@
-# Drafted from nubjs/nub's v0.11.0 release; its version is the one Upkeep installed.
+# Drafted from nubjs/nub's v0.11.0 release.
 [apps.nub]
 name = "nub"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^nub-linux-arm64-musl\.tar\.gz$'
 dest = "~/.local/bin/nub"
 folder = "~/.local/share/nub"
 bins = ["nub", "nub-launcher-linux-x64-musl"]
-probe = false

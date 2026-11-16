@@ -1,4 +1,4 @@
-# Drafted from replicatedhq/kots's v1.134.3 release; its version is the one Upkeep installed.
+# Drafted from replicatedhq/kots's v1.134.3 release.
 [apps.kots]
 name = "kots"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^kots_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kots"
 folder = "~/.local/share/kots"
 bins = ["kots"]
-probe = false
+version_args = ["version"]

@@ -1,8 +1,8 @@
-# Drafted from yossdotpro/karbonized's v2.2.0 release; its version is the one Upkeep installed.
+# Drafted from yossdotpro/karbonized's v2.2.0 release.
 [apps.karbonized]
 name = "karbonized"
 kind = "appimage"
 repo = "yossdotpro/karbonized"
 asset = '^karbonized-.*\.AppImage$'
 dest = "~/.local/bin/karbonized.AppImage"
-probe = false
+meta_path = "karbonized.desktop"

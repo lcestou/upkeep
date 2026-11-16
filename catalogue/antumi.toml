@@ -1,8 +1,8 @@
-# Drafted from flyhero/antumi's v0.21.6 release; its version is the one Upkeep installed.
+# Drafted from flyhero/antumi's v0.21.6 release.
 [apps.antumi]
 name = "Antumi"
 kind = "appimage"
 repo = "flyhero/antumi"
 asset = '^Antumi-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/antumi.AppImage"
-probe = false
+meta_path = "antumi.desktop"

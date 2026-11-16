@@ -1,8 +1,8 @@
-# Drafted from MetaMask-AI/metamask-desktop's v1.6.0 release; its version is the one Upkeep installed.
+# Drafted from MetaMask-AI/metamask-desktop's v1.6.0 release.
 [apps.metamask]
 name = "Metamask"
 kind = "appimage"
 repo = "MetaMask-AI/metamask-desktop"
 asset = '^Metamask-.*\.AppImage$'
 dest = "~/.local/bin/metamask.AppImage"
-probe = false
+meta_path = "metamask.desktop"

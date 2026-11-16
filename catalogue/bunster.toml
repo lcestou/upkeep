@@ -1,4 +1,4 @@
-# Drafted from yassinebenaid/bunster's v0.14.0 release; its version is the one Upkeep installed.
+# Drafted from yassinebenaid/bunster's v0.14.0 release.
 [apps.bunster]
 name = "bunster"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^bunster_linux-amd64\.tar\.gz$'
 asset_aarch64 = '^bunster_linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/bunster"
 bins = ["bunster"]
-probe = false

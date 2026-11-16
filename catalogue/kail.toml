@@ -1,4 +1,4 @@
-# Drafted from boz/kail's v0.17.4 release; its version is the one Upkeep installed.
+# Drafted from boz/kail's v0.17.4 release.
 [apps.kail]
 name = "kail"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kail_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^kail_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kail"
 bins = ["kail"]
-probe = false
+version_args = ["version"]

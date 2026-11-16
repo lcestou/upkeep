@@ -1,4 +1,4 @@
-# Drafted from gittower/git-flow-next's v2.1.0 release; its version is the one Upkeep installed.
+# Drafted from gittower/git-flow-next's v2.1.0 release.
 [apps.git-flow]
 name = "Git Flow Next"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^git-flow-next-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^git-flow-next-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/git-flow"
 bins = ["git-flow"]
-probe = false
+version_args = ["version"]

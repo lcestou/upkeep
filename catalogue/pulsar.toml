@@ -1,8 +1,8 @@
-# Drafted from pulsar-edit/pulsar's v1.133.1 release; its version is the one Upkeep installed.
+# Drafted from pulsar-edit/pulsar's v1.133.1 release.
 [apps.pulsar]
 name = "Pulsar"
 kind = "appimage"
 repo = "pulsar-edit/pulsar"
 asset = '^Linux\.Pulsar-.*\.AppImage$'
 dest = "~/.local/bin/pulsar.AppImage"
-probe = false
+meta_path = "pulsar.desktop"

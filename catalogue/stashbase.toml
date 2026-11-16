@@ -1,8 +1,8 @@
-# Drafted from liliu-z/stashbase's v2.18.12 release; its version is the one Upkeep installed.
+# Drafted from liliu-z/stashbase's v2.18.12 release.
 [apps.stashbase]
 name = "StashBase"
 kind = "appimage"
 repo = "liliu-z/stashbase"
 asset = '^StashBase-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/stashbase.AppImage"
-probe = false
+meta_path = "stashbase.desktop"

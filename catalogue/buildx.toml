@@ -1,4 +1,4 @@
-# Drafted from docker/buildx's v0.39.0 release; its version is the one Upkeep installed.
+# Drafted from docker/buildx's v0.39.0 release.
 [apps.buildx]
 name = "buildx"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "docker/buildx"
 asset = '^buildx-.*\.linux-amd64$'
 asset_aarch64 = '^buildx-.*\.linux-arm64$'
 dest = "~/.local/bin/buildx"
-probe = false
+version_args = ["version"]

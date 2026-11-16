@@ -1,4 +1,4 @@
-# Drafted from grafana/mcp-grafana's v2.3.0 release; its version is the one Upkeep installed.
+# Drafted from grafana/mcp-grafana's v2.3.0 release.
 [apps.mcp-grafana]
 name = "Mcp Grafana"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^linux\.arm64\.grafana\.tar\.gz$'
 dest = "~/.local/bin/mcp-grafana"
 folder = "~/.local/share/mcp-grafana"
 bins = ["mcp-grafana"]
-probe = false

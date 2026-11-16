@@ -1,4 +1,4 @@
-# Drafted from lindell/multi-gitter's v0.64.0 release; its version is the one Upkeep installed.
+# Drafted from lindell/multi-gitter's v0.64.0 release.
 [apps.multi-gitter]
 name = "Multi Gitter"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^multi-gitter_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^multi-gitter_.*_Linux_ARM64\.tar\.gz$'
 dest = "~/.local/bin/multi-gitter"
 bins = ["multi-gitter"]
-probe = false
+version_args = ["version"]

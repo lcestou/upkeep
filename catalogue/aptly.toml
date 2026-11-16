@@ -1,4 +1,4 @@
-# Drafted from aptly-dev/aptly's v1.6.3 release; its version is the one Upkeep installed.
+# Drafted from aptly-dev/aptly's v1.6.3 release.
 [apps.aptly]
 name = "aptly"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^aptly_.*_linux_amd64\.zip$'
 asset_aarch64 = '^aptly_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/aptly"
 bins = ["aptly_1.6.3_linux_amd64/aptly"]
-probe = false
+version_args = ["version"]

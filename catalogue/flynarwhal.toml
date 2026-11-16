@@ -1,4 +1,4 @@
-# Drafted from FNOSP/FlyNarwhal's v2.4.1 release; its version is the one Upkeep installed.
+# Drafted from FNOSP/FlyNarwhal's v2.4.1 release.
 [apps.flynarwhal]
 name = "FlyNarwhal"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "FNOSP/FlyNarwhal"
 asset = '^FlyNarwhal_Setup_Linux_amd64_.*\.AppImage$'
 asset_aarch64 = '^FlyNarwhal_Setup_Linux_aarch64_.*\.AppImage$'
 dest = "~/.local/bin/flynarwhal.AppImage"
-probe = false
+meta_path = "fly-narwhal.desktop"

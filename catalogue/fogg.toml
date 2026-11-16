@@ -1,4 +1,4 @@
-# Drafted from chanzuckerberg/fogg's v0.92.55 release; its version is the one Upkeep installed.
+# Drafted from chanzuckerberg/fogg's v0.92.55 release.
 [apps.fogg]
 name = "fogg"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^fogg_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^fogg_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/fogg"
 bins = ["fogg"]
-probe = false
+version_args = ["version"]

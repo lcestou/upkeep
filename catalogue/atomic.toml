@@ -1,4 +1,4 @@
-# Drafted from atomicdotdev/atomic's v0.22.1 release; its version is the one Upkeep installed.
+# Drafted from atomicdotdev/atomic's v0.22.1 release.
 [apps.atomic]
 name = "atomic"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^atomic-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/atomic"
 folder = "~/.local/share/atomic"
 bins = ["atomic"]
-probe = false

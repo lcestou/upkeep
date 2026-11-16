@@ -1,4 +1,4 @@
-# Drafted from llogick/zigscient's 0.17.1 release; its version is the one Upkeep installed.
+# Drafted from llogick/zigscient's 0.17.1 release.
 [apps.zigscient]
 name = "zigscient"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^zigscient-x86_64-linux\.zip$'
 asset_aarch64 = '^zigscient-aarch64-linux\.zip$'
 dest = "~/.local/bin/zigscient"
 bins = ["zigscient*"]
-probe = false

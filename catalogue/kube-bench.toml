@@ -1,4 +1,4 @@
-# Drafted from aquasecurity/kube-bench's v0.16.0 release; its version is the one Upkeep installed.
+# Drafted from aquasecurity/kube-bench's v0.16.0 release.
 [apps.kube-bench]
 name = "Kube Bench"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^kube-bench_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kube-bench"
 folder = "~/.local/share/kube-bench"
 bins = ["kube-bench"]
-probe = false
+version_args = ["version"]

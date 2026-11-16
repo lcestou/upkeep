@@ -1,8 +1,8 @@
-# Drafted from winegui/WineGUI's v4.5.2 release; its version is the one Upkeep installed.
+# Drafted from winegui/WineGUI's v4.5.2 release.
 [apps.winegui]
 name = "WineGUI"
 kind = "appimage"
 repo = "winegui/WineGUI"
 asset = '^WineGUI-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/winegui.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/org.melroy.winegui.appdata.xml"

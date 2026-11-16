@@ -1,4 +1,4 @@
-# Drafted from kubernetes-sigs/cri-tools's v1.37.0 release; its version is the one Upkeep installed.
+# Drafted from kubernetes-sigs/cri-tools's v1.37.0 release.
 [apps.crictl]
 name = "Cri Tools"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^crictl-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^crictl-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/crictl"
 bins = ["crictl"]
-probe = false

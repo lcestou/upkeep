@@ -1,4 +1,4 @@
-# Drafted from stern/stern's v1.35.0 release; its version is the one Upkeep installed.
+# Drafted from stern/stern's v1.35.0 release.
 [apps.stern]
 name = "stern"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^stern_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^stern_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/stern"
 bins = ["stern"]
-probe = false

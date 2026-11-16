@@ -1,4 +1,4 @@
-# Drafted from flux-iac/tofu-controller's v0.16.6 release; its version is the one Upkeep installed.
+# Drafted from flux-iac/tofu-controller's v0.16.6 release.
 [apps.tfctl]
 name = "Tofu Controller"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^tfctl_Linux_amd64\.tar\.gz$'
 asset_aarch64 = '^tfctl_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/tfctl"
 bins = ["tfctl"]
-probe = false
+version_args = ["version"]

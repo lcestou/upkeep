@@ -1,8 +1,8 @@
-# Drafted from lockekk/dshare-hid's v1.27.0 release; its version is the one Upkeep installed.
+# Drafted from lockekk/dshare-hid's v1.27.0 release.
 [apps.dshare-hid]
 name = "Dshare Hid"
 kind = "appimage"
 repo = "lockekk/dshare-hid"
 asset = '^dshare-hid-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/dshare-hid.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.lockekk.dshare-hid.metainfo.xml"

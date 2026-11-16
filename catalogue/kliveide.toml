@@ -1,4 +1,4 @@
-# Drafted from Dotneteer/kliveide's v0.67.0 release; its version is the one Upkeep installed.
+# Drafted from Dotneteer/kliveide's v0.67.0 release.
 [apps.kliveide]
 name = "KliveIdeSetup"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "Dotneteer/kliveide"
 asset = '^KliveIdeSetup-.*-x86_64\.AppImage$'
 asset_aarch64 = '^KliveIdeSetup-.*-arm64\.AppImage$'
 dest = "~/.local/bin/kliveide.AppImage"
-probe = false
+meta_path = "klive-ide.desktop"

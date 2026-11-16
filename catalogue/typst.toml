@@ -1,4 +1,4 @@
-# Drafted from typst/typst's v0.15.1 release; its version is the one Upkeep installed.
+# Drafted from typst/typst's v0.15.1 release.
 [apps.typst]
 name = "typst"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^typst-x86_64-unknown-linux-musl\.tar\.xz$'
 asset_aarch64 = '^typst-aarch64-unknown-linux-musl\.tar\.xz$'
 dest = "~/.local/bin/typst"
 bins = ["typst-x86_64-unknown-linux-musl/typst"]
-probe = false

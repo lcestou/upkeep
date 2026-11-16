@@ -1,4 +1,4 @@
-# Drafted from open-policy-agent/opa's v1.22.4 release; its version is the one Upkeep installed.
+# Drafted from open-policy-agent/opa's v1.22.4 release.
 [apps.opa]
 name = "opa"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "open-policy-agent/opa"
 asset = '^opa_linux_amd64$'
 asset_aarch64 = '^opa_linux_arm64$'
 dest = "~/.local/bin/opa"
-probe = false
+version_args = ["version"]

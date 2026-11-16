@@ -1,4 +1,4 @@
-# Drafted from BeaconBay/ck's 0.8.1 release; its version is the one Upkeep installed.
+# Drafted from BeaconBay/ck's 0.8.1 release.
 [apps.ck]
 name = "ck"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ck-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^ck-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/ck"
 bins = ["ck"]
-probe = false

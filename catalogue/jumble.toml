@@ -1,4 +1,4 @@
-# Drafted from CodyTseng/jumble's v26.11.1 release; its version is the one Upkeep installed.
+# Drafted from CodyTseng/jumble's v26.11.1 release.
 [apps.jumble]
 name = "Jumble"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "CodyTseng/jumble"
 asset = '^Jumble-linux-x86_64\.AppImage$'
 asset_aarch64 = '^Jumble-linux-arm64\.AppImage$'
 dest = "~/.local/bin/jumble.AppImage"
-probe = false
+meta_path = "jumble.desktop"

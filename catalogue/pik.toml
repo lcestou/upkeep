@@ -1,4 +1,4 @@
-# Drafted from jacek-kurlit/pik's 1.0.1 release; its version is the one Upkeep installed.
+# Drafted from jacek-kurlit/pik's 1.0.1 release.
 [apps.pik]
 name = "pik"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^pik-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^pik-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/pik"
 bins = ["pik-1.0.1-x86_64-unknown-linux-gnu/pik"]
-probe = false

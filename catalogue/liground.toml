@@ -1,8 +1,8 @@
-# Drafted from ml-research/liground's 0.6.0 release; its version is the one Upkeep installed.
+# Drafted from ml-research/liground's 0.6.0 release.
 [apps.liground]
 name = "liground"
 kind = "appimage"
 repo = "ml-research/liground"
 asset = '^liground-.*\.AppImage$'
 dest = "~/.local/bin/liground.AppImage"
-probe = false
+meta_path = "liground.desktop"

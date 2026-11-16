@@ -1,8 +1,8 @@
-# Drafted from fupdec/MediaChips's v1.12.0 release; its version is the one Upkeep installed.
+# Drafted from fupdec/MediaChips's v1.12.0 release.
 [apps.mediachips]
 name = "MediaChips"
 kind = "appimage"
 repo = "fupdec/MediaChips"
 asset = '^MediaChips\..*\.Linux\.AppImage$'
 dest = "~/.local/bin/mediachips.AppImage"
-probe = false
+meta_path = "mediachips.desktop"

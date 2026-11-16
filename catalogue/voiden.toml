@@ -1,8 +1,8 @@
-# Drafted from VoidenHQ/voiden's v2.4.0 release; its version is the one Upkeep installed.
+# Drafted from VoidenHQ/voiden's v2.4.0 release.
 [apps.voiden]
 name = "voiden"
 kind = "appimage"
 repo = "VoidenHQ/voiden"
 asset = '^voiden-.*\.AppImage$'
 dest = "~/.local/bin/voiden.AppImage"
-probe = false
+meta_path = "Voiden.desktop"

@@ -1,8 +1,8 @@
-# Drafted from nvdweem/PCPanel's v2.5.0 release; its version is the one Upkeep installed.
+# Drafted from nvdweem/PCPanel's v2.5.0 release.
 [apps.pcpanel]
 name = "PCPanel"
 kind = "appimage"
 repo = "nvdweem/PCPanel"
 asset = '^PCPanel-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/pcpanel.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/com.getpcpanel.PCPanel.appdata.xml"

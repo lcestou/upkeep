@@ -1,4 +1,4 @@
-# Drafted from harness/drone-cli's v1.9.0 release; its version is the one Upkeep installed.
+# Drafted from harness/drone-cli's v1.9.0 release.
 [apps.drone]
 name = "Drone Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^drone_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^drone_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/drone"
 bins = ["drone"]
-probe = false

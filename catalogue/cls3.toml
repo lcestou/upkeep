@@ -1,4 +1,4 @@
-# Drafted from go-to-k/cls3's v0.32.6 release; its version is the one Upkeep installed.
+# Drafted from go-to-k/cls3's v0.32.6 release.
 [apps.cls3]
 name = "cls3"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^cls3_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^cls3_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/cls3"
 bins = ["cls3"]
-probe = false

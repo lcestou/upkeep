@@ -1,8 +1,8 @@
-# Drafted from piratuks/invoice-builder's v3.3.0 release; its version is the one Upkeep installed.
+# Drafted from piratuks/invoice-builder's v3.3.0 release.
 [apps.invoice-builder]
 name = "Invoice-Builder"
 kind = "appimage"
 repo = "piratuks/invoice-builder"
 asset = '^Invoice-Builder-.*\.AppImage$'
 dest = "~/.local/bin/invoice-builder.AppImage"
-probe = false
+meta_path = "invoice-builder.desktop"

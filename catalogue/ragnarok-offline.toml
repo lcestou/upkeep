@@ -1,8 +1,8 @@
-# Drafted from Flux159/ragnarokoffline.app's v1.8.4 release; its version is the one Upkeep installed.
+# Drafted from Flux159/ragnarokoffline.app's v1.8.4 release.
 [apps.ragnarok-offline]
 name = "Ragnarok-Offline"
 kind = "appimage"
 repo = "Flux159/ragnarokoffline.app"
 asset = '^Ragnarok\.Offline-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/ragnarok-offline.AppImage"
-probe = false
+meta_path = "ragnarokoffline.desktop"

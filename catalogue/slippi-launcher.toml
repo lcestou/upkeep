@@ -1,8 +1,8 @@
-# Drafted from project-slippi/slippi-launcher's v2.15.2 release; its version is the one Upkeep installed.
+# Drafted from project-slippi/slippi-launcher's v2.15.2 release.
 [apps.slippi-launcher]
 name = "Slippi-Launcher"
 kind = "appimage"
 repo = "project-slippi/slippi-launcher"
 asset = '^Slippi-Launcher-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/slippi-launcher.AppImage"
-probe = false
+meta_path = "slippi-launcher.desktop"

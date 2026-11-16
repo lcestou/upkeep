@@ -1,4 +1,4 @@
-# Drafted from neavo/LinguaGacha's MANUAL_BUILD_v0.141.3 release; its version is the one Upkeep installed.
+# Drafted from neavo/LinguaGacha's MANUAL_BUILD_v0.141.3 release.
 [apps.linguagacha]
 name = "LinguaGacha"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "neavo/LinguaGacha"
 asset = '^LinguaGacha_.*_Linux_x64\.AppImage$'
 asset_aarch64 = '^LinguaGacha_.*_Linux_arm64\.AppImage$'
 dest = "~/.local/bin/linguagacha.AppImage"
-probe = false
+meta_path = "linguagacha.desktop"

@@ -1,8 +1,8 @@
-# Drafted from roxy-gg/roxy's v1.2.2 release; its version is the one Upkeep installed.
+# Drafted from roxy-gg/roxy's v1.2.2 release.
 [apps.roxy]
 name = "roxy"
 kind = "appimage"
 repo = "roxy-gg/roxy"
 asset = '^roxy-.*\.AppImage$'
 dest = "~/.local/bin/roxy.AppImage"
-probe = false
+meta_path = "roxy.desktop"

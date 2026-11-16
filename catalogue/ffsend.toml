@@ -1,8 +1,7 @@
-# Drafted from timvisee/ffsend's v0.2.77 release; its version is the one Upkeep installed.
+# Drafted from timvisee/ffsend's v0.2.77 release.
 [apps.ffsend]
 name = "ffsend"
 kind = "file"
 repo = "timvisee/ffsend"
 asset = '^ffsend-.*-linux-x64$'
 dest = "~/.local/bin/ffsend"
-probe = false

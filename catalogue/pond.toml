@@ -1,8 +1,8 @@
-# Drafted from raphaelsalaja/pond's v2.6.0 release; its version is the one Upkeep installed.
+# Drafted from raphaelsalaja/pond's v2.6.0 release.
 [apps.pond]
 name = "Pond"
 kind = "appimage"
 repo = "raphaelsalaja/pond"
 asset = '^Pond-.*\.AppImage$'
 dest = "~/.local/bin/pond.AppImage"
-probe = false
+meta_path = "pond.desktop"

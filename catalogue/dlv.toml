@@ -1,4 +1,4 @@
-# Drafted from go-delve/delve's v1.27.2 release; its version is the one Upkeep installed.
+# Drafted from go-delve/delve's v1.27.2 release.
 [apps.dlv]
 name = "delve"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^dlv_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^dlv_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/dlv"
 bins = ["dlv"]
-probe = false
+version_args = ["version"]

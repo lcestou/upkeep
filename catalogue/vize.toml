@@ -1,4 +1,4 @@
-# Drafted from ubugeeei-prod/vize's v0.755.0 release; its version is the one Upkeep installed.
+# Drafted from ubugeeei-prod/vize's v0.755.0 release.
 [apps.vize]
 name = "vize"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^vize-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^vize-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/vize"
 bins = ["vize"]
-probe = false

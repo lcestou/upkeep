@@ -1,4 +1,4 @@
-# Drafted from tangency-labs/solidcraft's v0.42.0 release; its version is the one Upkeep installed.
+# Drafted from tangency-labs/solidcraft's v0.42.0 release.
 [apps.solidcraft]
 name = "solidcraft"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "tangency-labs/solidcraft"
 asset = '^solidcraft-linux-x86_64\.AppImage$'
 asset_aarch64 = '^solidcraft-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/solidcraft.AppImage"
-probe = false
+meta_path = "io.tangencylabs.solidcraft.desktop"

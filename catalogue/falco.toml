@@ -1,4 +1,4 @@
-# Drafted from ysugimoto/falco's v2.3.0 release; its version is the one Upkeep installed.
+# Drafted from ysugimoto/falco's v2.3.0 release.
 [apps.falco]
 name = "falco"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^falco-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^falco-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/falco"
 bins = ["falco"]
-probe = false

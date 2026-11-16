@@ -1,8 +1,8 @@
-# Drafted from ubports/ubports-installer's 0.11.2 release; its version is the one Upkeep installed.
+# Drafted from ubports/ubports-installer's 0.11.2 release.
 [apps.ubports]
 name = "Ubports Installer"
 kind = "appimage"
 repo = "ubports/ubports-installer"
 asset = '^ubports-installer_.*_linux_x86_64\.AppImage$'
 dest = "~/.local/bin/ubports.AppImage"
-probe = false
+meta_path = "ubports-installer.desktop"

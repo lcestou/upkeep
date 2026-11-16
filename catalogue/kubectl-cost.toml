@@ -1,4 +1,4 @@
-# Drafted from kubecost/kubectl-cost's v0.6.6 release; its version is the one Upkeep installed.
+# Drafted from kubecost/kubectl-cost's v0.6.6 release.
 [apps.kubectl-cost]
 name = "Kubectl Cost"
 kind = "archive"
@@ -6,4 +6,4 @@ repo = "kubecost/kubectl-cost"
 asset = '^kubectl-cost-linux-amd64\.tar\.gz$'
 dest = "~/.local/bin/kubectl-cost"
 bins = ["kubectl-cost"]
-probe = false
+version_args = ["version"]

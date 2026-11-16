@@ -1,4 +1,4 @@
-# Drafted from alebeck/boring's v0.17.0 release; its version is the one Upkeep installed.
+# Drafted from alebeck/boring's v0.17.0 release.
 [apps.boring]
 name = "boring"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^boring-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^boring-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/boring"
 bins = ["boring"]
-probe = false
+version_args = ["version"]

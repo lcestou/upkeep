@@ -1,4 +1,4 @@
-# Drafted from denoland/deno's v2.9.8 release; its version is the one Upkeep installed.
+# Drafted from denoland/deno's v2.9.8 release.
 [apps.deno]
 name = "deno"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^deno-x86_64-unknown-linux-gnu\.zip$'
 asset_aarch64 = '^deno-aarch64-unknown-linux-gnu\.zip$'
 dest = "~/.local/bin/deno"
 bins = ["deno"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from mitsuhiko/minijinja's 3.1.0 release; its version is the one Upkeep installed.
+# Drafted from mitsuhiko/minijinja's 3.1.0 release.
 [apps.minijinja-cli]
 name = "minijinja"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^minijinja-cli-x86_64-unknown-linux-gnu\.tar\.xz$'
 asset_aarch64 = '^minijinja-cli-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/minijinja-cli"
 bins = ["minijinja-cli-x86_64-unknown-linux-gnu/minijinja-cli"]
-probe = false

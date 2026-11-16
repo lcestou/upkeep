@@ -1,4 +1,4 @@
-# Drafted from author-more/penpot-desktop's v1.0.1 release; its version is the one Upkeep installed.
+# Drafted from author-more/penpot-desktop's v1.0.1 release.
 [apps.penpot-desktop]
 name = "Penpot Desktop"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "author-more/penpot-desktop"
 asset = '^penpot-desktop-x86_64\.AppImage$'
 asset_aarch64 = '^penpot-desktop-arm64\.AppImage$'
 dest = "~/.local/bin/penpot-desktop.AppImage"
-probe = false
+meta_path = "penpot-desktop.desktop"

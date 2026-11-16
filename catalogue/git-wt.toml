@@ -1,4 +1,4 @@
-# Drafted from k1LoW/git-wt's v0.30.0 release; its version is the one Upkeep installed.
+# Drafted from k1LoW/git-wt's v0.30.0 release.
 [apps.git-wt]
 name = "Git Wt"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^git-wt_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^git-wt_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/git-wt"
 bins = ["git-wt"]
-probe = false

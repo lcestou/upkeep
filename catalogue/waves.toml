@@ -1,4 +1,4 @@
-# Drafted from iamprivacy/Waves's v0.2.5 release; its version is the one Upkeep installed.
+# Drafted from iamprivacy/Waves's v0.2.5 release.
 [apps.waves]
 name = "Waves"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "iamprivacy/Waves"
 asset = '^waves_linux-x64\.AppImage$'
 asset_aarch64 = '^waves_linux-arm64\.AppImage$'
 dest = "~/.local/bin/waves.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/dev.getwaves.Waves.metainfo.xml"

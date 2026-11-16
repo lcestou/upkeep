@@ -1,8 +1,8 @@
-# Drafted from rullerzhou-afk/clawd-on-desk's v1.6.0 release; its version is the one Upkeep installed.
+# Drafted from rullerzhou-afk/clawd-on-desk's v1.6.0 release.
 [apps.clawd-on-desk]
 name = "Clawd-on-Desk"
 kind = "appimage"
 repo = "rullerzhou-afk/clawd-on-desk"
 asset = '^Clawd-on-Desk-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/clawd-on-desk.AppImage"
-probe = false
+meta_path = "clawd-on-desk.desktop"

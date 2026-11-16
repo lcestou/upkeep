@@ -1,4 +1,4 @@
-# Drafted from pimalaya/himalaya's v2.2.1 release; its version is the one Upkeep installed.
+# Drafted from pimalaya/himalaya's v2.2.1 release.
 [apps.himalaya]
 name = "himalaya"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^himalaya\.aarch64-linux\.tgz$'
 dest = "~/.local/bin/himalaya"
 folder = "~/.local/share/himalaya"
 bins = ["himalaya"]
-probe = false

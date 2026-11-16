@@ -1,4 +1,4 @@
-# Drafted from GopeedLab/gopeed's v1.9.3 release; its version is the one Upkeep installed.
+# Drafted from GopeedLab/gopeed's v1.9.3 release.
 [apps.gopeed]
 name = "Gopeed"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "GopeedLab/gopeed"
 asset = '^Gopeed-.*-linux-amd64\.AppImage$'
 asset_aarch64 = '^Gopeed-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/gopeed.AppImage"
-probe = false
+meta_path = "gopeed.desktop"

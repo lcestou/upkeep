@@ -1,4 +1,4 @@
-# Drafted from Serial-Studio/Serial-Studio's v4.2.1 release; its version is the one Upkeep installed.
+# Drafted from Serial-Studio/Serial-Studio's v4.2.1 release.
 [apps.serial-studio-pro]
 name = "Serial-Studio-Pro"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "Serial-Studio/Serial-Studio"
 asset = '^Serial-Studio-Pro-.*-Linux-x64\.AppImage$'
 asset_aarch64 = '^Serial-Studio-Pro-.*-Linux-arm64\.AppImage$'
 dest = "~/.local/bin/serial-studio-pro.AppImage"
-probe = false
+meta_path = "serial-studio-pro.desktop"

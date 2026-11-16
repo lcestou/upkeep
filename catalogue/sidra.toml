@@ -1,4 +1,4 @@
-# Drafted from wimpysworld/sidra's 1.3.2 release; its version is the one Upkeep installed.
+# Drafted from wimpysworld/sidra's 1.3.2 release.
 [apps.sidra]
 name = "Sidra"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "wimpysworld/sidra"
 asset = '^Sidra-linux-x86_64\.AppImage$'
 asset_aarch64 = '^Sidra-linux-arm64\.AppImage$'
 dest = "~/.local/bin/sidra.AppImage"
-probe = false
+meta_path = "sidra.desktop"

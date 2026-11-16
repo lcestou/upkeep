@@ -1,4 +1,4 @@
-# Drafted from getgauge/gauge's v1.6.43 release; its version is the one Upkeep installed.
+# Drafted from getgauge/gauge's v1.6.43 release.
 [apps.gauge]
 name = "gauge"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gauge-.*-linux\.x86_64\.zip$'
 asset_aarch64 = '^gauge-.*-linux\.arm64\.zip$'
 dest = "~/.local/bin/gauge"
 bins = ["gauge"]
-probe = false

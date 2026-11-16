@@ -1,4 +1,4 @@
-# Drafted from aws/aws-sam-cli's v1.172.1 release; its version is the one Upkeep installed.
+# Drafted from aws/aws-sam-cli's v1.172.1 release.
 [apps.sam]
 name = "Aws Sam Cli"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^aws-sam-cli-linux-arm64\.zip$'
 dest = "~/.local/bin/sam"
 folder = "~/.local/share/sam"
 bins = ["dist/sam"]
-probe = false

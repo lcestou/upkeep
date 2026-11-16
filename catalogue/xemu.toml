@@ -1,4 +1,4 @@
-# Drafted from xemu-project/xemu's v0.8.139 release; its version is the one Upkeep installed.
+# Drafted from xemu-project/xemu's v0.8.139 release.
 [apps.xemu]
 name = "xemu"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "xemu-project/xemu"
 asset = '^xemu-[0-9][0-9A-Za-z.]*-x86_64\.AppImage$'
 asset_aarch64 = '^xemu-[0-9][0-9A-Za-z.]*-aarch64\.AppImage$'
 dest = "~/.local/bin/xemu.AppImage"
-probe = false
+meta_path = "xemu.desktop"

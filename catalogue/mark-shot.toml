@@ -1,8 +1,8 @@
-# Drafted from jswysnemc/mark-shot's v0.1.62 release; its version is the one Upkeep installed.
+# Drafted from jswysnemc/mark-shot's v0.1.62 release.
 [apps.mark-shot]
 name = "Mark Shot"
 kind = "appimage"
 repo = "jswysnemc/mark-shot"
 asset = '^mark-shot-native-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/mark-shot.AppImage"
-probe = false
+meta_path = "io.github.jswysnemc.MarkShot.desktop"

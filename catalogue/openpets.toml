@@ -1,8 +1,8 @@
-# Drafted from OpenPetsHQ/openpets's v4.1.0 release; its version is the one Upkeep installed.
+# Drafted from OpenPetsHQ/openpets's v4.1.0 release.
 [apps.openpets]
 name = "OpenPets"
 kind = "appimage"
 repo = "OpenPetsHQ/openpets"
 asset = '^OpenPets-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/openpets.AppImage"
-probe = false
+meta_path = "openpets.desktop"

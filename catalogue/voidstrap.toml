@@ -1,4 +1,4 @@
-# Drafted from KloBraticc/Voidstrap's v1.1.3.7 release; its version is the one Upkeep installed.
+# Drafted from KloBraticc/Voidstrap's v1.1.3.7 release.
 [apps.voidstrap]
 name = "Voidstrap"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "KloBraticc/Voidstrap"
 asset = '^Voidstrap_.*_x86_64\.AppImage$'
 asset_aarch64 = '^Voidstrap_.*_aarch64\.AppImage$'
 dest = "~/.local/bin/voidstrap.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.KloBraticc.Voidstrap.appdata.xml"

@@ -1,4 +1,4 @@
-# Drafted from git-lfs/git-lfs's v3.8.1 release; its version is the one Upkeep installed.
+# Drafted from git-lfs/git-lfs's v3.8.1 release.
 [apps.git-lfs]
 name = "Git Lfs"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^git-lfs-linux-arm64-.*\.tar\.gz$'
 dest = "~/.local/bin/git-lfs"
 folder = "~/.local/share/git-lfs"
 bins = ["git-lfs"]
-probe = false

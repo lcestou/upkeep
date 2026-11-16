@@ -1,8 +1,8 @@
-# Drafted from BilibiliVideoDownload/BilibiliVideoDownload's v3.3.3 release; its version is the one Upkeep installed.
+# Drafted from BilibiliVideoDownload/BilibiliVideoDownload's v3.3.3 release.
 [apps.bilibilivideodownload]
 name = "BilibiliVideoDownload"
 kind = "appimage"
 repo = "BilibiliVideoDownload/BilibiliVideoDownload"
 asset = '^BilibiliVideoDownload-.*\.AppImage$'
 dest = "~/.local/bin/bilibilivideodownload.AppImage"
-probe = false
+meta_path = "bilibilivideodownload.desktop"

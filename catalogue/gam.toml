@@ -1,4 +1,4 @@
-# Drafted from GAM-team/GAM's v7.52.03 release; its version is the one Upkeep installed.
+# Drafted from GAM-team/GAM's v7.52.03 release.
 [apps.gam]
 name = "GAM"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^gam-.*-linux-arm64-legacy\.tar\.xz$'
 dest = "~/.local/bin/gam"
 folder = "~/.local/share/gam"
 bins = ["gam"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from pamburus/hl's v0.36.5 release; its version is the one Upkeep installed.
+# Drafted from pamburus/hl's v0.36.5 release.
 [apps.hl]
 name = "hl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^hl-linux-x86_64-gnu\.tar\.gz$'
 asset_aarch64 = '^hl-linux-arm64-gnu\.tar\.gz$'
 dest = "~/.local/bin/hl"
 bins = ["hl"]
-probe = false

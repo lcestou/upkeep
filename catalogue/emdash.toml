@@ -1,4 +1,4 @@
-# Drafted from generalaction/emdash's v1.2.11 release; its version is the one Upkeep installed.
+# Drafted from generalaction/emdash's v1.2.11 release.
 [apps.emdash]
 name = "emdash"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "generalaction/emdash"
 asset = '^emdash-x86_64\.AppImage$'
 asset_aarch64 = '^emdash-arm64\.AppImage$'
 dest = "~/.local/bin/emdash.AppImage"
-probe = false
+meta_path = "Emdash.desktop"

@@ -1,4 +1,4 @@
-# Drafted from kayac/ecspresso's v3.0.0 release; its version is the one Upkeep installed.
+# Drafted from kayac/ecspresso's v3.0.0 release.
 [apps.ecspresso]
 name = "ecspresso"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^ecspresso_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^ecspresso_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ecspresso"
 bins = ["ecspresso"]
-probe = false
+version_args = ["version"]

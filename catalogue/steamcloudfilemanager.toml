@@ -1,8 +1,8 @@
-# Drafted from Fldicoahkiin/SteamCloudFileManager's v1.3.6 release; its version is the one Upkeep installed.
+# Drafted from Fldicoahkiin/SteamCloudFileManager's v1.3.6 release.
 [apps.steamcloudfilemanager]
 name = "SteamCloudFileManager"
 kind = "appimage"
 repo = "Fldicoahkiin/SteamCloudFileManager"
 asset = '^SteamCloudFileManager-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/steamcloudfilemanager.AppImage"
-probe = false
+meta_path = "cargo-appimage.desktop"

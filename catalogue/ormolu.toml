@@ -1,4 +1,4 @@
-# Drafted from tweag/ormolu's 0.9.0.0 release; its version is the one Upkeep installed.
+# Drafted from tweag/ormolu's 0.9.0.0 release.
 [apps.ormolu]
 name = "ormolu"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "tweag/ormolu"
 asset = '^ormolu-x86_64-linux\.zip$'
 dest = "~/.local/bin/ormolu"
 bins = ["ormolu"]
-probe = false

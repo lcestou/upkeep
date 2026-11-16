@@ -1,4 +1,4 @@
-# Drafted from cilium/cilium-cli's v0.20.3 release; its version is the one Upkeep installed.
+# Drafted from cilium/cilium-cli's v0.20.3 release.
 [apps.cilium]
 name = "Cilium Cli"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^cilium-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^cilium-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/cilium"
 bins = ["cilium"]
-probe = false
+version_args = ["version"]

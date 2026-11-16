@@ -1,4 +1,4 @@
-# Drafted from bitsocialnet/5chan's v0.10.4 release; its version is the one Upkeep installed.
+# Drafted from bitsocialnet/5chan's v0.10.4 release.
 [apps.5chan]
 name = "5chan"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "bitsocialnet/5chan"
 asset = '^5chan-.*-x64\.AppImage$'
 asset_aarch64 = '^5chan-.*-arm64\.AppImage$'
 dest = "~/.local/bin/5chan.AppImage"
-probe = false
+meta_path = "5chan.desktop"

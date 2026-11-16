@@ -1,4 +1,4 @@
-# Drafted from sqls-server/sqls's v0.2.48 release; its version is the one Upkeep installed.
+# Drafted from sqls-server/sqls's v0.2.48 release.
 [apps.sqls]
 name = "sqls"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "sqls-server/sqls"
 asset = '^sqls-linux-.*\.zip$'
 dest = "~/.local/bin/sqls"
 bins = ["sqls"]
-probe = false

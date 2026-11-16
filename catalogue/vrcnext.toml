@@ -1,8 +1,8 @@
-# Drafted from shinyflvre/VRCNext's v2027.2.0 release; its version is the one Upkeep installed.
+# Drafted from shinyflvre/VRCNext's v2027.2.0 release.
 [apps.vrcnext]
 name = "VRCNext"
 kind = "appimage"
 repo = "shinyflvre/VRCNext"
 asset = '^Linux-VRCNext-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/vrcnext.AppImage"
-probe = false
+meta_path = "vrcnext.desktop"

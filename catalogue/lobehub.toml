@@ -1,8 +1,8 @@
-# Drafted from lobehub/lobehub's v2.3.3 release; its version is the one Upkeep installed.
+# Drafted from lobehub/lobehub's v2.3.3 release.
 [apps.lobehub]
 name = "LobeHub"
 kind = "appimage"
 repo = "lobehub/lobehub"
 asset = '^LobeHub-.*\.AppImage$'
 dest = "~/.local/bin/lobehub.AppImage"
-probe = false
+meta_path = "lobehub-desktop.desktop"

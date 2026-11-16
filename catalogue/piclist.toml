@@ -1,4 +1,4 @@
-# Drafted from Kuingsmile/PicList's v3.6.1 release; its version is the one Upkeep installed.
+# Drafted from Kuingsmile/PicList's v3.6.1 release.
 [apps.piclist]
 name = "PicList"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "Kuingsmile/PicList"
 asset = '^PicList-.*-x86_64\.AppImage$'
 asset_aarch64 = '^PicList-.*-arm64\.AppImage$'
 dest = "~/.local/bin/piclist.AppImage"
-probe = false
+meta_path = "PicList.desktop"

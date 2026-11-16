@@ -1,4 +1,4 @@
-# Drafted from mgunyho/tere's v1.6.0 release; its version is the one Upkeep installed.
+# Drafted from mgunyho/tere's v1.6.0 release.
 [apps.tere]
 name = "tere"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tere-.*-x86_64-unknown-linux-gnu\.zip$'
 asset_aarch64 = '^tere-.*-aarch64-unknown-linux-gnu\.zip$'
 dest = "~/.local/bin/tere"
 bins = ["tere"]
-probe = false

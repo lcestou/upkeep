@@ -1,4 +1,4 @@
-# Drafted from ThatGuyMcd/DKR-R's Version1.0.15 release; its version is the one Upkeep installed.
+# Drafted from ThatGuyMcd/DKR-R's Version1.0.15 release.
 [apps.dkr-r]
 name = "DKR-R"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "ThatGuyMcd/DKR-R"
 asset = '^DKR-R-.*-Linux-x86_64\.AppImage$'
 asset_aarch64 = '^DKR-R-.*-Linux-aarch64\.AppImage$'
 dest = "~/.local/bin/dkr-r.AppImage"
-probe = false
+meta_path = "dkr-port.desktop"

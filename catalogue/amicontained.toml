@@ -1,8 +1,8 @@
-# Drafted from genuinetools/amicontained's v0.4.9 release; its version is the one Upkeep installed.
+# Drafted from genuinetools/amicontained's v0.4.9 release.
 [apps.amicontained]
 name = "amicontained"
 kind = "file"
 repo = "genuinetools/amicontained"
 asset = '^amicontained-linux-amd64$'
 dest = "~/.local/bin/amicontained"
-probe = false
+version_args = ["version"]

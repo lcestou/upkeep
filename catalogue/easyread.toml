@@ -1,8 +1,8 @@
-# Drafted from Edwardxlai/easyread's v1.4.7 release; its version is the one Upkeep installed.
+# Drafted from Edwardxlai/easyread's v1.4.7 release.
 [apps.easyread]
 name = "EasyRead"
 kind = "appimage"
 repo = "Edwardxlai/easyread"
 asset = '^EasyRead-.*\.AppImage$'
 dest = "~/.local/bin/easyread.AppImage"
-probe = false
+meta_path = "easyread-desktop.desktop"

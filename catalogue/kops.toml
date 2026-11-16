@@ -1,4 +1,4 @@
-# Drafted from kubernetes/kops's v1.37.0 release; its version is the one Upkeep installed.
+# Drafted from kubernetes/kops's v1.37.0 release.
 [apps.kops]
 name = "kops"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "kubernetes/kops"
 asset = '^kops-linux-amd64$'
 asset_aarch64 = '^kops-linux-arm64$'
 dest = "~/.local/bin/kops"
-probe = false
+version_args = ["version"]

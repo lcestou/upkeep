@@ -1,8 +1,8 @@
-# Drafted from digimezzo/knowte's v3.0.1 release; its version is the one Upkeep installed.
+# Drafted from digimezzo/knowte's v3.0.1 release.
 [apps.knowte]
 name = "Knowte"
 kind = "appimage"
 repo = "digimezzo/knowte"
 asset = '^Knowte-.*\.AppImage$'
 dest = "~/.local/bin/knowte.AppImage"
-probe = false
+meta_path = "knowte.desktop"

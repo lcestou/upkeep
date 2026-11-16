@@ -1,8 +1,8 @@
-# Drafted from ramboxapp/download's v3.2.0 release; its version is the one Upkeep installed.
+# Drafted from ramboxapp/download's v3.2.0 release.
 [apps.rambox]
 name = "Rambox"
 kind = "appimage"
 repo = "ramboxapp/download"
 asset = '^Rambox-.*-linux-x64\.AppImage$'
 dest = "~/.local/bin/rambox.AppImage"
-probe = false
+meta_path = "rambox.desktop"

@@ -1,4 +1,4 @@
-# Drafted from awslabs/soci-snapshotter's v0.16.1 release; its version is the one Upkeep installed.
+# Drafted from awslabs/soci-snapshotter's v0.16.1 release.
 [apps.soci]
 name = "Soci Snapshotter"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^soci-snapshotter-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^soci-snapshotter-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/soci"
 bins = ["soci", "soci-snapshotter-grpc"]
-probe = false

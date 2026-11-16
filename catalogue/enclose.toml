@@ -1,4 +1,4 @@
-# Drafted from enclosedev/enclose's v0.0.25 release; its version is the one Upkeep installed.
+# Drafted from enclosedev/enclose's v0.0.25 release.
 [apps.enclose]
 name = "Enclose"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "enclosedev/enclose"
 asset = '^Enclose-.*-x86_64\.AppImage$'
 asset_aarch64 = '^Enclose-.*-arm64\.AppImage$'
 dest = "~/.local/bin/enclose.AppImage"
-probe = false
+meta_path = "enclose.desktop"

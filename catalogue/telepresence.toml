@@ -1,4 +1,4 @@
-# Drafted from telepresenceio/telepresence's v2.33.0 release; its version is the one Upkeep installed.
+# Drafted from telepresenceio/telepresence's v2.33.0 release.
 [apps.telepresence]
 name = "telepresence"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "telepresenceio/telepresence"
 asset = '^telepresence-linux-amd64$'
 asset_aarch64 = '^telepresence-linux-arm64$'
 dest = "~/.local/bin/telepresence"
-probe = false
+version_args = ["version"]

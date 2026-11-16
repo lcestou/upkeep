@@ -1,4 +1,4 @@
-# Drafted from Versent/saml2aws's v2.36.19 release; its version is the one Upkeep installed.
+# Drafted from Versent/saml2aws's v2.36.19 release.
 [apps.saml2aws]
 name = "saml2aws"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^saml2aws_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^saml2aws_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/saml2aws"
 bins = ["saml2aws"]
-probe = false

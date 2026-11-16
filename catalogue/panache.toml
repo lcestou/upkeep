@@ -1,4 +1,4 @@
-# Drafted from jolars/panache's v3.18.0 release; its version is the one Upkeep installed.
+# Drafted from jolars/panache's v3.18.0 release.
 [apps.panache]
 name = "panache"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^panache-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^panache-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/panache"
 bins = ["panache"]
-probe = false

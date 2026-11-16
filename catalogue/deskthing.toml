@@ -1,8 +1,8 @@
-# Drafted from ItsRiprod/DeskThing's v0.11.17 release; its version is the one Upkeep installed.
+# Drafted from ItsRiprod/DeskThing's v0.11.17 release.
 [apps.deskthing]
 name = "DeskThing"
 kind = "appimage"
 repo = "ItsRiprod/DeskThing"
 asset = '^deskthing-linux-.*-setup\.AppImage$'
 dest = "~/.local/bin/deskthing.AppImage"
-probe = false
+meta_path = "deskthing.desktop"

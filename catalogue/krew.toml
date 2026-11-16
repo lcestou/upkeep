@@ -1,4 +1,4 @@
-# Drafted from kubernetes-sigs/krew's v0.5.0 release; its version is the one Upkeep installed.
+# Drafted from kubernetes-sigs/krew's v0.5.0 release.
 [apps.krew]
 name = "krew"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^krew-linux_amd64\.tar\.gz$'
 asset_aarch64 = '^krew-linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/krew"
 bins = ["krew*"]
-probe = false
+version_args = ["version"]

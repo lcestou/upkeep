@@ -1,4 +1,4 @@
-# Drafted from yoheimuta/protolint's v0.58.0 release; its version is the one Upkeep installed.
+# Drafted from yoheimuta/protolint's v0.58.0 release.
 [apps.protolint]
 name = "protolint"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^protolint_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^protolint_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/protolint"
 bins = ["protolint"]
-probe = false

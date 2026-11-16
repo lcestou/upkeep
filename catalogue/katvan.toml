@@ -1,4 +1,4 @@
-# Drafted from IgKh/katvan's v0.14.0 release; its version is the one Upkeep installed.
+# Drafted from IgKh/katvan's v0.14.0 release.
 [apps.katvan]
 name = "Katvan"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "IgKh/katvan"
 asset = '^Katvan-.*-x86_64\.AppImage$'
 asset_aarch64 = '^Katvan-.*-aarch64\.AppImage$'
 dest = "~/.local/bin/katvan.AppImage"
-probe = false
+meta_path = "katvan.desktop"

@@ -1,4 +1,4 @@
-# Drafted from greglook/cljstyle's 0.17.642 release; its version is the one Upkeep installed.
+# Drafted from greglook/cljstyle's 0.17.642 release.
 [apps.cljstyle]
 name = "cljstyle"
 kind = "archive"
@@ -6,4 +6,4 @@ repo = "greglook/cljstyle"
 asset = '^cljstyle_.*_linux_amd64\.zip$'
 dest = "~/.local/bin/cljstyle"
 bins = ["cljstyle"]
-probe = false
+version_args = ["version"]

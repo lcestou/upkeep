@@ -1,4 +1,4 @@
-# Drafted from robinovitch61/kl's v0.9.1 release; its version is the one Upkeep installed.
+# Drafted from robinovitch61/kl's v0.9.1 release.
 [apps.kl]
 name = "kl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^kl_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^kl_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kl"
 bins = ["kl"]
-probe = false

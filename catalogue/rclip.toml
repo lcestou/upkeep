@@ -1,8 +1,8 @@
-# Drafted from yurijmikhalevich/rclip's v4.1.2 release; its version is the one Upkeep installed.
+# Drafted from yurijmikhalevich/rclip's v4.1.2 release.
 [apps.rclip]
 name = "rclip"
 kind = "appimage"
 repo = "yurijmikhalevich/rclip"
 asset = '^rclip-.*-amd64\.AppImage$'
 dest = "~/.local/bin/rclip.AppImage"
-probe = false
+meta_path = "org.yurijmikhalevich.rclip.desktop"

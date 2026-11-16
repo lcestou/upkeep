@@ -1,4 +1,4 @@
-# Drafted from NimbleArchitect/kubectl-ice's v0.2.13 release; its version is the one Upkeep installed.
+# Drafted from NimbleArchitect/kubectl-ice's v0.2.13 release.
 [apps.kubectl-ice]
 name = "Kubectl Ice"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^kubectl-ice_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^kubectl-ice_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kubectl-ice"
 bins = ["kubectl-ice"]
-probe = false

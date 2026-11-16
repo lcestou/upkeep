@@ -1,4 +1,4 @@
-# Drafted from guumaster/hostctl's v1.1.4 release; its version is the one Upkeep installed.
+# Drafted from guumaster/hostctl's v1.1.4 release.
 [apps.hostctl]
 name = "hostctl"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "guumaster/hostctl"
 asset = '^hostctl_.*_linux_64-bit\.tar\.gz$'
 dest = "~/.local/bin/hostctl"
 bins = ["hostctl"]
-probe = false

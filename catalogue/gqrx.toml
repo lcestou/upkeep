@@ -1,8 +1,8 @@
-# Drafted from gqrx-sdr/gqrx's v2.17.7 release; its version is the one Upkeep installed.
+# Drafted from gqrx-sdr/gqrx's v2.17.7 release.
 [apps.gqrx]
 name = "Gqrx"
 kind = "appimage"
 repo = "gqrx-sdr/gqrx"
 asset = '^Gqrx-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/gqrx.AppImage"
-probe = false
+meta_path = "dk.gqrx.gqrx.desktop"

@@ -1,4 +1,4 @@
-# Drafted from yuzujr/ani2xcursor's v1.6.0 release; its version is the one Upkeep installed.
+# Drafted from yuzujr/ani2xcursor's v1.6.0 release.
 [apps.ani2xcursor]
 name = "ani2xcursor"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "yuzujr/ani2xcursor"
 asset = '^ani2xcursor-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^ani2xcursor-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/ani2xcursor.AppImage"
-probe = false
+meta_path = "ani2xcursor.desktop"

@@ -1,4 +1,4 @@
-# Drafted from dinoDanic/diny's v0.7.8 release; its version is the one Upkeep installed.
+# Drafted from dinoDanic/diny's v0.7.8 release.
 [apps.diny]
 name = "diny"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^diny_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/diny"
 folder = "~/.local/share/diny"
 bins = ["diny"]
-probe = false

@@ -1,8 +1,8 @@
-# Drafted from Slush97/grimoire's v1.35.1 release; its version is the one Upkeep installed.
+# Drafted from Slush97/grimoire's v1.35.1 release.
 [apps.grimoire]
 name = "Grimoire"
 kind = "appimage"
 repo = "Slush97/grimoire"
 asset = '^Grimoire-.*\.AppImage$'
 dest = "~/.local/bin/grimoire.AppImage"
-probe = false
+meta_path = "grimoire.desktop"

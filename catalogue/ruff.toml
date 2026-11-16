@@ -1,4 +1,4 @@
-# Drafted from astral-sh/ruff's 0.17.5 release; its version is the one Upkeep installed.
+# Drafted from astral-sh/ruff's 0.17.5 release.
 [apps.ruff]
 name = "ruff"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ruff-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^ruff-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/ruff"
 bins = ["ruff-x86_64-unknown-linux-gnu/ruff"]
-probe = false

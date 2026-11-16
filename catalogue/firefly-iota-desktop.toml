@@ -1,8 +1,8 @@
-# Drafted from iotaledger/firefly's desktop-iota-2.1.2 release; its version is the one Upkeep installed.
+# Drafted from iotaledger/firefly's desktop-iota-2.1.2 release.
 [apps.firefly-iota-desktop]
 name = "firefly"
 kind = "appimage"
 repo = "iotaledger/firefly"
 asset = '^firefly-iota-desktop-.*\.AppImage$'
 dest = "~/.local/bin/firefly-iota-desktop.AppImage"
-probe = false
+meta_path = "desktop.desktop"

@@ -1,4 +1,4 @@
-# Drafted from SPlayer-Dev/SPlayer-Next's v1.2.0 release; its version is the one Upkeep installed.
+# Drafted from SPlayer-Dev/SPlayer-Next's v1.2.0 release.
 [apps.splayer-next]
 name = "SPlayer Next"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "SPlayer-Dev/SPlayer-Next"
 asset = '^splayer-next-.*-x86_64\.AppImage$'
 asset_aarch64 = '^splayer-next-.*-arm64\.AppImage$'
 dest = "~/.local/bin/splayer-next.AppImage"
-probe = false
+meta_path = "top.imsyy.splayer_next.desktop"

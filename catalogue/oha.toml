@@ -1,4 +1,4 @@
-# Drafted from hatoo/oha's v1.17.0 release; its version is the one Upkeep installed.
+# Drafted from hatoo/oha's v1.17.0 release.
 [apps.oha]
 name = "oha"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "hatoo/oha"
 asset = '^oha-linux-amd64$'
 asset_aarch64 = '^oha-linux-arm64$'
 dest = "~/.local/bin/oha"
-probe = false

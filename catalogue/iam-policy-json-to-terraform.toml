@@ -1,4 +1,4 @@
-# Drafted from flosell/iam-policy-json-to-terraform's 1.9.2 release; its version is the one Upkeep installed.
+# Drafted from flosell/iam-policy-json-to-terraform's 1.9.2 release.
 [apps.iam-policy-json-to-terraform]
 name = "Iam Policy Json To Terraform"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "flosell/iam-policy-json-to-terraform"
 asset = '^iam-policy-json-to-terraform_amd64$'
 asset_aarch64 = '^iam-policy-json-to-terraform_arm64$'
 dest = "~/.local/bin/iam-policy-json-to-terraform"
-probe = false

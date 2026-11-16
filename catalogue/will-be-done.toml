@@ -1,8 +1,8 @@
-# Drafted from will-be-done/will-be-done's v0.15.0 release; its version is the one Upkeep installed.
+# Drafted from will-be-done/will-be-done's v0.15.0 release.
 [apps.will-be-done]
 name = "Will Be Done"
 kind = "appimage"
 repo = "will-be-done/will-be-done"
 asset = '^will-be-done-.*\.AppImage$'
 dest = "~/.local/bin/will-be-done.AppImage"
-probe = false
+meta_path = "app.willbedone.WillBeDone.desktop"

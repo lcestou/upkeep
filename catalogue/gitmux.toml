@@ -1,4 +1,4 @@
-# Drafted from arl/gitmux's v0.11.5 release; its version is the one Upkeep installed.
+# Drafted from arl/gitmux's v0.11.5 release.
 [apps.gitmux]
 name = "gitmux"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^gitmux_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^gitmux_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gitmux"
 bins = ["gitmux"]
-probe = false
+version_args = ["-V"]

@@ -1,4 +1,4 @@
-# Drafted from ayuayue/PiDeck's v0.12.0 release; its version is the one Upkeep installed.
+# Drafted from ayuayue/PiDeck's v0.12.0 release.
 [apps.pideck]
 name = "PiDeck"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "ayuayue/PiDeck"
 asset = '^PiDeck-x86_64\.AppImage$'
 asset_aarch64 = '^PiDeck-arm64\.AppImage$'
 dest = "~/.local/bin/pideck.AppImage"
-probe = false
+meta_path = "pideck.desktop"

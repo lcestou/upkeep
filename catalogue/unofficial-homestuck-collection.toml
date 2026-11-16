@@ -1,8 +1,8 @@
-# Drafted from GiovanH/unofficial-homestuck-collection's v2.8.1 release; its version is the one Upkeep installed.
+# Drafted from GiovanH/unofficial-homestuck-collection's v2.8.1 release.
 [apps.unofficial-homestuck-collection]
 name = "The-Unofficial-Homestuck-Collection"
 kind = "appimage"
 repo = "GiovanH/unofficial-homestuck-collection"
 asset = '^The-Unofficial-Homestuck-Collection-.*\.AppImage$'
 dest = "~/.local/bin/unofficial-homestuck-collection.AppImage"
-probe = false
+meta_path = "unofficial-homestuck-collection.desktop"

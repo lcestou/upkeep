@@ -1,8 +1,8 @@
-# Drafted from hql287/Manta's v1.1.4 release; its version is the one Upkeep installed.
+# Drafted from hql287/Manta's v1.1.4 release.
 [apps.manta]
 name = "Manta"
 kind = "appimage"
 repo = "hql287/Manta"
 asset = '^Manta-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/manta.AppImage"
-probe = false
+meta_path = "manta.desktop"

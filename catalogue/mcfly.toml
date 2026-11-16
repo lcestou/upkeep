@@ -1,4 +1,4 @@
-# Drafted from cantino/mcfly's v0.9.4 release; its version is the one Upkeep installed.
+# Drafted from cantino/mcfly's v0.9.4 release.
 [apps.mcfly]
 name = "mcfly"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^mcfly-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^mcfly-.*-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/mcfly"
 bins = ["mcfly"]
-probe = false

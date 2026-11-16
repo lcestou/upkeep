@@ -1,8 +1,8 @@
-# Drafted from notepadqq/notepadqq's v2.1.1 release; its version is the one Upkeep installed.
+# Drafted from notepadqq/notepadqq's v2.1.1 release.
 [apps.notepadqq]
 name = "notepadqq"
 kind = "appimage"
 repo = "notepadqq/notepadqq"
 asset = '^notepadqq-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/notepadqq.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/com.notepadqq.Notepadqq.metainfo.xml"

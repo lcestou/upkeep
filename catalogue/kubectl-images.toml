@@ -1,4 +1,4 @@
-# Drafted from chenjiandongx/kubectl-images's v0.6.5 release; its version is the one Upkeep installed.
+# Drafted from chenjiandongx/kubectl-images's v0.6.5 release.
 [apps.kubectl-images]
 name = "Kubectl Images"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^kubectl-images_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^kubectl-images_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kubectl-images"
 bins = ["kubectl-images"]
-probe = false

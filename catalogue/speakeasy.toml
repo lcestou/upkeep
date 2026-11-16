@@ -1,4 +1,4 @@
-# Drafted from speakeasy-api/speakeasy's v1.809.0 release; its version is the one Upkeep installed.
+# Drafted from speakeasy-api/speakeasy's v1.809.0 release.
 [apps.speakeasy]
 name = "speakeasy"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^speakeasy_linux_amd64\.zip$'
 asset_aarch64 = '^speakeasy_linux_arm64\.zip$'
 dest = "~/.local/bin/speakeasy"
 bins = ["speakeasy"]
-probe = false

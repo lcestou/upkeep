@@ -1,4 +1,4 @@
-# Drafted from storytold/figcraft's v0.18.1 release; its version is the one Upkeep installed.
+# Drafted from storytold/figcraft's v0.18.1 release.
 [apps.figcraft]
 name = "figcraft"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "storytold/figcraft"
 asset = '^figcraft-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^figcraft-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/figcraft.AppImage"
-probe = false
+meta_path = "ai.storyteller.figcraft.desktop"

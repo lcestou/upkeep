@@ -1,4 +1,4 @@
-# Drafted from matryer/moq's v0.8.1 release; its version is the one Upkeep installed.
+# Drafted from matryer/moq's v0.8.1 release.
 [apps.moq]
 name = "moq"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^moq_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^moq_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/moq"
 bins = ["moq"]
-probe = false

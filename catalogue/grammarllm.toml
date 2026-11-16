@@ -1,8 +1,8 @@
-# Drafted from whiteh4cker-tr/grammar-llm's 1.4.0 release; its version is the one Upkeep installed.
+# Drafted from whiteh4cker-tr/grammar-llm's 1.4.0 release.
 [apps.grammarllm]
 name = "GrammarLLM"
 kind = "appimage"
 repo = "whiteh4cker-tr/grammar-llm"
 asset = '^GrammarLLM-.*\.AppImage$'
 dest = "~/.local/bin/grammarllm.AppImage"
-probe = false
+meta_path = "grammarllm-electron.desktop"

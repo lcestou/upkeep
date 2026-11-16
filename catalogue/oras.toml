@@ -1,4 +1,4 @@
-# Drafted from oras-project/oras's v1.3.6 release; its version is the one Upkeep installed.
+# Drafted from oras-project/oras's v1.3.6 release.
 [apps.oras]
 name = "oras"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^oras_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^oras_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/oras"
 bins = ["oras"]
-probe = false
+version_args = ["version"]

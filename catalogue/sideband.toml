@@ -1,4 +1,4 @@
-# Drafted from markqvist/Sideband's 2.3.0 release; its version is the one Upkeep installed.
+# Drafted from markqvist/Sideband's 2.3.0 release.
 [apps.sideband]
 name = "Sideband"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "markqvist/Sideband"
 asset = '^Sideband_.*_x86_64\.appimage$'
 asset_aarch64 = '^Sideband_.*_aarch64\.appimage$'
 dest = "~/.local/bin/sideband.AppImage"
-probe = false
+meta_path = "io.unsigned.sideband.desktop"

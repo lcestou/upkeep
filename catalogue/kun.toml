@@ -1,4 +1,4 @@
-# Drafted from KunAgent/Kun's v0.4.5 release; its version is the one Upkeep installed.
+# Drafted from KunAgent/Kun's v0.4.5 release.
 [apps.kun]
 name = "Kun"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "KunAgent/Kun"
 asset = '^Kun-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^Kun-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/kun.AppImage"
-probe = false
+meta_path = "kun-gui.desktop"

@@ -1,4 +1,4 @@
-# Drafted from rfjakob/gocryptfs's v2.7.0 release; its version is the one Upkeep installed.
+# Drafted from rfjakob/gocryptfs's v2.7.0 release.
 [apps.gocryptfs]
 name = "gocryptfs"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gocryptfs_.*_linux-static_amd64\.tar\.gz$'
 asset_aarch64 = '^gocryptfs_.*_linux-static_arm64\.tar\.gz$'
 dest = "~/.local/bin/gocryptfs"
 bins = ["gocryptfs", "gocryptfs-xray"]
-probe = false

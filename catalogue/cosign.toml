@@ -1,4 +1,4 @@
-# Drafted from sigstore/cosign's v3.1.4 release; its version is the one Upkeep installed.
+# Drafted from sigstore/cosign's v3.1.4 release.
 [apps.cosign]
 name = "cosign"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "sigstore/cosign"
 asset = '^cosign-linux-amd64$'
 asset_aarch64 = '^cosign-linux-arm64$'
 dest = "~/.local/bin/cosign"
-probe = false
+version_args = ["version"]

@@ -1,4 +1,4 @@
-# Drafted from emanuele-em/proxelar's v0.6.1 release; its version is the one Upkeep installed.
+# Drafted from emanuele-em/proxelar's v0.6.1 release.
 [apps.proxelar]
 name = "proxelar"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^proxelar-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^proxelar-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/proxelar"
 bins = ["proxelar"]
-probe = false

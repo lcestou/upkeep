@@ -1,4 +1,4 @@
-# Drafted from wallix/awless's v0.1.11 release; its version is the one Upkeep installed.
+# Drafted from wallix/awless's v0.1.11 release.
 [apps.awless]
 name = "awless"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "wallix/awless"
 asset = '^awless-linux-amd64\.tar\.gz$'
 dest = "~/.local/bin/awless"
 bins = ["awless"]
-probe = false

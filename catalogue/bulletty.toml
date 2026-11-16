@@ -1,4 +1,4 @@
-# Drafted from crocidb/bulletty's v0.3.0 release; its version is the one Upkeep installed.
+# Drafted from crocidb/bulletty's v0.3.0 release.
 [apps.bulletty]
 name = "bulletty"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^bulletty-x86_64-unknown-linux-gnu\.tar\.xz$'
 asset_aarch64 = '^bulletty-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/bulletty"
 bins = ["bulletty-x86_64-unknown-linux-gnu/bulletty"]
-probe = false

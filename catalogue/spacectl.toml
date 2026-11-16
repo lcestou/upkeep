@@ -1,4 +1,4 @@
-# Drafted from spacelift-io/spacectl's v1.30.0 release; its version is the one Upkeep installed.
+# Drafted from spacelift-io/spacectl's v1.30.0 release.
 [apps.spacectl]
 name = "spacectl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^spacectl_.*_linux_amd64\.zip$'
 asset_aarch64 = '^spacectl_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/spacectl"
 bins = ["spacectl"]
-probe = false

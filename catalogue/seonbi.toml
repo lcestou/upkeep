@@ -1,4 +1,4 @@
-# Drafted from dahlia/seonbi's 0.5.0 release; its version is the one Upkeep installed.
+# Drafted from dahlia/seonbi's 0.5.0 release.
 [apps.seonbi]
 name = "seonbi"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^seonbi-.*\.linux-x86_64\.tar\.bz2$'
 asset_aarch64 = '^seonbi-.*\.linux-arm64\.tar\.bz2$'
 dest = "~/.local/bin/seonbi"
 bins = ["seonbi", "seonbi-api"]
-probe = false

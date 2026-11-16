@@ -1,8 +1,8 @@
-# Drafted from Freedom-Guard/Freedom-Guard's v13.0.1 release; its version is the one Upkeep installed.
+# Drafted from Freedom-Guard/Freedom-Guard's v13.0.1 release.
 [apps.freedom-guard]
 name = "Freedom Guard"
 kind = "appimage"
 repo = "Freedom-Guard/Freedom-Guard"
 asset = '^freedom-guard-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/freedom-guard.AppImage"
-probe = false
+meta_path = "freedom-guard.desktop"

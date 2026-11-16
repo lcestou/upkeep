@@ -1,4 +1,4 @@
-# Drafted from github/github-mcp-server's v2.1.0 release; its version is the one Upkeep installed.
+# Drafted from github/github-mcp-server's v2.1.0 release.
 [apps.github-mcp-server]
 name = "Github Mcp Server"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^github-mcp-server_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^github-mcp-server_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/github-mcp-server"
 bins = ["github-mcp-server"]
-probe = false

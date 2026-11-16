@@ -1,4 +1,4 @@
-# Drafted from container2wasm/container2wasm's v0.8.5 release; its version is the one Upkeep installed.
+# Drafted from container2wasm/container2wasm's v0.8.5 release.
 [apps.c2w]
 name = "container2wasm"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^container2wasm-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^container2wasm-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/c2w"
 bins = ["c2w", "c2w-net"]
-probe = false

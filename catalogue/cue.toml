@@ -1,4 +1,4 @@
-# Drafted from cue-lang/cue's v0.17.1 release; its version is the one Upkeep installed.
+# Drafted from cue-lang/cue's v0.17.1 release.
 [apps.cue]
 name = "cue"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^cue_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^cue_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/cue"
 bins = ["cue"]
-probe = false
+version_args = ["version"]

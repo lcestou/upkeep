@@ -1,4 +1,4 @@
-# Drafted from google/gke-policy-automation's v1.4.8 release; its version is the one Upkeep installed.
+# Drafted from google/gke-policy-automation's v1.4.8 release.
 [apps.gke-policy]
 name = "Gke Policy Automation"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^gke-policy-automation_.*_linux_amd64\.zip$'
 asset_aarch64 = '^gke-policy-automation_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/gke-policy"
 bins = ["gke-policy"]
-probe = false
+version_args = ["version"]

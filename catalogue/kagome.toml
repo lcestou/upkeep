@@ -1,4 +1,4 @@
-# Drafted from ikawaha/kagome's v2.11.1 release; its version is the one Upkeep installed.
+# Drafted from ikawaha/kagome's v2.11.1 release.
 [apps.kagome]
 name = "kagome"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kagome_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^kagome_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kagome"
 bins = ["kagome"]
-probe = false
+version_args = ["version"]

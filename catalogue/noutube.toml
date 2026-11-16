@@ -1,8 +1,8 @@
-# Drafted from nonbili/NouTube-Desktop's v0.3.3 release; its version is the one Upkeep installed.
+# Drafted from nonbili/NouTube-Desktop's v0.3.3 release.
 [apps.noutube]
 name = "NouTube"
 kind = "appimage"
 repo = "nonbili/NouTube-Desktop"
 asset = '^NouTube-.*\.AppImage$'
 dest = "~/.local/bin/noutube.AppImage"
-probe = false
+meta_path = "noutube.desktop"

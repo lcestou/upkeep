@@ -1,4 +1,4 @@
-# Drafted from mattn/goreman's v0.3.19 release; its version is the one Upkeep installed.
+# Drafted from mattn/goreman's v0.3.19 release.
 [apps.goreman]
 name = "goreman"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^goreman_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/goreman"
 folder = "~/.local/share/goreman"
 bins = ["goreman"]
-probe = false
+version_args = ["version"]

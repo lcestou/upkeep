@@ -1,4 +1,4 @@
-# Drafted from rgwood/systemctl-tui's v0.8.0 release; its version is the one Upkeep installed.
+# Drafted from rgwood/systemctl-tui's v0.8.0 release.
 [apps.systemctl-tui]
 name = "Systemctl Tui"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^systemctl-tui-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^systemctl-tui-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/systemctl-tui"
 bins = ["systemctl-tui"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from bahdotsh/mdterm's v2.0.0 release; its version is the one Upkeep installed.
+# Drafted from bahdotsh/mdterm's v2.0.0 release.
 [apps.mdterm]
 name = "mdterm"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^mdterm-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^mdterm-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/mdterm"
 bins = ["mdterm"]
-probe = false

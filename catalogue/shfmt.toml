@@ -1,4 +1,4 @@
-# Drafted from mvdan/sh's v3.14.1 release; its version is the one Upkeep installed.
+# Drafted from mvdan/sh's v3.14.1 release.
 [apps.shfmt]
 name = "sh"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "mvdan/sh"
 asset = '^shfmt_.*_linux_amd64$'
 asset_aarch64 = '^shfmt_.*_linux_arm64$'
 dest = "~/.local/bin/shfmt"
-probe = false

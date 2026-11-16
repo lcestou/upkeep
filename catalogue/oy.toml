@@ -1,4 +1,4 @@
-# Drafted from ahkohd/oyo's v0.1.72 release; its version is the one Upkeep installed.
+# Drafted from ahkohd/oyo's v0.1.72 release.
 [apps.oy]
 name = "oyo"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^oy-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^oy-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/oy"
 bins = ["oy"]
-probe = false

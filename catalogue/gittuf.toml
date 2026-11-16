@@ -1,4 +1,4 @@
-# Drafted from gittuf/gittuf's v0.18.0 release; its version is the one Upkeep installed.
+# Drafted from gittuf/gittuf's v0.18.0 release.
 [apps.gittuf]
 name = "gittuf"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "gittuf/gittuf"
 asset = '^gittuf_.*_linux_amd64$'
 asset_aarch64 = '^gittuf_.*_linux_arm64$'
 dest = "~/.local/bin/gittuf"
-probe = false
+version_args = ["version"]

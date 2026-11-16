@@ -1,4 +1,4 @@
-# Drafted from utkuozdemir/pv-migrate's v3.7.0 release; its version is the one Upkeep installed.
+# Drafted from utkuozdemir/pv-migrate's v3.7.0 release.
 [apps.pv-migrate]
 name = "Pv Migrate"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^pv-migrate_.*_linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^pv-migrate_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/pv-migrate"
 bins = ["pv-migrate"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from commercialhaskell/stack's v3.11.1 release; its version is the one Upkeep installed.
+# Drafted from commercialhaskell/stack's v3.11.1 release.
 [apps.stack]
 name = "stack"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^stack-.*-linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^stack-.*-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/stack"
 bins = ["stack-3.11.1-linux-x86_64/stack"]
-probe = false

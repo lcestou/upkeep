@@ -1,4 +1,4 @@
-# Drafted from edneyosf/Edconv's 1.5.3 release; its version is the one Upkeep installed.
+# Drafted from edneyosf/Edconv's 1.5.3 release.
 [apps.edconv]
 name = "Edconv"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "edneyosf/Edconv"
 asset = '^Edconv-.*-x86_64\.AppImage$'
 asset_aarch64 = '^Edconv-.*-arm64\.AppImage$'
 dest = "~/.local/bin/edconv.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.edneyosf.edconv.appdata.xml"

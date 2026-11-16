@@ -1,4 +1,4 @@
-# Drafted from supernovae-st/nika's v0.124.4 release; its version is the one Upkeep installed.
+# Drafted from supernovae-st/nika's v0.124.4 release.
 [apps.nika]
 name = "nika"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^nika-linux-x64-.*\.tar\.gz$'
 asset_aarch64 = '^nika-linux-arm64-.*\.tar\.gz$'
 dest = "~/.local/bin/nika"
 bins = ["nika"]
-probe = false

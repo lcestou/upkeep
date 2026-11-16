@@ -1,8 +1,8 @@
-# Drafted from Fluid-CAD/FluidCAD's v0.0.51 release; its version is the one Upkeep installed.
+# Drafted from Fluid-CAD/FluidCAD's v0.0.51 release.
 [apps.fluidcad]
 name = "FluidCAD"
 kind = "appimage"
 repo = "Fluid-CAD/FluidCAD"
 asset = '^FluidCAD-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/fluidcad.AppImage"
-probe = false
+meta_path = "fluidcad-desktop.desktop"

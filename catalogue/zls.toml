@@ -1,4 +1,4 @@
-# Drafted from zigtools/zls's 0.17.0 release; its version is the one Upkeep installed.
+# Drafted from zigtools/zls's 0.17.0 release.
 [apps.zls]
 name = "zls"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^zls-x86_64-linux\.tar\.xz$'
 asset_aarch64 = '^zls-aarch64-linux\.tar\.xz$'
 dest = "~/.local/bin/zls"
 bins = ["zls"]
-probe = false

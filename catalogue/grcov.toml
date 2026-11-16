@@ -1,4 +1,4 @@
-# Drafted from mozilla/grcov's v0.10.8 release; its version is the one Upkeep installed.
+# Drafted from mozilla/grcov's v0.10.8 release.
 [apps.grcov]
 name = "grcov"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^grcov-x86_64-unknown-linux-gnu\.tar\.bz2$'
 asset_aarch64 = '^grcov-aarch64-unknown-linux-gnu\.tar\.bz2$'
 dest = "~/.local/bin/grcov"
 bins = ["grcov"]
-probe = false

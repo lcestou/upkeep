@@ -1,4 +1,4 @@
-# Drafted from docker/docker-agent's v1.161.0 release; its version is the one Upkeep installed.
+# Drafted from docker/docker-agent's v1.161.0 release.
 [apps.docker-agent]
 name = "Docker Agent"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "docker/docker-agent"
 asset = '^docker-agent-linux-amd64$'
 asset_aarch64 = '^docker-agent-linux-arm64$'
 dest = "~/.local/bin/docker-agent"
-probe = false
+version_args = ["version"]

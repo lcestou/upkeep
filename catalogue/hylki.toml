@@ -1,4 +1,4 @@
-# Drafted from hyprlab/hylki's v1.48.1 release; its version is the one Upkeep installed.
+# Drafted from hyprlab/hylki's v1.48.1 release.
 [apps.hylki]
 name = "Hylki"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "hyprlab/hylki"
 asset = '^Hylki-x86_64\.AppImage$'
 asset_aarch64 = '^Hylki-aarch64\.AppImage$'
 dest = "~/.local/bin/hylki.AppImage"
-probe = false
+meta_path = "co.hyprlab.Hylki.desktop"

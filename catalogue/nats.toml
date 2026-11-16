@@ -1,4 +1,4 @@
-# Drafted from nats-io/natscli's v0.5.1 release; its version is the one Upkeep installed.
+# Drafted from nats-io/natscli's v0.5.1 release.
 [apps.nats]
 name = "natscli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^nats-.*-linux-amd64\.zip$'
 asset_aarch64 = '^nats-.*-linux-arm64\.zip$'
 dest = "~/.local/bin/nats"
 bins = ["nats-0.5.1-linux-amd64/nats"]
-probe = false

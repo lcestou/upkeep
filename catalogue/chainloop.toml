@@ -1,4 +1,4 @@
-# Drafted from chainloop-dev/chainloop's v1.135.2 release; its version is the one Upkeep installed.
+# Drafted from chainloop-dev/chainloop's v1.135.2 release.
 [apps.chainloop]
 name = "chainloop"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "chainloop-dev/chainloop"
 asset = '^chainloop-linux-amd64$'
 asset_aarch64 = '^chainloop-linux-arm64$'
 dest = "~/.local/bin/chainloop"
-probe = false
+version_args = ["version"]

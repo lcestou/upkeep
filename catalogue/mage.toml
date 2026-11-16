@@ -1,4 +1,4 @@
-# Drafted from magefile/mage's v1.17.2 release; its version is the one Upkeep installed.
+# Drafted from magefile/mage's v1.17.2 release.
 [apps.mage]
 name = "mage"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "magefile/mage"
 asset = '^mage_.*_Linux-64bit\.tar\.gz$'
 dest = "~/.local/bin/mage"
 bins = ["mage"]
-probe = false

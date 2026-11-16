@@ -1,4 +1,4 @@
-# Drafted from brigadecore/brigade's v2.6.0 release; its version is the one Upkeep installed.
+# Drafted from brigadecore/brigade's v2.6.0 release.
 [apps.brig]
 name = "brigade"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "brigadecore/brigade"
 asset = '^brig-linux-amd64$'
 asset_aarch64 = '^brig-linux-arm64$'
 dest = "~/.local/bin/brig"
-probe = false
+version_args = ["version"]

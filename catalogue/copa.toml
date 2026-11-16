@@ -1,4 +1,4 @@
-# Drafted from project-copacetic/copacetic's v0.15.0 release; its version is the one Upkeep installed.
+# Drafted from project-copacetic/copacetic's v0.15.0 release.
 [apps.copa]
 name = "copacetic"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^copa_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^copa_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/copa"
 bins = ["copa"]
-probe = false

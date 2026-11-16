@@ -1,4 +1,4 @@
-# Drafted from software-mansion/scarb's v2.21.0 release; its version is the one Upkeep installed.
+# Drafted from software-mansion/scarb's v2.21.0 release.
 [apps.scarb]
 name = "scarb"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^scarb-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/scarb"
 folder = "~/.local/share/scarb"
 bins = ["bin/scarb", "bin/scarb-cairo-language-server", "bin/scarb-cairo-test", "bin/scarb-doc", "bin/scarb-execute", "bin/scarb-mdbook"]
-probe = false

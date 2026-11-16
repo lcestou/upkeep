@@ -1,4 +1,4 @@
-# Drafted from fwdcloudsec/granted's v0.40.0 release; its version is the one Upkeep installed.
+# Drafted from fwdcloudsec/granted's v0.40.0 release.
 [apps.granted]
 name = "granted"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^granted_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/granted"
 folder = "~/.local/share/granted"
 bins = ["granted"]
-probe = false

@@ -1,8 +1,8 @@
-# Drafted from lencx/Noi's v1.1.0 release; its version is the one Upkeep installed.
+# Drafted from lencx/Noi's v1.1.0 release.
 [apps.noi]
 name = "Noi"
 kind = "appimage"
 repo = "lencx/Noi"
 asset = '^Noi-.*-x64\.AppImage$'
 dest = "~/.local/bin/noi.AppImage"
-probe = false
+meta_path = "Noi.desktop"

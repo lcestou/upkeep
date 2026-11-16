@@ -1,4 +1,4 @@
-# Drafted from veeso/termscp's v1.2.2 release; its version is the one Upkeep installed.
+# Drafted from veeso/termscp's v1.2.2 release.
 [apps.termscp]
 name = "termscp"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^termscp-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^termscp-.*-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/termscp"
 bins = ["termscp"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from linuxkit/linuxkit's v1.8.2 release; its version is the one Upkeep installed.
+# Drafted from linuxkit/linuxkit's v1.8.2 release.
 [apps.linuxkit]
 name = "linuxkit"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "linuxkit/linuxkit"
 asset = '^linuxkit-linux-amd64$'
 asset_aarch64 = '^linuxkit-linux-arm64$'
 dest = "~/.local/bin/linuxkit"
-probe = false
+version_args = ["version"]

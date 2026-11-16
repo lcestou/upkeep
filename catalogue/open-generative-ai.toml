@@ -1,8 +1,8 @@
-# Drafted from Anil-matcha/Open-Generative-AI's v2.0.0 release; its version is the one Upkeep installed.
+# Drafted from Anil-matcha/Open-Generative-AI's v2.0.0 release.
 [apps.open-generative-ai]
 name = "Open-Generative-AI"
 kind = "appimage"
 repo = "Anil-matcha/Open-Generative-AI"
 asset = '^Open\.Generative\.AI-.*\.AppImage$'
 dest = "~/.local/bin/open-generative-ai.AppImage"
-probe = false
+meta_path = "open-generative-ai.desktop"

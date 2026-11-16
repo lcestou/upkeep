@@ -1,4 +1,4 @@
-# Drafted from anthropics/anthropic-cli's v2.9.0 release; its version is the one Upkeep installed.
+# Drafted from anthropics/anthropic-cli's v2.9.0 release.
 [apps.ant]
 name = "Anthropic Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ant_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^ant_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ant"
 bins = ["ant"]
-probe = false

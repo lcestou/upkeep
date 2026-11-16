@@ -1,4 +1,4 @@
-# Drafted from aws/amazon-ec2-instance-selector's v3.1.3 release; its version is the one Upkeep installed.
+# Drafted from aws/amazon-ec2-instance-selector's v3.1.3 release.
 [apps.ec2-instance-selector]
 name = "Amazon Ec2 Instance Selector"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ec2-instance-selector-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^ec2-instance-selector-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/ec2-instance-selector"
 bins = ["ec2-instance-selector"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from gabrie30/ghorg's v1.11.17 release; its version is the one Upkeep installed.
+# Drafted from gabrie30/ghorg's v1.11.17 release.
 [apps.ghorg]
 name = "ghorg"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^ghorg_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^ghorg_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ghorg"
 bins = ["ghorg"]
-probe = false
+version_args = ["version"]

@@ -1,8 +1,8 @@
-# Drafted from stephengpope/shockwave's v1.0.88 release; its version is the one Upkeep installed.
+# Drafted from stephengpope/shockwave's v1.0.88 release.
 [apps.shockwave]
 name = "Shockwave"
 kind = "appimage"
 repo = "stephengpope/shockwave"
 asset = '^Shockwave-linux\.AppImage$'
 dest = "~/.local/bin/shockwave.AppImage"
-probe = false
+meta_path = "shockwave.desktop"

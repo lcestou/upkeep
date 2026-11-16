@@ -1,4 +1,4 @@
-# Drafted from github/copilot-language-server-release's 1.570.0 release; its version is the one Upkeep installed.
+# Drafted from github/copilot-language-server-release's 1.570.0 release.
 [apps.copilot-language-server]
 name = "Copilot Language Server Release"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^copilot-language-server-linux-arm64-.*\.zip$'
 dest = "~/.local/bin/copilot-language-server"
 folder = "~/.local/share/copilot-language-server"
 bins = ["copilot-language-server"]
-probe = false

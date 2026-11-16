@@ -1,4 +1,4 @@
-# Drafted from ploxc/modbux's v2.3.1 release; its version is the one Upkeep installed.
+# Drafted from ploxc/modbux's v2.3.1 release.
 [apps.modbux]
 name = "modbux"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "ploxc/modbux"
 asset = '^modbux-.*-x86_64\.AppImage$'
 asset_aarch64 = '^modbux-.*-arm64\.AppImage$'
 dest = "~/.local/bin/modbux.AppImage"
-probe = false
+meta_path = "modbux.desktop"

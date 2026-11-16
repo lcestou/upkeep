@@ -1,4 +1,4 @@
-# Drafted from helm/chart-testing's v3.15.0 release; its version is the one Upkeep installed.
+# Drafted from helm/chart-testing's v3.15.0 release.
 [apps.ct]
 name = "Chart Testing"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^chart-testing_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ct"
 folder = "~/.local/share/ct"
 bins = ["ct"]
-probe = false
+version_args = ["version"]

@@ -1,4 +1,4 @@
-# Drafted from jarun/nnn's v5.3 release; its version is the one Upkeep installed.
+# Drafted from jarun/nnn's v5.3 release.
 [apps.nnn]
 name = "nnn"
 kind = "archive"
@@ -6,4 +6,4 @@ repo = "jarun/nnn"
 asset = '^nnn-musl-static-.*\.x86_64\.tar\.gz$'
 dest = "~/.local/bin/nnn"
 bins = ["nnn*"]
-probe = false
+version_args = ["-V"]

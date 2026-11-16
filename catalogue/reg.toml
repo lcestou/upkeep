@@ -1,4 +1,4 @@
-# Drafted from genuinetools/reg's v0.16.1 release; its version is the one Upkeep installed.
+# Drafted from genuinetools/reg's v0.16.1 release.
 [apps.reg]
 name = "reg"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "genuinetools/reg"
 asset = '^reg-linux-amd64$'
 asset_aarch64 = '^reg-linux-arm64$'
 dest = "~/.local/bin/reg"
-probe = false
+version_args = ["version"]

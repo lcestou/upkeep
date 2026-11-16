@@ -1,8 +1,8 @@
-# Drafted from ra3xdh/qucs_s's 26.1.1 release; its version is the one Upkeep installed.
+# Drafted from ra3xdh/qucs_s's 26.1.1 release.
 [apps.qucs-s]
 name = "Qucs-S"
 kind = "appimage"
 repo = "ra3xdh/qucs_s"
 asset = '^Qucs-S-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/qucs-s.AppImage"
-probe = false
+meta_path = "qucs-s.desktop"

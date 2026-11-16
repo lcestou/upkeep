@@ -1,4 +1,4 @@
-# Drafted from tod-org/tod's v0.19.0 release; its version is the one Upkeep installed.
+# Drafted from tod-org/tod's v0.19.0 release.
 [apps.tod]
 name = "tod"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tod-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^tod-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/tod"
 bins = ["tod"]
-probe = false

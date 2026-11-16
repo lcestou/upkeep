@@ -1,4 +1,4 @@
-# Drafted from projectdiscovery/katana's v1.8.0 release; its version is the one Upkeep installed.
+# Drafted from projectdiscovery/katana's v1.8.0 release.
 [apps.katana]
 name = "katana"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^katana_.*_linux_amd64\.zip$'
 asset_aarch64 = '^katana_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/katana"
 bins = ["katana"]
-probe = false

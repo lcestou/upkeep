@@ -1,8 +1,8 @@
-# Drafted from SethRobinson/Patchy's v1.36 release; its version is the one Upkeep installed.
+# Drafted from SethRobinson/Patchy's v1.36 release.
 [apps.patchylinux]
 name = "PatchyLinux"
 kind = "appimage"
 repo = "SethRobinson/Patchy"
 asset = '^PatchyLinux\.AppImage$'
 dest = "~/.local/bin/patchylinux.AppImage"
-probe = false
+meta_path = "com.rtsoft.patchy.desktop"

@@ -1,8 +1,8 @@
-# Drafted from mgechev/ngrev's v0.0.35 release; its version is the one Upkeep installed.
+# Drafted from mgechev/ngrev's v0.0.35 release.
 [apps.ngrev]
 name = "ngrev"
 kind = "appimage"
 repo = "mgechev/ngrev"
 asset = '^ngrev-.*\.AppImage$'
 dest = "~/.local/bin/ngrev.AppImage"
-probe = false
+meta_path = "ngrev.desktop"

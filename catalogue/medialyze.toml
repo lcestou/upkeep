@@ -1,8 +1,8 @@
-# Drafted from frederikemmer/MediaLyze's v0.20.0 release; its version is the one Upkeep installed.
+# Drafted from frederikemmer/MediaLyze's v0.20.0 release.
 [apps.medialyze]
 name = "MediaLyze"
 kind = "appimage"
 repo = "frederikemmer/MediaLyze"
 asset = '^MediaLyze\.AppImage$'
 dest = "~/.local/bin/medialyze.AppImage"
-probe = false
+meta_path = "medialyze-desktop.desktop"

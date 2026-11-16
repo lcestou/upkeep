@@ -1,4 +1,4 @@
-# Drafted from anchore/syft's v1.57.1 release; its version is the one Upkeep installed.
+# Drafted from anchore/syft's v1.57.1 release.
 [apps.syft]
 name = "syft"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^syft_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^syft_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/syft"
 bins = ["syft"]
-probe = false

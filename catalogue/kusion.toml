@@ -1,4 +1,4 @@
-# Drafted from KusionStack/kusion's v0.15.0 release; its version is the one Upkeep installed.
+# Drafted from KusionStack/kusion's v0.15.0 release.
 [apps.kusion]
 name = "kusion"
 kind = "archive"
@@ -6,4 +6,4 @@ repo = "KusionStack/kusion"
 asset = '^kusion_.*_linux_amd64\.tar\.gz$'
 dest = "~/.local/bin/kusion"
 bins = ["kusion"]
-probe = false
+version_args = ["version"]

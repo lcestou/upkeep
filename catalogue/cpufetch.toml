@@ -1,4 +1,4 @@
-# Drafted from Dr-Noob/cpufetch's v1.07 release; its version is the one Upkeep installed.
+# Drafted from Dr-Noob/cpufetch's v1.07 release.
 [apps.cpufetch]
 name = "cpufetch"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "Dr-Noob/cpufetch"
 asset = '^cpufetch_x86-64_linux$'
 asset_aarch64 = '^cpufetch_arm64_linux$'
 dest = "~/.local/bin/cpufetch"
-probe = false

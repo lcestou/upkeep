@@ -1,4 +1,4 @@
-# Drafted from cargo-bins/cargo-binstall's v1.27.0 release; its version is the one Upkeep installed.
+# Drafted from cargo-bins/cargo-binstall's v1.27.0 release.
 [apps.cargo-binstall]
 name = "Cargo Binstall"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^cargo-binstall-x86_64-unknown-linux-gnu\.tgz$'
 asset_aarch64 = '^cargo-binstall-aarch64-unknown-linux-gnu\.tgz$'
 dest = "~/.local/bin/cargo-binstall"
 bins = ["cargo-binstall"]
-probe = false
+version_args = ["-V"]

@@ -1,4 +1,4 @@
-# Drafted from EchoHS/GeekezBrowser's v1.8.2 release; its version is the one Upkeep installed.
+# Drafted from EchoHS/GeekezBrowser's v1.8.2 release.
 [apps.geekez-browser]
 name = "GeekEZ-Browser"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "EchoHS/GeekezBrowser"
 asset = '^GeekEZ\.Browser-.*-x86_64\.AppImage$'
 asset_aarch64 = '^GeekEZ\.Browser-.*-arm64\.AppImage$'
 dest = "~/.local/bin/geekez-browser.AppImage"
-probe = false
+meta_path = "geekez-browser.desktop"

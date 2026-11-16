@@ -1,4 +1,4 @@
-# Drafted from dont-be-evil-company/p2p.kiwi's v3.10.0 release; its version is the one Upkeep installed.
+# Drafted from dont-be-evil-company/p2p.kiwi's v3.10.0 release.
 [apps.p2p-kiwi]
 name = "p2p.kiwi"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "dont-be-evil-company/p2p.kiwi"
 asset = '^p2p-kiwi_x86_64\.AppImage$'
 asset_aarch64 = '^p2p-kiwi_arm64\.AppImage$'
 dest = "~/.local/bin/p2p-kiwi.AppImage"
-probe = false
+meta_path = "p2p.kiwi.desktop"

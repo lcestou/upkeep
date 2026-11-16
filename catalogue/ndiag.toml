@@ -1,4 +1,4 @@
-# Drafted from k1LoW/ndiag's v0.15.5 release; its version is the one Upkeep installed.
+# Drafted from k1LoW/ndiag's v0.15.5 release.
 [apps.ndiag]
 name = "ndiag"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ndiag_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^ndiag_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ndiag"
 bins = ["ndiag"]
-probe = false

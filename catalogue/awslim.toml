@@ -1,4 +1,4 @@
-# Drafted from fujiwara/awslim's v0.9.0 release; its version is the one Upkeep installed.
+# Drafted from fujiwara/awslim's v0.9.0 release.
 [apps.awslim]
 name = "awslim"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^awslim_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^awslim_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/awslim"
 bins = ["awslim"]
-probe = false

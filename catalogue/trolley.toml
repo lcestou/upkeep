@@ -1,4 +1,4 @@
-# Drafted from weedonandscott/trolley's v0.12.0 release; its version is the one Upkeep installed.
+# Drafted from weedonandscott/trolley's v0.12.0 release.
 [apps.trolley]
 name = "trolley"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^trolley-cli-x86_64-linux\.tar\.xz$'
 asset_aarch64 = '^trolley-cli-aarch64-linux\.tar\.xz$'
 dest = "~/.local/bin/trolley"
 bins = ["trolley"]
-probe = false

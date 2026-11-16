@@ -1,4 +1,4 @@
-# Drafted from julyx10/lap's v0.3.3 release; its version is the one Upkeep installed.
+# Drafted from julyx10/lap's v0.3.3 release.
 [apps.lap]
 name = "Lap"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "julyx10/lap"
 asset = '^Lap_.*_amd64\.AppImage$'
 asset_aarch64 = '^Lap_.*_aarch64\.AppImage$'
 dest = "~/.local/bin/lap.AppImage"
-probe = false
+meta_path = "Lap.desktop"

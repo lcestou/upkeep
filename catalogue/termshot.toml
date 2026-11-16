@@ -1,4 +1,4 @@
-# Drafted from homeport/termshot's v0.6.1 release; its version is the one Upkeep installed.
+# Drafted from homeport/termshot's v0.6.1 release.
 [apps.termshot]
 name = "termshot"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^termshot_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^termshot_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/termshot"
 bins = ["termshot"]
-probe = false

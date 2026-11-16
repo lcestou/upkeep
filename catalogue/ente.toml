@@ -1,4 +1,4 @@
-# Drafted from ente/photos-desktop's v1.7.31 release; its version is the one Upkeep installed.
+# Drafted from ente/photos-desktop's v1.7.31 release.
 [apps.ente]
 name = "Photos Desktop"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "ente/photos-desktop"
 asset = '^ente-.*-x86_64\.AppImage$'
 asset_aarch64 = '^ente-.*-arm64\.AppImage$'
 dest = "~/.local/bin/ente.AppImage"
-probe = false
+meta_path = "ente.desktop"

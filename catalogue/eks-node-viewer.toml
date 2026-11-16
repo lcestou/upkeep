@@ -1,4 +1,4 @@
-# Drafted from awslabs/eks-node-viewer's v0.7.4 release; its version is the one Upkeep installed.
+# Drafted from awslabs/eks-node-viewer's v0.7.4 release.
 [apps.eks-node-viewer]
 name = "Eks Node Viewer"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "awslabs/eks-node-viewer"
 asset = '^eks-node-viewer_Linux_x86_64$'
 asset_aarch64 = '^eks-node-viewer_Linux_arm64$'
 dest = "~/.local/bin/eks-node-viewer"
-probe = false

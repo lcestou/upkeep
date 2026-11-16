@@ -1,4 +1,4 @@
-# Drafted from omnirush-ai/omnirush-gui's v3.8.5 release; its version is the one Upkeep installed.
+# Drafted from omnirush-ai/omnirush-gui's v3.8.5 release.
 [apps.omnirush]
 name = "Omnirush Gui"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "omnirush-ai/omnirush-gui"
 asset = '^omnirush-linux-x86_64-.*\.AppImage$'
 asset_aarch64 = '^omnirush-linux-arm64-.*\.AppImage$'
 dest = "~/.local/bin/omnirush.AppImage"
-probe = false
+meta_path = "ai.omnirush.desktop"

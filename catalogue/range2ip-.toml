@@ -1,4 +1,4 @@
-# Drafted from ipinfo/cli's range2ip-3.3.4 release; its version is the one Upkeep installed.
+# Drafted from ipinfo/cli's range2ip-3.3.4 release.
 [apps.range2ip-]
 name = "range2ip"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^range2ip_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^range2ip_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/range2ip_"
 bins = ["range2ip_*"]
-probe = false

@@ -1,8 +1,8 @@
-# Drafted from ShotHeadman/mdcz's v0.22.0 release; its version is the one Upkeep installed.
+# Drafted from ShotHeadman/mdcz's v0.22.0 release.
 [apps.mdcz]
 name = "MDCz"
 kind = "appimage"
 repo = "ShotHeadman/mdcz"
 asset = '^MDCz-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/mdcz.AppImage"
-probe = false
+meta_path = "mdcz.desktop"

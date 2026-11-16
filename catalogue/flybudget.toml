@@ -1,4 +1,4 @@
-# Drafted from dtymoszenko/FlyBudget's v0.3.0 release; its version is the one Upkeep installed.
+# Drafted from dtymoszenko/FlyBudget's v0.3.0 release.
 [apps.flybudget]
 name = "FlyBudget"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "dtymoszenko/FlyBudget"
 asset = '^FlyBudget-Linux-x86_64\.AppImage$'
 asset_aarch64 = '^FlyBudget-Linux-arm64\.AppImage$'
 dest = "~/.local/bin/flybudget.AppImage"
-probe = false
+meta_path = "flybudget.desktop"

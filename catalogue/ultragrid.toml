@@ -1,8 +1,8 @@
-# Drafted from CESNET/UltraGrid's v1.10.8 release; its version is the one Upkeep installed.
+# Drafted from CESNET/UltraGrid's v1.10.8 release.
 [apps.ultragrid]
 name = "UltraGrid"
 kind = "appimage"
 repo = "CESNET/UltraGrid"
 asset = '^UltraGrid-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/ultragrid.AppImage"
-probe = false
+meta_path = "cz.cesnet.ultragrid.desktop"

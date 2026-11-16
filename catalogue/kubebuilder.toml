@@ -1,4 +1,4 @@
-# Drafted from kubernetes-sigs/kubebuilder's v4.16.0 release; its version is the one Upkeep installed.
+# Drafted from kubernetes-sigs/kubebuilder's v4.16.0 release.
 [apps.kubebuilder]
 name = "kubebuilder"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "kubernetes-sigs/kubebuilder"
 asset = '^kubebuilder_linux_amd64$'
 asset_aarch64 = '^kubebuilder_linux_arm64$'
 dest = "~/.local/bin/kubebuilder"
-probe = false
+version_args = ["version"]

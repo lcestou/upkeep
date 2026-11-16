@@ -1,8 +1,8 @@
-# Drafted from ProxymanApp/proxyman-windows-linux's 26.2.0 release; its version is the one Upkeep installed.
+# Drafted from ProxymanApp/proxyman-windows-linux's 26.2.0 release.
 [apps.proxyman]
 name = "Proxyman"
 kind = "appimage"
 repo = "ProxymanApp/proxyman-windows-linux"
 asset = '^Proxyman-.*\.AppImage$'
 dest = "~/.local/bin/proxyman.AppImage"
-probe = false
+meta_path = "proxyman.desktop"

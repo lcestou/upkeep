@@ -1,4 +1,4 @@
-# Drafted from argoproj-labs/argocd-autopilot's v0.4.20 release; its version is the one Upkeep installed.
+# Drafted from argoproj-labs/argocd-autopilot's v0.4.20 release.
 [apps.argocd-autopilot]
 name = "Argocd Autopilot"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^argocd-autopilot-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^argocd-autopilot-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/argocd-autopilot"
 bins = ["argocd-autopilot*"]
-probe = false
+version_args = ["version"]

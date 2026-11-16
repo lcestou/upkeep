@@ -1,4 +1,4 @@
-# Drafted from hivepaas/shellwing's v0.2.1 release; its version is the one Upkeep installed.
+# Drafted from hivepaas/shellwing's v0.2.1 release.
 [apps.shellwing]
 name = "shellwing"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "hivepaas/shellwing"
 asset = '^shellwing_.*_linux_x86_64\.AppImage$'
 asset_aarch64 = '^shellwing_.*_linux_aarch64\.AppImage$'
 dest = "~/.local/bin/shellwing.AppImage"
-probe = false
+meta_path = "shellwing.desktop"

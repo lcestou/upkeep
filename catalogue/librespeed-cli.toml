@@ -1,4 +1,4 @@
-# Drafted from librespeed/speedtest-cli's v1.0.14 release; its version is the one Upkeep installed.
+# Drafted from librespeed/speedtest-cli's v1.0.14 release.
 [apps.librespeed-cli]
 name = "Speedtest Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^librespeed-cli_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^librespeed-cli_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/librespeed-cli"
 bins = ["librespeed-cli"]
-probe = false

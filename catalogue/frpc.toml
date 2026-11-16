@@ -1,4 +1,4 @@
-# Drafted from fatedier/frp's v0.72.0 release; its version is the one Upkeep installed.
+# Drafted from fatedier/frp's v0.72.0 release.
 [apps.frpc]
 name = "frp"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^frp_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/frpc"
 folder = "~/.local/share/frpc"
 bins = ["frpc", "frps"]
-probe = false

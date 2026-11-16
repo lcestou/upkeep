@@ -1,4 +1,4 @@
-# Drafted from nakabonne/ali's v0.8.0 release; its version is the one Upkeep installed.
+# Drafted from nakabonne/ali's v0.8.0 release.
 [apps.ali]
 name = "ali"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ali_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^ali_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ali"
 bins = ["ali"]
-probe = false

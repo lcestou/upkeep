@@ -1,4 +1,4 @@
-# Drafted from livebud/bud's v0.2.8 release; its version is the one Upkeep installed.
+# Drafted from livebud/bud's v0.2.8 release.
 [apps.bud]
 name = "bud"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^bud_.*_linux_amd64\.tar\.gz$'
 dest = "~/.local/bin/bud"
 folder = "~/.local/share/bud"
 bins = ["bud"]
-probe = false
+version_args = ["version"]

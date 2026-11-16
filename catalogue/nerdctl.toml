@@ -1,4 +1,4 @@
-# Drafted from containerd/nerdctl's v2.4.2 release; its version is the one Upkeep installed.
+# Drafted from containerd/nerdctl's v2.4.2 release.
 [apps.nerdctl]
 name = "nerdctl"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^nerdctl-[0-9][0-9A-Za-z.]*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/nerdctl"
 folder = "~/.local/share/nerdctl"
 bins = ["nerdctl"]
-probe = false

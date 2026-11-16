@@ -1,4 +1,4 @@
-# Drafted from protocolbuffers/protobuf's v36.2 release; its version is the one Upkeep installed.
+# Drafted from protocolbuffers/protobuf's v36.2 release.
 [apps.protoc]
 name = "protobuf"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^protoc-.*-linux-x86_64\.zip$'
 dest = "~/.local/bin/protoc"
 folder = "~/.local/share/protoc"
 bins = ["bin/protoc"]
-probe = false

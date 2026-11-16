@@ -1,4 +1,4 @@
-# Drafted from JamesWoolfenden/pike's v1.0.15 release; its version is the one Upkeep installed.
+# Drafted from JamesWoolfenden/pike's v1.0.15 release.
 [apps.pike]
 name = "pike"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^pike_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^pike_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/pike"
 bins = ["pike"]
-probe = false

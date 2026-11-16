@@ -1,8 +1,8 @@
-# Drafted from Icalingua-plus-plus/Icalingua-plus-plus's v2.26.8 release; its version is the one Upkeep installed.
+# Drafted from Icalingua-plus-plus/Icalingua-plus-plus's v2.26.8 release.
 [apps.icalingua]
 name = "Icalingua++"
 kind = "appimage"
 repo = "Icalingua-plus-plus/Icalingua-plus-plus"
 asset = '^Icalingua\+\+-[0-9][0-9A-Za-z.]*\.AppImage$'
 dest = "~/.local/bin/icalingua.AppImage"
-probe = false
+meta_path = "icalingua.desktop"

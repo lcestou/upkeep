@@ -1,4 +1,4 @@
-# Drafted from FairwindsOps/gonogo's v0.4.0 release; its version is the one Upkeep installed.
+# Drafted from FairwindsOps/gonogo's v0.4.0 release.
 [apps.gonogo]
 name = "gonogo"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^gonogo_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^gonogo_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gonogo"
 bins = ["gonogo"]
-probe = false
+version_args = ["version"]

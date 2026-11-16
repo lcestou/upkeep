@@ -1,4 +1,4 @@
-# Drafted from Gentleman-Programming/gentle-ai's v4.5.0 release; its version is the one Upkeep installed.
+# Drafted from Gentleman-Programming/gentle-ai's v4.5.0 release.
 [apps.gentle-ai]
 name = "Gentle Ai"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^gentle-ai_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gentle-ai"
 folder = "~/.local/share/gentle-ai"
 bins = ["gentle-ai"]
-probe = false

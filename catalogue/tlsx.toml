@@ -1,4 +1,4 @@
-# Drafted from projectdiscovery/tlsx's v1.4.0 release; its version is the one Upkeep installed.
+# Drafted from projectdiscovery/tlsx's v1.4.0 release.
 [apps.tlsx]
 name = "tlsx"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tlsx_.*_linux_amd64\.zip$'
 asset_aarch64 = '^tlsx_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/tlsx"
 bins = ["tlsx"]
-probe = false

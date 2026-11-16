@@ -1,8 +1,8 @@
-# Drafted from Equicord/Equibop's v3.3.4 release; its version is the one Upkeep installed.
+# Drafted from Equicord/Equibop's v3.3.4 release.
 [apps.equibop]
 name = "Equibop"
 kind = "appimage"
 repo = "Equicord/Equibop"
 asset = '^Equibop-[0-9][0-9A-Za-z.]*\.AppImage$'
 dest = "~/.local/bin/equibop.AppImage"
-probe = false
+meta_path = "equibop.desktop"

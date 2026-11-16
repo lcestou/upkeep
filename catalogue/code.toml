@@ -1,4 +1,4 @@
-# Drafted from just-every/code's v0.6.196 release; its version is the one Upkeep installed.
+# Drafted from just-every/code's v0.6.196 release.
 [apps.code]
 name = "code"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^code-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^code-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/code"
 bins = ["code*"]
-probe = false

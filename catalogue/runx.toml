@@ -1,4 +1,4 @@
-# Drafted from runxhq/runx's cli-v0.11.1 release; its version is the one Upkeep installed.
+# Drafted from runxhq/runx's cli-v0.11.1 release.
 [apps.runx]
 name = "runx"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^runx-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^runx-.*-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/runx"
 bins = ["runx-0.11.1-x86_64-unknown-linux-musl/runx", "runx-0.11.1-x86_64-unknown-linux-musl/runx-js-worker"]
-probe = false

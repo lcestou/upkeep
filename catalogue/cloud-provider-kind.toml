@@ -1,4 +1,4 @@
-# Drafted from kubernetes-sigs/cloud-provider-kind's v0.12.0 release; its version is the one Upkeep installed.
+# Drafted from kubernetes-sigs/cloud-provider-kind's v0.12.0 release.
 [apps.cloud-provider-kind]
 name = "Cloud Provider Kind"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^cloud-provider-kind_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^cloud-provider-kind_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/cloud-provider-kind"
 bins = ["cloud-provider-kind"]
-probe = false
+version_args = ["version"]

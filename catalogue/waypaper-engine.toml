@@ -1,8 +1,8 @@
-# Drafted from 0bCdian/Waypaper-Engine's v3.3.0 release; its version is the one Upkeep installed.
+# Drafted from 0bCdian/Waypaper-Engine's v3.3.0 release.
 [apps.waypaper-engine]
 name = "Waypaper Engine"
 kind = "appimage"
 repo = "0bCdian/Waypaper-Engine"
 asset = '^waypaper-engine\.AppImage$'
 dest = "~/.local/bin/waypaper-engine.AppImage"
-probe = false
+meta_path = "waypaper-engine-bin.desktop"

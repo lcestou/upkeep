@@ -1,4 +1,4 @@
-# Drafted from ovh/venom's v1.3.0 release; its version is the one Upkeep installed.
+# Drafted from ovh/venom's v1.3.0 release.
 [apps.venom]
 name = "venom"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "ovh/venom"
 asset = '^venom\.linux-amd64$'
 asset_aarch64 = '^venom\.linux-arm64$'
 dest = "~/.local/bin/venom"
-probe = false
+version_args = ["version"]

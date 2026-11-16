@@ -1,4 +1,4 @@
-# Drafted from open-policy-agent/gatekeeper's v3.23.1 release; its version is the one Upkeep installed.
+# Drafted from open-policy-agent/gatekeeper's v3.23.1 release.
 [apps.gator]
 name = "gatekeeper"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gator-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^gator-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/gator"
 bins = ["gator"]
-probe = false

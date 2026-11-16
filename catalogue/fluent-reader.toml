@@ -1,8 +1,8 @@
-# Drafted from yang991178/fluent-reader's v1.3.2 release; its version is the one Upkeep installed.
+# Drafted from yang991178/fluent-reader's v1.3.2 release.
 [apps.fluent-reader]
 name = "Fluent-Reader"
 kind = "appimage"
 repo = "yang991178/fluent-reader"
 asset = '^Fluent\.Reader\..*\.AppImage$'
 dest = "~/.local/bin/fluent-reader.AppImage"
-probe = false
+meta_path = "fluent-reader.desktop"

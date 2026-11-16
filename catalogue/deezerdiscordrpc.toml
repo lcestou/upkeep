@@ -1,8 +1,8 @@
-# Drafted from CuteTenshii/deezer-discord-rpc's 1.5.1 release; its version is the one Upkeep installed.
+# Drafted from CuteTenshii/deezer-discord-rpc's 1.5.1 release.
 [apps.deezerdiscordrpc]
 name = "DeezerDiscordRPC"
 kind = "appimage"
 repo = "CuteTenshii/deezer-discord-rpc"
 asset = '^DeezerDiscordRPC-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/deezerdiscordrpc.AppImage"
-probe = false
+meta_path = "deezer-discord-rpc.desktop"

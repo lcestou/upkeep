@@ -1,4 +1,4 @@
-# Drafted from zoefix/agent-speed's v1.8.0 release; its version is the one Upkeep installed.
+# Drafted from zoefix/agent-speed's v1.8.0 release.
 [apps.agentspeed]
 name = "AgentSpeed"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "zoefix/agent-speed"
 asset = '^AgentSpeed-Linux-x86_64\.AppImage$'
 asset_aarch64 = '^AgentSpeed-Linux-aarch64\.AppImage$'
 dest = "~/.local/bin/agentspeed.AppImage"
-probe = false
+meta_path = "agent-speed.desktop"

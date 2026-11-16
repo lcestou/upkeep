@@ -1,4 +1,4 @@
-# Drafted from kubecfg/kubecfg's v0.43.0 release; its version is the one Upkeep installed.
+# Drafted from kubecfg/kubecfg's v0.43.0 release.
 [apps.kubecfg]
 name = "kubecfg"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "kubecfg/kubecfg"
 asset = '^kubecfg_Linux_X64$'
 asset_aarch64 = '^kubecfg_Linux_ARM64$'
 dest = "~/.local/bin/kubecfg"
-probe = false
+version_args = ["version"]

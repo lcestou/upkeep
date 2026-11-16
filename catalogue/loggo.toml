@@ -1,4 +1,4 @@
-# Drafted from aurc/loggo's v0.3.26 release; its version is the one Upkeep installed.
+# Drafted from aurc/loggo's v0.3.26 release.
 [apps.loggo]
 name = "loggo"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^loggo_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^loggo_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/loggo"
 bins = ["loggo"]
-probe = false
+version_args = ["version"]

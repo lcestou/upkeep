@@ -1,4 +1,4 @@
-# Drafted from skanehira/ghost's v0.3.1 release; its version is the one Upkeep installed.
+# Drafted from skanehira/ghost's v0.3.1 release.
 [apps.ghost]
 name = "ghost"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ghost_x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^ghost_aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/ghost"
 bins = ["ghost"]
-probe = false

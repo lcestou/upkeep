@@ -1,4 +1,4 @@
-# Drafted from Songmu/horenso's v0.11.0 release; its version is the one Upkeep installed.
+# Drafted from Songmu/horenso's v0.11.0 release.
 [apps.horenso]
 name = "horenso"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^horenso_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/horenso"
 folder = "~/.local/share/horenso"
 bins = ["horenso"]
-probe = false

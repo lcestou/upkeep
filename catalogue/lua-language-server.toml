@@ -1,4 +1,4 @@
-# Drafted from LuaLS/lua-language-server's 3.19.2 release; its version is the one Upkeep installed.
+# Drafted from LuaLS/lua-language-server's 3.19.2 release.
 [apps.lua-language-server]
 name = "Lua Language Server"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^lua-language-server-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/lua-language-server"
 folder = "~/.local/share/lua-language-server"
 bins = ["bin/lua-language-server"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from owasp-amass/amass's v5.1.3 release; its version is the one Upkeep installed.
+# Drafted from owasp-amass/amass's v5.1.3 release.
 [apps.amass]
 name = "amass"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^amass_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/amass"
 folder = "~/.local/share/amass"
 bins = ["amass"]
-probe = false

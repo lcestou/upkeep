@@ -1,4 +1,4 @@
-# Drafted from sipeed/NanoKVM-USB's v1.1.4 release; its version is the one Upkeep installed.
+# Drafted from sipeed/NanoKVM-USB's v1.1.4 release.
 [apps.nanokvm-usb]
 name = "NanoKVM-USB"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "sipeed/NanoKVM-USB"
 asset = '^NanoKVM-USB-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^NanoKVM-USB-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/nanokvm-usb.AppImage"
-probe = false
+meta_path = "nanokvm-usb.desktop"

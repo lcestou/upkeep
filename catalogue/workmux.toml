@@ -1,4 +1,4 @@
-# Drafted from raine/workmux's v0.1.282 release; its version is the one Upkeep installed.
+# Drafted from raine/workmux's v0.1.282 release.
 [apps.workmux]
 name = "workmux"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^workmux-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^workmux-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/workmux"
 bins = ["workmux"]
-probe = false

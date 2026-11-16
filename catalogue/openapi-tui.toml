@@ -1,4 +1,4 @@
-# Drafted from zaghaghi/openapi-tui's 0.10.2 release; its version is the one Upkeep installed.
+# Drafted from zaghaghi/openapi-tui's 0.10.2 release.
 [apps.openapi-tui]
 name = "Openapi Tui"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^openapi-tui-.*-linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^openapi-tui-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/openapi-tui"
 bins = ["openapi-tui"]
-probe = false

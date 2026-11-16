@@ -1,4 +1,4 @@
-# Drafted from QuiiBz/sherif's v1.13.0 release; its version is the one Upkeep installed.
+# Drafted from QuiiBz/sherif's v1.13.0 release.
 [apps.sherif]
 name = "sherif"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^sherif-x86_64-unknown-linux-gnu\.zip$'
 asset_aarch64 = '^sherif-aarch64-unknown-linux-gnu\.zip$'
 dest = "~/.local/bin/sherif"
 bins = ["sherif"]
-probe = false

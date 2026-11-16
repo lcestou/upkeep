@@ -1,4 +1,4 @@
-# Drafted from jwilder/dockerize's v0.16.0 release; its version is the one Upkeep installed.
+# Drafted from jwilder/dockerize's v0.16.0 release.
 [apps.dockerize]
 name = "dockerize"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^dockerize-linux-amd64-.*\.tar\.gz$'
 asset_aarch64 = '^dockerize-linux-arm64-.*\.tar\.gz$'
 dest = "~/.local/bin/dockerize"
 bins = ["dockerize"]
-probe = false

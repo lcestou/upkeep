@@ -1,4 +1,4 @@
-# Drafted from ericchiang/pup's v0.4.0 release; its version is the one Upkeep installed.
+# Drafted from ericchiang/pup's v0.4.0 release.
 [apps.pup]
 name = "pup"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^pup_.*_linux_amd64\.zip$'
 asset_aarch64 = '^pup_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/pup"
 bins = ["pup"]
-probe = false

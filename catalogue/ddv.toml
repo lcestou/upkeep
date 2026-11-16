@@ -1,4 +1,4 @@
-# Drafted from lusingander/ddv's v0.3.1 release; its version is the one Upkeep installed.
+# Drafted from lusingander/ddv's v0.3.1 release.
 [apps.ddv]
 name = "ddv"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ddv-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^ddv-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/ddv"
 bins = ["ddv"]
-probe = false

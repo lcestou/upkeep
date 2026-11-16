@@ -1,4 +1,4 @@
-# Drafted from earendil-works/pi's v1.5.2 release; its version is the one Upkeep installed.
+# Drafted from earendil-works/pi's v1.5.2 release.
 [apps.pi]
 name = "pi"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^pi-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/pi"
 folder = "~/.local/share/pi"
 bins = ["pi"]
-probe = false

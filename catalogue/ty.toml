@@ -1,4 +1,4 @@
-# Drafted from astral-sh/ty's 0.0.104 release; its version is the one Upkeep installed.
+# Drafted from astral-sh/ty's 0.0.104 release.
 [apps.ty]
 name = "ty"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ty-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^ty-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/ty"
 bins = ["ty-x86_64-unknown-linux-gnu/ty"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from fastly/cli's v17.1.0 release; its version is the one Upkeep installed.
+# Drafted from fastly/cli's v17.1.0 release.
 [apps.fastly]
 name = "fastly"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^fastly_.*_linux-amd64\.tar\.gz$'
 asset_aarch64 = '^fastly_.*_linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/fastly"
 bins = ["fastly"]
-probe = false
+version_args = ["version"]

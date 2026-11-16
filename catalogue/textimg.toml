@@ -1,4 +1,4 @@
-# Drafted from jiro4989/textimg's v3.2.4 release; its version is the one Upkeep installed.
+# Drafted from jiro4989/textimg's v3.2.4 release.
 [apps.textimg]
 name = "textimg"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^textimg-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^textimg-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/textimg"
 bins = ["textimg"]
-probe = false

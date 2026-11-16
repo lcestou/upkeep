@@ -1,4 +1,4 @@
-# Drafted from TimothyYe/skm's v0.9.3 release; its version is the one Upkeep installed.
+# Drafted from TimothyYe/skm's v0.9.3 release.
 [apps.skm]
 name = "skm"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^skm_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^skm_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/skm"
 bins = ["skm"]
-probe = false

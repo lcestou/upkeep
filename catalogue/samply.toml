@@ -1,4 +1,4 @@
-# Drafted from mstange/samply's samply-v0.13.1 release; its version is the one Upkeep installed.
+# Drafted from mstange/samply's samply-v0.13.1 release.
 [apps.samply]
 name = "samply"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^samply-x86_64-unknown-linux-gnu\.tar\.xz$'
 asset_aarch64 = '^samply-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/samply"
 bins = ["samply-x86_64-unknown-linux-gnu/samply"]
-probe = false

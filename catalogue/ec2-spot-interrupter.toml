@@ -1,4 +1,4 @@
-# Drafted from aws/amazon-ec2-spot-interrupter's v0.0.16 release; its version is the one Upkeep installed.
+# Drafted from aws/amazon-ec2-spot-interrupter's v0.0.16 release.
 [apps.ec2-spot-interrupter]
 name = "Amazon Ec2 Spot Interrupter"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ec2-spot-interrupter_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^ec2-spot-interrupter_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ec2-spot-interrupter"
 bins = ["ec2-spot-interrupter"]
-probe = false

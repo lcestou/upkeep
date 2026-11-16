@@ -1,4 +1,4 @@
-# Drafted from tdewolff/minify's v2.24.25 release; its version is the one Upkeep installed.
+# Drafted from tdewolff/minify's v2.24.25 release.
 [apps.minify]
 name = "minify"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^minify_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/minify"
 folder = "~/.local/share/minify"
 bins = ["minify"]
-probe = false

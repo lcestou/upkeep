@@ -1,8 +1,8 @@
-# Drafted from jakeledwards/ClawControl's v1.9.1 release; its version is the one Upkeep installed.
+# Drafted from jakeledwards/ClawControl's v1.9.1 release.
 [apps.clawcontrol]
 name = "ClawControl"
 kind = "appimage"
 repo = "jakeledwards/ClawControl"
 asset = '^ClawControl-.*\.AppImage$'
 dest = "~/.local/bin/clawcontrol.AppImage"
-probe = false
+meta_path = "clawcontrol.desktop"

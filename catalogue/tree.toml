@@ -1,4 +1,4 @@
-# Drafted from peteretelej/tree's v1.3.0 release; its version is the one Upkeep installed.
+# Drafted from peteretelej/tree's v1.3.0 release.
 [apps.tree]
 name = "tree"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tree-.*-Linux-amd64\.tar\.gz$'
 asset_aarch64 = '^tree-.*-Linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/tree"
 bins = ["tree"]
-probe = false

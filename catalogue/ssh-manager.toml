@@ -1,4 +1,4 @@
-# Drafted from omegion/ssh-manager's v1.131.0 release; its version is the one Upkeep installed.
+# Drafted from omegion/ssh-manager's v1.131.0 release.
 [apps.ssh-manager]
 name = "Ssh Manager"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "omegion/ssh-manager"
 asset = '^ssh-manager-linux-amd64$'
 asset_aarch64 = '^ssh-manager-linux-arm64$'
 dest = "~/.local/bin/ssh-manager"
-probe = false
+version_args = ["version"]

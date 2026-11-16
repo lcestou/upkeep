@@ -1,4 +1,4 @@
-# Drafted from rvben/rumdl's v0.3.4 release; its version is the one Upkeep installed.
+# Drafted from rvben/rumdl's v0.3.4 release.
 [apps.rumdl]
 name = "rumdl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^rumdl-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^rumdl-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/rumdl"
 bins = ["rumdl"]
-probe = false

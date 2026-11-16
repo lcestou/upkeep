@@ -1,4 +1,4 @@
-# Drafted from dnote/dnote's cli-v0.17.0 release; its version is the one Upkeep installed.
+# Drafted from dnote/dnote's cli-v0.17.0 release.
 [apps.dnote]
 name = "dnote"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^dnote_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^dnote_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/dnote"
 bins = ["dnote"]
-probe = false
+version_args = ["version"]

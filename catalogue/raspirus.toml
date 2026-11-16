@@ -1,8 +1,8 @@
-# Drafted from Raspirus/raspirus's v2.2.0 release; its version is the one Upkeep installed.
+# Drafted from Raspirus/raspirus's v2.2.0 release.
 [apps.raspirus]
 name = "raspirus"
 kind = "appimage"
 repo = "Raspirus/raspirus"
 asset = '^raspirus_.*_x86_64\.AppImage$'
 dest = "~/.local/bin/raspirus.AppImage"
-probe = false
+meta_path = "raspirus.desktop"

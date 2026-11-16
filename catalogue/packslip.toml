@@ -1,4 +1,4 @@
-# Drafted from jdx/packslip's v1.11.4 release; its version is the one Upkeep installed.
+# Drafted from jdx/packslip's v1.11.4 release.
 [apps.packslip]
 name = "packslip"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^packslip-.*-linux-x64\.tar\.xz$'
 asset_aarch64 = '^packslip-.*-linux-arm64\.tar\.xz$'
 dest = "~/.local/bin/packslip"
 bins = ["packslip-v1.11.4-linux-x64/packslip"]
-probe = false

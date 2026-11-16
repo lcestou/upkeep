@@ -1,4 +1,4 @@
-# Drafted from editorconfig-checker/editorconfig-checker's v4.0.2 release; its version is the one Upkeep installed.
+# Drafted from editorconfig-checker/editorconfig-checker's v4.0.2 release.
 [apps.editorconfig-checker]
 name = "Editorconfig Checker"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^editorconfig-checker-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^editorconfig-checker-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/editorconfig-checker"
 bins = ["editorconfig-checker"]
-probe = false

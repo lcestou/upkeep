@@ -1,4 +1,4 @@
-# Drafted from boyter/scc's v4.1.0 release; its version is the one Upkeep installed.
+# Drafted from boyter/scc's v4.1.0 release.
 [apps.scc]
 name = "scc"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^scc_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^scc_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/scc"
 bins = ["scc"]
-probe = false

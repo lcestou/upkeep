@@ -1,8 +1,8 @@
-# Drafted from SirAllap/agentglass's v1.0.0 release; its version is the one Upkeep installed.
+# Drafted from SirAllap/agentglass's v1.0.0 release.
 [apps.agentglass]
 name = "agentglass"
 kind = "appimage"
 repo = "SirAllap/agentglass"
 asset = '^agentglass_.*_x86_64\.AppImage$'
 dest = "~/.local/bin/agentglass.AppImage"
-probe = false
+meta_path = "agentglass.desktop"

@@ -1,8 +1,8 @@
-# Drafted from flybywiresim/installer's v3.7.2 release; its version is the one Upkeep installed.
+# Drafted from flybywiresim/installer's v3.7.2 release.
 [apps.flybywire]
 name = "FlyByWire"
 kind = "appimage"
 repo = "flybywiresim/installer"
 asset = '^FlyByWire-Installer-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/flybywire.AppImage"
-probe = false
+meta_path = "fbw-installer.desktop"

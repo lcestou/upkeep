@@ -1,8 +1,8 @@
-# Drafted from pgkt04/excalidraw-desktop's v1.0.11 release; its version is the one Upkeep installed.
+# Drafted from pgkt04/excalidraw-desktop's v1.0.11 release.
 [apps.excalidraw]
 name = "Excalidraw"
 kind = "appimage"
 repo = "pgkt04/excalidraw-desktop"
 asset = '^Excalidraw-.*\.AppImage$'
 dest = "~/.local/bin/excalidraw.AppImage"
-probe = false
+meta_path = "excalidraw.desktop"

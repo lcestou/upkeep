@@ -1,4 +1,4 @@
-# Drafted from stoplightio/spectral's v6.17.1 release; its version is the one Upkeep installed.
+# Drafted from stoplightio/spectral's v6.17.1 release.
 [apps.spectral]
 name = "spectral"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "stoplightio/spectral"
 asset = '^spectral-linux-x64$'
 asset_aarch64 = '^spectral-linux-arm64$'
 dest = "~/.local/bin/spectral"
-probe = false

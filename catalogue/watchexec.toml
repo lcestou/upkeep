@@ -1,4 +1,4 @@
-# Drafted from watchexec/watchexec's v2.8.0 release; its version is the one Upkeep installed.
+# Drafted from watchexec/watchexec's v2.8.0 release.
 [apps.watchexec]
 name = "watchexec"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^watchexec-.*-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/watchexec"
 folder = "~/.local/share/watchexec"
 bins = ["watchexec"]
-probe = false

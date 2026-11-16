@@ -1,4 +1,4 @@
-# Drafted from kudobuilder/kuttl's v0.28.0 release; its version is the one Upkeep installed.
+# Drafted from kudobuilder/kuttl's v0.28.0 release.
 [apps.kubectl-kuttl]
 name = "kuttl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^kuttl_.*_linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^kuttl_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kubectl-kuttl"
 bins = ["kubectl-kuttl"]
-probe = false

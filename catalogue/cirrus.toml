@@ -1,4 +1,4 @@
-# Drafted from cirruslabs/cirrus-cli's v1.0.0 release; its version is the one Upkeep installed.
+# Drafted from cirruslabs/cirrus-cli's v1.0.0 release.
 [apps.cirrus]
 name = "Cirrus Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^cirrus-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^cirrus-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/cirrus"
 bins = ["cirrus"]
-probe = false

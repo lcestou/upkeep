@@ -1,8 +1,8 @@
-# Drafted from ness-dev/ness's v2.18.1 release; its version is the one Upkeep installed.
+# Drafted from ness-dev/ness's v2.18.1 release.
 [apps.ness]
 name = "Ness"
 kind = "appimage"
 repo = "ness-dev/ness"
 asset = '^Ness-.*\.AppImage$'
 dest = "~/.local/bin/ness.AppImage"
-probe = false
+meta_path = "harness.desktop"

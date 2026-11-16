@@ -1,4 +1,4 @@
-# Drafted from russellbanks/Komac's v2.17.2 release; its version is the one Upkeep installed.
+# Drafted from russellbanks/Komac's v2.17.2 release.
 [apps.komac]
 name = "Komac"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^komac-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^komac-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/komac"
 bins = ["komac"]
-probe = false

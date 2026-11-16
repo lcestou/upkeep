@@ -1,4 +1,4 @@
-# Drafted from noborus/xlsxsql's v0.5.3 release; its version is the one Upkeep installed.
+# Drafted from noborus/xlsxsql's v0.5.3 release.
 [apps.xlsxsql]
 name = "xlsxsql"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^xlsxsql_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^xlsxsql_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/xlsxsql"
 bins = ["xlsxsql"]
-probe = false

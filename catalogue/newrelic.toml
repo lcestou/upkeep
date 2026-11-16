@@ -1,4 +1,4 @@
-# Drafted from newrelic/newrelic-cli's v0.116.0 release; its version is the one Upkeep installed.
+# Drafted from newrelic/newrelic-cli's v0.116.0 release.
 [apps.newrelic]
 name = "Newrelic Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^newrelic-cli_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^newrelic-cli_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/newrelic"
 bins = ["newrelic"]
-probe = false

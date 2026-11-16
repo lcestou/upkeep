@@ -1,4 +1,4 @@
-# Drafted from nunchuk-io/nunchuk-desktop's 2.9.4 release; its version is the one Upkeep installed.
+# Drafted from nunchuk-io/nunchuk-desktop's 2.9.4 release.
 [apps.nunchuk]
 name = "Nunchuk Desktop"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "nunchuk-io/nunchuk-desktop"
 asset = '^nunchuk-linux-.*-x86_64\.AppImage$'
 asset_aarch64 = '^nunchuk-linux-.*-aarch64\.AppImage$'
 dest = "~/.local/bin/nunchuk.AppImage"
-probe = false
+meta_path = "nunchuk.desktop"

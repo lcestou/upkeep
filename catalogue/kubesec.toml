@@ -1,4 +1,4 @@
-# Drafted from controlplaneio/kubesec's v2.15.0 release; its version is the one Upkeep installed.
+# Drafted from controlplaneio/kubesec's v2.15.0 release.
 [apps.kubesec]
 name = "kubesec"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kubesec_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^kubesec_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kubesec"
 bins = ["kubesec"]
-probe = false
+version_args = ["version"]

@@ -1,4 +1,4 @@
-# Drafted from ayoisaiah/f2's v2.2.2 release; its version is the one Upkeep installed.
+# Drafted from ayoisaiah/f2's v2.2.2 release.
 [apps.f2]
 name = "f2"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^f2_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^f2_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/f2"
 bins = ["f2"]
-probe = false

@@ -1,8 +1,8 @@
-# Drafted from lacymorrow/crossover's v3.4.9 release; its version is the one Upkeep installed.
+# Drafted from lacymorrow/crossover's v3.4.9 release.
 [apps.crossover]
 name = "CrossOver"
 kind = "appimage"
 repo = "lacymorrow/crossover"
 asset = '^CrossOver-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/crossover.AppImage"
-probe = false
+meta_path = "crossover.desktop"

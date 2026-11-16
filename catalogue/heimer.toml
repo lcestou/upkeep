@@ -1,8 +1,8 @@
-# Drafted from juzzlin/Heimer's 4.5.0 release; its version is the one Upkeep installed.
+# Drafted from juzzlin/Heimer's 4.5.0 release.
 [apps.heimer]
 name = "Heimer"
 kind = "appimage"
 repo = "juzzlin/Heimer"
 asset = '^Heimer-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/heimer.AppImage"
-probe = false
+meta_path = "heimer.desktop"

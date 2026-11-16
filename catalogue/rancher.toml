@@ -1,4 +1,4 @@
-# Drafted from rancher/cli's v2.15.3 release; its version is the one Upkeep installed.
+# Drafted from rancher/cli's v2.15.3 release.
 [apps.rancher]
 name = "rancher"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^rancher-linux-amd64-.*\.tar\.gz$'
 asset_aarch64 = '^rancher-linux-arm64-.*\.tar\.gz$'
 dest = "~/.local/bin/rancher"
 bins = ["rancher-v2.15.3/rancher"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from HanversionOvO/BiliMusic's v1.0.2 release; its version is the one Upkeep installed.
+# Drafted from HanversionOvO/BiliMusic's v1.0.2 release.
 [apps.bilimusic]
 name = "BiliMusic"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "HanversionOvO/BiliMusic"
 asset = '^BiliMusic-.*-x86_64\.AppImage$'
 asset_aarch64 = '^BiliMusic-.*-arm64\.AppImage$'
 dest = "~/.local/bin/bilimusic.AppImage"
-probe = false
+meta_path = "bilimusic.desktop"

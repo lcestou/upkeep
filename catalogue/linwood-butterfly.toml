@@ -1,4 +1,4 @@
-# Drafted from LinwoodDev/Butterfly's v2.6.2 release; its version is the one Upkeep installed.
+# Drafted from LinwoodDev/Butterfly's v2.6.2 release.
 [apps.linwood-butterfly]
 name = "Butterfly"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "LinwoodDev/Butterfly"
 asset = '^linwood-butterfly-linux-x86_64\.AppImage$'
 asset_aarch64 = '^linwood-butterfly-linux-arm64\.AppImage$'
 dest = "~/.local/bin/linwood-butterfly.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/dev.linwood.butterfly.appdata.xml"

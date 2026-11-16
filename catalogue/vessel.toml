@@ -1,8 +1,8 @@
-# Drafted from unmodeled-tyler/vessel-browser's v0.1.200 release; its version is the one Upkeep installed.
+# Drafted from unmodeled-tyler/vessel-browser's v0.1.200 release.
 [apps.vessel]
 name = "Vessel"
 kind = "appimage"
 repo = "unmodeled-tyler/vessel-browser"
 asset = '^Vessel-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/vessel.AppImage"
-probe = false
+meta_path = "vessel.desktop"

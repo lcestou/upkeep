@@ -1,4 +1,4 @@
-# Drafted from vmware-tanzu/sonobuoy's v0.57.5 release; its version is the one Upkeep installed.
+# Drafted from vmware-tanzu/sonobuoy's v0.57.5 release.
 [apps.sonobuoy]
 name = "sonobuoy"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^sonobuoy_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^sonobuoy_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/sonobuoy"
 bins = ["sonobuoy"]
-probe = false
+version_args = ["version"]

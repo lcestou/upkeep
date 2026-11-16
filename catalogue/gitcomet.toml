@@ -1,4 +1,4 @@
-# Drafted from Auto-Explore/GitComet's v0.3.4 release; its version is the one Upkeep installed.
+# Drafted from Auto-Explore/GitComet's v0.3.4 release.
 [apps.gitcomet]
 name = "GitComet"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "Auto-Explore/GitComet"
 asset = '^gitcomet-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^gitcomet-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/gitcomet.AppImage"
-probe = false
+meta_path = "gitcomet.desktop"

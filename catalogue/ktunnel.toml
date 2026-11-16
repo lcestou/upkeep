@@ -1,4 +1,4 @@
-# Drafted from omrikiei/ktunnel's v2.5.0 release; its version is the one Upkeep installed.
+# Drafted from omrikiei/ktunnel's v2.5.0 release.
 [apps.ktunnel]
 name = "ktunnel"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ktunnel_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^ktunnel_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ktunnel"
 bins = ["ktunnel"]
-probe = false

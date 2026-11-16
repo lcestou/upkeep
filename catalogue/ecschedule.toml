@@ -1,4 +1,4 @@
-# Drafted from Songmu/ecschedule's v0.21.1 release; its version is the one Upkeep installed.
+# Drafted from Songmu/ecschedule's v0.21.1 release.
 [apps.ecschedule]
 name = "ecschedule"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^ecschedule_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ecschedule"
 folder = "~/.local/share/ecschedule"
 bins = ["ecschedule"]
-probe = false

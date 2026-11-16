@@ -1,4 +1,4 @@
-# Drafted from civo/cli's v1.6.1 release; its version is the one Upkeep installed.
+# Drafted from civo/cli's v1.6.1 release.
 [apps.civo]
 name = "civo"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^civo-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^civo-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/civo"
 bins = ["civo"]
-probe = false

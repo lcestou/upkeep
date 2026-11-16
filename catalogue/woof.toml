@@ -1,8 +1,8 @@
-# Drafted from fabiangreffrath/woof's woof_16.0.0 release; its version is the one Upkeep installed.
+# Drafted from fabiangreffrath/woof's woof_16.0.0 release.
 [apps.woof]
 name = "Woof"
 kind = "appimage"
 repo = "fabiangreffrath/woof"
 asset = '^Woof-.*-Linux\.AppImage$'
 dest = "~/.local/bin/woof.AppImage"
-probe = false
+meta_path = "io.github.fabiangreffrath.woof.desktop"

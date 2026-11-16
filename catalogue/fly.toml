@@ -1,4 +1,4 @@
-# Drafted from concourse/concourse's v8.3.3 release; its version is the one Upkeep installed.
+# Drafted from concourse/concourse's v8.3.3 release.
 [apps.fly]
 name = "concourse"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^fly-.*-linux-amd64\.tgz$'
 asset_aarch64 = '^fly-.*-linux-arm64\.tgz$'
 dest = "~/.local/bin/fly"
 bins = ["fly"]
-probe = false

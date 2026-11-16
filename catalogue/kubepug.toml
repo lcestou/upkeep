@@ -1,4 +1,4 @@
-# Drafted from kubepug/kubepug's v1.7.1 release; its version is the one Upkeep installed.
+# Drafted from kubepug/kubepug's v1.7.1 release.
 [apps.kubepug]
 name = "kubepug"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kubepug_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^kubepug_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kubepug"
 bins = ["kubepug"]
-probe = false
+version_args = ["version"]

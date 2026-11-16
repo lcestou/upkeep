@@ -1,4 +1,4 @@
-# Drafted from shy1132/VacuumTube's v2.0.1 release; its version is the one Upkeep installed.
+# Drafted from shy1132/VacuumTube's v2.0.1 release.
 [apps.vacuumtube]
 name = "VacuumTube"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "shy1132/VacuumTube"
 asset = '^VacuumTube-x86_64\.AppImage$'
 asset_aarch64 = '^VacuumTube-arm64\.AppImage$'
 dest = "~/.local/bin/vacuumtube.AppImage"
-probe = false
+meta_path = "rocks.shy.VacuumTube.desktop"

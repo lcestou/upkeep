@@ -1,8 +1,7 @@
-# Drafted from firebase/firebase-tools's v15.36.0 release; its version is the one Upkeep installed.
+# Drafted from firebase/firebase-tools's v15.36.0 release.
 [apps.firebase-tools]
 name = "Firebase Tools"
 kind = "file"
 repo = "firebase/firebase-tools"
 asset = '^firebase-tools-linux$'
 dest = "~/.local/bin/firebase-tools"
-probe = false

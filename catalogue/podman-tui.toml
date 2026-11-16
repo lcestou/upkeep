@@ -1,4 +1,4 @@
-# Drafted from containers/podman-tui's v2.0.0 release; its version is the one Upkeep installed.
+# Drafted from containers/podman-tui's v2.0.0 release.
 [apps.podman-tui]
 name = "Podman Tui"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^podman-tui-release-linux_amd64\.zip$'
 asset_aarch64 = '^podman-tui-release-linux_arm64\.zip$'
 dest = "~/.local/bin/podman-tui"
 bins = ["podman-tui-v2.0.0/podman-tui"]
-probe = false
+version_args = ["version"]

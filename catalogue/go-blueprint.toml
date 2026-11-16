@@ -1,4 +1,4 @@
-# Drafted from Melkeydev/go-blueprint's v0.10.11 release; its version is the one Upkeep installed.
+# Drafted from Melkeydev/go-blueprint's v0.10.11 release.
 [apps.go-blueprint]
 name = "Go Blueprint"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^go-blueprint_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^go-blueprint_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/go-blueprint"
 bins = ["go-blueprint"]
-probe = false
+version_args = ["version"]

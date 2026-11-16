@@ -1,4 +1,4 @@
-# Drafted from bomctl/bomctl's v0.4.3 release; its version is the one Upkeep installed.
+# Drafted from bomctl/bomctl's v0.4.3 release.
 [apps.bomctl]
 name = "bomctl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^bomctl_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^bomctl_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/bomctl"
 bins = ["bomctl"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from openchamber/openchamber's v2.7.2 release; its version is the one Upkeep installed.
+# Drafted from openchamber/openchamber's v2.7.2 release.
 [apps.openchamber]
 name = "OpenChamber"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "openchamber/openchamber"
 asset = '^OpenChamber-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^OpenChamber-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/openchamber.AppImage"
-probe = false
+meta_path = "openchamber.desktop"

@@ -1,4 +1,4 @@
-# Drafted from kubernetes-sigs/controller-tools's v0.23.0 release; its version is the one Upkeep installed.
+# Drafted from kubernetes-sigs/controller-tools's v0.23.0 release.
 [apps.controller-gen]
 name = "Controller Tools"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "kubernetes-sigs/controller-tools"
 asset = '^controller-gen-linux-amd64$'
 asset_aarch64 = '^controller-gen-linux-arm64$'
 dest = "~/.local/bin/controller-gen"
-probe = false

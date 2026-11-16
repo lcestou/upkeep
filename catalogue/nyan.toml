@@ -1,4 +1,4 @@
-# Drafted from toshimaru/nyan's v1.2.6 release; its version is the one Upkeep installed.
+# Drafted from toshimaru/nyan's v1.2.6 release.
 [apps.nyan]
 name = "nyan"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^nyan_Linux_amd64\.tar\.gz$'
 asset_aarch64 = '^nyan_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/nyan"
 bins = ["nyan"]
-probe = false

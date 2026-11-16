@@ -1,4 +1,4 @@
-# Drafted from mmalcek/bafi's v1.5.2 release; its version is the one Upkeep installed.
+# Drafted from mmalcek/bafi's v1.5.2 release.
 [apps.bafi]
 name = "bafi"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^bafi_.*_linux_arm64\.tgz$'
 dest = "~/.local/bin/bafi"
 folder = "~/.local/share/bafi"
 bins = ["bafi"]
-probe = false
+version_args = ["-v"]

@@ -1,4 +1,4 @@
-# Drafted from RyderAsKing/PiChamber's v1.0.7 release; its version is the one Upkeep installed.
+# Drafted from RyderAsKing/PiChamber's v1.0.7 release.
 [apps.pichamber]
 name = "PiChamber"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "RyderAsKing/PiChamber"
 asset = '^PiChamber-.*-x86_64\.AppImage$'
 asset_aarch64 = '^PiChamber-.*-arm64\.AppImage$'
 dest = "~/.local/bin/pichamber.AppImage"
-probe = false
+meta_path = "pichamber.desktop"

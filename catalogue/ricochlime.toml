@@ -1,4 +1,4 @@
-# Drafted from adil192/ricochlime's v1.14.0 release; its version is the one Upkeep installed.
+# Drafted from adil192/ricochlime's v1.14.0 release.
 [apps.ricochlime]
 name = "Ricochlime"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "adil192/ricochlime"
 asset = '^Ricochlime-.*-x86_64\.AppImage$'
 asset_aarch64 = '^Ricochlime-.*-arm64\.AppImage$'
 dest = "~/.local/bin/ricochlime.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/com.adilhanney.ricochlime.metainfo.xml"

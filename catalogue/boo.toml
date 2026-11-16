@@ -1,4 +1,4 @@
-# Drafted from coder/boo's v0.6.4 release; its version is the one Upkeep installed.
+# Drafted from coder/boo's v0.6.4 release.
 [apps.boo]
 name = "boo"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^boo-x86_64-linux\.tar\.gz$'
 asset_aarch64 = '^boo-aarch64-linux\.tar\.gz$'
 dest = "~/.local/bin/boo"
 bins = ["boo"]
-probe = false

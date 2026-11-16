@@ -1,4 +1,4 @@
-# Drafted from xiaoY233/Chat2API's v1.4.0 release; its version is the one Upkeep installed.
+# Drafted from xiaoY233/Chat2API's v1.4.0 release.
 [apps.chat2api]
 name = "Chat2API"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "xiaoY233/Chat2API"
 asset = '^Chat2API-.*-x86_64\.AppImage$'
 asset_aarch64 = '^Chat2API-.*-arm64\.AppImage$'
 dest = "~/.local/bin/chat2api.AppImage"
-probe = false
+meta_path = "chat2api.desktop"

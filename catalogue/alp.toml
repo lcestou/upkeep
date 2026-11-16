@@ -1,4 +1,4 @@
-# Drafted from tkuchiki/alp's v1.0.22 release; its version is the one Upkeep installed.
+# Drafted from tkuchiki/alp's v1.0.22 release.
 [apps.alp]
 name = "alp"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^alp_linux_amd64\.zip$'
 asset_aarch64 = '^alp_linux_arm64\.zip$'
 dest = "~/.local/bin/alp"
 bins = ["alp"]
-probe = false

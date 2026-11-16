@@ -1,4 +1,4 @@
-# Drafted from vektra/mockery's v3.9.1 release; its version is the one Upkeep installed.
+# Drafted from vektra/mockery's v3.9.1 release.
 [apps.mockery]
 name = "mockery"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^mockery_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^mockery_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/mockery"
 bins = ["mockery"]
-probe = false
+version_args = ["version"]

@@ -1,8 +1,8 @@
-# Drafted from repath-studio/repath-studio's v0.4.28 release; its version is the one Upkeep installed.
+# Drafted from repath-studio/repath-studio's v0.4.28 release.
 [apps.repath-studio]
 name = "Repath Studio"
 kind = "appimage"
 repo = "repath-studio/repath-studio"
 asset = '^repath-studio-linux\.AppImage$'
 dest = "~/.local/bin/repath-studio.AppImage"
-probe = false
+meta_path = "repath-studio.desktop"

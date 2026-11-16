@@ -1,4 +1,4 @@
-# Drafted from zaquestion/lab's v0.25.1 release; its version is the one Upkeep installed.
+# Drafted from zaquestion/lab's v0.25.1 release.
 [apps.lab]
 name = "lab"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^lab_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^lab_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/lab"
 bins = ["lab"]
-probe = false

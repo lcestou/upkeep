@@ -1,4 +1,4 @@
-# Drafted from topgrade-rs/topgrade's v17.16.0 release; its version is the one Upkeep installed.
+# Drafted from topgrade-rs/topgrade's v17.16.0 release.
 [apps.topgrade]
 name = "topgrade"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^topgrade-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^topgrade-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/topgrade"
 bins = ["topgrade"]
-probe = false

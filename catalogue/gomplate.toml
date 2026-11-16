@@ -1,4 +1,4 @@
-# Drafted from hairyhenderson/gomplate's v5.3.1 release; its version is the one Upkeep installed.
+# Drafted from hairyhenderson/gomplate's v5.3.1 release.
 [apps.gomplate]
 name = "gomplate"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "hairyhenderson/gomplate"
 asset = '^gomplate_linux-amd64$'
 asset_aarch64 = '^gomplate_linux-arm64$'
 dest = "~/.local/bin/gomplate"
-probe = false

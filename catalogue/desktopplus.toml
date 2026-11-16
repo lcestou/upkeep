@@ -1,4 +1,4 @@
-# Drafted from desktop-plus/desktop-plus's v3.6.11.0 release; its version is the one Upkeep installed.
+# Drafted from desktop-plus/desktop-plus's v3.6.11.0 release.
 [apps.desktopplus]
 name = "DesktopPlus"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "desktop-plus/desktop-plus"
 asset = '^DesktopPlus-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^DesktopPlus-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/desktopplus.AppImage"
-probe = false
+meta_path = "desktop-plus.desktop"

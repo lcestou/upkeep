@@ -1,4 +1,4 @@
-# Drafted from wfxr/csview's v1.3.4 release; its version is the one Upkeep installed.
+# Drafted from wfxr/csview's v1.3.4 release.
 [apps.csview]
 name = "csview"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^csview-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^csview-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/csview"
 bins = ["csview-v1.3.4-x86_64-unknown-linux-gnu/csview"]
-probe = false

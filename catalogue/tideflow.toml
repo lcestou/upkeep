@@ -1,8 +1,8 @@
-# Drafted from BDenizKoca/Tideflow-md-to-pdf's v1.6.7 release; its version is the one Upkeep installed.
+# Drafted from BDenizKoca/Tideflow-md-to-pdf's v1.6.7 release.
 [apps.tideflow]
 name = "Tideflow"
 kind = "appimage"
 repo = "BDenizKoca/Tideflow-md-to-pdf"
 asset = '^Tideflow_.*_amd64\.AppImage$'
 dest = "~/.local/bin/tideflow.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/com.tideflow.app.metainfo.xml"

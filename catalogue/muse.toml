@@ -1,8 +1,8 @@
-# Drafted from muse-sequencer/muse's 4.3.0 release; its version is the one Upkeep installed.
+# Drafted from muse-sequencer/muse's 4.3.0 release.
 [apps.muse]
 name = "MusE"
 kind = "appimage"
 repo = "muse-sequencer/muse"
 asset = '^MusE-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/muse.AppImage"
-probe = false
+meta_path = "io.github.muse_sequencer.Muse.desktop"

@@ -1,4 +1,4 @@
-# Drafted from jonaslu/ain's v1.6.0 release; its version is the one Upkeep installed.
+# Drafted from jonaslu/ain's v1.6.0 release.
 [apps.ain]
 name = "ain"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^ain_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ain"
 folder = "~/.local/share/ain"
 bins = ["ain"]
-probe = false
+version_args = ["-v"]

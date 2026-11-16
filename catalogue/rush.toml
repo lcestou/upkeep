@@ -1,4 +1,4 @@
-# Drafted from shenwei356/rush's v0.11.1 release; its version is the one Upkeep installed.
+# Drafted from shenwei356/rush's v0.11.1 release.
 [apps.rush]
 name = "rush"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^rush_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^rush_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/rush"
 bins = ["rush"]
-probe = false

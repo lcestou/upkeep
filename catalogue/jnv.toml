@@ -1,4 +1,4 @@
-# Drafted from ynqa/jnv's v0.7.1 release; its version is the one Upkeep installed.
+# Drafted from ynqa/jnv's v0.7.1 release.
 [apps.jnv]
 name = "jnv"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^jnv-x86_64-unknown-linux-gnu\.tar\.xz$'
 asset_aarch64 = '^jnv-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/jnv"
 bins = ["jnv-x86_64-unknown-linux-gnu/jnv"]
-probe = false

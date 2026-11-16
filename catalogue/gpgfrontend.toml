@@ -1,4 +1,4 @@
-# Drafted from saturneric/GpgFrontend's v2.2.4 release; its version is the one Upkeep installed.
+# Drafted from saturneric/GpgFrontend's v2.2.4 release.
 [apps.gpgfrontend]
 name = "GpgFrontend"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "saturneric/GpgFrontend"
 asset = '^GpgFrontend-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^GpgFrontend-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/gpgfrontend.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/com.bktus.gpgfrontend.metainfo.xml"

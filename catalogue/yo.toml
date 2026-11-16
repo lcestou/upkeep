@@ -1,4 +1,4 @@
-# Drafted from cloudspannerecosystem/yo's v0.11.0 release; its version is the one Upkeep installed.
+# Drafted from cloudspannerecosystem/yo's v0.11.0 release.
 [apps.yo]
 name = "yo"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^yo-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^yo-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/yo"
 bins = ["yo-0.11.0-linux-amd64/yo"]
-probe = false

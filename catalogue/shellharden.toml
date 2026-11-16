@@ -1,4 +1,4 @@
-# Drafted from anordal/shellharden's v4.3.2 release; its version is the one Upkeep installed.
+# Drafted from anordal/shellharden's v4.3.2 release.
 [apps.shellharden]
 name = "shellharden"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^shellharden-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^shellharden-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/shellharden"
 bins = ["shellharden"]
-probe = false

@@ -1,8 +1,8 @@
-# Drafted from Geocld/XStreamingDesktop's v1.10.3 release; its version is the one Upkeep installed.
+# Drafted from Geocld/XStreamingDesktop's v1.10.3 release.
 [apps.xstreaming]
 name = "XStreaming"
 kind = "appimage"
 repo = "Geocld/XStreamingDesktop"
 asset = '^XStreaming-.*\.AppImage$'
 dest = "~/.local/bin/xstreaming.AppImage"
-probe = false
+meta_path = "xstreaming.desktop"

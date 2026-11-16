@@ -1,8 +1,8 @@
-# Drafted from alichtman/deadbolt's v2.1.1 release; its version is the one Upkeep installed.
+# Drafted from alichtman/deadbolt's v2.1.1 release.
 [apps.deadbolt]
 name = "Deadbolt"
 kind = "appimage"
 repo = "alichtman/deadbolt"
 asset = '^Deadbolt-.*\.x86_64\.AppImage$'
 dest = "~/.local/bin/deadbolt.AppImage"
-probe = false
+meta_path = "deadbolt.desktop"

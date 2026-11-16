@@ -1,8 +1,8 @@
-# Drafted from httpie/desktop's v2025.2.0 release; its version is the one Upkeep installed.
+# Drafted from httpie/desktop's v2025.2.0 release.
 [apps.httpie]
 name = "HTTPie"
 kind = "appimage"
 repo = "httpie/desktop"
 asset = '^HTTPie-[0-9][0-9A-Za-z.]*\.AppImage$'
 dest = "~/.local/bin/httpie.AppImage"
-probe = false
+meta_path = "httpie.desktop"

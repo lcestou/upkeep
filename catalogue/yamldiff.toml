@@ -1,8 +1,7 @@
-# Drafted from sahilm/yamldiff's 1.3 release; its version is the one Upkeep installed.
+# Drafted from sahilm/yamldiff's 1.3 release.
 [apps.yamldiff]
 name = "yamldiff"
 kind = "file"
 repo = "sahilm/yamldiff"
 asset = '^yamldiff-.*-linux-amd64$'
 dest = "~/.local/bin/yamldiff"
-probe = false

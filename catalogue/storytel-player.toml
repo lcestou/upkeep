@@ -1,8 +1,8 @@
-# Drafted from debba/storytel-player's v1.5.0 release; its version is the one Upkeep installed.
+# Drafted from debba/storytel-player's v1.5.0 release.
 [apps.storytel-player]
 name = "Storytel-Player"
 kind = "appimage"
 repo = "debba/storytel-player"
 asset = '^Storytel-Player-[0-9][0-9A-Za-z.]*\.AppImage$'
 dest = "~/.local/bin/storytel-player.AppImage"
-probe = false
+meta_path = "storytel-player.desktop"

@@ -1,4 +1,4 @@
-# Drafted from tigerbeetle/tigerbeetle's 0.17.9 release; its version is the one Upkeep installed.
+# Drafted from tigerbeetle/tigerbeetle's 0.17.9 release.
 [apps.tigerbeetle]
 name = "tigerbeetle"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^tigerbeetle-x86_64-linux\.zip$'
 asset_aarch64 = '^tigerbeetle-aarch64-linux\.zip$'
 dest = "~/.local/bin/tigerbeetle"
 bins = ["tigerbeetle"]
-probe = false
+version_args = ["version"]

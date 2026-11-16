@@ -1,4 +1,4 @@
-# Drafted from derailed/popeye's v0.22.1 release; its version is the one Upkeep installed.
+# Drafted from derailed/popeye's v0.22.1 release.
 [apps.popeye]
 name = "popeye"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^popeye_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^popeye_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/popeye"
 bins = ["popeye"]
-probe = false
+version_args = ["version"]

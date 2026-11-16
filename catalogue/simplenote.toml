@@ -1,4 +1,4 @@
-# Drafted from Automattic/simplenote-electron's v2.27.1 release; its version is the one Upkeep installed.
+# Drafted from Automattic/simplenote-electron's v2.27.1 release.
 [apps.simplenote]
 name = "Simplenote"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "Automattic/simplenote-electron"
 asset = '^Simplenote-linux-.*-x86_64\.AppImage$'
 asset_aarch64 = '^Simplenote-linux-.*-arm64\.AppImage$'
 dest = "~/.local/bin/simplenote.AppImage"
-probe = false
+meta_path = "simplenote.desktop"

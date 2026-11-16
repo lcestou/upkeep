@@ -1,4 +1,4 @@
-# Drafted from babarot/gomi's v1.10.1 release; its version is the one Upkeep installed.
+# Drafted from babarot/gomi's v1.10.1 release.
 [apps.gomi]
 name = "gomi"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gomi_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^gomi_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gomi"
 bins = ["gomi"]
-probe = false

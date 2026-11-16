@@ -1,8 +1,8 @@
-# Drafted from akiver/cs-demo-manager's v3.21.0 release; its version is the one Upkeep installed.
+# Drafted from akiver/cs-demo-manager's v3.21.0 release.
 [apps.cs-demo-manager]
 name = "CS-Demo-Manager"
 kind = "appimage"
 repo = "akiver/cs-demo-manager"
 asset = '^CS-Demo-Manager-.*\.AppImage$'
 dest = "~/.local/bin/cs-demo-manager.AppImage"
-probe = false
+meta_path = "cs-demo-manager.desktop"

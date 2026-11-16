@@ -1,4 +1,4 @@
-# Drafted from suzuki-shunsuke/pinact's v5.0.2 release; its version is the one Upkeep installed.
+# Drafted from suzuki-shunsuke/pinact's v5.0.2 release.
 [apps.pinact]
 name = "pinact"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^pinact_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/pinact"
 folder = "~/.local/share/pinact"
 bins = ["pinact"]
-probe = false

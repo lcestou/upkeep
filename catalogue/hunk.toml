@@ -1,4 +1,4 @@
-# Drafted from modem-dev/hunk's v0.25.0 release; its version is the one Upkeep installed.
+# Drafted from modem-dev/hunk's v0.25.0 release.
 [apps.hunk]
 name = "hunk"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^hunkdiff-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/hunk"
 folder = "~/.local/share/hunk"
 bins = ["hunk"]
-probe = false

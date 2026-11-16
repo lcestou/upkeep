@@ -1,8 +1,8 @@
-# Drafted from HyperFinal/Twitch-Retold-Desktop-Android-ad-block's v2.8.2 release; its version is the one Upkeep installed.
+# Drafted from HyperFinal/Twitch-Retold-Desktop-Android-ad-block's v2.8.2 release.
 [apps.twitch-retold]
 name = "Twitch-Retold"
 kind = "appimage"
 repo = "HyperFinal/Twitch-Retold-Desktop-Android-ad-block"
 asset = '^Twitch-Retold-.*\.AppImage$'
 dest = "~/.local/bin/twitch-retold.AppImage"
-probe = false
+meta_path = "twitch-retold.desktop"

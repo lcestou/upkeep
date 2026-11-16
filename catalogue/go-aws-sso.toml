@@ -1,4 +1,4 @@
-# Drafted from theurichde/go-aws-sso's v1.5.4 release; its version is the one Upkeep installed.
+# Drafted from theurichde/go-aws-sso's v1.5.4 release.
 [apps.go-aws-sso]
 name = "Go Aws Sso"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^go-aws-sso_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^go-aws-sso_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/go-aws-sso"
 bins = ["go-aws-sso"]
-probe = false

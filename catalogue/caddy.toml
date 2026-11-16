@@ -1,4 +1,4 @@
-# Drafted from caddyserver/caddy's v2.11.9 release; its version is the one Upkeep installed.
+# Drafted from caddyserver/caddy's v2.11.9 release.
 [apps.caddy]
 name = "caddy"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^caddy_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^caddy_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/caddy"
 bins = ["caddy"]
-probe = false

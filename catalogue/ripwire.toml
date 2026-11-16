@@ -1,4 +1,4 @@
-# Drafted from redhat-et/ripwire's v0.6.10 release; its version is the one Upkeep installed.
+# Drafted from redhat-et/ripwire's v0.6.10 release.
 [apps.ripwire]
 name = "ripwire"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^ripwire-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/ripwire"
 folder = "~/.local/share/ripwire"
 bins = ["ripwire"]
-probe = false

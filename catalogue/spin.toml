@@ -1,4 +1,4 @@
-# Drafted from spinframework/spin's v4.3.0 release; its version is the one Upkeep installed.
+# Drafted from spinframework/spin's v4.3.0 release.
 [apps.spin]
 name = "spin"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^spin-v[0-9][0-9A-Za-z.]*-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/spin"
 folder = "~/.local/share/spin"
 bins = ["spin"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from sachaos/viddy's v1.3.1 release; its version is the one Upkeep installed.
+# Drafted from sachaos/viddy's v1.3.1 release.
 [apps.viddy]
 name = "viddy"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^viddy-.*-linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^viddy-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/viddy"
 bins = ["viddy"]
-probe = false

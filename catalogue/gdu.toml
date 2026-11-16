@@ -1,4 +1,4 @@
-# Drafted from dundee/gdu's v5.39.0 release; its version is the one Upkeep installed.
+# Drafted from dundee/gdu's v5.39.0 release.
 [apps.gdu]
 name = "gdu"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gdu_linux_amd64\.tgz$'
 asset_aarch64 = '^gdu_linux_arm64\.tgz$'
 dest = "~/.local/bin/gdu"
 bins = ["gdu*"]
-probe = false

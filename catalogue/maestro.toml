@@ -1,4 +1,4 @@
-# Drafted from RunMaestro/Maestro's v1.0.3 release; its version is the one Upkeep installed.
+# Drafted from RunMaestro/Maestro's v1.0.3 release.
 [apps.maestro]
 name = "Maestro"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "RunMaestro/Maestro"
 asset = '^maestro-.*-x86_64\.AppImage$'
 asset_aarch64 = '^maestro-.*-arm64\.AppImage$'
 dest = "~/.local/bin/maestro.AppImage"
-probe = false
+meta_path = "maestro.desktop"

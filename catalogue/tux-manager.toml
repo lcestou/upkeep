@@ -1,8 +1,8 @@
-# Drafted from benapetr/TuxManager's v1.1.0 release; its version is the one Upkeep installed.
+# Drafted from benapetr/TuxManager's v1.1.0 release.
 [apps.tux-manager]
 name = "TuxManager"
 kind = "appimage"
 repo = "benapetr/TuxManager"
 asset = '^tux-manager-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/tux-manager.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.benapetr.TuxManager.metainfo.xml"

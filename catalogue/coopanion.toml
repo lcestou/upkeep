@@ -1,8 +1,8 @@
-# Drafted from Pal-AI-Lab/Coopanion's v0.2.20 release; its version is the one Upkeep installed.
+# Drafted from Pal-AI-Lab/Coopanion's v0.2.20 release.
 [apps.coopanion]
 name = "Coopanion"
 kind = "appimage"
 repo = "Pal-AI-Lab/Coopanion"
 asset = '^Coopanion-.*-linux-x64\.AppImage$'
 dest = "~/.local/bin/coopanion.AppImage"
-probe = false
+meta_path = "coopanion.desktop"

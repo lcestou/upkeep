@@ -1,4 +1,4 @@
-# Drafted from ipfs/kubo's v0.43.1 release; its version is the one Upkeep installed.
+# Drafted from ipfs/kubo's v0.43.1 release.
 [apps.ipfs]
 name = "kubo"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^kubo_.*_linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/ipfs"
 folder = "~/.local/share/ipfs"
 bins = ["ipfs"]
-probe = false

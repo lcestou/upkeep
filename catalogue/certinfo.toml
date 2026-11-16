@@ -1,4 +1,4 @@
-# Drafted from pete911/certinfo's v1.0.41 release; its version is the one Upkeep installed.
+# Drafted from pete911/certinfo's v1.0.41 release.
 [apps.certinfo]
 name = "certinfo"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^certinfo_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^certinfo_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/certinfo"
 bins = ["certinfo"]
-probe = false

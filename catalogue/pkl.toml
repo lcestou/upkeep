@@ -1,4 +1,4 @@
-# Drafted from apple/pkl's 0.33.0 release; its version is the one Upkeep installed.
+# Drafted from apple/pkl's 0.33.0 release.
 [apps.pkl]
 name = "pkl"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "apple/pkl"
 asset = '^pkl-linux-amd64$'
 asset_aarch64 = '^pkl-linux-aarch64$'
 dest = "~/.local/bin/pkl"
-probe = false

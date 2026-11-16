@@ -1,4 +1,4 @@
-# Drafted from 821869798/carton's v0.6.2 release; its version is the one Upkeep installed.
+# Drafted from 821869798/carton's v0.6.2 release.
 [apps.carton]
 name = "carton"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "821869798/carton"
 asset = '^carton-.*-linux-x64\.AppImage$'
 asset_aarch64 = '^carton-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/carton.AppImage"
-probe = false
+meta_path = "carton.desktop"

@@ -1,8 +1,8 @@
-# Drafted from elie222/rakazo's v0.11.0 release; its version is the one Upkeep installed.
+# Drafted from elie222/rakazo's v0.11.0 release.
 [apps.rakazo]
 name = "Rakazo"
 kind = "appimage"
 repo = "elie222/rakazo"
 asset = '^Rakazo-.*\.AppImage$'
 dest = "~/.local/bin/rakazo.AppImage"
-probe = false
+meta_path = "rakazo.desktop"

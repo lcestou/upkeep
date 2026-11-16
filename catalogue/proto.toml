@@ -1,4 +1,4 @@
-# Drafted from moonrepo/proto's v0.64.0 release; its version is the one Upkeep installed.
+# Drafted from moonrepo/proto's v0.64.0 release.
 [apps.proto]
 name = "proto"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^proto_cli-x86_64-unknown-linux-gnu\.tar\.xz$'
 asset_aarch64 = '^proto_cli-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/proto"
 bins = ["proto_cli-x86_64-unknown-linux-gnu/proto", "proto_cli-x86_64-unknown-linux-gnu/proto-shim"]
-probe = false

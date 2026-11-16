@@ -1,4 +1,4 @@
-# Drafted from huseyinbabal/taws's v1.3.0-rc.8 release; its version is the one Upkeep installed.
+# Drafted from huseyinbabal/taws's v1.3.0-rc.8 release.
 [apps.taws]
 name = "taws"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^taws-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^taws-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/taws"
 bins = ["taws"]
-probe = false

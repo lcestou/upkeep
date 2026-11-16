@@ -1,4 +1,4 @@
-# Drafted from superradcompany/microsandbox's v0.7.15 release; its version is the one Upkeep installed.
+# Drafted from superradcompany/microsandbox's v0.7.15 release.
 [apps.msb]
 name = "microsandbox"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^microsandbox-linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^microsandbox-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/msb"
 bins = ["msb"]
-probe = false

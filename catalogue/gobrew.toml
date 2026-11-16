@@ -1,4 +1,4 @@
-# Drafted from kevincobain2000/gobrew's v1.10.17 release; its version is the one Upkeep installed.
+# Drafted from kevincobain2000/gobrew's v1.10.17 release.
 [apps.gobrew]
 name = "gobrew"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "kevincobain2000/gobrew"
 asset = '^gobrew-linux-amd64$'
 asset_aarch64 = '^gobrew-linux-arm64$'
 dest = "~/.local/bin/gobrew"
-probe = false
+version_args = ["version"]

@@ -1,4 +1,4 @@
-# Drafted from donutbrowser/donutbrowser's v0.36.0 release; its version is the one Upkeep installed.
+# Drafted from donutbrowser/donutbrowser's v0.36.0 release.
 [apps.donut]
 name = "Donut"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "donutbrowser/donutbrowser"
 asset = '^Donut_.*_amd64\.AppImage$'
 asset_aarch64 = '^Donut_.*_aarch64\.AppImage$'
 dest = "~/.local/bin/donut.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/com.donutbrowser.DonutBrowser.appdata.xml"

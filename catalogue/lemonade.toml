@@ -1,4 +1,4 @@
-# Drafted from lemonade-sdk/lemonade's v2026.46.2 release; its version is the one Upkeep installed.
+# Drafted from lemonade-sdk/lemonade's v2026.46.2 release.
 [apps.lemonade]
 name = "lemonade"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^lemonade-embeddable-.*-ubuntu-arm64\.tar\.gz$'
 dest = "~/.local/bin/lemonade"
 folder = "~/.local/share/lemonade"
 bins = ["lemonade"]
-probe = false

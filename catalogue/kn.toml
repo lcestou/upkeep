@@ -1,4 +1,4 @@
-# Drafted from knative/client's knative-v1.24.0 release; its version is the one Upkeep installed.
+# Drafted from knative/client's knative-v1.24.0 release.
 [apps.kn]
 name = "knative"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "knative/client"
 asset = '^kn-linux-amd64$'
 asset_aarch64 = '^kn-linux-arm64$'
 dest = "~/.local/bin/kn"
-probe = false
+version_args = ["version"]

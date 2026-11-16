@@ -1,8 +1,8 @@
-# Drafted from mocikadev/mocika-shield's v1.5.0 release; its version is the one Upkeep installed.
+# Drafted from mocikadev/mocika-shield's v1.5.0 release.
 [apps.mocikashield]
 name = "MocikaShield"
 kind = "appimage"
 repo = "mocikadev/mocika-shield"
 asset = '^MocikaShield_.*_linux_amd64\.AppImage$'
 dest = "~/.local/bin/mocikashield.AppImage"
-probe = false
+meta_path = "MocikaShield.desktop"

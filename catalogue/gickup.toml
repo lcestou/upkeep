@@ -1,4 +1,4 @@
-# Drafted from cooperspencer/gickup's v0.10.47 release; its version is the one Upkeep installed.
+# Drafted from cooperspencer/gickup's v0.10.47 release.
 [apps.gickup]
 name = "gickup"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gickup_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^gickup_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gickup"
 bins = ["gickup"]
-probe = false

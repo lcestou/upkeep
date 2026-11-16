@@ -1,4 +1,4 @@
-# Drafted from jwt-rs/jwt-ui's v1.3.0 release; its version is the one Upkeep installed.
+# Drafted from jwt-rs/jwt-ui's v1.3.0 release.
 [apps.jwtui]
 name = "Jwt Ui"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "jwt-rs/jwt-ui"
 asset = '^jwtui-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/jwtui"
 bins = ["jwtui"]
-probe = false

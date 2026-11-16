@@ -1,8 +1,8 @@
-# Drafted from cheaper-inference/OmniRoute's v3.8.53 release; its version is the one Upkeep installed.
+# Drafted from cheaper-inference/OmniRoute's v3.8.53 release.
 [apps.omniroute]
 name = "OmniRoute"
 kind = "appimage"
 repo = "cheaper-inference/OmniRoute"
 asset = '^OmniRoute-[0-9][0-9A-Za-z.]*\.AppImage$'
 dest = "~/.local/bin/omniroute.AppImage"
-probe = false
+meta_path = "omniroute-desktop.desktop"

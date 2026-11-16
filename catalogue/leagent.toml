@@ -1,8 +1,8 @@
-# Drafted from vixues/LeAgent's v1.2.7 release; its version is the one Upkeep installed.
+# Drafted from vixues/LeAgent's v1.2.7 release.
 [apps.leagent]
 name = "LeAgent"
 kind = "appimage"
 repo = "vixues/LeAgent"
 asset = '^LeAgent-.*\.AppImage$'
 dest = "~/.local/bin/leagent.AppImage"
-probe = false
+meta_path = "leagent-desktop.desktop"

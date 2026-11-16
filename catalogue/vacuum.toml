@@ -1,4 +1,4 @@
-# Drafted from daveshanley/vacuum's v0.41.0 release; its version is the one Upkeep installed.
+# Drafted from daveshanley/vacuum's v0.41.0 release.
 [apps.vacuum]
 name = "vacuum"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^vacuum_.*_linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^vacuum_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/vacuum"
 bins = ["vacuum"]
-probe = false
+version_args = ["version"]

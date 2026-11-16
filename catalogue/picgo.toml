@@ -1,4 +1,4 @@
-# Drafted from Molunerfinn/PicGo's v3.0.4 release; its version is the one Upkeep installed.
+# Drafted from Molunerfinn/PicGo's v3.0.4 release.
 [apps.picgo]
 name = "PicGo"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "Molunerfinn/PicGo"
 asset = '^PicGo-.*-x86_64\.AppImage$'
 asset_aarch64 = '^PicGo-.*-arm64\.AppImage$'
 dest = "~/.local/bin/picgo.AppImage"
-probe = false
+meta_path = "PicGo.desktop"

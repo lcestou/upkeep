@@ -1,4 +1,4 @@
-# Drafted from dotenvx/dotenvx's v2.38.2 release; its version is the one Upkeep installed.
+# Drafted from dotenvx/dotenvx's v2.38.2 release.
 [apps.dotenvx]
 name = "dotenvx"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^dotenvx-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^dotenvx-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/dotenvx"
 bins = ["dotenvx"]
-probe = false

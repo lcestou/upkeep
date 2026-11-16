@@ -1,8 +1,8 @@
-# Drafted from Murmele/Gittyup's gittyup_v2.0.0 release; its version is the one Upkeep installed.
+# Drafted from Murmele/Gittyup's gittyup_v2.0.0 release.
 [apps.gittyup]
 name = "Gittyup"
 kind = "appimage"
 repo = "Murmele/Gittyup"
 asset = '^Gittyup-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/gittyup.AppImage"
-probe = false
+meta_path = "gittyup.desktop"

@@ -1,8 +1,8 @@
-# Drafted from mvdicarlo/postybirb-plus's v3.1.77 release; its version is the one Upkeep installed.
+# Drafted from mvdicarlo/postybirb-plus's v3.1.77 release.
 [apps.postybirb-plus]
 name = "Postybirb Plus"
 kind = "appimage"
 repo = "mvdicarlo/postybirb-plus"
 asset = '^postybirb-plus-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/postybirb-plus.AppImage"
-probe = false
+meta_path = "postybirb-plus.desktop"

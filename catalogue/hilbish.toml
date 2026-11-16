@@ -1,4 +1,4 @@
-# Drafted from sammy-ette/Hilbish's v2.3.4 release; its version is the one Upkeep installed.
+# Drafted from sammy-ette/Hilbish's v2.3.4 release.
 [apps.hilbish]
 name = "Hilbish"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^hilbish-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/hilbish"
 folder = "~/.local/share/hilbish"
 bins = ["hilbish"]
-probe = false

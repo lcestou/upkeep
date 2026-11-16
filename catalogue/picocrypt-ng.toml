@@ -1,8 +1,8 @@
-# Drafted from Picocrypt-NG/Picocrypt-NG's 2.18 release; its version is the one Upkeep installed.
+# Drafted from Picocrypt-NG/Picocrypt-NG's 2.18 release.
 [apps.picocrypt-ng]
 name = "Picocrypt-NG"
 kind = "appimage"
 repo = "Picocrypt-NG/Picocrypt-NG"
 asset = '^Picocrypt-NG-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/picocrypt-ng.AppImage"
-probe = false
+meta_path = "io.github.picocrypt_ng.Picocrypt-NG.desktop"

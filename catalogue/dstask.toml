@@ -1,8 +1,8 @@
-# Drafted from naggie/dstask's v1.0.1 release; its version is the one Upkeep installed.
+# Drafted from naggie/dstask's v1.0.1 release.
 [apps.dstask]
 name = "dstask"
 kind = "file"
 repo = "naggie/dstask"
 asset = '^dstask-linux-amd64$'
 dest = "~/.local/bin/dstask"
-probe = false
+version_args = ["version"]

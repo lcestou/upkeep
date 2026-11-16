@@ -1,8 +1,8 @@
-# Drafted from shitan198u/immich-go-gui's v1.4.4 release; its version is the one Upkeep installed.
+# Drafted from shitan198u/immich-go-gui's v1.4.4 release.
 [apps.immich-go-gui]
 name = "Immich-Go-GUI"
 kind = "appimage"
 repo = "shitan198u/immich-go-gui"
 asset = '^Immich-Go-GUI-.*-Linux-x86_64\.AppImage$'
 dest = "~/.local/bin/immich-go-gui.AppImage"
-probe = false
+meta_path = "immich-go-gui.desktop"

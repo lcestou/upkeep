@@ -1,4 +1,4 @@
-# Drafted from wakatime/wakatime-cli's v2.28.4 release; its version is the one Upkeep installed.
+# Drafted from wakatime/wakatime-cli's v2.28.4 release.
 [apps.wakatime-cli]
 name = "Wakatime Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^wakatime-cli-linux-amd64\.zip$'
 asset_aarch64 = '^wakatime-cli-linux-arm64\.zip$'
 dest = "~/.local/bin/wakatime-cli"
 bins = ["wakatime-cli*"]
-probe = false

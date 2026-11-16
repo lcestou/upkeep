@@ -1,4 +1,4 @@
-# Drafted from jj-vcs/jj's v0.47.1 release; its version is the one Upkeep installed.
+# Drafted from jj-vcs/jj's v0.47.1 release.
 [apps.jj]
 name = "jj"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^jj-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^jj-.*-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/jj"
 bins = ["jj"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from showwin/speedtest-go's v1.8.3 release; its version is the one Upkeep installed.
+# Drafted from showwin/speedtest-go's v1.8.3 release.
 [apps.speedtest-go]
 name = "Speedtest Go"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^speedtest-go_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^speedtest-go_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/speedtest-go"
 bins = ["speedtest-go"]
-probe = false

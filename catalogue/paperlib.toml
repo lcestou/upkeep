@@ -1,8 +1,8 @@
-# Drafted from Future-Scholars/paperlib's release-electron-3.1.12 release; its version is the one Upkeep installed.
+# Drafted from Future-Scholars/paperlib's release-electron-3.1.12 release.
 [apps.paperlib]
 name = "Paperlib"
 kind = "appimage"
 repo = "Future-Scholars/paperlib"
 asset = '^Paperlib_.*\.AppImage$'
 dest = "~/.local/bin/paperlib.AppImage"
-probe = false
+meta_path = "paperlib.desktop"

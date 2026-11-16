@@ -1,4 +1,4 @@
-# Drafted from xo/usql's v0.21.6 release; its version is the one Upkeep installed.
+# Drafted from xo/usql's v0.21.6 release.
 [apps.usql]
 name = "usql"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^usql-.*-linux-amd64\.tar\.bz2$'
 asset_aarch64 = '^usql-.*-linux-arm64\.tar\.bz2$'
 dest = "~/.local/bin/usql"
 bins = ["usql"]
-probe = false

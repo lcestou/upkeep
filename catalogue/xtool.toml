@@ -1,4 +1,4 @@
-# Drafted from xtool-org/xtool's 1.24.0 release; its version is the one Upkeep installed.
+# Drafted from xtool-org/xtool's 1.24.0 release.
 [apps.xtool]
 name = "xtool"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "xtool-org/xtool"
 asset = '^xtool-x86_64\.AppImage$'
 asset_aarch64 = '^xtool-aarch64\.AppImage$'
 dest = "~/.local/bin/xtool.AppImage"
-probe = false
+meta_path = "xtool.desktop"

@@ -1,4 +1,4 @@
-# Drafted from xuemian168/qqpet_automation's v1.6.1 release; its version is the one Upkeep installed.
+# Drafted from xuemian168/qqpet_automation's v1.6.1 release.
 [apps.qq-pet]
 name = "Qqpet Automation"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "xuemian168/qqpet_automation"
 asset = '^qq-pet-.*-x86_64\.AppImage$'
 asset_aarch64 = '^qq-pet-.*-arm64\.AppImage$'
 dest = "~/.local/bin/qq-pet.AppImage"
-probe = false
+meta_path = "qq-pet-macos.desktop"

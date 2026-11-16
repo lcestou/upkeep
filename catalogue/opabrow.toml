@@ -1,8 +1,8 @@
-# Drafted from ClaytonPetrosian/opabrow's v1.0.0 release; its version is the one Upkeep installed.
+# Drafted from ClaytonPetrosian/opabrow's v1.0.0 release.
 [apps.opabrow]
 name = "opabrow"
 kind = "appimage"
 repo = "ClaytonPetrosian/opabrow"
 asset = '^opabrow-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/opabrow.AppImage"
-probe = false
+meta_path = "opabrow.desktop"

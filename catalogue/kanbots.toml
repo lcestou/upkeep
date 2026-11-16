@@ -1,8 +1,8 @@
-# Drafted from leodavinci1/kanbots's v1.2.0 release; its version is the one Upkeep installed.
+# Drafted from leodavinci1/kanbots's v1.2.0 release.
 [apps.kanbots]
 name = "kanbots"
 kind = "appimage"
 repo = "leodavinci1/kanbots"
 asset = '^kanbots-.*-linux-x64\.AppImage$'
 dest = "~/.local/bin/kanbots.AppImage"
-probe = false
+meta_path = "kanbots.desktop"

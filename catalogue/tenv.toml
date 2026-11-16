@@ -1,4 +1,4 @@
-# Drafted from tofuutils/tenv's v4.15.1 release; its version is the one Upkeep installed.
+# Drafted from tofuutils/tenv's v4.15.1 release.
 [apps.tenv]
 name = "tenv"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^tenv_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/tenv"
 folder = "~/.local/share/tenv"
 bins = ["tenv"]
-probe = false

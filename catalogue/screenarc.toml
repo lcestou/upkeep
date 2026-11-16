@@ -1,8 +1,8 @@
-# Drafted from tamnguyenvan/screenarc's v1.4.1 release; its version is the one Upkeep installed.
+# Drafted from tamnguyenvan/screenarc's v1.4.1 release.
 [apps.screenarc]
 name = "ScreenArc"
 kind = "appimage"
 repo = "tamnguyenvan/screenarc"
 asset = '^ScreenArc-.*-linux-x64\.AppImage$'
 dest = "~/.local/bin/screenarc.AppImage"
-probe = false
+meta_path = "screenarc.desktop"

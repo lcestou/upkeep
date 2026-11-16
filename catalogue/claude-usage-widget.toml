@@ -1,4 +1,4 @@
-# Drafted from SlavomirDurej/claude-usage-widget's v1.7.7 release; its version is the one Upkeep installed.
+# Drafted from SlavomirDurej/claude-usage-widget's v1.7.7 release.
 [apps.claude-usage-widget]
 name = "Claude-Usage-Widget"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "SlavomirDurej/claude-usage-widget"
 asset = '^Claude-Usage-Widget-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^Claude-Usage-Widget-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/claude-usage-widget.AppImage"
-probe = false
+meta_path = "claude-usage-widget.desktop"

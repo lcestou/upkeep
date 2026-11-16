@@ -1,4 +1,4 @@
-# Drafted from koka-lang/koka's v3.2.9 release; its version is the one Upkeep installed.
+# Drafted from koka-lang/koka's v3.2.9 release.
 [apps.koka]
 name = "koka"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^koka-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/koka"
 folder = "~/.local/share/koka"
 bins = ["bin/koka"]
-probe = false

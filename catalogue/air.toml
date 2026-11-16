@@ -1,4 +1,4 @@
-# Drafted from air-verse/air's v1.67.4 release; its version is the one Upkeep installed.
+# Drafted from air-verse/air's v1.67.4 release.
 [apps.air]
 name = "air"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^air_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^air_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/air"
 bins = ["air"]
-probe = false
+version_args = ["-v"]

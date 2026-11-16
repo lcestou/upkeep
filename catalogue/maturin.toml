@@ -1,4 +1,4 @@
-# Drafted from PyO3/maturin's v1.16.0 release; its version is the one Upkeep installed.
+# Drafted from PyO3/maturin's v1.16.0 release.
 [apps.maturin]
 name = "maturin"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^maturin-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^maturin-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/maturin"
 bins = ["maturin"]
-probe = false

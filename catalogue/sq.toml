@@ -1,4 +1,4 @@
-# Drafted from neilotoole/sq's v0.55.0 release; its version is the one Upkeep installed.
+# Drafted from neilotoole/sq's v0.55.0 release.
 [apps.sq]
 name = "sq"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^sq-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/sq"
 folder = "~/.local/share/sq"
 bins = ["sq"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from google/osv-scanner's v2.7.1 release; its version is the one Upkeep installed.
+# Drafted from google/osv-scanner's v2.7.1 release.
 [apps.osv-scanner]
 name = "Osv Scanner"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "google/osv-scanner"
 asset = '^osv-scanner_linux_amd64$'
 asset_aarch64 = '^osv-scanner_linux_arm64$'
 dest = "~/.local/bin/osv-scanner"
-probe = false

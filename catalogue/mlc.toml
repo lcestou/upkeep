@@ -1,4 +1,4 @@
-# Drafted from becheran/mlc's v1.3.0 release; its version is the one Upkeep installed.
+# Drafted from becheran/mlc's v1.3.0 release.
 [apps.mlc]
 name = "mlc"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "becheran/mlc"
 asset = '^mlc-x86_64-linux$'
 asset_aarch64 = '^mlc-aarch64-linux$'
 dest = "~/.local/bin/mlc"
-probe = false

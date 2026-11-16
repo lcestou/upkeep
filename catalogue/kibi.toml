@@ -1,4 +1,4 @@
-# Drafted from ilai-deutel/kibi's v0.3.3 release; its version is the one Upkeep installed.
+# Drafted from ilai-deutel/kibi's v0.3.3 release.
 [apps.kibi]
 name = "kibi"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^kibi-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/kibi"
 folder = "~/.local/share/kibi"
 bins = ["kibi"]
-probe = false

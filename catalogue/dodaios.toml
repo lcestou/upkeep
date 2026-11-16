@@ -1,8 +1,8 @@
-# Drafted from Dodaios/Dodaios's v5.3.2 release; its version is the one Upkeep installed.
+# Drafted from Dodaios/Dodaios's v5.3.2 release.
 [apps.dodaios]
 name = "Dodaios"
 kind = "appimage"
 repo = "Dodaios/Dodaios"
 asset = '^Dodaios-Linux-x86_64\.AppImage$'
 dest = "~/.local/bin/dodaios.AppImage"
-probe = false
+meta_path = "dodaios.desktop"

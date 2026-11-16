@@ -1,4 +1,4 @@
-# Drafted from SecureAuthCorp/oauth2c's v1.21.1 release; its version is the one Upkeep installed.
+# Drafted from SecureAuthCorp/oauth2c's v1.21.1 release.
 [apps.oauth2c]
 name = "oauth2c"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^oauth2c_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^oauth2c_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/oauth2c"
 bins = ["oauth2c"]
-probe = false
+version_args = ["version"]

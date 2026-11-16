@@ -1,8 +1,7 @@
-# Drafted from sarub0b0/kubetui's v1.14.0 release; its version is the one Upkeep installed.
+# Drafted from sarub0b0/kubetui's v1.14.0 release.
 [apps.kubetui]
 name = "kubetui"
 kind = "file"
 repo = "sarub0b0/kubetui"
 asset = '^kubetui-x86_64-unknown-linux-gnu$'
 dest = "~/.local/bin/kubetui"
-probe = false

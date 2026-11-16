@@ -1,4 +1,4 @@
-# Drafted from PolyMC/PolyMC's 8.1 release; its version is the one Upkeep installed.
+# Drafted from PolyMC/PolyMC's 8.1 release.
 [apps.polymc]
 name = "PolyMC"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "PolyMC/PolyMC"
 asset = '^PolyMC-Linux-amd64-.*\.AppImage$'
 asset_aarch64 = '^PolyMC-Linux-aarch64-.*\.AppImage$'
 dest = "~/.local/bin/polymc.AppImage"
-probe = false
+meta_path = "org.polymc.PolyMC.desktop"

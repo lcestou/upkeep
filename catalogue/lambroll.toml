@@ -1,4 +1,4 @@
-# Drafted from fujiwara/lambroll's v1.6.1 release; its version is the one Upkeep installed.
+# Drafted from fujiwara/lambroll's v1.6.1 release.
 [apps.lambroll]
 name = "lambroll"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^lambroll_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^lambroll_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/lambroll"
 bins = ["lambroll"]
-probe = false
+version_args = ["version"]

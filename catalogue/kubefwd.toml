@@ -1,4 +1,4 @@
-# Drafted from txn2/kubefwd's v1.25.18 release; its version is the one Upkeep installed.
+# Drafted from txn2/kubefwd's v1.25.18 release.
 [apps.kubefwd]
 name = "kubefwd"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kubefwd_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^kubefwd_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kubefwd"
 bins = ["kubefwd"]
-probe = false
+version_args = ["version"]

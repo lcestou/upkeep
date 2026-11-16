@@ -1,8 +1,8 @@
-# Drafted from bezumiya/GoLiveBypass's v2.0.16 release; its version is the one Upkeep installed.
+# Drafted from bezumiya/GoLiveBypass's v2.0.16 release.
 [apps.golivebypass]
 name = "GoLiveBypass"
 kind = "appimage"
 repo = "bezumiya/GoLiveBypass"
 asset = '^GoLiveBypass-.*\.AppImage$'
 dest = "~/.local/bin/golivebypass.AppImage"
-probe = false
+meta_path = "golive-gui.desktop"

@@ -1,4 +1,4 @@
-# Drafted from quantumsheep/sshs's 4.8.0 release; its version is the one Upkeep installed.
+# Drafted from quantumsheep/sshs's 4.8.0 release.
 [apps.sshs]
 name = "sshs"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "quantumsheep/sshs"
 asset = '^sshs-linux-amd64$'
 asset_aarch64 = '^sshs-linux-arm64$'
 dest = "~/.local/bin/sshs"
-probe = false

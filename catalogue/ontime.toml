@@ -1,4 +1,4 @@
-# Drafted from cpvalente/ontime's v4.15.1 release; its version is the one Upkeep installed.
+# Drafted from cpvalente/ontime's v4.15.1 release.
 [apps.ontime]
 name = "ontime"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "cpvalente/ontime"
 asset = '^ontime-linux-x86_64\.AppImage$'
 asset_aarch64 = '^ontime-linux-arm64\.AppImage$'
 dest = "~/.local/bin/ontime.AppImage"
-probe = false
+meta_path = "ontime-electron.desktop"

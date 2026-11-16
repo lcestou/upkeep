@@ -1,4 +1,4 @@
-# Drafted from matthart1983/netwatch's v0.40.1 release; its version is the one Upkeep installed.
+# Drafted from matthart1983/netwatch's v0.40.1 release.
 [apps.netwatch]
 name = "netwatch"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^netwatch-linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^netwatch-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/netwatch"
 bins = ["netwatch*"]
-probe = false

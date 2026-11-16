@@ -1,4 +1,4 @@
-# Drafted from basecamp/basecamp-cli's v0.30.0 release; its version is the one Upkeep installed.
+# Drafted from basecamp/basecamp-cli's v0.30.0 release.
 [apps.basecamp]
 name = "Basecamp Cli"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^basecamp_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/basecamp"
 folder = "~/.local/share/basecamp"
 bins = ["basecamp"]
-probe = false

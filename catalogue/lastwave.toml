@@ -1,8 +1,8 @@
-# Drafted from Clash-Projects/LastWave-Desktop's v2.1.0 release; its version is the one Upkeep installed.
+# Drafted from Clash-Projects/LastWave-Desktop's v2.1.0 release.
 [apps.lastwave]
 name = "LastWave Desktop"
 kind = "appimage"
 repo = "Clash-Projects/LastWave-Desktop"
 asset = '^lastwave_.*_x86_64\.AppImage$'
 dest = "~/.local/bin/lastwave.AppImage"
-probe = false
+meta_path = "lastwave-appimage.desktop"

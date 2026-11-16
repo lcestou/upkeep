@@ -1,4 +1,4 @@
-# Drafted from liggitt/audit2rbac's v0.10.0 release; its version is the one Upkeep installed.
+# Drafted from liggitt/audit2rbac's v0.10.0 release.
 [apps.audit2rbac]
 name = "audit2rbac"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^audit2rbac-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^audit2rbac-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/audit2rbac"
 bins = ["audit2rbac"]
-probe = false

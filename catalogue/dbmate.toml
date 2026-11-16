@@ -1,4 +1,4 @@
-# Drafted from amacneil/dbmate's v2.38.1 release; its version is the one Upkeep installed.
+# Drafted from amacneil/dbmate's v2.38.1 release.
 [apps.dbmate]
 name = "dbmate"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "amacneil/dbmate"
 asset = '^dbmate-linux-amd64$'
 asset_aarch64 = '^dbmate-linux-arm64$'
 dest = "~/.local/bin/dbmate"
-probe = false

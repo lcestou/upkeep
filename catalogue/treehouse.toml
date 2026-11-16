@@ -1,4 +1,4 @@
-# Drafted from kunchenguid/treehouse's v3.1.8 release; its version is the one Upkeep installed.
+# Drafted from kunchenguid/treehouse's v3.1.8 release.
 [apps.treehouse]
 name = "treehouse"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^treehouse-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^treehouse-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/treehouse"
 bins = ["treehouse"]
-probe = false

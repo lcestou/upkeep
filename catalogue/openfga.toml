@@ -1,4 +1,4 @@
-# Drafted from openfga/openfga's v1.22.1 release; its version is the one Upkeep installed.
+# Drafted from openfga/openfga's v1.22.1 release.
 [apps.openfga]
 name = "openfga"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^openfga_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/openfga"
 folder = "~/.local/share/openfga"
 bins = ["openfga"]
-probe = false
+version_args = ["version"]

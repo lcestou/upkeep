@@ -1,4 +1,4 @@
-# Drafted from shenwei356/csvtk's v0.39.0 release; its version is the one Upkeep installed.
+# Drafted from shenwei356/csvtk's v0.39.0 release.
 [apps.csvtk]
 name = "csvtk"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^csvtk_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^csvtk_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/csvtk"
 bins = ["csvtk"]
-probe = false

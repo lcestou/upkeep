@@ -1,4 +1,4 @@
-# Drafted from sandbox-quantum/switch's switch-console-v0.40.1 release; its version is the one Upkeep installed.
+# Drafted from sandbox-quantum/switch's switch-console-v0.40.1 release.
 [apps.switch-console]
 name = "switch"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "sandbox-quantum/switch"
 asset = '^switch-console-x86_64\.AppImage$'
 asset_aarch64 = '^switch-console-arm64\.AppImage$'
 dest = "~/.local/bin/switch-console.AppImage"
-probe = false
+meta_path = "switch-console.desktop"

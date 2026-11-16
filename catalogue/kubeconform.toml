@@ -1,4 +1,4 @@
-# Drafted from yannh/kubeconform's v0.8.0 release; its version is the one Upkeep installed.
+# Drafted from yannh/kubeconform's v0.8.0 release.
 [apps.kubeconform]
 name = "kubeconform"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kubeconform-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^kubeconform-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/kubeconform"
 bins = ["kubeconform"]
-probe = false
+version_args = ["-v"]

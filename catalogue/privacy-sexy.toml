@@ -1,8 +1,8 @@
-# Drafted from undergroundwires/privacy.sexy's 0.13.8 release; its version is the one Upkeep installed.
+# Drafted from undergroundwires/privacy.sexy's 0.13.8 release.
 [apps.privacy-sexy]
 name = "privacy.sexy"
 kind = "appimage"
 repo = "undergroundwires/privacy.sexy"
 asset = '^privacy\.sexy-.*\.AppImage$'
 dest = "~/.local/bin/privacy-sexy.AppImage"
-probe = false
+meta_path = "privacy.sexy.desktop"

@@ -1,4 +1,4 @@
-# Drafted from acelot/termtastic's v1.0.0-beta5 release; its version is the one Upkeep installed.
+# Drafted from acelot/termtastic's v1.0.0-beta5 release.
 [apps.termtastic]
 name = "termtastic"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^termtastic-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^termtastic-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/termtastic"
 bins = ["termtastic"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from GoogleContainerTools/container-structure-test's v1.22.1 release; its version is the one Upkeep installed.
+# Drafted from GoogleContainerTools/container-structure-test's v1.22.1 release.
 [apps.container-structure-test]
 name = "Container Structure Test"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "GoogleContainerTools/container-structure-test"
 asset = '^container-structure-test-linux-amd64$'
 asset_aarch64 = '^container-structure-test-linux-arm64$'
 dest = "~/.local/bin/container-structure-test"
-probe = false
+version_args = ["version"]

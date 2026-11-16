@@ -1,4 +1,4 @@
-# Drafted from neurosnap/zmx's v1.0.1 release; its version is the one Upkeep installed.
+# Drafted from neurosnap/zmx's v1.0.1 release.
 [apps.zmx]
 name = "zmx"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^zmx-.*-linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^zmx-.*-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/zmx"
 bins = ["zmx"]
-probe = false

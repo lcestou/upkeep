@@ -1,4 +1,4 @@
-# Drafted from sqldef/sqldef's v3.11.30 release; its version is the one Upkeep installed.
+# Drafted from sqldef/sqldef's v3.11.30 release.
 [apps.mssqldef]
 name = "sqldef"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^mssqldef_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^mssqldef_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/mssqldef"
 bins = ["mssqldef"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from CircleCI-Public/circleci-cli's v1.15.0 release; its version is the one Upkeep installed.
+# Drafted from CircleCI-Public/circleci-cli's v1.15.0 release.
 [apps.circleci]
 name = "Circleci Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^circleci-cli_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^circleci-cli_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/circleci"
 bins = ["circleci"]
-probe = false

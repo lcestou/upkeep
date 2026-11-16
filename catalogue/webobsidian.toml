@@ -1,4 +1,4 @@
-# Drafted from xnohat/webobsidian's v0.1.0 release; its version is the one Upkeep installed.
+# Drafted from xnohat/webobsidian's v0.1.0 release.
 [apps.webobsidian]
 name = "WebObsidian"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "xnohat/webobsidian"
 asset = '^WebObsidian-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^WebObsidian-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/webobsidian.AppImage"
-probe = false
+meta_path = "@webobsidiandesktop.desktop"

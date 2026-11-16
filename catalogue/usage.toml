@@ -1,4 +1,4 @@
-# Drafted from jdx/usage's v7.3.0 release; its version is the one Upkeep installed.
+# Drafted from jdx/usage's v7.3.0 release.
 [apps.usage]
 name = "usage"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^usage-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^usage-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/usage"
 bins = ["usage"]
-probe = false

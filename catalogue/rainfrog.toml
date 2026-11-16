@@ -1,4 +1,4 @@
-# Drafted from achristmascarl/rainfrog's v0.4.7 release; its version is the one Upkeep installed.
+# Drafted from achristmascarl/rainfrog's v0.4.7 release.
 [apps.rainfrog]
 name = "rainfrog"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^rainfrog-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^rainfrog-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/rainfrog"
 bins = ["rainfrog"]
-probe = false

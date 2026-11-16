@@ -1,8 +1,8 @@
-# Drafted from aixisstudio/Snitch's v1.6.4 release; its version is the one Upkeep installed.
+# Drafted from aixisstudio/Snitch's v1.6.4 release.
 [apps.snitch]
 name = "Snitch"
 kind = "appimage"
 repo = "aixisstudio/Snitch"
 asset = '^Snitch-x86_64\.AppImage$'
 dest = "~/.local/bin/snitch.AppImage"
-probe = false
+meta_path = "Snitch.desktop"

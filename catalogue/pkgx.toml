@@ -1,4 +1,4 @@
-# Drafted from pkgxdev/pkgx's v2.11.0 release; its version is the one Upkeep installed.
+# Drafted from pkgxdev/pkgx's v2.11.0 release.
 [apps.pkgx]
 name = "pkgx"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^pkgx-.*\+linux\+x86-64\.tar\.gz$'
 asset_aarch64 = '^pkgx-.*\+linux\+aarch64\.tar\.gz$'
 dest = "~/.local/bin/pkgx"
 bins = ["pkgx"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from nats-io/nats-server's v2.15.3 release; its version is the one Upkeep installed.
+# Drafted from nats-io/nats-server's v2.15.3 release.
 [apps.nats-server]
 name = "Nats Server"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^nats-server-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^nats-server-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/nats-server"
 bins = ["nats-server-v2.15.3-linux-amd64/nats-server"]
-probe = false

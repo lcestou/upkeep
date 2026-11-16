@@ -1,4 +1,4 @@
-# Drafted from Owloops/updo's v0.4.8 release; its version is the one Upkeep installed.
+# Drafted from Owloops/updo's v0.4.8 release.
 [apps.updo]
 name = "updo"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "Owloops/updo"
 asset = '^updo_Linux_x86_64$'
 asset_aarch64 = '^updo_Linux_arm64$'
 dest = "~/.local/bin/updo"
-probe = false

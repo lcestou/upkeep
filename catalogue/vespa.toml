@@ -1,4 +1,4 @@
-# Drafted from vespa-engine/vespa's v8.781.11 release; its version is the one Upkeep installed.
+# Drafted from vespa-engine/vespa's v8.781.11 release.
 [apps.vespa]
 name = "vespa"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^vespa-cli_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^vespa-cli_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/vespa"
 bins = ["vespa-cli_8.781.11_linux_amd64/bin/vespa"]
-probe = false
+version_args = ["version"]

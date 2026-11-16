@@ -1,4 +1,4 @@
-# Drafted from pemistahl/grex's v1.4.6 release; its version is the one Upkeep installed.
+# Drafted from pemistahl/grex's v1.4.6 release.
 [apps.grex]
 name = "grex"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^grex-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^grex-.*-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/grex"
 bins = ["grex"]
-probe = false

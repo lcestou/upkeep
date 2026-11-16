@@ -1,4 +1,4 @@
-# Drafted from slok/sloth's v0.16.0 release; its version is the one Upkeep installed.
+# Drafted from slok/sloth's v0.16.0 release.
 [apps.sloth]
 name = "sloth"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "slok/sloth"
 asset = '^sloth-linux-amd64$'
 asset_aarch64 = '^sloth-linux-arm64$'
 dest = "~/.local/bin/sloth"
-probe = false
+version_args = ["version"]

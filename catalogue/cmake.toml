@@ -1,4 +1,4 @@
-# Drafted from Kitware/CMake's v4.5.0 release; its version is the one Upkeep installed.
+# Drafted from Kitware/CMake's v4.5.0 release.
 [apps.cmake]
 name = "CMake"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^cmake-.*-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/cmake"
 folder = "~/.local/share/cmake"
 bins = ["bin/cmake", "bin/cmake-gui"]
-probe = false

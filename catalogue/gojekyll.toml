@@ -1,4 +1,4 @@
-# Drafted from osteele/gojekyll's v0.3.1 release; its version is the one Upkeep installed.
+# Drafted from osteele/gojekyll's v0.3.1 release.
 [apps.gojekyll]
 name = "gojekyll"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "osteele/gojekyll"
 asset = '^gojekyll_Linux_x86_64v1\.tar\.gz$'
 dest = "~/.local/bin/gojekyll"
 bins = ["gojekyll"]
-probe = false

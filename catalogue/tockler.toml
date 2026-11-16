@@ -1,8 +1,8 @@
-# Drafted from MayGo/tockler's v4.0.21 release; its version is the one Upkeep installed.
+# Drafted from MayGo/tockler's v4.0.21 release.
 [apps.tockler]
 name = "Tockler"
 kind = "appimage"
 repo = "MayGo/tockler"
 asset = '^Tockler-.*\.AppImage$'
 dest = "~/.local/bin/tockler.AppImage"
-probe = false
+meta_path = "tockler.desktop"

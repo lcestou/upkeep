@@ -1,4 +1,4 @@
-# Drafted from Ivy-Interactive/Ivy-Tendril's v1.2.4 release; its version is the one Upkeep installed.
+# Drafted from Ivy-Interactive/Ivy-Tendril's v1.2.4 release.
 [apps.ivytendril]
 name = "IvyTendril"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "Ivy-Interactive/Ivy-Tendril"
 asset = '^IvyTendril-.*-linux-x64\.AppImage$'
 asset_aarch64 = '^IvyTendril-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/ivytendril.AppImage"
-probe = false
+meta_path = "IvyTendril.desktop"

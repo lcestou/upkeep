@@ -1,4 +1,4 @@
-# Drafted from Dynatrace/dynatrace-configuration-as-code's v2.31.0 release; its version is the one Upkeep installed.
+# Drafted from Dynatrace/dynatrace-configuration-as-code's v2.31.0 release.
 [apps.monaco]
 name = "Dynatrace Configuration As Code"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "Dynatrace/dynatrace-configuration-as-code"
 asset = '^monaco-linux-amd64$'
 asset_aarch64 = '^monaco-linux-arm64$'
 dest = "~/.local/bin/monaco"
-probe = false
+version_args = ["version"]

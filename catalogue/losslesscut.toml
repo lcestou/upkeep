@@ -1,8 +1,8 @@
-# Drafted from mifi/lossless-cut's v3.70.2 release; its version is the one Upkeep installed.
+# Drafted from mifi/lossless-cut's v3.70.2 release.
 [apps.losslesscut]
 name = "LosslessCut"
 kind = "appimage"
 repo = "mifi/lossless-cut"
 asset = '^LosslessCut-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/losslesscut.AppImage"
-probe = false
+meta_path = "losslesscut.desktop"

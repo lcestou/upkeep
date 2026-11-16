@@ -1,8 +1,8 @@
-# Drafted from wangmiaozero/pi-harness's v2.4.8 release; its version is the one Upkeep installed.
+# Drafted from wangmiaozero/pi-harness's v2.4.8 release.
 [apps.pi-harness]
 name = "Pi-Harness"
 kind = "appimage"
 repo = "wangmiaozero/pi-harness"
 asset = '^Pi-Harness-.*\.AppImage$'
 dest = "~/.local/bin/pi-harness.AppImage"
-probe = false
+meta_path = "pi-harness.desktop"

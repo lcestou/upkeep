@@ -1,4 +1,4 @@
-# Drafted from lhvy/pipes-rs's v1.6.4 release; its version is the one Upkeep installed.
+# Drafted from lhvy/pipes-rs's v1.6.4 release.
 [apps.pipes-rs]
 name = "Pipes Rs"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "lhvy/pipes-rs"
 asset = '^pipes-rs-linux-x86_64\.tar\.gz$'
 dest = "~/.local/bin/pipes-rs"
 bins = ["target/x86_64-unknown-linux-gnu/release/pipes-rs"]
-probe = false

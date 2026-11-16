@@ -1,8 +1,8 @@
-# Drafted from JunAkerBuilds/CorosLink's v0.1.77 release; its version is the one Upkeep installed.
+# Drafted from JunAkerBuilds/CorosLink's v0.1.77 release.
 [apps.coroslink]
 name = "CorosLink"
 kind = "appimage"
 repo = "JunAkerBuilds/CorosLink"
 asset = '^CorosLink-.*\.AppImage$'
 dest = "~/.local/bin/coroslink.AppImage"
-probe = false
+meta_path = "coroslink.desktop"

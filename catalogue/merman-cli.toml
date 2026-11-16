@@ -1,4 +1,4 @@
-# Drafted from Latias94/merman's v0.10.0 release; its version is the one Upkeep installed.
+# Drafted from Latias94/merman's v0.10.0 release.
 [apps.merman-cli]
 name = "merman"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^merman-cli-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/merman-cli"
 folder = "~/.local/share/merman-cli"
 bins = ["merman-cli"]
-probe = false

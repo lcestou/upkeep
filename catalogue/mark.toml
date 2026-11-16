@@ -1,4 +1,4 @@
-# Drafted from kovetskiy/mark's v17.2.0 release; its version is the one Upkeep installed.
+# Drafted from kovetskiy/mark's v17.2.0 release.
 [apps.mark]
 name = "mark"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^mark_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^mark_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/mark"
 bins = ["mark"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from KhronosGroup/KTX-Software's v4.4.2 release; its version is the one Upkeep installed.
+# Drafted from KhronosGroup/KTX-Software's v4.4.2 release.
 [apps.ktx]
 name = "KTX-Software"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^KTX-Software-.*-Linux-arm64\.tar\.bz2$'
 dest = "~/.local/bin/ktx"
 folder = "~/.local/share/ktx"
 bins = ["bin/ktx"]
-probe = false

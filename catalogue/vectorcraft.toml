@@ -1,4 +1,4 @@
-# Drafted from storytold/vectorcraft's v0.24.1 release; its version is the one Upkeep installed.
+# Drafted from storytold/vectorcraft's v0.24.1 release.
 [apps.vectorcraft]
 name = "vectorcraft"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "storytold/vectorcraft"
 asset = '^vectorcraft-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^vectorcraft-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/vectorcraft.AppImage"
-probe = false
+meta_path = "ai.storyteller.vectorcraft.desktop"

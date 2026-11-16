@@ -1,4 +1,4 @@
-# Drafted from dtan4/k8sec's v0.9.0 release; its version is the one Upkeep installed.
+# Drafted from dtan4/k8sec's v0.9.0 release.
 [apps.k8sec]
 name = "k8sec"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^k8sec_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^k8sec_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/k8sec"
 bins = ["k8sec"]
-probe = false
+version_args = ["version"]

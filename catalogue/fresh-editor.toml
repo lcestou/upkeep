@@ -1,4 +1,4 @@
-# Drafted from sinelaw/fresh's v0.5.8 release; its version is the one Upkeep installed.
+# Drafted from sinelaw/fresh's v0.5.8 release.
 [apps.fresh-editor]
 name = "fresh"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "sinelaw/fresh"
 asset = '^fresh-editor-[0-9][0-9A-Za-z.]*-x86_64\.AppImage$'
 asset_aarch64 = '^fresh-editor-[0-9][0-9A-Za-z.]*-aarch64\.AppImage$'
 dest = "~/.local/bin/fresh-editor.AppImage"
-probe = false
+meta_path = "fresh.desktop"

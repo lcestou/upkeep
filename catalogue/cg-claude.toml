@@ -1,8 +1,8 @@
-# Drafted from LcodeCoder/CG-Claude's v1.2.8 release; its version is the one Upkeep installed.
+# Drafted from LcodeCoder/CG-Claude's v1.2.8 release.
 [apps.cg-claude]
 name = "CG-Claude"
 kind = "appimage"
 repo = "LcodeCoder/CG-Claude"
 asset = '^CG-Claude-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/cg-claude.AppImage"
-probe = false
+meta_path = "cg-claude.desktop"

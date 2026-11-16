@@ -1,4 +1,4 @@
-# Drafted from openvex/vexctl's v0.4.4 release; its version is the one Upkeep installed.
+# Drafted from openvex/vexctl's v0.4.4 release.
 [apps.vexctl]
 name = "vexctl"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "openvex/vexctl"
 asset = '^vexctl-linux-amd64$'
 asset_aarch64 = '^vexctl-linux-arm64$'
 dest = "~/.local/bin/vexctl"
-probe = false
+version_args = ["version"]

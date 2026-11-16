@@ -1,4 +1,4 @@
-# Drafted from dadav/helm-schema's 0.24.0 release; its version is the one Upkeep installed.
+# Drafted from dadav/helm-schema's 0.24.0 release.
 [apps.helm-schema]
 name = "Helm Schema"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^helm-schema_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/helm-schema"
 folder = "~/.local/share/helm-schema"
 bins = ["helm-schema"]
-probe = false

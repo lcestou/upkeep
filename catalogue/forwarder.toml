@@ -1,4 +1,4 @@
-# Drafted from saucelabs/forwarder's v1.6.5 release; its version is the one Upkeep installed.
+# Drafted from saucelabs/forwarder's v1.6.5 release.
 [apps.forwarder]
 name = "forwarder"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^forwarder-.*_linux\.aarch64\.tar\.gz$'
 dest = "~/.local/bin/forwarder"
 folder = "~/.local/share/forwarder"
 bins = ["forwarder"]
-probe = false
+version_args = ["version"]

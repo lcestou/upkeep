@@ -1,4 +1,4 @@
-# Drafted from microsoft/tgrep's v1.2.7 release; its version is the one Upkeep installed.
+# Drafted from microsoft/tgrep's v1.2.7 release.
 [apps.tgrep]
 name = "tgrep"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tgrep-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^tgrep-.*-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/tgrep"
 bins = ["tgrep"]
-probe = false

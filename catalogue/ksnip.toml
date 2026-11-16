@@ -1,8 +1,8 @@
-# Drafted from ksnip/ksnip's v1.10.1 release; its version is the one Upkeep installed.
+# Drafted from ksnip/ksnip's v1.10.1 release.
 [apps.ksnip]
 name = "ksnip"
 kind = "appimage"
 repo = "ksnip/ksnip"
 asset = '^ksnip-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/ksnip.AppImage"
-probe = false
+meta_path = "org.ksnip.ksnip.desktop"

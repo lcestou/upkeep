@@ -1,4 +1,4 @@
-# Drafted from gogs/gogs's v0.14.4 release; its version is the one Upkeep installed.
+# Drafted from gogs/gogs's v0.14.4 release.
 [apps.gogs]
 name = "gogs"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^gogs_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/gogs"
 folder = "~/.local/share/gogs"
 bins = ["gogs"]
-probe = false

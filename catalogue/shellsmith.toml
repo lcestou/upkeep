@@ -1,8 +1,8 @@
-# Drafted from kairowan/Shellsmith's v1.11.0 release; its version is the one Upkeep installed.
+# Drafted from kairowan/Shellsmith's v1.11.0 release.
 [apps.shellsmith]
 name = "Shellsmith"
 kind = "appimage"
 repo = "kairowan/Shellsmith"
 asset = '^Shellsmith_.*_linux_amd64\.AppImage$'
 dest = "~/.local/bin/shellsmith.AppImage"
-probe = false
+meta_path = "Shellsmith.desktop"

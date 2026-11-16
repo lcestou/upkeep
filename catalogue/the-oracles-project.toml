@@ -1,4 +1,4 @@
-# Drafted from thibautbus/top's v1.4.0 release; its version is the one Upkeep installed.
+# Drafted from thibautbus/top's v1.4.0 release.
 [apps.the-oracles-project]
 name = "top"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "thibautbus/top"
 asset = '^the-oracles-project-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^the-oracles-project-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/the-oracles-project.AppImage"
-probe = false
+meta_path = "org.theoraclesproject.oracles.desktop"

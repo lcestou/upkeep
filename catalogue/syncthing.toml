@@ -1,4 +1,4 @@
-# Drafted from syncthing/syncthing's v2.1.7 release; its version is the one Upkeep installed.
+# Drafted from syncthing/syncthing's v2.1.7 release.
 [apps.syncthing]
 name = "syncthing"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^syncthing-linux-arm64-.*\.tar\.gz$'
 dest = "~/.local/bin/syncthing"
 folder = "~/.local/share/syncthing"
 bins = ["syncthing"]
-probe = false

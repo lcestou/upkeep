@@ -1,8 +1,8 @@
-# Drafted from pocketnetteam/pocketnet.gui's v0.9.143 release; its version is the one Upkeep installed.
+# Drafted from pocketnetteam/pocketnet.gui's v0.9.143 release.
 [apps.bastyon]
 name = "Bastyon"
 kind = "appimage"
 repo = "pocketnetteam/pocketnet.gui"
 asset = '^Bastyon\.AppImage$'
 dest = "~/.local/bin/bastyon.AppImage"
-probe = false
+meta_path = "bastyon.desktop"

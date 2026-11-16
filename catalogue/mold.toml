@@ -1,4 +1,4 @@
-# Drafted from rui314/mold's v3.0.0 release; its version is the one Upkeep installed.
+# Drafted from rui314/mold's v3.0.0 release.
 [apps.mold]
 name = "mold"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^mold-.*-aarch64-linux\.tar\.gz$'
 dest = "~/.local/bin/mold"
 folder = "~/.local/share/mold"
 bins = ["bin/mold"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from idursun/jjui's v0.10.13 release; its version is the one Upkeep installed.
+# Drafted from idursun/jjui's v0.10.13 release.
 [apps.jjui-]
 name = "jjui"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^jjui-.*-linux-amd64\.zip$'
 asset_aarch64 = '^jjui-.*-linux-arm64\.zip$'
 dest = "~/.local/bin/jjui-"
 bins = ["jjui-*"]
-probe = false

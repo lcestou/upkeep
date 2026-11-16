@@ -1,4 +1,4 @@
-# Drafted from k1LoW/octocov's v0.83.5 release; its version is the one Upkeep installed.
+# Drafted from k1LoW/octocov's v0.83.5 release.
 [apps.octocov]
 name = "octocov"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^octocov_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^octocov_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/octocov"
 bins = ["octocov"]
-probe = false

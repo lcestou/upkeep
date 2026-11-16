@@ -1,4 +1,4 @@
-# Drafted from arxanas/git-branchless's v0.11.1 release; its version is the one Upkeep installed.
+# Drafted from arxanas/git-branchless's v0.11.1 release.
 [apps.git-branchless]
 name = "Git Branchless"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^git-branchless-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^git-branchless-.*-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/git-branchless"
 bins = ["git-branchless"]
-probe = false

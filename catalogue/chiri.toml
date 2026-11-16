@@ -1,4 +1,4 @@
-# Drafted from chiriapp/chiri's app-v1.0.0 release; its version is the one Upkeep installed.
+# Drafted from chiriapp/chiri's app-v1.0.0 release.
 [apps.chiri]
 name = "Chiri"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "chiriapp/chiri"
 asset = '^Chiri_.*_amd64\.AppImage$'
 asset_aarch64 = '^Chiri_.*_aarch64\.AppImage$'
 dest = "~/.local/bin/chiri.AppImage"
-probe = false
+meta_path = "garden.chiri.Chiri.desktop"

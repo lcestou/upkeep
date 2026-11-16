@@ -1,4 +1,4 @@
-# Drafted from zmap/zlint's v3.7.3 release; its version is the one Upkeep installed.
+# Drafted from zmap/zlint's v3.7.3 release.
 [apps.zlint]
 name = "zlint"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "zmap/zlint"
 asset = '^zlint_.*_Linux_x86_64\.tar\.gz$'
 dest = "~/.local/bin/zlint"
 bins = ["zlint_3.7.3_Linux_x86_64/zlint"]
-probe = false

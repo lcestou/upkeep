@@ -1,4 +1,4 @@
-# Drafted from alajmo/mani's v0.32.1 release; its version is the one Upkeep installed.
+# Drafted from alajmo/mani's v0.32.1 release.
 [apps.mani]
 name = "mani"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^mani_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^mani_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/mani"
 bins = ["mani"]
-probe = false

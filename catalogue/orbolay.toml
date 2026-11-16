@@ -1,8 +1,8 @@
-# Drafted from SpikeHD/Orbolay's v4.3.1 release; its version is the one Upkeep installed.
+# Drafted from SpikeHD/Orbolay's v4.3.1 release.
 [apps.orbolay]
 name = "Orbolay"
 kind = "appimage"
 repo = "SpikeHD/Orbolay"
 asset = '^orbolay-x86_64-unknown-linux-gnu\.AppImage$'
 dest = "~/.local/bin/orbolay.AppImage"
-probe = false
+meta_path = "orbolay.desktop"

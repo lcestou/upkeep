@@ -1,4 +1,4 @@
-# Drafted from Songmu/ghg's v0.3.3 release; its version is the one Upkeep installed.
+# Drafted from Songmu/ghg's v0.3.3 release.
 [apps.ghg]
 name = "ghg"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^ghg_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ghg"
 folder = "~/.local/share/ghg"
 bins = ["ghg"]
-probe = false
+version_args = ["version"]

@@ -1,4 +1,4 @@
-# Drafted from bmf-san/ggc's v8.7.7 release; its version is the one Upkeep installed.
+# Drafted from bmf-san/ggc's v8.7.7 release.
 [apps.ggc]
 name = "ggc"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^ggc_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^ggc_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/ggc"
 bins = ["ggc"]
-probe = false
+version_args = ["version"]

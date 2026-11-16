@@ -1,4 +1,4 @@
-# Drafted from cococonscious/koji's v3.4.0 release; its version is the one Upkeep installed.
+# Drafted from cococonscious/koji's v3.4.0 release.
 [apps.koji]
 name = "koji"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^koji-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^koji-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/koji"
 bins = ["koji"]
-probe = false

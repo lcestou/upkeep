@@ -1,4 +1,4 @@
-# Drafted from denizgursoy/gotouch's v1.17.0 release; its version is the one Upkeep installed.
+# Drafted from denizgursoy/gotouch's v1.17.0 release.
 [apps.gotouch]
 name = "gotouch"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gotouch_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^gotouch_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gotouch"
 bins = ["gotouch"]
-probe = false

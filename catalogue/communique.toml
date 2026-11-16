@@ -1,4 +1,4 @@
-# Drafted from jdx/communique's v1.8.0 release; its version is the one Upkeep installed.
+# Drafted from jdx/communique's v1.8.0 release.
 [apps.communique]
 name = "communique"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^communique-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^communique-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/communique"
 bins = ["communique"]
-probe = false

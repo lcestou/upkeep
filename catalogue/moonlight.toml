@@ -1,8 +1,8 @@
-# Drafted from moonlight-stream/moonlight-qt's v6.2.0 release; its version is the one Upkeep installed.
+# Drafted from moonlight-stream/moonlight-qt's v6.2.0 release.
 [apps.moonlight]
 name = "Moonlight"
 kind = "appimage"
 repo = "moonlight-stream/moonlight-qt"
 asset = '^Moonlight-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/moonlight.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/com.moonlight_stream.Moonlight.appdata.xml"

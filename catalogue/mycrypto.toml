@@ -1,8 +1,8 @@
-# Drafted from MyCryptoHQ/MyCrypto's 1.7.17 release; its version is the one Upkeep installed.
+# Drafted from MyCryptoHQ/MyCrypto's 1.7.17 release.
 [apps.mycrypto]
 name = "MyCrypto"
 kind = "appimage"
 repo = "MyCryptoHQ/MyCrypto"
 asset = '^linux-x86-64_.*_MyCrypto\.AppImage$'
 dest = "~/.local/bin/mycrypto.AppImage"
-probe = false
+meta_path = "mycrypto.desktop"

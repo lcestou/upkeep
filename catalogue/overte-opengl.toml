@@ -1,4 +1,4 @@
-# Drafted from overte-org/overte's 2026.10.1 release; its version is the one Upkeep installed.
+# Drafted from overte-org/overte's 2026.10.1 release.
 [apps.overte-opengl]
 name = "Overte-OpenGL"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "overte-org/overte"
 asset = '^Overte-.*-OpenGL-x86_64\.AppImage$'
 asset_aarch64 = '^Overte-.*-OpenGL-aarch64\.AppImage$'
 dest = "~/.local/bin/overte-opengl.AppImage"
-probe = false
+meta_path = "org.overte.interface.desktop"

@@ -1,4 +1,4 @@
-# Drafted from loeffel-io/ls-lint's v2.3.2 release; its version is the one Upkeep installed.
+# Drafted from loeffel-io/ls-lint's v2.3.2 release.
 [apps.ls-lint]
 name = "Ls Lint"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ls-lint-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^ls-lint-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/ls-lint"
 bins = ["ls-lint*"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from truffleruby/truffleruby's graal-40.0.0 release; its version is the one Upkeep installed.
+# Drafted from truffleruby/truffleruby's graal-40.0.0 release.
 [apps.truffleruby]
 name = "truffleruby"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^truffleruby-[0-9][0-9A-Za-z.]*-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/truffleruby"
 folder = "~/.local/share/truffleruby"
 bins = ["bin/truffleruby", "bin/truffleruby-polyglot-get"]
-probe = false

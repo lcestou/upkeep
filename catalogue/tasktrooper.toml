@@ -1,8 +1,8 @@
-# Drafted from makifbaysal/tasktrooper's v0.3.18 release; its version is the one Upkeep installed.
+# Drafted from makifbaysal/tasktrooper's v0.3.18 release.
 [apps.tasktrooper]
 name = "TaskTrooper"
 kind = "appimage"
 repo = "makifbaysal/tasktrooper"
 asset = '^TaskTrooper-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/tasktrooper.AppImage"
-probe = false
+meta_path = "tasktrooper-desktop.desktop"

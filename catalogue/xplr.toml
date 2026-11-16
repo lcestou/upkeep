@@ -1,4 +1,4 @@
-# Drafted from sayanarijit/xplr's v1.2.2 release; its version is the one Upkeep installed.
+# Drafted from sayanarijit/xplr's v1.2.2 release.
 [apps.xplr]
 name = "xplr"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "sayanarijit/xplr"
 asset = '^xplr-linux\.tar\.gz$'
 dest = "~/.local/bin/xplr"
 bins = ["xplr"]
-probe = false

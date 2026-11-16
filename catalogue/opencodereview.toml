@@ -1,4 +1,4 @@
-# Drafted from alibaba/open-code-review's v1.13.10 release; its version is the one Upkeep installed.
+# Drafted from alibaba/open-code-review's v1.13.10 release.
 [apps.opencodereview]
 name = "Open Code Review"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "alibaba/open-code-review"
 asset = '^opencodereview-linux-amd64$'
 asset_aarch64 = '^opencodereview-linux-arm64$'
 dest = "~/.local/bin/opencodereview"
-probe = false

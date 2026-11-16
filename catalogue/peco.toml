@@ -1,4 +1,4 @@
-# Drafted from peco/peco's v0.6.0 release; its version is the one Upkeep installed.
+# Drafted from peco/peco's v0.6.0 release.
 [apps.peco]
 name = "peco"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^peco_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^peco_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/peco"
 bins = ["peco"]
-probe = false

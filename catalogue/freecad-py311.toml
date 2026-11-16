@@ -1,4 +1,4 @@
-# Drafted from FreeCAD/FreeCAD's 1.1.4 release; its version is the one Upkeep installed.
+# Drafted from FreeCAD/FreeCAD's 1.1.4 release.
 [apps.freecad-py311]
 name = "FreeCAD-py311"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "FreeCAD/FreeCAD"
 asset = '^FreeCAD_.*-Linux-x86_64-py311\.AppImage$'
 asset_aarch64 = '^FreeCAD_.*-Linux-aarch64-py311\.AppImage$'
 dest = "~/.local/bin/freecad-py311.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/org.freecad.FreeCAD.metainfo.xml"

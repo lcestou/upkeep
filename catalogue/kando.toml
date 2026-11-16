@@ -1,4 +1,4 @@
-# Drafted from kando-menu/kando's v3.0.1 release; its version is the one Upkeep installed.
+# Drafted from kando-menu/kando's v3.0.1 release.
 [apps.kando]
 name = "Kando"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "kando-menu/kando"
 asset = '^Kando-.*-x86_64\.AppImage$'
 asset_aarch64 = '^Kando-.*-aarch64\.AppImage$'
 dest = "~/.local/bin/kando.AppImage"
-probe = false
+meta_path = "menu.kando.Kando.desktop"

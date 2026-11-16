@@ -1,8 +1,8 @@
-# Drafted from prof18/feed-flow's 1.21.0-all release; its version is the one Upkeep installed.
+# Drafted from prof18/feed-flow's 1.21.0-all release.
 [apps.feedflow]
 name = "FeedFlow"
 kind = "appimage"
 repo = "prof18/feed-flow"
 asset = '^FeedFlow-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/feedflow.AppImage"
-probe = false
+meta_path = "com.prof18.feedflow.desktop"

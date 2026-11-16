@@ -1,4 +1,4 @@
-# Drafted from cortesi/modd's v0.8 release; its version is the one Upkeep installed.
+# Drafted from cortesi/modd's v0.8 release.
 [apps.modd]
 name = "modd"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "cortesi/modd"
 asset = '^modd-.*-linux64\.tgz$'
 dest = "~/.local/bin/modd"
 bins = ["modd-0.8-linux64/modd"]
-probe = false

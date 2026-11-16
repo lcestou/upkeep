@@ -1,4 +1,4 @@
-# Drafted from Nukesor/pueue's v4.0.4 release; its version is the one Upkeep installed.
+# Drafted from Nukesor/pueue's v4.0.4 release.
 [apps.pueue]
 name = "pueue"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "Nukesor/pueue"
 asset = '^pueue-x86_64-unknown-linux-musl$'
 asset_aarch64 = '^pueue-aarch64-unknown-linux-musl$'
 dest = "~/.local/bin/pueue"
-probe = false

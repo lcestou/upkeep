@@ -1,8 +1,7 @@
-# Drafted from sstadick/crabz's v0.10.1 release; its version is the one Upkeep installed.
+# Drafted from sstadick/crabz's v0.10.1 release.
 [apps.crabz]
 name = "crabz"
 kind = "file"
 repo = "sstadick/crabz"
 asset = '^crabz-linux-amd64$'
 dest = "~/.local/bin/crabz"
-probe = false

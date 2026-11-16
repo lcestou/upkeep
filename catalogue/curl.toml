@@ -1,4 +1,4 @@
-# Drafted from stunnel/static-curl's 8.23.0-1 release; its version is the one Upkeep installed.
+# Drafted from stunnel/static-curl's 8.23.0-1 release.
 [apps.curl]
 name = "Static Curl"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^curl-linux-aarch64-musl-.*\.tar\.xz$'
 dest = "~/.local/bin/curl"
 folder = "~/.local/share/curl"
 bins = ["curl"]
-probe = false

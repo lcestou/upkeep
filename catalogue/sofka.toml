@@ -1,4 +1,4 @@
-# Drafted from nklmilojevic/sofka's v0.35.1 release; its version is the one Upkeep installed.
+# Drafted from nklmilojevic/sofka's v0.35.1 release.
 [apps.sofka]
 name = "sofka"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^sofka-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/sofka"
 folder = "~/.local/share/sofka"
 bins = ["sofka"]
-probe = false

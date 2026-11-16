@@ -1,4 +1,4 @@
-# Drafted from purocean/yn's v3.93.1 release; its version is the one Upkeep installed.
+# Drafted from purocean/yn's v3.93.1 release.
 [apps.yank-note]
 name = "Yank-Note"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "purocean/yn"
 asset = '^Yank-Note-linux-x86_64-.*\.AppImage$'
 asset_aarch64 = '^Yank-Note-linux-arm64-.*\.AppImage$'
 dest = "~/.local/bin/yank-note.AppImage"
-probe = false
+meta_path = "yank-note.desktop"

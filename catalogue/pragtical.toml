@@ -1,4 +1,4 @@
-# Drafted from pragtical/pragtical's v3.15.0 release; its version is the one Upkeep installed.
+# Drafted from pragtical/pragtical's v3.15.0 release.
 [apps.pragtical]
 name = "Pragtical"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "pragtical/pragtical"
 asset = '^Pragtical-.*-x86_64\.AppImage$'
 asset_aarch64 = '^Pragtical-.*-aarch64\.AppImage$'
 dest = "~/.local/bin/pragtical.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/dev.pragtical.Pragtical.appdata.xml"

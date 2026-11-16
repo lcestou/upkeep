@@ -1,4 +1,4 @@
-# Drafted from stefanprodan/timoni's v0.37.0 release; its version is the one Upkeep installed.
+# Drafted from stefanprodan/timoni's v0.37.0 release.
 [apps.timoni]
 name = "timoni"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^timoni_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^timoni_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/timoni"
 bins = ["timoni"]
-probe = false

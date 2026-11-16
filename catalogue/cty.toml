@@ -1,4 +1,4 @@
-# Drafted from Skarlso/crd-to-sample-yaml's v2.7.0 release; its version is the one Upkeep installed.
+# Drafted from Skarlso/crd-to-sample-yaml's v2.7.0 release.
 [apps.cty]
 name = "Crd To Sample Yaml"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^cty_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^cty_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/cty"
 bins = ["cty"]
-probe = false
+version_args = ["version"]

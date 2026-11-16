@@ -1,4 +1,4 @@
-# Drafted from eval-exec/neomacs's v0.0.20 release; its version is the one Upkeep installed.
+# Drafted from eval-exec/neomacs's v0.0.20 release.
 [apps.neomacs]
 name = "neomacs"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "eval-exec/neomacs"
 asset = '^neomacs-.*-x86_64-unknown-linux-gnu\.AppImage$'
 asset_aarch64 = '^neomacs-.*-aarch64-unknown-linux-gnu\.AppImage$'
 dest = "~/.local/bin/neomacs.AppImage"
-probe = false
+meta_path = "neomacs.desktop"

@@ -1,4 +1,4 @@
-# Drafted from gojuno/minimock's v3.4.7 release; its version is the one Upkeep installed.
+# Drafted from gojuno/minimock's v3.4.7 release.
 [apps.minimock]
 name = "minimock"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^minimock_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^minimock_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/minimock"
 bins = ["minimock"]
-probe = false

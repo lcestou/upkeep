@@ -1,4 +1,4 @@
-# Drafted from woodpecker-ci/woodpecker's v3.20.1 release; its version is the one Upkeep installed.
+# Drafted from woodpecker-ci/woodpecker's v3.20.1 release.
 [apps.woodpecker-cli]
 name = "woodpecker"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^woodpecker-cli_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^woodpecker-cli_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/woodpecker-cli"
 bins = ["woodpecker-cli"]
-probe = false

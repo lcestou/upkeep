@@ -1,4 +1,4 @@
-# Drafted from ThinkInAIXYZ/deepchat's v1.1.4 release; its version is the one Upkeep installed.
+# Drafted from ThinkInAIXYZ/deepchat's v1.1.4 release.
 [apps.deepchat]
 name = "DeepChat"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "ThinkInAIXYZ/deepchat"
 asset = '^DeepChat-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^DeepChat-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/deepchat.AppImage"
-probe = false
+meta_path = "deepchat.desktop"

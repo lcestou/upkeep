@@ -1,4 +1,4 @@
-# Drafted from storytold/photocraft's v0.23.1 release; its version is the one Upkeep installed.
+# Drafted from storytold/photocraft's v0.23.1 release.
 [apps.photocraft]
 name = "photocraft"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "storytold/photocraft"
 asset = '^photocraft-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^photocraft-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/photocraft.AppImage"
-probe = false
+meta_path = "ai.storyteller.photocraft.desktop"

@@ -1,4 +1,4 @@
-# Drafted from aandrew-me/tgpt's v2.16.0 release; its version is the one Upkeep installed.
+# Drafted from aandrew-me/tgpt's v2.16.0 release.
 [apps.tgpt]
 name = "tgpt"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "aandrew-me/tgpt"
 asset = '^tgpt-linux-amd64$'
 asset_aarch64 = '^tgpt-linux-arm64$'
 dest = "~/.local/bin/tgpt"
-probe = false

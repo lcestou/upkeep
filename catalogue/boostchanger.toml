@@ -1,8 +1,8 @@
-# Drafted from nbebaw/boostchanger's v5.2.0 release; its version is the one Upkeep installed.
+# Drafted from nbebaw/boostchanger's v5.2.0 release.
 [apps.boostchanger]
 name = "boostchanger"
 kind = "appimage"
 repo = "nbebaw/boostchanger"
 asset = '^boostchanger-.*\.AppImage$'
 dest = "~/.local/bin/boostchanger.AppImage"
-probe = false
+meta_path = "boostchanger.desktop"

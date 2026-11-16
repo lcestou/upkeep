@@ -1,4 +1,4 @@
-# Drafted from open-policy-agent/conftest's v0.71.1 release; its version is the one Upkeep installed.
+# Drafted from open-policy-agent/conftest's v0.71.1 release.
 [apps.conftest]
 name = "conftest"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^conftest_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^conftest_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/conftest"
 bins = ["conftest"]
-probe = false

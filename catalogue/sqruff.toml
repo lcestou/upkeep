@@ -1,4 +1,4 @@
-# Drafted from quarylabs/sqruff's v0.44.0 release; its version is the one Upkeep installed.
+# Drafted from quarylabs/sqruff's v0.44.0 release.
 [apps.sqruff]
 name = "sqruff"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^sqruff-linux-x86_64-musl\.tar\.gz$'
 asset_aarch64 = '^sqruff-linux-aarch64-musl\.tar\.gz$'
 dest = "~/.local/bin/sqruff"
 bins = ["sqruff"]
-probe = false

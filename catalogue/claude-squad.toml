@@ -1,4 +1,4 @@
-# Drafted from smtg-ai/claude-squad's v1.0.20 release; its version is the one Upkeep installed.
+# Drafted from smtg-ai/claude-squad's v1.0.20 release.
 [apps.claude-squad]
 name = "Claude Squad"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^claude-squad_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^claude-squad_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/claude-squad"
 bins = ["claude-squad"]
-probe = false
+version_args = ["version"]

@@ -1,8 +1,8 @@
-# Drafted from lite-xl/lite-xl's v2.1.8 release; its version is the one Upkeep installed.
+# Drafted from lite-xl/lite-xl's v2.1.8 release.
 [apps.litexl]
 name = "LiteXL"
 kind = "appimage"
 repo = "lite-xl/lite-xl"
 asset = '^LiteXL-v[0-9][0-9A-Za-z.]*-x86_64\.AppImage$'
 dest = "~/.local/bin/litexl.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/org.lite_xl.lite_xl.appdata.xml"

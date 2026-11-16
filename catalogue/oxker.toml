@@ -1,4 +1,4 @@
-# Drafted from mrjackwills/oxker's v0.13.4 release; its version is the one Upkeep installed.
+# Drafted from mrjackwills/oxker's v0.13.4 release.
 [apps.oxker]
 name = "oxker"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^oxker_linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^oxker_linux_aarch64\.tar\.gz$'
 dest = "~/.local/bin/oxker"
 bins = ["oxker"]
-probe = false

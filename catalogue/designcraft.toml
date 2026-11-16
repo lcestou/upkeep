@@ -1,4 +1,4 @@
-# Drafted from storytold/designcraft's v0.20.1 release; its version is the one Upkeep installed.
+# Drafted from storytold/designcraft's v0.20.1 release.
 [apps.designcraft]
 name = "designcraft"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "storytold/designcraft"
 asset = '^designcraft-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^designcraft-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/designcraft.AppImage"
-probe = false
+meta_path = "ai.storyteller.designcraft.desktop"

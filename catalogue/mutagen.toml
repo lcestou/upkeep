@@ -1,4 +1,4 @@
-# Drafted from mutagen-io/mutagen's v0.18.1 release; its version is the one Upkeep installed.
+# Drafted from mutagen-io/mutagen's v0.18.1 release.
 [apps.mutagen]
 name = "mutagen"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^mutagen_linux_arm64_.*\.tar\.gz$'
 dest = "~/.local/bin/mutagen"
 folder = "~/.local/share/mutagen"
 bins = ["mutagen"]
-probe = false

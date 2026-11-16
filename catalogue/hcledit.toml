@@ -1,4 +1,4 @@
-# Drafted from minamijoyo/hcledit's v0.2.19 release; its version is the one Upkeep installed.
+# Drafted from minamijoyo/hcledit's v0.2.19 release.
 [apps.hcledit]
 name = "hcledit"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^hcledit_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^hcledit_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/hcledit"
 bins = ["hcledit"]
-probe = false
+version_args = ["version"]

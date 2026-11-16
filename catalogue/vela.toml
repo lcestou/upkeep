@@ -1,4 +1,4 @@
-# Drafted from kubevela/kubevela's v1.11.1 release; its version is the one Upkeep installed.
+# Drafted from kubevela/kubevela's v1.11.1 release.
 [apps.vela]
 name = "kubevela"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^vela-.*-linux-amd64\.zip$'
 asset_aarch64 = '^vela-.*-linux-arm64\.zip$'
 dest = "~/.local/bin/vela"
 bins = ["linux-amd64/vela"]
-probe = false
+version_args = ["version"]

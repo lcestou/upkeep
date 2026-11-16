@@ -1,8 +1,8 @@
-# Drafted from TanookiStudios/decomp-buddy's v0.33.0 release; its version is the one Upkeep installed.
+# Drafted from TanookiStudios/decomp-buddy's v0.33.0 release.
 [apps.decomp-buddy]
 name = "Decomp-Buddy"
 kind = "appimage"
 repo = "TanookiStudios/decomp-buddy"
 asset = '^Decomp\.Buddy-.*\.AppImage$'
 dest = "~/.local/bin/decomp-buddy.AppImage"
-probe = false
+meta_path = "decomp-buddy.desktop"

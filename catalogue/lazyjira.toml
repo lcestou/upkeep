@@ -1,4 +1,4 @@
-# Drafted from textfuel/lazyjira's v2.19.2 release; its version is the one Upkeep installed.
+# Drafted from textfuel/lazyjira's v2.19.2 release.
 [apps.lazyjira]
 name = "lazyjira"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^lazyjira_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^lazyjira_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/lazyjira"
 bins = ["lazyjira"]
-probe = false

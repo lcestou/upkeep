@@ -1,4 +1,4 @@
-# Drafted from alexellis/kubetrim's v0.0.3 release; its version is the one Upkeep installed.
+# Drafted from alexellis/kubetrim's v0.0.3 release.
 [apps.kubetrim]
 name = "kubetrim"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "alexellis/kubetrim"
 asset = '^kubetrim\.tgz$'
 dest = "~/.local/bin/kubetrim"
 bins = ["kubetrim"]
-probe = false

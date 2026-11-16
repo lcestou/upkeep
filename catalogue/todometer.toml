@@ -1,8 +1,8 @@
-# Drafted from cassidoo/todometer's v3.0.3 release; its version is the one Upkeep installed.
+# Drafted from cassidoo/todometer's v3.0.3 release.
 [apps.todometer]
 name = "todometer"
 kind = "appimage"
 repo = "cassidoo/todometer"
 asset = '^todometer-.*\.AppImage$'
 dest = "~/.local/bin/todometer.AppImage"
-probe = false
+meta_path = "todometer.desktop"

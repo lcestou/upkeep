@@ -1,4 +1,4 @@
-# Drafted from TomWright/dasel's v3.11.2 release; its version is the one Upkeep installed.
+# Drafted from TomWright/dasel's v3.11.2 release.
 [apps.dasel]
 name = "dasel"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "TomWright/dasel"
 asset = '^dasel_linux_amd64$'
 asset_aarch64 = '^dasel_linux_arm64$'
 dest = "~/.local/bin/dasel"
-probe = false
+version_args = ["version"]

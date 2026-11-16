@@ -1,4 +1,4 @@
-# Drafted from HELPMEEADICE/Netodia's v0.1.7 release; its version is the one Upkeep installed.
+# Drafted from HELPMEEADICE/Netodia's v0.1.7 release.
 [apps.netodia]
 name = "Netodia"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "HELPMEEADICE/Netodia"
 asset = '^netodia-.*-x86_64\.AppImage$'
 asset_aarch64 = '^netodia-.*-aarch64\.AppImage$'
 dest = "~/.local/bin/netodia.AppImage"
-probe = false
+meta_path = "com.github.helpmeeadice.netodia.desktop"

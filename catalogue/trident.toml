@@ -1,4 +1,4 @@
-# Drafted from NetApp/trident's v26.10.1 release; its version is the one Upkeep installed.
+# Drafted from NetApp/trident's v26.10.1 release.
 [apps.trident]
 name = "trident"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^trident-installer-.*\.tar\.gz$'
 dest = "~/.local/bin/trident"
 folder = "~/.local/share/trident"
 bins = ["extras/bin/trident", "tridentctl"]
-probe = false
+version_args = ["version"]

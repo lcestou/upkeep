@@ -1,4 +1,4 @@
-# Drafted from mongodb-js/mongosh's v2.14.2 release; its version is the one Upkeep installed.
+# Drafted from mongodb-js/mongosh's v2.14.2 release.
 [apps.mongosh]
 name = "mongosh"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^mongosh-.*-linux-arm64\.tgz$'
 dest = "~/.local/bin/mongosh"
 folder = "~/.local/share/mongosh"
 bins = ["bin/mongosh"]
-probe = false

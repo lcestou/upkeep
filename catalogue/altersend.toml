@@ -1,4 +1,4 @@
-# Drafted from denislupookov/altersend's v2.0.0 release; its version is the one Upkeep installed.
+# Drafted from denislupookov/altersend's v2.0.0 release.
 [apps.altersend]
 name = "AlterSend"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "denislupookov/altersend"
 asset = '^AlterSend-x86_64\.AppImage$'
 asset_aarch64 = '^AlterSend-arm64\.AppImage$'
 dest = "~/.local/bin/altersend.AppImage"
-probe = false
+meta_path = "altersend.desktop"

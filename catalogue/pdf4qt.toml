@@ -1,8 +1,8 @@
-# Drafted from JakubMelka/PDF4QT's v1.7.0.0 release; its version is the one Upkeep installed.
+# Drafted from JakubMelka/PDF4QT's v1.7.0.0 release.
 [apps.pdf4qt]
 name = "PDF4QT"
 kind = "appimage"
 repo = "JakubMelka/PDF4QT"
 asset = '^PDF4QT-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/pdf4qt.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.JakubMelka.Pdf4qt.appdata.xml"

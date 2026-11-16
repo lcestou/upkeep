@@ -1,8 +1,8 @@
-# Drafted from alexellis/k3sup's 0.13.14 release; its version is the one Upkeep installed.
+# Drafted from alexellis/k3sup's 0.13.14 release.
 [apps.k3sup]
 name = "k3sup"
 kind = "file"
 repo = "alexellis/k3sup"
 asset = '^k3sup$'
 dest = "~/.local/bin/k3sup"
-probe = false
+version_args = ["version"]

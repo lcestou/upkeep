@@ -1,4 +1,4 @@
-# Drafted from shihanng/tfvar's v0.11.0 release; its version is the one Upkeep installed.
+# Drafted from shihanng/tfvar's v0.11.0 release.
 [apps.tfvar]
 name = "tfvar"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tfvar_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^tfvar_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/tfvar"
 bins = ["tfvar"]
-probe = false

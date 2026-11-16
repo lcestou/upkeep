@@ -1,4 +1,4 @@
-# Drafted from joshmedeski/sesh's v2.34.0 release; its version is the one Upkeep installed.
+# Drafted from joshmedeski/sesh's v2.34.0 release.
 [apps.sesh]
 name = "sesh"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^sesh_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^sesh_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/sesh"
 bins = ["sesh"]
-probe = false

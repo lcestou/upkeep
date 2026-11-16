@@ -1,4 +1,4 @@
-# Drafted from m7medVision/lazycommit's v2.1.0 release; its version is the one Upkeep installed.
+# Drafted from m7medVision/lazycommit's v2.1.0 release.
 [apps.lazycommit]
 name = "lazycommit"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^lazycommit_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^lazycommit_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/lazycommit"
 bins = ["lazycommit"]
-probe = false

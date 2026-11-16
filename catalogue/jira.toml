@@ -1,4 +1,4 @@
-# Drafted from ankitpokhrel/jira-cli's v1.7.0 release; its version is the one Upkeep installed.
+# Drafted from ankitpokhrel/jira-cli's v1.7.0 release.
 [apps.jira]
 name = "Jira Cli"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^jira_.*_linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^jira_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/jira"
 bins = ["jira_1.7.0_linux_x86_64/bin/jira"]
-probe = false
+version_args = ["version"]

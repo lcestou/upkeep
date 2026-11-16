@@ -1,8 +1,8 @@
-# Drafted from mfat/systemd-pilot's v4.2.1 release; its version is the one Upkeep installed.
+# Drafted from mfat/systemd-pilot's v4.2.1 release.
 [apps.systemd-pilot]
 name = "Systemd Pilot"
 kind = "appimage"
 repo = "mfat/systemd-pilot"
 asset = '^systemd-pilot-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/systemd-pilot.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.mfat.systemdpilot.metainfo.xml"

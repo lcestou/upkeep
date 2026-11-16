@@ -1,4 +1,4 @@
-# Drafted from gotify/cli's v2.4.0 release; its version is the one Upkeep installed.
+# Drafted from gotify/cli's v2.4.0 release.
 [apps.gotify-cli]
 name = "gotify-cli"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "gotify/cli"
 asset = '^gotify-cli-linux-amd64$'
 asset_aarch64 = '^gotify-cli-linux-arm64$'
 dest = "~/.local/bin/gotify-cli"
-probe = false

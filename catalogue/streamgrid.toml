@@ -1,8 +1,8 @@
-# Drafted from LordKnish/StreamGrid's v3.0.0 release; its version is the one Upkeep installed.
+# Drafted from LordKnish/StreamGrid's v3.0.0 release.
 [apps.streamgrid]
 name = "StreamGrid"
 kind = "appimage"
 repo = "LordKnish/StreamGrid"
 asset = '^StreamGrid-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/streamgrid.AppImage"
-probe = false
+meta_path = "streamgrid.desktop"

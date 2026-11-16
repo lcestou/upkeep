@@ -1,8 +1,8 @@
-# Drafted from benord-labs/frink's 0.4.0 release; its version is the one Upkeep installed.
+# Drafted from benord-labs/frink's 0.4.0 release.
 [apps.frink]
 name = "Frink"
 kind = "appimage"
 repo = "benord-labs/frink"
 asset = '^Frink-[0-9][0-9A-Za-z.]*\.AppImage$'
 dest = "~/.local/bin/frink.AppImage"
-probe = false
+meta_path = "frink.desktop"

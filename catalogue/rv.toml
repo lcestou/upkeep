@@ -1,4 +1,4 @@
-# Drafted from spinel-coop/rv's v0.7.2 release; its version is the one Upkeep installed.
+# Drafted from spinel-coop/rv's v0.7.2 release.
 [apps.rv]
 name = "rv"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^rv-x86_64-unknown-linux-gnu\.tar\.xz$'
 asset_aarch64 = '^rv-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/rv"
 bins = ["rv-x86_64-unknown-linux-gnu/rv", "rv-x86_64-unknown-linux-gnu/rvx"]
-probe = false

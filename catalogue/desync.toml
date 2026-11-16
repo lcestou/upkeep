@@ -1,4 +1,4 @@
-# Drafted from folbricht/desync's v1.1.5 release; its version is the one Upkeep installed.
+# Drafted from folbricht/desync's v1.1.5 release.
 [apps.desync]
 name = "desync"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^desync_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^desync_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/desync"
 bins = ["desync"]
-probe = false

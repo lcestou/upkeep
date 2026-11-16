@@ -1,4 +1,4 @@
-# Drafted from aduros/wasm4's v2.7.1 release; its version is the one Upkeep installed.
+# Drafted from aduros/wasm4's v2.7.1 release.
 [apps.w4]
 name = "wasm4"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "aduros/wasm4"
 asset = '^w4-linux\.zip$'
 dest = "~/.local/bin/w4"
 bins = ["w4"]
-probe = false

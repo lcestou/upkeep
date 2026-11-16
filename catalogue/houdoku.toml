@@ -1,8 +1,8 @@
-# Drafted from xgi/houdoku's v2.16.0 release; its version is the one Upkeep installed.
+# Drafted from xgi/houdoku's v2.16.0 release.
 [apps.houdoku]
 name = "Houdoku"
 kind = "appimage"
 repo = "xgi/houdoku"
 asset = '^Houdoku-.*\.AppImage$'
 dest = "~/.local/bin/houdoku.AppImage"
-probe = false
+meta_path = "houdoku.desktop"

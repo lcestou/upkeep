@@ -1,4 +1,4 @@
-# Drafted from anomalyco/sst's v4.17.2 release; its version is the one Upkeep installed.
+# Drafted from anomalyco/sst's v4.17.2 release.
 [apps.sst]
 name = "sst"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^sst-linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^sst-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/sst"
 bins = ["sst"]
-probe = false
+version_args = ["version"]

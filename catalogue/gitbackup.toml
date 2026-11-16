@@ -1,8 +1,8 @@
-# Drafted from hiteshchoudhary/gitbackup's v1.0.0 release; its version is the one Upkeep installed.
+# Drafted from hiteshchoudhary/gitbackup's v1.0.0 release.
 [apps.gitbackup]
 name = "GitBackup"
 kind = "appimage"
 repo = "hiteshchoudhary/gitbackup"
 asset = '^GitBackup-.*\.AppImage$'
 dest = "~/.local/bin/gitbackup.AppImage"
-probe = false
+meta_path = "gitbackup.desktop"

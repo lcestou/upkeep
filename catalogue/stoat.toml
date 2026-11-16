@@ -1,4 +1,4 @@
-# Drafted from stoatchat/for-desktop's v1.5.4 release; its version is the one Upkeep installed.
+# Drafted from stoatchat/for-desktop's v1.5.4 release.
 [apps.stoat]
 name = "Stoat-anylinux"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "stoatchat/for-desktop"
 asset = '^Stoat-.*-anylinux-x86_64\.AppImage$'
 asset_aarch64 = '^Stoat-.*-anylinux-aarch64\.AppImage$'
 dest = "~/.local/bin/stoat.AppImage"
-probe = false
+meta_path = "chat.stoat.StoatDesktop.desktop"

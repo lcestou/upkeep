@@ -1,4 +1,4 @@
-# Drafted from hashicorp/copywrite's v0.25.3 release; its version is the one Upkeep installed.
+# Drafted from hashicorp/copywrite's v0.25.3 release.
 [apps.copywrite]
 name = "copywrite"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^copywrite_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/copywrite"
 folder = "~/.local/share/copywrite"
 bins = ["copywrite"]
-probe = false

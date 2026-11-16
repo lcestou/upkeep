@@ -1,4 +1,4 @@
-# Drafted from jgm/pandoc's 3.14 release; its version is the one Upkeep installed.
+# Drafted from jgm/pandoc's 3.14 release.
 [apps.pandoc]
 name = "pandoc"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^pandoc-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/pandoc"
 folder = "~/.local/share/pandoc"
 bins = ["bin/pandoc"]
-probe = false

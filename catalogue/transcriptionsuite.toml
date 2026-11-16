@@ -1,8 +1,8 @@
-# Drafted from homelab-00/TranscriptionSuite's v1.3.10 release; its version is the one Upkeep installed.
+# Drafted from homelab-00/TranscriptionSuite's v1.3.10 release.
 [apps.transcriptionsuite]
 name = "TranscriptionSuite"
 kind = "appimage"
 repo = "homelab-00/TranscriptionSuite"
 asset = '^TranscriptionSuite-.*\.AppImage$'
 dest = "~/.local/bin/transcriptionsuite.AppImage"
-probe = false
+meta_path = "com.transcriptionsuite.dashboard.desktop"

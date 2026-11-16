@@ -1,4 +1,4 @@
-# Drafted from knqyf263/pet's v1.0.1 release; its version is the one Upkeep installed.
+# Drafted from knqyf263/pet's v1.0.1 release.
 [apps.pet]
 name = "pet"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^pet_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^pet_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/pet"
 bins = ["pet"]
-probe = false
+version_args = ["version"]

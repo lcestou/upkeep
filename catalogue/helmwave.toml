@@ -1,4 +1,4 @@
-# Drafted from helmwave/helmwave's v0.44.4 release; its version is the one Upkeep installed.
+# Drafted from helmwave/helmwave's v0.44.4 release.
 [apps.helmwave]
 name = "helmwave"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^helmwave_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^helmwave_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/helmwave"
 bins = ["helmwave"]
-probe = false

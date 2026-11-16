@@ -1,8 +1,8 @@
-# Drafted from 0neGal/viper's v1.13.0 release; its version is the one Upkeep installed.
+# Drafted from 0neGal/viper's v1.13.0 release.
 [apps.viper]
 name = "Viper"
 kind = "appimage"
 repo = "0neGal/viper"
 asset = '^Viper-.*\.AppImage$'
 dest = "~/.local/bin/viper.AppImage"
-probe = false
+meta_path = "viper.desktop"

@@ -1,4 +1,4 @@
-# Drafted from OJ/gobuster's v3.8.2 release; its version is the one Upkeep installed.
+# Drafted from OJ/gobuster's v3.8.2 release.
 [apps.gobuster]
 name = "gobuster"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gobuster_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^gobuster_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gobuster"
 bins = ["gobuster"]
-probe = false

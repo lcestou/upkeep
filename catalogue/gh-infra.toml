@@ -1,4 +1,4 @@
-# Drafted from babarot/gh-infra's v0.20.0 release; its version is the one Upkeep installed.
+# Drafted from babarot/gh-infra's v0.20.0 release.
 [apps.gh-infra]
 name = "Gh Infra"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gh-infra_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^gh-infra_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gh-infra"
 bins = ["gh-infra"]
-probe = false

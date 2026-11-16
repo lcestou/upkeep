@@ -1,4 +1,4 @@
-# Drafted from square/certstrap's v1.4.1 release; its version is the one Upkeep installed.
+# Drafted from square/certstrap's v1.4.1 release.
 [apps.certstrap]
 name = "certstrap"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "square/certstrap"
 asset = '^certstrap-linux-amd64$'
 asset_aarch64 = '^certstrap-linux-arm64$'
 dest = "~/.local/bin/certstrap"
-probe = false

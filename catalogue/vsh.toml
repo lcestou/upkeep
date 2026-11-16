@@ -1,4 +1,4 @@
-# Drafted from fishi0x01/vsh's v1.0.0 release; its version is the one Upkeep installed.
+# Drafted from fishi0x01/vsh's v1.0.0 release.
 [apps.vsh]
 name = "vsh"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "fishi0x01/vsh"
 asset = '^vsh_linux_amd64$'
 asset_aarch64 = '^vsh_linux_arm64$'
 dest = "~/.local/bin/vsh"
-probe = false

@@ -1,8 +1,8 @@
-# Drafted from gcarmix/HexWalk's v2.2.1 release; its version is the one Upkeep installed.
+# Drafted from gcarmix/HexWalk's v2.2.1 release.
 [apps.hexwalk]
 name = "HexWalk"
 kind = "appimage"
 repo = "gcarmix/HexWalk"
 asset = '^HexWalk-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/hexwalk.AppImage"
-probe = false
+meta_path = "hexwalk.desktop"

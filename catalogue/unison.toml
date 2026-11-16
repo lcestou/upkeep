@@ -1,4 +1,4 @@
-# Drafted from unisonweb/unison's release/1.5.0 release; its version is the one Upkeep installed.
+# Drafted from unisonweb/unison's release/1.5.0 release.
 [apps.unison]
 name = "unison"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^ucm-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/unison"
 folder = "~/.local/share/unison"
 bins = ["unison/unison"]
-probe = false

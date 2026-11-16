@@ -1,4 +1,4 @@
-# Drafted from coredns/coredns's v1.15.0 release; its version is the one Upkeep installed.
+# Drafted from coredns/coredns's v1.15.0 release.
 [apps.coredns]
 name = "coredns"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^coredns_.*_linux_amd64\.tgz$'
 asset_aarch64 = '^coredns_.*_linux_arm64\.tgz$'
 dest = "~/.local/bin/coredns"
 bins = ["coredns"]
-probe = false

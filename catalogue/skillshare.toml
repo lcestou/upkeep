@@ -1,4 +1,4 @@
-# Drafted from runkids/skillshare's v0.30.8 release; its version is the one Upkeep installed.
+# Drafted from runkids/skillshare's v0.30.8 release.
 [apps.skillshare]
 name = "skillshare"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^skillshare_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^skillshare_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/skillshare"
 bins = ["skillshare"]
-probe = false

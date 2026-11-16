@@ -1,4 +1,4 @@
-# Drafted from Ernani1234/musike's v1.5.1 release; its version is the one Upkeep installed.
+# Drafted from Ernani1234/musike's v1.5.1 release.
 [apps.musike]
 name = "Musike"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "Ernani1234/musike"
 asset = '^Musike-Setup-.*-Linux-x64\.AppImage$'
 asset_aarch64 = '^Musike-Setup-.*-Linux-arm64\.AppImage$'
 dest = "~/.local/bin/musike.AppImage"
-probe = false
+meta_path = "musike.desktop"

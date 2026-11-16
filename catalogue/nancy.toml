@@ -1,4 +1,4 @@
-# Drafted from sonatype-nexus-community/nancy's v2.1.1 release; its version is the one Upkeep installed.
+# Drafted from sonatype-nexus-community/nancy's v2.1.1 release.
 [apps.nancy]
 name = "nancy"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^nancy-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^nancy-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/nancy"
 bins = ["nancy"]
-probe = false

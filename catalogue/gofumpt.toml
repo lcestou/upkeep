@@ -1,4 +1,4 @@
-# Drafted from mvdan/gofumpt's v0.12.0 release; its version is the one Upkeep installed.
+# Drafted from mvdan/gofumpt's v0.12.0 release.
 [apps.gofumpt]
 name = "gofumpt"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "mvdan/gofumpt"
 asset = '^gofumpt_.*_linux_amd64$'
 asset_aarch64 = '^gofumpt_.*_linux_arm64$'
 dest = "~/.local/bin/gofumpt"
-probe = false

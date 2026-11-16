@@ -1,4 +1,4 @@
-# Drafted from mitsuhiko/insta's 1.49.0 release; its version is the one Upkeep installed.
+# Drafted from mitsuhiko/insta's 1.49.0 release.
 [apps.cargo-insta]
 name = "insta"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^cargo-insta-x86_64-unknown-linux-gnu\.tar\.xz$'
 asset_aarch64 = '^cargo-insta-aarch64-unknown-linux-gnu\.tar\.xz$'
 dest = "~/.local/bin/cargo-insta"
 bins = ["cargo-insta-x86_64-unknown-linux-gnu/cargo-insta"]
-probe = false

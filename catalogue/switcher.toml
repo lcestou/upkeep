@@ -1,4 +1,4 @@
-# Drafted from danielfoehrKn/kubeswitch's 0.9.3 release; its version is the one Upkeep installed.
+# Drafted from danielfoehrKn/kubeswitch's 0.9.3 release.
 [apps.switcher]
 name = "kubeswitch"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "danielfoehrKn/kubeswitch"
 asset = '^switcher_linux_amd64$'
 asset_aarch64 = '^switcher_linux_arm64$'
 dest = "~/.local/bin/switcher"
-probe = false

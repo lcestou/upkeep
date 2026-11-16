@@ -1,8 +1,8 @@
-# Drafted from szTheory/exifcleaner's v4.8.0 release; its version is the one Upkeep installed.
+# Drafted from szTheory/exifcleaner's v4.8.0 release.
 [apps.exifcleaner]
 name = "ExifCleaner"
 kind = "appimage"
 repo = "szTheory/exifcleaner"
 asset = '^ExifCleaner-.*\.AppImage$'
 dest = "~/.local/bin/exifcleaner.AppImage"
-probe = false
+meta_path = "exifcleaner.desktop"

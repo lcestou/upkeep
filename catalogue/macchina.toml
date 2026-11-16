@@ -1,4 +1,4 @@
-# Drafted from Macchina-CLI/macchina's v6.4.0 release; its version is the one Upkeep installed.
+# Drafted from Macchina-CLI/macchina's v6.4.0 release.
 [apps.macchina]
 name = "macchina"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^macchina-.*-linux-gnu-x86_64\.tar\.gz$'
 asset_aarch64 = '^macchina-.*-linux-gnu-aarch64\.tar\.gz$'
 dest = "~/.local/bin/macchina"
 bins = ["macchina"]
-probe = false

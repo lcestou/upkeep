@@ -1,4 +1,4 @@
-# Drafted from Epistates/treemd's v0.10.0 release; its version is the one Upkeep installed.
+# Drafted from Epistates/treemd's v0.10.0 release.
 [apps.treemd]
 name = "treemd"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^treemd-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^treemd-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/treemd"
 bins = ["treemd*"]
-probe = false

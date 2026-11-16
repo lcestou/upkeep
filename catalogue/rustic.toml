@@ -1,4 +1,4 @@
-# Drafted from rustic-rs/rustic's v0.11.4 release; its version is the one Upkeep installed.
+# Drafted from rustic-rs/rustic's v0.11.4 release.
 [apps.rustic]
 name = "rustic"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^rustic-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/rustic"
 folder = "~/.local/share/rustic"
 bins = ["rustic"]
-probe = false

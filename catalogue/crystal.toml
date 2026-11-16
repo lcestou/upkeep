@@ -1,4 +1,4 @@
-# Drafted from crystal-lang/crystal's 1.22.3 release; its version is the one Upkeep installed.
+# Drafted from crystal-lang/crystal's 1.22.3 release.
 [apps.crystal]
 name = "crystal"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^crystal-.*-1-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/crystal"
 folder = "~/.local/share/crystal"
 bins = ["bin/crystal"]
-probe = false

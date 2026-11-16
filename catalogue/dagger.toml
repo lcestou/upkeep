@@ -1,4 +1,4 @@
-# Drafted from dagger/dagger's v0.21.11 release; its version is the one Upkeep installed.
+# Drafted from dagger/dagger's v0.21.11 release.
 [apps.dagger]
 name = "dagger"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^dagger_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^dagger_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/dagger"
 bins = ["dagger"]
-probe = false
+version_args = ["version"]

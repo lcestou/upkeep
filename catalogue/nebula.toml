@@ -1,4 +1,4 @@
-# Drafted from slackhq/nebula's v1.12.0 release; its version is the one Upkeep installed.
+# Drafted from slackhq/nebula's v1.12.0 release.
 [apps.nebula]
 name = "nebula"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^nebula-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^nebula-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/nebula"
 bins = ["nebula", "nebula-cert"]
-probe = false

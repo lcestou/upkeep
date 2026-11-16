@@ -1,4 +1,4 @@
-# Drafted from protocolbuffers/protobuf-javascript's v4.0.3 release; its version is the one Upkeep installed.
+# Drafted from protocolbuffers/protobuf-javascript's v4.0.3 release.
 [apps.protoc-gen-js]
 name = "Protobuf Javascript"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^protobuf-javascript-.*-linux-x86_64\.zip$'
 dest = "~/.local/bin/protoc-gen-js"
 folder = "~/.local/share/protoc-gen-js"
 bins = ["bin/protoc-gen-js"]
-probe = false

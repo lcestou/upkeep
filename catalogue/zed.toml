@@ -1,4 +1,4 @@
-# Drafted from zed-industries/zed's v1.28.1 release; its version is the one Upkeep installed.
+# Drafted from zed-industries/zed's v1.28.1 release.
 [apps.zed]
 name = "zed"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^zed-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/zed"
 folder = "~/.local/share/zed"
 bins = ["bin/zed", "libexec/zed-editor"]
-probe = false

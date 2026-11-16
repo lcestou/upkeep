@@ -1,8 +1,8 @@
-# Drafted from Fovty/HushMic's v0.11.0 release; its version is the one Upkeep installed.
+# Drafted from Fovty/HushMic's v0.11.0 release.
 [apps.hushmic]
 name = "HushMic"
 kind = "appimage"
 repo = "Fovty/HushMic"
 asset = '^hushmic-x86_64\.AppImage$'
 dest = "~/.local/bin/hushmic.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.fovty.HushMic.appdata.xml"

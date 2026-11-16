@@ -1,8 +1,8 @@
-# Drafted from DavidoTek/ProtonUp-Qt's v2.16.0 release; its version is the one Upkeep installed.
+# Drafted from DavidoTek/ProtonUp-Qt's v2.16.0 release.
 [apps.protonup-qt]
 name = "ProtonUp-Qt"
 kind = "appimage"
 repo = "DavidoTek/ProtonUp-Qt"
 asset = '^ProtonUp-Qt-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/protonup-qt.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/net.davidotek.pupgui2.appdata.xml"

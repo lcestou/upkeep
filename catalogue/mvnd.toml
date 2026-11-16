@@ -1,4 +1,4 @@
-# Drafted from apache/maven-mvnd's 1.0.6 release; its version is the one Upkeep installed.
+# Drafted from apache/maven-mvnd's 1.0.6 release.
 [apps.mvnd]
 name = "Maven Mvnd"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^maven-mvnd-.*-linux-aarch64\.zip$'
 dest = "~/.local/bin/mvnd"
 folder = "~/.local/share/mvnd"
 bins = ["bin/mvnd"]
-probe = false

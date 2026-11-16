@@ -1,4 +1,4 @@
-# Drafted from Gaurav-Gosain/tuios's v0.13.1 release; its version is the one Upkeep installed.
+# Drafted from Gaurav-Gosain/tuios's v0.13.1 release.
 [apps.tuios]
 name = "tuios"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tuios_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^tuios_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/tuios"
 bins = ["tuios"]
-probe = false

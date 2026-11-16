@@ -1,4 +1,4 @@
-# Drafted from gomods/athens's v0.20.0 release; its version is the one Upkeep installed.
+# Drafted from gomods/athens's v0.20.0 release.
 [apps.athens]
 name = "athens"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^athens_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^athens_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/athens"
 bins = ["athens"]
-probe = false

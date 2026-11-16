@@ -1,4 +1,4 @@
-# Drafted from itchyny/bed's v0.2.9 release; its version is the one Upkeep installed.
+# Drafted from itchyny/bed's v0.2.9 release.
 [apps.bed]
 name = "bed"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^bed_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/bed"
 folder = "~/.local/share/bed"
 bins = ["bed"]
-probe = false

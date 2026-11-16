@@ -1,4 +1,4 @@
-# Drafted from fullstorydev/grpcurl's v1.9.4 release; its version is the one Upkeep installed.
+# Drafted from fullstorydev/grpcurl's v1.9.4 release.
 [apps.grpcurl]
 name = "grpcurl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^grpcurl_.*_linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^grpcurl_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/grpcurl"
 bins = ["grpcurl"]
-probe = false

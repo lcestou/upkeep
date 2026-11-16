@@ -1,4 +1,4 @@
-# Drafted from umutxyp/Shroudly's v2.6.78 release; its version is the one Upkeep installed.
+# Drafted from umutxyp/Shroudly's v2.6.78 release.
 [apps.shroudly]
 name = "Shroudly"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "umutxyp/Shroudly"
 asset = '^Shroudly-.*-Linux-x86_64\.AppImage$'
 asset_aarch64 = '^Shroudly-.*-Linux-arm64\.AppImage$'
 dest = "~/.local/bin/shroudly.AppImage"
-probe = false
+meta_path = "shroudly.desktop"

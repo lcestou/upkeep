@@ -1,4 +1,4 @@
-# Drafted from betterleaks/betterleaks's v1.10.1 release; its version is the one Upkeep installed.
+# Drafted from betterleaks/betterleaks's v1.10.1 release.
 [apps.betterleaks]
 name = "betterleaks"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^betterleaks_.*_linux_x64\.tar\.gz$'
 asset_aarch64 = '^betterleaks_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/betterleaks"
 bins = ["betterleaks"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from storytold/soundcraft's v0.20.1 release; its version is the one Upkeep installed.
+# Drafted from storytold/soundcraft's v0.20.1 release.
 [apps.soundcraft]
 name = "soundcraft"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "storytold/soundcraft"
 asset = '^soundcraft-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^soundcraft-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/soundcraft.AppImage"
-probe = false
+meta_path = "ai.storyteller.soundcraft.desktop"

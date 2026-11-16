@@ -1,4 +1,4 @@
-# Drafted from bridgecrewio/checkov's 3.4.5 release; its version is the one Upkeep installed.
+# Drafted from bridgecrewio/checkov's 3.4.5 release.
 [apps.checkov]
 name = "checkov"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "bridgecrewio/checkov"
 asset = '^checkov_linux_X86_64\.zip$'
 dest = "~/.local/bin/checkov"
 bins = ["dist/checkov"]
-probe = false

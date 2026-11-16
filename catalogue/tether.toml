@@ -1,4 +1,4 @@
-# Drafted from zackb/tether's v0.3.5 release; its version is the one Upkeep installed.
+# Drafted from zackb/tether's v0.3.5 release.
 [apps.tether]
 name = "tether"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "zackb/tether"
 asset = '^tether-.*-x86_64\.AppImage$'
 asset_aarch64 = '^tether-.*-aarch64\.AppImage$'
 dest = "~/.local/bin/tether.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.zackb.tether.metainfo.xml"

@@ -1,4 +1,4 @@
-# Drafted from ndmitchell/hlint's v3.10 release; its version is the one Upkeep installed.
+# Drafted from ndmitchell/hlint's v3.10 release.
 [apps.hlint]
 name = "hlint"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^hlint-.*-x86_64-linux\.tar\.gz$'
 dest = "~/.local/bin/hlint"
 folder = "~/.local/share/hlint"
 bins = ["hlint"]
-probe = false

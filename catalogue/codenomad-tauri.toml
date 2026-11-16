@@ -1,8 +1,8 @@
-# Drafted from NeuralNomadsAI/CodeNomad's v1.0.1 release; its version is the one Upkeep installed.
+# Drafted from NeuralNomadsAI/CodeNomad's v1.0.1 release.
 [apps.codenomad-tauri]
 name = "CodeNomad-Tauri"
 kind = "appimage"
 repo = "NeuralNomadsAI/CodeNomad"
 asset = '^CodeNomad-Tauri-linux-x64-.*\.AppImage$'
 dest = "~/.local/bin/codenomad-tauri.AppImage"
-probe = false
+meta_path = "CodeNomad.desktop"

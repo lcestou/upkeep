@@ -1,4 +1,4 @@
-# Drafted from buckets/application's v0.80.0 release; its version is the one Upkeep installed.
+# Drafted from buckets/application's v0.80.0 release.
 [apps.buckets]
 name = "Buckets-latest"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "buckets/application"
 asset = '^Buckets-linux-latest-amd64-.*\.AppImage$'
 asset_aarch64 = '^Buckets-linux-latest-arm64-.*\.AppImage$'
 dest = "~/.local/bin/buckets.AppImage"
-probe = false
+meta_path = "buckets.desktop"

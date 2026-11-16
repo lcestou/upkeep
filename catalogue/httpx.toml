@@ -1,4 +1,4 @@
-# Drafted from projectdiscovery/httpx's v1.12.0 release; its version is the one Upkeep installed.
+# Drafted from projectdiscovery/httpx's v1.12.0 release.
 [apps.httpx]
 name = "httpx"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^httpx_.*_linux_amd64\.zip$'
 asset_aarch64 = '^httpx_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/httpx"
 bins = ["httpx"]
-probe = false

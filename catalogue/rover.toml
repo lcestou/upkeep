@@ -1,4 +1,4 @@
-# Drafted from im2nguyen/rover's v0.3.3 release; its version is the one Upkeep installed.
+# Drafted from im2nguyen/rover's v0.3.3 release.
 [apps.rover]
 name = "rover"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^rover_.*_linux_amd64\.zip$'
 asset_aarch64 = '^rover_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/rover"
 bins = ["rover*"]
-probe = false
+version_args = ["-V"]

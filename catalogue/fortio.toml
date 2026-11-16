@@ -1,4 +1,4 @@
-# Drafted from fortio/fortio's v1.76.0 release; its version is the one Upkeep installed.
+# Drafted from fortio/fortio's v1.76.0 release.
 [apps.fortio]
 name = "fortio"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^fortio-linux_amd64-.*\.tgz$'
 asset_aarch64 = '^fortio-linux_arm64-.*\.tgz$'
 dest = "~/.local/bin/fortio"
 bins = ["usr/bin/fortio"]
-probe = false
+version_args = ["version"]

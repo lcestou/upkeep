@@ -1,8 +1,8 @@
-# Drafted from oliverschwendener/ueli's v9.29.1 release; its version is the one Upkeep installed.
+# Drafted from oliverschwendener/ueli's v9.29.1 release.
 [apps.ueli]
 name = "Ueli"
 kind = "appimage"
 repo = "oliverschwendener/ueli"
 asset = '^Ueli-[0-9][0-9A-Za-z.]*\.AppImage$'
 dest = "~/.local/bin/ueli.AppImage"
-probe = false
+meta_path = "ueli.desktop"

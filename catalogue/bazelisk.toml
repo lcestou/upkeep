@@ -1,4 +1,4 @@
-# Drafted from bazelbuild/bazelisk's v1.30.0 release; its version is the one Upkeep installed.
+# Drafted from bazelbuild/bazelisk's v1.30.0 release.
 [apps.bazelisk]
 name = "bazelisk"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "bazelbuild/bazelisk"
 asset = '^bazelisk-linux-amd64$'
 asset_aarch64 = '^bazelisk-linux-arm64$'
 dest = "~/.local/bin/bazelisk"
-probe = false
+version_args = ["version"]

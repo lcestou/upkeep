@@ -1,4 +1,4 @@
-# Drafted from sharkdp/hexyl's v0.17.0 release; its version is the one Upkeep installed.
+# Drafted from sharkdp/hexyl's v0.17.0 release.
 [apps.hexyl]
 name = "hexyl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^hexyl-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^hexyl-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/hexyl"
 bins = ["hexyl-v0.17.0-x86_64-unknown-linux-gnu/hexyl"]
-probe = false

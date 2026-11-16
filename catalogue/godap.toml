@@ -1,4 +1,4 @@
-# Drafted from Macmod/godap's v2.12.2 release; its version is the one Upkeep installed.
+# Drafted from Macmod/godap's v2.12.2 release.
 [apps.godap]
 name = "godap"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^godap-.*-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^godap-.*-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/godap"
 bins = ["godap"]
-probe = false
+version_args = ["version"]

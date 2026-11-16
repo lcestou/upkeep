@@ -1,4 +1,4 @@
-# Drafted from boyter/cs's v3.2.0 release; its version is the one Upkeep installed.
+# Drafted from boyter/cs's v3.2.0 release.
 [apps.cs]
 name = "cs"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^cs_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^cs_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/cs"
 bins = ["cs"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from git-bug/git-bug's v0.12.0 release; its version is the one Upkeep installed.
+# Drafted from git-bug/git-bug's v0.12.0 release.
 [apps.git-bug]
 name = "Git Bug"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^git-bug_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^git-bug_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/git-bug"
 bins = ["git-bug_linux_amd64/git-bug"]
-probe = false
+version_args = ["version"]

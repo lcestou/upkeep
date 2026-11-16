@@ -1,4 +1,4 @@
-# Drafted from ddddddO/gtree's v1.14.9 release; its version is the one Upkeep installed.
+# Drafted from ddddddO/gtree's v1.14.9 release.
 [apps.gtree]
 name = "gtree"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^gtree_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^gtree_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gtree"
 bins = ["gtree"]
-probe = false

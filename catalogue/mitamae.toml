@@ -1,4 +1,4 @@
-# Drafted from itamae-kitchen/mitamae's v2.0.6 release; its version is the one Upkeep installed.
+# Drafted from itamae-kitchen/mitamae's v2.0.6 release.
 [apps.mitamae]
 name = "mitamae"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "itamae-kitchen/mitamae"
 asset = '^mitamae-x86_64-linux$'
 asset_aarch64 = '^mitamae-aarch64-linux$'
 dest = "~/.local/bin/mitamae"
-probe = false
+version_args = ["version"]

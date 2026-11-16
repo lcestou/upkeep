@@ -1,4 +1,4 @@
-# Drafted from protonpass/pass-cli's 2.7.0 release; its version is the one Upkeep installed.
+# Drafted from protonpass/pass-cli's 2.7.0 release.
 [apps.pass-cli]
 name = "Pass Cli"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "protonpass/pass-cli"
 asset = '^pass-cli-linux-x86_64$'
 asset_aarch64 = '^pass-cli-linux-aarch64$'
 dest = "~/.local/bin/pass-cli"
-probe = false

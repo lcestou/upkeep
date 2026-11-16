@@ -1,8 +1,8 @@
-# Drafted from l0ng-ai/tty7's v26.10.0 release; its version is the one Upkeep installed.
+# Drafted from l0ng-ai/tty7's v26.10.0 release.
 [apps.tty7]
 name = "tty7"
 kind = "appimage"
 repo = "l0ng-ai/tty7"
 asset = '^tty7-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/tty7.AppImage"
-probe = false
+meta_path = "tty7.desktop"

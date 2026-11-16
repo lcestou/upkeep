@@ -1,4 +1,4 @@
-# Drafted from kubernetes/minikube's v1.39.0 release; its version is the one Upkeep installed.
+# Drafted from kubernetes/minikube's v1.39.0 release.
 [apps.minikube]
 name = "minikube"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^minikube-linux-amd64\.tar\.gz$'
 asset_aarch64 = '^minikube-linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/minikube"
 bins = ["minikube*"]
-probe = false
+version_args = ["version"]

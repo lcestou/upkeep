@@ -1,4 +1,4 @@
-# Drafted from abrignoni/RLEAPP's v2026.4.5 release; its version is the one Upkeep installed.
+# Drafted from abrignoni/RLEAPP's v2026.4.5 release.
 [apps.rleapp]
 name = "RLEAPP"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "abrignoni/RLEAPP"
 asset = '^RLEAPP-.*-linux-x64\.AppImage$'
 asset_aarch64 = '^RLEAPP-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/rleapp.AppImage"
-probe = false
+meta_path = "rleapp.desktop"

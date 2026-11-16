@@ -1,4 +1,4 @@
-# Drafted from thanos-io/thanos's v0.42.5 release; its version is the one Upkeep installed.
+# Drafted from thanos-io/thanos's v0.42.5 release.
 [apps.thanos]
 name = "thanos"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^thanos-.*\.linux-amd64\.tar\.gz$'
 asset_aarch64 = '^thanos-.*\.linux-arm64\.tar\.gz$'
 dest = "~/.local/bin/thanos"
 bins = ["thanos-0.42.5.linux-amd64/thanos"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from slopus/happy-desktop's v0.0.103 release; its version is the one Upkeep installed.
+# Drafted from slopus/happy-desktop's v0.0.103 release.
 [apps.happy]
 name = "Happy"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "slopus/happy-desktop"
 asset = '^Happy-.*-x64\.AppImage$'
 asset_aarch64 = '^Happy-.*-arm64\.AppImage$'
 dest = "~/.local/bin/happy.AppImage"
-probe = false
+meta_path = "happy-desktop-electron.desktop"

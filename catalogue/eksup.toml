@@ -1,4 +1,4 @@
-# Drafted from clowdhaus/eksup's v0.15.1 release; its version is the one Upkeep installed.
+# Drafted from clowdhaus/eksup's v0.15.1 release.
 [apps.eksup]
 name = "eksup"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^eksup-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^eksup-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/eksup"
 bins = ["eksup-v0.15.1-x86_64-unknown-linux-gnu/eksup"]
-probe = false

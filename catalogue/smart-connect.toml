@@ -1,8 +1,8 @@
-# Drafted from brianpetro/smart-connect's v2.1.4 release; its version is the one Upkeep installed.
+# Drafted from brianpetro/smart-connect's v2.1.4 release.
 [apps.smart-connect]
 name = "Smart-Connect"
 kind = "appimage"
 repo = "brianpetro/smart-connect"
 asset = '^Smart-Connect-Setup-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/smart-connect.AppImage"
-probe = false
+meta_path = "smart-connect.desktop"

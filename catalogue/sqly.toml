@@ -1,4 +1,4 @@
-# Drafted from nao1215/sqly's v1.7.4 release; its version is the one Upkeep installed.
+# Drafted from nao1215/sqly's v1.7.4 release.
 [apps.sqly]
 name = "sqly"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^sqly_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^sqly_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/sqly"
 bins = ["sqly"]
-probe = false

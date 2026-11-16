@@ -1,8 +1,8 @@
-# Drafted from HilbertraumAI/HilbertRaum's v0.1.65 release; its version is the one Upkeep installed.
+# Drafted from HilbertraumAI/HilbertRaum's v0.1.65 release.
 [apps.hilbertraum]
 name = "HilbertRaum"
 kind = "appimage"
 repo = "HilbertraumAI/HilbertRaum"
 asset = '^HilbertRaum-.*\.AppImage$'
 dest = "~/.local/bin/hilbertraum.AppImage"
-probe = false
+meta_path = "HilbertRaum.desktop"

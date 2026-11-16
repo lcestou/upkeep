@@ -1,8 +1,8 @@
-# Drafted from Mastermindzh/tidal-hifi's 9.0.1 release; its version is the one Upkeep installed.
+# Drafted from Mastermindzh/tidal-hifi's 9.0.1 release.
 [apps.tidal-hifi]
 name = "Tidal Hifi"
 kind = "appimage"
 repo = "Mastermindzh/tidal-hifi"
 asset = '^tidal-hifi-[0-9][0-9A-Za-z.]*\.AppImage$'
 dest = "~/.local/bin/tidal-hifi.AppImage"
-probe = false
+meta_path = "tidal-hifi.desktop"

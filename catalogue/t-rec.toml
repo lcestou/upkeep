@@ -1,4 +1,4 @@
-# Drafted from sassman/t-rec-rs's v0.8.2 release; its version is the one Upkeep installed.
+# Drafted from sassman/t-rec-rs's v0.8.2 release.
 [apps.t-rec]
 name = "T Rec Rs"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "sassman/t-rec-rs"
 asset = '^t-rec-.*-x86_64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/t-rec"
 bins = ["t-rec"]
-probe = false

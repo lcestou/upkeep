@@ -1,8 +1,8 @@
-# Drafted from reekta92/clin-rs's v0.14.1 release; its version is the one Upkeep installed.
+# Drafted from reekta92/clin-rs's v0.14.1 release.
 [apps.clin-rs]
 name = "Clin Rs"
 kind = "appimage"
 repo = "reekta92/clin-rs"
 asset = '^clin-rs-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/clin-rs.AppImage"
-probe = false
+meta_path = "clin.desktop"

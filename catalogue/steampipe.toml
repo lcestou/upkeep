@@ -1,4 +1,4 @@
-# Drafted from turbot/steampipe's v2.5.0 release; its version is the one Upkeep installed.
+# Drafted from turbot/steampipe's v2.5.0 release.
 [apps.steampipe]
 name = "steampipe"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^steampipe_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^steampipe_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/steampipe"
 bins = ["steampipe"]
-probe = false

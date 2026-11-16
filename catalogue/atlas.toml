@@ -1,4 +1,4 @@
-# Drafted from mongodb/mongodb-atlas-cli's v1.60.0 release; its version is the one Upkeep installed.
+# Drafted from mongodb/mongodb-atlas-cli's v1.60.0 release.
 [apps.atlas]
 name = "Mongodb Atlas Cli"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^mongodb-atlas-cli_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/atlas"
 folder = "~/.local/share/atlas"
 bins = ["bin/atlas"]
-probe = false

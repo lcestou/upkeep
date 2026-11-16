@@ -1,8 +1,8 @@
-# Drafted from nxshell/nxshell's v1.9.3 release; its version is the one Upkeep installed.
+# Drafted from nxshell/nxshell's v1.9.3 release.
 [apps.nxshell]
 name = "NxShell"
 kind = "appimage"
 repo = "nxshell/nxshell"
 asset = '^NxShell-x86_64-linux-.*-202303220832\.AppImage$'
 dest = "~/.local/bin/nxshell.AppImage"
-probe = false
+meta_path = "nxshell.desktop"

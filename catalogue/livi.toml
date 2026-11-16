@@ -1,4 +1,4 @@
-# Drafted from f-io/LIVI's v10.5.0 release; its version is the one Upkeep installed.
+# Drafted from f-io/LIVI's v10.5.0 release.
 [apps.livi]
 name = "LIVI"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "f-io/LIVI"
 asset = '^LIVI-.*-linux-x64\.AppImage$'
 asset_aarch64 = '^LIVI-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/livi.AppImage"
-probe = false
+meta_path = "dev.f-io.livi.desktop"

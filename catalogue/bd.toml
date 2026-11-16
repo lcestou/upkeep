@@ -1,4 +1,4 @@
-# Drafted from gastownhall/beads's v1.3.4 release; its version is the one Upkeep installed.
+# Drafted from gastownhall/beads's v1.3.4 release.
 [apps.bd]
 name = "beads"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^beads_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^beads_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/bd"
 bins = ["bd"]
-probe = false

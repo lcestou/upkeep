@@ -1,4 +1,4 @@
-# Drafted from sheepla/pingu's v0.0.5 release; its version is the one Upkeep installed.
+# Drafted from sheepla/pingu's v0.0.5 release.
 [apps.pingu]
 name = "pingu"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^pingu_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^pingu_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/pingu"
 bins = ["pingu"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from Hoverth/fdroidcl's v0.8.1 release; its version is the one Upkeep installed.
+# Drafted from Hoverth/fdroidcl's v0.8.1 release.
 [apps.fdroidcl]
 name = "fdroidcl"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "Hoverth/fdroidcl"
 asset = '^fdroidcl_.*_linux_amd64$'
 asset_aarch64 = '^fdroidcl_.*_linux_arm64$'
 dest = "~/.local/bin/fdroidcl"
-probe = false
+version_args = ["version"]

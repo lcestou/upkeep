@@ -1,4 +1,4 @@
-# Drafted from freemkv/freemkv's v1.8.9 release; its version is the one Upkeep installed.
+# Drafted from freemkv/freemkv's v1.8.9 release.
 [apps.freemkv]
 name = "freemkv"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "freemkv/freemkv"
 asset = '^freemkv-x86_64-linux\.AppImage$'
 asset_aarch64 = '^freemkv-aarch64-linux\.AppImage$'
 dest = "~/.local/bin/freemkv.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/org.freemkv.FreeMKV.metainfo.xml"

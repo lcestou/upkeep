@@ -1,4 +1,4 @@
-# Drafted from numtide/treefmt's v2.6.0 release; its version is the one Upkeep installed.
+# Drafted from numtide/treefmt's v2.6.0 release.
 [apps.treefmt]
 name = "treefmt"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^treefmt_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^treefmt_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/treefmt"
 bins = ["treefmt"]
-probe = false

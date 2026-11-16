@@ -1,4 +1,4 @@
-# Drafted from lance0/ttl's v0.26.0 release; its version is the one Upkeep installed.
+# Drafted from lance0/ttl's v0.26.0 release.
 [apps.ttl]
 name = "ttl"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^ttl-x86_64-unknown-linux-musl\.tar\.gz$'
 asset_aarch64 = '^ttl-aarch64-unknown-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/ttl"
 bins = ["ttl"]
-probe = false

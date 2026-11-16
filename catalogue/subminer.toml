@@ -1,8 +1,8 @@
-# Drafted from ksyasuda/SubMiner's v0.22.0 release; its version is the one Upkeep installed.
+# Drafted from ksyasuda/SubMiner's v0.22.0 release.
 [apps.subminer]
 name = "SubMiner"
 kind = "appimage"
 repo = "ksyasuda/SubMiner"
 asset = '^SubMiner\.AppImage$'
 dest = "~/.local/bin/subminer.AppImage"
-probe = false
+meta_path = "SubMiner.desktop"

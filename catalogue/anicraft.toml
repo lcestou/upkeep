@@ -1,4 +1,4 @@
-# Drafted from storytold/anicraft's v0.2.1 release; its version is the one Upkeep installed.
+# Drafted from storytold/anicraft's v0.2.1 release.
 [apps.anicraft]
 name = "anicraft"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "storytold/anicraft"
 asset = '^anicraft-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^anicraft-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/anicraft.AppImage"
-probe = false
+meta_path = "ai.storyteller.anicraft.desktop"

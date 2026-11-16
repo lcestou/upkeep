@@ -1,4 +1,4 @@
-# Drafted from itaysk/kubectl-neat's v2.0.4 release; its version is the one Upkeep installed.
+# Drafted from itaysk/kubectl-neat's v2.0.4 release.
 [apps.kubectl-neat]
 name = "Kubectl Neat"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kubectl-neat_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^kubectl-neat_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kubectl-neat"
 bins = ["kubectl-neat"]
-probe = false
+version_args = ["version"]

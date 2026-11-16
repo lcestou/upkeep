@@ -1,8 +1,8 @@
-# Drafted from GridSpace/grid-apps's 4.7.3 release; its version is the one Upkeep installed.
+# Drafted from GridSpace/grid-apps's 4.7.3 release.
 [apps.kirimoto]
 name = "KiriMoto"
 kind = "appimage"
 repo = "GridSpace/grid-apps"
 asset = '^KiriMoto-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/kirimoto.AppImage"
-probe = false
+meta_path = "grid-apps.desktop"

@@ -1,4 +1,4 @@
-# Drafted from solidiquis/erdtree's v3.1.2 release; its version is the one Upkeep installed.
+# Drafted from solidiquis/erdtree's v3.1.2 release.
 [apps.erd]
 name = "erdtree"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^erd-.*-x86_64-unknown-linux-gnu\.tar\.gz$'
 asset_aarch64 = '^erd-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/erd"
 bins = ["erd"]
-probe = false

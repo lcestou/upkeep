@@ -1,4 +1,4 @@
-# Drafted from fathah/hermes-desktop's v0.7.8 release; its version is the one Upkeep installed.
+# Drafted from fathah/hermes-desktop's v0.7.8 release.
 [apps.hermes-desktop]
 name = "Hermes Desktop"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "fathah/hermes-desktop"
 asset = '^hermes-desktop-.*-x86_64\.AppImage$'
 asset_aarch64 = '^hermes-desktop-.*-arm64\.AppImage$'
 dest = "~/.local/bin/hermes-desktop.AppImage"
-probe = false
+meta_path = "hermes-desktop.desktop"

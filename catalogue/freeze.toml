@@ -1,4 +1,4 @@
-# Drafted from charmbracelet/freeze's v0.2.2 release; its version is the one Upkeep installed.
+# Drafted from charmbracelet/freeze's v0.2.2 release.
 [apps.freeze]
 name = "freeze"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^freeze_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^freeze_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/freeze"
 bins = ["freeze_0.2.2_Linux_x86_64/freeze"]
-probe = false

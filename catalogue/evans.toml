@@ -1,4 +1,4 @@
-# Drafted from ktr0731/evans's v0.10.11 release; its version is the one Upkeep installed.
+# Drafted from ktr0731/evans's v0.10.11 release.
 [apps.evans]
 name = "evans"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^evans_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^evans_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/evans"
 bins = ["evans"]
-probe = false

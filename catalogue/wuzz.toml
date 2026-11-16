@@ -1,8 +1,7 @@
-# Drafted from asciimoo/wuzz's v0.5.0 release; its version is the one Upkeep installed.
+# Drafted from asciimoo/wuzz's v0.5.0 release.
 [apps.wuzz]
 name = "wuzz"
 kind = "file"
 repo = "asciimoo/wuzz"
 asset = '^wuzz_linux_amd64$'
 dest = "~/.local/bin/wuzz"
-probe = false

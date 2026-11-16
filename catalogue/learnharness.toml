@@ -1,8 +1,8 @@
-# Drafted from amosblomqvist/learnharness's v0.6.1 release; its version is the one Upkeep installed.
+# Drafted from amosblomqvist/learnharness's v0.6.1 release.
 [apps.learnharness]
 name = "LearnHarness"
 kind = "appimage"
 repo = "amosblomqvist/learnharness"
 asset = '^LearnHarness-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/learnharness.AppImage"
-probe = false
+meta_path = "learnharness.desktop"

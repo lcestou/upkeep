@@ -1,4 +1,4 @@
-# Drafted from sclevine/yj's v5.1.0 release; its version is the one Upkeep installed.
+# Drafted from sclevine/yj's v5.1.0 release.
 [apps.yj]
 name = "yj"
 kind = "file"
@@ -6,4 +6,4 @@ repo = "sclevine/yj"
 asset = '^yj-linux-amd64$'
 asset_aarch64 = '^yj-linux-arm64$'
 dest = "~/.local/bin/yj"
-probe = false
+version_args = ["-v"]

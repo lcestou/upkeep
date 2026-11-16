@@ -1,4 +1,4 @@
-# Drafted from altair-graphql/altair's v8.5.11 release; its version is the one Upkeep installed.
+# Drafted from altair-graphql/altair's v8.5.11 release.
 [apps.altair]
 name = "altair"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "altair-graphql/altair"
 asset = '^altair_.*_x86_64_linux\.AppImage$'
 asset_aarch64 = '^altair_.*_arm64_linux\.AppImage$'
 dest = "~/.local/bin/altair.AppImage"
-probe = false
+meta_path = "altair.desktop"

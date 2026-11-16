@@ -1,4 +1,4 @@
-# Drafted from undistro/marvin's v0.2.13 release; its version is the one Upkeep installed.
+# Drafted from undistro/marvin's v0.2.13 release.
 [apps.marvin]
 name = "marvin"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^marvin_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^marvin_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/marvin"
 bins = ["marvin"]
-probe = false
+version_args = ["version"]

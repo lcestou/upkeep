@@ -1,8 +1,8 @@
-# Drafted from Sigil-Ebook/Sigil's 2.8.6 release; its version is the one Upkeep installed.
+# Drafted from Sigil-Ebook/Sigil's 2.8.6 release.
 [apps.sigil]
 name = "Sigil"
 kind = "appimage"
 repo = "Sigil-Ebook/Sigil"
 asset = '^Sigil-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/sigil.AppImage"
-probe = false
+meta_path = "sigil.desktop"

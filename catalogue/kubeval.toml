@@ -1,4 +1,4 @@
-# Drafted from instrumenta/kubeval's v0.16.1 release; its version is the one Upkeep installed.
+# Drafted from instrumenta/kubeval's v0.16.1 release.
 [apps.kubeval]
 name = "kubeval"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "instrumenta/kubeval"
 asset = '^kubeval-linux-amd64\.tar\.gz$'
 dest = "~/.local/bin/kubeval"
 bins = ["kubeval"]
-probe = false

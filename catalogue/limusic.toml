@@ -1,8 +1,8 @@
-# Drafted from SimoHypers/limusic's v1.3.0 release; its version is the one Upkeep installed.
+# Drafted from SimoHypers/limusic's v1.3.0 release.
 [apps.limusic]
 name = "limusic"
 kind = "appimage"
 repo = "SimoHypers/limusic"
 asset = '^limusic_.*_amd64\.AppImage$'
 dest = "~/.local/bin/limusic.AppImage"
-probe = false
+meta_path = "limusic.desktop"

@@ -1,4 +1,4 @@
-# Drafted from storytold/texturecraft's v0.6.1 release; its version is the one Upkeep installed.
+# Drafted from storytold/texturecraft's v0.6.1 release.
 [apps.texturecraft]
 name = "texturecraft"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "storytold/texturecraft"
 asset = '^texturecraft-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^texturecraft-.*-linux-aarch64\.AppImage$'
 dest = "~/.local/bin/texturecraft.AppImage"
-probe = false
+meta_path = "ai.storyteller.texturecraft.desktop"

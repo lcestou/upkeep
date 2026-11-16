@@ -1,4 +1,4 @@
-# Drafted from mike-engel/jwt-cli's 6.2.0 release; its version is the one Upkeep installed.
+# Drafted from mike-engel/jwt-cli's 6.2.0 release.
 [apps.jwt]
 name = "Jwt Cli"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "mike-engel/jwt-cli"
 asset = '^jwt-linux-musl\.tar\.gz$'
 dest = "~/.local/bin/jwt"
 bins = ["jwt"]
-probe = false

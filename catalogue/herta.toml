@@ -1,8 +1,8 @@
-# Drafted from PersonaCLI/Herta's v0.1.12 release; its version is the one Upkeep installed.
+# Drafted from PersonaCLI/Herta's v0.1.12 release.
 [apps.herta]
 name = "Herta"
 kind = "appimage"
 repo = "PersonaCLI/Herta"
 asset = '^Herta-x86_64\.AppImage$'
 dest = "~/.local/bin/herta.AppImage"
-probe = false
+meta_path = "Herta.desktop"

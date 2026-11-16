@@ -1,8 +1,8 @@
-# Drafted from RocketChat/Rocket.Chat.Electron's 4.19.3 release; its version is the one Upkeep installed.
+# Drafted from RocketChat/Rocket.Chat.Electron's 4.19.3 release.
 [apps.rocketchat]
 name = "Rocket.Chat.Electron"
 kind = "appimage"
 repo = "RocketChat/Rocket.Chat.Electron"
 asset = '^rocketchat-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/rocketchat.AppImage"
-probe = false
+meta_path = "rocketchat-desktop.desktop"

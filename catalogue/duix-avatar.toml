@@ -1,8 +1,8 @@
-# Drafted from duixcom/Duix-Avatar's v1.0.6 release; its version is the one Upkeep installed.
+# Drafted from duixcom/Duix-Avatar's v1.0.6 release.
 [apps.duix-avatar]
 name = "Duix-Avatar"
 kind = "appimage"
 repo = "duixcom/Duix-Avatar"
 asset = '^Duix\.Avatar-.*\.AppImage$'
 dest = "~/.local/bin/duix-avatar.AppImage"
-probe = false
+meta_path = "duix.avatar.desktop"

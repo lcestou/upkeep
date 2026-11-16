@@ -1,4 +1,4 @@
-# Drafted from FlutterGen/flutter_gen's v5.15.0 release; its version is the one Upkeep installed.
+# Drafted from FlutterGen/flutter_gen's v5.15.0 release.
 [apps.fluttergen]
 name = "Flutter Gen"
 kind = "archive"
@@ -6,4 +6,3 @@ repo = "FlutterGen/flutter_gen"
 asset = '^fluttergen-linux\.tar\.gz$'
 dest = "~/.local/bin/fluttergen"
 bins = ["fluttergen"]
-probe = false

@@ -1,4 +1,4 @@
-# Drafted from mockoon/mockoon's v9.10.0 release; its version is the one Upkeep installed.
+# Drafted from mockoon/mockoon's v9.10.0 release.
 [apps.mockoon]
 name = "mockoon"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "mockoon/mockoon"
 asset = '^mockoon-.*\.x86_64\.AppImage$'
 asset_aarch64 = '^mockoon-.*\.arm64\.AppImage$'
 dest = "~/.local/bin/mockoon.AppImage"
-probe = false
+meta_path = "com.mockoon.app.desktop"

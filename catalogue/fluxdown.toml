@@ -1,8 +1,8 @@
-# Drafted from zerx-lab/FluxDown's v0.6.7 release; its version is the one Upkeep installed.
+# Drafted from zerx-lab/FluxDown's v0.6.7 release.
 [apps.fluxdown]
 name = "FluxDown"
 kind = "appimage"
 repo = "zerx-lab/FluxDown"
 asset = '^FluxDown-.*-linux-x64\.AppImage$'
 dest = "~/.local/bin/fluxdown.AppImage"
-probe = false
+meta_path = "com.fluxdown.app.desktop"

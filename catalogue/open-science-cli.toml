@@ -1,4 +1,4 @@
-# Drafted from aipoch/open-science's v1.2.1 release; its version is the one Upkeep installed.
+# Drafted from aipoch/open-science's v1.2.1 release.
 [apps.open-science-cli]
 name = "Open Science"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "aipoch/open-science"
 asset = '^aipoch-open-science-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^aipoch-open-science-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/open-science-cli.AppImage"
-probe = false
+meta_path = "open-science.desktop"

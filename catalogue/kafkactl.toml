@@ -1,4 +1,4 @@
-# Drafted from deviceinsight/kafkactl's v5.21.0 release; its version is the one Upkeep installed.
+# Drafted from deviceinsight/kafkactl's v5.21.0 release.
 [apps.kafkactl]
 name = "kafkactl"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kafkactl_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^kafkactl_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/kafkactl"
 bins = ["kafkactl"]
-probe = false
+version_args = ["version"]

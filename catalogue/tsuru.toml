@@ -1,4 +1,4 @@
-# Drafted from tsuru/tsuru-client's v1.38.1 release; its version is the one Upkeep installed.
+# Drafted from tsuru/tsuru-client's v1.38.1 release.
 [apps.tsuru]
 name = "Tsuru Client"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^tsuru_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/tsuru"
 folder = "~/.local/share/tsuru"
 bins = ["tsuru"]
-probe = false
+version_args = ["version"]

@@ -1,4 +1,4 @@
-# Drafted from mlm-games/Mages's 5.4.2 release; its version is the one Upkeep installed.
+# Drafted from mlm-games/Mages's 5.4.2 release.
 [apps.mages]
 name = "Mages"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "mlm-games/Mages"
 asset = '^mages-.*-x86_64\.AppImage$'
 asset_aarch64 = '^mages-.*-aarch64\.AppImage$'
 dest = "~/.local/bin/mages.AppImage"
-probe = false
+meta_path = "usr/share/metainfo/io.github.mlm_games.mages.metainfo.xml"

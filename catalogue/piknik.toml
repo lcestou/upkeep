@@ -1,4 +1,4 @@
-# Drafted from jedisct1/piknik's 0.10.2 release; its version is the one Upkeep installed.
+# Drafted from jedisct1/piknik's 0.10.2 release.
 [apps.piknik]
 name = "piknik"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^piknik-linux_x86_64-.*\.tar\.gz$'
 dest = "~/.local/bin/piknik"
 folder = "~/.local/share/piknik"
 bins = ["linux-x86_64/piknik"]
-probe = false

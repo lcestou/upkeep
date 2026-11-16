@@ -1,4 +1,4 @@
-# Drafted from aubepkg/aube's v2.10.0 release; its version is the one Upkeep installed.
+# Drafted from aubepkg/aube's v2.10.0 release.
 [apps.aube]
 name = "aube"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^aube-.*-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/aube"
 folder = "~/.local/share/aube"
 bins = ["aube"]
-probe = false

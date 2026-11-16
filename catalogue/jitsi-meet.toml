@@ -1,4 +1,4 @@
-# Drafted from jitsi/jitsi-meet-electron's v2026.10.0 release; its version is the one Upkeep installed.
+# Drafted from jitsi/jitsi-meet-electron's v2026.10.0 release.
 [apps.jitsi-meet]
 name = "Jitsi Meet Electron"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "jitsi/jitsi-meet-electron"
 asset = '^jitsi-meet-x86_64\.AppImage$'
 asset_aarch64 = '^jitsi-meet-arm64\.AppImage$'
 dest = "~/.local/bin/jitsi-meet.AppImage"
-probe = false
+meta_path = "jitsi-meet.desktop"

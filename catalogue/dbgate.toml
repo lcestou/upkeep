@@ -1,8 +1,8 @@
-# Drafted from dbgate/dbgate's v7.3.6 release; its version is the one Upkeep installed.
+# Drafted from dbgate/dbgate's v7.3.6 release.
 [apps.dbgate]
 name = "dbgate"
 kind = "appimage"
 repo = "dbgate/dbgate"
 asset = '^dbgate-[0-9][0-9A-Za-z.]*-linux_x86_64\.AppImage$'
 dest = "~/.local/bin/dbgate.AppImage"
-probe = false
+meta_path = "dbgate.desktop"

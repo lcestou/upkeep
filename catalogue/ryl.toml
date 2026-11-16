@@ -1,4 +1,4 @@
-# Drafted from owenlamont/ryl's v0.29.0 release; its version is the one Upkeep installed.
+# Drafted from owenlamont/ryl's v0.29.0 release.
 [apps.ryl]
 name = "ryl"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^ryl-aarch64-unknown-linux-gnu\.tar\.gz$'
 dest = "~/.local/bin/ryl"
 folder = "~/.local/share/ryl"
 bins = ["ryl"]
-probe = false

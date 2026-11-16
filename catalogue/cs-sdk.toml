@@ -1,4 +1,4 @@
-# Drafted from coursier/coursier's v2.1.26 release; its version is the one Upkeep installed.
+# Drafted from coursier/coursier's v2.1.26 release.
 [apps.cs-sdk]
 name = "coursier"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^cs-x86_64-pc-linux-sdk\.zip$'
 asset_aarch64 = '^cs-aarch64-pc-linux-sdk\.zip$'
 dest = "~/.local/bin/cs"
 bins = ["cs-x86_64-pc-linux-sdk/bin/cs"]
-probe = false
+version_args = ["version"]

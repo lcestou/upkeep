@@ -1,8 +1,8 @@
-# Drafted from howdeploy/CanvasTTY's v1.8.7 release; its version is the one Upkeep installed.
+# Drafted from howdeploy/CanvasTTY's v1.8.7 release.
 [apps.canvastty]
 name = "CanvasTTY"
 kind = "appimage"
 repo = "howdeploy/CanvasTTY"
 asset = '^CanvasTTY-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/canvastty.AppImage"
-probe = false
+meta_path = "CanvasTTY.desktop"

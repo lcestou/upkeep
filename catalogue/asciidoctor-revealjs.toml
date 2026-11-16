@@ -1,4 +1,4 @@
-# Drafted from asciidoctor/asciidoctor-reveal.js's v6.0.1 release; its version is the one Upkeep installed.
+# Drafted from asciidoctor/asciidoctor-reveal.js's v6.0.1 release.
 [apps.asciidoctor-revealjs]
 name = "Asciidoctor Reveal.js"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "asciidoctor/asciidoctor-reveal.js"
 asset = '^asciidoctor-revealjs-linux-amd64$'
 asset_aarch64 = '^asciidoctor-revealjs-linux-arm64$'
 dest = "~/.local/bin/asciidoctor-revealjs"
-probe = false

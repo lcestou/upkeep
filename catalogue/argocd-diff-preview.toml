@@ -1,4 +1,4 @@
-# Drafted from dag-andersen/argocd-diff-preview's v0.2.17 release; its version is the one Upkeep installed.
+# Drafted from dag-andersen/argocd-diff-preview's v0.2.17 release.
 [apps.argocd-diff-preview]
 name = "Argocd Diff Preview"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^argocd-diff-preview-Linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^argocd-diff-preview-Linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/argocd-diff-preview"
 bins = ["argocd-diff-preview"]
-probe = false

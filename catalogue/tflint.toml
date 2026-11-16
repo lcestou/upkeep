@@ -1,4 +1,4 @@
-# Drafted from terraform-linters/tflint's v0.66.0 release; its version is the one Upkeep installed.
+# Drafted from terraform-linters/tflint's v0.66.0 release.
 [apps.tflint]
 name = "tflint"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^tflint_linux_amd64\.zip$'
 asset_aarch64 = '^tflint_linux_arm64\.zip$'
 dest = "~/.local/bin/tflint"
 bins = ["tflint"]
-probe = false

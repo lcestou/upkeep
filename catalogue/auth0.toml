@@ -1,4 +1,4 @@
-# Drafted from auth0/auth0-cli's v1.39.0 release; its version is the one Upkeep installed.
+# Drafted from auth0/auth0-cli's v1.39.0 release.
 [apps.auth0]
 name = "Auth0 Cli"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^auth0-cli_.*_Linux_x86_64\.tar\.gz$'
 asset_aarch64 = '^auth0-cli_.*_Linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/auth0"
 bins = ["auth0"]
-probe = false

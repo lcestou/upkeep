@@ -1,8 +1,8 @@
-# Drafted from sliverarmory/sliver-gui's v0.0.5 release; its version is the one Upkeep installed.
+# Drafted from sliverarmory/sliver-gui's v0.0.5 release.
 [apps.sliver-gui]
 name = "Sliver Gui"
 kind = "appimage"
 repo = "sliverarmory/sliver-gui"
 asset = '^sliver-gui-.*-linux-x86_64\.AppImage$'
 dest = "~/.local/bin/sliver-gui.AppImage"
-probe = false
+meta_path = "sliver-gui.desktop"

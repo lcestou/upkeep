@@ -1,4 +1,4 @@
-# Drafted from runatlantis/atlantis's v0.49.0 release; its version is the one Upkeep installed.
+# Drafted from runatlantis/atlantis's v0.49.0 release.
 [apps.atlantis]
 name = "atlantis"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^atlantis_linux_amd64\.zip$'
 asset_aarch64 = '^atlantis_linux_arm64\.zip$'
 dest = "~/.local/bin/atlantis"
 bins = ["atlantis"]
-probe = false
+version_args = ["version"]

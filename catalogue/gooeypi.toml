@@ -1,4 +1,4 @@
-# Drafted from am-will/gooey-pi's v1.1.21 release; its version is the one Upkeep installed.
+# Drafted from am-will/gooey-pi's v1.1.21 release.
 [apps.gooeypi]
 name = "GooeyPi"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "am-will/gooey-pi"
 asset = '^GooeyPi-.*-linux-x86_64\.AppImage$'
 asset_aarch64 = '^GooeyPi-.*-linux-arm64\.AppImage$'
 dest = "~/.local/bin/gooeypi.AppImage"
-probe = false
+meta_path = "gooeypi.desktop"

@@ -1,4 +1,4 @@
-# Drafted from illegalstudio/lazyagent's v0.16.0 release; its version is the one Upkeep installed.
+# Drafted from illegalstudio/lazyagent's v0.16.0 release.
 [apps.lazyagent]
 name = "Lazyagent"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "illegalstudio/lazyagent"
 asset = '^Lazyagent_.*_linux_amd64\.AppImage$'
 asset_aarch64 = '^Lazyagent_.*_linux_arm64\.AppImage$'
 dest = "~/.local/bin/lazyagent.AppImage"
-probe = false
+meta_path = "lazyagent.desktop"

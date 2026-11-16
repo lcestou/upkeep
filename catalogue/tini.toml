@@ -1,4 +1,4 @@
-# Drafted from krallin/tini's v0.19.0 release; its version is the one Upkeep installed.
+# Drafted from krallin/tini's v0.19.0 release.
 [apps.tini]
 name = "tini"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "krallin/tini"
 asset = '^tini-amd64$'
 asset_aarch64 = '^tini-arm64$'
 dest = "~/.local/bin/tini"
-probe = false

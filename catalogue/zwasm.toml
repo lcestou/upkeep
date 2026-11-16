@@ -1,4 +1,4 @@
-# Drafted from zwasm/zwasm's v2.11.1 release; its version is the one Upkeep installed.
+# Drafted from zwasm/zwasm's v2.11.1 release.
 [apps.zwasm]
 name = "zwasm"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^zwasm-linux-x86_64\.tar\.gz$'
 asset_aarch64 = '^zwasm-linux-aarch64\.tar\.gz$'
 dest = "~/.local/bin/zwasm"
 bins = ["zwasm"]
-probe = false

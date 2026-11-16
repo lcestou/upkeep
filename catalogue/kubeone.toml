@@ -1,4 +1,4 @@
-# Drafted from kubermatic/kubeone's v1.15.0 release; its version is the one Upkeep installed.
+# Drafted from kubermatic/kubeone's v1.15.0 release.
 [apps.kubeone]
 name = "kubeone"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^kubeone_.*_linux_amd64\.zip$'
 asset_aarch64 = '^kubeone_.*_linux_arm64\.zip$'
 dest = "~/.local/bin/kubeone"
 bins = ["kubeone"]
-probe = false
+version_args = ["version"]

@@ -1,4 +1,4 @@
-# Drafted from reemus-dev/gitnr's v0.3.1 release; its version is the one Upkeep installed.
+# Drafted from reemus-dev/gitnr's v0.3.1 release.
 [apps.gitnr]
 name = "gitnr"
 kind = "file"
@@ -6,4 +6,3 @@ repo = "reemus-dev/gitnr"
 asset = '^gitnr-linux-amd64$'
 asset_aarch64 = '^gitnr-linux-arm64$'
 dest = "~/.local/bin/gitnr"
-probe = false

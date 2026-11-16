@@ -1,4 +1,4 @@
-# Drafted from knadh/listmonk's v7.0.0-beta.2 release; its version is the one Upkeep installed.
+# Drafted from knadh/listmonk's v7.0.0-beta.2 release.
 [apps.listmonk]
 name = "listmonk"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^listmonk_.*-beta\.2_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^listmonk_.*-beta\.2_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/listmonk"
 bins = ["listmonk"]
-probe = false

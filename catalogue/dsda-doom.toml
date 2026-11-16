@@ -1,8 +1,8 @@
-# Drafted from dsda-org/dsda-doom's v0.30.1 release; its version is the one Upkeep installed.
+# Drafted from dsda-org/dsda-doom's v0.30.1 release.
 [apps.dsda-doom]
 name = "Dsda Doom"
 kind = "appimage"
 repo = "dsda-org/dsda-doom"
 asset = '^dsda-doom-.*-linux-x86_64\.appimage$'
 dest = "~/.local/bin/dsda-doom.AppImage"
-probe = false
+meta_path = "dsda-doom.desktop"

@@ -1,4 +1,4 @@
-# Drafted from nao1215/gup's v1.10.4 release; its version is the one Upkeep installed.
+# Drafted from nao1215/gup's v1.10.4 release.
 [apps.gup]
 name = "gup"
 kind = "archive"
@@ -8,4 +8,3 @@ asset_aarch64 = '^gup_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/gup"
 folder = "~/.local/share/gup"
 bins = ["gup"]
-probe = false

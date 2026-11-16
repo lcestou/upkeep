@@ -1,4 +1,4 @@
-# Drafted from Scalingo/cli's 1.52.0 release; its version is the one Upkeep installed.
+# Drafted from Scalingo/cli's 1.52.0 release.
 [apps.scalingo]
 name = "Scalingo"
 kind = "archive"
@@ -7,4 +7,3 @@ asset = '^scalingo_.*_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^scalingo_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/scalingo"
 bins = ["scalingo_1.52.0_linux_amd64/scalingo"]
-probe = false

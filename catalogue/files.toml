@@ -1,4 +1,4 @@
-# Drafted from mattn/files's v0.3.11 release; its version is the one Upkeep installed.
+# Drafted from mattn/files's v0.3.11 release.
 [apps.files]
 name = "files"
 kind = "archive"
@@ -8,4 +8,4 @@ asset_aarch64 = '^files_.*_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/files"
 folder = "~/.local/share/files"
 bins = ["files"]
-probe = false
+version_args = ["-v"]

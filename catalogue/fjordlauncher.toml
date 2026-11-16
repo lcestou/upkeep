@@ -1,4 +1,4 @@
-# Drafted from unmojang/FjordLauncher's 11.1.1.0 release; its version is the one Upkeep installed.
+# Drafted from unmojang/FjordLauncher's 11.1.1.0 release.
 [apps.fjordlauncher]
 name = "FjordLauncher"
 kind = "appimage"
@@ -6,4 +6,4 @@ repo = "unmojang/FjordLauncher"
 asset = '^FjordLauncher-Linux-x86_64\.AppImage$'
 asset_aarch64 = '^FjordLauncher-Linux-aarch64\.AppImage$'
 dest = "~/.local/bin/fjordlauncher.AppImage"
-probe = false
+meta_path = "org.unmojang.FjordLauncher.desktop"

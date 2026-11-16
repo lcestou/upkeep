@@ -1,8 +1,8 @@
-# Drafted from facontidavide/cloudini's 1.4.1 release; its version is the one Upkeep installed.
+# Drafted from facontidavide/cloudini's 1.4.1 release.
 [apps.cloudini-wasm]
 name = "cloudini"
 kind = "appimage"
 repo = "facontidavide/cloudini"
 asset = '^cloudini_rosbag_converter-.*-x86_64\.AppImage$'
 dest = "~/.local/bin/cloudini-wasm.AppImage"
-probe = false
+meta_path = "cloudini_converter.desktop"

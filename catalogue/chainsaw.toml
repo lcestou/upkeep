@@ -1,4 +1,4 @@
-# Drafted from kyverno/chainsaw's v0.2.15 release; its version is the one Upkeep installed.
+# Drafted from kyverno/chainsaw's v0.2.15 release.
 [apps.chainsaw]
 name = "chainsaw"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^chainsaw_linux_amd64\.tar\.gz$'
 asset_aarch64 = '^chainsaw_linux_arm64\.tar\.gz$'
 dest = "~/.local/bin/chainsaw"
 bins = ["chainsaw"]
-probe = false
+version_args = ["version"]

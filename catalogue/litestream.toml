@@ -1,4 +1,4 @@
-# Drafted from benbjohnson/litestream's v0.5.18 release; its version is the one Upkeep installed.
+# Drafted from benbjohnson/litestream's v0.5.18 release.
 [apps.litestream]
 name = "litestream"
 kind = "archive"
@@ -7,4 +7,4 @@ asset = '^litestream-.*-linux-x86_64\.tar\.gz$'
 dest = "~/.local/bin/litestream"
 folder = "~/.local/share/litestream"
 bins = ["litestream"]
-probe = false
+version_args = ["version"]

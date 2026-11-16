@@ -1,8 +1,8 @@
-# Drafted from lidge-ai/cli-jaw's v2.17.78 release; its version is the one Upkeep installed.
+# Drafted from lidge-ai/cli-jaw's v2.17.78 release.
 [apps.cli-jaw]
 name = "Cli Jaw"
 kind = "appimage"
 repo = "lidge-ai/cli-jaw"
 asset = '^cli-jaw-.*\.AppImage$'
 dest = "~/.local/bin/cli-jaw.AppImage"
-probe = false
+meta_path = "cli-jaw-electron.desktop"

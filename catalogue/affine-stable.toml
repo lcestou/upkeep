@@ -1,8 +1,8 @@
-# Drafted from toeverything/AFFiNE's v0.27.4 release; its version is the one Upkeep installed.
+# Drafted from toeverything/AFFiNE's v0.27.4 release.
 [apps.affine-stable]
 name = "AFFiNE"
 kind = "appimage"
 repo = "toeverything/AFFiNE"
 asset = '^affine-.*-stable-linux-x64\.appimage$'
 dest = "~/.local/bin/affine-stable.AppImage"
-probe = false
+meta_path = "AFFiNE.desktop"
