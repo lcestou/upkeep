@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.3, 2026-11-16
 
 - While Upkeep downloads, tests or restarts into its own new version, its row shows a spinner and says so in plain words ("Downloading the new version and testing that it starts", "Restarting Upkeep"), instead of a short line in blue that looked like a link.
 - Apps from a private GitHub repo update when you are signed in to `gh` with an account that can see the repo. The check already used your sign-in; now the download does too: when the release file's public link answers "not found", as it does for a private repo, Upkeep fetches the file through GitHub's API with your token. Public repos download as before.
