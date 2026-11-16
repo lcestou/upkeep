@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-- Add app finds an app the catalogue gained after your version of Upkeep came out: when a name is not in the copy Upkeep ships with, it reads that app's table from the catalogue in Upkeep's repo. Such a table can only install a release file, never run a command.
+- Add app finds an app the catalogue gained after your version of Upkeep came out: when a name is not in the copy Upkeep ships with, it reads that app's table from the catalogue in Upkeep's repo. The name you type is checked against the catalogue's public list on your machine first, so a name that is not on it is never sent. Only an AppImage, an archive or a single file is taken from there, installed into your home folder: a table online that would run a command, use root or close a running program is refused.
 - An app's details say what else keeps it up to date (a Flatpak, a Snap, another app in the list on the same file or project), as the Add card already did; Scan says when two tool managers (uv and pipx, say) both installed the same tool.
-- A Qt program (DB Browser for SQLite) reads its version in a check that has no display, and can never open a window during one.
+- A Qt program (DB Browser for SQLite) that cannot reach a display during a background check is asked for its version again in Qt's offscreen mode, instead of showing as needing a look.
 
 ## 0.1.1, 2026-11-16
 

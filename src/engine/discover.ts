@@ -892,20 +892,75 @@ function inCatalogue(input: string, catalogue: AppSpec[], hosts: ReadonlyMap<str
 	);
 }
 
-/** The kinds a table fetched from the catalogue online may have: each installs a release file and runs no command. */
-const ONLINE_KINDS = new Set<AppKind>(["appimage", "archive", "file", "deb", "rpm"]);
+/** The kinds a table fetched from the catalogue online may have: each installs a release file into home, without root. */
+const ONLINE_KINDS = new Set<AppKind>(["appimage", "archive", "file"]);
+/**
+ * The only fields a table fetched online may carry: what picks, places and reads a release file. A command (restart,
+ * update, build, check), root (sudo, which a .deb or .rpm also needs) or closing a process (relaunch) comes only with
+ * a version of Upkeep whose catalogue was reviewed.
+ */
+const ONLINE_FIELDS = new Set<string>([
+	"key",
+	"name",
+	"kind",
+	"repo",
+	"forge",
+	"asset",
+	"asset_aarch64",
+	"dest",
+	"bins",
+	"folder",
+	"version_args",
+	"meta_path",
+	"probe",
+	"note",
+	"process",
+]);
+
+// The catalogue's list of keys online, by address, kept an hour: Add app asks for it once, not per name.
+const indexes = new Map<string, { at: number; keys: Set<string> }>();
+const INDEX_HOURS = 1;
+
+/**
+ * The keys the catalogue online holds, from <catalogueUrl>/index.txt (one key a line; a test keeps it equal to the
+ * tables). Read at most once an hour per address; an empty set when it cannot be read, so nothing else is asked.
+ */
+async function onlineKeys(ctx: DiscoverCtx): Promise<Set<string>> {
+	const url = ctx.catalogueUrl ?? "";
+	const now = Date.now();
+	const kept = indexes.get(url);
+	if (kept && now - kept.at < INDEX_HOURS * 3_600_000) return kept.keys;
+	let keys = new Set<string>();
+	try {
+		const r = await ctx.fetch(`${url}/index.txt`, { signal: AbortSignal.timeout(10_000) });
+		if (r.ok)
+			keys = new Set(
+				(await r.text())
+					.split("\n")
+					.map((l) => l.trim())
+					.filter(Boolean),
+			);
+	} catch {
+		// unreachable: no keys, and the next Add app asks again
+		return keys;
+	}
+	indexes.set(url, { at: now, keys });
+	return keys;
+}
 
 /**
  * The catalogue's table for a bare name the shipped copy does not have, read from the repo: <catalogueUrl>/<key>.toml,
- * the key made of the name as keyOf makes one, so "Hydra Launcher" finds hydra-launcher but not hydralauncher. Null
- * for a link, a path, a table that does not load, one of another key, or a kind that runs commands (command, source,
- * manual): only the shipped copy, reviewed with this version, may run a command. Never throws.
+ * the key made of the name as keyOf makes one, so "Hydra Launcher" finds hydra-launcher but not hydralauncher. Only a
+ * key on the public list (onlineKeys) is asked for, so a private name is never sent. Null for a link, a path, a table that does not load, one of another key, a kind other than an AppImage, archive or file,
+ * or a field beyond ONLINE_FIELDS: only the shipped copy, reviewed with this version, may run a command or use root.
+ * The fetch gives up after 10 s. Never throws.
  */
 async function onlineEntry(input: string, ctx: DiscoverCtx): Promise<AppSpec | null> {
 	const name = input.trim();
 	if (!ctx.catalogueUrl || !/^[\w][\w .+-]*$/.test(name)) return null;
 	const key = keyOf(name).replace(/-+/g, "-").replace(/^-|-$/g, "");
-	if (!key) return null;
+	// The name is matched against the public list here: one that is not on it never leaves this machine.
+	if (!key || !(await onlineKeys(ctx)).has(key)) return null;
 	try {
 		const r = await ctx.fetch(`${ctx.catalogueUrl}/${encodeURIComponent(key)}.toml`, {
 			signal: AbortSignal.timeout(10_000),
@@ -915,6 +970,7 @@ async function onlineEntry(input: string, ctx: DiscoverCtx): Promise<AppSpec | n
 		const table = apps[0];
 		if (errors.length > 0 || apps.length !== 1 || !table || table.key !== key || !ONLINE_KINDS.has(table.kind))
 			return null;
+		if (Object.keys(table).some((f) => !ONLINE_FIELDS.has(f))) return null;
 		return table;
 	} catch {
 		return null;

@@ -34,15 +34,26 @@ export function readProbe(code: number, output: string): ProbeResult {
 	return version ? { version } : { state: "unknown", detail: text.split("\n")[0]?.trim() ?? "" };
 }
 
-// Qt draws nothing in its offscreen mode: a Qt program (DB Browser for SQLite) answers --version in a check that has
-// no display, and can never show a window during one.
-const PROBE_ENV = { QT_QPA_PLATFORM: "offscreen" };
+// A Qt program with no display to open aborts before it prints its version (DB Browser for SQLite in a background
+// check): "qt.qpa.xcb: could not connect to display".
+const NO_DISPLAY = /qt\.qpa\.|could not connect to display|platform plugin/i;
 
-/** Runs file with args and reads its version. Output goes through a temp file: an AppImage's FUSE daemon would hold a pipe open. */
+/**
+ * Runs file with args and reads its version. Output goes through a temp file: an AppImage's FUSE daemon would hold a
+ * pipe open. A Qt program that failed for want of a display is asked once more in Qt's offscreen mode, which needs
+ * none; a program that answered the first time is never run that way, since an AppImage may not carry the plugin.
+ */
 export async function probeVersion(file: string, args: string[], opts: ProbeOpts): Promise<ProbeResult> {
 	if (!existsSync(file)) return { state: "absent" };
-	const r = await opts.run([file, ...args], { timeoutMs: opts.timeoutMs ?? 10_000, merge: true, env: PROBE_ENV });
-	return readProbe(r.code, r.stdout);
+	const first = await opts.run([file, ...args], { timeoutMs: opts.timeoutMs ?? 10_000, merge: true });
+	const read = readProbe(first.code, first.stdout);
+	if ("version" in read || !NO_DISPLAY.test(first.stdout)) return read;
+	const again = await opts.run([file, ...args], {
+		timeoutMs: opts.timeoutMs ?? 10_000,
+		merge: true,
+		env: { QT_QPA_PLATFORM: "offscreen" },
+	});
+	return readProbe(again.code, again.stdout);
 }
 
 /** The same capture for a command found on PATH. A command that is not there is absent. */
