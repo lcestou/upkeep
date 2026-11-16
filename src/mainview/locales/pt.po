@@ -2514,16 +2514,8 @@ msgid "A new version of Upkeep is ready."
 msgstr "Uma nova versão do Upkeep está pronta."
 
 #: src/mainview/lib/copy.ts
-msgid "Downloading and testing"
-msgstr "Baixando e testando"
-
-#: src/mainview/lib/copy.ts
 msgid "Restart Upkeep to finish."
 msgstr "Reinicie o Upkeep para concluir."
-
-#: src/mainview/lib/copy.ts
-msgid "Restarting"
-msgstr "Reiniciando"
 
 #: src/mainview/lib/copy.ts
 msgid "Update Upkeep"
@@ -2727,3 +2719,11 @@ msgstr "Do catálogo do Upkeep online: uma tabela adicionada depois desta versã
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has installed {1} too: two copies, each updated by its own manager. Remove one of them to keep one."
 msgstr "{0} também instalou {1}: duas cópias, cada uma atualizada pelo próprio gerenciador. Remova uma para ficar com uma só."
+
+#: src/mainview/lib/copy.ts
+msgid "Downloading the new version and testing that it starts"
+msgstr "Baixando a nova versão e testando se ela inicia"
+
+#: src/mainview/lib/copy.ts
+msgid "Restarting Upkeep"
+msgstr "Reiniciando o Upkeep"

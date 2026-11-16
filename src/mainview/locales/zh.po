@@ -2472,16 +2472,8 @@ msgid "A new version of Upkeep is ready."
 msgstr "Upkeep 有新版本可用。"
 
 #: src/mainview/lib/copy.ts
-msgid "Downloading and testing"
-msgstr "正在下载并测试"
-
-#: src/mainview/lib/copy.ts
 msgid "Restart Upkeep to finish."
 msgstr "重启 Upkeep 以完成更新。"
-
-#: src/mainview/lib/copy.ts
-msgid "Restarting"
-msgstr "正在重启"
 
 #: src/mainview/lib/copy.ts
 msgid "Update Upkeep"
@@ -2685,3 +2677,11 @@ msgstr "来自 Upkeep 的在线目录：在此版本的 Upkeep 发布之后添�
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has installed {1} too: two copies, each updated by its own manager. Remove one of them to keep one."
 msgstr "{0} 也安装了 {1}：两份副本，各由自己的管理器更新。删除其中一份，只保留一份。"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloading the new version and testing that it starts"
+msgstr "正在下载新版本并测试能否启动"
+
+#: src/mainview/lib/copy.ts
+msgid "Restarting Upkeep"
+msgstr "正在重启 Upkeep"

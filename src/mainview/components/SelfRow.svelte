@@ -81,6 +81,7 @@ once as a test beside this one; only then does Restart now appear, and only the 
 				{self.version}
 			{/if}
 		</span>
+		{#if working}<span class="spin" aria-hidden="true" data-testid="self-spinner"></span>{/if}
 		<span class="sentence" role="status" data-testid="self-sentence">{sentence}</span>
 		<span class="actions">
 			{#if notes}
@@ -148,8 +149,23 @@ once as a test beside this one; only then does Restart now appear, and only the 
 	.bad .sentence {
 		color: var(--rust);
 	}
+	/* Plain text beside a spinner: water words with no bar under them read as a link. */
 	.working .sentence {
-		color: var(--water);
+		color: var(--text);
+	}
+	.spin {
+		flex: none;
+		width: 12px;
+		height: 12px;
+		border: 2px solid oklch(0.955 0.012 110 / 0.25);
+		border-top-color: var(--water);
+		border-radius: 50%;
+		animation: spin 800ms linear infinite;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(1turn);
+		}
 	}
 	.actions {
 		display: flex;

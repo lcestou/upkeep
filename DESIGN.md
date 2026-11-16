@@ -405,7 +405,7 @@ Sources: `App.svelte`, `AppList.svelte`, `HeaderBar.svelte`, `e2e/keyboard.spec.
 Sources: `app.css`, `lib/motion.ts`, component styles. One custom easing, `--ease-out: cubic-bezier(0.16, 1, 0.3, 1)`, for the leaf and the version weight; everything else uses `ease-out` or `linear`.
 
 - 100 ms: button and window-button hover. 120 ms: checkbox, tabs. 150 ms: chevrons, scroll shades. 160 ms linear: stem fill; 160 ms fade: the state sentence. 200 ms: pane fly-in (32 px from the right), check bar, run bar fill. 240 ms: row dimming, restore point fade, footer slot swap; footer buttons fly 8 px. 280 ms: the leaf. 320 ms: rows reordering between groups (flip). 400 ms: the version weight.
-- Loops: the checking dot pulses between 1 and 0.85 opacity over 1.2 s, the version skeleton breathes over 1.4 s, the sweep runs 1.1 s, the Add pane spinner 800 ms.
+- Loops: the checking dot pulses between 1 and 0.85 opacity over 1.2 s, the version skeleton breathes over 1.4 s, the sweep runs 1.1 s, the spinner (the Add pane's busy buttons, and Upkeep's own row while it downloads, tests or restarts, beside plain text) 800 ms.
 - Reduced motion: CSS cuts every animation and transition to 0.001 ms and one iteration, and `ms()` returns 0 for every Svelte transition. The sweep parks at 75% and the spinner stops. `e2e/motion.spec.ts` checks every state is still reached.
 
 ### Window frame
