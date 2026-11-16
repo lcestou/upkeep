@@ -179,7 +179,7 @@ The palette is a night bench: tinted green-black grounds, a tag-white text ramp,
 
 ### Care colours
 
-- **Water** (`water`): working. The working band, stem fill, live caption, check progress bar, link text in release notes and the Add pane's busy line. It is also the focus ring.
+- **Water** (`water`): working. The working band, stem fill, live caption, check progress bar, link text in release notes, the Add pane's busy line and the arc of Upkeep's own spinner. It is also the focus ring. Water words never stand alone without a bar or spinner beside them: Upkeep's own row at work says its sentence in `text` beside the spinner, since a lone water line reads as a link.
 - **Leaf** (`leaf`): fresh and done. Fresh and done bands, completed stem nodes and leaves, the restore point tick, the "Updated to" result, the drop veil's dashed border, the all-fresh mark.
 - **Rust** (`rust`): Needs a look. The problem band and status word. It is not the failure colour.
 - **Fail** (`fail`): failed and rolled back. Its own red, apart from rust; `e2e/polish.spec.ts` asserts the two computed colours differ. Also the Remove confirm button. The close button's hover ground is a deeper red, `oklch(0.54 0.19 25)`, so its cross holds 4.5:1.
@@ -405,7 +405,7 @@ Sources: `App.svelte`, `AppList.svelte`, `HeaderBar.svelte`, `e2e/keyboard.spec.
 Sources: `app.css`, `lib/motion.ts`, component styles. One custom easing, `--ease-out: cubic-bezier(0.16, 1, 0.3, 1)`, for the leaf and the version weight; everything else uses `ease-out` or `linear`.
 
 - 100 ms: button and window-button hover. 120 ms: checkbox, tabs. 150 ms: chevrons, scroll shades. 160 ms linear: stem fill; 160 ms fade: the state sentence. 200 ms: pane fly-in (32 px from the right), check bar, run bar fill. 240 ms: row dimming, restore point fade, footer slot swap; footer buttons fly 8 px. 280 ms: the leaf. 320 ms: rows reordering between groups (flip). 400 ms: the version weight.
-- Loops: the checking dot pulses between 1 and 0.85 opacity over 1.2 s, the version skeleton breathes over 1.4 s, the sweep runs 1.1 s, the spinner (the Add pane's busy buttons, and Upkeep's own row while it downloads, tests or restarts, beside plain text) 800 ms.
+- Loops: the checking dot pulses between 1 and 0.85 opacity over 1.2 s, the version skeleton breathes over 1.4 s, the sweep runs 1.1 s, the spinner 800 ms (a `text` arc in the Add pane's busy buttons, a `water` arc on Upkeep's own row while it downloads, tests or restarts).
 - Reduced motion: CSS cuts every animation and transition to 0.001 ms and one iteration, and `ms()` returns 0 for every Svelte transition. The sweep parks at 75% and the spinner stops. `e2e/motion.spec.ts` checks every state is still reached.
 
 ### Window frame
