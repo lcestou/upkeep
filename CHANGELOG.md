@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Uninstall Upkeep also removes the desktop shortcut the installer made, in `~/Desktop` or the desktop folder your system names (a translated one too), when it still starts Upkeep; a shortcut you made yourself stays.
+
 ## 0.1.0, 2026-11-16
 
 First version.

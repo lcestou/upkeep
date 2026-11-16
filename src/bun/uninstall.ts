@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { Paths } from "../engine/paths";
 import { removeMenuEntry, syncAutostart } from "./autostart";
@@ -38,6 +39,8 @@ export type UninstallCtx = {
 	launcher: string;
 	/** The menu entry the installer wrote and Upkeep rewrote. */
 	menu: string;
+	/** Where the installer may have put its desktop shortcut; each goes only when it starts Upkeep's own launcher. */
+	shortcuts: string[];
 	/** Upkeep's own process, which the finish waits out before it deletes anything. */
 	pid: number;
 	paths: Paths;
@@ -45,6 +48,22 @@ export type UninstallCtx = {
 	purge: boolean;
 	spawnDetached: (argv: string[]) => void;
 };
+
+/**
+ * The desktop shortcut the installer writes, Upkeep.desktop: in the desktop folder the person's user-dirs.dirs names
+ * (a translated one, ~/Escritorio) and in ~/Desktop, which the installer may use whatever the system calls it. A
+ * user-dirs.dirs that cannot be read leaves ~/Desktop alone.
+ */
+export function desktopShortcuts(home: string, configHome: string): string[] {
+	const dirs = [join(home, "Desktop")];
+	try {
+		const named = /^XDG_DESKTOP_DIR="([^"]+)"/m.exec(readFileSync(join(configHome, "user-dirs.dirs"), "utf8"))?.[1];
+		if (named) dirs.unshift(named.replace(/^\$HOME(?=\/|$)/, home));
+	} catch {
+		// no user-dirs.dirs: ~/Desktop only
+	}
+	return [...new Set(dirs)].map((d) => join(d, "Upkeep.desktop"));
+}
 
 /** A data folder purge may delete: Upkeep's own, named upkeep, inside home. */
 const ownData = (p: string, home: string) => p.startsWith(`${home}/`) && p.endsWith("/upkeep");
@@ -66,6 +85,7 @@ export function uninstallUpkeep(c: UninstallCtx): boolean {
 		return false;
 	syncAutostart(c.paths.config, false, c.launcher, "");
 	removeMenuEntry(c.menu, c.launcher, SELF_FILES.shim);
+	for (const s of c.shortcuts) removeMenuEntry(s, c.launcher, SELF_FILES.shim);
 	syncCommand(home, false, c.root);
 	const data = c.purge
 		? [c.paths.config, c.paths.state, c.paths.cache, c.paths.data].filter((p) => ownData(p, home))
