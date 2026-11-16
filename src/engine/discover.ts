@@ -612,9 +612,10 @@ export async function programsIn(
 		const list = await ctx.run(zip ? ["unzip", "-Z1", file] : ["tar", "tf", file], { timeoutMs: 60_000 });
 		if (list.code !== 0)
 			return {
-				problem: /Cannot exec/.test(list.stderr)
-					? unpackProblem(asset.name, list)
-					: MESSAGES.noProgramInArchive(asset.name),
+				problem:
+					list.code === 127 || /Cannot exec/.test(list.stderr)
+						? unpackProblem(asset.name, list, zip ? "unzip" : "tar")
+						: MESSAGES.noProgramInArchive(asset.name),
 			};
 		const listed = new Set(
 			list.stdout

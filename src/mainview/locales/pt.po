@@ -1274,8 +1274,8 @@ msgstr "Uma atualização foi interrompida. {0} {1} foi restaurado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: kind is not one of appimage, archive, file, deb"
-msgstr "{0}: kind não é appimage, archive, file nem deb"
+msgid "{0}: kind is not one of appimage, archive, file, deb, rpm"
+msgstr "{0}: kind não é appimage, archive, file, deb nem rpm"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
