@@ -65,7 +65,7 @@ function binName(bin: string, dest: string): string {
 }
 
 /**
- * Why tar could not open an archive, as a sentence: the program it hands xz, bzip2 or zstd to is missing on a minimal
+ * Why tar or unzip could not open an archive, as a sentence: the program it hands xz, bzip2 or zstd to is missing on a minimal
  * system (Ubuntu's cloud image has no xz), which GNU tar reports as "xz: Cannot exec"; unpacker itself (unzip, tar)
  * missing is exit 127 from the runner. Anything else is couldNotExtract.
  */

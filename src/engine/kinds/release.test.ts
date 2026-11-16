@@ -935,3 +935,21 @@ test("a folder app whose link cannot be made after the swap is put back", async 
 	}
 	expect(readFileSync(join(t.paths.home, ".local/share/kitty/lib/version"), "utf8")).toBe("kitty 0.44.0\n");
 });
+
+test("install: a zip on a system without unzip says to install unzip, and keeps the old copy", async () => {
+	script(join(t.paths.home, ".local/bin/uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.zip": new Uint8Array([1, 2, 3]) });
+	const { run } = recordingRun(t.paths, (argv) =>
+		argv[0] === "unzip"
+			? { code: 127, stdout: "", stderr: "Executable not found in $PATH: unzip", timedOut: false }
+			: undefined,
+	);
+	const spec = { ...uv(["uv"]), asset: "linux-gnu\\.zip$" };
+	const c = ctx(run);
+	expect(await installRelease(spec, await checkAndTarget(spec, c), c)).toMatchObject({
+		result: "failed",
+		installed: "0.9.1",
+		detail:
+			"Opening uv-x86_64-unknown-linux-gnu.zip needs the unzip program, which is not installed. Install unzip from the system's packages, then try again.",
+	});
+});
