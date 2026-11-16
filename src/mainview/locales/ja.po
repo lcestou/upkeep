@@ -2472,16 +2472,8 @@ msgid "A new version of Upkeep is ready."
 msgstr "Upkeep の新しいバージョンがあります。"
 
 #: src/mainview/lib/copy.ts
-msgid "Downloading and testing"
-msgstr "ダウンロードしてテスト中"
-
-#: src/mainview/lib/copy.ts
 msgid "Restart Upkeep to finish."
 msgstr "完了するには Upkeep を再起動してください。"
-
-#: src/mainview/lib/copy.ts
-msgid "Restarting"
-msgstr "再起動中"
 
 #: src/mainview/lib/copy.ts
 msgid "Update Upkeep"
@@ -2685,3 +2677,11 @@ msgstr "Upkeep のオンラインカタログから: この Upkeep のバージ�
 #: src/mainview/lib/engine-text.ts
 msgid "{0} has installed {1} too: two copies, each updated by its own manager. Remove one of them to keep one."
 msgstr "{0} も {1} をインストールしています: 2 つのコピーがそれぞれのマネージャーで更新されます。1 つにするにはどちらかを削除してください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloading the new version and testing that it starts"
+msgstr "新しいバージョンをダウンロードし、起動するか確認しています"
+
+#: src/mainview/lib/copy.ts
+msgid "Restarting Upkeep"
+msgstr "Upkeep を再起動しています"

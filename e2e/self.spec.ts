@@ -21,14 +21,16 @@ test("a new version is offered, downloaded and tested, then waits for the restar
 	await expect.poll(() => ops(page)).toContain("open self-notes");
 
 	await page.getByTestId("self-update").click();
-	await expect(page.getByTestId("self-sentence")).toHaveText("Downloading and testing");
-	// While Upkeep is at work on it there is nothing to press.
+	await expect(page.getByTestId("self-sentence")).toHaveText("Downloading the new version and testing that it starts");
+	// While Upkeep is at work on it there is nothing to press, and a spinner beside plain words says it is busy.
 	await expect(page.getByTestId("self-update")).toHaveCount(0);
+	await expect(page.getByTestId("self-spinner")).toBeVisible();
 	await expect(page.getByTestId("self-sentence")).toHaveText("Restart Upkeep to finish.");
+	await expect(page.getByTestId("self-spinner")).toHaveCount(0);
 	await expect(page.getByTestId("self-restart")).toHaveText("Restart now");
 
 	await page.getByTestId("self-restart").click();
-	await expect(page.getByTestId("self-sentence")).toHaveText("Restarting");
+	await expect(page.getByTestId("self-sentence")).toHaveText("Restarting Upkeep");
 	await expect(page.getByTestId("self-sentence")).toHaveText("Upkeep was updated to 0.1.1.");
 	await expect(page.getByTestId("self-version")).toHaveText("0.1.1");
 	await page.getByTestId("self-dismiss").click();

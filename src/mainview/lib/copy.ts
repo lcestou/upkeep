@@ -774,13 +774,13 @@ export const SELF = {
 		return "A new version of Upkeep is ready.";
 	},
 	get preparing() {
-		return "Downloading and testing";
+		return "Downloading the new version and testing that it starts";
 	},
 	get ready() {
 		return "Restart Upkeep to finish.";
 	},
 	get restarting() {
-		return "Restarting";
+		return "Restarting Upkeep";
 	},
 	get update() {
 		return "Update Upkeep";
