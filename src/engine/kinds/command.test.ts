@@ -75,12 +75,17 @@ test("check reads the command's version and npm's latest; a missing command is l
 	expect((await checkCommand(claude([]), ctx()))?.status).toBe("fresh");
 });
 
-test("install runs the update and passes when the version moved, marking restart for a noted app", async () => {
+test("install runs the update and passes when the version moved, asking a restart only of a table that can", async () => {
 	const state = fakeClaude("2.1.322");
 	script(join(t.paths.home, ".local/bin/claude-up"), `echo updating; printf 2.1.400 > ${state}`);
 	const target = { from: "2.1.322", version: "2.1.400", tag: "2.1.400" };
+	// A note alone is no restart: there is nothing to press, and open sessions run on as the note says.
 	const outcome = await installCommand(claude(["~/.local/bin/claude-up"]), target, ctx());
-	expect(outcome).toMatchObject({ result: "done", installed: "2.1.400", restartToApply: true });
+	expect(outcome).toMatchObject({ result: "done", installed: "2.1.400", restartToApply: false });
+	writeFileSync(state, "2.1.322");
+	const { note: _note, ...bare } = claude(["~/.local/bin/claude-up"]);
+	const restartable = { ...bare, restart: ["systemctl", "--user", "restart", "claude"] };
+	expect((await installCommand(restartable, target, ctx())).restartToApply).toBe(true);
 	expect(lines).toContain("updating");
 	expect(Object.keys(outcome.stages)).toEqual(["install", "verify"]);
 });

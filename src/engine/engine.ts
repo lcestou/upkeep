@@ -134,9 +134,10 @@ export const REASON_STOPPING = MESSAGES.reasonStopping();
 
 /**
  * Whether a copy still running after an update is worth a restart prompt. A desktop app, a package or a service is;
- * a command-line tool (an archive or a single file, or a tool that updates itself, with no restart command and no
- * relaunch) is not: its running copy keeps the old version until it exits, every new run already uses the new one,
- * and there is nothing to press. A self-updating tool's table note still says so in its pane.
+ * an app whose table can do nothing about it is not: an archive, a single file or a command app (a tool run by its
+ * own update command) with no restart command and no relaunch. Its running copy keeps the old version until it exits,
+ * every new run already uses the new one, and there is nothing to press. A command app's note still says so in its
+ * pane.
  */
 function restartWanted(spec: AppSpec): boolean {
 	return (

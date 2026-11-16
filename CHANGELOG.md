@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- A tool that updates itself (Claude Code, omp, opencode and the like) no longer lands in "Restart to finish" after an update, a group with nothing to press. It shows as up to date; its details still say that open sessions keep the old version until you restart them. A table with a restart command still gets Restart now.
+- A tool that updates itself (Claude Code, omp, opencode and the like) no longer lands in "Restart to finish" after an update, a group with nothing to press. It shows as up to date; its details still say that open sessions keep the old version until you restart them. A tool whose table has a restart command gets Restart now, with or without a note.
 
 ## 0.1.3, 2026-11-16
 
