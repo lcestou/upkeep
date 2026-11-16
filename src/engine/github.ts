@@ -6,7 +6,14 @@ import { tagVersion } from "./version";
 
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
-export type Asset = { name: string; url: string; size: number; digest: string | null };
+export type Asset = {
+	name: string;
+	url: string;
+	size: number;
+	digest: string | null;
+	/** GitHub's API address for the file: the way in to a private repo's file, with a token. Set for GitHub only. */
+	api?: string;
+};
 
 export type Release = {
 	tag: string;
@@ -37,7 +44,7 @@ export type ReleaseOpts = {
 	tag?: string;
 };
 
-const GITHUB_API = "https://api.github.com";
+export const GITHUB_API = "https://api.github.com";
 
 /** Tells a failure from a result by its failure field, which no result type carries. */
 export function isFailure<T extends object>(v: T | Failure): v is Failure {
@@ -82,6 +89,7 @@ export function parseRelease(body: unknown): Release | null {
 			assets.push({
 				name: str(a.name),
 				url: str(a.browser_download_url),
+				api: str(a.url).startsWith(`${GITHUB_API}/`) ? str(a.url) : undefined,
 				size: typeof a.size === "number" ? a.size : 0,
 				digest: typeof a.digest === "string" && a.digest ? a.digest : null,
 			});

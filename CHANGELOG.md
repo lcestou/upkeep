@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Apps from a private GitHub repo update when you are signed in to `gh` with an account that can see the repo. The check already used your sign-in; now the download does too: when the release file's public link answers "not found", as it does for a private repo, Upkeep fetches the file through GitHub's API with your token. Public repos download as before.
+
 ## 0.1.2, 2026-11-16
 
 - Add app finds an app the catalogue gained after your version of Upkeep came out: when a name is not in the copy Upkeep ships with, it reads that app's table from the catalogue in Upkeep's repo. The name you type is checked against the catalogue's public list on your machine first, so a name that is not on it is never sent. Only an AppImage, an archive or a single file is taken from there, installed into your home folder: a table online that would run a command, use root or close a running program is refused.

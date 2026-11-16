@@ -2,7 +2,7 @@ import { mkdirSync } from "node:fs";
 import { open } from "node:fs/promises";
 import { dirname } from "node:path";
 import { MESSAGES } from "../shared/messages";
-import type { Asset, FetchLike } from "./github";
+import { type Asset, type FetchLike, GITHUB_API } from "./github";
 
 export type DownloadOpts = {
 	fetch: FetchLike;
@@ -12,6 +12,11 @@ export type DownloadOpts = {
 	stallMs?: number;
 	/** Wait before the one retry after a network error. Default 2 s. */
 	retryMs?: number;
+	/**
+	 * The asset's GitHub API address and the person's gh token, tried when the public link answers 404: a private
+	 * repo's file is 404 there without a browser's sign-in, and the API serves it to the token instead.
+	 */
+	signedIn?: { url: string; token: string };
 };
 
 export type DownloadResult = { bytes: number; sha256: string };
@@ -19,12 +24,21 @@ export type DownloadResult = { bytes: number; sha256: string };
 /** Marks a download that went quiet, so download() does not retry it as a network error. */
 class Stalled extends Error {}
 
+/** A download the server answered with an error status; download() reads the status to try the signed-in way. */
+class HttpFailed extends Error {
+	/** Keeps the status beside the message the person reads. */
+	constructor(readonly status: number) {
+		super(MESSAGES.downloadHttpFailed(status));
+	}
+}
+
 /** One try at the download. Sets started.any once the server answers, which tells the caller not to retry. */
 async function attempt(
 	url: string,
 	file: string,
 	opts: DownloadOpts,
 	started: { any: boolean },
+	headers?: Record<string, string>,
 ): Promise<DownloadResult> {
 	const stallMs = opts.stallMs ?? 60_000;
 	const ctl = new AbortController();
@@ -42,10 +56,10 @@ async function attempt(
 	arm();
 	const fh = await open(file, "w");
 	try {
-		const res = await opts.fetch(url, { signal: ctl.signal, redirect: "follow" });
+		const res = await opts.fetch(url, { signal: ctl.signal, redirect: "follow", headers });
 		// An answer of any status is not a network error, so it is not retried.
 		started.any = true;
-		if (!res.ok || !res.body) throw new Error(MESSAGES.downloadHttpFailed(res.status));
+		if (!res.ok || !res.body) throw new HttpFailed(res.status);
 		const length = Number(res.headers.get("content-length"));
 		const total = length > 0 ? length : null;
 		const hasher = new Bun.CryptoHasher("sha256");
@@ -78,17 +92,46 @@ async function attempt(
 	}
 }
 
-/** Streams url to file, hashing as it writes. A network error before the first byte is retried once. */
-export async function download(url: string, file: string, opts: DownloadOpts): Promise<DownloadResult> {
-	mkdirSync(dirname(file), { recursive: true });
+/** One address with its retry: a network error before the server answers is tried once more, unless cancelled. */
+async function fetchTo(
+	url: string,
+	file: string,
+	opts: DownloadOpts,
+	headers?: Record<string, string>,
+): Promise<DownloadResult> {
 	const started = { any: false };
 	try {
-		return await attempt(url, file, opts, started);
+		return await attempt(url, file, opts, started, headers);
 	} catch (err) {
 		if (err instanceof Stalled || started.any || opts.signal?.aborted) throw err;
 		await new Promise((r) => setTimeout(r, opts.retryMs ?? 2000));
-		return attempt(url, file, opts, started);
+		return attempt(url, file, opts, started, headers);
 	}
+}
+
+/**
+ * Streams url to file, hashing as it writes. A network error before the first byte is retried once. A 404 with
+ * opts.signedIn is asked again at the API with the token, with the same retry; the token goes only to api.github.com,
+ * never to url, and a cancel before the 404 lands stops it there.
+ */
+export async function download(url: string, file: string, opts: DownloadOpts): Promise<DownloadResult> {
+	mkdirSync(dirname(file), { recursive: true });
+	try {
+		return await fetchTo(url, file, opts);
+	} catch (err) {
+		const signed = opts.signedIn;
+		const isPrivate = err instanceof HttpFailed && err.status === 404 && signed?.url.startsWith(`${GITHUB_API}/`);
+		if (!isPrivate || !signed || opts.signal?.aborted) throw err;
+		return fetchTo(signed.url, file, opts, {
+			Accept: "application/octet-stream",
+			Authorization: `Bearer ${signed.token}`,
+		});
+	}
+}
+
+/** The signed-in way to an asset for download(), when it has a GitHub API address and the person has a gh token. */
+export function signedIn(asset: Asset, token: string | null): DownloadOpts["signedIn"] {
+	return asset.api && token ? { url: asset.api, token } : undefined;
 }
 
 /** Below this, a download whose size nobody listed is an error page or a cut, not a release. */

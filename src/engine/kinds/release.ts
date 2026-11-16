@@ -15,7 +15,7 @@ import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
-import { download, statedSize, verifyAsset } from "../download";
+import { download, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { forgeRelease, linksRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
@@ -305,6 +305,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			},
 			stallMs: ctx.stallMs,
 			retryMs: ctx.retryMs,
+			signedIn: signedIn(asset, ctx.token),
 		});
 		verifyAsset(got, asset);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}`);
@@ -501,7 +502,12 @@ async function oldPackage(
 	const file = join(ctx.paths.cache, "dl", `${spec.key}-old`, picked.asset.name);
 	try {
 		verifyAsset(
-			await download(picked.asset.url, file, { fetch: ctx.fetch, stallMs: ctx.stallMs, retryMs: ctx.retryMs }),
+			await download(picked.asset.url, file, {
+				fetch: ctx.fetch,
+				stallMs: ctx.stallMs,
+				retryMs: ctx.retryMs,
+				signedIn: signedIn(picked.asset, ctx.token),
+			}),
 			picked.asset,
 		);
 	} catch (err) {

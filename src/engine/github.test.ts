@@ -24,8 +24,20 @@ const RELEASE = {
 	body: "Fixes.",
 	assets: [
 		{ name: "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz.sha256", browser_download_url: "u0", size: 90, digest: null },
-		{ name: "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz", browser_download_url: "u1", size: 1000, digest: "sha256:ab" },
-		{ name: "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz.sig", browser_download_url: "u2", size: 9, digest: null },
+		{
+			name: "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz",
+			browser_download_url: "u1",
+			url: "https://api.github.com/repos/sharkdp/fd/releases/assets/11",
+			size: 1000,
+			digest: "sha256:ab",
+		},
+		{
+			name: "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz.sig",
+			browser_download_url: "u2",
+			url: "u2",
+			size: 9,
+			digest: null,
+		},
 		{ name: "fd-v10.5.2-x86_64-unknown-linux-musl.tar.gz", browser_download_url: "u3", size: 999, digest: null },
 	],
 };
@@ -85,7 +97,15 @@ test("fetchRelease reads the release, caches it, and revalidates with the etag",
 	expect(first.tag).toBe("v10.5.2");
 	expect(first.version).toBe("10.5.2");
 	expect(first.publishedAt).toBe("2026-11-01T10:00:00Z");
-	expect(first.assets[1]).toEqual({ name: RELEASE.assets[1]?.name ?? "", url: "u1", size: 1000, digest: "sha256:ab" });
+	expect(first.assets[1]).toEqual({
+		name: RELEASE.assets[1]?.name ?? "",
+		url: "u1",
+		api: "https://api.github.com/repos/sharkdp/fd/releases/assets/11",
+		size: 1000,
+		digest: "sha256:ab",
+	});
+	// Only GitHub's own API address is kept: the token may only ever go there.
+	expect(first.assets[2]?.api).toBeUndefined();
 	expect(await Bun.file(join(dir, "sharkdp__fd.json")).exists()).toBe(true);
 	const second = await fetchRelease("sharkdp/fd", opts);
 	expect(hits[1]?.headers.get("if-none-match")).toBe('"e1"');
