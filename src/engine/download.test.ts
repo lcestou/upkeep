@@ -135,6 +135,43 @@ test("a private repo's file: the public link's 404 is asked again at GitHub's AP
 	expect(seen.map((s) => s.url)).toEqual([`${base()}/private`]);
 });
 
+test("the signed-in way keeps the retry, on both addresses, and a cancel stops it before the API", async () => {
+	const api = "https://api.github.com/repos/me/tool/releases/assets/7";
+	const signedIn = { url: api, token: "tok" };
+	const asked: string[] = [];
+	/** Answers each address from a script: "net" throws a network error, "404" is GitHub's not found, "ok" the file. */
+	const scripted =
+		(plan: string[]): FetchLike =>
+		async (url, init) => {
+			asked.push(String(url) === api ? "api" : "public");
+			const step = plan.shift();
+			if (step === "net") throw new TypeError("socket reset");
+			if (step === "404") return new Response("Not Found", { status: 404 });
+			return fetch(`${base()}/asset`, init);
+		};
+	// A network blip, then the public 404: still asked at the API.
+	const r = await download(`${base()}/private`, join(dir, "blip.bin"), {
+		fetch: scripted(["net", "404", "net", "ok"]),
+		retryMs: 10,
+		signedIn,
+	});
+	expect(r.sha256).toBe(SHA);
+	expect(asked).toEqual(["public", "public", "api", "api"]);
+
+	// Cancelled as the 404 lands: the API is never asked.
+	asked.length = 0;
+	const ctl = new AbortController();
+	const cancelling: FetchLike = async () => {
+		asked.push("public");
+		ctl.abort();
+		return new Response("Not Found", { status: 404 });
+	};
+	await expect(
+		download(`${base()}/private`, join(dir, "cancel.bin"), { fetch: cancelling, signal: ctl.signal, signedIn }),
+	).rejects.toThrow("Download failed: the server answered 404.");
+	expect(asked).toEqual(["public"]);
+});
+
 test("signedIn: the API way only for an asset with an API address and a person with a token", () => {
 	const asset = {
 		name: "t",

@@ -134,8 +134,12 @@ function readRelease(text: string, f: Forge): Release | Failure {
 	}
 	const r = f.kind === "gitlab" ? parseGitlab(body) : parseRelease(body);
 	if (!r) return { failure: "http", detail: MESSAGES.forgeSentNoRelease(f.host, f.path) };
-	// A Gitea asset is the uploader's own address on the host; only https is taken.
-	return { ...r, assets: r.assets.filter((a) => httpsUrl(a.url) !== null) };
+	// A Gitea asset is the uploader's own address on the host; only https is taken. No API address is kept: another
+	// forge's answer never decides where the GitHub token goes.
+	const assets = r.assets
+		.filter((a) => httpsUrl(a.url) !== null)
+		.map((a) => ({ name: a.name, url: a.url, size: a.size, digest: a.digest }));
+	return { ...r, assets };
 }
 
 /**

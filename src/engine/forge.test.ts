@@ -186,7 +186,20 @@ test("Codeberg and self-hosted Gitea: the latest and a tagged release from codeb
 	);
 	expect(own.assets).toEqual([]);
 	expect(sent[1]?.url).toBe("https://git.example.org/api/v1/repos/me/tool/releases/tags/v2.0");
-	expect(sent[1]?.headers.has("authorization")).toBe(false);
+	expect(sent[1]?.headers.has("authorization")).toBe(false); // A Gitea answer that names a GitHub API address for its file gets no signed-in way: the token never follows it.
+	const named = {
+		...codebergRelease,
+		assets: [
+			{
+				name: "tool-linux",
+				size: 9,
+				browser_download_url: "https://git.example.org/me/tool/tool-linux",
+				url: "https://api.github.com/repos/someone/private/releases/assets/1",
+			},
+		],
+	};
+	const gitea = ok(await forgeRelease("git.example.org/me/tool", "gitea", opts(recording(() => Response.json(named)))));
+	expect(gitea.assets[0]?.api).toBeUndefined();
 });
 
 test("the GitHub token goes to GitHub only", async () => {

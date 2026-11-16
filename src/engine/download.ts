@@ -92,25 +92,40 @@ async function attempt(
 	}
 }
 
+/** One address with its retry: a network error before the server answers is tried once more, unless cancelled. */
+async function fetchTo(
+	url: string,
+	file: string,
+	opts: DownloadOpts,
+	headers?: Record<string, string>,
+): Promise<DownloadResult> {
+	const started = { any: false };
+	try {
+		return await attempt(url, file, opts, started, headers);
+	} catch (err) {
+		if (err instanceof Stalled || started.any || opts.signal?.aborted) throw err;
+		await new Promise((r) => setTimeout(r, opts.retryMs ?? 2000));
+		return attempt(url, file, opts, started, headers);
+	}
+}
+
 /**
  * Streams url to file, hashing as it writes. A network error before the first byte is retried once. A 404 with
- * opts.signedIn is asked again at the API with the token; the token goes only to api.github.com, never to url.
+ * opts.signedIn is asked again at the API with the token, with the same retry; the token goes only to api.github.com,
+ * never to url, and a cancel before the 404 lands stops it there.
  */
 export async function download(url: string, file: string, opts: DownloadOpts): Promise<DownloadResult> {
 	mkdirSync(dirname(file), { recursive: true });
-	const started = { any: false };
 	try {
-		return await attempt(url, file, opts, started);
+		return await fetchTo(url, file, opts);
 	} catch (err) {
 		const signed = opts.signedIn;
-		if (err instanceof HttpFailed && err.status === 404 && signed?.url.startsWith(`${GITHUB_API}/`))
-			return attempt(signed.url, file, opts, started, {
-				Accept: "application/octet-stream",
-				Authorization: `Bearer ${signed.token}`,
-			});
-		if (err instanceof Stalled || started.any || opts.signal?.aborted) throw err;
-		await new Promise((r) => setTimeout(r, opts.retryMs ?? 2000));
-		return attempt(url, file, opts, started);
+		const isPrivate = err instanceof HttpFailed && err.status === 404 && signed?.url.startsWith(`${GITHUB_API}/`);
+		if (!isPrivate || !signed || opts.signal?.aborted) throw err;
+		return fetchTo(signed.url, file, opts, {
+			Accept: "application/octet-stream",
+			Authorization: `Bearer ${signed.token}`,
+		});
 	}
 }
 
