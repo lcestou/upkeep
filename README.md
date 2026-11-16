@@ -51,12 +51,14 @@ Your distro's updater keeps its own packages current. Everything you installed y
 
 ## Install
 
-Download the installer for your machine from the [latest release](../../releases/latest) (`linux-x64` or `linux-arm64`), then:
+Download `linux-x64-Upkeep-Setup.tar.gz` from the [latest release](../../releases/latest). Right-click it and choose **Extract Here**, then double-click **installer** in the new folder (if your file manager asks, choose **Run**). From a terminal:
 
 ```sh
 tar -xzf linux-x64-Upkeep-Setup.tar.gz
 ./installer
 ```
+
+On an arm64 machine, build it from source as shown below; an arm64 download will join the releases later.
 
 It needs no root. Upkeep goes under `~/.local/share/dev.afk.upkeep/` with an entry in the menu. **Uninstall Upkeep** at the end of Settings removes it with its menu and login entries and the `upkeep` command, and can delete its settings and app list too; the apps it kept up to date stay. The window needs WebKitGTK 4.1, which the supported desktops already have.
 
