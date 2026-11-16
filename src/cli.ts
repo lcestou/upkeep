@@ -213,6 +213,12 @@ async function add(engine: Engine, input: string, json: boolean, out: Out): Prom
 		else out(reason);
 		return 1;
 	}
+	// A sure match Add app refuses (a script or another tool at its install path, already in the list) is refused here too.
+	if (pick.problem) {
+		if (json) out(JSON.stringify({ added: [], problem: pick.problem, candidate: pick.spec }));
+		else out(pick.problem);
+		return 1;
+	}
 	const r = await engine.addApps([pick.spec]);
 	// What else already keeps the app up to date, as Add app's card says it: a note, never a refusal.
 	if (json) out(JSON.stringify(pick.also ? { ...r, also: pick.also } : r));

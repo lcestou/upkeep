@@ -486,3 +486,31 @@ test("an import that cannot finish puts every file back and removes the ones it 
 	expect(await main(["export", join(t.dir, "no", "x.json"), "--json"], d, (l) => failedJson.push(l))).toBe(1);
 	expect(JSON.parse(failedJson[0] ?? "{}").ok).toBe(false);
 });
+
+test("add refuses a catalogue app whose install path holds a script, as the window does", async () => {
+	const d = deps();
+	const catalogue = join(t.dir, "catalogue");
+	mkdirSync(catalogue, { recursive: true });
+	writeFileSync(
+		join(catalogue, "httpx.toml"),
+		`[apps.httpx]\nname = "httpx"\nkind = "file"\nrepo = "o/httpx"\nasset = 'httpx-linux$'\ndest = "~/.local/bin/httpx"\n`,
+	);
+	// Another tool of the same name, a Python script.
+	script(join(t.paths.home, ".local/bin/httpx"), "echo httpx 0.28.1");
+	const withCatalogue: EngineDeps = {
+		...d,
+		catalogueDir: catalogue,
+		fetch: async (url, init) =>
+			url.endsWith("o/httpx/releases/latest")
+				? Response.json({ tag_name: "v1.6.0", assets: [{ name: "httpx-linux", size: 10, digest: null }] })
+				: fakeFetch(url, init),
+	};
+	const out: string[] = [];
+	expect(await main(["add", "httpx"], withCatalogue, (l) => out.push(l))).toBe(1);
+	expect(out).toEqual([
+		"~/.local/bin/httpx is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first.",
+	]);
+	const listed: string[] = [];
+	await main(["list"], d, (l) => listed.push(l));
+	expect(listed.some((l) => l.startsWith("httpx "))).toBe(false);
+});
