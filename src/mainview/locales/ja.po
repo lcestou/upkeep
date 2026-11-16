@@ -1238,8 +1238,8 @@ msgstr "更新が中断されました。{0} を {1} に戻しました。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: kind is not one of appimage, archive, file, deb"
-msgstr "{0}：kind が appimage、archive、file、deb のいずれでもありません"
+msgid "{0}: kind is not one of appimage, archive, file, deb, rpm"
+msgstr "{0}：kind が appimage、archive、file、deb、rpm のいずれでもありません"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts

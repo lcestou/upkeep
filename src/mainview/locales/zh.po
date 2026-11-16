@@ -1238,8 +1238,8 @@ msgstr "更新被中断。{0} 已还原到 {1}。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: kind is not one of appimage, archive, file, deb"
-msgstr "{0}：kind 不是 appimage、archive、file、deb 之一"
+msgid "{0}: kind is not one of appimage, archive, file, deb, rpm"
+msgstr "{0}：kind 不是 appimage、archive、file、deb、rpm 之一"
 
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts

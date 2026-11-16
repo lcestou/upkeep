@@ -1480,3 +1480,20 @@ test("Add app names the program a tarball needs when the system lacks it", async
 		"Opening needxz-1.0-x86_64-linux.tar.xz needs the xz program, which is not installed. Install xz from the system's packages, then try again.",
 	);
 });
+
+test("Add app names unzip when a zip release meets a system without it", async () => {
+	releases["o/needzip"] = { tag_name: "v1.0", assets: [{ name: "needzip-1.0-x86_64-linux.zip", size: 3 }] };
+	bodies["needzip-1.0-x86_64-linux.zip"] = new Uint8Array([1, 2, 3]);
+	const base = ctx().c;
+	// The runner answers 127 when the program itself is not there.
+	const run = Object.assign(
+		async (argv: string[], opts?: Parameters<typeof base.run>[1]) =>
+			argv[0] === "unzip"
+				? { code: 127, stdout: "", stderr: "Executable not found in $PATH: unzip", timedOut: false }
+				: base.run(argv, opts),
+		base.run,
+	);
+	expect((await suggest("o/needzip", { ...base, run })).problem).toBe(
+		"Opening needzip-1.0-x86_64-linux.zip needs the unzip program, which is not installed. Install unzip from the system's packages, then try again.",
+	);
+});

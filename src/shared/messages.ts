@@ -136,7 +136,7 @@ export const MESSAGES = {
 	/** engine.ts. {0} app name; {1} restore point version (empty when none) */
 	interruptedPutBack: (v0: Value, v1: Value) => `An update was interrupted. ${v0} ${v1} was put back.`,
 	/** engine.ts. {0} app key */
-	kindNotAddable: (v0: Value) => `${v0}: kind is not one of appimage, archive, file, deb`,
+	kindNotAddable: (v0: Value) => `${v0}: kind is not one of appimage, archive, file, deb, rpm`,
 	/** engine.ts. {0} dest as written (may start with ~); {1} other app's name */
 	destBelongsTo: (v0: Value, v1: Value) => `${v0} already belongs to ${v1}.`,
 	/** engine.ts. {0} app name */

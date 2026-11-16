@@ -66,10 +66,11 @@ function binName(bin: string, dest: string): string {
 
 /**
  * Why tar could not open an archive, as a sentence: the program it hands xz, bzip2 or zstd to is missing on a minimal
- * system (Ubuntu's cloud image has no xz), which GNU tar reports as "xz: Cannot exec". Anything else is couldNotExtract.
+ * system (Ubuntu's cloud image has no xz), which GNU tar reports as "xz: Cannot exec"; unpacker itself (unzip, tar)
+ * missing is exit 127 from the runner. Anything else is couldNotExtract.
  */
-export function unpackProblem(asset: string, r: ProcessResult): string {
-	const tool = /(\w+): Cannot exec/.exec(r.stderr)?.[1];
+export function unpackProblem(asset: string, r: ProcessResult, unpacker: string): string {
+	const tool = r.code === 127 ? unpacker : /(\w+): Cannot exec/.exec(r.stderr)?.[1];
 	return tool ? MESSAGES.archiveNeedsTool(asset, tool) : MESSAGES.couldNotExtract(asset);
 }
 
@@ -362,7 +363,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				: // GNU tar tells gzip, xz, bzip2 and zstd apart on its own when it reads a file.
 					["tar", "xf", dl, "-C", extract];
 			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
-			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x));
+			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x, unpack[0] ?? "tar"));
 			if (spec.folder) {
 				// A failure after the swap (a link that cannot be made) is put back like a missing bin.
 				let missing: string | null;
