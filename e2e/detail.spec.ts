@@ -96,3 +96,13 @@ test("a source app without a restore point says it is built in a fresh clone", a
 	await page.getByTestId("open-tmux").click();
 	await expect(page.getByTestId("no-restore")).toHaveText("Built in a fresh clone, so there is no restore point.");
 });
+
+test("an app's pane says what else keeps it up to date, as the Add card did", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("open-zen").click();
+	await expect(page.getByTestId("detail-also")).toHaveText(
+		"Zen Browser is also installed as a Flatpak (app.zen_browser.zen), which updates on its own: two copies, each with its own menu entry.",
+	);
+	await page.getByTestId("open-fd").click();
+	await expect(page.getByTestId("detail-also")).toHaveCount(0);
+});

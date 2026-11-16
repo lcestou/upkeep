@@ -1,6 +1,12 @@
 /** Upkeep's own home: the repo its changelog, issues and releases live in. Named here and nowhere else. */
 export const HOME = "https://github.com/lcestou/upkeep";
 
+/**
+ * The catalogue's tables on the default branch, one <key>.toml each: Add app asks here for an app the copy shipped
+ * with this version of Upkeep does not have yet, so a table added to the repo reaches everyone before a release.
+ */
+export const CATALOGUE_URL = `${HOME.replace("https://github.com/", "https://raw.githubusercontent.com/")}/main/catalogue`;
+
 /** Where an installed Upkeep reads its own updates from: the latest release's files, by their flat names. */
 export const RELEASE_BASE_URL = `${HOME}/releases/latest/download`;
 

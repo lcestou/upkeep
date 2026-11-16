@@ -192,6 +192,8 @@ export type AppState = {
 	status: AppStatus;
 	/** A sentence for problem, failed and rolled_back, and for a passed row that needs a note. */
 	detail?: string;
+	/** What else keeps this app up to date (a Flatpak, a Snap, another table on its dest or repo), as of the last check: engine sentences. */
+	also?: string[];
 	/** Bytes of the release asset, when known. */
 	size?: number;
 	/** Release notes body, plain text. */

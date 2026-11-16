@@ -432,6 +432,9 @@
 	{/if}
 
 	{#if app.note}<p class="note">{app.note}</p>{/if}
+	{#each app.also ?? [] as line, i (i)}
+		<p class="also" data-testid="detail-also"><Glyph name="bang" color="var(--rust)" />{say(line)}</p>
+	{/each}
 
 	<dl class="facts">
 		{#if app.dest}
@@ -465,6 +468,21 @@
 </section>
 
 <style>
+	/* What else keeps the app up to date: the same line as on the Add card. */
+	.also {
+		display: flex;
+		gap: 6px;
+		align-items: baseline;
+		margin: 0 0 var(--s2);
+		font-size: var(--fs-12);
+		line-height: 1.5;
+		color: var(--text);
+		max-width: 62ch;
+	}
+	.also :global(svg) {
+		flex: none;
+		transform: translateY(2px);
+	}
 	.detail {
 		display: flex;
 		flex-direction: column;

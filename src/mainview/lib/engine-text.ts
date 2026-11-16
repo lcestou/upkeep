@@ -14,6 +14,7 @@ export const ENGINE_COPY = {
 	couldNotRestoreFile: (v0: string, v1: string) => `Could not restore ${v0}: ${v1}`,
 	badInput: () =>
 		`Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.`,
+	catalogueOnlineWhy: () => `From Upkeep's catalogue online: a table added after this version of Upkeep came out.`,
 	catalogueWhy: () => `From Upkeep's catalogue of tested apps.`,
 	noPublishedRelease: (v0: string) => `${v0} has no published release.`,
 	latestNotComparable: (v0: string) => `The latest tag ${v0} is not a version Upkeep can compare.`,
@@ -37,6 +38,8 @@ export const ENGINE_COPY = {
 	alsoSnap: (v0: string, v1: string) => `${v0} is also installed as a Snap (${v1}), which updates on its own.`,
 	alsoAptRepo: (v0: string) => `${v0} also comes from an apt repository, so the system's own updates install it too.`,
 	alsoSameRepo: (v0: string) => `${v0} in the list already follows the same project.`,
+	alsoOtherManager: (v0: string, v1: string) =>
+		`${v1} has installed ${v0} too: two copies, each updated by its own manager. Remove one of them to keep one.`,
 	alsoSameDest: (v0: string) =>
 		`${v0} in the list already installs to the same place, so the two would overwrite each other.`,
 	notInstalledYet: (v0: string) => `It is not installed here yet: Upkeep keeps ${v0} up to date once it is.`,

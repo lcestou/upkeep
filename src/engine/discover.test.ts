@@ -1568,3 +1568,60 @@ test("a catalogue table checks its own dest: a script elsewhere on PATH is not i
 	};
 	expect((await suggest("rt", { ...ctx().c, catalogue: [rt] })).suggestions[0]?.problem).toBeUndefined();
 });
+
+test("a name the shipped catalogue lacks is read from the catalogue online; a table there that runs commands is not", async () => {
+	releases["o/newtool"] = { tag_name: "v1.0.0", assets: [{ name: "newtool-linux-amd64", size: 1 }] };
+	const online: Record<string, string> = {
+		newtool:
+			'[apps.newtool]\nname = "New Tool"\nkind = "file"\nrepo = "o/newtool"\nasset = \'linux-amd64$\'\ndest = "~/.local/bin/newtool"\n',
+		runs: '[apps.runs]\nname = "Runs"\nkind = "command"\ncheck = ["runs", "--version"]\nlatest = "npm:runs"\nupdate = ["runs", "up"]\n',
+	};
+	const asked: string[] = [];
+	const c = {
+		...ctx().c,
+		catalogueUrl: "https://raw.test/catalogue",
+		fetch: (async (url, init) => {
+			if (url.startsWith("https://raw.test/catalogue/")) {
+				asked.push(url);
+				const key =
+					url
+						.split("/")
+						.at(-1)
+						?.replace(/\.toml$/, "") ?? "";
+				return online[key] ? new Response(online[key]) : new Response("404: Not Found", { status: 404 });
+			}
+			return fakeFetch(url, init);
+		}) as FetchLike,
+	};
+	const found = await suggest("newtool", c);
+	expect(found.suggestions[0]).toMatchObject({
+		source: "catalogue",
+		spec: { key: "newtool", kind: "file", repo: "o/newtool" },
+		why: "From Upkeep's catalogue online: a table added after this version of Upkeep came out.",
+	});
+	expect(asked).toContain("https://raw.test/catalogue/newtool.toml");
+	// A command table online is never taken: only the shipped copy may run a command.
+	expect((await suggest("runs", c)).suggestions).toEqual([]);
+	// Not online either: the usual answer for a name nobody knows.
+	expect((await suggest("nobody-has-this", c)).problem).toBe(BAD_INPUT);
+	// A link or a path is never looked up there.
+	asked.length = 0;
+	await suggest("o/newtool", c);
+	expect(asked).toEqual([]);
+});
+
+test("the same tool from two managers is one scan row, and its card says the other manager has a copy too", async () => {
+	managers.uv = "black v24.8.0\n- black\n";
+	uvTool("black", `[tool]\nrequirements = [{ name = "black" }]\n`);
+	managers.pipx = JSON.stringify({
+		venvs: {
+			black: { metadata: { main_package: { package: "black", package_version: "24.1.0", package_or_url: "black" } } },
+		},
+	});
+	const rows = (await scan(ctx().c)).suggestions.filter((s) => s.spec.key === "black");
+	expect(rows).toHaveLength(1);
+	expect(rows[0]?.why).toBe("Installed with uv. Upkeep updates it the same way.");
+	expect(rows[0]?.also).toEqual([
+		"pipx has installed black too: two copies, each updated by its own manager. Remove one of them to keep one.",
+	]);
+});

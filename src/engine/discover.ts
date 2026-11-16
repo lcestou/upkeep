@@ -30,9 +30,10 @@ import {
 import { isPackage, PACKAGE_TOOL } from "./kinds/package";
 import { installedFiles, unpackProblem } from "./kinds/release";
 import { listTools, toolSpec, toolKey } from "./managers";
+import { parseManifest } from "./manifest";
 import { expandHome, type Paths } from "./paths";
 import { probeVersion } from "./probe";
-import { aptRepoHas, copiesOf, readCopies } from "./extras/system";
+import { aptRepoHas, copiesOf, readCopies, type SystemCopies } from "./extras/system";
 import type { Run } from "./run";
 
 export type DiscoverCtx = {
@@ -44,6 +45,8 @@ export type DiscoverCtx = {
 	specs: AppSpec[];
 	/** Tested tables, looked up by name, key or repo before anything is guessed. */
 	catalogue?: AppSpec[];
+	/** The catalogue online, <url>/<key>.toml, for a name the shipped copy does not have. */
+	catalogueUrl?: string;
 	log: (text: string) => void;
 	/** Tests point this at a local server. The token is only ever sent to the real one. */
 	api?: string;
@@ -852,6 +855,8 @@ async function suggestFor(
 ): Promise<{ suggestions: Suggestion[]; problem?: string }> {
 	const entry = inCatalogue(input, ctx.catalogue ?? [], forgeHosts(ctx));
 	if (entry) return fromCatalogue(entry, ctx, asset);
+	const online = await onlineEntry(input, ctx);
+	if (online) return fromCatalogue(online, ctx, asset, true, MESSAGES.catalogueOnlineWhy());
 	const what = readInput(input, forgeHosts(ctx));
 	if (!what) {
 		// A bare name that is not in the catalogue may still be a tool one of the managers installed.
@@ -887,6 +892,35 @@ function inCatalogue(input: string, catalogue: AppSpec[], hosts: ReadonlyMap<str
 	);
 }
 
+/** The kinds a table fetched from the catalogue online may have: each installs a release file and runs no command. */
+const ONLINE_KINDS = new Set<AppKind>(["appimage", "archive", "file", "deb", "rpm"]);
+
+/**
+ * The catalogue's table for a bare name the shipped copy does not have, read from the repo: <catalogueUrl>/<key>.toml,
+ * the key made of the name as keyOf makes one, so "Hydra Launcher" finds hydra-launcher but not hydralauncher. Null
+ * for a link, a path, a table that does not load, one of another key, or a kind that runs commands (command, source,
+ * manual): only the shipped copy, reviewed with this version, may run a command. Never throws.
+ */
+async function onlineEntry(input: string, ctx: DiscoverCtx): Promise<AppSpec | null> {
+	const name = input.trim();
+	if (!ctx.catalogueUrl || !/^[\w][\w .+-]*$/.test(name)) return null;
+	const key = keyOf(name).replace(/-+/g, "-").replace(/^-|-$/g, "");
+	if (!key) return null;
+	try {
+		const r = await ctx.fetch(`${ctx.catalogueUrl}/${encodeURIComponent(key)}.toml`, {
+			signal: AbortSignal.timeout(10_000),
+		});
+		if (!r.ok) return null;
+		const { apps, errors } = parseManifest(await r.text(), `catalogue/${key}.toml`);
+		const table = apps[0];
+		if (errors.length > 0 || apps.length !== 1 || !table || table.key !== key || !ONLINE_KINDS.has(table.kind))
+			return null;
+		return table;
+	} catch {
+		return null;
+	}
+}
+
 /**
  * A catalogue table as a suggestion, sure and taken as written. A release kind still asks GitHub for today's release
  * and asset (asset is the picker's choice, else the table's pattern); a source or command table needs no lookup. A
@@ -898,8 +932,9 @@ async function fromCatalogue(
 	ctx: DiscoverCtx,
 	asset?: string,
 	probe = true,
+	from = CATALOGUE_WHY,
 ): Promise<{ suggestions: Suggestion[]; problem?: string; rate?: boolean }> {
-	const sure = { source: "catalogue" as const, confidence: "sure" as const, why: CATALOGUE_WHY };
+	const sure = { source: "catalogue" as const, confidence: "sure" as const, why: from };
 	const pattern = assetFor(entry, ctx.arch);
 	// A table tested on one architecture says nothing about the other's files: no pattern for this one, no offer.
 	if (RELEASE_KINDS.has(entry.kind) && pattern === undefined)
@@ -915,8 +950,7 @@ async function fromCatalogue(
 		if (ctx.specs.some((x) => x.key === entry.key)) s.problem = MESSAGES.alreadyInList(entry.name);
 		// A tool that updates itself, or a build that reads its own check, cannot be installed by Upkeep the first
 		// time: the card says it shows up once it is there. sh -c checks name no program to look for.
-		else if (!missing && (await notThere(entry, ctx)))
-			s.why = `${CATALOGUE_WHY} ${MESSAGES.notInstalledYet(entry.name)}`;
+		else if (!missing && (await notThere(entry, ctx))) s.why = `${from} ${MESSAGES.notInstalledYet(entry.name)}`;
 		return { suggestions: [s] };
 	}
 	// An asset the person picked is a name; the table's own asset is a pattern.
@@ -938,7 +972,7 @@ async function fromCatalogue(
 	if (entry.dest && !existsSync(expandHome(entry.dest, ctx.paths.home))) spec.install_if_missing = true;
 	// A picked file whose name could not be made a pattern says so, as Add app does for a repo.
 	const widen = asset && r.suggestion.why.includes(MESSAGES.patternNeedsWidening());
-	const why = widen ? `${CATALOGUE_WHY} ${MESSAGES.patternNeedsWidening()}` : CATALOGUE_WHY;
+	const why = widen ? `${from} ${MESSAGES.patternNeedsWidening()}` : from;
 	const folder = entry.folder ? expandHome(entry.folder, ctx.paths.home) : undefined;
 	const other = entry.dest
 		? otherAtDest(entry.kind, expandHome(entry.dest, ctx.paths.home), ctx.paths.home, folder)
@@ -970,11 +1004,17 @@ const mentions = (arg: string, name: string) =>
  */
 async function managedSuggestions(ctx: DiscoverCtx): Promise<Suggestion[]> {
 	const out: Suggestion[] = [];
-	const seen = new Set<string>();
+	const seen = new Map<string, { s: Suggestion; manager: string }>();
 	for (const tool of await listTools(ctx.run, ctx.paths.home)) {
 		const key = toolKey(tool.name);
 		const spec = toolSpec(tool, key);
-		if (!spec || seen.has(key)) continue;
+		const first = seen.get(key);
+		// The same tool from a second manager (ruff from uv and from pipx): one row, and its card says so.
+		if (first && first.manager !== tool.manager) {
+			first.s.also = [...(first.s.also ?? []), MESSAGES.alsoOtherManager(tool.name, tool.manager)];
+			continue;
+		}
+		if (!spec || first) continue;
 		const tracked = ctx.specs.some(
 			(s) =>
 				s.key === key ||
@@ -983,8 +1023,7 @@ async function managedSuggestions(ctx: DiscoverCtx): Promise<Suggestion[]> {
 				[...(s.check ?? []), ...(s.update ?? [])].some((a) => mentions(a, tool.name)),
 		);
 		if (tracked) continue;
-		seen.add(key);
-		out.push({
+		const s: Suggestion = {
 			spec,
 			installed: tool.version,
 			latest: null,
@@ -993,7 +1032,9 @@ async function managedSuggestions(ctx: DiscoverCtx): Promise<Suggestion[]> {
 			source: "scan",
 			confidence: "sure",
 			why: MESSAGES.installedWith(tool.manager),
-		});
+		};
+		seen.set(key, { s, manager: tool.manager });
+		out.push(s);
 	}
 	return out;
 }
@@ -1076,6 +1117,25 @@ export async function scan(ctx: DiscoverCtx): Promise<{ suggestions: Suggestion[
 }
 
 /**
+ * What else keeps this app up to date, as engine sentences: a Flatpak or Snap of it (from copies, read once by the
+ * caller), or another table in specs on the same dest or repo. Read-only and cheap; the apt repository check, which
+ * asks apt once per app, is Add app's alone.
+ */
+export function alsoOf(spec: AppSpec, specs: AppSpec[], copies: SystemCopies, home: string): string[] {
+	const also: string[] = [];
+	const other = copiesOf(spec.key, spec.name, copies);
+	if (other.flatpak) also.push(MESSAGES.alsoFlatpak(spec.name, other.flatpak));
+	if (other.snap) also.push(MESSAGES.alsoSnap(spec.name, other.snap));
+	const dest = spec.dest ? expandHome(spec.dest, home) : null;
+	for (const x of specs) {
+		if (x.key === spec.key) continue;
+		if (dest && x.dest && expandHome(x.dest, home) === dest) also.push(MESSAGES.alsoSameDest(x.name));
+		else if (spec.repo && x.repo?.toLowerCase() === spec.repo.toLowerCase()) also.push(MESSAGES.alsoSameRepo(x.name));
+	}
+	return also;
+}
+
+/**
  * Adds to each suggestion that can be added what else already keeps the app up to date: a Flatpak or Snap of it, an
  * apt repository for a package app, or a table in the list on the same repo or dest. Read-only; the lists are read
  * once. A warning only: the person may still add it, for two versions side by side.
@@ -1091,18 +1151,10 @@ async function withAlso(suggestions: Suggestion[], ctx: DiscoverCtx): Promise<Su
 			continue;
 		}
 		const { spec } = s;
-		const also: string[] = [];
-		const other = copiesOf(spec.key, spec.name, copies);
-		if (other.flatpak) also.push(MESSAGES.alsoFlatpak(spec.name, other.flatpak));
-		if (other.snap) also.push(MESSAGES.alsoSnap(spec.name, other.snap));
+		// A note the suggestion came with (a second manager's copy) stays first.
+		const also = [...(s.also ?? []), ...alsoOf(spec, ctx.specs, copies, home)];
 		// oxlint-disable-next-line no-await-in-loop -- only a package app asks apt, one at a time
 		if (isPackage(spec.kind) && (await aptRepoHas(ctx, spec.key))) also.push(MESSAGES.alsoAptRepo(spec.key));
-		const dest = spec.dest ? expandHome(spec.dest, home) : null;
-		for (const x of ctx.specs) {
-			if (x.key === spec.key) continue;
-			if (dest && x.dest && expandHome(x.dest, home) === dest) also.push(MESSAGES.alsoSameDest(x.name));
-			else if (spec.repo && x.repo?.toLowerCase() === spec.repo.toLowerCase()) also.push(MESSAGES.alsoSameRepo(x.name));
-		}
 		out.push(also.length > 0 ? { ...s, also } : s);
 	}
 	return out;

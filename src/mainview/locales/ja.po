@@ -2676,3 +2676,12 @@ msgstr "一時停止"
 #: src/mainview/lib/copy.ts
 msgid "Follow new lines"
 msgstr "新しい行を追う"
+
+#: src/mainview/lib/engine-text.ts
+msgid "From Upkeep's catalogue online: a table added after this version of Upkeep came out."
+msgstr "Upkeep のオンラインカタログから: この Upkeep のバージョンの後に追加された項目です。"
+
+#. 0: v1; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} has installed {1} too: two copies, each updated by its own manager. Remove one of them to keep one."
+msgstr "{0} も {1} をインストールしています: 2 つのコピーがそれぞれのマネージャーで更新されます。1 つにするにはどちらかを削除してください。"

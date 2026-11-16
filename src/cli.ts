@@ -6,6 +6,7 @@ import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
+import { CATALOGUE_URL } from "./bun/about";
 import { claimLock, formatLogLine, readInflight, releaseLock } from "./engine/store";
 import { exportSetup, importSetup } from "./engine/transfer";
 
@@ -315,6 +316,11 @@ if (import.meta.main)
 	process.exit(
 		await main(
 			process.argv.slice(2),
-			realDeps(process.env, join(import.meta.dir, "../manifest/apps.toml"), join(import.meta.dir, "../catalogue")),
+			realDeps(
+				process.env,
+				join(import.meta.dir, "../manifest/apps.toml"),
+				join(import.meta.dir, "../catalogue"),
+				CATALOGUE_URL,
+			),
 		),
 	);

@@ -13,12 +13,14 @@ export function realDeps(
 	env: Record<string, string | undefined>,
 	seedManifest: string,
 	catalogueDir: string,
+	catalogueUrl?: string,
 ): EngineDeps {
 	const p = paths(env);
 	return {
 		paths: p,
 		seedManifest,
 		catalogueDir,
+		catalogueUrl,
 		fetch: (url, init) => fetch(url, init),
 		run: createRunner(p.home, join(p.cache, "tmp"), env.PATH ?? "/usr/local/bin:/usr/bin:/bin"),
 		now: () => new Date(),

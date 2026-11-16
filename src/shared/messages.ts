@@ -27,6 +27,8 @@ export const MESSAGES = {
 	badInput: () =>
 		`Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.`,
 	/** discover.ts */
+	catalogueOnlineWhy: () => `From Upkeep's catalogue online: a table added after this version of Upkeep came out.`,
+	/** discover.ts */
 	catalogueWhy: () => `From Upkeep's catalogue of tested apps.`,
 	/** discover.ts. {0} repo owner/name */
 	noPublishedRelease: (v0: Value) => `${v0} has no published release.`,
@@ -69,6 +71,9 @@ export const MESSAGES = {
 	alsoAptRepo: (v0: Value) => `${v0} also comes from an apt repository, so the system's own updates install it too.`,
 	/** discover.ts. {0} name of the app already in the list */
 	alsoSameRepo: (v0: Value) => `${v0} in the list already follows the same project.`,
+	/** discover.ts. {0} the tool's name; {1} the other manager: uv, pipx, npm or cargo */
+	alsoOtherManager: (v0: Value, v1: Value) =>
+		`${v1} has installed ${v0} too: two copies, each updated by its own manager. Remove one of them to keep one.`,
 	/** discover.ts. {0} name of the app already in the list */
 	alsoSameDest: (v0: Value) =>
 		`${v0} in the list already installs to the same place, so the two would overwrite each other.`,

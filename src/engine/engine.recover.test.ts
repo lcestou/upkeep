@@ -168,7 +168,9 @@ test("check with a built update's marker in place runs only probes and leaves th
 	writeInflight(t.paths, marker);
 	const engine = createEngine(d);
 	await engine.check();
-	expect(box.calls.map((c) => c.argv.join(" ")).filter((a) => a !== "gh auth token")).toEqual(["print-version"]);
+	// Besides the probe, only reads: the token, and the Flatpak and Snap lists the rows' notes come from.
+	const reads = new Set(["gh auth token", "flatpak list --app --columns=application,name", "snap list"]);
+	expect(box.calls.map((c) => c.argv.join(" ")).filter((a) => !reads.has(a))).toEqual(["print-version"]);
 	expect(readInflight(t.paths)).toEqual(marker);
 	expect(engine.snapshot().apps[0]).toMatchObject({
 		status: "problem",

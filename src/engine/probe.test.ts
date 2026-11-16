@@ -148,3 +148,12 @@ test("the meta probe reads the version key of a .json inside the image", async (
 		version: "3.29.9",
 	});
 });
+
+test("a Qt program is asked in Qt's offscreen mode, so it answers with no display and shows no window", async () => {
+	// Like DB Browser for SQLite: with no display and no offscreen mode, Qt aborts before printing anything.
+	const s = script(
+		join(t.dir, "sqlitebrowser"),
+		'[ "$QT_QPA_PLATFORM" = offscreen ] && echo "DB Browser for SQLite Version 3.13.1" || { echo "qt.qpa.xcb: could not connect to display" >&2; exit 134; }',
+	);
+	expect(await probeVersion(s, ["--version"], { run: realRun(t.paths) })).toEqual({ version: "3.13.1" });
+});
