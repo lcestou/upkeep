@@ -131,6 +131,8 @@ test("a desktop shortcut the person made with Upkeep's name but another command 
 	writeFileSync(mine, "[Desktop Entry]\nName=Upkeep\nExec=my-wrapper --upkeep\n");
 	expect(uninstallUpkeep(ctx(false, now))).toBe(true);
 	expect(readFileSync(mine, "utf8")).toContain("my-wrapper");
-	// No user-dirs.dirs: ~/Desktop only.
+	// No user-dirs.dirs, or one naming a relative path: ~/Desktop only.
 	expect(desktopShortcuts(p.home, join(dir, "nowhere"))).toEqual([mine]);
+	writeFileSync(join(dirname(p.config), "user-dirs.dirs"), 'XDG_DESKTOP_DIR="Escritorio"\n');
+	expect(desktopShortcuts(p.home, dirname(p.config))).toEqual([mine]);
 });

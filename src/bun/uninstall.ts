@@ -52,13 +52,15 @@ export type UninstallCtx = {
 /**
  * The desktop shortcut the installer writes, Upkeep.desktop: in the desktop folder the person's user-dirs.dirs names
  * (a translated one, ~/Escritorio) and in ~/Desktop, which the installer may use whatever the system calls it. A
- * user-dirs.dirs that cannot be read leaves ~/Desktop alone.
+ * user-dirs.dirs that cannot be read, or that names a relative path, leaves ~/Desktop alone.
  */
 export function desktopShortcuts(home: string, configHome: string): string[] {
 	const dirs = [join(home, "Desktop")];
 	try {
 		const named = /^XDG_DESKTOP_DIR="([^"]+)"/m.exec(readFileSync(join(configHome, "user-dirs.dirs"), "utf8"))?.[1];
-		if (named) dirs.unshift(named.replace(/^\$HOME(?=\/|$)/, home));
+		const dir = named?.replace(/^\$HOME(?=\/|$)/, home);
+		// A relative path would land wherever Upkeep runs from: only an absolute one names a folder.
+		if (dir?.startsWith("/")) dirs.unshift(dir);
 	} catch {
 		// no user-dirs.dirs: ~/Desktop only
 	}
