@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A tool that updates itself (Claude Code, omp, opencode and the like) no longer lands in "Restart to finish" after an update, a group with nothing to press. It shows as up to date; its details still say that open sessions keep the old version until you restart them. A tool whose table has a restart command gets Restart now, with or without a note.
+
 ## 0.1.3, 2026-11-16
 
 - While Upkeep downloads, tests or restarts into its own new version, its row shows a spinner and says so in plain words ("Downloading the new version and testing that it starts", "Restarting Upkeep"), instead of a short line in blue that looked like a link.

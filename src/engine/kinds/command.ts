@@ -62,7 +62,8 @@ export function tagOf(target: Pick<Target, "tag" | "version"> | undefined, versi
 /**
  * Runs the tool's own update command, then checks the version moved. {tag} and {version} in its argv are filled in;
  * it runs without a shell, so a tag can only ever be one argument. With a restore argv in its table, the installed
- * version is a restore point first, and a tool that will not start after the update gets it back.
+ * version is a restore point first, and a tool that will not start after the update gets it back. Done asks for a
+ * restart only when the table has a restart command or relaunch.
  */
 export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx): Promise<Outcome> {
 	const clock = stageClock(ctx);
@@ -117,5 +118,7 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 		};
 	if (point) prune(ctx.paths, spec.key, ctx.settings.keepBackups);
 	const detail = after.version !== target.version ? MESSAGES.reportsVersion(after.version) : undefined;
-	return { result: "done", installed: after.version, detail, restartToApply: spec.note !== undefined, stages };
+	// Only a table that can restart the tool asks for it; open sessions of one that cannot run on, as its note says.
+	const restartToApply = (spec.restart?.length ?? 0) > 0 || spec.relaunch === true;
+	return { result: "done", installed: after.version, detail, restartToApply, stages };
 }

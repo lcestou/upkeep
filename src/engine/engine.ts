@@ -134,12 +134,16 @@ export const REASON_STOPPING = MESSAGES.reasonStopping();
 
 /**
  * Whether a copy still running after an update is worth a restart prompt. A desktop app, a package or a service is;
- * a command-line tool (an archive or a single file with no restart command and no relaunch) is not: its running copy
- * keeps the old version until it exits, every new run already uses the new one, and there is nothing to press.
+ * an app whose table can do nothing about it is not: an archive, a single file or a command app (a tool run by its
+ * own update command) with no restart command and no relaunch. Its running copy keeps the old version until it exits,
+ * every new run already uses the new one, and there is nothing to press. A command app's note still says so in its
+ * pane.
  */
 function restartWanted(spec: AppSpec): boolean {
 	return (
-		!(spec.kind === "archive" || spec.kind === "file") || (spec.restart?.length ?? 0) > 0 || spec.relaunch === true
+		!(spec.kind === "archive" || spec.kind === "file" || spec.kind === "command") ||
+		(spec.restart?.length ?? 0) > 0 ||
+		spec.relaunch === true
 	);
 }
 
@@ -368,7 +372,7 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	/** The row's restart flag at load: a running old copy, for an app whose restart is worth a prompt. */
 	function restartFlag(spec: AppSpec): boolean {
-		if (WATCHED.has(spec.kind) && !restartWanted(spec)) {
+		if (!restartWanted(spec)) {
 			// A reminder saved before command-line tools stopped getting one: it is dropped, not shown.
 			if (loadState(paths).restart[spec.key])
 				updateState(paths, (s) => {
@@ -722,9 +726,14 @@ export function createEngine(deps: EngineDeps): Engine {
 					stages: {},
 				};
 			}
-			// A command-line tool's running copy needs no restart: the row is updated, and says the old copy runs on.
+			// A command-line tool's running copy needs no restart: the row is updated, and when a running copy was seen
+			// (a watched kind) it says the old copy runs on. A self-updating tool's note already says so in its pane.
 			if (outcome.result === "done" && outcome.restartToApply && !restartWanted(spec))
-				outcome = { ...outcome, restartToApply: false, detail: outcome.detail ?? MESSAGES.oldCopyRuns(spec.name) };
+				outcome = {
+					...outcome,
+					restartToApply: false,
+					detail: outcome.detail ?? (WATCHED.has(spec.kind) ? MESSAGES.oldCopyRuns(spec.name) : undefined),
+				};
 			finishApp(app, outcome);
 			if (outcome.result === "done" && outcome.restartToApply && WATCHED.has(spec.kind)) {
 				const at = deps.now().toISOString();
