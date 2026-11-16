@@ -49,7 +49,6 @@
 				class="btn small"
 				id="log-follow"
 				data-testid="log-follow"
-				aria-pressed={!following}
 				onclick={toggleFollow}>{following ? TEXT.logPause : TEXT.logFollow}</button
 			>
 			<button type="button" class="btn small" data-testid="open-log" onclick={() => model.send("open", { what: "log" })}

@@ -59,9 +59,9 @@ export function runLabel(phase: RunState["phase"]): string {
 
 export type Group = { id: GroupId; label: string; apps: AppState[] };
 
-// The window keeps the newest lines only; the whole run is in its log file (Open log file). A long build (a CUDA
-// compile prints hundreds of lines a second) at 2000 kept the web view redrawing at full speed.
-const LOG_CAP = 500;
+// The window keeps the newest lines only; the whole run is in its log file (Open log file). Each row's pane reads
+// its own lines from these, so a quiet app's early lines last as long as 2000 do.
+const LOG_CAP = 2000;
 
 export const IN_RUN: ReadonlySet<AppStatus> = new Set(["queued", "working", "done", "failed", "rolled_back"]);
 

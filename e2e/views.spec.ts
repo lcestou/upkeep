@@ -79,7 +79,6 @@ test("the Log drawer fills during a run and History gains the run", async ({ pag
 	await expect(follow).toHaveText("Pause");
 	await follow.click();
 	await expect(follow).toHaveText("Follow new lines");
-	await expect(follow).toHaveAttribute("aria-pressed", "true");
 	await follow.click();
 	await expect(follow).toHaveText("Pause");
 	await page.keyboard.press("Escape");
@@ -106,17 +105,19 @@ test("Check for updates offers every 6 hours, once a day or only when asked, and
 	await expect(page.getByTestId("setting-check-every")).toHaveValue("ask");
 });
 
-test("a build that floods the Log keeps the window answering, and the Log keeps the newest 500 lines", async ({
+test("a build that floods the Log keeps the window answering, and the Log keeps the newest 2000 lines", async ({
 	page,
 }) => {
 	await load(page, "fixture");
 	await page.getByTestId("log-toggle").click();
-	// A CUDA compile's warnings: 3000 lines in bursts. Before, at 2000 kept, every line redrew the whole list.
-	for (let i = 0; i < 6; i++) await page.evaluate(() => globalThis.upkeepFlood?.(500));
+	// A CUDA compile's warnings, 4 lines a turn as the engine sends them: fill to 2000, then keep pouring and click.
+	await page.evaluate(() => globalThis.upkeepFlood?.(2000));
+	const pouring = page.evaluate(() => globalThis.upkeepFlood?.(1200));
 	const started = Date.now();
 	await page.getByTestId("log-follow").click();
 	await expect(page.getByTestId("log-follow")).toHaveText("Follow new lines");
-	expect(Date.now() - started).toBeLessThan(2000);
-	await expect(page.getByTestId("log-drawer").locator("li")).toHaveCount(500);
-	await expect(page.getByTestId("log-drawer").locator("li").last()).toContainText("(499)");
+	expect(Date.now() - started).toBeLessThan(1500);
+	await pouring;
+	await expect(page.getByTestId("log-drawer").locator("li")).toHaveCount(2000);
+	await expect(page.getByTestId("log-drawer").locator("li").last()).toContainText("(1199)");
 });

@@ -506,7 +506,7 @@ const BUILT_SEEDS: Seed[] = [
 declare global {
 	var upkeepOps: string[] | undefined;
 	var upkeepSysOps: string[] | undefined;
-	var upkeepFlood: ((lines: number) => void) | undefined;
+	var upkeepFlood: ((lines: number) => Promise<void>) | undefined;
 }
 
 /** How each built row's scripted run ends in the built variant: the starred sentences of plan 5 E. */
@@ -690,13 +690,18 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	const offered = new Map<string, Suggestion>();
 	const sysOps: string[] = [];
 	globalThis.upkeepSysOps = sysOps;
-	// A build's compiler warnings, as many lines at once as a spec asks: the load that froze the window at 2000 kept.
-	globalThis.upkeepFlood = (lines) => {
-		for (let i = 0; i < lines; i++)
-			emit({
-				type: "log",
-				line: { at: iso(Date.now()), key: null, text: `warning #128-D: loop is not reachable (${i})` },
-			});
+	// A build's compiler warnings as the engine sends them: a few lines per event-loop turn, each turn drawn on its own.
+	// That is the load that froze the window when rows were keyed by position.
+	globalThis.upkeepFlood = async (lines) => {
+		for (let i = 0; i < lines; i += 4) {
+			for (let j = i; j < Math.min(lines, i + 4); j++)
+				emit({
+					type: "log",
+					line: { at: iso(Date.now()), key: null, text: `warning #128-D: loop is not reachable (${j})` },
+				});
+			// oxlint-disable-next-line no-await-in-loop -- one turn per batch is the point: each is drawn before the next
+			await new Promise((r) => setTimeout(r, 0));
+		}
 	};
 	const installing = opts.system === "install" || opts.system === "refuse";
 	const systemSettings: ExtrasSettings =
