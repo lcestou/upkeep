@@ -2710,3 +2710,11 @@ msgstr "{0}: probe = false vale solo per un'app installata da un file di release
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first."
 msgstr "{0} esiste già e non è il programma di questa app (uno script o un altro strumento con lo stesso nome). Aggiungerla lo sostituirebbe; rimuovilo o rinominalo prima."
+
+#: src/mainview/lib/copy.ts
+msgid "Pause"
+msgstr "Pausa"
+
+#: src/mainview/lib/copy.ts
+msgid "Follow new lines"
+msgstr "Segui le nuove righe"

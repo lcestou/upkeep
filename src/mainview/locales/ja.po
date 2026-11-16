@@ -2668,3 +2668,11 @@ msgstr "{0}: probe = false はリリースファイルからインストール�
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is already there and is not this app's program (a script, or another tool with the same name). Adding would replace it; remove or rename it first."
 msgstr "{0} は既に存在し、このアプリのプログラムではありません（スクリプト、または同じ名前の別のツール）。追加すると置き換えられるため、先に削除するか名前を変えてください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause"
+msgstr "一時停止"
+
+#: src/mainview/lib/copy.ts
+msgid "Follow new lines"
+msgstr "新しい行を追う"

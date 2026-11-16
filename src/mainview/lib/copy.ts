@@ -258,6 +258,12 @@ export const TEXT = {
 	get openLog() {
 		return "Open log file";
 	},
+	get logPause() {
+		return "Pause";
+	},
+	get logFollow() {
+		return "Follow new lines";
+	},
 	get noLog() {
 		return "No log lines yet.";
 	},

@@ -59,6 +59,8 @@ export function runLabel(phase: RunState["phase"]): string {
 
 export type Group = { id: GroupId; label: string; apps: AppState[] };
 
+// The window keeps the newest lines only; the whole run is in its log file (Open log file). Each row's pane reads
+// its own lines from these, so a quiet app's early lines last as long as 2000 do.
 const LOG_CAP = 2000;
 
 export const IN_RUN: ReadonlySet<AppStatus> = new Set(["queued", "working", "done", "failed", "rolled_back"]);
@@ -74,6 +76,9 @@ const idleRun = (): RunState => ({
 	results: [],
 	retry: false,
 });
+
+/** A log line as the window keeps it: the engine's line and its number in this window's run of lines. */
+export type ShownLine = LogLine & { id: number };
 
 /** The view's state: the engine's snapshot, applied events and the choices the person has made in the window. It never talks to the engine except through the bridge it is given. */
 export class Model {
@@ -107,7 +112,9 @@ export class Model {
 	starting = $state(false);
 	// A window rebuilt for a frame or corner change is opened with #settings, so the owner stays where he was.
 	view = $state<View>(globalThis.location?.hash === "#settings" ? "settings" : "updates");
-	log = $state<LogLine[]>([]);
+	/** The run's log lines, each with a number that never repeats, so a list keyed on it draws only the lines that came and went. */
+	log = $state<ShownLine[]>([]);
+	#logSeq = 0;
 	history = $state<HistoryRow[]>([]);
 	loaded = $state(false);
 	/** The status each app had when a re-check began, so its row and its tick survive the check. */
@@ -325,7 +332,7 @@ export class Model {
 				return;
 			}
 			case "log":
-				this.log.push(e.line);
+				this.log.push({ ...e.line, id: ++this.#logSeq });
 				if (this.log.length > LOG_CAP) this.log.splice(0, this.log.length - LOG_CAP);
 				return;
 			case "chrome":

@@ -456,7 +456,7 @@
 			<!-- A box of its own height that scrolls, so arriving lines never move the pane around it. A scroll box is a tab stop. -->
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ol class="lines mono" data-testid="pane-log" tabindex="0" aria-label={TEXT.logTitle} bind:this={logEl}>
-				{#each lines.slice(-200) as line, i (i)}
+				{#each lines.slice(-200) as line (line.id)}
 					<li><time>{clockTime(line.at)}</time> {line.text}</li>
 				{/each}
 			</ol>
