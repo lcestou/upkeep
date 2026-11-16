@@ -244,7 +244,9 @@ test("one app's exception fails that app and the run continues", async () => {
 		strata: "manual",
 	});
 	const claude = snap.apps.find((a) => a.key === "claude");
-	expect(claude).toMatchObject({ installed: "2.1.400", restartToApply: true });
+	// A tool that updates itself goes to done, not Restart to finish: its note in the pane says open sessions run on.
+	expect(claude).toMatchObject({ installed: "2.1.400", restartToApply: false });
+	expect(claude?.detail).toBeUndefined();
 	expect(snap.apps.find((a) => a.key === "fd")?.restorePoints.map((p) => p.version)).toEqual(["10.5.1"]);
 	const history = engine.history(10);
 	expect(history.map((h) => h.key)).toEqual(["plugins", "claude", "fd", "boom"]);
