@@ -155,7 +155,8 @@ Built and used daily on Linux Mint. Each of these was run as a normal user: the 
 
 - **Architectures:** x86_64 and aarch64.
 - **Not supported:** immutable systems (SteamOS, Bazzite, Fedora Silverblue), NixOS, and musl systems such as Alpine.
-- **Not yet tried:** Wayland sessions, the tray on desktops other than Cinnamon, and real arm64 hardware (the arm64 build has only run under emulation).
+- **Desktops:** checked on Cinnamon, GNOME 46 (Wayland and Xorg), KDE Plasma 6.8 (Wayland) and sway. On Wayland Upkeep runs through XWayland, which these desktops start on their own; a session with XWayland turned off cannot start it. GNOME shows the tray icon through its AppIndicator extension, which Ubuntu turns on.
+- **Not yet tried:** real arm64 hardware (the arm64 build has only run under emulation).
 - **Planned, not built:** macOS and Windows.
 
 [Which Linux](docs/linux-support.md) says what each part needs.

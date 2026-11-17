@@ -20,14 +20,21 @@ function render(svg: string, png: string, px: number): void {
 	if (done.exitCode !== 0) throw new Error(`render failed for ${svg}: ${done.stderr.toString()}`);
 }
 
-// The light drawings, for a dark panel, from the masters fitted by hand at 44 px: 22 at the 2x scale of the owner's
-// displays, which the panel scales down on a 1x screen. assets/brand also holds 22 px masters and dark drawings.
-// shortcut: one picture set, light at 44 px; pick by panel theme and scale when someone runs a light or 1x panel.
-const traySrc = join(brand, "tray-light-44");
+// From the masters fitted by hand at 44 px: 22 at the 2x scale of the owner's displays, which the panel scales down on
+// a 1x screen. The light drawings are for a dark panel (<name>.png), the dark ones for a light panel (<name>-dark.png);
+// src/bun/panel.ts picks the set. assets/brand also holds 22 px masters.
 mkdirSync(trayOut, { recursive: true });
-const names = readdirSync(traySrc).filter((f) => f.endsWith(".svg"));
-for (const f of names) {
-	render(join(traySrc, f), join(trayOut, f.replace(/\.svg$/, ".png")), 44);
+let count = 0;
+const SETS: [string, string][] = [
+	["tray-light-44", ""],
+	["tray-dark-44", "-dark"],
+];
+for (const [dir, suffix] of SETS) {
+	const src = join(brand, dir);
+	for (const f of readdirSync(src).filter((name) => name.endsWith(".svg"))) {
+		render(join(src, f), join(trayOut, f.replace(/\.svg$/, `${suffix}.png`)), 44);
+		count++;
+	}
 }
 render(join(brand, "app-icon-512.svg"), join(import.meta.dir, "../assets/icon/upkeep.png"), 512);
-console.log(`tray icons: ${names.length} written to ${trayOut}; launcher icon written`);
+console.log(`tray icons: ${count} written to ${trayOut}; launcher icon written`);

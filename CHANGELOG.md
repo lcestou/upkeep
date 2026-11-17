@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- On GNOME and KDE Plasma, "Open Upkeep" in the tray, the desktop icon and the `upkeep` command bring the window to the front. On GNOME the window used to stay behind the app you were in, with only an "Upkeep is ready" notice.
+- On a light Plasma panel the tray icon is drawn dark. The light icon made for dark panels was close to invisible there.
+- Checked on Wayland: GNOME 46, KDE Plasma 6.8 and sway, where Upkeep runs through XWayland. A Wayland session with XWayland turned off cannot start it.
+
 ## 0.1.4, 2026-11-16
 
 - A tool that updates itself (Claude Code, omp, opencode and the like) no longer lands in "Restart to finish" after an update, a group with nothing to press. It shows as up to date; its details still say that open sessions keep the old version until you restart them. A tool whose table has a restart command gets Restart now, with or without a note.
