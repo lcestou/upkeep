@@ -186,7 +186,7 @@ export function fixturePlan(state: SystemState, ids: string[]): string[][] {
 	const dnf = picked.filter((r) => r.source === "dnf").map((r) => r.id.slice("dnf:".length));
 	if (dnf.length > 0)
 		commands.push(["sudo", "-n", "dnf", "upgrade", "-y", "--exclude=kernel*", "--exclude=*nvidia*", ...dnf]);
-	const zypper = picked.filter((r) => r.source === "zypper").map((r) => r.name);
+	const zypper = picked.filter((r) => r.source === "zypper").map((r) => r.id.slice("zypper:".length));
 	if (zypper.length > 0)
 		commands.push(["sudo", "-n", "zypper", "--non-interactive", "update", "--no-recommends", ...zypper]);
 	const refs = picked.filter((r) => r.source === "flatpak").map((r) => r.id.slice("flatpak:".length));

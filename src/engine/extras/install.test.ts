@@ -13,6 +13,7 @@ import {
 	aptGetTrialArgv,
 	dnfArgv,
 	dnfNames,
+	dnfReplaced,
 	dnfTrialArgv,
 	DPKG_LOCK_CHECK,
 	installable,
@@ -615,6 +616,22 @@ test("on Fedora, a trial that removes a package, names a kernel or fails, or a c
 	const cases: [Map<string, ProcessResult>, string][] = [
 		[new Map([[trial, exit(1, removes)]]), MESSAGES.systemTrialRemoves("libold")],
 		[new Map([[trial, exit(1, kernel)]]), MESSAGES.systemTrialNamesRestart("kernel-core")],
+		// An upgrade that obsoletes another package removes it, though no Removing heading says so.
+		[
+			new Map([
+				[
+					trial,
+					exit(
+						1,
+						FEDORA_TRIAL.replace(
+							"   replacing tzdata ",
+							"   replacing tzdata-legacy x86_64 0:1-1.fc45 @System 1 KiB\n   replacing tzdata ",
+						),
+					),
+				],
+			]),
+			MESSAGES.systemTrialRemoves("tzdata-legacy"),
+		],
 		[
 			new Map([[trial, exit(1, "", "Error: No match for argument: curl.x86_64")]]),
 			MESSAGES.systemTrialFailed("Error: No match for argument: curl.x86_64"),
@@ -656,7 +673,9 @@ const LEAP_LIST = [
 	"v  | repo-oss (16.0) | libcurl4 | 8.14.1-160000.2.2 | 8.14.1-160000.9.1 | x86_64",
 	"",
 ].join("\n");
-const LEAP_NAMES = ["curl", "libcurl4"];
+const LEAP_NAMES = ["curl.x86_64", "libcurl4.x86_64"];
+/** The names as zypper prints them in its dry run: no arch. */
+const LEAP_PRINTED = ["curl", "libcurl4"];
 const LEAP_TRIAL = [
 	"Loading repository data...",
 	"Reading installed packages...",
@@ -741,5 +760,10 @@ test("pacman rows, and kernel or NVIDIA rpm packages, are never installable", ()
 	// A row from a list other than the one that answered is not installed with the other's tool.
 	expect(installable(pkg("dnf", "less"), "zypper")).toBe(false);
 	expect(dnfNames(FEDORA_TRIAL, /^Upgrading/)).toEqual(["curl", "libcurl", "tzdata"]);
-	expect(zypperNames(LEAP_TRIAL, /upgraded/)).toEqual(LEAP_NAMES);
+	// A replacing line under an upgrade is the package's own old version, not a removal.
+	expect(dnfReplaced(FEDORA_TRIAL)).toEqual([]);
+	// The trials run in the C locale, since their headings are read.
+	expect(dnfTrialArgv(["a"]).slice(0, 5)).toEqual(["sudo", "-n", "env", "LC_ALL=C", "dnf"]);
+	expect(zypperTrialArgv(["a"]).slice(0, 5)).toEqual(["sudo", "-n", "env", "LC_ALL=C", "zypper"]);
+	expect(zypperNames(LEAP_TRIAL, /upgraded/)).toEqual(LEAP_PRINTED);
 });

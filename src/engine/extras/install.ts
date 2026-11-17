@@ -118,10 +118,15 @@ export const aptGetTrialArgv = (specs: string[]) => ["apt-get", "install", "--on
 /** dnf's root upgrade of exactly the ticked packages (name.arch), never a kernel or NVIDIA package. */
 export const dnfArgv = (specs: string[]) => ["sudo", "-n", "dnf", "upgrade", "-y", ...DNF_EXCLUDES, ...specs];
 
-/** The same upgrade, answered no: dnf resolves and prints the transaction, then exits 1 having changed nothing. */
+/**
+ * The same upgrade, answered no: dnf resolves and prints the transaction, then exits 1 having changed nothing. In the C
+ * locale, since its headings are read; sudo keeps the person's LANG and LC_* and dnf would print them translated.
+ */
 export const dnfTrialArgv = (specs: string[]) => [
 	"sudo",
 	"-n",
+	"env",
+	"LC_ALL=C",
 	"dnf",
 	"upgrade",
 	"--assumeno",
@@ -129,7 +134,10 @@ export const dnfTrialArgv = (specs: string[]) => [
 	...specs,
 ];
 
-/** zypper's root update of exactly the ticked packages, without the recommends a plain update would add. */
+/**
+ * zypper's root update of exactly the ticked packages, as name.arch so another arch of the same package is not
+ * updated with it, without the recommends a plain update would add.
+ */
 export const zypperArgv = (names: string[]) => [
 	"sudo",
 	"-n",
@@ -140,8 +148,16 @@ export const zypperArgv = (names: string[]) => [
 	...names,
 ];
 
-/** The same update as zypper's dry run, which prints the transaction and installs nothing. */
-export const zypperTrialArgv = (names: string[]) => [...zypperArgv([]), "--dry-run", ...names];
+/** The same update as zypper's dry run, which prints the transaction and installs nothing; in the C locale, as dnf's. */
+export const zypperTrialArgv = (names: string[]) => [
+	"sudo",
+	"-n",
+	"env",
+	"LC_ALL=C",
+	...zypperArgv([]).slice(2),
+	"--dry-run",
+	...names,
+];
 
 /**
  * -i for mintupdate-cli: the kernel and driver globs, then every apt row this run does not install, by its source
@@ -219,7 +235,7 @@ export function planSteps(rows: SystemRow[], ids: string[], packages: SystemStat
 	if (zypper.length > 0)
 		steps.push({
 			kind: "zypper",
-			argv: zypperArgv(zypper.map((r) => r.name)),
+			argv: zypperArgv(zypper.map((r) => r.id.slice("zypper:".length))),
 			ids: zypper.map((r) => r.id),
 			timeoutMs: 3_600_000,
 		});
@@ -353,7 +369,7 @@ async function aptGetPreflight(step: Step, rows: SystemRow[], ctx: InstallCtx): 
 
 /**
  * The package names under each of zypper's "The following ... going to be <what>:" headings whose heading matches
- * what, from its indented lines up to the next blank one.
+ * what, from its indented lines up to the next blank one. Reads the C locale's English, which zypperTrialArgv asks for.
  */
 export function zypperNames(stdout: string, what: RegExp): string[] {
 	const names: string[] = [];
@@ -366,7 +382,10 @@ export function zypperNames(stdout: string, what: RegExp): string[] {
 	return names;
 }
 
-/** The package names under dnf's transaction headings that match what ("Removing:"), up to the next heading. */
+/**
+ * The package names under dnf's transaction headings that match what ("Removing:"), up to the next heading. Reads
+ * the C locale's English, which dnfTrialArgv asks for.
+ */
 export function dnfNames(stdout: string, what: RegExp): string[] {
 	const names: string[] = [];
 	let inside = false;
@@ -377,6 +396,22 @@ export function dnfNames(stdout: string, what: RegExp): string[] {
 		else if (inside && /^ \S/.test(l)) names.push(l.trim().split(/\s+/)[0] ?? "");
 	}
 	return names;
+}
+
+/**
+ * What a dnf transaction takes away besides plain removals: a "replacing" line under a package that names another
+ * package is that one obsoleted, and removed. A replacing line under an upgrade names the package's own old version.
+ */
+export function dnfReplaced(stdout: string): string[] {
+	const gone: string[] = [];
+	let parent = "";
+	for (const l of stdout.split("\n")) {
+		const pkg = /^ (\S+)\s/.exec(l);
+		if (pkg) parent = pkg[1] ?? "";
+		const replaced = /^\s+replacing\s+(\S+)/.exec(l)?.[1];
+		if (replaced && replaced !== parent) gone.push(replaced);
+	}
+	return gone;
 }
 
 /**
@@ -403,7 +438,7 @@ async function rpmPreflight(step: Step, rows: SystemRow[], ctx: InstallCtx): Pro
 	const names = (re: RegExp) => (dnf ? dnfNames(trial.stdout, re) : zypperNames(trial.stdout, re));
 	const named = names(/./).filter((p) => RPM_RESTART_PACKAGE.test(p));
 	if (named.length > 0) return MESSAGES.systemTrialNamesRestart(named.join(", "));
-	const removed = names(dnf ? /^Removing/ : /REMOVED/);
+	const removed = [...names(dnf ? /^Removing/ : /REMOVED/), ...(dnf ? dnfReplaced(trial.stdout) : [])];
 	if (removed.length > 0) return MESSAGES.systemTrialRemoves(removed.join(", "));
 	return null;
 }
