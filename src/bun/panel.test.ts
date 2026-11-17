@@ -2,7 +2,16 @@ import { expect, test } from "bun:test";
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { kreadconfig, lightPanel, onXfce, themeHasDark, xfceLightPanel, xfconfQuery } from "./panel";
+import {
+	kreadconfig,
+	kwinButtons,
+	lightPanel,
+	onXfce,
+	panelIsLight,
+	themeHasDark,
+	xfceLightPanel,
+	xfconfQuery,
+} from "./panel";
 
 const kde = { XDG_CURRENT_DESKTOP: "KDE" };
 const reads = (values: Record<string, string>) => (file: string, group: string, key: string) =>
@@ -103,4 +112,44 @@ test("xfconfQuery answers null where there is no xfconf-query or the setting is 
 		process.env.PATH = path;
 		rmSync(dir, { recursive: true, force: true });
 	}
+});
+
+/** Runs fn with stub tools first on PATH: each name answers with the script body given. */
+function withTools(tools: Record<string, string>, fn: (dir: string) => void) {
+	const dir = mkdtempSync(join(tmpdir(), "upkeep-tools-"));
+	const path = process.env.PATH;
+	try {
+		for (const [name, body] of Object.entries(tools)) {
+			writeFileSync(join(dir, name), `#!/bin/sh\n${body}\n`);
+			chmodSync(join(dir, name), 0o755);
+		}
+		process.env.PATH = `${dir}:${path}`;
+		fn(dir);
+	} finally {
+		process.env.PATH = path;
+		rmSync(dir, { recursive: true, force: true });
+	}
+}
+
+test("panelIsLight reads Xfce through xfconf-query and the theme folders, and nothing on other desktops", () => {
+	withTools(
+		{ "xfconf-query": 'case "$4" in /Net/ThemeName) echo Greybird;; /panels/dark-mode) echo true;; esac' },
+		(dir) => {
+			mkdirSync(join(dir, "share/themes/Greybird/gtk-3.0"), { recursive: true });
+			const xfce = { XDG_CURRENT_DESKTOP: "XFCE", HOME: dir, XDG_DATA_DIRS: join(dir, "share") };
+			// Greybird with a dark variant: a dark panel.
+			writeFileSync(join(dir, "share/themes/Greybird/gtk-3.0/gtk-dark.css"), "");
+			expect(panelIsLight(xfce)).toBe(false);
+			// The same theme without one, as Debian's default: light.
+			rmSync(join(dir, "share/themes/Greybird/gtk-3.0/gtk-dark.css"));
+			expect(panelIsLight(xfce)).toBe(true);
+			expect(panelIsLight({ XDG_CURRENT_DESKTOP: "X-Cinnamon" })).toBe(false);
+		},
+	);
+});
+
+test("kwinButtons reads both sides from kwinrc, null where unset", () => {
+	withTools({ kreadconfig6: '[ "$6" = ButtonsOnLeft ] && echo XIA; exit 0' }, () => {
+		expect(kwinButtons()).toEqual(["XIA", null]);
+	});
 });

@@ -12,7 +12,7 @@ import { syncCommand } from "./command";
 import { kdeButtonLayout, parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
 import { dropStrayIcuData } from "./icu";
-import { kreadconfig, lightPanel, onPlasma, onXfce, themeHasDark, xfceLightPanel, xfconfQuery } from "./panel";
+import { kwinButtons, onPlasma, onXfce, panelIsLight } from "./panel";
 import { createRaiser, openX11 } from "./raise";
 import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/languages";
 import { isDevBuild, playDevScript } from "./dev-script";
@@ -137,13 +137,7 @@ function openWindow(tab = ""): void {
  * keeps its own in kwinrc; a GNOME schema installed beside it would only give GNOME's default there.
  */
 function readSystemLayout(): SystemLayout {
-	if (onPlasma(process.env))
-		return parseButtonLayout(
-			kdeButtonLayout(
-				kreadconfig("kwinrc", "org.kde.kdecoration2", "ButtonsOnLeft"),
-				kreadconfig("kwinrc", "org.kde.kdecoration2", "ButtonsOnRight"),
-			),
-		);
+	if (onPlasma(process.env)) return parseButtonLayout(kdeButtonLayout(...kwinButtons()));
 	for (const schema of ["org.cinnamon.desktop.wm.preferences", "org.gnome.desktop.wm.preferences"]) {
 		try {
 			const out = Bun.spawnSync(["gsettings", "get", schema, "button-layout"], { stdin: "ignore", stderr: "ignore" });
@@ -381,14 +375,7 @@ if (selftest) {
 }
 
 /** "-dark" for the tray's dark pictures on a light panel (panel.ts), "" for the light ones. */
-const toneNow = () =>
-	lightPanel(process.env, kreadconfig) ||
-	(onXfce(process.env) &&
-		xfceLightPanel(xfconfQuery("xsettings", "/Net/ThemeName"), xfconfQuery("xfce4-panel", "/panels/dark-mode"), (t) =>
-			themeHasDark(process.env, t),
-		))
-		? "-dark"
-		: "";
+const toneNow = () => (panelIsLight(process.env) ? "-dark" : "");
 let trayTone = toneNow();
 const tray = new Tray({
 	title: "Upkeep",
@@ -404,6 +391,7 @@ let shownMenu = "";
 // icon redrawn when they flip. Other desktops keep the light pictures, so nothing is read there.
 if (onPlasma(process.env) || onXfce(process.env))
 	setInterval(() => {
+		if (quitting) return;
 		const tone = toneNow();
 		if (tone === trayTone) return;
 		trayTone = tone;

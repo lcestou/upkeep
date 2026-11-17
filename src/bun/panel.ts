@@ -29,7 +29,10 @@ export const onPlasma = (env: Record<string, string | undefined>) => /\bKDE\b/i.
 export function kreadconfig(file: string, group: string, key: string): string | null {
 	for (const tool of ["kreadconfig6", "kreadconfig5"]) {
 		try {
+			// A hung settings service must not hold the tray, which reads this every minute.
 			const out = Bun.spawnSync([tool, "--file", file, "--group", group, "--key", key], {
+				env: process.env,
+				timeout: 2000,
 				stdin: "ignore",
 				stderr: "ignore",
 			});
@@ -65,6 +68,7 @@ export function xfconfQuery(channel: string, property: string): string | null {
 		// The env given explicitly, so the PATH it is looked up in is the current one.
 		const out = Bun.spawnSync(["xfconf-query", "-c", channel, "-p", property], {
 			env: process.env,
+			timeout: 2000,
 			stdin: "ignore",
 			stderr: "ignore",
 		});
@@ -84,4 +88,26 @@ export function themeHasDark(env: Record<string, string | undefined>, theme: str
 	const dataDirs = (env.XDG_DATA_DIRS || "/usr/local/share:/usr/share").split(":").filter(Boolean);
 	const roots = [join(home, ".themes"), ...[dataHome, ...dataDirs].map((d) => join(d, "themes"))];
 	return roots.some((r) => existsSync(join(r, theme, "gtk-3.0", "gtk-dark.css")));
+}
+
+/**
+ * Whether this desktop's panel is light, read from its own settings: Plasma's through kreadconfig, Xfce's through
+ * xfconf-query and the GTK theme folders; every other desktop counts as dark.
+ */
+export function panelIsLight(env: Record<string, string | undefined>): boolean {
+	if (lightPanel(env, kreadconfig)) return true;
+	if (!onXfce(env)) return false;
+	return xfceLightPanel(
+		xfconfQuery("xsettings", "/Net/ThemeName"),
+		xfconfQuery("xfce4-panel", "/panels/dark-mode"),
+		(t) => themeHasDark(env, t),
+	);
+}
+
+/** KWin's title-bar buttons, left and right, as kwinrc holds them; null where unset (kdeButtonLayout's defaults). */
+export function kwinButtons(): [string | null, string | null] {
+	return [
+		kreadconfig("kwinrc", "org.kde.kdecoration2", "ButtonsOnLeft"),
+		kreadconfig("kwinrc", "org.kde.kdecoration2", "ButtonsOnRight"),
+	];
 }
