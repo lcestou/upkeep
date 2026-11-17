@@ -17,6 +17,8 @@ export default {
 		// Closing the window hides it; the tray keeps the app alive.
 		exitOnLastWindowClosed: false,
 	},
+	// Puts the tray library Upkeep carries beside the launcher, before the app is packed (scripts/post-build.ts).
+	scripts: { postBuild: "scripts/post-build.ts" },
 	build: {
 		mainProcess: "bun",
 		bun: {

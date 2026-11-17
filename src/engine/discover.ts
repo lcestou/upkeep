@@ -27,7 +27,7 @@ import {
 	repoText,
 	rootNames,
 } from "./github";
-import { isPackage, PACKAGE_TOOL } from "./kinds/package";
+import { isPackage, PACKAGE_TOOL, type PackageKind, readOnlyUsr } from "./kinds/package";
 import { installedFiles, unpackProblem } from "./kinds/release";
 import { listTools, toolSpec, toolKey } from "./managers";
 import { parseManifest } from "./manifest";
@@ -359,6 +359,16 @@ function findAppImage(ctx: DiscoverCtx, bin: string): string | null {
 	return null;
 }
 
+/**
+ * Whether this machine installs a package of this kind: a .deb where dpkg is, an .rpm where rpm is and dpkg is not, and
+ * neither on a read-only /usr. The same rule Add app applies to a release's files, asked of one kind.
+ */
+async function takesPackage(ctx: DiscoverCtx, kind: PackageKind): Promise<boolean> {
+	const dpkg = (await which(ctx, PACKAGE_TOOL.deb)) !== null;
+	const tool = kind === "deb" ? dpkg : !dpkg && (await which(ctx, PACKAGE_TOOL.rpm)) !== null;
+	return tool && !(await readOnlyUsr(ctx.run));
+}
+
 /** The path `which` prints for bin, as printed: a symlink on PATH is the dest, not its target. */
 async function which(ctx: DiscoverCtx, bin: string): Promise<string | null> {
 	const r = await ctx.run(["which", bin], { timeoutMs: 5000 });
@@ -429,6 +439,7 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	const { candidates, unopened } = machineAssets(release.assets, prefer, ctx.arch);
 	// A package installs only through the system's own package tool. dpkg marks a Debian system: a .deb needs it, and
 	// an .rpm is refused there even when the rpm tool is installed, since its files would sit outside dpkg's records.
+	// A read-only /usr takes neither.
 	// A file on disk never takes a package, so a scan runs nothing for it.
 	const missing = new Set<string>();
 	const packages = new Set(candidates.map((c) => c.kind).filter(isPackage));
@@ -436,6 +447,9 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 		const dpkg = (await which(ctx, PACKAGE_TOOL.deb)) !== null;
 		if (!dpkg) missing.add("deb");
 		if (packages.has("rpm") && (dpkg || (await which(ctx, PACKAGE_TOOL.rpm)) === null)) missing.add("rpm");
+		// An image-based system has rpm but takes no package outside its image.
+		if ([...packages].some((k) => !missing.has(k)) && (await readOnlyUsr(ctx.run)))
+			for (const k of packages) missing.add(k);
 	}
 	const installable = candidates.filter((c) => !missing.has(c.kind));
 	const usable = opts.file ? installable.filter((c) => prefer.includes(c.kind)) : installable;
@@ -1018,7 +1032,17 @@ async function fromCatalogue(
 		forge: entry.forge,
 		probe,
 	});
-	if ("problem" in r) return { suggestions: [], problem: r.problem, rate: r.rate };
+	if ("problem" in r) {
+		// A table that installs a .deb or .rpm this machine cannot take (no dpkg, an image-based system): the same
+		// repo's other files are looked at as for a repo typed in, so an AppImage, an archive or the other package
+		// kind the machine does take. The answer is the repo's own, since the table's dest and sudo fit only its
+		// package. A drafted build is not offered in its place.
+		if (isPackage(entry.kind) && !asset && !r.rate && !(await takesPackage(ctx, entry.kind))) {
+			const other = await fromRepo(entry.repo, ctx, { probe, forge: entry.forge });
+			if (!("problem" in other) && other.suggestion.spec.kind !== "source") return { suggestions: [other.suggestion] };
+		}
+		return { suggestions: [], problem: r.problem, rate: r.rate };
+	}
 	// No release file runs here, so the catalogue's table cannot install it: the drafted build stays a guess.
 	if (r.suggestion.spec.kind === "source") return { suggestions: [r.suggestion] };
 	// A picked asset is kept as the pattern fromRepo made of its name, with the version a wildcard, so it still matches next release.

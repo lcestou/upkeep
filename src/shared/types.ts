@@ -474,7 +474,7 @@ export type SystemState = {
 	problem: { code: "missing"; command: string } | { code: "failed"; command: string; detail: string } | null;
 	/** The NVIDIA driver version whose Flatpak GL runtime is missing, or null. */
 	glMissing: string | null;
-	/** Which package list answered: Linux Mint's Update Manager, apt, dnf, pacman or zypper; null when none is installed. */
+	/** Which package list answered: Linux Mint's Update Manager, apt, dnf, pacman or zypper; null when none is installed, or on an image-based system (read-only /usr), where none is used. */
 	packages: "mint" | "apt" | "dnf" | "pacman" | "zypper" | null;
 	/** Ids of the rows Upkeep can install, present only while installing is switched on. Never a kernel or driver row. */
 	installable?: string[];

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { USR_MOUNT } from "../kinds/package";
 import { type Call, ok, strictRun, tempHome } from "../testkit";
 import type { ProcessResult } from "../run";
 import { createExtras } from "./extras";
@@ -153,6 +154,15 @@ test("a check lists Update Manager's rows and Flatpak's, with installed versions
 		["flatpak:runtime/org.gnome.Platform/x86_64/51", "runtime", "51", "51"],
 	]);
 	expect(r.glMissing).toBeNull();
+});
+
+test("an image-based system (read-only /usr) lists no package rows and no problem; Flatpak still lists", async () => {
+	const { run } = box(new Map([[USR_MOUNT.join(" "), ok("ro,relatime,seclabel\n")]]));
+	const r = await checkSystem({ run });
+	expect(r.packages).toBeNull();
+	expect(r.problem).toBeNull();
+	expect(r.rows.some((x) => x.source === "apt")).toBe(false);
+	expect(r.rows.some((x) => x.source === "flatpak")).toBe(true);
 });
 
 test("kernel and driver rows carry the Update Manager note; rows come only from Update Manager's own list", async () => {

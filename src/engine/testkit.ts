@@ -2,6 +2,7 @@ import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { type Paths, paths } from "./paths";
+import { USR_MOUNT } from "./kinds/package";
 import { createRunner, type Run, type RunOpts, type ProcessResult } from "./run";
 
 /** A temp home with every Upkeep directory under it. Tests never touch the real one. */
@@ -59,18 +60,24 @@ export function recordingRun(
 export const ok = (stdout = ""): ProcessResult => ({ code: 0, stdout, stderr: "", timedOut: false });
 
 /**
- * A runner that never reaches a real process: every argv must be answered by handle, and any other argv throws.
- * The extras tests use only this one.
+ * A runner that never reaches a real process: every argv must be answered by handle, and any other argv throws,
+ * except the read-only /usr question, which gets "rw" when handle leaves it. The extras tests use only this one.
  */
 export function strictRun(
 	handle: (argv: string[], opts: RunOpts) => ProcessResult | undefined | Promise<ProcessResult | undefined>,
 ) {
 	const calls: Call[] = [];
 	const run: Run = async (argv, opts = {}) => {
-		calls.push({ argv, opts });
+		const call = { argv, opts };
+		calls.push(call);
 		const r = await handle(argv, opts);
-		if (!r) throw new Error(`strictRun: no answer for ${argv.join(" ")}`);
-		return r;
+		if (r) return r;
+		// Every fake machine has a writable /usr unless a test says otherwise; the question stays out of the call log.
+		if (argv.join(" ") === USR_MOUNT.join(" ")) {
+			calls.splice(calls.indexOf(call), 1);
+			return ok("rw,relatime\n");
+		}
+		throw new Error(`strictRun: no answer for ${argv.join(" ")}`);
 	};
 	return { run, calls };
 }

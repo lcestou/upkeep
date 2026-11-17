@@ -152,9 +152,11 @@ Built and used daily on Linux Mint. Each of these was run as a normal user: the 
 | Fedora 45                         | Nobara, Ultramarine                         |
 | Arch Linux                        | CachyOS, EndeavourOS, Manjaro               |
 | openSUSE Tumbleweed and Leap 16.0 | Slowroll                                    |
+| Fedora Silverblue 45, Bazzite     | Kinoite, Aurora, Bluefin                    |
 
 - **Architectures:** x86_64 and aarch64.
-- **Not supported:** immutable systems (SteamOS, Bazzite, Fedora Silverblue), NixOS, and musl systems such as Alpine.
+- **Image-based systems** (Silverblue, Bazzite): Upkeep installs into your home folder, so it works there. It offers no `.deb` or `.rpm`, since those cannot install outside the system image, and takes an app's AppImage or archive instead; the System group lists Flatpak only.
+- **Not supported:** NixOS, and musl systems such as Alpine. SteamOS has not been tried.
 - **Desktops:** checked on Cinnamon, GNOME 46 (Wayland and Xorg), KDE Plasma 6.8 (Wayland) and sway. On Wayland Upkeep runs through XWayland, which these desktops start on their own; a session with XWayland turned off cannot start it. GNOME shows the tray icon through its AppIndicator extension, which Ubuntu turns on.
 - **Not yet tried:** real arm64 hardware (the arm64 build has only run under emulation).
 - **Planned, not built:** macOS and Windows.

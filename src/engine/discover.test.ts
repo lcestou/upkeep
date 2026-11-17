@@ -52,6 +52,8 @@ let lines: string[] = [];
 const LISTS = new Set(["flatpak", "snap", "apt-cache"]);
 /** What flatpak, snap and apt-cache print in a test; a tool with no entry is not installed. */
 let systemLists: Record<string, string> = {};
+/** The mount options findmnt prints for /usr: writable unless a test makes the system image-based. */
+let usrMount = "rw,relatime\n";
 /** What each tool manager's list prints in a test; a manager with no entry is not installed. */
 let managers: Record<string, string> = {};
 /** A repo's root at its release tag, by repo: the names in it and the text of the files a draft reads. */
@@ -105,6 +107,7 @@ beforeEach(async () => {
 	// A Debian system unless a test says otherwise: a .deb is offered only where dpkg is.
 	onPath = { dpkg: "/usr/bin/dpkg" };
 	systemLists = {};
+	usrMount = "rw,relatime\n";
 	lines = [];
 	roots = {};
 });
@@ -162,6 +165,7 @@ function ctx(specs: AppSpec[] = []) {
 			const out = managers[argv[0]];
 			return out === undefined ? { code: 127, stdout: "", stderr: "", timedOut: false } : ok(out);
 		}
+		if (argv[0] === "findmnt") return ok(usrMount);
 		if (argv[0] !== "which") return undefined;
 		const p = onPath[argv[1] ?? ""];
 		return p ? ok(`${p}\n`) : { code: 1, stdout: "", stderr: "", timedOut: false };
@@ -932,7 +936,7 @@ install_if_missing = true
 `);
 	expect(
 		rec.calls
-			.filter((x) => !["which", "tar", "unzip"].includes(x.argv[0] ?? "") && !LISTS.has(x.argv[0] ?? ""))
+			.filter((x) => !["which", "tar", "unzip", "findmnt"].includes(x.argv[0] ?? "") && !LISTS.has(x.argv[0] ?? ""))
 			.map((x) => x.argv[0]),
 	).toEqual(["/usr/bin/rustdesk"]);
 });
@@ -944,6 +948,26 @@ test("a .deb is offered only where dpkg is: without it, a release of only a .deb
 	expect((await suggest("o/debonly", ctx().c)).problem).toBe(
 		"No asset of o/debonly's latest release runs on this machine.",
 	);
+});
+
+test("an image-based system (read-only /usr) is offered no .deb or .rpm, though rpm is on its PATH", async () => {
+	releases["o/rpmonly2"] = { tag_name: "v1.0", assets: [{ name: "rpmonly2-1.0.x86_64.rpm", size: 1 }] };
+	onPath = { rpm: "/usr/bin/rpm" };
+	expect((await suggest("o/rpmonly2", ctx().c)).suggestions[0]?.spec.kind).toBe("rpm");
+	usrMount = "ro,relatime,seclabel\n";
+	expect((await suggest("o/rpmonly2", ctx().c)).problem).toBe(
+		"No asset of o/rpmonly2's latest release runs on this machine.",
+	);
+	// The same release with an AppImage beside its packages gives the AppImage.
+	releases["o/both"] = {
+		tag_name: "v1.0",
+		assets: [
+			{ name: "both-1.0.x86_64.rpm", size: 1 },
+			{ name: "both_1.0_amd64.deb", size: 1 },
+			{ name: "both-1.0-x86_64.AppImage", size: 1 },
+		],
+	};
+	expect((await suggest("o/both", ctx().c)).suggestions[0]?.spec.kind).toBe("appimage");
 });
 
 test("an .rpm is offered only where rpm is, and wins over a .deb when only rpm is on PATH", async () => {
@@ -1091,6 +1115,46 @@ test("a catalogue table stays sure when the release's best file is of another ki
 	expect(s?.asset?.name).toBe("both-1.0-x86_64-linux.tar.gz");
 	// Nothing at the table's dest: it lands in Ready to install.
 	expect(s?.spec.install_if_missing).toBe(true);
+});
+
+test("a catalogue table for a .deb, on a machine that takes no .deb, gives the same repo's AppImage instead", async () => {
+	releases["o/pkgapp"] = {
+		tag_name: "v2.0",
+		assets: [
+			{ name: "pkgapp-2.0-x86_64.deb", size: 1 },
+			{ name: "pkgapp-2.0-x86_64.AppImage", size: 1 },
+		],
+	};
+	const entry: AppSpec = {
+		key: "pkgapp",
+		name: "PkgApp",
+		kind: "deb",
+		repo: "o/pkgapp",
+		asset: "x86_64\\.deb$",
+		dest: "/usr/bin/pkgapp",
+		sudo: true,
+	};
+	// With dpkg the tested table answers.
+	onPath = { dpkg: "/usr/bin/dpkg" };
+	expect((await suggest("pkgapp", { ...ctx().c, catalogue: [entry] })).suggestions[0]?.spec.kind).toBe("deb");
+	// An image-based system (rpm on PATH, /usr read-only) and a plain Fedora (no dpkg) both get the AppImage.
+	onPath = { rpm: "/usr/bin/rpm" };
+	usrMount = "ro,relatime\n";
+	const s = (await suggest("pkgapp", { ...ctx().c, catalogue: [entry] })).suggestions[0];
+	expect(s?.spec.kind).toBe("appimage");
+	expect(s?.asset?.name).toBe("pkgapp-2.0-x86_64.AppImage");
+	usrMount = "rw,relatime\n";
+	expect((await suggest("pkgapp", { ...ctx().c, catalogue: [entry] })).suggestions[0]?.spec.kind).toBe("appimage");
+	// A machine that takes the .deb keeps the table's own answer when its pattern matches nothing: no quiet swap.
+	onPath = { dpkg: "/usr/bin/dpkg" };
+	const renamed = { ...entry, asset: "amd64-v3\\.deb$" };
+	expect((await suggest("pkgapp", { ...ctx().c, catalogue: [renamed] })).problem).toBe(
+		"No release asset matches amd64-v3\\.deb$.",
+	);
+	onPath = { rpm: "/usr/bin/rpm" };
+	// A release of only the .deb still says nothing runs here.
+	releases["o/pkgapp"] = { tag_name: "v2.0", assets: [{ name: "pkgapp-2.0-x86_64.deb", size: 1 }] };
+	expect((await suggest("pkgapp", { ...ctx().c, catalogue: [entry] })).problem).toContain("runs on this machine");
 });
 
 test("a catalogue table: no matching release file is a problem, a picked file keeps a version wildcard, and version_args probe", async () => {
