@@ -1033,9 +1033,10 @@ async function fromCatalogue(
 		probe,
 	});
 	if ("problem" in r) {
-		// A table that installs a .deb or .rpm, on a machine that takes neither (no dpkg, an image-based system): the
-		// same repo's other files, an AppImage or an archive, are looked at as for a repo typed in. A drafted build is
-		// not offered in its place.
+		// A table that installs a .deb or .rpm this machine cannot take (no dpkg, an image-based system): the same
+		// repo's other files are looked at as for a repo typed in, so an AppImage, an archive or the other package
+		// kind the machine does take. The answer is the repo's own, since the table's dest and sudo fit only its
+		// package. A drafted build is not offered in its place.
 		if (isPackage(entry.kind) && !asset && !r.rate && !(await takesPackage(ctx, entry.kind))) {
 			const other = await fromRepo(entry.repo, ctx, { probe, forge: entry.forge });
 			if (!("problem" in other) && other.suggestion.spec.kind !== "source") return { suggestions: [other.suggestion] };
