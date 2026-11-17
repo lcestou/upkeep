@@ -393,6 +393,7 @@ Sources: `App.svelte`, `AppList.svelte`, `HeaderBar.svelte`, `e2e/keyboard.spec.
 - Focus ring: 2 px solid `water`, 2 px offset. Row buttons draw it inset (offset -2 px) with a 4 px radius; the primary button's ring is `text`.
 - First focus lands on the first row. Install is at most six Tab presses away.
 - The list is one Tab stop (the open row, else the last focused, else the first). Up and Down move, Home and End jump, Space ticks, Enter or Right opens, Left closes, `a` opens Add app, Ctrl+A selects all. PageUp and PageDown on a row move focus by as many 44 px rows as fit under the 34 px column header (and the open pane follows); elsewhere in the list they scroll 90% of a page.
+- Shift-click on a tick box gives that box's new tick to every row between it and the last box clicked in the same list, either way up: the update list (ready apps), the System group, Add app's scan results, and Cleanup (items, or the parts under one item). Each list keeps its own last click (`lib/range.ts`).
 - `/` or Ctrl+F focuses the filter; in it, Down goes to the first row, Enter opens the first match, Escape clears it and goes no further.
 - Escape closes the log, then the pane, and returns focus to the row (or to Add app).
 - After Add, focus goes to the new app's row (the first added row after a scan); under 900 px the sheet keeps it, since the list is inert. After Remove, focus goes to the next row, or the one before when the removed row was last, or the filter when no row is left.
