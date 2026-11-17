@@ -102,6 +102,8 @@ function openWindow(tab = ""): void {
 		// SAFETY: the framework types a frame with x and y, but it centres the window when they are missing; the size file never holds a position.
 		frame: loadWindowSize(sizeFile) as { x: number; y: number; width: number; height: number },
 	});
+	// A window made fresh (the first open after a start at login) meets the same focus guard, and takes longer to map.
+	raiseSoon(20);
 	// A drag fires many resize events; the size is written once it has been still for half a second.
 	win.on("resize", () => {
 		tellChrome();

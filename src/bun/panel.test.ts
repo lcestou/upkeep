@@ -12,9 +12,21 @@ test("Plasma with the default theme follows its colour scheme", () => {
 	expect(lightPanel(kde, reads({}))).toBe(true);
 });
 
-test("a Plasma theme of its own decides by its name", () => {
+test("a Plasma theme named dark or light decides by its name", () => {
 	const dark = reads({ "plasmarc/Theme/name": "breeze-dark", "kdeglobals/General/ColorScheme": "BreezeLight" });
 	expect(lightPanel(kde, dark)).toBe(false);
+	expect(
+		lightPanel(kde, reads({ "plasmarc/Theme/name": "breeze-light", "kdeglobals/General/ColorScheme": "BreezeDark" })),
+	).toBe(true);
+});
+
+test("a theme name that says neither follows the colour scheme", () => {
+	expect(
+		lightPanel(kde, reads({ "plasmarc/Theme/name": "breeze", "kdeglobals/General/ColorScheme": "BreezeDark" })),
+	).toBe(false);
+	expect(
+		lightPanel(kde, reads({ "plasmarc/Theme/name": "default", "kdeglobals/General/ColorScheme": "BreezeLight" })),
+	).toBe(true);
 	expect(lightPanel(kde, reads({ "plasmarc/Theme/name": "oxygen" }))).toBe(true);
 });
 
