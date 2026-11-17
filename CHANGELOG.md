@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.6, 2026-11-17
 
 - One command installs Upkeep: `curl -fsSL https://raw.githubusercontent.com/lcestou/upkeep/main/install.sh | sh` downloads the latest release's installer for the machine and runs it.
 - On a 1x screen the tray icon is drawn from its 22 px masters, crisp, instead of the 2x picture scaled down. A 2x screen keeps the 2x picture.
