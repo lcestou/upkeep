@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.5, 2026-11-16
 
 - On GNOME and KDE Plasma, "Open Upkeep" in the tray, the desktop icon and the `upkeep` command bring the window to the front. On GNOME the window used to stay behind the app you were in, with only an "Upkeep is ready" notice.
 - On a light Plasma panel the tray icon is drawn dark. The light icon made for dark panels was close to invisible there.
