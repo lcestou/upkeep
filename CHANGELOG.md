@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- One command installs Upkeep: `curl -fsSL https://raw.githubusercontent.com/lcestou/upkeep/main/install.sh | sh` downloads the latest release's installer for the machine and runs it.
 - On a 1x screen the tray icon is drawn from its 22 px masters, crisp, instead of the 2x picture scaled down. A 2x screen keeps the 2x picture.
 - On KDE Plasma, Upkeep's own window buttons sit where Plasma's title bars have theirs (read from KWin's settings), not on GNOME's default side.
 - On a light Xfce panel (Debian's default) the tray icon is drawn dark; Xubuntu's dark panel keeps the light one. On Plasma and Xfce, switching between a light and a dark theme redraws the tray icon within a minute, with no restart.

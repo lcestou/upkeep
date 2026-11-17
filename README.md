@@ -51,7 +51,13 @@ Your distro's updater keeps its own packages current. Everything you installed y
 
 ## Install
 
-Download the installer for your machine from the [latest release](../../releases/latest): `linux-x64-Upkeep-Setup.tar.gz`, or `linux-arm64-Upkeep-Setup.tar.gz` on an arm64 machine. Right-click it and choose **Extract Here**, then double-click **installer** in the new folder (if your file manager asks, choose **Run**). From a terminal:
+In a terminal, as yourself (not root):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/lcestou/upkeep/main/install.sh | sh
+```
+
+It downloads the latest release's installer for your machine (x86_64 or arm64) and runs it. [`install.sh`](install.sh) is short; read it first if you like. Or do the same by hand: download it from the [latest release](../../releases/latest): `linux-x64-Upkeep-Setup.tar.gz`, or `linux-arm64-Upkeep-Setup.tar.gz` on an arm64 machine. Right-click it and choose **Extract Here**, then double-click **installer** in the new folder (if your file manager asks, choose **Run**). From a terminal:
 
 ```sh
 tar -xzf linux-x64-Upkeep-Setup.tar.gz
