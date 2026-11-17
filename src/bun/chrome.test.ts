@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { Settings } from "../shared/types";
-import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
+import { kdeButtonLayout, parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 
 const settings: Settings = {
 	keepBackups: 1,
@@ -59,4 +59,20 @@ test("only Upkeep's own frame can be rounded", () => {
 	const system = parseButtonLayout("");
 	expect(windowChrome({ ...settings, corners: "square" }, system, false).rounded).toBe(false);
 	expect(windowChrome({ ...settings, frame: "system" }, system, false).rounded).toBe(false);
+});
+
+test("KWin's button letters read as the layout GNOME's gsettings gives, KWin's defaults when unset", () => {
+	// KWin's default: menu and on-all-desktops left, help, minimize, maximize, close right.
+	expect(kdeButtonLayout(null, null)).toBe(":minimize,maximize,close");
+	expect(parseButtonLayout(kdeButtonLayout(null, null))).toEqual({
+		side: "right",
+		order: ["minimize", "maximize", "close"],
+	});
+	// Close on the left, macOS-style.
+	expect(parseButtonLayout(kdeButtonLayout("XIA", "M"))).toEqual({
+		side: "left",
+		order: ["close", "minimize", "maximize"],
+	});
+	// Set but empty on one side.
+	expect(kdeButtonLayout("", "IAX")).toBe(":minimize,maximize,close");
 });

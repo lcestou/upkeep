@@ -1,5 +1,17 @@
 import { expect, test } from "bun:test";
-import { kreadconfig, lightPanel } from "./panel";
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import {
+	kreadconfig,
+	kwinButtons,
+	lightPanel,
+	onXfce,
+	panelIsLight,
+	themeHasDark,
+	xfceLightPanel,
+	xfconfQuery,
+} from "./panel";
 
 const kde = { XDG_CURRENT_DESKTOP: "KDE" };
 const reads = (values: Record<string, string>) => (file: string, group: string, key: string) =>
@@ -49,4 +61,95 @@ test("GNOME, Cinnamon and an unknown desktop keep the light pictures, and nothin
 
 test("no kreadconfig answers null rather than throwing", () => {
 	expect(kreadconfig("no-such-file-upkeep-test", "General", "ColorScheme")).toBeNull();
+});
+
+test("Xfce's panel is dark only with dark mode on and a theme that has a dark variant, or a theme named dark", () => {
+	const greybird = (t: string) => t === "Greybird";
+	// Xubuntu: Greybird, dark mode on.
+	expect(xfceLightPanel("Greybird", "true", greybird)).toBe(false);
+	// Debian: the "Xfce" theme has no GTK 3 dark variant, so dark mode changes nothing.
+	expect(xfceLightPanel("Xfce", "true", greybird)).toBe(true);
+	expect(xfceLightPanel("Greybird", "false", greybird)).toBe(true);
+	expect(xfceLightPanel("Adwaita-dark", null, greybird)).toBe(false);
+	expect(xfceLightPanel(null, "true", greybird)).toBe(true);
+	expect(onXfce({ XDG_CURRENT_DESKTOP: "XFCE" })).toBe(true);
+	expect(onXfce({ XDG_CURRENT_DESKTOP: "KDE" })).toBe(false);
+});
+
+test("a theme's dark variant is found in ~/.themes or a data folder, by gtk-3.0/gtk-dark.css", () => {
+	const dir = mkdtempSync(join(tmpdir(), "upkeep-theme-"));
+	try {
+		mkdirSync(join(dir, "home/.themes/Mine/gtk-3.0"), { recursive: true });
+		writeFileSync(join(dir, "home/.themes/Mine/gtk-3.0/gtk-dark.css"), "");
+		mkdirSync(join(dir, "share/themes/Sys/gtk-3.0"), { recursive: true });
+		writeFileSync(join(dir, "share/themes/Sys/gtk-3.0/gtk-dark.css"), "");
+		mkdirSync(join(dir, "share/themes/Plain/gtk-3.0"), { recursive: true });
+		const env = { HOME: join(dir, "home"), XDG_DATA_DIRS: join(dir, "share") };
+		expect(themeHasDark(env, "Mine")).toBe(true);
+		expect(themeHasDark(env, "Sys")).toBe(true);
+		expect(themeHasDark(env, "Plain")).toBe(false);
+		expect(themeHasDark(env, "Absent")).toBe(false);
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+test("xfconfQuery answers null where there is no xfconf-query or the setting is unset", () => {
+	const dir = mkdtempSync(join(tmpdir(), "upkeep-xfconf-"));
+	const path = process.env.PATH;
+	try {
+		writeFileSync(
+			join(dir, "xfconf-query"),
+			'#!/bin/sh\n[ "$4" = /Net/ThemeName ] && echo Greybird && exit 0\nexit 1\n',
+		);
+		chmodSync(join(dir, "xfconf-query"), 0o755);
+		process.env.PATH = `${dir}:${path}`;
+		expect(xfconfQuery("xsettings", "/Net/ThemeName")).toBe("Greybird");
+		expect(xfconfQuery("xfce4-panel", "/panels/dark-mode")).toBeNull();
+		process.env.PATH = dir.concat("/nowhere");
+		expect(xfconfQuery("xsettings", "/Net/ThemeName")).toBeNull();
+	} finally {
+		process.env.PATH = path;
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+/** Runs fn with stub tools first on PATH: each name answers with the script body given. */
+function withTools(tools: Record<string, string>, fn: (dir: string) => void) {
+	const dir = mkdtempSync(join(tmpdir(), "upkeep-tools-"));
+	const path = process.env.PATH;
+	try {
+		for (const [name, body] of Object.entries(tools)) {
+			writeFileSync(join(dir, name), `#!/bin/sh\n${body}\n`);
+			chmodSync(join(dir, name), 0o755);
+		}
+		process.env.PATH = `${dir}:${path}`;
+		fn(dir);
+	} finally {
+		process.env.PATH = path;
+		rmSync(dir, { recursive: true, force: true });
+	}
+}
+
+test("panelIsLight reads Xfce through xfconf-query and the theme folders, and nothing on other desktops", () => {
+	withTools(
+		{ "xfconf-query": 'case "$4" in /Net/ThemeName) echo Greybird;; /panels/dark-mode) echo true;; esac' },
+		(dir) => {
+			mkdirSync(join(dir, "share/themes/Greybird/gtk-3.0"), { recursive: true });
+			const xfce = { XDG_CURRENT_DESKTOP: "XFCE", HOME: dir, XDG_DATA_DIRS: join(dir, "share") };
+			// Greybird with a dark variant: a dark panel.
+			writeFileSync(join(dir, "share/themes/Greybird/gtk-3.0/gtk-dark.css"), "");
+			expect(panelIsLight(xfce)).toBe(false);
+			// The same theme without one, as Debian's default: light.
+			rmSync(join(dir, "share/themes/Greybird/gtk-3.0/gtk-dark.css"));
+			expect(panelIsLight(xfce)).toBe(true);
+			expect(panelIsLight({ XDG_CURRENT_DESKTOP: "X-Cinnamon" })).toBe(false);
+		},
+	);
+});
+
+test("kwinButtons reads both sides from kwinrc, null where unset", () => {
+	withTools({ kreadconfig6: '[ "$6" = ButtonsOnLeft ] && echo XIA; exit 0' }, () => {
+		expect(kwinButtons()).toEqual(["XIA", null]);
+	});
 });
