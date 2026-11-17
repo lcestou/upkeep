@@ -11,6 +11,10 @@ import {
 	aptArgv,
 	aptGetArgv,
 	aptGetTrialArgv,
+	dnfArgv,
+	dnfNames,
+	dnfReplaced,
+	dnfTrialArgv,
 	DPKG_LOCK_CHECK,
 	installable,
 	KERNEL_AND_DRIVER_IGNORE,
@@ -18,17 +22,23 @@ import {
 	SUDO_CHECK,
 	trialArgv,
 	trialPackages,
+	zypperArgv,
+	zypperNames,
+	zypperTrialArgv,
 } from "./install";
 import { updateExtras } from "./state";
 import {
 	APT_LIST,
+	DNF_LIST,
 	DRIVER_GL,
 	FLATPAK_INSTALLED,
 	FLATPAK_RUNNING,
 	FLATPAK_RUNTIMES,
 	FLATPAK_UPDATES,
 	MINT_LIST,
+	RPM_VERSIONS,
 	SOURCE_VERSIONS,
+	ZYPPER_LIST,
 } from "./system";
 
 const fx = (name: string) => readFileSync(join(import.meta.dir, "fixtures", name), "utf8");
@@ -143,15 +153,15 @@ test("apt runs through mintupdate-cli as root, always with --keep-configuration 
 	expect(planSteps(rows.slice(0, 2), ["apt:perl", "apt:libsoup3"], "mint")[0]?.argv.at(-1)).toBe(GLOBS);
 });
 
-test("Upkeep installs Update Manager's packages, Flatpak, Snap and Cinnamon, never a kernel, a driver or another package list's row", () => {
+test("Upkeep installs Update Manager's, apt's, dnf's and zypper's packages, Flatpak, Snap and Cinnamon, never a kernel, a driver or a pacman row", () => {
 	expect(installable(row("apt:perl", "apt", "security"), "mint")).toBe(true);
 	// Plain apt (Ubuntu, Debian) installs too, never a kernel or NVIDIA package by name.
 	expect(installable(row("apt:perl.amd64", "apt", "security", "perl"), "apt")).toBe(true);
 	expect(installable(row("apt:linux-image-generic.amd64", "apt", "package", "linux-image-generic"), "apt")).toBe(false);
 	expect(installable(row("apt:libnvidia-gl-580.amd64", "apt", "package", "libnvidia-gl-580"), "apt")).toBe(false);
-	expect(installable(row("dnf:bash.x86_64", "dnf", "package"), "dnf")).toBe(false);
+	expect(installable(row("dnf:bash.x86_64", "dnf", "package", "bash"), "dnf")).toBe(true);
 	expect(installable(row("pacman:bash", "pacman", "package"), "pacman")).toBe(false);
-	expect(installable(row("zypper:bash.x86_64", "zypper", "package"), "zypper")).toBe(false);
+	expect(installable(row("zypper:bash.x86_64", "zypper", "package", "bash"), "zypper")).toBe(true);
 	expect(installable(row("apt:linux", "apt", "kernel"), "mint")).toBe(false);
 	expect(installable(row("apt:nvidia-graphics-drivers-580", "apt", "driver"), "mint")).toBe(false);
 	expect(installable(row(DISCORD, "flatpak", "app"), null)).toBe(true);
@@ -531,4 +541,233 @@ test("on plain apt, a simulation that names a kernel, removes a package or fails
 	expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
 	await x.idle();
 	expect(x.snapshot().system.install?.refused).toBe(MESSAGES.systemListChanged());
+});
+
+// Fedora 45 and openSUSE Leap 16.0, as their tools printed it on 2026-11-16 with curl and tzdata put back a version.
+const FEDORA_LIST = [
+	"Upgrades",
+	"curl.x86_64    8.21.0-9.fc45 updates",
+	"libcurl.x86_64 8.21.0-9.fc45 updates",
+	"tzdata.noarch  2026f-1.fc45  updates",
+	"",
+].join("\n");
+const FEDORA_SPECS = ["curl.x86_64", "libcurl.x86_64", "tzdata.noarch"];
+const FEDORA_TRIAL = [
+	"Updating and loading repositories:",
+	"Repositories loaded.",
+	"Package              Arch   Version         Repository      Size",
+	"Upgrading:",
+	" curl                x86_64 0:8.21.0-9.fc45 updates    487.9 KiB",
+	"   replacing curl    x86_64 0:8.21.0-6.fc45 fedora     487.9 KiB",
+	" libcurl             x86_64 0:8.21.0-9.fc45 updates      1.1 MiB",
+	"   replacing libcurl x86_64 0:8.21.0-6.fc45 fedora       1.1 MiB",
+	" tzdata              noarch 0:2026f-1.fc45  updates      1.3 MiB",
+	"   replacing tzdata  noarch 0:2026c-2.fc45  fedora       1.2 MiB",
+	"",
+	"Transaction Summary:",
+	" Upgrading:          3 packages",
+	" Replacing:          3 packages",
+	"",
+	"Operation aborted by the user.",
+	"",
+].join("\n");
+
+/** A Fedora machine: dnf's list and rpm's versions, dnf's trial answered no (exit 1), every install exiting 0. */
+function fedora(over: Map<string, ProcessResult> = new Map()) {
+	let installed = false;
+	return strictRun((argv: string[]) => {
+		const key = argv.join(" ");
+		const o = over.get(key);
+		if (o) return o;
+		if (key === SUDO_CHECK.join(" ")) return ok();
+		if (key === DNF_LIST.join(" ")) return installed ? ok() : exit(100, FEDORA_LIST);
+		if (key === RPM_VERSIONS.join(" ")) return ok("curl.x86_64\t8.21.0-6.fc45\n");
+		if (key === dnfTrialArgv(FEDORA_SPECS).join(" ")) return exit(1, FEDORA_TRIAL);
+		if (key === dnfArgv(FEDORA_SPECS).join(" ")) {
+			installed = true;
+			return ok();
+		}
+		return missing;
+	});
+}
+
+test("on Fedora, the ticked packages install through dnf upgrade with kernels and NVIDIA excluded, after a trial answered no", async () => {
+	const { run, calls } = fedora();
+	const x = await shown(run);
+	const ids = x.snapshot().system.rows.map((r) => r.id);
+	expect(ids).toEqual(["dnf:curl.x86_64", "dnf:libcurl.x86_64", "dnf:tzdata.noarch"]);
+	expect(x.snapshot().system.installable).toEqual(ids);
+	expect(plan(x, ids)).toEqual([dnfArgv(FEDORA_SPECS)]);
+	expect(dnfArgv(FEDORA_SPECS)).toContain("--exclude=kernel*");
+	expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+	await x.idle();
+	expect(x.snapshot().system.install?.refused ?? null).toBeNull();
+	expect(x.snapshot().system.install?.outcomes.map((o) => [o.id, o.status])).toEqual(ids.map((id) => [id, "done"]));
+	expect(calls.some((c) => c.argv.join(" ") === dnfArgv(FEDORA_SPECS).join(" "))).toBe(true);
+});
+
+test("on Fedora, a trial that removes a package, names a kernel or fails, or a changed list, refuses before root runs", async () => {
+	const trial = dnfTrialArgv(FEDORA_SPECS).join(" ");
+	const removes = `${FEDORA_TRIAL.replace("\nTransaction Summary:", "Removing:\n libold   x86_64 0:1.0-1.fc45 @System 1 KiB\n\nTransaction Summary:")}`;
+	const kernel = FEDORA_TRIAL.replace(
+		"Upgrading:\n",
+		"Installing:\n kernel-core x86_64 0:6.20.1-200.fc45 updates 20 MiB\nUpgrading:\n",
+	);
+	const cases: [Map<string, ProcessResult>, string][] = [
+		[new Map([[trial, exit(1, removes)]]), MESSAGES.systemTrialRemoves("libold")],
+		[new Map([[trial, exit(1, kernel)]]), MESSAGES.systemTrialNamesRestart("kernel-core")],
+		// An upgrade that obsoletes another package removes it, though no Removing heading says so.
+		[
+			new Map([
+				[
+					trial,
+					exit(
+						1,
+						FEDORA_TRIAL.replace(
+							"   replacing tzdata ",
+							"   replacing tzdata-legacy x86_64 0:1-1.fc45 @System 1 KiB\n   replacing tzdata ",
+						),
+					),
+				],
+			]),
+			MESSAGES.systemTrialRemoves("tzdata-legacy"),
+		],
+		[
+			new Map([[trial, exit(1, "", "Error: No match for argument: curl.x86_64")]]),
+			MESSAGES.systemTrialFailed("Error: No match for argument: curl.x86_64"),
+		],
+		[new Map([[trial, exit(1, "Nothing to do.\n")]]), MESSAGES.systemTrialFailed("Nothing to do.")],
+	];
+	for (const [over, refused] of cases) {
+		rmSync(join(t.paths.state), { recursive: true, force: true });
+		const { run, calls } = fedora(over);
+		// oxlint-disable-next-line no-await-in-loop -- each case is its own install
+		const x = await shown(run);
+		const ids = x.snapshot().system.rows.map((r) => r.id);
+		expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+		// oxlint-disable-next-line no-await-in-loop -- each case is its own install
+		await x.idle();
+		expect(x.snapshot().system.install?.refused).toBe(refused);
+		expect(calls.some((c) => c.argv.join(" ") === dnfArgv(FEDORA_SPECS).join(" "))).toBe(false);
+	}
+	// The list read again before the install names other packages than the rows shown.
+	rmSync(join(t.paths.state), { recursive: true, force: true });
+	let reads = 0;
+	const { run, calls } = fedora(new Map());
+	const changing: typeof run = async (argv, opts) =>
+		argv.join(" ") === DNF_LIST.join(" ") && ++reads > 1
+			? exit(100, "Upgrades\nbash.x86_64 5.3-1.fc45 updates\n")
+			: run(argv, opts);
+	const x = await shown(changing);
+	const ids = x.snapshot().system.rows.map((r) => r.id);
+	expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+	await x.idle();
+	expect(x.snapshot().system.install?.refused).toBe(MESSAGES.systemListChanged());
+	expect(calls.some((c) => c.argv.join(" ") === dnfArgv(FEDORA_SPECS).join(" "))).toBe(false);
+});
+
+const LEAP_LIST = [
+	"S  | Repository      | Name     | Current Version   | Available Version | Arch",
+	"---+-----------------+----------+-------------------+-------------------+-------",
+	"v  | repo-oss (16.0) | curl     | 8.14.1-160000.2.2 | 8.14.1-160000.9.1 | x86_64",
+	"v  | repo-oss (16.0) | libcurl4 | 8.14.1-160000.2.2 | 8.14.1-160000.9.1 | x86_64",
+	"",
+].join("\n");
+const LEAP_NAMES = ["curl.x86_64", "libcurl4.x86_64"];
+/** The names as zypper prints them in its dry run: no arch. */
+const LEAP_PRINTED = ["curl", "libcurl4"];
+const LEAP_TRIAL = [
+	"Loading repository data...",
+	"Reading installed packages...",
+	"Resolving package dependencies...",
+	"",
+	"The following 2 packages are going to be upgraded:",
+	"  curl libcurl4",
+	"",
+	"2 packages to upgrade.",
+	"",
+	"Package install size change:",
+	"            |       1.4 MiB  required by packages that will be installed",
+	"     670 B  |  -    1.4 MiB  released by packages that will be removed",
+	"",
+].join("\n");
+
+/** An openSUSE machine: zypper's list, its dry run, every install exiting 0. */
+function leap(over: Map<string, ProcessResult> = new Map()) {
+	let installed = false;
+	return strictRun((argv: string[]) => {
+		const key = argv.join(" ");
+		const o = over.get(key);
+		if (o) return o;
+		if (key === SUDO_CHECK.join(" ")) return ok();
+		if (key === ZYPPER_LIST.join(" ")) return ok(installed ? "No updates found.\n" : LEAP_LIST);
+		if (key === zypperTrialArgv(LEAP_NAMES).join(" ")) return ok(LEAP_TRIAL);
+		if (key === zypperArgv(LEAP_NAMES).join(" ")) {
+			installed = true;
+			return ok();
+		}
+		return missing;
+	});
+}
+
+test("on openSUSE, the ticked packages install through zypper update without recommends, after a clean dry run", async () => {
+	const { run } = leap();
+	const x = await shown(run);
+	const ids = x.snapshot().system.rows.map((r) => r.id);
+	expect(ids).toEqual(["zypper:curl.x86_64", "zypper:libcurl4.x86_64"]);
+	expect(plan(x, ids)).toEqual([zypperArgv(LEAP_NAMES)]);
+	expect(x.installSystem(ids, plan(x, ids))).toEqual({ started: true });
+	await x.idle();
+	expect(x.snapshot().system.install?.refused ?? null).toBeNull();
+	expect(x.snapshot().system.install?.outcomes.map((o) => o.status)).toEqual(["done", "done"]);
+	// A dry run that removes a package, or pulls a new kernel in, refuses.
+	for (const [extra, refused] of [
+		["The following package is going to be REMOVED:\n  libold1\n\n", MESSAGES.systemTrialRemoves("libold1")],
+		[
+			"The following NEW package is going to be installed:\n  kernel-default\n\n",
+			MESSAGES.systemTrialNamesRestart("kernel-default"),
+		],
+	]) {
+		rmSync(join(t.paths.state), { recursive: true, force: true });
+		const trial = new Map([
+			[zypperTrialArgv(LEAP_NAMES).join(" "), ok(LEAP_TRIAL.replace("\nThe following 2", `\n${extra}The following 2`))],
+		]);
+		const { run: r2, calls } = leap(trial);
+		// oxlint-disable-next-line no-await-in-loop -- each case is its own install
+		const y = await shown(r2);
+		expect(y.installSystem(ids, plan(y, ids))).toEqual({ started: true });
+		// oxlint-disable-next-line no-await-in-loop -- each case is its own install
+		await y.idle();
+		expect(y.snapshot().system.install?.refused).toBe(refused);
+		expect(calls.some((c) => c.argv.join(" ") === zypperArgv(LEAP_NAMES).join(" "))).toBe(false);
+	}
+});
+
+test("pacman rows, and kernel or NVIDIA rpm packages, are never installable", () => {
+	const pkg = (source: SystemRow["source"], name: string): SystemRow => ({
+		id: `${source}:${name}`,
+		source,
+		name,
+		type: "package",
+		installed: "1",
+		latest: "2",
+		running: false,
+	});
+	expect(installable(pkg("pacman", "less"), "pacman")).toBe(false);
+	expect(installable(pkg("dnf", "less"), "dnf")).toBe(true);
+	expect(installable(pkg("dnf", "kernel-tools"), "dnf")).toBe(false);
+	expect(installable(pkg("zypper", "nvidia-gl-G06"), "zypper")).toBe(false);
+	// A row from a list other than the one that answered is not installed with the other's tool.
+	expect(installable(pkg("dnf", "less"), "zypper")).toBe(false);
+	expect(dnfNames(FEDORA_TRIAL, /^Upgrading/)).toEqual(["curl", "libcurl", "tzdata"]);
+	// A replacing line under an upgrade is the package's own old version, not a removal.
+	expect(dnfReplaced(FEDORA_TRIAL)).toEqual([]);
+	// The same with a name dnf wraps onto a line of its own.
+	const wrapped =
+		"Upgrading:\n some-very-long-package-name-for-fedora\n                     noarch 0:2-1.fc45 updates 1 KiB\n   replacing some-very-long-package-name-for-fedora noarch 0:1-1.fc45 @System 1 KiB\n";
+	expect(dnfReplaced(wrapped)).toEqual([]);
+	// The trials run in the C locale, since their headings are read.
+	expect(dnfTrialArgv(["a"]).slice(0, 5)).toEqual(["sudo", "-n", "env", "LC_ALL=C", "dnf"]);
+	expect(zypperTrialArgv(["a"]).slice(0, 5)).toEqual(["sudo", "-n", "env", "LC_ALL=C", "zypper"]);
+	expect(zypperNames(LEAP_TRIAL, /upgraded/)).toEqual(LEAP_PRINTED);
 });

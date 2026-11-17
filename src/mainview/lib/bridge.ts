@@ -21,6 +21,7 @@ const SYSTEM_VARIANTS: SystemVariant[] = [
 	"gl",
 	"apt",
 	"dnf",
+	"pacman",
 	"install",
 	"refuse",
 ];

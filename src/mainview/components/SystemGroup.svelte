@@ -116,8 +116,8 @@
 	const refused = $derived(fresh && install?.refused ? install.refused : reason);
 	const outcomes = $derived(installing && install ? new Map(install.outcomes.map((o) => [o.id, o])) : new Map());
 	const results = $derived(fresh && !installing && install && !install.refused ? install.outcomes : []);
-	// apt, dnf, pacman and zypper rows without Update Manager stay with the system's own tool; the rows Upkeep can
-	// install (Flatpak, Snap, spices) carry no such note.
+	// A package row Upkeep cannot install (pacman's, or a kernel or driver row from apt, dnf or zypper) names the
+	// system's own tool; the rows Upkeep can install carry no such note.
 	const toolNote = $derived(
 		installOn && sys?.packages && sys.packages !== "mint" ? systemToolNote(sys.packages) : null,
 	);
