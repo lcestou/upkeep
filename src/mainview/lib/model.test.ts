@@ -592,12 +592,53 @@ describe("System rows in the footer's Install", () => {
 		expect(m.tickedApps.length).toBe(4);
 	});
 
-	test("Confirm unticks only the rows in the plan; one ticked while the sheet was open stays", async () => {
+	test("a tick change closes the sheet, so what runs always matches the ticks", async () => {
+		const m = await withSystem("install");
+		m.tickSystem("apt:perl", true);
+		m.tickSystem("flatpak:com.discordapp.Discord", true);
+		await m.installTicked();
+		expect(m.systemPlan?.ids.length).toBe(2);
+		m.tickSystem("apt:perl", false);
+		expect(m.systemPlan).toBeNull();
+		await m.installTicked();
+		m.selectNone();
+		expect(m.systemPlan).toBeNull();
+	});
+
+	test("Confirm unticks only the rows in the plan; a row ticked meanwhile stays for the next press", async () => {
 		const m = await withSystem("install");
 		m.tickSystem("apt:perl", true);
 		await m.installTicked();
-		m.tickSystem("flatpak:com.discordapp.Discord", true);
+		const plan = m.systemPlan;
+		m.systemTicked = new Set([...m.systemTicked, "flatpak:com.discordapp.Discord"]);
+		m.systemPlan = plan;
 		await m.confirmSystem();
 		expect(m.systemPicked).toEqual(["flatpak:com.discordapp.Discord"]);
+	});
+
+	test("the apps start even when the System install ends before its answer arrives", async () => {
+		const fx = createFixture({ speed: 40, system: "install" });
+		const answer = fx.request.bind(fx);
+		// The answer to systemInstall lands well after the fake install (under 40 ms at this speed) has ended.
+		fx.request = async (name, params) => {
+			const res = await answer(name, params);
+			if (name === "systemInstall") await new Promise((r) => setTimeout(r, 300));
+			return res;
+		};
+		const m = new Model(fx);
+		await m.start();
+		await until(() => (m.extras?.system.installable?.length ?? 0) > 0);
+		m.tickSystem("apt:perl", true);
+		await m.installTicked();
+		await m.confirmSystem();
+		expect(m.extras?.system.phase).toBe("idle");
+		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
+	});
+
+	test("every Install press clears an earlier System refusal", async () => {
+		const m = await withSystem("install");
+		m.systemReason = "earlier";
+		await m.installTicked();
+		expect(m.systemReason).toBeNull();
 	});
 });

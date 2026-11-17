@@ -435,12 +435,14 @@ export class Model {
 		this.ticked = new Set([...this.ticked].filter((k) => !hide.has(k)));
 		const shownSystem = new Set(this.systemShown.map((r) => r.id));
 		this.systemTicked = new Set([...this.systemTicked].filter((id) => !shownSystem.has(id)));
+		this.systemPlan = null;
 	}
 
 	#systemSpan = rangeClicks();
 	/**
 	 * Ticks or unticks one System row, or with `range` (a Shift-click) every installable row shown since the last one
-	 * clicked. Swaps in a new set, because the ticked set is raw state and a mutation would not notify.
+	 * clicked. An open command sheet closes, since its commands no longer match the ticks; the next press shows new
+	 * ones. Swaps in a new set, because the ticked set is raw state and a mutation would not notify.
 	 */
 	tickSystem(id: string, on: boolean, range = false): void {
 		const ids = this.systemShown.filter((r) => this.systemCan.has(r.id)).map((r) => r.id);
@@ -450,6 +452,7 @@ export class Model {
 			else next.delete(one);
 		}
 		this.systemTicked = next;
+		this.systemPlan = null;
 	}
 
 	/**
@@ -459,9 +462,9 @@ export class Model {
 	 * System rows are never dropped while the apps go ahead.
 	 */
 	async installTicked(): Promise<void> {
+		this.systemReason = null;
 		const ids = this.systemPicked;
 		if (ids.length === 0) return this.install();
-		this.systemReason = null;
 		// An earlier install's result or refusal makes way for this one.
 		this.systemSeen = this.extras?.system.install?.at ?? null;
 		const answer = await this.send("systemPlan", { ids });
@@ -483,13 +486,15 @@ export class Model {
 		const p = this.systemPlan;
 		this.systemPlan = null;
 		if (!p) return;
+		// Set before asking: the install could end before its answer arrives, and its end is what starts the apps.
+		this.#appsAfterSystem = true;
 		const answer = await this.send("systemInstall", p);
 		if (answer?.started) {
 			const ran = new Set(p.ids);
 			this.systemTicked = new Set([...this.systemTicked].filter((id) => !ran.has(id)));
-			this.#appsAfterSystem = this.tickedApps.length > 0;
 			return;
 		}
+		this.#appsAfterSystem = false;
 		this.systemReason = answer?.reason ?? null;
 		return this.install();
 	}
