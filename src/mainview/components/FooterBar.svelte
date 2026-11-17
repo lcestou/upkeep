@@ -6,15 +6,17 @@
 	import RunBar from "./RunBar.svelte";
 	import RunControls from "./RunControls.svelte";
 	import Selection from "./Selection.svelte";
+	import SystemConfirm from "./SystemConfirm.svelte";
 
 	let { model, logOpen, ontogglelog }: { model: Model; logOpen: boolean; ontogglelog: () => void } = $props();
 
 	const running = $derived(model.run.phase === "installing" || model.run.phase === "summary");
 	// Selection controls only where something can be ticked.
-	const selectable = $derived(model.view === "updates" && model.ready.length > 0);
+	const selectable = $derived(model.view === "updates" && (model.ready.length > 0 || model.systemCan.size > 0));
 </script>
 
 <footer class="bar">
+	{#if model.systemPlan && model.view === "updates"}<SystemConfirm {model} plan={model.systemPlan} />{/if}
 	<div class="inner">
 	<div class="start">
 		{#key running}
@@ -30,7 +32,7 @@
 	<div class="end">
 		<LogToggle open={logOpen} ontoggle={ontogglelog} />
 		<!-- The primary button belongs to the Updates view; History and Settings show Show log alone. -->
-		{#if (!model.allFresh || running) && model.view === "updates"}
+		{#if (!model.allFresh || model.systemCan.size > 0 || running) && model.view === "updates"}
 			<RunControls {model} />
 		{/if}
 	</div>

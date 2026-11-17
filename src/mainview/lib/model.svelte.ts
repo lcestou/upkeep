@@ -186,6 +186,28 @@ export class Model {
 			? (this.extras.system.rows ?? []).filter((r) => !this.#needle || r.name.toLowerCase().includes(this.#needle))
 			: [],
 	);
+	/** System rows the person ticked. Nothing is ticked until they tick it. */
+	systemTicked = $state.raw<ReadonlySet<string>>(new Set());
+	/** System rows Upkeep can install now: only while the install switch is on, and only the ones the main process names. */
+	systemCan: ReadonlySet<string> = $derived(
+		new Set(this.extras?.settings.systemInstall === true ? (this.extras.system.installable ?? []) : []),
+	);
+	/** Ticked System rows the footer's Install takes; a tick on a row that left the list or became uninstallable drops. */
+	systemPicked: string[] = $derived(
+		(this.extras?.system.rows ?? [])
+			.filter((r) => this.systemTicked.has(r.id) && this.systemCan.has(r.id))
+			.map((r) => r.id),
+	);
+	/** The commands the person reads before a System install starts; null while not asking. */
+	systemPlan = $state.raw<{ ids: string[]; commands: string[][] } | null>(null);
+	/** Why the last System plan or start was refused, until the next press. */
+	systemReason = $state<string | null>(null);
+	/** The start time of the System install whose results were dismissed or replaced; the group hides that one. */
+	systemSeen = $state<string | null>(null);
+	/** True while Install now waits for the main process's answer; the footer's Install stays disabled meanwhile. */
+	confirming = $state(false);
+	/** True from a confirmed System install until it ends, when the ticked apps start: the two share one run lock. */
+	#appsAfterSystem = false;
 	ready: AppState[] = $derived(this.apps.filter((a) => a.status === "ready"));
 	/** Nothing to decide: no run, nothing ready, by hand or needing a look, and no check under way. */
 	allFresh: boolean = $derived(
@@ -342,11 +364,18 @@ export class Model {
 			case "self":
 				this.self = e.self;
 				break;
-			case "extras":
+			case "extras": {
+				const was = this.extras?.system.phase;
 				this.extras = e.extras;
+				// A System install confirmed with apps ticked has ended: the apps run now.
+				if (this.#appsAfterSystem && was === "installing" && e.extras.system.phase !== "installing") {
+					this.#appsAfterSystem = false;
+					void this.install();
+				}
 				// Cleanup switched off while its tab shows: the tab is gone, so Settings, where the switch is, shows.
 				if (this.view === "cleanup" && !e.extras.settings.cleanup) this.view = "settings";
 				return;
+			}
 			case "removed": {
 				this.apps = this.apps.filter((a) => a.key !== e.key);
 				if (this.ticked.has(e.key)) this.#tick(e.key, false);
@@ -402,10 +431,79 @@ export class Model {
 		this.ticked = new Set([...this.ticked, ...this.shownReady.map((a) => a.key)]);
 	}
 
-	/** Unticks the ready apps the filter shows; ticks on rows the filter hides stay. */
+	/** Unticks the ready apps and the System rows the filter shows; ticks on rows the filter hides stay. */
 	selectNone(): void {
 		const hide = new Set(this.shownReady.map((a) => a.key));
 		this.ticked = new Set([...this.ticked].filter((k) => !hide.has(k)));
+		const shownSystem = new Set(this.systemShown.map((r) => r.id));
+		this.systemTicked = new Set([...this.systemTicked].filter((id) => !shownSystem.has(id)));
+		this.systemPlan = null;
+	}
+
+	#systemSpan = rangeClicks();
+	/**
+	 * Ticks or unticks one System row, or with `range` (a Shift-click) every installable row shown since the last one
+	 * clicked. An open command sheet closes, since its commands no longer match the ticks; the next press shows new
+	 * ones. Swaps in a new set, because the ticked set is raw state and a mutation would not notify.
+	 */
+	tickSystem(id: string, on: boolean, range = false): void {
+		const ids = this.systemShown.filter((r) => this.systemCan.has(r.id)).map((r) => r.id);
+		const next = new Set(this.systemTicked);
+		for (const one of this.#systemSpan(ids, id, range)) {
+			if (on) next.add(one);
+			else next.delete(one);
+		}
+		this.systemTicked = next;
+		this.systemPlan = null;
+	}
+
+	/**
+	 * The footer's Install. With System rows ticked it asks the main process for their commands and shows them, and
+	 * nothing runs until the person confirms; with none it starts the app run. A plan that comes back empty shows its
+	 * reason and still runs the ticked apps. A plan request with no answer runs nothing and keeps every tick, so the
+	 * System rows are never dropped while the apps go ahead.
+	 */
+	async installTicked(): Promise<void> {
+		if (this.starting || this.confirming) return;
+		this.systemReason = null;
+		const ids = this.systemPicked;
+		if (ids.length === 0) return this.install();
+		// An earlier install's result or refusal makes way for this one.
+		this.systemSeen = this.extras?.system.install?.at ?? null;
+		const answer = await this.send("systemPlan", { ids });
+		if (!answer) return;
+		if (answer.commands.length > 0) {
+			this.systemPlan = { ids, commands: answer.commands };
+			return;
+		}
+		this.systemReason = answer.reason ?? null;
+		return this.install();
+	}
+
+	/**
+	 * Starts the System install of exactly what the sheet showed (the main process refuses it if the list changed),
+	 * then the ticked apps once it ends. A refused System install shows its reason and the apps start at once. Only the
+	 * rows in the plan lose their tick: one ticked while the sheet was open waits for the next press.
+	 */
+	async confirmSystem(): Promise<void> {
+		const p = this.systemPlan;
+		this.systemPlan = null;
+		if (!p) return;
+		// Set before asking: the install could end before its answer arrives, and its end is what starts the apps.
+		this.#appsAfterSystem = true;
+		// The sheet is gone, so the footer's Install would enable again; `confirming` holds it until the answer. Not
+		// `starting`, which would stop the apps from starting when the install ends before its answer.
+		this.confirming = true;
+		const answer = await this.send("systemInstall", p);
+		this.confirming = false;
+		if (answer?.started) {
+			const ran = new Set(p.ids);
+			this.systemTicked = new Set([...this.systemTicked].filter((id) => !ran.has(id)));
+			return;
+		}
+		this.#appsAfterSystem = false;
+		this.systemReason = answer?.reason ?? null;
+		return this.install();
 	}
 
 	/** Opens an app in the inspector. During a run this pins the choice so the inspector stops following the queue. */
