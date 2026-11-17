@@ -1,7 +1,17 @@
 import { MESSAGES } from "../../shared/messages";
 import type { SystemOutcome, SystemRow, SystemState } from "../../shared/types";
 import type { ProcessResult, Run } from "../run";
-import { APT_LIST, MINT_LIST, parseAptList, parseMintList, type SystemCheck } from "./system";
+import {
+	APT_LIST,
+	DNF_LIST,
+	MINT_LIST,
+	parseAptList,
+	parseDnfList,
+	parseMintList,
+	parseZypperList,
+	type SystemCheck,
+	ZYPPER_LIST,
+} from "./system";
 
 // The install half of the System group. Every command here is a literal argv; the view shows the ones that change
 // something before any of them runs, and a background run never calls this module.
@@ -39,11 +49,15 @@ const LIST_TOOL = {
 
 /** A binary package a trial run may not touch: a kernel's image, headers, modules or meta package, or anything NVIDIA. */
 const RESTART_PACKAGE = /^(linux-(image|headers|modules|signed|meta|hwe|generic|lowlatency|oem)|.*nvidia)/;
+/** The same for an rpm system: every kernel* package (kernel-tools too, to be safe) and anything NVIDIA. */
+const RPM_RESTART_PACKAGE = /^(kernel|.*nvidia)/;
+/** dnf's own guard, on every dnf upgrade and its trial: neither can pull a kernel or NVIDIA package in as a dependency. */
+const DNF_EXCLUDES = ["--exclude=kernel*", "--exclude=*nvidia*"];
 
 /** One command of a System install and the rows it answers for. */
 export type Step = {
 	/** apt is Update Manager's mintupdate-cli; apt-get is plain apt where there is no Update Manager. */
-	kind: "apt" | "apt-get" | "flatpak" | "snap" | "cinnamon";
+	kind: "apt" | "apt-get" | "dnf" | "zypper" | "flatpak" | "snap" | "cinnamon";
 	argv: string[];
 	ids: string[];
 	timeoutMs: number;
@@ -60,13 +74,15 @@ export type InstallCtx = {
 };
 
 /**
- * Upkeep installs Update Manager's packages, plain apt's (Ubuntu, Debian), Flatpak refs, Snaps and Cinnamon spices.
- * Never a kernel or a driver, by type or by package name. dnf, pacman and zypper rows stay with the system's own tool:
- * pacman has no safe partial upgrade, and dnf and zypper are not wired yet.
+ * Upkeep installs Update Manager's packages, plain apt's (Ubuntu, Debian), dnf's (Fedora), zypper's (openSUSE),
+ * Flatpak refs, Snaps and Cinnamon spices. Never a kernel or a driver, by type or by package name. pacman rows stay
+ * with pacman: Arch supports no partial upgrade, and a whole -Syu would bring the kernel and driver along.
  */
 export function installable(row: SystemRow, packages: SystemState["packages"]): boolean {
 	if (row.note === "update-manager-only" || row.type === "kernel" || row.type === "driver") return false;
 	if (row.source === "apt") return packages === "mint" || (packages === "apt" && !RESTART_PACKAGE.test(row.name));
+	if (row.source === "dnf" || row.source === "zypper")
+		return packages === row.source && !RPM_RESTART_PACKAGE.test(row.name);
 	return row.source === "flatpak" || row.source === "snap" || row.source === "cinnamon";
 }
 
@@ -98,6 +114,34 @@ export const aptGetArgv = (specs: string[]) => [
 
 /** The same install as apt-get's simulation, which needs no root and changes nothing. */
 export const aptGetTrialArgv = (specs: string[]) => ["apt-get", "install", "--only-upgrade", "--simulate", ...specs];
+
+/** dnf's root upgrade of exactly the ticked packages (name.arch), never a kernel or NVIDIA package. */
+export const dnfArgv = (specs: string[]) => ["sudo", "-n", "dnf", "upgrade", "-y", ...DNF_EXCLUDES, ...specs];
+
+/** The same upgrade, answered no: dnf resolves and prints the transaction, then exits 1 having changed nothing. */
+export const dnfTrialArgv = (specs: string[]) => [
+	"sudo",
+	"-n",
+	"dnf",
+	"upgrade",
+	"--assumeno",
+	...DNF_EXCLUDES,
+	...specs,
+];
+
+/** zypper's root update of exactly the ticked packages, without the recommends a plain update would add. */
+export const zypperArgv = (names: string[]) => [
+	"sudo",
+	"-n",
+	"zypper",
+	"--non-interactive",
+	"update",
+	"--no-recommends",
+	...names,
+];
+
+/** The same update as zypper's dry run, which prints the transaction and installs nothing. */
+export const zypperTrialArgv = (names: string[]) => [...zypperArgv([]), "--dry-run", ...names];
 
 /**
  * -i for mintupdate-cli: the kernel and driver globs, then every apt row this run does not install, by its source
@@ -135,8 +179,8 @@ export const trialArgv = (ignore: string) => [
 ];
 
 /**
- * The commands for the ticked rows, in the order they run: apt first, since a new NVIDIA userspace from apt would need
- * its runtime from Flatpak, then Flatpak, Snap and Cinnamon. Rows Upkeep does not install are dropped, ticked or not.
+ * The commands for the ticked rows, in the order they run: the package tool first (apt, dnf or zypper; a system has
+ * one), since a new NVIDIA userspace from it would need its runtime from Flatpak, then Flatpak, Snap and Cinnamon. Rows Upkeep does not install are dropped, ticked or not.
  * Cinnamon's updater updates a whole spice type at once, so a ticked spice brings every spice of its type along.
  */
 export function planSteps(rows: SystemRow[], ids: string[], packages: SystemState["packages"]): Step[] {
@@ -161,6 +205,22 @@ export function planSteps(rows: SystemRow[], ids: string[], packages: SystemStat
 			kind: "apt",
 			argv: aptArgv(aptIgnore(rows, new Set(apt.map((r) => r.id)))),
 			ids: apt.map((r) => r.id),
+			timeoutMs: 3_600_000,
+		});
+	const dnf = of("dnf");
+	if (dnf.length > 0)
+		steps.push({
+			kind: "dnf",
+			argv: dnfArgv(dnf.map((r) => r.id.slice("dnf:".length))),
+			ids: dnf.map((r) => r.id),
+			timeoutMs: 3_600_000,
+		});
+	const zypper = of("zypper");
+	if (zypper.length > 0)
+		steps.push({
+			kind: "zypper",
+			argv: zypperArgv(zypper.map((r) => r.name)),
+			ids: zypper.map((r) => r.id),
 			timeoutMs: 3_600_000,
 		});
 	const flatpak = of("flatpak");
@@ -245,6 +305,8 @@ export async function preflight(steps: Step[], rows: SystemRow[], ctx: InstallCt
 		const r = await ctx.run(["pkcheck", "--action-id", action, "--process", String(ctx.pid)], opts);
 		if (bad(r)) return MESSAGES.systemPolkit();
 	}
+	const rpm = steps.find((s) => s.kind === "dnf" || s.kind === "zypper");
+	if (rpm) return rpmPreflight(rpm, rows, ctx);
 	if (aptGet) return aptGetPreflight(aptGet, rows, ctx);
 	if (!apt) return null;
 	const list = await ctx.run(MINT_LIST, opts);
@@ -285,6 +347,63 @@ async function aptGetPreflight(step: Step, rows: SystemRow[], ctx: InstallCtx): 
 	const named = trialPackages(trial.stdout).filter((p) => RESTART_PACKAGE.test(p));
 	if (named.length > 0) return MESSAGES.systemTrialNamesRestart(named.join(", "));
 	const removed = [...trial.stdout.matchAll(/^Remv (\S+)/gm)].map((m) => m[1] ?? "");
+	if (removed.length > 0) return MESSAGES.systemTrialRemoves(removed.join(", "));
+	return null;
+}
+
+/**
+ * The package names under each of zypper's "The following ... going to be <what>:" headings whose heading matches
+ * what, from its indented lines up to the next blank one.
+ */
+export function zypperNames(stdout: string, what: RegExp): string[] {
+	const names: string[] = [];
+	let inside = false;
+	for (const l of stdout.split("\n")) {
+		if (/^The following .* going to be /.test(l)) inside = what.test(l);
+		else if (!l.trim()) inside = false;
+		else if (inside && /^\s/.test(l)) names.push(...l.trim().split(/\s+/));
+	}
+	return names;
+}
+
+/** The package names under dnf's transaction headings that match what ("Removing:"), up to the next heading. */
+export function dnfNames(stdout: string, what: RegExp): string[] {
+	const names: string[] = [];
+	let inside = false;
+	for (const l of stdout.split("\n")) {
+		if (/^\S.*:$/.test(l)) inside = what.test(l);
+		else if (!l.trim()) inside = false;
+		// A package line is one space in; dnf5's "replacing" lines under it are three.
+		else if (inside && /^ \S/.test(l)) names.push(l.trim().split(/\s+/)[0] ?? "");
+	}
+	return names;
+}
+
+/**
+ * dnf's and zypper's half of the preflight, after sudo: the list read again names the same packages, and the tool's
+ * own trial of the install (dnf answered no, zypper's dry run) fails on nothing, names no kernel or NVIDIA package
+ * and removes nothing.
+ */
+async function rpmPreflight(step: Step, rows: SystemRow[], ctx: InstallCtx): Promise<string | null> {
+	const dnf = step.kind === "dnf";
+	const list = await ctx.run(dnf ? DNF_LIST : ZYPPER_LIST, { timeoutMs: 60_000 });
+	// dnf check-update exits 100 when there are updates; zypper 106 when a repository could not be read.
+	if (list.timedOut || ![0, dnf ? 100 : 106].includes(list.code)) return MESSAGES.systemTrialFailed(firstLine(list));
+	const fresh = new Set((dnf ? parseDnfList(list.stdout, new Map()) : parseZypperList(list.stdout)).map((r) => r.id));
+	const shown = new Set(rows.filter((r) => r.source === step.kind).map((r) => r.id));
+	if (fresh.size !== shown.size || [...fresh].some((id) => !shown.has(id))) return MESSAGES.systemListChanged();
+	const specs = step.argv.slice((dnf ? dnfArgv([]) : zypperArgv([])).length);
+	const trial = await ctx.run(dnf ? dnfTrialArgv(specs) : zypperTrialArgv(specs), { timeoutMs: 600_000 });
+	const text = `${trial.stdout}\n${trial.stderr}`;
+	const error = text.split("\n").find((l) => /^(Error|Problem)\b/.test(l));
+	if (error) return MESSAGES.systemTrialFailed(error);
+	// dnf answered no exits 1 after printing its transaction; anything else that is not 0 is a failure.
+	if (trial.timedOut || ![0, dnf ? 1 : 0].includes(trial.code)) return MESSAGES.systemTrialFailed(firstLine(trial));
+	if (dnf && !/^Upgrading:/m.test(trial.stdout)) return MESSAGES.systemTrialFailed(firstLine(trial));
+	const names = (re: RegExp) => (dnf ? dnfNames(trial.stdout, re) : zypperNames(trial.stdout, re));
+	const named = names(/./).filter((p) => RPM_RESTART_PACKAGE.test(p));
+	if (named.length > 0) return MESSAGES.systemTrialNamesRestart(named.join(", "));
+	const removed = names(dnf ? /^Removing/ : /REMOVED/);
 	if (removed.length > 0) return MESSAGES.systemTrialRemoves(removed.join(", "));
 	return null;
 }

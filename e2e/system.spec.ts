@@ -310,15 +310,33 @@ test("on plain apt, package rows tick and install through apt-get --only-upgrade
 	]);
 });
 
-test("with dnf, pacman or zypper, package rows have no tick and name the system's own tool", async ({ page }) => {
+test("with dnf, package rows tick and install through dnf upgrade, never a kernel or driver row", async ({ page }) => {
 	await load(page, "fixture&system=dnf");
 	await page.getByTestId("tab-settings").click();
 	await page.getByTestId("setting-system-install").check();
 	await page.getByTestId("tab-updates").click();
 	await openGroup(page);
-	const perl = page.getByTestId("sys-row-dnf:perl");
-	await expect(perl.getByTestId("sys-tick-dnf:perl")).toHaveCount(0);
-	await expect(perl.getByTestId("sys-note")).toHaveText("Install it with dnf.");
+	await expect(page.getByTestId("sys-row-dnf:perl").getByTestId("sys-note")).toHaveCount(0);
+	await page.getByTestId("sys-tick-dnf:perl").check();
+	await expect(page.getByTestId("sys-tick-dnf:linux-generic")).toHaveCount(0);
+	await expect(page.getByTestId("sys-row-dnf:linux-generic").getByTestId("sys-note")).toHaveText(
+		"Install it with dnf.",
+	);
+	await page.getByTestId("system-install").click();
+	await expect(page.getByTestId("system-command")).toContainText([
+		"sudo -n dnf upgrade -y --exclude=kernel* --exclude=*nvidia* perl",
+	]);
+});
+
+test("with pacman, package rows have no tick and name the system's own tool", async ({ page }) => {
+	await load(page, "fixture&system=pacman");
+	await page.getByTestId("tab-settings").click();
+	await page.getByTestId("setting-system-install").check();
+	await page.getByTestId("tab-updates").click();
+	await openGroup(page);
+	const perl = page.getByTestId("sys-row-pacman:perl");
+	await expect(perl.getByTestId("sys-tick-pacman:perl")).toHaveCount(0);
+	await expect(perl.getByTestId("sys-note")).toHaveText("Install it with pacman.");
 	await expect(page.getByTestId("sys-tick-flatpak:com.discordapp.Discord")).toBeVisible();
 	// A row Upkeep installs is not sent to apt.
 	await expect(page.getByTestId("sys-row-flatpak:com.discordapp.Discord").getByTestId("sys-note")).toHaveCount(0);

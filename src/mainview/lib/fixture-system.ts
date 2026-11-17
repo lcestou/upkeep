@@ -12,6 +12,7 @@ export type SystemVariant =
 	| "gl"
 	| "apt"
 	| "dnf"
+	| "pacman"
 	| "install"
 	| "refuse";
 
@@ -104,6 +105,15 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 				],
 				packages: "dnf",
 			};
+		case "pacman":
+			return {
+				...base,
+				rows: [
+					...APT_ROWS.map((r): SystemRow => ({ ...r, id: `pacman:${r.name}`, source: "pacman", note: undefined })),
+					...FLATPAK_ROWS,
+				],
+				packages: "pacman",
+			};
 		case "failed":
 			return {
 				...base,
@@ -122,19 +132,25 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 /** A kernel or NVIDIA package by name, as the engine's RESTART_PACKAGE reads it. */
 const RESTART = /^(linux-(image|headers|modules|signed|meta|hwe|generic|lowlatency|oem)|.*nvidia)/;
 
+/** The same for an rpm system's names, as the engine's install.ts has it. */
+const RPM_RESTART = /^(kernel|.*nvidia)/;
+
 /**
- * The engine's rule, faked: never a kernel or driver, packages from Update Manager or plain apt (never a kernel or
- * NVIDIA package by name there), and Flatpak, Snap and Cinnamon.
+ * The engine's rule, faked: never a kernel or driver, packages from Update Manager, plain apt, dnf or zypper (never a
+ * kernel or NVIDIA package by name there), never pacman's, and Flatpak, Snap and Cinnamon.
  */
 export function fixtureInstallable(state: SystemState): string[] {
-	const pkg = (r: SystemRow) => state.packages === "mint" || (state.packages === "apt" && !RESTART.test(r.name));
+	const pkg = (r: SystemRow) =>
+		r.source === "apt"
+			? state.packages === "mint" || (state.packages === "apt" && !RESTART.test(r.name))
+			: state.packages === r.source && !RPM_RESTART.test(r.name);
 	return state.rows
 		.filter(
 			(r) =>
 				r.note !== "update-manager-only" &&
 				r.type !== "kernel" &&
 				r.type !== "driver" &&
-				(r.source === "apt" ? pkg(r) : ["flatpak", "snap", "cinnamon"].includes(r.source)),
+				(["apt", "dnf", "zypper"].includes(r.source) ? pkg(r) : ["flatpak", "snap", "cinnamon"].includes(r.source)),
 		)
 		.map((r) => r.id);
 }
@@ -167,6 +183,12 @@ export function fixturePlan(state: SystemState, ids: string[]): string[][] {
 		const ignore = ["linux", "linux-signed*", "linux-meta*", "linux-hwe*", "nvidia-graphics-drivers-*", ...unticked];
 		commands.push(["sudo", "-n", "mintupdate-cli", "upgrade", "-y", "--keep-configuration", "-i", ignore.join(",")]);
 	}
+	const dnf = picked.filter((r) => r.source === "dnf").map((r) => r.id.slice("dnf:".length));
+	if (dnf.length > 0)
+		commands.push(["sudo", "-n", "dnf", "upgrade", "-y", "--exclude=kernel*", "--exclude=*nvidia*", ...dnf]);
+	const zypper = picked.filter((r) => r.source === "zypper").map((r) => r.name);
+	if (zypper.length > 0)
+		commands.push(["sudo", "-n", "zypper", "--non-interactive", "update", "--no-recommends", ...zypper]);
 	const refs = picked.filter((r) => r.source === "flatpak").map((r) => r.id.slice("flatpak:".length));
 	if (refs.length > 0) commands.push(["flatpak", "update", "-y", "--noninteractive", ...refs]);
 	for (const type of new Set(picked.filter((r) => r.source === "cinnamon").map((r) => r.type)))
