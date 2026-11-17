@@ -1,6 +1,6 @@
 {
 	"name": "upkeep",
-	"version": "0.1.6",
+	"version": "0.1.7",
 	"private": true,
 	"description": "One window for the apps the package manager misses.",
 	"license": "GPL-3.0-or-later",
