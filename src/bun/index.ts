@@ -379,7 +379,7 @@ const toneNow = () => (panelIsLight(process.env) ? "-dark" : "");
 let trayTone = toneNow();
 // The 22 px pictures on a 1x screen, where the 44 px ones scaled down go soft; a 2x or fractional screen keeps the 44 px
 // ones. Read once at start, from the primary display as GTK sees it.
-const traySize = Screen.getPrimaryDisplay().scaleFactor < 1.5 ? "-22" : "";
+const traySize = Screen.getPrimaryDisplay().scaleFactor <= 1 ? "-22" : "";
 /** The tray picture for an icon state, in the panel's tone and the screen's size. */
 const trayImage = (icon: string) => `views://tray/${icon}${trayTone}${traySize}.png`;
 const tray = new Tray({
