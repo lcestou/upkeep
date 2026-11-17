@@ -18,7 +18,8 @@
 		ticked?: boolean;
 		/** A System install is running: the ticks keep what they show. */
 		locked?: boolean;
-		onTick?: (on: boolean) => void;
+		/** `range` is true for a Shift-click, which the group spreads to every row since the last one clicked. */
+		onTick?: (on: boolean, range: boolean) => void;
 		/** Its place in the System install now running. */
 		outcome?: SystemOutcome | null;
 		/** A note the group words for it, such as which tool installs it. */
@@ -54,7 +55,7 @@
 					disabled={locked}
 					aria-labelledby="sys-name-{row.id}"
 					data-testid="sys-tick-{row.id}"
-					onchange={(e) => onTick(e.currentTarget.checked)}
+					onclick={(e) => onTick(e.currentTarget.checked, e.shiftKey)}
 				/>
 			</label>
 		{/if}

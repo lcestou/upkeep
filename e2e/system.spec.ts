@@ -279,6 +279,27 @@ test("the confirm sheet names the commands before anything runs, and a finished 
 	await expect(page.getByTestId("system-results")).toHaveCount(0);
 });
 
+test("a Shift-click ticks or unticks every row since the last one clicked", async ({ page }) => {
+	await load(page, "fixture&system=install");
+	await openGroup(page);
+	const ticks = page.locator('[data-testid^="sys-tick-"]');
+	await expect(ticks).toHaveCount(9);
+	await ticks.nth(1).click();
+	await ticks.nth(5).click({ modifiers: ["Shift"] });
+	for (let i = 0; i < 9; i++) {
+		if (i >= 1 && i <= 5) await expect(ticks.nth(i)).toBeChecked();
+		else await expect(ticks.nth(i)).not.toBeChecked();
+	}
+	await expect(page.getByTestId("system-install")).toHaveText("Install 5 system updates");
+	// Unticking reaches back the same way, upward too, and drags no text selection across the rows.
+	await ticks.nth(4).click();
+	await ticks.nth(2).click({ modifiers: ["Shift"] });
+	await expect(page.getByTestId("system-install")).toHaveText("Install 2 system updates");
+	await expect(ticks.nth(1)).toBeChecked();
+	await expect(ticks.nth(5)).toBeChecked();
+	expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
+});
+
 test("a refused pre-check shows its reason and nothing installs", async ({ page }) => {
 	await load(page, "fixture&system=refuse");
 	await openGroup(page);
