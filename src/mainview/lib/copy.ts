@@ -1017,7 +1017,6 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 export const glLine = (version: string) =>
 	`Flatpak apps cannot use the GPU until the NVIDIA ${version} runtime is installed. A Flatpak update installs it.`;
 
-/** The System group's Install button. Zero reads as the generic label, because the button is disabled then. */
 /** The System command sheet's last line when apps are ticked too: they install once the commands finish. */
 export function systemThenApps(n: number): string {
 	return plural(n, ["Then Upkeep installs the # ticked app.", "Then Upkeep installs the # ticked apps."]);

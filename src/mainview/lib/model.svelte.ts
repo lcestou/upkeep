@@ -455,7 +455,8 @@ export class Model {
 	/**
 	 * The footer's Install. With System rows ticked it asks the main process for their commands and shows them, and
 	 * nothing runs until the person confirms; with none it starts the app run. A plan that comes back empty shows its
-	 * reason and still runs the ticked apps.
+	 * reason and still runs the ticked apps. A plan request with no answer runs nothing and keeps every tick, so the
+	 * System rows are never dropped while the apps go ahead.
 	 */
 	async installTicked(): Promise<void> {
 		const ids = this.systemPicked;
@@ -464,17 +465,19 @@ export class Model {
 		// An earlier install's result or refusal makes way for this one.
 		this.systemSeen = this.extras?.system.install?.at ?? null;
 		const answer = await this.send("systemPlan", { ids });
-		if (answer && answer.commands.length > 0) {
+		if (!answer) return;
+		if (answer.commands.length > 0) {
 			this.systemPlan = { ids, commands: answer.commands };
 			return;
 		}
-		this.systemReason = answer?.reason ?? null;
+		this.systemReason = answer.reason ?? null;
 		return this.install();
 	}
 
 	/**
 	 * Starts the System install of exactly what the sheet showed (the main process refuses it if the list changed),
-	 * then the ticked apps once it ends. A refused System install shows its reason and the apps start at once.
+	 * then the ticked apps once it ends. A refused System install shows its reason and the apps start at once. Only the
+	 * rows in the plan lose their tick: one ticked while the sheet was open waits for the next press.
 	 */
 	async confirmSystem(): Promise<void> {
 		const p = this.systemPlan;
@@ -482,7 +485,8 @@ export class Model {
 		if (!p) return;
 		const answer = await this.send("systemInstall", p);
 		if (answer?.started) {
-			this.systemTicked = new Set();
+			const ran = new Set(p.ids);
+			this.systemTicked = new Set([...this.systemTicked].filter((id) => !ran.has(id)));
 			this.#appsAfterSystem = this.tickedApps.length > 0;
 			return;
 		}

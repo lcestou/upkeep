@@ -578,7 +578,7 @@ describe("System rows in the footer's Install", () => {
 		expect(m.systemPicked).toEqual([]);
 	});
 
-	test("a plan request that fails shows no sheet and still runs the apps", async () => {
+	test("a plan request that fails runs nothing and keeps every tick", async () => {
 		const m = new Model(createFixture({ speed: 40, system: "install", fail: "systemPlan" }));
 		await m.start();
 		await until(() => (m.extras?.system.installable?.length ?? 0) > 0);
@@ -586,6 +586,18 @@ describe("System rows in the footer's Install", () => {
 		await m.installTicked();
 		expect(m.systemPlan).toBeNull();
 		expect(m.systemReason).toBeNull();
-		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
+		await new Promise((r) => setTimeout(r, 50));
+		expect(m.run.phase).toBe("idle");
+		expect(m.systemPicked).toEqual(["apt:perl"]);
+		expect(m.tickedApps.length).toBe(4);
+	});
+
+	test("Confirm unticks only the rows in the plan; one ticked while the sheet was open stays", async () => {
+		const m = await withSystem("install");
+		m.tickSystem("apt:perl", true);
+		await m.installTicked();
+		m.tickSystem("flatpak:com.discordapp.Discord", true);
+		await m.confirmSystem();
+		expect(m.systemPicked).toEqual(["flatpak:com.discordapp.Discord"]);
 	});
 });
