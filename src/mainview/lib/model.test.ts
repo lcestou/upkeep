@@ -635,6 +635,18 @@ describe("System rows in the footer's Install", () => {
 		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
 	});
 
+	test("while Install now waits for its answer, a second Install press does nothing", async () => {
+		const m = await withSystem("install");
+		m.tickSystem("apt:perl", true);
+		await m.installTicked();
+		const confirming = m.confirmSystem();
+		expect(m.confirming).toBe(true);
+		await m.installTicked();
+		expect(m.systemPlan).toBeNull();
+		await confirming;
+		expect(m.confirming).toBe(false);
+	});
+
 	test("every Install press clears an earlier System refusal", async () => {
 		const m = await withSystem("install");
 		m.systemReason = "earlier";

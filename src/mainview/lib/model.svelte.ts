@@ -204,6 +204,8 @@ export class Model {
 	systemReason = $state<string | null>(null);
 	/** The start time of the System install whose results were dismissed or replaced; the group hides that one. */
 	systemSeen = $state<string | null>(null);
+	/** True while Install now waits for the main process's answer; the footer's Install stays disabled meanwhile. */
+	confirming = $state(false);
 	/** True from a confirmed System install until it ends, when the ticked apps start: the two share one run lock. */
 	#appsAfterSystem = false;
 	ready: AppState[] = $derived(this.apps.filter((a) => a.status === "ready"));
@@ -462,6 +464,7 @@ export class Model {
 	 * System rows are never dropped while the apps go ahead.
 	 */
 	async installTicked(): Promise<void> {
+		if (this.starting || this.confirming) return;
 		this.systemReason = null;
 		const ids = this.systemPicked;
 		if (ids.length === 0) return this.install();
@@ -488,7 +491,11 @@ export class Model {
 		if (!p) return;
 		// Set before asking: the install could end before its answer arrives, and its end is what starts the apps.
 		this.#appsAfterSystem = true;
+		// The sheet is gone, so the footer's Install would enable again; `confirming` holds it until the answer. Not
+		// `starting`, which would stop the apps from starting when the install ends before its answer.
+		this.confirming = true;
 		const answer = await this.send("systemInstall", p);
+		this.confirming = false;
 		if (answer?.started) {
 			const ran = new Set(p.ids);
 			this.systemTicked = new Set([...this.systemTicked].filter((id) => !ran.has(id)));

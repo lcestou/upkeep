@@ -78,7 +78,12 @@
 					class="btn"
 					class:primary={!model.adding}
 					data-testid="install"
-					disabled={n === 0 || phase === "checking" || systemBusy || model.starting || model.systemPlan !== null}
+					disabled={n === 0 ||
+						phase === "checking" ||
+						systemBusy ||
+						model.starting ||
+						model.confirming ||
+						model.systemPlan !== null}
 					title={why ?? undefined}
 					aria-describedby={why ? "install-why" : undefined}
 					onclick={() => model.installTicked()}>{installLabel(n)}</button
