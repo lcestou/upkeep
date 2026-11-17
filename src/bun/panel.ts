@@ -4,15 +4,18 @@ export type KdeRead = (file: string, group: string, key: string) => string | nul
 /**
  * True when the panel the tray sits on is light, so the tray needs its dark pictures. Only Plasma is read: its default
  * panel follows a light colour scheme, while GNOME's top bar and Cinnamon's default panel stay dark whatever the
- * theme, and those desktops keep the light pictures. A Plasma theme named dark or light ("breeze-dark") decides by its
- * name; any other ("default", which is Breeze) follows the colour scheme. A light panel on another desktop (a light
- * Xfce panel) still gets the light set.
+ * theme, and those desktops keep the light pictures. In order: a Plasma theme named dark or light ("breeze-dark")
+ * decides; else the colour scheme's window background, which the panel is drawn in (Bazzite's and SteamOS's Vapor is
+ * dark though its name says nothing); else a scheme named dark; else light, Plasma's own default. A light panel on
+ * another desktop (a light Xfce panel) still gets the light set.
  */
 export function lightPanel(env: Record<string, string | undefined>, read: KdeRead): boolean {
 	if (!/\bKDE\b/i.test(env.XDG_CURRENT_DESKTOP ?? "")) return false;
 	const theme = read("plasmarc", "Theme", "name") ?? "";
 	if (/dark/i.test(theme)) return false;
 	if (/light/i.test(theme)) return true;
+	const rgb = /^(\d+),(\d+),(\d+)/.exec(read("kdeglobals", "Colors:Window", "BackgroundNormal") ?? "");
+	if (rgb) return 0.2126 * Number(rgb[1]) + 0.7152 * Number(rgb[2]) + 0.0722 * Number(rgb[3]) > 127.5;
 	return !/dark/i.test(read("kdeglobals", "General", "ColorScheme") ?? "");
 }
 

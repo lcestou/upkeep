@@ -30,6 +30,15 @@ test("a theme name that says neither follows the colour scheme", () => {
 	expect(lightPanel(kde, reads({ "plasmarc/Theme/name": "oxygen" }))).toBe(true);
 });
 
+test("the colour scheme's window background decides before its name: Bazzite's dark Vapor, a light custom scheme", async () => {
+	const vapor = { "plasmarc/Theme/name": "Vapor", "kdeglobals/General/ColorScheme": "Vapor" };
+	expect(lightPanel(kde, reads({ ...vapor, "kdeglobals/Colors:Window/BackgroundNormal": "36,39,44" }))).toBe(false);
+	expect(lightPanel(kde, reads({ ...vapor, "kdeglobals/Colors:Window/BackgroundNormal": "239,240,241" }))).toBe(true);
+	// A theme named dark still wins over a light background.
+	const named = { "plasmarc/Theme/name": "breeze-dark", "kdeglobals/Colors:Window/BackgroundNormal": "239,240,241" };
+	expect(lightPanel(kde, reads(named))).toBe(false);
+});
+
 test("GNOME, Cinnamon and an unknown desktop keep the light pictures, and nothing is read", () => {
 	const never = () => {
 		throw new Error("read on a desktop that is not Plasma");

@@ -1,6 +1,7 @@
 import type { SystemRow, SystemState } from "../../shared/types";
 import { isRecord } from "../manifest";
 import type { Run, ProcessResult } from "../run";
+import { readOnlyUsr } from "../kinds/package";
 
 export type SystemCtx = { run: Run };
 
@@ -339,11 +340,18 @@ async function listWith(
  * The first package list this system has: Linux Mint's Update Manager, then apt, dnf, pacman (checkupdates, else
  * pacman -Qu) and zypper. Each is tried only when the one before it is not installed. None needs root. Null when none
  * is installed. A checkupdates that fails (it needs fakeroot, which pacman-contrib does not pull in) falls back to
- * pacman -Qu, so a working pacman still lists.
+ * pacman -Qu, so a working pacman still lists. On an image-based system (read-only /usr) none is read: their updates
+ * come as a whole image, and dnf there lists packages it cannot install. Flatpak, the usual way to add apps there,
+ * still lists.
  */
-async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null> {
+async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null | "image"> {
 	const opts = { timeoutMs: 60_000 };
-	const [list, sources] = await Promise.all([ctx.run(MINT_LIST, opts), ctx.run(SOURCE_VERSIONS, opts)]);
+	const [image, list, sources] = await Promise.all([
+		readOnlyUsr(ctx.run),
+		ctx.run(MINT_LIST, opts),
+		ctx.run(SOURCE_VERSIONS, opts),
+	]);
+	if (image) return "image";
 	if (!(list.code === 127 && !list.timedOut)) {
 		const problem = problemOf(MINT_LIST, list);
 		const versions = ok(sources) ? parseSourceVersions(sources.stdout) : new Map<string, string>();
@@ -391,8 +399,10 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 		Promise.all(SPICE_TYPES.map(async (type) => ({ type, r: await ctx.run(spiceList(type), opts) }))),
 		Promise.all([SNAP_UPDATES, SNAP_INSTALLED].map((argv) => ctx.run(argv, opts))),
 	]);
-	const rows: SystemRow[] = [...(pkg?.rows ?? [])];
-	const mintProblem: SystemCheck["problem"] = pkg ? pkg.problem : { code: "missing", command: MINT_LIST.join(" ") };
+	const list = pkg === "image" ? null : pkg;
+	const rows: SystemRow[] = [...(list?.rows ?? [])];
+	const mintProblem: SystemCheck["problem"] =
+		pkg === "image" ? null : list ? list.problem : { code: "missing", command: MINT_LIST.join(" ") };
 	const flatpakProblem = updates ? problemOf(FLATPAK_UPDATES, updates) : null;
 	if (updates && !flatpakProblem)
 		rows.push(
@@ -424,7 +434,7 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 		problem:
 			[mintProblem, flatpakProblem, spiceProblem].find((p) => p?.code === "failed") ?? mintProblem ?? flatpakProblem,
 		glMissing: ok(gl) && ok(runtimes) ? glMissing(gl?.stdout ?? "", runtimes?.stdout ?? "") : null,
-		packages: pkg?.packages ?? null,
+		packages: list?.packages ?? null,
 	};
 }
 
