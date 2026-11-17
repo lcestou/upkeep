@@ -5,15 +5,12 @@
 		glLine,
 		systemAbsent,
 		systemChecked,
-		systemInstallLabel,
 		systemProblem,
 		systemSummary,
 		systemToolNote,
 	} from "../lib/copy";
 	import { say } from "../lib/engine-say";
 	import { relativeTime } from "../lib/format";
-	import { tick } from "svelte";
-	import { rangeClicks } from "../lib/range";
 	import type { Model } from "../lib/model.svelte";
 	import Glyph from "./Glyph.svelte";
 	import SystemRow from "./SystemRow.svelte";
@@ -66,62 +63,15 @@
 	const warning = $derived([problem, gl].filter((s) => s !== null).join(" "));
 	const rows = $derived(model.systemShown);
 
-	// Installing: only while its switch is on, and only the rows the main process says Upkeep can install.
+	// Installing: only while its switch is on, and only the rows the main process says Upkeep can install. The ticks
+	// live in the model, since the footer's Install takes them.
 	const installOn = $derived(model.extras?.settings.systemInstall === true);
-	const can = $derived(new Set(sys?.installable ?? []));
+	const can = $derived(model.systemCan);
 	const installing = $derived(sys?.phase === "installing");
-	// Nothing is ticked until the person ticks it; a tick on a row that left the list or became uninstallable drops.
-	let ticked = $state<ReadonlySet<string>>(new Set());
-	const picked = $derived((sys?.rows ?? []).filter((r) => ticked.has(r.id) && can.has(r.id)).map((r) => r.id));
-	const span = rangeClicks();
-	/**
-	 * Ticks or unticks one row, or with `range` (a Shift-click) every tickable row shown since the last one clicked.
-	 * Swaps in a new set, because the ticked set is plain state and a mutation would not notify.
-	 */
-	function setTick(id: string, on: boolean, range: boolean) {
-		const ids = rows.filter((r) => can.has(r.id)).map((r) => r.id);
-		const next = new Set(ticked);
-		for (const one of span(ids, id, range)) {
-			if (on) next.add(one);
-			else next.delete(one);
-		}
-		ticked = next;
-	}
-	// The commands the person reads before anything runs; null while not asking.
-	let plan = $state.raw<{ ids: string[]; commands: string[][] } | null>(null);
-	let reason = $state<string | null>(null);
-	let notNowBtn = $state<HTMLButtonElement | null>(null);
-	const root = $derived(plan?.commands.some((argv) => argv[0] === "sudo") ?? false);
-	/** Asks the main process which commands the ticked rows need, opens the group, and shows them; nothing runs yet. */
-	async function ask() {
-		reason = null;
-		// An earlier install's result or refusal makes way for this one.
-		seen = install?.at ?? null;
-		const ids = picked;
-		const answer = await model.send("systemPlan", { ids });
-		if (!answer || answer.commands.length === 0) {
-			reason = answer?.reason ?? null;
-			return;
-		}
-		plan = { ids, commands: answer.commands };
-		if (!open) toggle();
-		await tick();
-		notNowBtn?.focus();
-	}
-	/** Starts the install of exactly what was shown; the main process refuses it if the list changed meanwhile. */
-	async function confirm() {
-		const p = plan;
-		plan = null;
-		if (!p) return;
-		const answer = await model.send("systemInstall", p);
-		if (answer?.started) ticked = new Set();
-		else reason = answer?.reason ?? null;
-	}
 	const install = $derived(sys?.install ?? null);
 	// A result is shown until Done, by the time it started; a new install shows its own.
-	let seen = $state<string | null>(null);
-	const fresh = $derived(install !== null && install.at !== seen);
-	const refused = $derived(fresh && install?.refused ? install.refused : reason);
+	const fresh = $derived(install !== null && install.at !== model.systemSeen);
+	const refused = $derived(fresh && install?.refused ? install.refused : model.systemReason);
 	const outcomes = $derived(installing && install ? new Map(install.outcomes.map((o) => [o.id, o])) : new Map());
 	const results = $derived(fresh && !installing && install && !install.refused ? install.outcomes : []);
 	// A package row Upkeep cannot install (pacman's, or a kernel or driver row from apt, dnf or zypper) names the
@@ -160,34 +110,8 @@
 						data-testid="open-update-manager"
 						onclick={() => model.send("openTool", { what: "update-manager" })}>{SYS.open}</button
 					>{/if}
-				{#if installOn && can.size > 0}<button
-						type="button"
-						class="btn small tool"
-						data-testid="system-install"
-						disabled={picked.length === 0 || sys.phase !== "idle" || plan !== null}
-						onclick={ask}>{systemInstallLabel(picked.length)}</button
-					>{/if}
 			</span>
 		</div>
-		{#if plan}
-			<div class="confirm" role="group" aria-labelledby="system-confirm-ask" data-testid="system-confirm-sheet">
-				<p id="system-confirm-ask" data-testid="system-confirm-ask">{SYS.confirmIntro}</p>
-				<ol class="cmds">
-					{#each plan.commands as argv, i (i)}<li><code class="mono" data-testid="system-command">{argv.join(" ")}</code></li>{/each}
-				</ol>
-				{#if root}<p data-testid="system-confirm-root">{SYS.confirmRoot}</p>{/if}
-				<div class="confirm-buttons">
-					<button type="button" class="btn small" data-testid="system-confirm" onclick={confirm}>{SYS.confirmYes}</button>
-					<button
-						type="button"
-						class="btn small"
-						data-testid="system-cancel"
-						bind:this={notNowBtn}
-						onclick={() => (plan = null)}>{SYS.confirmNo}</button
-					>
-				</div>
-			</div>
-		{/if}
 		{#if refused}
 			<p class="note" role="status" data-testid="system-refused"><Glyph name="bang" color="var(--rust)" />{say(refused)}</p>
 		{/if}
@@ -205,7 +129,7 @@
 						</li>
 					{/each}
 				</ul>
-				<button type="button" class="btn small" data-testid="system-dismiss" onclick={() => (seen = install?.at ?? null)}
+				<button type="button" class="btn small" data-testid="system-dismiss" onclick={() => (model.systemSeen = install?.at ?? null)}
 					>{SYS.dismiss}</button
 				>
 			</div>
@@ -229,9 +153,9 @@
 				<SystemRow
 					{row}
 					can={installOn && can.has(row.id)}
-					ticked={ticked.has(row.id) || outcomes.has(row.id)}
+					ticked={model.systemTicked.has(row.id) || outcomes.has(row.id)}
 					locked={installing}
-					onTick={(on, range) => setTick(row.id, on, range)}
+					onTick={(on, range) => model.tickSystem(row.id, on, range)}
 					outcome={outcomes.get(row.id) ?? null}
 					note={can.has(row.id) ? null : toolNote}
 				/>
@@ -311,7 +235,6 @@
 		letter-spacing: 0;
 		font-size: var(--fs-12);
 	}
-	.confirm,
 	.results {
 		display: flex;
 		flex-direction: column;
@@ -323,11 +246,9 @@
 		font-size: var(--fs-13);
 		color: var(--text);
 	}
-	.confirm p,
 	.results p {
 		margin: 0;
 	}
-	.cmds,
 	.results ul {
 		display: flex;
 		flex-direction: column;
@@ -335,16 +256,6 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
-	}
-	.cmds code {
-		display: block;
-		overflow-wrap: anywhere;
-		font-size: var(--fs-12);
-		color: var(--text);
-	}
-	.confirm-buttons {
-		display: flex;
-		gap: var(--s2);
 	}
 	.results li {
 		display: flex;

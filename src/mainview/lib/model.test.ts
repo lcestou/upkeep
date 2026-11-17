@@ -513,3 +513,79 @@ describe("what the components read and write", () => {
 		await until(() => m.run.phase === "summary");
 	});
 });
+
+describe("System rows in the footer's Install", () => {
+	/** A model on the fixture with System install on; the four ready apps start ticked. */
+	async function withSystem(system: "install" | "refuse") {
+		const m = new Model(createFixture({ speed: 40, system }));
+		await m.start();
+		await until(() => (m.extras?.system.installable?.length ?? 0) > 0);
+		return m;
+	}
+
+	test("a Shift-click ranges over installable rows only, and Select none clears them", async () => {
+		const m = await withSystem("install");
+		const ids = m.systemShown.filter((r) => m.systemCan.has(r.id)).map((r) => r.id);
+		m.tickSystem(ids[0] ?? "", true);
+		m.tickSystem(ids[2] ?? "", true, true);
+		expect(m.systemPicked).toEqual(ids.slice(0, 3));
+		m.tickSystem(ids[1] ?? "", false);
+		expect(m.systemPicked).toEqual([ids[0] ?? "", ids[2] ?? ""]);
+		m.selectNone();
+		expect(m.systemPicked).toEqual([]);
+		expect(m.tickedApps).toEqual([]);
+	});
+
+	test("with System rows ticked, Install shows the plan and nothing runs until confirmed; then the apps follow", async () => {
+		const m = await withSystem("install");
+		m.tickSystem("apt:perl", true);
+		await m.installTicked();
+		expect(m.systemPlan?.ids).toEqual(["apt:perl"]);
+		expect(m.run.phase).toBe("idle");
+		expect(m.extras?.system.phase).toBe("idle");
+		await m.confirmSystem();
+		expect(m.systemPlan).toBeNull();
+		expect(m.systemTicked.size).toBe(0);
+		expect(m.extras?.system.phase).toBe("installing");
+		expect(m.run.phase).toBe("idle");
+		// The apps start only once the System install has ended.
+		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
+		expect(m.extras?.system.phase).toBe("idle");
+	});
+
+	test("a refused System install shows its reason and the apps start at once", async () => {
+		const m = await withSystem("refuse");
+		m.tickSystem("apt:perl", true);
+		await m.installTicked();
+		await m.confirmSystem();
+		await until(() => m.extras?.system.install?.refused !== null && m.extras?.system.phase === "idle");
+		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
+	});
+
+	test("with no System row ticked, Install starts the app run without a plan", async () => {
+		const m = await withSystem("install");
+		await m.installTicked();
+		expect(m.systemPlan).toBeNull();
+		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
+	});
+
+	test("Confirm with no plan does nothing, and a row that became uninstallable drops from the pick", async () => {
+		const m = await withSystem("install");
+		await m.confirmSystem();
+		expect(m.extras?.system.phase).toBe("idle");
+		m.tickSystem("apt:perl", true);
+		m.extras = m.extras && { ...m.extras, system: { ...m.extras.system, installable: [] } };
+		expect(m.systemPicked).toEqual([]);
+	});
+
+	test("a plan request that fails shows no sheet and still runs the apps", async () => {
+		const m = new Model(createFixture({ speed: 40, system: "install", fail: "systemPlan" }));
+		await m.start();
+		await until(() => (m.extras?.system.installable?.length ?? 0) > 0);
+		m.tickSystem("apt:perl", true);
+		await m.installTicked();
+		expect(m.systemPlan).toBeNull();
+		expect(m.systemReason).toBeNull();
+		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
+	});
+});

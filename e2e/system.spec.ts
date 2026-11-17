@@ -210,7 +210,6 @@ test("installing is a second switch, off by default and shown only while the lis
 	await openGroup(page);
 	// Off: the group stays read-only, with no tick and no Install.
 	await expect(page.locator('[data-testid^="sys-tick-"]')).toHaveCount(0);
-	await expect(page.getByTestId("system-install")).toHaveCount(0);
 	await page.getByTestId("tab-settings").click();
 	await install.check();
 	await page.getByTestId("tab-updates").click();
@@ -236,19 +235,20 @@ test("kernel and driver rows have no tick; the rows Upkeep installs do", async (
 	await expect(
 		page.getByTestId("sys-row-cinnamon:extension:CinnamonBurnMyWindows@klangman").getByTestId("sys-note"),
 	).toHaveText("Installs with every Cinnamon extension that has an update.");
-	await expect(page.getByTestId("system-install")).toBeDisabled();
-	await expect(page.getByTestId("system-install")).toHaveText("Install system updates");
+	// The group has no Install of its own: the footer's counts only what is ticked.
+	await expect(page.getByTestId("system-install")).toHaveCount(0);
+	await expect(page.getByTestId("install")).toHaveText("Install 4 updates");
 });
 
-test("the confirm sheet names the commands before anything runs, and a finished install shows each row's result", async ({
-	page,
-}) => {
+test("the footer's Install shows the System commands first, runs them, then the ticked apps", async ({ page }) => {
 	await load(page, "fixture&system=install");
 	await openGroup(page);
 	for (const id of ["apt:perl", "apt:libsoup3", "flatpak:com.discordapp.Discord"])
 		await page.getByTestId(`sys-tick-${id}`).check();
-	await expect(page.getByTestId("system-install")).toHaveText("Install 3 system updates");
-	await page.getByTestId("system-install").click();
+	// The four ready apps are ticked on first load; the three System rows join them.
+	await expect(page.getByTestId("install")).toHaveText("Install 7 updates");
+	await expect(page.getByTestId("selection")).toHaveText("7 selected · at least 110 MB");
+	await page.getByTestId("install").click();
 	await expect(page.getByTestId("system-confirm-ask")).toHaveText("Upkeep runs these commands, in this order:");
 	await expect(page.getByTestId("system-command")).toHaveText([
 		"sudo -n mintupdate-cli upgrade -y --keep-configuration -i linux,linux-signed*,linux-meta*,linux-hwe*,nvidia-graphics-drivers-*,google-chrome-stable,libgphoto2,openjdk-21,linux-generic,nvidia-driver-580",
@@ -257,17 +257,26 @@ test("the confirm sheet names the commands before anything runs, and a finished 
 	await expect(page.getByTestId("system-confirm-root")).toHaveText(
 		"The commands that start with sudo need administrator rights and run as root.",
 	);
+	await expect(page.getByTestId("system-then-apps")).toHaveText("Then Upkeep installs the 4 ticked apps.");
+	// Not now has focus, so a stray Enter runs nothing; the footer's Install waits while the sheet is open.
+	await expect(page.getByTestId("system-cancel")).toBeFocused();
+	await expect(page.getByTestId("install")).toBeDisabled();
 	// Nothing ran yet: only the plan was asked for.
 	expect((await sysOps(page)).filter((op) => op.startsWith("systemInstall"))).toEqual([]);
 	await page.getByTestId("system-cancel").click();
 	await expect(page.getByTestId("system-confirm-sheet")).toHaveCount(0);
 	expect((await sysOps(page)).filter((op) => op.startsWith("systemInstall"))).toEqual([]);
+	await expect(page.getByTestId("stop")).toHaveCount(0);
 
-	await page.getByTestId("system-install").click();
+	await page.getByTestId("install").click();
 	await page.getByTestId("system-confirm").click();
 	await expect(page.getByTestId("sys-row-apt:perl").getByTestId("sys-state")).toHaveText("Installing");
 	expect(await sysOps(page)).toContain("systemInstall:apt:libsoup3,apt:perl,flatpak:com.discordapp.Discord");
+	// The apps wait for the System install: both take the one run lock.
+	await expect(page.getByTestId("install")).toBeDisabled();
+	await expect(page.getByTestId("install")).toHaveAttribute("title", "Wait for the system updates to finish.");
 	await expect(page.getByTestId("system-summary")).toHaveText("Installed 2 of 3.");
+	await expect(page.locator('[data-testid="stop"], [data-testid="done"]')).toBeVisible();
 	await expect(page.getByTestId("sys-result-apt:perl").getByTestId("sys-result-state")).toHaveText("Installed");
 	const soup = page.getByTestId("sys-result-apt:libsoup3");
 	await expect(soup.getByTestId("sys-result-state")).toHaveText("Failed");
@@ -277,6 +286,24 @@ test("the confirm sheet names the commands before anything runs, and a finished 
 	await expect(page.getByTestId("sys-tick-apt:libsoup3")).not.toBeChecked();
 	await page.getByTestId("system-dismiss").click();
 	await expect(page.getByTestId("system-results")).toHaveCount(0);
+});
+
+test("with no app ticked the footer installs System rows alone, and Select none clears them too", async ({ page }) => {
+	await load(page, "fixture&system=install");
+	await openGroup(page);
+	await page.getByTestId("sys-tick-apt:perl").check();
+	await page.getByTestId("select-none").click();
+	await expect(page.getByTestId("sys-tick-apt:perl")).not.toBeChecked();
+	await expect(page.getByTestId("install")).toBeDisabled();
+	await expect(page.getByTestId("install")).toHaveAttribute("title", "Tick an update to install.");
+	await page.getByTestId("sys-tick-apt:perl").check();
+	await expect(page.getByTestId("install")).toHaveText("Install 1 update");
+	await expect(page.getByTestId("selection")).toHaveText("1 selected");
+	await page.getByTestId("install").click();
+	await expect(page.getByTestId("system-then-apps")).toHaveCount(0);
+	await page.getByTestId("system-confirm").click();
+	await expect(page.getByTestId("system-summary")).toHaveText("Installed 1 of 1.");
+	await expect(page.locator('[data-testid="stop"], [data-testid="done"]')).toHaveCount(0);
 });
 
 test("a Shift-click ticks or unticks every row since the last one clicked", async ({ page }) => {
@@ -290,27 +317,30 @@ test("a Shift-click ticks or unticks every row since the last one clicked", asyn
 		if (i >= 1 && i <= 5) await expect(ticks.nth(i)).toBeChecked();
 		else await expect(ticks.nth(i)).not.toBeChecked();
 	}
-	await expect(page.getByTestId("system-install")).toHaveText("Install 5 system updates");
+	await expect(page.getByTestId("install")).toHaveText("Install 9 updates");
 	// Unticking reaches back the same way, upward too, and drags no text selection across the rows.
 	await ticks.nth(4).click();
 	await ticks.nth(2).click({ modifiers: ["Shift"] });
-	await expect(page.getByTestId("system-install")).toHaveText("Install 2 system updates");
+	await expect(page.getByTestId("install")).toHaveText("Install 6 updates");
 	await expect(ticks.nth(1)).toBeChecked();
 	await expect(ticks.nth(5)).toBeChecked();
 	expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
 });
 
-test("a refused pre-check shows its reason and nothing installs", async ({ page }) => {
+test("a refused pre-check shows its reason, nothing from the System group installs, and the apps still run", async ({
+	page,
+}) => {
 	await load(page, "fixture&system=refuse");
 	await openGroup(page);
 	await page.getByTestId("sys-tick-apt:perl").check();
-	await page.getByTestId("system-install").click();
+	await page.getByTestId("install").click();
 	await page.getByTestId("system-confirm").click();
 	await expect(page.getByTestId("system-refused")).toHaveText(
 		"sudo needs a password here, so nothing was installed. Install these from the system's own updater.",
 	);
 	await expect(page.getByTestId("sys-row-apt:perl")).toBeVisible();
 	await expect(page.getByTestId("system-results")).toHaveCount(0);
+	await expect(page.locator('[data-testid="stop"], [data-testid="done"]')).toBeVisible();
 });
 
 test("on plain apt, package rows tick and install through apt-get --only-upgrade, never a kernel or driver", async ({
@@ -325,7 +355,7 @@ test("on plain apt, package rows tick and install through apt-get --only-upgrade
 	await expect(page.getByTestId("sys-tick-apt:linux-generic")).toHaveCount(0);
 	await expect(page.getByTestId("sys-tick-apt:nvidia-driver-580")).toHaveCount(0);
 	await expect(page.getByTestId("sys-row-apt:perl").getByTestId("sys-note")).toHaveCount(0);
-	await page.getByTestId("system-install").click();
+	await page.getByTestId("install").click();
 	await expect(page.getByTestId("system-command")).toContainText([
 		"sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install --only-upgrade -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold perl",
 	]);
@@ -343,7 +373,7 @@ test("with dnf, package rows tick and install through dnf upgrade, never a kerne
 	await expect(page.getByTestId("sys-row-dnf:linux-generic.x86_64").getByTestId("sys-note")).toHaveText(
 		"Install it with dnf.",
 	);
-	await page.getByTestId("system-install").click();
+	await page.getByTestId("install").click();
 	await expect(page.getByTestId("system-command")).toContainText([
 		"sudo -n dnf upgrade -y --exclude=kernel* --exclude=*nvidia* perl.x86_64",
 	]);

@@ -255,6 +255,9 @@ export const TEXT = {
 	get whyNothing() {
 		return "Nothing to install.";
 	},
+	get whySystem() {
+		return "Wait for the system updates to finish.";
+	},
 	get openLog() {
 		return "Open log file";
 	},
@@ -1015,9 +1018,9 @@ export const glLine = (version: string) =>
 	`Flatpak apps cannot use the GPU until the NVIDIA ${version} runtime is installed. A Flatpak update installs it.`;
 
 /** The System group's Install button. Zero reads as the generic label, because the button is disabled then. */
-export function systemInstallLabel(n: number): string {
-	if (n === 0) return "Install system updates";
-	return plural(n, ["Install # system update", "Install # system updates"]);
+/** The System command sheet's last line when apps are ticked too: they install once the commands finish. */
+export function systemThenApps(n: number): string {
+	return plural(n, ["Then Upkeep installs the # ticked app.", "Then Upkeep installs the # ticked apps."]);
 }
 
 /** The line over a finished System install's results. */

@@ -6,7 +6,11 @@
 	let { model }: { model: Model } = $props();
 
 	const idle = $derived(model.run.phase === "idle");
-	const partial = $derived(model.tickedApps.some((a) => a.size === undefined) && model.tickedBytes !== null);
+	// System rows have no size, so with any ticked the total is a floor.
+	const partial = $derived(
+		(model.systemPicked.length > 0 || model.tickedApps.some((a) => a.size === undefined)) && model.tickedBytes !== null,
+	);
+	const count = $derived(model.tickedApps.length + model.systemPicked.length);
 
 	let allBtn = $state<HTMLButtonElement | null>(null);
 	let noneBtn = $state<HTMLButtonElement | null>(null);
@@ -22,7 +26,7 @@
 
 <div class="selection">
 	<span class="count" data-testid="selection" aria-live="polite" title={partial ? TEXT.sizesUnknown : undefined}>{selectionText(
-		model.tickedApps.length,
+		count,
 		model.tickedBytes,
 		partial,
 		model.hiddenTicked,
@@ -41,7 +45,7 @@
 			class="btn small"
 			data-testid="select-none"
 			bind:this={noneBtn}
-			disabled={!idle || model.tickedApps.length === 0}
+			disabled={!idle || count === 0}
 			onclick={() => pick(false)}>{TEXT.selectNone}</button
 		>
 	</span>

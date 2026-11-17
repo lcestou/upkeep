@@ -2089,18 +2089,6 @@ msgstr "Instaluje się razem z każdym rozszerzeniem Cinnamon, które ma aktuali
 msgid "Installs with every Cinnamon theme that has an update."
 msgstr "Instaluje się razem z każdym motywem Cinnamon, który ma aktualizację."
 
-#: src/mainview/lib/copy.ts
-msgid "Install system updates"
-msgstr "Zainstaluj aktualizacje systemu"
-
-#: src/mainview/lib/copy.ts
-msgid "Install # system update"
-msgid_plural "Install # system updates"
-msgstr[0] "Zainstaluj # aktualizację systemu"
-msgstr[1] "Zainstaluj # aktualizacje systemu"
-msgstr[2] "Zainstaluj # aktualizacji systemu"
-msgstr[3] "Zainstaluj # aktualizacji systemu"
-
 #. 0: done; 1: all
 #: src/mainview/lib/copy.ts
 msgid "Installed {0} of {1}."
@@ -2748,3 +2736,15 @@ msgstr "Pobieranie nowej wersji i sprawdzanie, czy się uruchamia"
 #: src/mainview/lib/copy.ts
 msgid "Restarting Upkeep"
 msgstr "Ponowne uruchamianie Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Then Upkeep installs the # ticked app."
+msgid_plural "Then Upkeep installs the # ticked apps."
+msgstr[0] "Potem Upkeep zainstaluje # zaznaczoną aplikację."
+msgstr[1] "Potem Upkeep zainstaluje # zaznaczone aplikacje."
+msgstr[2] "Potem Upkeep zainstaluje # zaznaczonych aplikacji."
+msgstr[3] "Potem Upkeep zainstaluje # zaznaczonej aplikacji."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for the system updates to finish."
+msgstr "Poczekaj, aż aktualizacje systemu się skończą."

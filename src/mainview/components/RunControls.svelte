@@ -8,9 +8,19 @@
 	let { model }: { model: Model } = $props();
 
 	const phase = $derived(model.run.phase);
-	const n = $derived(model.tickedApps.length);
+	// Ticked System rows count with the apps: one Install takes both.
+	const n = $derived(model.tickedApps.length + model.systemPicked.length);
+	const systemBusy = $derived(model.extras?.system.phase === "installing");
 	const why = $derived(
-		phase === "checking" ? TEXT.whyChecking : model.ready.length === 0 ? TEXT.whyNothing : n === 0 ? TEXT.whyTick : null,
+		phase === "checking"
+			? TEXT.whyChecking
+			: systemBusy
+				? TEXT.whySystem
+				: model.ready.length === 0 && model.systemCan.size === 0
+					? TEXT.whyNothing
+					: n === 0
+						? TEXT.whyTick
+						: null,
 	);
 
 	let root = $state<HTMLElement | null>(null);
@@ -68,10 +78,10 @@
 					class="btn"
 					class:primary={!model.adding}
 					data-testid="install"
-					disabled={n === 0 || phase === "checking" || model.starting}
+					disabled={n === 0 || phase === "checking" || systemBusy || model.starting || model.systemPlan !== null}
 					title={why ?? undefined}
 					aria-describedby={why ? "install-why" : undefined}
-					onclick={() => model.install()}>{installLabel(n)}</button
+					onclick={() => model.installTicked()}>{installLabel(n)}</button
 				>
 				{#if why}<span class="sr-only" id="install-why" data-testid="install-why">{why}</span>{/if}
 			{/if}

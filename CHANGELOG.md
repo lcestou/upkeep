@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Ticked System rows install from the footer's Install button with the ticked apps, instead of a separate button in the System group's header. The commands still show before anything runs; the system updates go first, then the apps.
 - Shift-click a tick box to tick or untick every row between it and the last one you clicked, as in a file manager: in the update list, the System group, Add app's scan results and Cleanup (its items, or the parts listed under one item).
 
 ## 0.1.6, 2026-11-17

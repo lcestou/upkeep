@@ -1047,6 +1047,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		install: ({ keys }) => {
 			if (run.phase === "checking") return { started: false, reason: "A check is running." };
+			// A System install holds the run lock, as in the engine.
+			if (extras.system.phase === "installing") return { started: false, reason: MESSAGES.reasonBusy() };
 			if (run.phase === "installing")
 				return running ? joinRun(running, keys) : { started: false, reason: "A run is already in progress." };
 			if (kept) return { started: false, reason: REASON_UNRECOVERED };

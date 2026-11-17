@@ -2053,16 +2053,6 @@ msgstr "Installs with every Cinnamon extension that has an update."
 msgid "Installs with every Cinnamon theme that has an update."
 msgstr "Installs with every Cinnamon theme that has an update."
 
-#: src/mainview/lib/copy.ts
-msgid "Install system updates"
-msgstr "Install system updates"
-
-#: src/mainview/lib/copy.ts
-msgid "Install # system update"
-msgid_plural "Install # system updates"
-msgstr[0] "Install # system update"
-msgstr[1] "Install # system updates"
-
 #. 0: done; 1: all
 #: src/mainview/lib/copy.ts
 msgid "Installed {0} of {1}."
@@ -2706,3 +2696,13 @@ msgstr "Downloading the new version and testing that it starts"
 #: src/mainview/lib/copy.ts
 msgid "Restarting Upkeep"
 msgstr "Restarting Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Then Upkeep installs the # ticked app."
+msgid_plural "Then Upkeep installs the # ticked apps."
+msgstr[0] "Then Upkeep installs the # ticked app."
+msgstr[1] "Then Upkeep installs the # ticked apps."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for the system updates to finish."
+msgstr "Wait for the system updates to finish."
