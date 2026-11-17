@@ -288,6 +288,22 @@ test("an app something else already updates says so on its card, and Add still w
 	await expect(page.getByTestId("sug-add")).toBeEnabled();
 });
 
+test("a Shift-click in the scan list ticks every row since the last one clicked", async ({ page }) => {
+	await load(page, "fixture&scan=also");
+	await page.getByTestId("add-app").first().click();
+	await page.getByTestId("add-scan").click();
+	await expect(page.getByTestId("scan-tick-btop")).toBeVisible();
+	await page.getByTestId("scan-none").click();
+	const ticks = page.locator('[data-testid^="scan-tick-"]');
+	const n = await ticks.count();
+	expect(n).toBeGreaterThan(2);
+	await ticks.first().click();
+	await ticks.last().click({ modifiers: ["Shift"] });
+	for (let i = 0; i < n; i++) await expect(ticks.nth(i)).toBeChecked();
+	await expect(page.getByTestId("scan-add")).toHaveText(`Add ${n} apps`);
+	expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
+});
+
 test("a scanned app that is also a Flatpak says so and starts unticked; the others are ticked", async ({ page }) => {
 	await load(page, "fixture&scan=also");
 	await page.getByTestId("add-app").first().click();

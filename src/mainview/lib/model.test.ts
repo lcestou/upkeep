@@ -38,6 +38,18 @@ describe("first load", () => {
 		expect(m.tickedBytes).toBeNull();
 	});
 
+	test("a Shift-click ticks or unticks every ready app listed since the last one clicked", async () => {
+		const m = await started();
+		// Ready to install lists Cursor, fd, wrangler, Zen Browser.
+		m.toggle("cursor");
+		m.toggle("wrangler", true);
+		expect([...m.ticked].toSorted()).toEqual(["zen"]);
+		// Upward too: the clicked row's new tick spreads back to fd.
+		m.toggle("fd");
+		m.toggle("cursor", true);
+		expect([...m.ticked].toSorted()).toEqual(["cursor", "fd", "zen"]);
+	});
+
 	test("groups in plan order with Ready to install first, each alphabetical by name whatever the list order", async () => {
 		const m = await started();
 		expect(m.groups.map((g) => g.label)).toEqual(["Ready to install", "By hand", "Needs a look", "Fresh"]);

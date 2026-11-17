@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Shift-click a tick box to tick or untick every row between it and the last one you clicked, as in a file manager: in the update list, the System group, Add app's scan results and Cleanup (its items, or the parts listed under one item).
+
 ## 0.1.6, 2026-11-17
 
 - One command installs Upkeep: `curl -fsSL https://raw.githubusercontent.com/lcestou/upkeep/main/install.sh | sh` downloads the latest release's installer for the machine and runs it.

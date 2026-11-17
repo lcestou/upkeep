@@ -16,6 +16,7 @@
 	} from "../lib/copy";
 	import { say } from "../lib/engine-say";
 	import { formatBytes, relativeTime } from "../lib/format";
+	import { rangeClicks } from "../lib/range";
 	import type { Model } from "../lib/model.svelte";
 	import Glyph from "./Glyph.svelte";
 
@@ -42,11 +43,23 @@
 	const keyOf = (id: string, part: string) => `${id}\n${part}`;
 	/** A part's tick: the person's, else the engine's default for it. */
 	const isTicked = (it: CleanupItem, p: CleanupItem["parts"][number]) => own.get(keyOf(it.id, p.id)) ?? p.ticked;
-	/** Sets the ticks of these parts in one new map, since a mutation of plain state would not notify. */
-	function setTicks(it: CleanupItem, partIds: string[], on: boolean) {
+	/** Sets these tick-map keys in one new map, since a mutation of plain state would not notify. */
+	function setKeys(keys: string[], on: boolean) {
 		const next = new Map(own);
-		for (const id of partIds) next.set(keyOf(it.id, id), on);
+		for (const k of keys) next.set(k, on);
 		ticks = { at: cl?.measuredAt ?? null, on: next };
+	}
+	const itemSpan = rangeClicks();
+	const partSpan = rangeClicks();
+	/** Ticks or unticks every part of an item, or with `range` (a Shift-click) of every item listed since the last one clicked. */
+	function tickItems(it: CleanupItem, on: boolean, range: boolean) {
+		const listed = GROUPS.flatMap((g) => (g === "shown" ? [] : items.filter((x) => x.group === g)));
+		const span = new Set(itemSpan(listed.map((x) => x.id), it.id, range));
+		setKeys(listed.filter((x) => span.has(x.id)).flatMap((x) => x.parts.map((p) => keyOf(x.id, p.id))), on);
+	}
+	/** Ticks or unticks one part, or with `range` every part of the same item since the last one clicked. */
+	function tickParts(it: CleanupItem, partId: string, on: boolean, range: boolean) {
+		setKeys(partSpan(it.parts.map((p) => keyOf(it.id, p.id)), keyOf(it.id, partId), range), on);
 	}
 
 	const picks: CleanupPick[] = $derived(
@@ -220,12 +233,7 @@
 									checked={on === it.parts.length}
 									indeterminate={on > 0 && on < it.parts.length}
 									data-testid="cleanup-tick-{it.id}"
-									onchange={(e) =>
-										setTicks(
-											it,
-											it.parts.map((p) => p.id),
-											e.currentTarget.checked,
-										)}
+									onclick={(e) => tickItems(it, e.currentTarget.checked, e.shiftKey)}
 								/>
 							{/if}
 							<span class="name">{CLEAN.name[it.id]}</span>
@@ -244,7 +252,7 @@
 											<input
 												type="checkbox"
 												checked={isTicked(it, p)}
-												onchange={(e) => setTicks(it, [p.id], e.currentTarget.checked)}
+												onclick={(e) => tickParts(it, p.id, e.currentTarget.checked, e.shiftKey)}
 											/>
 											<span class="mono plabel">{p.label}</span>
 											<span class="mono psize">{formatBytes(p.bytes)}</span>

@@ -4,6 +4,7 @@
 	import { ADD, TEXT, aboutManifest, addApps, addedMany, addedOne, foundApps } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
 	import { tick } from "svelte";
+	import { rangeClicks } from "../lib/range";
 	import SuggestionCard from "./SuggestionCard.svelte";
 
 	let { model, onclose }: { model: Model; onclose: () => void } = $props();
@@ -164,11 +165,19 @@
 	/** Shortens a home-folder path to `~` for display only. shortcut: assumes the Linux /home/<user> layout; upgrade when the bridge reports the home dir. */
 	const tilde = (path: string) => path.replace(/^\/home\/[^/]+(?=\/)/, "~");
 
-	/** Flips one scan row's tick by building a new set, since `scanTicks` is raw state that only reacts to reassignment. */
-	function toggleTick(key: string) {
+	const span = rangeClicks();
+	/**
+	 * Flips one scan row's tick, or with `range` (a Shift-click) gives every tickable row since the last one clicked
+	 * that row's new tick. Builds a new set, since `scanTicks` is raw state that only reacts to reassignment.
+	 */
+	function toggleTick(key: string, range: boolean) {
+		const on = !scanTicks.has(key);
+		const ids = (scanned ?? []).filter((x) => !x.problem).map((x) => x.spec.key);
 		const next = new Set(scanTicks);
-		if (next.has(key)) next.delete(key);
-		else next.add(key);
+		for (const one of span(ids, key, range)) {
+			if (on) next.add(one);
+			else next.delete(one);
+		}
 		scanTicks = next;
 	}
 
@@ -266,7 +275,7 @@
 										checked={scanTicks.has(s.spec.key)}
 										aria-label={file}
 										data-testid="scan-tick-{s.spec.key}"
-										onchange={() => toggleTick(s.spec.key)}
+										onclick={(e) => toggleTick(s.spec.key, e.shiftKey)}
 									/>
 								{/if}
 							</span>

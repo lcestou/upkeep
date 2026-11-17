@@ -225,11 +225,12 @@ const OBSIDIAN_ALSO =
 /** Four files with no source found (the common case on a real box) and two sure ones. */
 export function scanResults(onlyUnknown = false, also = false): Suggestion[] {
 	if (onlyUnknown) return [unknown("/home/owner/.local/bin/mytool"), unknown("/home/owner/bin/backup-sync")];
-	// Obsidian is also a Flatpak here: its row says so and starts unticked.
+	// Obsidian is also a Flatpak here: its row says so and starts unticked. Three tickable rows, for a Shift-click range.
 	if (also)
 		return [
 			{ ...fromFile("/home/owner/Applications/Obsidian-1.9.4.AppImage"), source: "scan", also: [OBSIDIAN_ALSO] },
 			btop(),
+			{ ...glow(), source: "scan", path: "/home/owner/.local/bin/glow" },
 		];
 	return [
 		{ ...fromFile("/home/owner/Applications/Obsidian-1.9.4.AppImage"), source: "scan" },

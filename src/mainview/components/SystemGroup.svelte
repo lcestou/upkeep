@@ -13,6 +13,7 @@
 	import { say } from "../lib/engine-say";
 	import { relativeTime } from "../lib/format";
 	import { tick } from "svelte";
+	import { rangeClicks } from "../lib/range";
 	import type { Model } from "../lib/model.svelte";
 	import Glyph from "./Glyph.svelte";
 	import SystemRow from "./SystemRow.svelte";
@@ -72,11 +73,18 @@
 	// Nothing is ticked until the person ticks it; a tick on a row that left the list or became uninstallable drops.
 	let ticked = $state<ReadonlySet<string>>(new Set());
 	const picked = $derived((sys?.rows ?? []).filter((r) => ticked.has(r.id) && can.has(r.id)).map((r) => r.id));
-	/** Swaps in a new set, because the ticked set is plain state and a mutation would not notify. */
-	function setTick(id: string, on: boolean) {
+	const span = rangeClicks();
+	/**
+	 * Ticks or unticks one row, or with `range` (a Shift-click) every tickable row shown since the last one clicked.
+	 * Swaps in a new set, because the ticked set is plain state and a mutation would not notify.
+	 */
+	function setTick(id: string, on: boolean, range: boolean) {
+		const ids = rows.filter((r) => can.has(r.id)).map((r) => r.id);
 		const next = new Set(ticked);
-		if (on) next.add(id);
-		else next.delete(id);
+		for (const one of span(ids, id, range)) {
+			if (on) next.add(one);
+			else next.delete(one);
+		}
 		ticked = next;
 	}
 	// The commands the person reads before anything runs; null while not asking.
@@ -223,7 +231,7 @@
 					can={installOn && can.has(row.id)}
 					ticked={ticked.has(row.id) || outcomes.has(row.id)}
 					locked={installing}
-					onTick={(on) => setTick(row.id, on)}
+					onTick={(on, range) => setTick(row.id, on, range)}
 					outcome={outcomes.get(row.id) ?? null}
 					note={can.has(row.id) ? null : toolNote}
 				/>
