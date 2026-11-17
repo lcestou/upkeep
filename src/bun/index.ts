@@ -12,6 +12,8 @@ import { syncCommand } from "./command";
 import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
 import { dropStrayIcuData } from "./icu";
+import { kreadconfig, lightPanel } from "./panel";
+import { createRaiser, openX11 } from "./raise";
 import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/languages";
 import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
@@ -70,11 +72,19 @@ let builtFrame = "";
 const sizeFile = join(deps.paths.state, "window.json");
 let sizeTimer: ReturnType<typeof setTimeout> | null = null;
 
+const raise = createRaiser(openX11());
+
+/** Raises the window as a pager would, trying every 50 ms while a window just shown is not yet managed. */
+function raiseSoon(tries: number): void {
+	if (!raise(process.pid) && tries > 1) setTimeout(() => raiseSoon(tries - 1), 50);
+}
+
 /** `tab` opens the view on that tab: a window rebuilt from Settings comes back on Settings. */
 function openWindow(tab = ""): void {
 	if (win) {
 		win.show();
 		win.activate();
+		raiseSoon(10);
 		return;
 	}
 	const now = chrome();
@@ -358,7 +368,15 @@ if (selftest) {
 	await new Promise<never>(() => {});
 }
 
-const tray = new Tray({ title: "Upkeep", image: "views://tray/idle.png", template: false, width: 22, height: 22 });
+// Read once at start. shortcut: a panel switched between light and dark keeps the old pictures until Upkeep restarts.
+const trayTone = lightPanel(process.env, kreadconfig) ? "-dark" : "";
+const tray = new Tray({
+	title: "Upkeep",
+	image: `views://tray/idle${trayTone}.png`,
+	template: false,
+	width: 22,
+	height: 22,
+});
 let shownIcon = "";
 let shownTitle = "";
 let shownMenu = "";
@@ -375,7 +393,7 @@ function refreshTray(): void {
 	const icon = trayIcon(snapshot);
 	if (icon !== shownIcon) {
 		shownIcon = icon;
-		tray.setImage(`views://tray/${icon}.png`);
+		tray.setImage(`views://tray/${icon}${trayTone}.png`);
 	}
 	const title = trayTitle(snapshot, code);
 	if (title !== shownTitle) {
