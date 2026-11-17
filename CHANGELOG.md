@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- On a 1x screen the tray icon is drawn from its 22 px masters, crisp, instead of the 2x picture scaled down. A 2x screen keeps the 2x picture.
 - On KDE Plasma, Upkeep's own window buttons sit where Plasma's title bars have theirs (read from KWin's settings), not on GNOME's default side.
 - On a light Xfce panel (Debian's default) the tray icon is drawn dark; Xubuntu's dark panel keeps the light one. On Plasma and Xfce, switching between a light and a dark theme redraws the tray icon within a minute, with no restart.
 - With "Install system updates from Upkeep" on, Fedora's dnf and openSUSE's zypper packages install from the System group too, as apt's do: exactly the ticked packages, never a kernel or the NVIDIA driver, after the tool's own trial run shows nothing would be removed. Arch's pacman rows stay read-only, since Arch supports no partial upgrade.

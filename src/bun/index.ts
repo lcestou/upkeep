@@ -1,6 +1,6 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import Electrobun, { BrowserWindow, Tray, Updater, Utils } from "electrobun/main";
+import Electrobun, { BrowserWindow, Screen, Tray, Updater, Utils } from "electrobun/main";
 import pkg from "../../package.json";
 import { createEngine } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
@@ -377,9 +377,14 @@ if (selftest) {
 /** "-dark" for the tray's dark pictures on a light panel (panel.ts), "" for the light ones. */
 const toneNow = () => (panelIsLight(process.env) ? "-dark" : "");
 let trayTone = toneNow();
+// The 22 px pictures on a 1x screen, where the 44 px ones scaled down go soft; a 2x or fractional screen keeps the 44 px
+// ones. Read once at start, from the primary display as GTK sees it.
+const traySize = Screen.getPrimaryDisplay().scaleFactor <= 1 ? "-22" : "";
+/** The tray picture for an icon state, in the panel's tone and the screen's size. */
+const trayImage = (icon: string) => `views://tray/${icon}${trayTone}${traySize}.png`;
 const tray = new Tray({
 	title: "Upkeep",
-	image: `views://tray/idle${trayTone}.png`,
+	image: trayImage("idle"),
 	template: false,
 	width: 22,
 	height: 22,
@@ -395,7 +400,7 @@ if (onPlasma(process.env) || onXfce(process.env))
 		const tone = toneNow();
 		if (tone === trayTone) return;
 		trayTone = tone;
-		if (shownIcon) tray.setImage(`views://tray/${shownIcon}${trayTone}.png`);
+		if (shownIcon) tray.setImage(trayImage(shownIcon));
 	}, 60_000);
 
 /** The tray's and the notifications' language: the setting, or for "system" the desktop's from the environment. */
@@ -410,7 +415,7 @@ function refreshTray(): void {
 	const icon = trayIcon(snapshot);
 	if (icon !== shownIcon) {
 		shownIcon = icon;
-		tray.setImage(`views://tray/${icon}${trayTone}.png`);
+		tray.setImage(trayImage(icon));
 	}
 	const title = trayTitle(snapshot, code);
 	if (title !== shownTitle) {
