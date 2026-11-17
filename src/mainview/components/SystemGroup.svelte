@@ -13,6 +13,7 @@
 	import { say } from "../lib/engine-say";
 	import { relativeTime } from "../lib/format";
 	import { tick } from "svelte";
+	import { rangeClicks } from "../lib/range";
 	import type { Model } from "../lib/model.svelte";
 	import Glyph from "./Glyph.svelte";
 	import SystemRow from "./SystemRow.svelte";
@@ -72,25 +73,19 @@
 	// Nothing is ticked until the person ticks it; a tick on a row that left the list or became uninstallable drops.
 	let ticked = $state<ReadonlySet<string>>(new Set());
 	const picked = $derived((sys?.rows ?? []).filter((r) => ticked.has(r.id) && can.has(r.id)).map((r) => r.id));
-	// The row last ticked or unticked; a Shift-click reaches back to it. Not state: nothing draws it.
-	let anchor: string | null = null;
+	const span = rangeClicks();
 	/**
-	 * Ticks or unticks one row, or with `range` every tickable row shown between the last clicked one and this,
-	 * as a file manager does. With no earlier click, or one whose row has left the list, a Shift-click ticks one row.
+	 * Ticks or unticks one row, or with `range` (a Shift-click) every tickable row shown since the last one clicked.
 	 * Swaps in a new set, because the ticked set is plain state and a mutation would not notify.
 	 */
 	function setTick(id: string, on: boolean, range: boolean) {
 		const ids = rows.filter((r) => can.has(r.id)).map((r) => r.id);
-		const from = range && anchor !== null ? ids.indexOf(anchor) : -1;
-		const to = ids.indexOf(id);
-		const span = from >= 0 && to >= 0 ? ids.slice(Math.min(from, to), Math.max(from, to) + 1) : [id];
 		const next = new Set(ticked);
-		for (const one of span) {
+		for (const one of span(ids, id, range)) {
 			if (on) next.add(one);
 			else next.delete(one);
 		}
 		ticked = next;
-		anchor = id;
 	}
 	// The commands the person reads before anything runs; null while not asking.
 	let plan = $state.raw<{ ids: string[]; commands: string[][] } | null>(null);

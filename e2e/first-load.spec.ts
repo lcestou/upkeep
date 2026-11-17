@@ -11,6 +11,21 @@ test("first load shows Install 4 updates with the four ready apps ticked", async
 	await expect(page.getByTestId("checked")).toHaveText("Checked 2 minutes ago");
 });
 
+test("a Shift-click ticks or unticks every ready app since the last one clicked", async ({ page }) => {
+	await load(page);
+	// Ready to install lists Cursor, fd, wrangler, Zen Browser.
+	await page.getByTestId("tick-cursor").click();
+	await page.getByTestId("tick-wrangler").click({ modifiers: ["Shift"] });
+	for (const key of ["cursor", "fd", "wrangler"]) await expect(page.getByTestId(`tick-${key}`)).not.toBeChecked();
+	await expect(page.getByTestId("tick-zen")).toBeChecked();
+	await page.getByTestId("tick-fd").click();
+	await page.getByTestId("tick-cursor").click({ modifiers: ["Shift"] });
+	for (const key of ["cursor", "fd", "zen"]) await expect(page.getByTestId(`tick-${key}`)).toBeChecked();
+	await expect(page.getByTestId("tick-wrangler")).not.toBeChecked();
+	await expect(page.getByTestId("install")).toHaveText("Install 3 updates");
+	expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
+});
+
 test("Fresh is collapsed on first load and opens in place", async ({ page }) => {
 	await load(page);
 	const fold = page.getByTestId("group-fresh-toggle");

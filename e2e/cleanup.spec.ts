@@ -38,6 +38,33 @@ test("the Cleanup tab is absent until switched on, and sits between History and 
 	await expect(page.getByTestId("tab-cleanup")).toHaveCount(0);
 });
 
+test("a Shift-click ticks or unticks every item, or every part of one item, since the last one clicked", async ({
+	page,
+}) => {
+	await openCleanup(page);
+	const tick = (id: string) => page.getByTestId(`cleanup-tick-${id}`);
+	// Safe to clear lists thumbnails, leftovers, apt-cache, flatpak-gl; Your call lists restore-points, autoremove.
+	await tick("thumbnails").click();
+	await tick("flatpak-gl").click({ modifiers: ["Shift"] });
+	for (const id of ["thumbnails", "leftovers", "apt-cache", "flatpak-gl"]) await expect(tick(id)).not.toBeChecked();
+	await expect(page.getByTestId("cleanup-part-leftovers-0").getByRole("checkbox")).not.toBeChecked();
+	// Across the two groups, upward.
+	await tick("restore-points").click();
+	await tick("leftovers").click({ modifiers: ["Shift"] });
+	for (const id of ["leftovers", "apt-cache", "flatpak-gl", "restore-points"]) await expect(tick(id)).toBeChecked();
+	await expect(tick("thumbnails")).not.toBeChecked();
+	await expect(tick("autoremove")).not.toBeChecked();
+	// Parts range within their own item.
+	await page.getByTestId("cleanup-part-restore-points-0").getByRole("checkbox").click();
+	await page
+		.getByTestId("cleanup-part-restore-points-1")
+		.getByRole("checkbox")
+		.click({ modifiers: ["Shift"] });
+	await expect(tick("restore-points")).not.toBeChecked();
+	await expect(page.getByTestId("cleanup-part-leftovers-1").getByRole("checkbox")).toBeChecked();
+	expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
+});
+
 test("items read their size, what they are and their badges; a show-only row has no tick", async ({ page }) => {
 	await openCleanup(page);
 	await expect(page.getByTestId("cleanup-group-safe")).toHaveText("Safe to clear");

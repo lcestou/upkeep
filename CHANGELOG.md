@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- In the System group, Shift-click a tick box to tick or untick every row between it and the last one you clicked, as in a file manager.
+- Shift-click a tick box to tick or untick every row between it and the last one you clicked, as in a file manager: in the update list, the System group, Add app's scan results and Cleanup (its items, or the parts listed under one item).
 
 ## 0.1.6, 2026-11-17
 

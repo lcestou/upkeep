@@ -16,6 +16,7 @@ import type {
 	WindowChrome,
 } from "../../shared/types";
 import { followSetting } from "./language.svelte";
+import { rangeClicks } from "./range";
 import { GROUP_LABEL, type GroupId, stateSentence } from "./copy";
 
 export type View = "updates" | "history" | "cleanup" | "settings";
@@ -370,15 +371,27 @@ export class Model {
 		this.ticked = next;
 	}
 
-	/** Flips the tick of a ready app. Any other status is ignored, so a row that cannot be installed never gets ticked. */
-	toggle(key: string): void {
+	#span = rangeClicks();
+	/**
+	 * Flips the tick of a ready app. Any other status is ignored, so a row that cannot be installed never gets ticked.
+	 * With `range` (a Shift-click) every ready app listed between the last one clicked and this one takes its new
+	 * tick, in the order the window lists them. During a run a Shift-click joins only the app clicked.
+	 */
+	toggle(key: string, range = false): void {
 		if (this.apps.find((a) => a.key === key)?.status !== "ready") return;
 		// During a run a tick is a request to join it, as in a download manager; the row turns Queued.
 		if (this.run.phase === "installing") {
 			if (!this.run.stopping) void this.#join(key);
 			return;
 		}
-		this.#tick(key, !this.ticked.has(key));
+		const on = !this.ticked.has(key);
+		const ids = this.groups.flatMap((g) => g.apps.filter((a) => a.status === "ready").map((a) => a.key));
+		const next = new Set(this.ticked);
+		for (const one of this.#span(ids, key, range)) {
+			if (on) next.add(one);
+			else next.delete(one);
+		}
+		this.ticked = next;
 	}
 
 	/** Ready apps the filter shows; Select all, Select none and the header tick act on these. */
