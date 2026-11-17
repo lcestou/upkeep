@@ -100,7 +100,7 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 			return {
 				...base,
 				rows: [
-					...APT_ROWS.map((r): SystemRow => ({ ...r, id: `dnf:${r.name}`, source: "dnf", note: undefined })),
+					...APT_ROWS.map((r): SystemRow => ({ ...r, id: `dnf:${r.name}.x86_64`, source: "dnf", note: undefined })),
 					...FLATPAK_ROWS,
 				],
 				packages: "dnf",

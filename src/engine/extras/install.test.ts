@@ -762,6 +762,10 @@ test("pacman rows, and kernel or NVIDIA rpm packages, are never installable", ()
 	expect(dnfNames(FEDORA_TRIAL, /^Upgrading/)).toEqual(["curl", "libcurl", "tzdata"]);
 	// A replacing line under an upgrade is the package's own old version, not a removal.
 	expect(dnfReplaced(FEDORA_TRIAL)).toEqual([]);
+	// The same with a name dnf wraps onto a line of its own.
+	const wrapped =
+		"Upgrading:\n some-very-long-package-name-for-fedora\n                     noarch 0:2-1.fc45 updates 1 KiB\n   replacing some-very-long-package-name-for-fedora noarch 0:1-1.fc45 @System 1 KiB\n";
+	expect(dnfReplaced(wrapped)).toEqual([]);
 	// The trials run in the C locale, since their headings are read.
 	expect(dnfTrialArgv(["a"]).slice(0, 5)).toEqual(["sudo", "-n", "env", "LC_ALL=C", "dnf"]);
 	expect(zypperTrialArgv(["a"]).slice(0, 5)).toEqual(["sudo", "-n", "env", "LC_ALL=C", "zypper"]);

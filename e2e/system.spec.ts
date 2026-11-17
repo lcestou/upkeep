@@ -316,15 +316,15 @@ test("with dnf, package rows tick and install through dnf upgrade, never a kerne
 	await page.getByTestId("setting-system-install").check();
 	await page.getByTestId("tab-updates").click();
 	await openGroup(page);
-	await expect(page.getByTestId("sys-row-dnf:perl").getByTestId("sys-note")).toHaveCount(0);
-	await page.getByTestId("sys-tick-dnf:perl").check();
-	await expect(page.getByTestId("sys-tick-dnf:linux-generic")).toHaveCount(0);
-	await expect(page.getByTestId("sys-row-dnf:linux-generic").getByTestId("sys-note")).toHaveText(
+	await expect(page.getByTestId("sys-row-dnf:perl.x86_64").getByTestId("sys-note")).toHaveCount(0);
+	await page.getByTestId("sys-tick-dnf:perl.x86_64").check();
+	await expect(page.getByTestId("sys-tick-dnf:linux-generic.x86_64")).toHaveCount(0);
+	await expect(page.getByTestId("sys-row-dnf:linux-generic.x86_64").getByTestId("sys-note")).toHaveText(
 		"Install it with dnf.",
 	);
 	await page.getByTestId("system-install").click();
 	await expect(page.getByTestId("system-command")).toContainText([
-		"sudo -n dnf upgrade -y --exclude=kernel* --exclude=*nvidia* perl",
+		"sudo -n dnf upgrade -y --exclude=kernel* --exclude=*nvidia* perl.x86_64",
 	]);
 });
 

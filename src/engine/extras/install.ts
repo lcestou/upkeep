@@ -406,7 +406,8 @@ export function dnfReplaced(stdout: string): string[] {
 	const gone: string[] = [];
 	let parent = "";
 	for (const l of stdout.split("\n")) {
-		const pkg = /^ (\S+)\s/.exec(l);
+		// A name too long for its column stands alone on its line, its version on the next.
+		const pkg = /^ (\S+)(\s|$)/.exec(l);
 		if (pkg) parent = pkg[1] ?? "";
 		const replaced = /^\s+replacing\s+(\S+)/.exec(l)?.[1];
 		if (replaced && replaced !== parent) gone.push(replaced);
