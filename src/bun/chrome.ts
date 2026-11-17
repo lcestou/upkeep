@@ -31,6 +31,28 @@ export function parseButtonLayout(raw: string): SystemLayout {
 	return DEFAULT_LAYOUT;
 }
 
+// KWin's title-bar letters for the buttons Upkeep draws; the others (menu, on all desktops, help, keep above...) drop.
+const KDE_BUTTONS = new Map<string, WindowButton>([
+	["I", "minimize"],
+	["A", "maximize"],
+	["X", "close"],
+]);
+
+/** The button names for a run of KWin's letters, in their order, joined as gsettings joins them. */
+const kdeNames = (letters: string) =>
+	[...letters]
+		.map((c) => KDE_BUTTONS.get(c))
+		.filter((b) => b !== undefined)
+		.join(",");
+
+/**
+ * KWin's ButtonsOnLeft and ButtonsOnRight (kwinrc, group org.kde.kdecoration2) as the "left:right" layout
+ * parseButtonLayout reads. Unset, each is KWin's own default: "MS" on the left, "HIAX" on the right.
+ */
+export function kdeButtonLayout(left: string | null, right: string | null): string {
+	return `${kdeNames(left ?? "MS")}:${kdeNames(right ?? "HIAX")}`;
+}
+
 /** The same buttons mirrored for the other side: close stays nearest the window's edge. */
 function mirrored(order: WindowButton[]): WindowButton[] {
 	return order.toReversed();

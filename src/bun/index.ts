@@ -9,10 +9,10 @@ import { loadState, updateState } from "../engine/store";
 import type { EngineEvent, RunPhase, WindowButton, WindowChrome } from "../shared/types";
 import { syncAutostart, syncMenuExec } from "./autostart";
 import { syncCommand } from "./command";
-import { parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
+import { kdeButtonLayout, parseButtonLayout, type SystemLayout, windowChrome } from "./chrome";
 import { createCoalescer } from "./coalesce";
 import { dropStrayIcuData } from "./icu";
-import { kreadconfig, lightPanel } from "./panel";
+import { kreadconfig, lightPanel, onPlasma, onXfce, themeHasDark, xfceLightPanel, xfconfQuery } from "./panel";
 import { createRaiser, openX11 } from "./raise";
 import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/languages";
 import { isDevBuild, playDevScript } from "./dev-script";
@@ -132,8 +132,18 @@ function openWindow(tab = ""): void {
 	});
 }
 
-/** The desktop's own button layout, read once: the built-in frame puts its buttons where the owner expects them. */
+/**
+ * The desktop's own button layout, read once: the built-in frame puts its buttons where the owner expects them. Plasma
+ * keeps its own in kwinrc; a GNOME schema installed beside it would only give GNOME's default there.
+ */
 function readSystemLayout(): SystemLayout {
+	if (onPlasma(process.env))
+		return parseButtonLayout(
+			kdeButtonLayout(
+				kreadconfig("kwinrc", "org.kde.kdecoration2", "ButtonsOnLeft"),
+				kreadconfig("kwinrc", "org.kde.kdecoration2", "ButtonsOnRight"),
+			),
+		);
 	for (const schema of ["org.cinnamon.desktop.wm.preferences", "org.gnome.desktop.wm.preferences"]) {
 		try {
 			const out = Bun.spawnSync(["gsettings", "get", schema, "button-layout"], { stdin: "ignore", stderr: "ignore" });
@@ -370,8 +380,16 @@ if (selftest) {
 	await new Promise<never>(() => {});
 }
 
-// Read once at start. shortcut: a panel switched between light and dark keeps the old pictures until Upkeep restarts.
-const trayTone = lightPanel(process.env, kreadconfig) ? "-dark" : "";
+/** "-dark" for the tray's dark pictures on a light panel (panel.ts), "" for the light ones. */
+const toneNow = () =>
+	lightPanel(process.env, kreadconfig) ||
+	(onXfce(process.env) &&
+		xfceLightPanel(xfconfQuery("xsettings", "/Net/ThemeName"), xfconfQuery("xfce4-panel", "/panels/dark-mode"), (t) =>
+			themeHasDark(process.env, t),
+		))
+		? "-dark"
+		: "";
+let trayTone = toneNow();
 const tray = new Tray({
 	title: "Upkeep",
 	image: `views://tray/idle${trayTone}.png`,
@@ -382,6 +400,15 @@ const tray = new Tray({
 let shownIcon = "";
 let shownTitle = "";
 let shownMenu = "";
+// Plasma and Xfce switch between light and dark without a restart: their colours are read again each minute, and the
+// icon redrawn when they flip. Other desktops keep the light pictures, so nothing is read there.
+if (onPlasma(process.env) || onXfce(process.env))
+	setInterval(() => {
+		const tone = toneNow();
+		if (tone === trayTone) return;
+		trayTone = tone;
+		if (shownIcon) tray.setImage(`views://tray/${shownIcon}${trayTone}.png`);
+	}, 60_000);
 
 /** The tray's and the notifications' language: the setting, or for "system" the desktop's from the environment. */
 function trayLanguage(): LanguageCode {
