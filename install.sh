@@ -24,19 +24,21 @@ main() {
 
 	url="https://github.com/lcestou/upkeep/releases/latest/download/linux-$arch-Upkeep-Setup.tar.gz"
 	tmp=$(mktemp -d)
-	trap 'rm -rf "$tmp"' EXIT INT TERM
+	trap 'rm -rf "$tmp"' EXIT
+	# A signal ends the script, and the EXIT trap then cleans up.
+	trap 'exit 1' INT TERM
 
 	echo "Downloading $url"
 	if command -v curl >/dev/null 2>&1; then
 		curl -fL --progress-bar "$url" -o "$tmp/setup.tar.gz" || fail "the download failed."
 	elif command -v wget >/dev/null 2>&1; then
-		wget -q --show-progress "$url" -O "$tmp/setup.tar.gz" || fail "the download failed."
+		wget -q "$url" -O "$tmp/setup.tar.gz" || fail "the download failed."
 	else
 		fail "neither curl nor wget is installed."
 	fi
 
 	tar -xzf "$tmp/setup.tar.gz" -C "$tmp" || fail "the download is not a readable archive."
-	[ -x "$tmp/installer" ] || fail "the archive holds no installer."
+	[ -f "$tmp/installer" ] && [ -x "$tmp/installer" ] || fail "the archive holds no installer."
 	(cd "$tmp" && ./installer </dev/null) || fail "the installer stopped. Its output is above."
 	echo "Upkeep is installed. Open it from your app menu."
 }
