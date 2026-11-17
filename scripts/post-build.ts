@@ -4,16 +4,25 @@
 // code runs, so on a system without it (Fedora Workstation, Silverblue, Bazzite) Upkeep would not start at all. The
 // launcher's LD_LIBRARY_PATH is its own bin folder, which is why they go there and not in the app's resources. Copy
 // targets outside the app's resources are refused by the build, hence a hook.
-import { copyFileSync, existsSync, readdirSync } from "node:fs";
+import { copyFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const buildDir = process.env.ELECTROBUN_BUILD_DIR ?? "";
-const arch = process.env.ELECTROBUN_ARCH === "arm64" ? "arm64" : "x64";
-const libs = join(import.meta.dir, "../vendor/tray-libs", `linux-${arch}`);
+// ELF e_machine, at byte 18: the launcher's own architecture picks the libraries, so a build never gets the other's.
+const MACHINES = new Map([
+	[0x3e, "x64"],
+	[0xb7, "arm64"],
+]);
 // The app folder is the one holding the launcher: Upkeep, or Upkeep-dev for a dev build.
 const bins = readdirSync(buildDir)
 	.map((d) => join(buildDir, d, "bin"))
 	.filter((b) => existsSync(join(b, "launcher")));
 if (bins.length === 0) throw new Error(`post-build: no app folder with bin/launcher in ${buildDir}`);
-for (const bin of bins) for (const lib of readdirSync(libs)) copyFileSync(join(libs, lib), join(bin, lib));
-console.log(`post-build: tray libraries (${arch}) copied to ${bins.join(", ")}`);
+for (const bin of bins) {
+	const machine = readFileSync(join(bin, "launcher")).readUInt16LE(18);
+	const arch = MACHINES.get(machine);
+	if (!arch) throw new Error(`post-build: launcher machine 0x${machine.toString(16)} has no tray libraries`);
+	const libs = join(import.meta.dir, "../vendor/tray-libs", `linux-${arch}`);
+	for (const lib of readdirSync(libs)) copyFileSync(join(libs, lib), join(bin, lib));
+	console.log(`post-build: tray libraries (${arch}) copied to ${bin}`);
+}

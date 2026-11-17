@@ -997,7 +997,7 @@ test("an .rpm is offered only where rpm is, and wins over a .deb when only rpm i
 		],
 	};
 	onPath = { rpm: "/usr/bin/rpm" };
-	expect((await suggest("o/both", ctx().c)).suggestions.map((x) => x.spec.kind)).toContain("rpm");
+	expect((await suggest("o/both", ctx().c)).suggestions[0]?.spec.kind).toBe("rpm");
 	onPath = { dpkg: "/usr/bin/dpkg" };
 	expect((await suggest("o/both", ctx().c)).suggestions[0]?.spec.kind).toBe("deb");
 	// A Debian system with the rpm tool installed still takes the .deb, and an .rpm-only release runs nothing there.
@@ -1145,6 +1145,13 @@ test("a catalogue table for a .deb, on a machine that takes no .deb, gives the s
 	expect(s?.asset?.name).toBe("pkgapp-2.0-x86_64.AppImage");
 	usrMount = "rw,relatime\n";
 	expect((await suggest("pkgapp", { ...ctx().c, catalogue: [entry] })).suggestions[0]?.spec.kind).toBe("appimage");
+	// A machine that takes the .deb keeps the table's own answer when its pattern matches nothing: no quiet swap.
+	onPath = { dpkg: "/usr/bin/dpkg" };
+	const renamed = { ...entry, asset: "amd64-v3\\.deb$" };
+	expect((await suggest("pkgapp", { ...ctx().c, catalogue: [renamed] })).problem).toBe(
+		"No release asset matches amd64-v3\\.deb$.",
+	);
+	onPath = { rpm: "/usr/bin/rpm" };
 	// A release of only the .deb still says nothing runs here.
 	releases["o/pkgapp"] = { tag_name: "v2.0", assets: [{ name: "pkgapp-2.0-x86_64.deb", size: 1 }] };
 	expect((await suggest("pkgapp", { ...ctx().c, catalogue: [entry] })).problem).toContain("runs on this machine");

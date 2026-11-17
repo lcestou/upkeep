@@ -27,7 +27,7 @@ import {
 	repoText,
 	rootNames,
 } from "./github";
-import { isPackage, PACKAGE_TOOL, readOnlyUsr } from "./kinds/package";
+import { isPackage, PACKAGE_TOOL, type PackageKind, readOnlyUsr } from "./kinds/package";
 import { installedFiles, unpackProblem } from "./kinds/release";
 import { listTools, toolSpec, toolKey } from "./managers";
 import { parseManifest } from "./manifest";
@@ -357,6 +357,16 @@ function findAppImage(ctx: DiscoverCtx, bin: string): string | null {
 		}
 	}
 	return null;
+}
+
+/**
+ * Whether this machine installs a package of this kind: a .deb where dpkg is, an .rpm where rpm is and dpkg is not, and
+ * neither on a read-only /usr. The same rule Add app applies to a release's files, asked of one kind.
+ */
+async function takesPackage(ctx: DiscoverCtx, kind: PackageKind): Promise<boolean> {
+	const dpkg = (await which(ctx, PACKAGE_TOOL.deb)) !== null;
+	const tool = kind === "deb" ? dpkg : !dpkg && (await which(ctx, PACKAGE_TOOL.rpm)) !== null;
+	return tool && !(await readOnlyUsr(ctx.run));
 }
 
 /** The path `which` prints for bin, as printed: a symlink on PATH is the dest, not its target. */
@@ -1026,7 +1036,7 @@ async function fromCatalogue(
 		// A table that installs a .deb or .rpm, on a machine that takes neither (no dpkg, an image-based system): the
 		// same repo's other files, an AppImage or an archive, are looked at as for a repo typed in. A drafted build is
 		// not offered in its place.
-		if (isPackage(entry.kind) && !asset && !r.rate) {
+		if (isPackage(entry.kind) && !asset && !r.rate && !(await takesPackage(ctx, entry.kind))) {
 			const other = await fromRepo(entry.repo, ctx, { probe, forge: entry.forge });
 			if (!("problem" in other) && other.suggestion.spec.kind !== "source") return { suggestions: [other.suggestion] };
 		}

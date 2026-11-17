@@ -340,9 +340,9 @@ async function listWith(
  * The first package list this system has: Linux Mint's Update Manager, then apt, dnf, pacman (checkupdates, else
  * pacman -Qu) and zypper. Each is tried only when the one before it is not installed. None needs root. Null when none
  * is installed. A checkupdates that fails (it needs fakeroot, which pacman-contrib does not pull in) falls back to
- * pacman -Qu, so a working pacman still lists. On an image-based system (read-only /usr) none is read: their updates
+ * pacman -Qu, so a working pacman still lists. On an image-based system (read-only /usr) no list is used: its updates
  * come as a whole image, and dnf there lists packages it cannot install. Flatpak, the usual way to add apps there,
- * still lists.
+ * still lists. Update Manager's list is asked alongside the /usr question, not after it, and its answer dropped there.
  */
 async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null | "image"> {
 	const opts = { timeoutMs: 60_000 };

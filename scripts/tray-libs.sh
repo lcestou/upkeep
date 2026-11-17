@@ -1,8 +1,8 @@
 #!/bin/bash
 # Fetches the tray libraries Upkeep carries for systems that lack them (Fedora Workstation, Silverblue, Bazzite):
 # libayatana-appindicator3 and what it links, from Ubuntu 24.04's archive, for x64 and arm64. Electrobun's native
-# library links libayatana-appindicator3.so.1 by name, so without it Upkeep does not start at all; src/bun/tray-libs.ts
-# loads these only when the system has none. Run by hand when the versions below change; the files are committed.
+# library links libayatana-appindicator3.so.1 by name, so without it Upkeep does not start at all; scripts/post-build.ts
+# puts these beside the launcher in every build. Run by hand when the versions below change; the files are committed.
 #
 # Every file is checked: the archive's signed InRelease against Ubuntu's keyring, the Packages index against InRelease,
 # and each .deb against the Packages index. Needs gpgv, dpkg-deb, curl and Ubuntu's archive keyring.
@@ -35,9 +35,13 @@ for pair in "amd64 http://archive.ubuntu.com/ubuntu linux-x64" "arm64 http://por
 	for entry in "${PACKAGES[@]}"; do
 		read -r pkg ver lib <<<"$entry"
 		# The stanza for this package at this version: its file path and checksum.
+		# The last stanza may have no blank line after it, so the end of the file closes one too. read fails on no
+		# output, which set -e would end the script on before the message below.
+		file="" sum=""
 		read -r file sum < <(awk -v p="$pkg" -v v="$ver" '
+			function done() { if (pk==p && vr==v) {print fn, sh; found=1; exit} pk=vr=fn=sh="" }
 			/^Package:/{pk=$2} /^Version:/{vr=$2} /^Filename:/{fn=$2} /^SHA256:/{sh=$2}
-			/^$/{ if (pk==p && vr==v) {print fn, sh; exit} pk=vr=fn=sh="" }' "$WORK/Packages")
+			/^$/{ done() } END { if (!found) done() }' "$WORK/Packages") || true
 		[ -n "${file:-}" ] || { echo "$pkg $ver not in $arch index" >&2; exit 1; }
 		curl -fsSL "$base/$file" -o "$WORK/$pkg.deb"
 		echo "$sum  $WORK/$pkg.deb" | sha256sum -c --quiet
