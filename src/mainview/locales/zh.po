@@ -2700,3 +2700,7 @@ msgstr "{0}：zsync: 类型的 latest 仅用于 kind appimage，且需要 https 
 #: src/mainview/lib/engine-text.ts
 msgid "Could not unpack the {0} restore point: {1}"
 msgstr "无法解包还原点 {0}：{1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded, waits its turn"
+msgstr "已下载，等待轮到它"

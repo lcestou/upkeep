@@ -2742,3 +2742,7 @@ msgstr "{0}: un latest zsync: solo vale para kind appimage, con una dirección h
 #: src/mainview/lib/engine-text.ts
 msgid "Could not unpack the {0} restore point: {1}"
 msgstr "No se pudo desempaquetar el punto de restauración {0}: {1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded, waits its turn"
+msgstr "Descargada, espera su turno"

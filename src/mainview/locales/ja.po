@@ -2700,3 +2700,7 @@ msgstr "{0}：zsync: の latest は kind appimage 専用で、https のアドレ
 #: src/mainview/lib/engine-text.ts
 msgid "Could not unpack the {0} restore point: {1}"
 msgstr "復元ポイント {0} を展開できませんでした：{1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded, waits its turn"
+msgstr "ダウンロード済み、順番待ち"

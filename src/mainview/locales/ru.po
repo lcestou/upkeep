@@ -2763,3 +2763,7 @@ msgstr "{0}: latest вида zsync: только для kind appimage, с адр
 #: src/mainview/lib/engine-text.ts
 msgid "Could not unpack the {0} restore point: {1}"
 msgstr "Не удалось распаковать точку восстановления {0}: {1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded, waits its turn"
+msgstr "Скачано, ждёт своей очереди"

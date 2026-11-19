@@ -462,7 +462,7 @@ export function statusText(app: AppState): string {
 		case "problem":
 			return "Needs a look";
 		case "queued":
-			return "Queued";
+			return app.downloaded ? "Downloaded, waits its turn" : "Queued";
 		case "working":
 			return workingText(app.stage, app.stagePct, app.size);
 		case "done":

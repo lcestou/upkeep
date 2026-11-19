@@ -53,7 +53,8 @@ export function checkLine(a: AppState): string {
 function eventLine(e: EngineEvent): string | null {
 	if (e.type === "log") return formatLogLine(e.line);
 	if (e.type === "app" && ["queued", "working", "done", "failed", "rolled_back"].includes(e.app.status)) {
-		if (e.app.status === "working") return null;
+		// A waiting app whose file came early already has its log line ("Downloaded ahead of its turn").
+		if (e.app.status === "working" || (e.app.status === "queued" && e.app.downloaded)) return null;
 		const to = e.app.status === "done" ? ` ${e.app.installed ?? ""}` : "";
 		return `[${e.app.key}] ${e.app.status}${to}${e.app.detail ? ` ${e.app.detail}` : ""}`;
 	}
