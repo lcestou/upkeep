@@ -654,3 +654,26 @@ describe("System rows in the footer's Install", () => {
 		expect(m.systemReason).toBeNull();
 	});
 });
+
+describe("window ops", () => {
+	test("close and minimize mark the buttons cold and send the op; maximize only sends it", () => {
+		const m = new Model();
+		const sent: unknown[] = [];
+		m.request = (name, params) => {
+			sent.push([name, params]);
+			return Promise.reject(new Error("no window here"));
+		};
+		m.windowOp("maximize");
+		expect(m.buttonsCold).toBe(false);
+		for (const op of ["close", "minimize"] as const) {
+			m.buttonsCold = false;
+			m.windowOp(op);
+			expect(m.buttonsCold).toBe(true);
+		}
+		expect(sent).toEqual([
+			["window", { op: "maximize" }],
+			["window", { op: "close" }],
+			["window", { op: "minimize" }],
+		]);
+	});
+});

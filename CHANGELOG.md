@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The window's close button no longer opens red when you bring Upkeep back from the tray. Closing hid the window with the pointer on the button, and the button kept its hover colour until the mouse moved. Minimize did the same.
 - When a source build fails its check, the row says the reason the check printed, not the check's whole script. The Strata example and the source-build docs show how to start a service through a script that finds the files, so an upstream that moves its folders does not break the unit.
 - A service that crashes right after an update (systemd keeps restarting it, or it stops) is rolled back within seconds, instead of after its whole wait (five minutes for Strata). The rollback stops it first, so systemd cannot restart it while the old files go back.
 - A checkout updated with `move = "reset"` (ComfyUI's) no longer refuses with "has commits that are not on GitHub" when it sits on the previous release tag and its branch was not fetched since. HEAD inside the new release tag now counts as on GitHub; real local commits still refuse.

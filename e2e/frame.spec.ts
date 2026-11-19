@@ -30,6 +30,27 @@ test("window buttons sit on the left in the desktop's order, and each sends its 
 	expect((await ops(page)).at(-1)).toBe("close");
 });
 
+test("close and minimize do not open lit: their hover waits until the pointer comes back", async ({ page }) => {
+	await load(page);
+	const bg = (id: string) => page.getByTestId(id).evaluate((el) => getComputedStyle(el).backgroundColor);
+	const idle = await bg("win-close");
+	for (const id of ["win-close", "win-minimize"]) {
+		await page.getByTestId(id).hover();
+		await expect.poll(() => bg(id)).not.toBe(idle);
+		// The window hides with the pointer still here; shown again, the button must not wear its hover colour.
+		await page.getByTestId(id).click();
+		await expect.poll(() => bg(id)).toBe(idle);
+		await page.mouse.move(500, 400);
+		await page.getByTestId(id).hover();
+		await expect.poll(() => bg(id)).not.toBe(idle);
+	}
+	// Ctrl+W hides the window too: with the pointer resting on close, close must not open lit either.
+	await page.getByTestId("win-close").hover();
+	await expect.poll(() => bg("win-close")).not.toBe(idle);
+	await page.keyboard.press("Control+w");
+	await expect.poll(() => bg("win-close")).toBe(idle);
+});
+
 test("buttons on the right are mirrored and come last", async ({ page }) => {
 	await load(page, "fixture&buttons=right");
 	const ids = await page

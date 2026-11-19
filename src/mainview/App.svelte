@@ -135,7 +135,7 @@
 		const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement;
 		if (e.key === "w" && e.ctrlKey && model?.chrome?.own) {
 			e.preventDefault();
-			void model.send("window", { op: "close" });
+			model.windowOp("close");
 			return;
 		}
 		if ((e.key === "/" && !typing) || (e.key === "f" && (e.ctrlKey || e.metaKey))) {

@@ -9,7 +9,13 @@
 	const label = (b: WindowButton) => (b === "maximize" ? (chrome.maximized ? WIN.restore : WIN.maximize) : WIN[b]);
 </script>
 
-<div class="win {chrome.side}">
+<!-- Hover waits for the pointer after a close or minimize (model.buttonsCold): the button stays where the pointer left it. -->
+<div
+	class="win {chrome.side}"
+	class:cold={model.buttonsCold}
+	data-testid="window-buttons"
+	onpointerenter={() => (model.buttonsCold = false)}
+>
 	{#each chrome.order as b (b)}
 		<button
 			type="button"
@@ -17,7 +23,7 @@
 			aria-label={label(b)}
 			title={label(b)}
 			data-testid="win-{b}"
-			onclick={() => model.send("window", { op: b })}
+			onclick={() => model.windowOp(b)}
 		>
 			<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
 				{#if b === "close"}
@@ -63,12 +69,12 @@
 			background-color 100ms ease-out,
 			color 100ms ease-out;
 	}
-	.wb:hover {
+	.win:not(.cold) .wb:hover {
 		background: var(--shell-hi);
 		color: var(--text);
 	}
 	/* A deeper red than --fail, so the cross on it measures 4.5:1. */
-	.wb.close:hover {
+	.win:not(.cold) .wb.close:hover {
 		background: oklch(0.54 0.19 25);
 		color: var(--text);
 	}
