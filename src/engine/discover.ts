@@ -1079,8 +1079,9 @@ const mentions = (arg: string, name: string) =>
 
 /**
  * One suggestion for each tool a manager (uv, pipx, npm, cargo) installed that the list does not track yet: by key, by
- * the process name, by a check or update that names the tool, or by a latest source for the same package. The
- * manager's own record names the source, so each is sure. The latest version is left for the check after adding.
+ * the process name, by a check or update that names the tool, by a latest source for the same package, or by a table
+ * named as the package is without its npm scope (Claude Code for @anthropic-ai/claude-code, whose table reads a text:
+ * source). The manager's own record names the source, so each is sure. The latest version is left for the check after adding.
  */
 async function managedSuggestions(ctx: DiscoverCtx): Promise<Suggestion[]> {
 	const out: Suggestion[] = [];
@@ -1100,6 +1101,7 @@ async function managedSuggestions(ctx: DiscoverCtx): Promise<Suggestion[]> {
 				s.key === key ||
 				s.process?.toLowerCase() === key ||
 				s.latest === spec.latest ||
+				toolKey(s.name) === toolKey(tool.name.replace(/^@[^/]+\//, "")) ||
 				[...(s.check ?? []), ...(s.update ?? [])].some((a) => mentions(a, tool.name)),
 		);
 		if (tracked) continue;

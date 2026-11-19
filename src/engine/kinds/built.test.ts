@@ -267,20 +267,23 @@ test("a hold that is not there is skipped; the one that is gets moved aside", as
 	expect(logs).toContain("hold terminal/engine: not there, so nothing runs from it.");
 });
 
-test("a config pattern that names no file fails the check and stops nothing", async () => {
-	put(join(srv, "old.json"), "{}");
+test("a config pattern that names no file fails the check, writes nothing and stops nothing", async () => {
+	put(join(srv, "terminal/strata-a.json"), '{"port":1}');
 	const b = box();
 	const r = await prepareBuilt(
 		spec({
-			config: [{ file: "terminal/strata-*.json", key: "port", value: 8092 }],
+			keep: ["bin"],
+			config: [
+				{ file: "terminal/strata-*.json", key: "port", value: 8092 },
+				{ file: "strata-*.json", key: "host", value: "127.0.0.1" },
+			],
 		}),
 		target,
 		ctx(b.run),
 		clock,
 	);
-	expect(r).toEqual({
-		failed: "The build did not pass its check: config. Nothing was changed.",
-	});
+	expect(r).toEqual({ failed: "The build did not pass its check: config. Nothing was changed." });
+	expect(readFileSync(join(srv, "terminal/strata-a.json"), "utf8")).toBe('{"port":1}');
 	expect(argvs(b.calls).some((a) => a.startsWith("sudo -n stop"))).toBe(false);
 });
 

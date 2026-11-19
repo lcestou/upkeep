@@ -169,14 +169,18 @@ async function busyNow(spec: AppSpec, ctx: KindCtx, stopped: boolean): Promise<s
 
 /**
  * Writes each config value into the JSON files it names; the file's other keys are written back untouched. Symlinks
- * are skipped. A file that is not JSON, or holds something other than an object, throws before anything is written,
- * and so does a pattern that names no file but links.
+ * are skipped. A pattern that names no file but links throws before anything is written. A file that is not JSON, or
+ * holds something other than an object, throws before that file is written; files of earlier entries are written by then.
  */
 function applyConfig(spec: AppSpec, ctx: KindCtx, dir: string | null): void {
-	for (const c of spec.config ?? []) {
-		const files = expandGlob(c.file, ctx.paths, dir).filter((f) => !lstatSync(f).isSymbolicLink());
-		// A value written nowhere is a setting lost without a word, as when an upstream moves its config files.
-		if (files.length === 0) throw new Error(`${c.file} matches no config file.`);
+	const each = (spec.config ?? []).map((c) => ({
+		c,
+		files: expandGlob(c.file, ctx.paths, dir).filter((f) => !lstatSync(f).isSymbolicLink()),
+	}));
+	// A value written nowhere is a setting lost without a word, as when an upstream moves its config files.
+	const none = each.find((e) => e.files.length === 0);
+	if (none) throw new Error(`${none.c.file} matches no config file.`);
+	for (const { c, files } of each) {
 		for (const file of files) {
 			const json: unknown = JSON.parse(readFileSync(file, "utf8"));
 			if (!isRecord(json)) throw new Error(`${file} does not hold a JSON object.`);
@@ -457,8 +461,9 @@ const VERSION_CHECK = MESSAGES.versionCheckLabel();
 /**
  * Polls health every 2 s until it answers status (default 200) with expect matching, within wait_s (default 120).
  * It gives up early on a unit that is not coming up: since moved again (it restarted on its own, a crash loop), or
- * active failed on two polls in a row (it died, or waits out a restart delay). A unit whose active check fails while
- * it loads would be cut short; a systemd unit reads active from the moment its start returns.
+ * active failed on two polls in a row (it died, or waits out a restart delay). Both rest on start returning once the
+ * unit is up, as systemctl start does for every unit type; a start that returns sooner (systemctl --no-block on a
+ * Type=notify unit, or an active check that fails while the program loads) would be cut short and rolled back.
  */
 async function healthy(svc: Serve, ctx: KindCtx): Promise<boolean> {
 	if (!svc.health) return true;
@@ -815,8 +820,10 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
 		for (const s of active) {
 			// oxlint-disable-next-line no-await-in-loop -- in table order
 			before.set(s.name, await sinceOf(ctx, s));
+			// Stopped even when it reads down: a crashing unit waiting out its restart delay would come back up on a
+			// half put-back tree. It is started again below either way.
 			// oxlint-disable-next-line no-await-in-loop -- in table order
-			if ((await isActive(ctx.run, s)) && !(await stopService(ctx.run, s))) {
+			if (!(await stopService(ctx.run, s))) {
 				ctx.log(`Could not stop ${s.name}, so nothing was put back.`);
 				stopFailed = true;
 			}
