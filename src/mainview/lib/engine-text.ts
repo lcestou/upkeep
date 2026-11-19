@@ -187,7 +187,7 @@ export const ENGINE_COPY = {
 	liftProbeReleaseOnly: (v0: string) => `${v0}: probe = false is only for an app installed from a release file`,
 	liftFolderPlace: (v0: string) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	liftLatestScheme: (v0: string) =>
-		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,
+		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:`,
 	liftJsonOnlyAppimage: (v0: string) => `${v0}: a json: latest is only for kind appimage`,
 	liftRepoForm: (v0: string) =>
 		`${v0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name`,

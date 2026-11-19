@@ -260,19 +260,72 @@ check = [
 	'''git -C "$HOME/Projects/Strata" describe --tags --abbrev=0 HEAD 2>/dev/null | sed 's/^v//; s/-.*//' ''',
 ]
 commit = ["git", "-C", "~/Projects/Strata", "rev-parse", "HEAD"]
-keep = ["engine", ".venv", "strata-*.json"]
-hold = ["engine"]
+# Strata 0.2.16 moved what setup writes (.venv, the run configs, the built engine) from the clone's root into
+# terminal/, and its setup moves an older clone's copies there once. A restore point has to hold both places: one
+# taken on 0.2.15 rolls back to the root copies, one taken later to terminal/. A path that is not there is skipped.
+keep = [".venv", "engine", "strata-*.json", "terminal/.venv", "terminal/engine", "terminal/strata-*.json"]
+# setup copies the new engine over the one the service runs, which Linux refuses while it runs ("text file busy").
+hold = ["engine", "terminal/engine"]
+# setup.sh --update pulls the branch tip itself; STRATA_UPDATE_PULLED keeps it on the tag Upkeep moved to. The run
+# configs sit beside the launcher's bin/, so the active-config link is found the same way in either layout.
 build = [
-	'''t=$(readlink strata-active.json) || exit 1; rm -f strata-active.json; sh ./setup.sh --update; rc=$?; ln -sfn "$t" strata-active.json; exit $rc''',
+	'''export STRATA_UPDATE_PULLED=1
+d=$(dirname "$(dirname "$(git ls-files -- bin/strata '*/bin/strata' | head -n 1)")")
+t=$(readlink "$d/strata-active.json" || readlink strata-active.json) || exit 1
+rm -f strata-active.json "$d/strata-active.json"
+sh ./setup.sh --update
+rc=$?
+ln -sfn "$t" "$d/strata-active.json"
+exit $rc''',
 ]
+# Strata's own CLI checks the build: the version it reports, then strata doctor on the active run config, whose engine
+# must be the one just built from this source. Without the launcher, a built engine must match the source version.
+# The second step reads the unit itself: every file its start line names must still be there after the build.
 check_built = [
-	'''test "$(python3 -c 'import json; print(json.load(open("engine/BUILD.json"))["version"])')" = "$(grep -oP 'project\(strata VERSION \K[0-9.]+' CMakeLists.txt)"''',
+	'''cli=$(git ls-files -- bin/strata '*/bin/strata' | head -n 1)
+if [ -z "$cli" ]; then
+	echo "This checkout has no bin/strata launcher, so the engine files are checked instead."
+	cv=$(grep -h -oP 'project\(strata VERSION \K[0-9.]+' CMakeLists.txt engine/CMakeLists.txt 2>/dev/null | head -n 1)
+	[ -n "$cv" ] || { echo "No engine source version found."; exit 1; }
+	for f in engine/BUILD.json */engine/BUILD.json; do
+		grep -qs "\"version\": *\"$cv\"" "$f" && exit 0
+	done
+	echo "No built engine is version $cv."
+	exit 1
+fi
+v=$("./$cli" --version 2>&1) || { echo "strata --version failed: $v"; exit 1; }
+case "$v" in
+	"strata {version} (build "*) ;;
+	*) echo "strata --version says $v, not {version}."; exit 1 ;;
+esac
+b=$(echo "$v" | sed -n 's/.*(build \([^;]*\);.*/\1/p')
+"./$cli" doctor --profile "$(dirname "$(dirname "$cli")")/strata-active.json" --output json | python3 -c '
+import json, sys
+r = json.load(sys.stdin)["report"]
+e = [c for c in r["components"] if c["name"] == "engine"][0]
+bad = [i["message"] + " (" + i.get("component", i["code"]) + ")" for i in r["issues"] if i["severity"] == "error"]
+if e.get("version") != sys.argv[1]:
+    bad.append("the engine is " + str(e.get("version")) + ", its source " + sys.argv[1])
+print("strata doctor: " + ("; ".join(bad) if bad else "ok, engine " + sys.argv[1]))
+sys.exit(1 if bad else 0)
+' "$b"''',
+	'''w=$(systemctl show -p WorkingDirectory --value strata | sed 's/^[-!]*//')
+a=$(systemctl show -p ExecStart --value strata | sed -n 's/.*argv\[\]=\([^;]*\);.*/\1/p')
+cd "${w:-.}" || exit 1
+for x in $a; do
+	case "$x" in
+		-*) continue ;;
+		*/* | *.py | *.json) ;;
+		*) continue ;;
+	esac
+	[ -e "$x" ] || { echo "strata.service starts with $x, which is not there after the build: point the unit at the new layout first."; exit 1; }
+done''',
 ]
 config = [
-	{ file = "strata-*.json", key = "host", value = "127.0.0.1" },
-	{ file = "strata-*.json", key = "port", value = 8092 },
-	{ file = "strata-*.json", array = "args", flag = "--max-context", value = "262144" },
-	{ file = "strata-*.json", array = "args", flag = "--vram-reserve-mib", value = "1800" },
+	{ file = "terminal/strata-*.json", key = "host", value = "127.0.0.1" },
+	{ file = "terminal/strata-*.json", key = "port", value = 8092 },
+	{ file = "terminal/strata-*.json", array = "args", flag = "--max-context", value = "262144" },
+	{ file = "terminal/strata-*.json", array = "args", flag = "--vram-reserve-mib", value = "1800" },
 ]
 busy = [
 	{ process = "ComfyUI/main.py", say = "ComfyUI is running a job." },

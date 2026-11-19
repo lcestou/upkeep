@@ -169,12 +169,19 @@ async function busyNow(spec: AppSpec, ctx: KindCtx, stopped: boolean): Promise<s
 
 /**
  * Writes each config value into the JSON files it names; the file's other keys are written back untouched. Symlinks
- * are skipped. A file that is not JSON, or holds something other than an object, throws before anything is written.
+ * are skipped. A pattern that names no file but links throws before anything is written. A file that is not JSON, or
+ * holds something other than an object, throws before that file is written; files of earlier entries are written by then.
  */
 function applyConfig(spec: AppSpec, ctx: KindCtx, dir: string | null): void {
-	for (const c of spec.config ?? []) {
-		for (const file of expandGlob(c.file, ctx.paths, dir)) {
-			if (lstatSync(file).isSymbolicLink()) continue;
+	const each = (spec.config ?? []).map((c) => ({
+		c,
+		files: expandGlob(c.file, ctx.paths, dir).filter((f) => !lstatSync(f).isSymbolicLink()),
+	}));
+	// A value written nowhere is a setting lost without a word, as when an upstream moves its config files.
+	const none = each.find((e) => e.files.length === 0);
+	if (none) throw new Error(`${none.c.file} matches no config file.`);
+	for (const { c, files } of each) {
+		for (const file of files) {
 			const json: unknown = JSON.parse(readFileSync(file, "utf8"));
 			if (!isRecord(json)) throw new Error(`${file} does not hold a JSON object.`);
 			if (c.key) json[c.key] = c.value;
@@ -319,10 +326,6 @@ export async function prepareBuilt(
 			timeoutMs: 60_000,
 		});
 		if (status.code !== 0 || status.stdout.trim()) return fail({ failed: MESSAGES.localChanges(shown) });
-		if (spec.move === "reset") {
-			const on = await ctx.run(["git", "-C", dir, "branch", "-r", "--contains", "HEAD"], { timeoutMs: 60_000 });
-			if (on.code !== 0 || !on.stdout.trim()) return fail({ failed: MESSAGES.commitsNotOnGithub(shown) });
-		}
 		const fetched = await tracked(
 			ctx.run,
 			marker,
@@ -333,6 +336,19 @@ export async function prepareBuilt(
 			},
 		);
 		if (fetched.code !== 0) return fail({ failed: MESSAGES.couldNotFetchTag(target.tag, shown) });
+		// A reset drops every commit the tag does not hold. HEAD inside the tag just fetched loses nothing; else it
+		// must be on a remote branch. The branch test alone failed after a reset to a tag newer than the last
+		// branch fetch, since the fetch above brings the tag only and origin/<branch> stays where it was.
+		if (spec.move === "reset") {
+			const inTag = await ctx.run(["git", "-C", dir, "merge-base", "--is-ancestor", "HEAD", target.tag], {
+				timeoutMs: 60_000,
+			});
+			const on =
+				inTag.code === 0
+					? null
+					: await ctx.run(["git", "-C", dir, "branch", "-r", "--contains", "HEAD"], { timeoutMs: 60_000 });
+			if (on && (on.code !== 0 || !on.stdout.trim())) return fail({ failed: MESSAGES.commitsNotOnGithub(shown) });
+		}
 	}
 
 	clock.start("backup");
@@ -367,6 +383,11 @@ export async function prepareBuilt(
 		// The running process keeps its open files under the .upkeep-live name; the build writes a copy.
 		try {
 			p = inScope(resolvePath(h, ctx.paths, dir), ctx.paths, dir, scope);
+			// Nothing runs from a path that is not there: a table may name the old and the new place of a tree.
+			if (!existsSync(p)) {
+				ctx.log(`hold ${h}: not there, so nothing runs from it.`);
+				continue;
+			}
 			renameSync(p, `${p}.upkeep-live`);
 		} catch (err) {
 			ctx.log(`hold ${h}: ${err instanceof Error ? err.message : String(err)}`);
@@ -437,11 +458,19 @@ export const failedBefore = (target: Target, detail: string): Omit<Outcome, "sta
 /** The probe's name when the version did not move. */
 const VERSION_CHECK = MESSAGES.versionCheckLabel();
 
-/** Polls health every 2 s until it answers status (default 200) with expect matching, within wait_s (default 120). */
+/**
+ * Polls health every 2 s until it answers status (default 200) with expect matching, within wait_s (default 120).
+ * It gives up early on a unit that is not coming up: since moved again (it restarted on its own, a crash loop), or
+ * active failed on two polls in a row (it died, or waits out a restart delay). Both rest on start returning once the
+ * unit is up, as systemctl start does for every unit type; a start that returns sooner (systemctl --no-block on a
+ * Type=notify unit, or an active check that fails while the program loads) would be cut short and rolled back.
+ */
 async function healthy(svc: Serve, ctx: KindCtx): Promise<boolean> {
 	if (!svc.health) return true;
 	const until = Date.now() + (svc.wait_s ?? 120) * 1000;
 	const want = svc.status ?? 200;
+	const started = await sinceOf(ctx, svc);
+	let down = 0;
 	for (;;) {
 		try {
 			// oxlint-disable-next-line no-await-in-loop -- polling until it answers or the time is up
@@ -451,6 +480,17 @@ async function healthy(svc: Serve, ctx: KindCtx): Promise<boolean> {
 			if (res.status === want && (!svc.expect || new RegExp(svc.expect).test(body))) return true;
 		} catch {
 			// not up yet
+		}
+		// oxlint-disable-next-line no-await-in-loop -- read between two polls
+		if (svc.since && (await sinceOf(ctx, svc)) !== started) {
+			ctx.log(`${svc.name} restarted on its own before it answered: it is crashing.`);
+			return false;
+		}
+		// oxlint-disable-next-line no-await-in-loop -- read between two polls
+		down = (await isActive(ctx.run, svc)) ? 0 : down + 1;
+		if (down >= 2) {
+			ctx.log(`${svc.name} is not running, so it will not answer.`);
+			return false;
 		}
 		if (Date.now() >= until) return false;
 		// oxlint-disable-next-line no-await-in-loop -- polling every 2 s
@@ -592,9 +632,11 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		const before = new Map<string, string>();
 		for (const s of stopped) {
 			// A unit that will not stop is still serving the new files: putting the old ones under it would leave
-			// neither version, so the marker stays for the next recovery and nothing is put back.
+			// neither version, so the marker stays for the next recovery and nothing is put back. The stop is sent
+			// even to a unit that reads down: one crashing waits out its restart delay, and its own restart would
+			// otherwise start it on a half put-back tree.
 			// oxlint-disable-next-line no-await-in-loop -- in table order
-			if ((await isActive(ctx.run, s.svc)) && !(await stopService(ctx.run, s.svc))) {
+			if (!(await stopService(ctx.run, s.svc))) {
 				ctx.log(`Could not stop ${s.svc.name} to put ${from} back.`);
 				for (const o of stopped)
 					// oxlint-disable-next-line no-await-in-loop -- in table order
@@ -749,8 +791,9 @@ const named = <T extends Service>(list: T[] | undefined, names: string[]) =>
 
 /**
  * Finishes or undoes one interrupted built update from its marker, by the step it names: a kill of the recorded
- * step first (only when the pid still has the same start time, so a reused pid is never signalled), then the
- * put-back that step needs, then every unit that was active or paused is started. Returns false when anything
+ * step first (only when the pid still has the same start time, so a reused pid is never signalled), then a stop of
+ * every unit that was active, even one that reads down (a crashing unit between two restarts would otherwise come up
+ * on a half put-back tree), then the put-back that step needs, then every unit that was active or paused is started. Returns false when anything
  * failed; the marker is kept then, so the next recovery tries again. Every step is safe to run twice.
  */
 export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): Promise<boolean> {
@@ -778,8 +821,10 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
 		for (const s of active) {
 			// oxlint-disable-next-line no-await-in-loop -- in table order
 			before.set(s.name, await sinceOf(ctx, s));
+			// Stopped even when it reads down: a crashing unit waiting out its restart delay would come back up on a
+			// half put-back tree. It is started again below either way.
 			// oxlint-disable-next-line no-await-in-loop -- in table order
-			if ((await isActive(ctx.run, s)) && !(await stopService(ctx.run, s))) {
+			if (!(await stopService(ctx.run, s))) {
 				ctx.log(`Could not stop ${s.name}, so nothing was put back.`);
 				stopFailed = true;
 			}

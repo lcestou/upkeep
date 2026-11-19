@@ -2,6 +2,7 @@
 name = "Claude Code"
 kind = "command"
 check = ["claude", "--version"]
-latest = "npm:@anthropic-ai/claude-code"
+# The file the native installer and `claude update` read: npm gets each release hours before it.
+latest = "text:https://downloads.claude.ai/claude-code-releases/latest"
 update = ["claude", "update"]
 note = "Open sessions keep the old version until restarted."

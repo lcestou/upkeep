@@ -1997,8 +1997,8 @@ msgstr "Strona {0} nie zawiera pobrania pasującego do {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:"
-msgstr "{0}: latest musi zaczynać się od npm:, pypi:, github:, npm-tags:, json:, crates: lub links:"
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:"
+msgstr "{0}: latest musi zaczynać się od npm:, pypi:, github:, npm-tags:, json:, crates:, text: lub links:"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts

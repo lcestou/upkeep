@@ -239,8 +239,12 @@ test("a latest whose source the check cannot read is refused at load", () => {
 		].join("\n"),
 	);
 	expect(loadManifest(file).errors).toEqual([
-		"x: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:",
+		"x: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:",
 	]);
+	writeFileSync(file, readFileSync(file, "utf8").replace("gitlab:o/x", "text:https://downloads.example.com/x/latest"));
+	const loaded = loadManifest(file);
+	expect(loaded.errors).toEqual([]);
+	expect(loaded.apps[0]?.latest).toBe("text:https://downloads.example.com/x/latest");
 });
 
 test("a file that is not TOML is one error and no apps", () => {

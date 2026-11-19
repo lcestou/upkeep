@@ -1979,8 +1979,8 @@ msgstr "{0} não lista nenhum download que corresponda a {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:"
-msgstr "{0}: latest precisa começar com npm:, pypi:, github:, npm-tags:, json:, crates: ou links:"
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:"
+msgstr "{0}: latest precisa começar com npm:, pypi:, github:, npm-tags:, json:, crates:, text: ou links:"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts

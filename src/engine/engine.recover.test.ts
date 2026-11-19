@@ -208,6 +208,9 @@ test("recover ends a live build step first, restores, and starts every unit that
 	expect(box.killed).toEqual([4242]);
 	const all = box.calls.map((c) => c.argv.join(" "));
 	expect(all.indexOf("sudo -n start srv")).toBeGreaterThan(-1);
+	// Down now may be a crash loop between two restarts: the stop goes out anyway, before the files go back.
+	expect(all.indexOf("sudo -n stop srv")).toBeGreaterThan(-1);
+	expect(all.indexOf("sudo -n stop srv")).toBeLessThan(all.indexOf("sudo -n start srv"));
 	expect(box.units.srv?.running).toBe(true);
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
 	expect(readInflight(t.paths)).toBeNull();

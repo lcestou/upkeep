@@ -355,7 +355,7 @@ export const MESSAGES = {
 	liftFolderPlace: (v0: Value) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	/** manifest.ts. {0} app key */
 	liftLatestScheme: (v0: Value) =>
-		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:`,
+		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:`,
 	/** manifest.ts. {0} app key */
 	liftJsonOnlyAppimage: (v0: Value) => `${v0}: a json: latest is only for kind appimage`,
 	/** manifest.ts. {0} app key */

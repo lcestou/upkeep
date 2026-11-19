@@ -57,8 +57,8 @@ export type AppSpec = {
 	check?: string[];
 	/**
 	 * command: where the latest version comes from: "npm:<pkg>", "npm-tags:<pkg>", "pypi:<pkg>", "crates:<crate>",
-	 * "github:<owner>/<repo>" or "json:<url>". A release kind may take "links:<https page>", whose links matching asset are
-	 * its downloads.
+	 * "github:<owner>/<repo>", "json:<url>" or "text:<url>" (the answer's first line). A release kind may take
+	 * "links:<https page>", whose links matching asset are its downloads.
 	 */
 	latest?: string;
 	/** command: argv that performs the update. */
@@ -84,7 +84,7 @@ export type AppSpec = {
 	// The source fields below are all optional and read only when kind is "source".
 	/** An existing git checkout, updated in place to the release tag. Without it the tag is cloned into the cache, as today. */
 	dir?: string;
-	/** How dir moves to the release tag. "ff": fast-forward its branch. "reset": hard reset, refused when HEAD is on no remote ref. "detach": check the tag out detached. Default "ff". */
+	/** How dir moves to the release tag. "ff": fast-forward its branch. "reset": hard reset, refused when HEAD is neither inside the release tag nor on a remote branch. "detach": check the tag out detached. Default "ff". */
 	move?: "ff" | "reset" | "detach";
 	/** argv printing the commit the installed copy was built from. When set, the row is ready when the release tag is ahead of it on GitHub, and the pane lists the newest commits. Needs repo. */
 	commit?: string[];

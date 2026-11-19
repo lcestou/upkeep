@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- A service that crashes right after an update (systemd keeps restarting it, or it stops) is rolled back within seconds, instead of after its whole wait (five minutes for Strata). The rollback stops it first, so systemd cannot restart it while the old files go back.
+- A checkout updated with `move = "reset"` (ComfyUI's) no longer refuses with "has commits that are not on GitHub" when it sits on the previous release tag and its branch was not fetched since. HEAD inside the new release tag now counts as on GitHub; real local commits still refuse.
+- Claude Code reads its newest version from the file `claude update` itself reads, so its update no longer fails during the hours a release is on npm but not yet on Claude's download server. A command table's `latest` can take `text:<https URL>` for a tool like that. Add app's scan still counts an npm-installed `@anthropic-ai/claude-code` as the Claude Code you already have: a scoped npm package is matched by a table named as the package without its scope.
+- A `config` file pattern that matches no file now fails the update before anything is stopped, instead of writing nothing. A `hold` path that is not there is skipped.
+- The Strata example follows Strata 0.2.16, which moved its files into `terminal/`. It checks the build with Strata's own `strata --version` and `strata doctor`, and checks that the files the systemd unit starts from still exist before it stops Strata.
+
 ## 0.1.7, 2026-11-17
 
 - Ticked System rows install from the footer's Install button with the ticked apps, instead of a separate button in the System group's header. The commands still show before anything runs; the system updates go first, then the apps.

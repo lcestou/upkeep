@@ -394,8 +394,9 @@ async function jsonRelease(url: string, opts: ReleaseOpts): Promise<{ version: s
 }
 
 /**
- * A latest version from a source string: "npm:<pkg>", "pypi:<pkg>", "crates:<crate>", "github:<owner>/<repo>", "npm-tags:<pkg>" or
- * "json:<url>" (an object with "version" and "downloadUrl"; an AppImage takes it in place of repo).
+ * A latest version from a source string: "npm:<pkg>", "pypi:<pkg>", "crates:<crate>", "github:<owner>/<repo>", "npm-tags:<pkg>",
+ * "json:<url>" (an object with "version" and "downloadUrl"; an AppImage takes it in place of repo) or "text:<url>" (the
+ * answer's first line is the version, for a tool whose own updater reads such a file rather than the registry it is on).
  */
 export async function latestFromSource(
 	source: string,
@@ -412,6 +413,25 @@ export async function latestFromSource(
 			: { failure: "http", detail: MESSAGES.noTrackedVersionTag(name) };
 	}
 	if (scheme === "json") return jsonRelease(name, opts);
+	if (scheme === "text") {
+		// The first line of a plain answer, read as a vendor's own updater reads it, so the two never disagree.
+		let text = "";
+		try {
+			const res = await opts.fetch(name, { headers: { Accept: "text/plain" } });
+			if (!res.ok) return { failure: "http", detail: MESSAGES.urlAnswered(name, res.status) };
+			text = await res.text();
+		} catch (err) {
+			return {
+				failure: "network",
+				detail: MESSAGES.couldNotReachUrl(name, err instanceof Error ? err.message : String(err)),
+			};
+		}
+		const first = text.trim().split("\n")[0]?.trim() ?? "";
+		// An error page served with 200 is not a version: it has to start with a digit and hold no space or tag.
+		return /^\d[\w.+-]*$/.test(first)
+			? { version: first }
+			: { failure: "http", detail: MESSAGES.urlSentNoVersion(name) };
+	}
 	if (scheme === "npm-tags") {
 		const url = `https://registry.npmjs.org/-/package/${name}/dist-tags`;
 		let tags: unknown;
