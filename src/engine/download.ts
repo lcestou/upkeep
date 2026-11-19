@@ -105,6 +105,8 @@ async function fetchTo(
 	} catch (err) {
 		if (err instanceof Stalled || started.any || opts.signal?.aborted) throw err;
 		await new Promise((r) => setTimeout(r, opts.retryMs ?? 2000));
+		// A cancel during the wait never reaches the second attempt: its listener would be added after the abort fired.
+		opts.signal?.throwIfAborted();
 		return attempt(url, file, opts, started, headers);
 	}
 }

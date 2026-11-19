@@ -247,3 +247,18 @@ test("statedSize: the length a HEAD answer states, else undefined", async () => 
 	).toBeUndefined();
 	expect(await statedSize("https://x.test/a", answer(new Error("offline")))).toBeUndefined();
 });
+
+test("a cancel during the wait before the retry stops it: the second try never starts", async () => {
+	let calls = 0;
+	const flaky: FetchLike = async () => {
+		calls += 1;
+		if (calls === 1) throw new TypeError("network down");
+		return new Response(PAYLOAD);
+	};
+	const ctl = new AbortController();
+	setTimeout(() => ctl.abort(), 20);
+	await expect(
+		download("https://x.test/asset", join(dir, "wait.bin"), { fetch: flaky, signal: ctl.signal, retryMs: 200 }),
+	).rejects.toThrow();
+	expect(calls).toBe(1);
+});
