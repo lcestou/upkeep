@@ -135,7 +135,7 @@ test("a build that fails its check stops nothing in serve, puts the files back a
 });
 
 test("a failed check names the last line it printed, in the order the lines came, else its own text", async () => {
-	/** A failing check that prints lines through onLine, as the real runner does, from stdout and stderr in turn. */
+	/** A failing check that hands its lines to onLine one by one, the order the real runner keeps across stdout and stderr. */
 	const printing =
 		(lines: string[], timedOut = false): Answer =>
 		(_argv, opts) => {
@@ -157,6 +157,12 @@ test("a failed check names the last line it printed, in the order the lines came
 	expect(await reason(printing(["checking the engine", "grep: CMakeLists.txt: No such file or directory"]))).toBe(
 		said.replace("%", "grep: CMakeLists.txt: No such file or directory"),
 	);
+	// Colour codes go, and so do the dots a line ends on; a line of dots alone names the step.
+	expect(await reason(printing(["\u001b[31merror:\u001b[0m engine missing"]))).toBe(
+		said.replace("%", "error: engine missing"),
+	);
+	expect(await reason(printing(["Loading..."]))).toBe(said.replace("%", "Loading"));
+	expect(await reason(printing(["..."]))).toBe(said.replace("%", "test -x out"));
 	// Silent, or cut off by the time limit: the step's own text.
 	expect(await reason(printing([]))).toBe(said.replace("%", "test -x out"));
 	expect(await reason(printing(["half a li"], true))).toBe(said.replace("%", "test -x out"));
