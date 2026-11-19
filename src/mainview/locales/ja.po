@@ -1943,8 +1943,8 @@ msgstr "{0} には {1} に一致するダウンロードがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:"
-msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json:、crates:、links: のいずれかで始まる必要があります"
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:"
+msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json:、crates:、text:、links: のいずれかで始まる必要があります"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts

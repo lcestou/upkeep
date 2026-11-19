@@ -1,5 +1,17 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import {
+	cpSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	readlinkSync,
+	rmSync,
+	renameSync,
+	statSync,
+	symlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import type { AppSpec, Serve } from "../../shared/types";
 import type { FetchLike } from "../github";
@@ -26,7 +38,12 @@ function put(file: string, text: string): void {
 	mkdirSync(dirname(file), { recursive: true });
 	writeFileSync(file, text);
 }
-const fail = (stderr = "no"): ProcessResult => ({ code: 1, stdout: "", stderr, timedOut: false });
+const fail = (stderr = "no"): ProcessResult => ({
+	code: 1,
+	stdout: "",
+	stderr,
+	timedOut: false,
+});
 
 /** Every file under root with its content, so a tree can be compared byte for byte. */
 function hashTree(root: string): Record<string, string> {
@@ -54,6 +71,10 @@ function fakeBox(
 		healthFails?: boolean;
 		sinceStuck?: boolean;
 		stopFailsAfter?: number;
+		/** The new version dies at once: active reads false, and with restart the unit comes back up (since moves) on every look. */
+		crashes?: "restart" | "dead";
+		/** Runs as the build, before the new program is written: what the app's own setup does to the tree. */
+		onBuild?: () => void;
 	} = {},
 ) {
 	const svc = { running: true, starts: 1, servedVersion: "f2918cabb" };
@@ -64,7 +85,8 @@ function fakeBox(
 		const key = argv.join(" ");
 		const [cmd, ...rest] = argv;
 		if (cmd === "sudo" && rest[0] === "-n" && rest[1] === "-l") return ok();
-		if (key === "is-active srv") return svc.running ? ok() : fail();
+		const crashing = o.crashes !== undefined && svc.running && svc.servedVersion === newVersion;
+		if (key === "is-active srv") return svc.running && !crashing ? ok() : fail();
 		if (key === "sudo -n stop srv") {
 			stopCalls += 1;
 			if (o.stopFailsAfter !== undefined && stopCalls > o.stopFailsAfter) return fail("refused");
@@ -79,10 +101,16 @@ function fakeBox(
 			svc.servedVersion = readFileSync(join(dir, "bin/srv"), "utf8").replace("version ", "");
 			return ok();
 		}
-		if (key === "since srv") return ok(`${svc.starts}\n`);
+		if (key === "since srv") {
+			if (crashing && o.crashes === "restart") svc.starts += 1;
+			return ok(`${svc.starts}\n`);
+		}
 		if (key === "print-version") return ok(`${readFileSync(join(dir, "bin/srv"), "utf8").replace("version ", "")}\n`);
 		if (cmd === "cp") {
-			cpSync(rest[1] ?? "", rest[2] ?? "", { recursive: true, verbatimSymlinks: true });
+			cpSync(rest[1] ?? "", rest[2] ?? "", {
+				recursive: true,
+				verbatimSymlinks: true,
+			});
 			return ok();
 		}
 		if (cmd === "install") {
@@ -94,6 +122,11 @@ function fakeBox(
 			return ok();
 		}
 		if (cmd === "rm") return ok();
+		if (cmd === "ln" && rest[0] === "-sfn") {
+			rmSync(rest[2] ?? "", { force: true });
+			symlinkSync(rest[1] ?? "", rest[2] ?? "");
+			return ok();
+		}
 		if (cmd === "git" && rest[2] === "rev-parse") return ok("c0ffee\n");
 		if (cmd === "git" && rest[2] === "status") return ok("");
 		if (cmd === "git" && rest[2] === "branch") return ok("origin/main\n");
@@ -102,6 +135,7 @@ function fakeBox(
 		if (key === "bash -c make all") {
 			opts.onStart?.(4242);
 			if (o.buildFails) return fail("compile error");
+			o.onBuild?.();
 			put(join(dir, "bin/srv"), `version ${newVersion}`);
 			put(join(dir, "lib/core.so"), "core 2");
 			return ok();
@@ -109,7 +143,9 @@ function fakeBox(
 		return undefined;
 	});
 	const fetch: FetchLike = async () =>
-		svc.running && !o.healthFails ? new Response('{"status":"ok"}') : new Response("down", { status: 503 });
+		svc.running && !o.healthFails && !(o.crashes && svc.servedVersion === newVersion)
+			? new Response('{"status":"ok"}')
+			: new Response("down", { status: 503 });
 	return { ...rec, svc, fetch };
 }
 
@@ -155,9 +191,17 @@ const argvs = (calls: { argv: string[] }[]) => calls.map((c) => c.argv.join(" ")
 test("end to end: a good update stops, swaps, starts, proves the restart, and reads the new commit as written", async () => {
 	const box = fakeBox();
 	const o = await installBuilt(spec(), target, ctx(box));
-	expect(o).toMatchObject({ result: "done", installed: "a1b2c3d4e", restartToApply: false });
+	expect(o).toMatchObject({
+		result: "done",
+		installed: "a1b2c3d4e",
+		restartToApply: false,
+	});
 	expect(Object.keys(o.stages)).toEqual(["download", "backup", "build", "install", "verify"]);
-	expect(box.svc).toMatchObject({ running: true, starts: 2, servedVersion: "a1b2c3d4e" });
+	expect(box.svc).toMatchObject({
+		running: true,
+		starts: 2,
+		servedVersion: "a1b2c3d4e",
+	});
 	expect(readInflight(t.paths)).toBeNull();
 	expect(existsSync(join(t.paths.data, "backups/srv/f2918cabb/meta.json"))).toBe(true);
 });
@@ -166,7 +210,10 @@ test("end to end: a build that fails never issues a stop, and the tree is as it 
 	const before = hashTree(dir);
 	const box = fakeBox({ buildFails: true });
 	const o = await installBuilt(spec(), target, ctx(box));
-	expect(o).toMatchObject({ result: "failed", detail: "Build step failed: make all. Nothing was changed." });
+	expect(o).toMatchObject({
+		result: "failed",
+		detail: "Build step failed: make all. Nothing was changed.",
+	});
 	expect(argvs(box.calls).filter((a) => a.startsWith("sudo -n stop"))).toEqual([]);
 	expect(argvs(box.calls)).toContain("sudo -n -l stop srv");
 	expect(hashTree(dir)).toEqual(before);
@@ -206,11 +253,86 @@ test("a failed health check rolls back and starts the old unit", async () => {
 	expect(argvs(box.calls).filter((a) => a === "sudo -n start srv")).toHaveLength(2);
 });
 
+test("a unit that restarts on its own while starting rolls back at once, not after wait_s", async () => {
+	const box = fakeBox({ crashes: "restart" });
+	const logs: string[] = [];
+	const at = Date.now();
+	const o = await installBuilt(spec({ serve: [{ ...SERVE, wait_s: 300 }] }), target, {
+		...ctx(box),
+		log: (l) => logs.push(l),
+	});
+	expect(Date.now() - at).toBeLessThan(1500);
+	expect(o).toMatchObject({
+		result: "rolled_back",
+		detail: "Would not start after the update. Restored f2918cabb.",
+	});
+	expect(logs).toContain("srv restarted on its own before it answered: it is crashing.");
+	// The unit reads down while it waits out its restart delay; the rollback stops it anyway before the files go back.
+	expect(argvs(box.calls).filter((a) => a === "sudo -n stop srv")).toHaveLength(2);
+	expect(box.svc).toMatchObject({ running: true, servedVersion: "f2918cabb" });
+});
+
+test("a unit that died after its start rolls back after two looks, not after wait_s", async () => {
+	const box = fakeBox({ crashes: "dead" });
+	const logs: string[] = [];
+	const at = Date.now();
+	const o = await installBuilt(spec({ serve: [{ ...SERVE, since: undefined, wait_s: 300 }] }), target, {
+		...ctx(box),
+		log: (l) => logs.push(l),
+	});
+	expect(Date.now() - at).toBeLessThan(4000);
+	expect(o).toMatchObject({
+		result: "rolled_back",
+		detail: "Would not start after the update. Restored f2918cabb.",
+	});
+	expect(logs).toContain("srv is not running, so it will not answer.");
+	expect(box.svc.servedVersion).toBe("f2918cabb");
+});
+
+test("a restore point taken before setup moved its files into terminal/ puts the old layout back", async () => {
+	// Strata 0.2.15 to 0.2.16: the build's own setup moves .venv, the run configs and the built engine into
+	// terminal/, and the table keeps and holds both places. Only the old ones exist when the point is taken.
+	put(join(dir, ".venv/bin/python"), "python 1");
+	put(join(dir, "engine/strata"), "engine 1");
+	put(join(dir, "strata-swift.json"), '{"port":8092}');
+	symlinkSync("strata-swift.json", join(dir, "strata-active.json"));
+	const box = fakeBox({
+		startFails: 1,
+		onBuild: () => {
+			mkdirSync(join(dir, "terminal"));
+			for (const n of [".venv", "engine", "strata-swift.json"]) renameSync(join(dir, n), join(dir, "terminal", n));
+			rmSync(join(dir, "strata-active.json"));
+			put(join(dir, "terminal/engine/strata"), "engine 2");
+			symlinkSync("strata-swift.json", join(dir, "terminal/strata-active.json"));
+		},
+	});
+	const keep = [".venv", "engine", "strata-*.json", "terminal/.venv", "terminal/engine", "terminal/strata-*.json"];
+	const o = await installBuilt(
+		spec({
+			keep: ["bin", "lib", ...keep],
+			hold: ["engine", "terminal/engine"],
+		}),
+		target,
+		ctx(box),
+	);
+	expect(o).toMatchObject({ result: "rolled_back", installed: "f2918cabb" });
+	expect(readFileSync(join(dir, ".venv/bin/python"), "utf8")).toBe("python 1");
+	expect(readFileSync(join(dir, "engine/strata"), "utf8")).toBe("engine 1");
+	expect(readFileSync(join(dir, "strata-swift.json"), "utf8")).toBe('{"port":8092}');
+	expect(readlinkSync(join(dir, "strata-active.json"))).toBe("strata-swift.json");
+	expect(existsSync(join(dir, "engine.upkeep-live"))).toBe(false);
+	// What setup put in terminal/ was not there when the point was taken, so the rollback leaves it.
+	expect(readFileSync(join(dir, "terminal/engine/strata"), "utf8")).toBe("engine 2");
+});
+
 test("an inactive serve entry is never stopped or started, and the row says no restart happened", async () => {
 	const box = fakeBox();
 	box.svc.running = false;
 	const o = await installBuilt(spec(), target, ctx(box));
-	expect(o).toMatchObject({ result: "done", detail: "Updated without a restart: none of its services was running." });
+	expect(o).toMatchObject({
+		result: "done",
+		detail: "Updated without a restart: none of its services was running.",
+	});
 	expect(argvs(box.calls).some((a) => a.startsWith("sudo -n stop") || a.startsWith("sudo -n start"))).toBe(false);
 });
 
@@ -226,7 +348,10 @@ test("the version after is read as written: equal to before is a failed check, a
 	put(join(dir, "bin/srv"), "version f2918cabb");
 	put(join(dir, "lib/core.so"), "core 1");
 	mkdirSync(proc, { recursive: true });
-	expect(await installBuilt(spec(), target, ctx(fakeBox()))).toMatchObject({ result: "done", installed: "a1b2c3d4e" });
+	expect(await installBuilt(spec(), target, ctx(fakeBox()))).toMatchObject({
+		result: "done",
+		installed: "a1b2c3d4e",
+	});
 });
 
 test("prune is skipped when needs prints nothing, and url tests are skipped when nothing ran", async () => {
@@ -237,7 +362,12 @@ test("prune is skipped when needs prints nothing, and url tests are skipped when
 		needs: ["needs"],
 		prune: ["~/builds/old-*"],
 		test: [
-			{ name: "an answer", url: "http://127.0.0.1:1/c", body: "{}", expect: "never" },
+			{
+				name: "an answer",
+				url: "http://127.0.0.1:1/c",
+				body: "{}",
+				expect: "never",
+			},
 			{ name: "runs", run: ["print-version"] },
 		],
 	});
@@ -328,7 +458,10 @@ test("prune never deletes a directory outside dir, whatever its pattern names", 
 test("a rollback whose stop fails puts nothing back, keeps the marker and says so", async () => {
 	const box = fakeBox({ healthFails: true, stopFailsAfter: 1 });
 	const o = await installBuilt(spec(), target, ctx(box));
-	expect(o).toMatchObject({ result: "failed", detail: "Could not stop srv to put f2918cabb back. See the log." });
+	expect(o).toMatchObject({
+		result: "failed",
+		detail: "Could not stop srv to put f2918cabb back. See the log.",
+	});
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version a1b2c3d4e");
 	expect(readInflight(t.paths)?.tree?.step).toBe("stopping");
 	expect(box.svc.running).toBe(true);
@@ -337,7 +470,11 @@ test("a rollback whose stop fails puts nothing back, keeps the marker and says s
 test("a held directory is still there to roll back to when a test fails after the start", async () => {
 	const box = fakeBox();
 	const run: KindCtx["run"] = async (argv, opts) => (argv[0] === "a-test" ? fail("no") : box.run(argv, opts));
-	const s = spec({ keep: ["lib"], hold: ["bin"], test: [{ name: "a test", run: ["a-test"] }] });
+	const s = spec({
+		keep: ["lib"],
+		hold: ["bin"],
+		test: [{ name: "a test", run: ["a-test"] }],
+	});
 	const o = await installBuilt(s, target, { ...ctx(box), run });
 	expect(o).toMatchObject({
 		result: "rolled_back",
@@ -366,7 +503,9 @@ test("config values are written into the app's JSON files: a key, and the value 
 			{ file: "~/srv/app.json", array: "flags", flag: "--host", value: "lan" },
 		],
 	});
-	expect(await installBuilt(s, target, ctx(fakeBox()))).toMatchObject({ result: "done" });
+	expect(await installBuilt(s, target, ctx(fakeBox()))).toMatchObject({
+		result: "done",
+	});
 	expect(JSON.parse(readFileSync(join(dir, "app.json"), "utf8"))).toEqual({
 		keep: true,
 		mode: "fast",
@@ -376,7 +515,9 @@ test("config values are written into the app's JSON files: a key, and the value 
 
 test("a config file that holds a list, not an object, stops the update and is left as it was", async () => {
 	put(join(dir, "app.json"), "[1, 2]");
-	const s = spec({ config: [{ file: "~/srv/app.json", key: "mode", value: "fast" }] });
+	const s = spec({
+		config: [{ file: "~/srv/app.json", key: "mode", value: "fast" }],
+	});
 	const o = await installBuilt(s, target, ctx(fakeBox()));
 	expect(o.result).not.toBe("done");
 	expect(o.detail).toBe("The build did not pass its check: config. Nothing was changed.");
@@ -385,7 +526,16 @@ test("a config file that holds a list, not an object, stops the update and is le
 
 test("a url test passes on a matching answer and rolls back on a fail_on match or an unreachable url", async () => {
 	const named = (extra: Partial<NonNullable<AppSpec["test"]>[number]>) =>
-		spec({ test: [{ name: "the answer", url: "http://127.0.0.1:1/c", body: "{}", ...extra }] });
+		spec({
+			test: [
+				{
+					name: "the answer",
+					url: "http://127.0.0.1:1/c",
+					body: "{}",
+					...extra,
+				},
+			],
+		});
 	expect(await installBuilt(named({ expect: "ok" }), target, ctx(fakeBox()))).toMatchObject({ result: "done" });
 	t.cleanup();
 	t = tempHome("built-install");
@@ -402,7 +552,12 @@ test("a url test passes on a matching answer and rolls back on a fail_on match o
 		if (String(url).endsWith("/c")) throw new Error("connection refused");
 		return box.fetch(url, init);
 	};
-	expect(await installBuilt(named({ timeout_s: 0 }), target, { ...ctx(box), fetch: unreachable })).toMatchObject({
+	expect(
+		await installBuilt(named({ timeout_s: 0 }), target, {
+			...ctx(box),
+			fetch: unreachable,
+		}),
+	).toMatchObject({
 		result: "rolled_back",
 	});
 });
@@ -416,7 +571,9 @@ async function moveCommand(move: "reset" | "detach" | "ff"): Promise<string> {
 	put(join(dir, "lib/core.so"), "core 1");
 	mkdirSync(proc, { recursive: true });
 	const box = fakeBox();
-	expect(await installBuilt(spec({ move }), target, ctx(box))).toMatchObject({ result: "done" });
+	expect(await installBuilt(spec({ move }), target, ctx(box))).toMatchObject({
+		result: "done",
+	});
 	const argv = argvs(box.calls).find((a) => /^git -C \S+ (reset|checkout|merge) /.test(a)) ?? "";
 	return argv.replace(/^git -C \S+ /, "");
 }
@@ -445,6 +602,9 @@ test("a restore point that cannot be taken refuses the update with nothing chang
 	const box = fakeBox();
 	const run: KindCtx["run"] = async (argv, opts) => (argv[0] === "cp" ? fail("no space left") : box.run(argv, opts));
 	const o = await installBuilt(spec(), target, { ...ctx(box), run });
-	expect(o).toMatchObject({ result: "failed", detail: expect.stringContaining("Could not take a restore point") });
+	expect(o).toMatchObject({
+		result: "failed",
+		detail: expect.stringContaining("Could not take a restore point"),
+	});
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
 });

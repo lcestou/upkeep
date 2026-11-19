@@ -1943,8 +1943,8 @@ msgstr "{0} 上没有与 {1} 匹配的下载。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:"
-msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags:、json:、crates: 或 links: 开头"
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:"
+msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags:、json:、crates:、text: 或 links: 开头"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts

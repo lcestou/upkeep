@@ -25,7 +25,12 @@ function put(file: string, text: string): void {
 	writeFileSync(file, text);
 }
 
-const fail = (stderr = "no"): ProcessResult => ({ code: 1, stdout: "", stderr, timedOut: false });
+const fail = (stderr = "no"): ProcessResult => ({
+	code: 1,
+	stdout: "",
+	stderr,
+	timedOut: false,
+});
 
 const SERVE = {
 	name: "srv",
@@ -35,7 +40,12 @@ const SERVE = {
 	since: ["since", "srv"],
 	health: "http://127.0.0.1:1/health",
 };
-const PAUSE = { name: "api", active: ["is-active", "api"], stop: ["stop", "api"], start: ["start", "api"] };
+const PAUSE = {
+	name: "api",
+	active: ["is-active", "api"],
+	stop: ["stop", "api"],
+	start: ["start", "api"],
+};
 
 const spec = (extra: Partial<AppSpec> = {}): AppSpec => ({
 	key: "srv",
@@ -74,7 +84,10 @@ function box(over: Record<string, Answer> = {}) {
 		if (cmd === "stop" || cmd === "start" || (cmd === "sudo" && rest[1] !== "-l")) return ok();
 		if (cmd === "since") return ok("100\n");
 		if (cmd === "cp") {
-			cpSync(rest[1] ?? "", rest[2] ?? "", { recursive: true, verbatimSymlinks: true });
+			cpSync(rest[1] ?? "", rest[2] ?? "", {
+				recursive: true,
+				verbatimSymlinks: true,
+			});
 			return ok();
 		}
 		if (cmd === "git" && rest[2] === "rev-parse") return ok("c0ffee\n");
@@ -113,7 +126,9 @@ const argvs = (calls: { argv: string[] }[]) => calls.map((c) => c.argv.join(" ")
 test("a build that fails its check stops nothing in serve, puts the files back and starts what it paused", async () => {
 	const b = box({ "bash -c test -x out": fail("missing") });
 	const r = await prepareBuilt(spec(), target, ctx(b.run), clock);
-	expect(r).toEqual({ failed: "The build did not pass its check: test -x out. Nothing was changed." });
+	expect(r).toEqual({
+		failed: "The build did not pass its check: test -x out. Nothing was changed.",
+	});
 	const all = argvs(b.calls);
 	expect(all.filter((a) => a.startsWith("sudo stop") || a.startsWith("sudo -n stop"))).toEqual([]);
 	expect(all).toContain(`git -C ${srv} reset -q --keep c0ffee`);
@@ -125,7 +140,9 @@ test("busy is asked before the pause and again after it", async () => {
 	let n = 0;
 	const b = box({ "queue-busy": () => (++n === 2 ? ok() : fail()) });
 	const r = await prepareBuilt(spec(), target, ctx(b.run), clock);
-	expect(r).toEqual({ failed: "The queue has a job waiting. Nothing was changed." });
+	expect(r).toEqual({
+		failed: "The queue has a job waiting. Nothing was changed.",
+	});
 	const all = argvs(b.calls);
 	expect(all.indexOf("queue-busy")).toBeLessThan(all.indexOf("stop api"));
 	expect(all.lastIndexOf("queue-busy")).toBeGreaterThan(all.indexOf("stop api"));
@@ -135,7 +152,9 @@ test("busy is asked before the pause and again after it", async () => {
 
 test("a refused sudo preflight changes nothing and runs no git", async () => {
 	const b = box({ "sudo -n -l stop srv": fail("a password is required") });
-	expect(await prepareBuilt(spec(), target, ctx(b.run), clock)).toEqual({ failed: SUDO_REFUSED });
+	expect(await prepareBuilt(spec(), target, ctx(b.run), clock)).toEqual({
+		failed: SUDO_REFUSED,
+	});
 	const all = argvs(b.calls);
 	expect(all.some((a) => a.startsWith("git") || a.startsWith("stop"))).toBe(false);
 	expect(readInflight(t.paths)).toBeNull();
@@ -146,8 +165,15 @@ test("the marker exists with step pause and names the unit before the first paus
 	const r = await prepareBuilt(spec(), target, ctx(b.run), clock);
 	expect("failed" in r).toBe(false);
 	const atStop = b.markers.find((m) => m.argv === "stop api");
-	expect(atStop?.marker?.tree).toMatchObject({ step: "pause", paused: ["api"] });
-	expect(readInflight(t.paths)?.tree).toMatchObject({ step: "build", active: ["srv"], paused: ["api"] });
+	expect(atStop?.marker?.tree).toMatchObject({
+		step: "pause",
+		paused: ["api"],
+	});
+	expect(readInflight(t.paths)?.tree).toMatchObject({
+		step: "build",
+		active: ["srv"],
+		paused: ["api"],
+	});
 });
 
 test("the fetch, a record step and a build step each put their pid in the marker while they run", async () => {
@@ -170,20 +196,26 @@ test("local changes, commits off the remote and a failed fetch each refuse with 
 		await prepareBuilt(
 			spec(),
 			target,
-			ctx(box({ [`git -C ${srv} status --porcelain --untracked-files=no`]: ok(" M x.c\n") }).run),
+			ctx(
+				box({
+					[`git -C ${srv} status --porcelain --untracked-files=no`]: ok(" M x.c\n"),
+				}).run,
+			),
 			clock,
 		),
 	).toEqual({
 		failed: "~/srv has local changes. Nothing was changed.",
 	});
-	expect(
-		await prepareBuilt(
-			spec({ move: "reset" }),
-			target,
-			ctx(box({ [`git -C ${srv} branch -r --contains HEAD`]: ok("") }).run),
-			clock,
-		),
-	).toEqual({ failed: "~/srv has commits that are not on GitHub. Nothing was changed." });
+	const unpushed = box({
+		[`git -C ${srv} merge-base --is-ancestor HEAD v1.1`]: fail(""),
+		[`git -C ${srv} branch -r --contains HEAD`]: ok(""),
+	});
+	expect(await prepareBuilt(spec({ move: "reset" }), target, ctx(unpushed.run), clock)).toEqual({
+		failed: "~/srv has commits that are not on GitHub. Nothing was changed.",
+	});
+	expect(argvs(unpushed.calls).some((a) => a.includes(" reset ") || a.startsWith("bash"))).toBe(false);
+	expect(argvs(unpushed.calls).at(-1)).toBe("start api");
+	expect(existsSync(join(t.paths.data, "backups/srv/1.0"))).toBe(false);
 	const b = box({ [`git -C ${srv} fetch --no-tags origin tag v1.1`]: fail() });
 	expect(await prepareBuilt(spec(), target, ctx(b.run), clock)).toEqual({
 		failed: "Could not fetch v1.1 into ~/srv. Nothing was changed.",
@@ -192,11 +224,75 @@ test("local changes, commits off the remote and a failed fetch each refuse with 
 	expect(existsSync(join(t.paths.data, "backups/srv/1.0"))).toBe(false);
 });
 
+test("reset: HEAD on an older tag goes through when origin/<branch> is stale, checked after the tag is fetched", async () => {
+	// HEAD sits on the last release tag; origin/master was last fetched before it, so no remote branch holds HEAD.
+	const b = box({
+		[`git -C ${srv} merge-base --is-ancestor HEAD v1.1`]: ok(),
+		[`git -C ${srv} branch -r --contains HEAD`]: ok(""),
+	});
+	const r = await prepareBuilt(spec({ move: "reset" }), target, ctx(b.run), clock);
+	expect("failed" in r).toBe(false);
+	const all = argvs(b.calls);
+	expect(all.indexOf(`git -C ${srv} fetch --no-tags origin tag v1.1`)).toBeLessThan(
+		all.indexOf(`git -C ${srv} merge-base --is-ancestor HEAD v1.1`),
+	);
+	expect(all).toContain(`git -C ${srv} reset -q --hard v1.1`);
+	expect(all).not.toContain(`git -C ${srv} branch -r --contains HEAD`);
+});
+
+test("reset: HEAD outside the tag but on a remote branch still goes through", async () => {
+	const b = box({
+		[`git -C ${srv} merge-base --is-ancestor HEAD v1.1`]: fail(""),
+		[`git -C ${srv} branch -r --contains HEAD`]: ok("  origin/master\n"),
+	});
+	expect("failed" in (await prepareBuilt(spec({ move: "reset" }), target, ctx(b.run), clock))).toBe(false);
+});
+
+test("a hold that is not there is skipped; the one that is gets moved aside", async () => {
+	put(join(srv, "engine/x"), "engine 1");
+	const logs: string[] = [];
+	const b = box();
+	const r = await prepareBuilt(
+		spec({
+			hold: ["engine", "terminal/engine"],
+			keep: ["bin", "engine", "terminal/engine"],
+		}),
+		target,
+		{ ...ctx(b.run), log: (l) => logs.push(l) },
+		clock,
+	);
+	expect("failed" in r).toBe(false);
+	expect(existsSync(join(srv, "engine.upkeep-live/x"))).toBe(true);
+	expect(existsSync(join(srv, "terminal"))).toBe(false);
+	expect(logs).toContain("hold terminal/engine: not there, so nothing runs from it.");
+});
+
+test("a config pattern that names no file fails the check and stops nothing", async () => {
+	put(join(srv, "old.json"), "{}");
+	const b = box();
+	const r = await prepareBuilt(
+		spec({
+			config: [{ file: "terminal/strata-*.json", key: "port", value: 8092 }],
+		}),
+		target,
+		ctx(b.run),
+		clock,
+	);
+	expect(r).toEqual({
+		failed: "The build did not pass its check: config. Nothing was changed.",
+	});
+	expect(argvs(b.calls).some((a) => a.startsWith("sudo -n stop"))).toBe(false);
+});
+
 test("a build step that fails is named, and a hold tree goes back to the running copy", async () => {
 	put(join(srv, "engine/x"), "engine 1");
-	const b = box({ "bash -c make all": () => (put(join(srv, "engine/x"), "half built"), fail("boom")) });
+	const b = box({
+		"bash -c make all": () => (put(join(srv, "engine/x"), "half built"), fail("boom")),
+	});
 	const r = await prepareBuilt(spec({ hold: ["engine"], keep: ["bin", "engine"] }), target, ctx(b.run), clock);
-	expect(r).toEqual({ failed: "Build step failed: make all. Nothing was changed." });
+	expect(r).toEqual({
+		failed: "Build step failed: make all. Nothing was changed.",
+	});
 	expect(readFileSync(join(srv, "engine/x"), "utf8")).toBe("engine 1");
 	expect(existsSync(join(srv, "engine.upkeep-live"))).toBe(false);
 });
@@ -213,7 +309,13 @@ test("every sudo a table writes runs with -n: in active, in since and inside a b
 	const s = spec({
 		build: ["sudo make install"],
 		check_built: [],
-		serve: [{ ...SERVE, active: ["sudo", "is-active", "srv"], since: ["sudo", "since", "srv"] }],
+		serve: [
+			{
+				...SERVE,
+				active: ["sudo", "is-active", "srv"],
+				since: ["sudo", "since", "srv"],
+			},
+		],
 	});
 	const r = await prepareBuilt(s, target, ctx(b.run), clock);
 	expect("failed" in r).toBe(false);

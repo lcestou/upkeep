@@ -239,7 +239,7 @@ test("a latest whose source the check cannot read is refused at load", () => {
 		].join("\n"),
 	);
 	expect(loadManifest(file).errors).toEqual([
-		"x: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates: or links:",
+		"x: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:",
 	]);
 });
 

@@ -57,8 +57,8 @@ export type AppSpec = {
 	check?: string[];
 	/**
 	 * command: where the latest version comes from: "npm:<pkg>", "npm-tags:<pkg>", "pypi:<pkg>", "crates:<crate>",
-	 * "github:<owner>/<repo>" or "json:<url>". A release kind may take "links:<https page>", whose links matching asset are
-	 * its downloads.
+	 * "github:<owner>/<repo>", "json:<url>" or "text:<url>" (the answer's first line). A release kind may take
+	 * "links:<https page>", whose links matching asset are its downloads.
 	 */
 	latest?: string;
 	/** command: argv that performs the update. */

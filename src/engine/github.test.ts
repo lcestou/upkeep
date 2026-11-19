@@ -230,6 +230,24 @@ test("latestFromSource reads a crate's newest stable version from crates.io, sen
 	expect(isFailure(down2) && down2.failure).toBe("network");
 });
 
+test("latestFromSource text: takes the answer's first line, and refuses a page that is not a version", async () => {
+	const URL = "https://downloads.example.com/tool/latest";
+	const plain =
+		(body: string, status = 200): FetchLike =>
+		async () =>
+			new Response(body, { status });
+	const at = (f: FetchLike) => latestFromSource(`text:${URL}`, { cacheDir: dir, fetch: f });
+	expect(await at(plain("2.1.328\n"))).toEqual({ version: "2.1.328" });
+	expect(await at(plain("  1.4.0-rc.1\nnotes\n"))).toEqual({ version: "1.4.0-rc.1" });
+	const pages = ["<!doctype html><title>Down</title>", "", "latest is 2.1.0"];
+	for (const r of await Promise.all(pages.map((page) => at(plain(page)))))
+		expect(isFailure(r) && r.detail).toBe(`${URL} sent no version.`);
+	const gone = await at(plain("", 404));
+	expect(isFailure(gone) && gone.failure).toBe("http");
+	const off = await at(down);
+	expect(isFailure(off) && off.failure).toBe("network");
+});
+
 const answer =
 	(body: unknown): FetchLike =>
 	async () =>

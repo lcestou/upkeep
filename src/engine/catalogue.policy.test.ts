@@ -59,10 +59,12 @@ test("every catalogue table keeps to what a catalogue app may do", () => {
 			broken.push(`${a.key}: folder ${a.folder}`);
 		for (const [f, c] of commands(a)) if (DANGER.test(c)) broken.push(`${a.key}: ${f} runs ${c}`);
 		if (a.restart && !RESTART.test(a.restart.join(" "))) broken.push(`${a.key}: restart runs ${a.restart.join(" ")}`);
-		// A json: or links: source names the download itself, so it is fetched over https only.
+		// A json: or links: source names the download itself, and a text: one the version, so each is fetched over https only.
 		if (a.latest?.startsWith("json:") && !a.latest.startsWith("json:https://"))
 			broken.push(`${a.key}: latest ${a.latest}`);
 		if (a.latest?.startsWith("links:") && !a.latest.startsWith("links:https://"))
+			broken.push(`${a.key}: latest ${a.latest}`);
+		if (a.latest?.startsWith("text:") && !a.latest.startsWith("text:https://"))
 			broken.push(`${a.key}: latest ${a.latest}`);
 	}
 	expect(broken).toEqual([]);
