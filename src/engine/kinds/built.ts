@@ -5,6 +5,7 @@ import type { AppSpec, Serve, Service, Test } from "../../shared/types";
 import { listBackups, prune, readMeta } from "../backup";
 import { isRecord } from "../manifest";
 import { dropTree } from "../drop";
+import { stripEscapes } from "../probe";
 import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
 import { argsRunning } from "../running";
 import { clearInflight, type Inflight, readInflight, startTime, writeInflight } from "../store";
@@ -40,6 +41,14 @@ const LONG = 30 * 60_000;
 const SERVICE_MS = 120_000;
 /** The first line of s after trimming, or an empty string; the short form of a failed command's output for an error message. */
 const firstLine = (s: string) => s.trim().split("\n")[0] ?? "";
+
+/**
+ * What a failed check_built step tells the row: the last line it printed, stdout or stderr in the order they came
+ * (a check's own reason, or the error of the command that failed), without terminal colour codes and without the dots
+ * it ends on, since the sentence adds its own full stop. A step that printed nothing but dots or nothing at all, or
+ * that ran out of time (its last line may be cut), is named by its text. Each line was already logged as it came.
+ */
+const checkReason = (last: string, step: string) => stripEscapes(last).trim().replace(/\.+$/, "").trim() || step;
 
 type Step = Inflight["tree"] extends infer T ? (T extends { step: infer S } ? S : never) : never;
 
@@ -432,17 +441,19 @@ export async function prepareBuilt(
 		return fail({ failed: MESSAGES.checkFailedConfig(), cleanup: "revert" });
 	}
 	for (const step of spec.check_built ?? []) {
+		let last = "";
 		// oxlint-disable-next-line no-await-in-loop -- checks run in order
 		const r = await tracked(ctx.run, marker, ["bash", "-c", nonInteractive(fill(step, vars))], {
 			cwd,
 			timeoutMs: LONG,
 			killTree: true,
-			onLine: (l) => ctx.log(l),
+			onLine: (l) => {
+				ctx.log(l);
+				if (l.trim()) last = l;
+			},
 		});
-		if (r.code !== 0) {
-			ctx.log(firstLine(r.stderr || r.stdout));
-			return fail({ failed: MESSAGES.checkFailedStep(step), cleanup: "revert" });
-		}
+		if (r.code !== 0)
+			return fail({ failed: MESSAGES.checkFailedStep(checkReason(r.timedOut ? "" : last, step)), cleanup: "revert" });
 	}
 	return { dir, stage, point, tree, vars, active, paused, marker, treeCtx };
 }

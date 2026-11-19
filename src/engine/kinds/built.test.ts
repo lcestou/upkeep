@@ -126,14 +126,46 @@ const argvs = (calls: { argv: string[] }[]) => calls.map((c) => c.argv.join(" ")
 test("a build that fails its check stops nothing in serve, puts the files back and starts what it paused", async () => {
 	const b = box({ "bash -c test -x out": fail("missing") });
 	const r = await prepareBuilt(spec(), target, ctx(b.run), clock);
-	expect(r).toEqual({
-		failed: "The build did not pass its check: test -x out. Nothing was changed.",
-	});
+	expect(r).toEqual({ failed: "The build did not pass its check: test -x out. Nothing was changed." });
 	const all = argvs(b.calls);
 	expect(all.filter((a) => a.startsWith("sudo stop") || a.startsWith("sudo -n stop"))).toEqual([]);
 	expect(all).toContain(`git -C ${srv} reset -q --keep c0ffee`);
 	expect(all.at(-1)).toBe("start api");
 	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("a failed check names the last line it printed, in the order the lines came, else its own text", async () => {
+	/** A failing check that hands its lines to onLine one by one, the order the real runner keeps across stdout and stderr. */
+	const printing =
+		(lines: string[], timedOut = false): Answer =>
+		(_argv, opts) => {
+			for (const l of lines) opts.onLine?.(l);
+			return { code: 1, stdout: "", stderr: "", timedOut };
+		};
+	const reason = async (a: Answer) => {
+		const r = await prepareBuilt(spec(), target, ctx(box({ "bash -c test -x out": a }).run), clock);
+		return "failed" in r ? r.failed : "";
+	};
+	const said = "The build did not pass its check: %. Nothing was changed.";
+	// The check's own reason, echoed last.
+	expect(
+		await reason(
+			printing(["strata doctor: ok", "strata.service starts with serve/server.py, which is not there.", ""]),
+		),
+	).toBe(said.replace("%", "strata.service starts with serve/server.py, which is not there"));
+	// Progress on stdout, then the failing command's error on stderr: the error came last.
+	expect(await reason(printing(["checking the engine", "grep: CMakeLists.txt: No such file or directory"]))).toBe(
+		said.replace("%", "grep: CMakeLists.txt: No such file or directory"),
+	);
+	// Colour codes go, and so do the dots a line ends on; a line of dots alone names the step.
+	expect(await reason(printing(["\u001b[31merror:\u001b[0m engine missing"]))).toBe(
+		said.replace("%", "error: engine missing"),
+	);
+	expect(await reason(printing(["Loading..."]))).toBe(said.replace("%", "Loading"));
+	expect(await reason(printing(["..."]))).toBe(said.replace("%", "test -x out"));
+	// Silent, or cut off by the time limit: the step's own text.
+	expect(await reason(printing([]))).toBe(said.replace("%", "test -x out"));
+	expect(await reason(printing(["half a li"], true))).toBe(said.replace("%", "test -x out"));
 });
 
 test("busy is asked before the pause and again after it", async () => {
