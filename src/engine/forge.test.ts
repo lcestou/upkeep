@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import codebergRelease from "./fixtures/codeberg_forgejo_forgejo.json";
 import gitlabRelease from "./fixtures/gitlab-org_gitlab-runner.json";
-import { cloneUrl, forgeOf, forgeRelease, linksRelease, pageLinks } from "./forge";
+import { cloneUrl, forgeOf, forgeRelease, linksRelease, pageLinks, zsyncHeader, zsyncRelease } from "./forge";
 import { type Failure, type FetchLike, isFailure, type Release, type ReleaseOpts } from "./github";
 import { tempHome } from "./testkit";
 
@@ -287,4 +287,76 @@ test("links: a release wins over a prerelease of the same number, whatever the p
 	expect(pageLinks(html, "https://example.org/dl/").map((a) => a.url)).toContain(
 		"https://example.org/dl/dl?f=tool-2.9.tar.gz&x=1",
 	);
+});
+
+/** The text of a .zsync file: its header, an empty line, then checksums that are not text. */
+const zsyncFile = (fields: string[]) => `${fields.join("\n")}\n\n\x00\x01\x02binary`;
+
+test("zsync: the header names the latest file, its address against the .zsync one, and its size", async () => {
+	const address = "https://dl.example.org/app/App-latest-x86_64.AppImage.zsync";
+	const body = zsyncFile([
+		"zsync: 0.6.2",
+		"Filename: App-2.3.1-x86_64.AppImage",
+		"MTime: Tue, 17 Nov 2026 10:00:00 +0000",
+		"Blocksize: 2048",
+		"Length: 104857600",
+		"URL: App-latest-x86_64.AppImage",
+		"SHA-1: 0123456789abcdef0123456789abcdef01234567",
+	]);
+	const fetch = recording(() => new Response(body, { status: 206 }));
+	expect(ok(await zsyncRelease(address, fetch))).toEqual({
+		tag: "2.3.1",
+		version: "2.3.1",
+		url: address,
+		publishedAt: "",
+		notes: "",
+		assets: [
+			{
+				name: "App-2.3.1-x86_64.AppImage",
+				url: "https://dl.example.org/app/App-latest-x86_64.AppImage",
+				size: 104857600,
+				digest: null,
+			},
+		],
+	});
+	// Only the header is asked for, and nothing carries a token.
+	expect(sent[0]?.headers.get("range")).toBe("bytes=0-8191");
+	expect(sent[0]?.headers.get("authorization")).toBeNull();
+	// The header stops at its empty line: a "URL:" in the checksums after it is never read.
+	expect(zsyncHeader("Filename: a\n\nURL: b").has("url")).toBe(false);
+});
+
+test("zsync: a file that is not one, a plain http address, a failed answer and an unreachable host are failures", async () => {
+	const address = "https://dl.example.org/app.AppImage.zsync";
+	const answer = (fields: string[]) => recording(() => new Response(zsyncFile(fields)));
+	const unreadable: Failure = { failure: "http", detail: `${address} is not a zsync file that names its download.` };
+	expect(await zsyncRelease(address, answer(["Filename: a-1.0.AppImage", "URL: a"]))).toEqual(unreadable);
+	expect(await zsyncRelease(address, answer(["zsync: 0.6.2", "URL: a"]))).toEqual(unreadable);
+	expect(await zsyncRelease(address, answer(["zsync: 0.6.2", "Filename: ../a-1.0.AppImage", "URL: a"]))).toEqual(
+		unreadable,
+	);
+	// A download address that leaves https is refused, as a links: page's is.
+	expect(
+		await zsyncRelease(address, answer(["zsync: 0.6.2", "Filename: a-1.0.AppImage", "URL: http://dl.example.org/a"])),
+	).toEqual(unreadable);
+	// No version in the file name: the release has none, and a check says so. No Length: the floor holds it instead.
+	const bare = ok(await zsyncRelease(address, answer(["zsync: 0.6.2", "Filename: a.AppImage", "URL: a"])));
+	expect([bare.version, bare.tag, bare.assets[0]?.size]).toEqual([null, "a.AppImage", 0]);
+	expect(await zsyncRelease("http://dl.example.org/a.zsync", answer([]))).toMatchObject({ failure: "http" });
+	expect(
+		await zsyncRelease(
+			address,
+			recording(() => new Response("", { status: 404 })),
+		),
+	).toEqual({
+		failure: "http",
+		detail: `${address} answered 404.`,
+	});
+	const down: FetchLike = async () => {
+		throw new Error("connection refused");
+	};
+	expect(await zsyncRelease(address, down)).toEqual({
+		failure: "network",
+		detail: `Could not reach ${address}: connection refused`,
+	});
 });

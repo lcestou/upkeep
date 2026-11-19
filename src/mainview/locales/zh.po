@@ -1943,11 +1943,6 @@ msgstr "{0} 上没有与 {1} 匹配的下载。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:"
-msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags:、json:、crates:、text: 或 links: 开头"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name"
 msgstr "{0}：repo 必须是 GitHub 上的 owner/name，或 host/owner/name，如 gitlab.com/group/name 或 codeberg.org/owner/name"
 
@@ -2685,3 +2680,18 @@ msgstr[0] "然后 Upkeep 会安装已勾选的 # 个应用。"
 #: src/mainview/lib/copy.ts
 msgid "Wait for the system updates to finish."
 msgstr "请等待系统更新完成。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is not a zsync file that names its download."
+msgstr "{0} 不是指明其下载的 zsync 文件。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text:, links: or zsync:"
+msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags:、json:、crates:、text:、links: 或 zsync: 开头"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a zsync: latest is only for kind appimage, with an https address"
+msgstr "{0}：zsync: 类型的 latest 仅用于 kind appimage，且需要 https 地址"

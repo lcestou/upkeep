@@ -173,6 +173,35 @@ test("a file from a links: page: the newest matching link is checked and install
 	expect(sent.every(([, auth]) => auth === null)).toBe(true);
 });
 
+test("an AppImage from a zsync: source: the header's file is checked, installed and held to its Length", async () => {
+	const zsync = "https://dl.example.org/app/Tool-latest-x86_64.AppImage.zsync";
+	const spec: AppSpec = {
+		key: "tool",
+		name: "Tool",
+		kind: "appimage",
+		latest: `zsync:${zsync}`,
+		asset: "^Tool-.*-x86_64\\.AppImage$",
+		dest: "~/.local/bin/tool.AppImage",
+	};
+	const dest = script(join(t.paths.home, ".local/bin/tool.AppImage"), 'echo "tool 1.0.0"');
+	const body = big('echo "tool 2.0.0"');
+	const header = (length: number) =>
+		new TextEncoder().encode(
+			`zsync: 0.6.2\nFilename: Tool-2.0.0-x86_64.AppImage\nLength: ${length}\nURL: Tool-latest-x86_64.AppImage\n\n`,
+		);
+	files[zsync] = header(body.length);
+	files["https://dl.example.org/app/Tool-latest-x86_64.AppImage"] = body;
+	const c = ctx();
+	expect(await checkRelease(spec, c)).toMatchObject({ installed: "1.0.0", latest: "2.0.0", status: "ready" });
+	expect(await installRelease(spec, await target(spec, c), c)).toMatchObject({ result: "done", installed: "2.0.0" });
+	expect(readFileSync(dest, "utf8")).toStartWith('#!/bin/bash\necho "tool 2.0.0"');
+	expect(sent.every(([, auth]) => auth === null)).toBe(true);
+	// A download that is not the size the header gives is refused.
+	files[zsync] = header(body.length + 1);
+	script(dest, 'echo "tool 1.0.0"');
+	await expect(installRelease(spec, await target(spec, c), c)).rejects.toThrow();
+});
+
 test("on aarch64 a table's aarch64 pattern picks the file, and a table with none is refused before any lookup", async () => {
 	const spec: AppSpec = {
 		key: "tool",

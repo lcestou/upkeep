@@ -1943,11 +1943,6 @@ msgstr "{0} には {1} に一致するダウンロードがありません。"
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:"
-msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json:、crates:、text:、links: のいずれかで始まる必要があります"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name"
 msgstr "{0}：repo は GitHub の owner/name か、gitlab.com/group/name や codeberg.org/owner/name のような host/owner/name である必要があります"
 
@@ -2685,3 +2680,18 @@ msgstr[0] "その後、チェックした # 件のアプリを Upkeep がイン�
 #: src/mainview/lib/copy.ts
 msgid "Wait for the system updates to finish."
 msgstr "システムの更新が終わるまでお待ちください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is not a zsync file that names its download."
+msgstr "{0} はダウンロード先を示す zsync ファイルではありません。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text:, links: or zsync:"
+msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json:、crates:、text:、links:、zsync: のいずれかで始まる必要があります"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a zsync: latest is only for kind appimage, with an https address"
+msgstr "{0}：zsync: の latest は kind appimage 専用で、https のアドレスが必要です"

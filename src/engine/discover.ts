@@ -16,7 +16,7 @@ import type { AppKind, AppSpec, Suggestion } from "../shared/types";
 import { type Arch, assetField, assetFor } from "./arch";
 import { download, signedIn, verifyAsset } from "./download";
 import { draftFor } from "./draft";
-import { type ForgeKind, forgeOf, forgeRelease, hostKind, hostOf } from "./forge";
+import { type ForgeKind, forgeOf, forgeRelease, hostKind, hostOf, zsyncRelease } from "./forge";
 import {
 	type Asset,
 	type FetchLike,
@@ -503,7 +503,10 @@ export async function fromRepo(repo: string, ctx: DiscoverCtx, opts: RepoOpts = 
 	if (!opts.file && (kind === "archive" || kind === "file")) dest = place(onPath, bin);
 	const name = appName(shippedBy(picked), named);
 	const key = keyOf(bin);
-	const { pattern, widen } = assetPattern(picked.asset.name, release);
+	// A given pattern that picks this one file stays the table's: it is the publisher's or the table's own.
+	const given = !opts.asset && byPattern && release.assets.filter((a) => byPattern.test(a.name)).length === 1;
+	const { pattern, widen } =
+		given && opts.pattern ? { pattern: opts.pattern, widen: false } : assetPattern(picked.asset.name, release);
 	let bins = kind === "archive" ? [opts.file ? (dest.split("/").at(-1) ?? bin) : bin] : undefined;
 	let installs: string | null = null;
 	// A program's name cannot be guessed from the repo (ripgrep ships rg): look inside, but never during a scan.
@@ -703,8 +706,61 @@ export async function programsIn(
 
 const MB2 = 2 * 1024 * 1024;
 
-/** The gh-releases-zsync repo an AppImage carries in its update information, or null. */
-export function embeddedRepo(file: string): string | null {
+/**
+ * What an AppImage's update information names: a release on a forge with the publisher's file pattern (asset, empty
+ * when the string gives none), or a .zsync address on a host that is no forge.
+ */
+export type UpdateInfo = { repo: string; forge?: ForgeKind; asset: string } | { zsync: string };
+
+/** A file name pattern from update information, where * is a wildcard, as an anchored pattern without its .zsync. */
+const globPattern = (glob: string) =>
+	`^${glob
+		.replace(/\.zsync$/, "")
+		.split("*")
+		.map(escape)
+		.join(".*")}$`;
+
+/**
+ * The update information string read: "gh-releases-zsync|owner|repo|tag|pattern" is a GitHub release, and
+ * "zsync|<https address>" is the release it points into when that is a forge's release file (github.com,
+ * gitlab.com, codeberg.org or a host in hosts, with /releases/ in its path), else the .zsync address itself. The tag
+ * is not kept: a table follows the latest release, and a named tag such as "continuous" names no version to compare.
+ * The AppImage spec has no GitLab or Codeberg form of its own, and pling-v1-zsync names no release, so both are null.
+ */
+export function readUpdateInfo(text: string, hosts: ReadonlyMap<string, ForgeKind> = new Map()): UpdateInfo | null {
+	const [transport, ...fields] = text.split("|");
+	if (transport === "gh-releases-zsync") {
+		const [owner = "", name = "", , glob = ""] = fields;
+		if (!SEGMENT.test(owner) || !SEGMENT.test(name)) return null;
+		return { repo: `${owner}/${name}`, asset: glob ? globPattern(glob) : "" };
+	}
+	if (transport !== "zsync" || fields.length !== 1) return null;
+	let url: URL;
+	try {
+		url = new URL(fields[0] ?? "");
+	} catch {
+		return null;
+	}
+	if (url.protocol !== "https:") return null;
+	const into = url.pathname.includes("/releases/") ? readInput(url.href, hosts) : null;
+	if (into && "repo" in into) {
+		let file = url.pathname.split("/").at(-1) ?? "";
+		try {
+			file = decodeURIComponent(file);
+		} catch {
+			// a bad escape: the name as written
+		}
+		return { ...into, asset: file ? globPattern(file) : "" };
+	}
+	return { zsync: url.href };
+}
+
+/**
+ * The update information an AppImage carries in its .upd_info section, searched for in its first and last 2 MB, or
+ * null when it has none Upkeep can follow. The section is padded with NUL bytes, which end the string; a match that
+ * does not read (a stray "zsync|" in the runtime's own text) is passed over for the next.
+ */
+export function updateInfo(file: string, hosts: ReadonlyMap<string, ForgeKind> = new Map()): UpdateInfo | null {
 	let size = 0;
 	try {
 		size = statSync(file).size;
@@ -712,8 +768,10 @@ export function embeddedRepo(file: string): string | null {
 		return null;
 	}
 	for (const part of [head(file, MB2, 0), size > MB2 ? head(file, MB2, size - MB2) : null]) {
-		const m = part ? /gh-releases-zsync\|([A-Za-z0-9_.-]+)\|([A-Za-z0-9_.-]+)\|/.exec(part.toString("latin1")) : null;
-		if (m) return `${m[1]}/${m[2]}`;
+		for (const m of part ? part.toString("latin1").matchAll(/(?:gh-releases-zsync|zsync)\|[^\0\s]+/g) : []) {
+			const info = readUpdateInfo(m[0], hosts);
+			if (info) return info;
+		}
 	}
 	return null;
 }
@@ -779,6 +837,55 @@ function fileProblem(path: string, home: string, problem: string, source: Sugges
 	};
 }
 
+/**
+ * A suggestion for an AppImage whose update information is a .zsync address on a host that is no forge: its table
+ * follows that address (latest = "zsync:<address>"), whose header names the latest file. probe runs the AppImage for
+ * its version, as fromRepo does for a file; a scan never does. The file name, not a repo, names the app.
+ */
+async function fromZsync(
+	address: string,
+	path: string,
+	ctx: DiscoverCtx,
+	source: Suggestion["source"],
+	probe: boolean,
+): Promise<{ suggestion: Suggestion } | { problem: string }> {
+	const release = await zsyncRelease(address, ctx.fetch);
+	if (isFailure(release)) return { problem: release.detail };
+	const asset = release.assets[0];
+	if (!release.version || !asset) return { problem: MESSAGES.latestNotComparable(release.tag) };
+	const home = ctx.paths.home;
+	const shipped = stem(asset.name, release) || bareName(path);
+	const name = appName(shipped, shipped);
+	const spec: AppSpec = {
+		key: keyOf(shipped),
+		name,
+		kind: "appimage",
+		latest: `zsync:${address}`,
+		[assetField(ctx.arch)]: assetPattern(asset.name, release).pattern,
+		dest: tilde(path, home),
+	};
+	const why = [MESSAGES.appImageNamesSource(), MESSAGES.matchedAsset(asset.name)];
+	let installed: string | null = null;
+	if (probe) {
+		const p = await probeVersion(path, ["--version"], { run: ctx.run });
+		if ("version" in p) installed = p.version;
+		else why.push(MESSAGES.couldNotReadVersion());
+	}
+	const suggestion: Suggestion = {
+		spec,
+		installed,
+		latest: release.version,
+		asset: { name: asset.name, size: asset.size },
+		alternatives: [],
+		source,
+		path,
+		confidence: "sure",
+		why: why.join(" "),
+	};
+	if (ctx.specs.some((x) => x.key === spec.key)) suggestion.problem = MESSAGES.alreadyInList(name);
+	return { suggestion };
+}
+
 /** A suggestion for a file on disk. Never runs it; probe allows the version probe once a repo is known. */
 export async function fromFile(
 	input: string,
@@ -821,7 +928,12 @@ export async function fromFile(
 		};
 	}
 	const file = { path, appimage };
-	const embedded = appimage ? embeddedRepo(path) : null;
+	const info = appimage ? updateInfo(path, forgeHosts(ctx)) : null;
+	if (info && "zsync" in info) {
+		const z = await fromZsync(info.zsync, path, ctx, source, !opts.scan);
+		return { suggestion: "problem" in z ? fileProblem(path, home, z.problem, source) : z.suggestion, searched: false };
+	}
+	const embedded = info?.repo ?? null;
 	let repo = embedded;
 	let searched = false;
 	if (!repo) {
@@ -835,14 +947,18 @@ export async function fromFile(
 			};
 		repo = s.repo;
 	}
-	const r = await fromRepo(repo, ctx, {
+	const from: RepoOpts = {
 		asset: opts.asset,
 		file,
 		source,
 		confidence: embedded ? "sure" : "guess",
 		found: embedded ? MESSAGES.appImageNamesSource() : MESSAGES.guessedFromFileName(repo),
 		probe: !opts.scan,
-	});
+		forge: info?.forge,
+	};
+	// The publisher's own file pattern picks the file; one the latest release no longer matches is passed over.
+	let r = await fromRepo(repo, ctx, info?.asset ? { ...from, pattern: info.asset } : from);
+	if ("problem" in r && info?.asset && !r.rate) r = await fromRepo(repo, ctx, from);
 	if ("problem" in r) {
 		// A guessed repo without a release for this machine was not the right guess.
 		const problem = embedded || r.rate ? r.problem : MESSAGES.unknownSource(base);

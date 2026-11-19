@@ -93,6 +93,7 @@ export const ENGINE_COPY = {
 	forgeRateLimit: (v0: string) => `${v0}'s request limit is used up. Try again after it resets.`,
 	forgeAnswered: (v0: string, v1: string, v2: string) => `${v0} answered ${v1} for ${v2}.`,
 	linksNoMatch: (v0: string, v1: string) => `${v0} lists no download matching ${v1}.`,
+	zsyncUnreadable: (v0: string) => `${v0} is not a zsync file that names its download.`,
 	noVersionAtOrAbove: (v0: string) => `No published version at or above ${v0}.`,
 	unknownVersionSource: (v0: string) => `Unknown version source ${v0}.`,
 	sudoRefused: () => `sudo needs a password here, so nothing was stopped or changed.`,
@@ -187,7 +188,7 @@ export const ENGINE_COPY = {
 	liftProbeReleaseOnly: (v0: string) => `${v0}: probe = false is only for an app installed from a release file`,
 	liftFolderPlace: (v0: string) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	liftLatestScheme: (v0: string) =>
-		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:`,
+		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text:, links: or zsync:`,
 	liftJsonOnlyAppimage: (v0: string) => `${v0}: a json: latest is only for kind appimage`,
 	liftRepoForm: (v0: string) =>
 		`${v0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name`,
@@ -198,6 +199,7 @@ export const ENGINE_COPY = {
 	liftRepoOrLinks: (v0: string, v1: string) => `${v0}: repo or a links: latest is required for kind ${v1}`,
 	liftLinksPage: (v0: string) => `${v0}: a links: latest needs an https page and an asset pattern`,
 	liftLinksKinds: (v0: string) => `${v0}: a links: latest is only for kinds appimage, archive, file, deb and rpm`,
+	liftZsyncAppimage: (v0: string) => `${v0}: a zsync: latest is only for kind appimage, with an https address`,
 	liftRelaunchNeedsDest: (v0: string) => `${v0}: relaunch needs dest`,
 	liftRelaunchNeedsProcess: (v0: string) => `${v0}: relaunch needs process`,
 	liftRelaunchShared: (v0: string, v1: string) =>
