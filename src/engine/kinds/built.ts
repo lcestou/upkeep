@@ -42,12 +42,12 @@ const SERVICE_MS = 120_000;
 const firstLine = (s: string) => s.trim().split("\n")[0] ?? "";
 
 /**
- * What a failed check_built step tells the row: the last line it printed (stdout first, where a check echoes its
- * reason; else stderr), without a closing full stop, since the sentence adds one. A silent step is named by its text.
- * Each line was already logged as it came, so nothing is logged again here.
+ * What a failed check_built step tells the row: the last line it printed, stdout or stderr in the order they came
+ * (a check's own reason, or the error of the command that failed), without a closing full stop, since the sentence
+ * adds one. A silent step, or one that ran out of time mid-line, is named by its text. Each line was already logged
+ * as it came, so nothing is logged again here.
  */
-const checkReason = (r: { stdout: string; stderr: string }, step: string) =>
-	(r.stdout.trim().split("\n").at(-1) || r.stderr.trim().split("\n").at(-1) || step).trim().replace(/\.$/, "");
+const checkReason = (last: string, step: string) => (last || step).trim().replace(/\.$/, "");
 
 type Step = Inflight["tree"] extends infer T ? (T extends { step: infer S } ? S : never) : never;
 
@@ -440,14 +440,19 @@ export async function prepareBuilt(
 		return fail({ failed: MESSAGES.checkFailedConfig(), cleanup: "revert" });
 	}
 	for (const step of spec.check_built ?? []) {
+		let last = "";
 		// oxlint-disable-next-line no-await-in-loop -- checks run in order
 		const r = await tracked(ctx.run, marker, ["bash", "-c", nonInteractive(fill(step, vars))], {
 			cwd,
 			timeoutMs: LONG,
 			killTree: true,
-			onLine: (l) => ctx.log(l),
+			onLine: (l) => {
+				ctx.log(l);
+				if (l.trim()) last = l;
+			},
 		});
-		if (r.code !== 0) return fail({ failed: MESSAGES.checkFailedStep(checkReason(r, step)), cleanup: "revert" });
+		if (r.code !== 0)
+			return fail({ failed: MESSAGES.checkFailedStep(checkReason(r.timedOut ? "" : last, step)), cleanup: "revert" });
 	}
 	return { dir, stage, point, tree, vars, active, paused, marker, treeCtx };
 }

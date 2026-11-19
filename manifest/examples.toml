@@ -283,7 +283,7 @@ exit $rc''',
 # The second step reads the unit itself: every file its start line names must still be there after the build.
 # A unit that names paths inside the checkout breaks on every layout move, and pointing it at the new paths first
 # breaks the version still running. Start it through a script outside the checkout that finds the layout, e.g.
-#   cd ~/Projects/Strata; [ -f terminal/setup.py ] && cd terminal
+#   cd ~/Projects/Strata || exit 1; [ -f terminal/setup.py ] && cd terminal
 #   exec .venv/bin/python serve/server.py --engine strata --config strata-active.json --port 8092
 # with the unit's ExecStart set to that script (a drop-in in /etc/systemd/system/strata.service.d/).
 check_built = [

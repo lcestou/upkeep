@@ -126,7 +126,7 @@ const argvs = (calls: { argv: string[] }[]) => calls.map((c) => c.argv.join(" ")
 test("a build that fails its check stops nothing in serve, puts the files back and starts what it paused", async () => {
 	const b = box({ "bash -c test -x out": fail("missing") });
 	const r = await prepareBuilt(spec(), target, ctx(b.run), clock);
-	expect(r).toEqual({ failed: "The build did not pass its check: missing. Nothing was changed." });
+	expect(r).toEqual({ failed: "The build did not pass its check: test -x out. Nothing was changed." });
 	const all = argvs(b.calls);
 	expect(all.filter((a) => a.startsWith("sudo stop") || a.startsWith("sudo -n stop"))).toEqual([]);
 	expect(all).toContain(`git -C ${srv} reset -q --keep c0ffee`);
@@ -134,20 +134,32 @@ test("a build that fails its check stops nothing in serve, puts the files back a
 	expect(readInflight(t.paths)).toBeNull();
 });
 
-test("a failed check names the reason it printed last, else its own text", async () => {
-	const said: ProcessResult = {
-		code: 1,
-		stdout: "strata doctor: ok, engine 0.1.62\nstrata.service starts with serve/server.py, which is not there.\n",
-		stderr: "sed: noise",
-		timedOut: false,
+test("a failed check names the last line it printed, in the order the lines came, else its own text", async () => {
+	/** A failing check that prints lines through onLine, as the real runner does, from stdout and stderr in turn. */
+	const printing =
+		(lines: string[], timedOut = false): Answer =>
+		(_argv, opts) => {
+			for (const l of lines) opts.onLine?.(l);
+			return { code: 1, stdout: "", stderr: "", timedOut };
+		};
+	const reason = async (a: Answer) => {
+		const r = await prepareBuilt(spec(), target, ctx(box({ "bash -c test -x out": a }).run), clock);
+		return "failed" in r ? r.failed : "";
 	};
-	expect(await prepareBuilt(spec(), target, ctx(box({ "bash -c test -x out": said }).run), clock)).toEqual({
-		failed:
-			"The build did not pass its check: strata.service starts with serve/server.py, which is not there. Nothing was changed.",
-	});
-	expect(await prepareBuilt(spec(), target, ctx(box({ "bash -c test -x out": fail("") }).run), clock)).toEqual({
-		failed: "The build did not pass its check: test -x out. Nothing was changed.",
-	});
+	const said = "The build did not pass its check: %. Nothing was changed.";
+	// The check's own reason, echoed last.
+	expect(
+		await reason(
+			printing(["strata doctor: ok", "strata.service starts with serve/server.py, which is not there.", ""]),
+		),
+	).toBe(said.replace("%", "strata.service starts with serve/server.py, which is not there"));
+	// Progress on stdout, then the failing command's error on stderr: the error came last.
+	expect(await reason(printing(["checking the engine", "grep: CMakeLists.txt: No such file or directory"]))).toBe(
+		said.replace("%", "grep: CMakeLists.txt: No such file or directory"),
+	);
+	// Silent, or cut off by the time limit: the step's own text.
+	expect(await reason(printing([]))).toBe(said.replace("%", "test -x out"));
+	expect(await reason(printing(["half a li"], true))).toBe(said.replace("%", "test -x out"));
 });
 
 test("busy is asked before the pause and again after it", async () => {
