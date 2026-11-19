@@ -261,6 +261,11 @@ function inFolder(dir: string, bin: string): string | null {
 	return hit ? hit.slice(dir.length + 1) : null;
 }
 
+/** Where a release app's file is downloaded, at its turn or ahead of it. The run's dl folder is emptied when a run starts. */
+export function dlPath(paths: KindCtx["paths"], key: string, name: string): string {
+	return join(paths.cache, "dl", `${key}-${name}`);
+}
+
 /** A stage of an install that failed with a message fit to show the person; anything else thrown is unexpected and rethrown. */
 class StepError extends Error {}
 
@@ -280,13 +285,18 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 	// A symlinked dest is updated through the link, never replaced by a regular file. A folder app's dest is its own link.
 	const dest = spec.folder ? destOf(spec, ctx) : resolved(destOf(spec, ctx));
 	const clock = stageClock(ctx);
-	const dl = join(ctx.paths.cache, "dl", `${spec.key}-${asset.name}`);
+	const dl = dlPath(ctx.paths, spec.key, asset.name);
 	const extract = join(ctx.paths.cache, "dl", `${spec.key}-x`);
 	const restorable = canRestore(spec);
 	const bins = spec.kind === "archive" ? (spec.bins ?? []) : [];
 	const targets = installedFiles(spec, dest, ctx.paths.home);
 	let backupVersion: string | null = null;
-	const finish = (o: Omit<Outcome, "stages">): Outcome => ({ ...o, stages: clock.stop() });
+	// A file fetched ahead records its real download time, so the next run's stem keeps the download's width.
+	let earlyMs: number | undefined;
+	const finish = (o: Omit<Outcome, "stages">): Outcome => {
+		const stages = clock.stop();
+		return { ...o, stages: earlyMs === undefined ? stages : { ...stages, download: earlyMs } };
+	};
 	// Before any download or restore point: a folder Upkeep did not make is never copied, renamed or replaced.
 	if (spec.folder && !folderFree(expandHome(spec.folder, ctx.paths.home), spec.key))
 		return finish({
@@ -297,17 +307,25 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		});
 	try {
 		clock.start("download", 0);
-		ctx.log(`Downloading ${asset.name}`);
-		const got = await download(asset.url, dl, {
-			fetch: ctx.fetch,
-			onProgress: (received, total) => {
-				const size = total ?? (asset.size || null);
-				ctx.stage("download", size ? Math.min(100, Math.round((received / size) * 100)) : null);
-			},
-			stallMs: ctx.stallMs,
-			retryMs: ctx.retryMs,
-			signedIn: signedIn(asset, ctx.token),
-		});
+		const onProgress = (received: number, total: number | null) => {
+			const size = total ?? (asset.size || null);
+			ctx.stage("download", size ? Math.min(100, Math.round((received / size) * 100)) : null);
+		};
+		// A file fetched ahead of the turn was read back and checked just now; without one, the turn downloads it.
+		const early = await ctx.early?.(onProgress);
+		if (early) {
+			earlyMs = early.ms;
+			ctx.stage("download", 100);
+		} else ctx.log(`Downloading ${asset.name}`);
+		const got =
+			early ??
+			(await download(asset.url, dl, {
+				fetch: ctx.fetch,
+				onProgress,
+				stallMs: ctx.stallMs,
+				retryMs: ctx.retryMs,
+				signedIn: signedIn(asset, ctx.token),
+			}));
 		verifyAsset(got, asset);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}`);
 

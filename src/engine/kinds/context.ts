@@ -1,5 +1,6 @@
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, Settings, Stage } from "../../shared/types";
+import type { Early } from "../ahead";
 import type { Asset, FetchLike, Rate, Release } from "../github";
 import type { Arch } from "../arch";
 import type { Paths } from "../paths";
@@ -33,6 +34,11 @@ export type KindCtx = {
 	retryMs?: number;
 	/** The rename a built update's place and put-back use. Tests pass one that dies after a move, as a kill would. */
 	rename?: (from: string, to: string) => void;
+	/**
+	 * This app's file when the run fetched it ahead of the turn, read back and checked against the release just now;
+	 * null when there is none or it no longer matches. A file still coming down reports its progress to onProgress.
+	 */
+	early?: (onProgress: (received: number, total: number | null) => void) => Promise<Early | null>;
 };
 
 /** What a check found. null from a check means the app is not installed and is left out. */
