@@ -55,8 +55,15 @@ function ahead(fetch: FetchLike, free = AHEAD_ROOM * 2) {
 	return { a, ready, lines };
 }
 
-/** Long enough for a held fetch's promise chain to run its course. */
+/** Long enough for a held fetch's promise chain to run its course; only for checking that nothing more happened. */
 const settle = () => Bun.sleep(30);
+
+/** Waits until cond holds, every 5 ms for up to 2 s: under load a held fetch's chain takes longer than settle. */
+const until = async (cond: () => boolean, left = 400): Promise<void> => {
+	if (cond() || left === 0) return;
+	await Bun.sleep(5);
+	return until(cond, left - 1);
+};
 
 test("nothing starts while the gate is closed; open, two at a time in run order, the third once one ends", async () => {
 	const h = held();
@@ -65,12 +72,13 @@ test("nothing starts while the gate is closed; open, two at a time in run order,
 	await settle();
 	expect(h.asked).toEqual([]);
 	a.gate(true);
-	await settle();
-	expect(h.asked).toEqual([url("a"), url("b")]);
+	await until(() => h.asked.length === 2);
+	// The two start together, so either may reach the network first.
+	expect(h.asked.toSorted()).toEqual([url("a"), url("b")]);
 	h.let("a");
-	await settle();
+	await until(() => h.asked.length === 3);
 	expect(ready).toEqual(["a"]);
-	expect(h.asked).toEqual([url("a"), url("b"), url("c")]);
+	expect(h.asked[2]).toBe(url("c"));
 	await a.cancel();
 });
 
@@ -79,15 +87,16 @@ test("a gate shut again starts nothing new, and what runs keeps running", async 
 	const { a, ready } = ahead(h.fetch);
 	a.plan([item("a"), item("b"), item("c")]);
 	a.gate(true);
-	await settle();
+	await until(() => h.asked.length === 2);
 	a.gate(false);
 	h.let("a");
+	await until(() => ready.length === 1);
 	await settle();
 	expect(ready).toEqual(["a"]);
-	expect(h.asked).toEqual([url("a"), url("b")]);
+	expect(h.asked.toSorted()).toEqual([url("a"), url("b")]);
 	a.gate(true);
-	await settle();
-	expect(h.asked).toEqual([url("a"), url("b"), url("c")]);
+	await until(() => h.asked.length === 3);
+	expect(h.asked[2]).toBe(url("c"));
 	await a.cancel();
 });
 
@@ -96,6 +105,7 @@ test("the room check counts the early downloads under way: a second large file w
 	const { a, lines } = ahead(h.fetch, AHEAD_ROOM + 1.5 * BODY.length);
 	a.plan([item("a"), item("b")]);
 	a.gate(true);
+	await until(() => h.asked.length === 1 && lines.some((l) => l.startsWith("b:")));
 	await settle();
 	expect(h.asked).toEqual([url("a")]);
 	expect(lines).toContain("b: Not downloaded ahead: the disk is short of room. It downloads at its turn.");
@@ -107,7 +117,7 @@ test("a claim waits for a file still coming down, passes its progress on, and ha
 	const { a, ready } = ahead(h.fetch);
 	a.plan([item("a")]);
 	a.gate(true);
-	await settle();
+	await until(() => h.asked.length === 1);
 	const seen: number[] = [];
 	const got = a.claim("a", (received) => seen.push(received));
 	h.let("a");
@@ -125,9 +135,9 @@ test("a file that changed on disk after it came down is deleted at the claim, wh
 	const { a, ready, lines } = ahead(h.fetch);
 	a.plan([item("a")]);
 	a.gate(true);
-	await settle();
+	await until(() => h.asked.length === 1);
 	h.let("a");
-	await settle();
+	await until(() => ready.length === 1);
 	expect(ready).toEqual(["a"]);
 	writeFileSync(item("a").file, "short");
 	expect(await a.claim("a", () => {})).toBeNull();
@@ -143,9 +153,9 @@ test("an early download that fails leaves no file, is not tried again, and its c
 	const bad = { ...item("a"), asset: { ...item("a").asset, url: "https://dl.test/bad" } };
 	a.plan([bad]);
 	a.gate(true);
-	await settle();
+	await until(() => h.asked.length === 1);
 	h.let("bad");
-	await settle();
+	await until(() => lines.some((l) => l.includes("failed")) && !existsSync(bad.file));
 	expect(ready).toEqual([]);
 	expect(existsSync(bad.file)).toBe(false);
 	expect(lines).toContain(
@@ -162,6 +172,7 @@ test("a disk without room past the file's size downloads nothing ahead and says 
 	const { a, lines } = ahead(h.fetch, AHEAD_ROOM + BODY.length - 1);
 	a.plan([item("a")]);
 	a.gate(true);
+	await until(() => lines.length === 1);
 	await settle();
 	expect(h.asked).toEqual([]);
 	expect(lines).toEqual(["a: Not downloaded ahead: the disk is short of room. It downloads at its turn."]);
@@ -172,9 +183,9 @@ test("cancel stops what is coming down, deletes every file not handed over, and 
 	const { a, ready, lines } = ahead(h.fetch);
 	a.plan([item("a"), item("b"), item("c")]);
 	a.gate(true);
-	await settle();
+	await until(() => h.asked.length === 2);
 	h.let("b");
-	await settle();
+	await until(() => ready.length === 1 && h.asked.length === 3);
 	expect(existsSync(item("b").file)).toBe(true);
 	const first = a.cancel();
 	expect(a.cancel()).toBe(first);
@@ -184,7 +195,8 @@ test("cancel stops what is coming down, deletes every file not handed over, and 
 	a.gate(true);
 	await settle();
 	// b's end freed its slot for c; d came after the cancel and never started.
-	expect(h.asked).toEqual([url("a"), url("b"), url("c")]);
+	expect(h.asked.slice(0, 2).toSorted()).toEqual([url("a"), url("b")]);
+	expect(h.asked.slice(2)).toEqual([url("c")]);
 	expect(ready).toEqual(["b"]);
 	expect(await a.claim("b", () => {})).toBeNull();
 	// A cancel is not a failure: no line says one failed.
