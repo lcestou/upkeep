@@ -239,6 +239,8 @@ test("latestFromSource text: takes the answer's first line, and refuses a page t
 	const at = (f: FetchLike) => latestFromSource(`text:${URL}`, { cacheDir: dir, fetch: f });
 	expect(await at(plain("2.1.328\n"))).toEqual({ version: "2.1.328" });
 	expect(await at(plain("  1.4.0-rc.1\nnotes\n"))).toEqual({ version: "1.4.0-rc.1" });
+	// Windows line endings and a byte-order mark, as a file saved on another system may carry.
+	expect(await at(plain("\uFEFF2.1.329\r\n"))).toEqual({ version: "2.1.329" });
 	const pages = ["<!doctype html><title>Down</title>", "", "latest is 2.1.0"];
 	for (const r of await Promise.all(pages.map((page) => at(plain(page)))))
 		expect(isFailure(r) && r.detail).toBe(`${URL} sent no version.`);
