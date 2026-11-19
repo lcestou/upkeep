@@ -2716,3 +2716,8 @@ msgstr "{0}: latest muss mit npm:, pypi:, github:, npm-tags:, json:, crates:, te
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a zsync: latest is only for kind appimage, with an https address"
 msgstr "{0}: ein zsync:-latest gibt es nur für kind appimage, mit einer https-Adresse"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Could not unpack the {0} restore point: {1}"
+msgstr "Der Wiederherstellungspunkt {0} ließ sich nicht entpacken: {1}"

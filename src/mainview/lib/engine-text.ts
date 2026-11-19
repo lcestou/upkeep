@@ -12,6 +12,7 @@ export const ENGINE_COPY = {
 	commandExited: (v0: string, v1: string) => `${v0} exited ${v1}.`,
 	packageCouldNotPutBack: (v0: string, v1: string) => `${v0} could not put ${v1} back. See the log.`,
 	couldNotRestoreFile: (v0: string, v1: string) => `Could not restore ${v0}: ${v1}`,
+	couldNotUnpackPoint: (v0: string, v1: string) => `Could not unpack the ${v0} restore point: ${v1}`,
 	badInput: () =>
 		`Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.`,
 	catalogueOnlineWhy: () => `From Upkeep's catalogue online: a table added after this version of Upkeep came out.`,

@@ -2695,3 +2695,8 @@ msgstr "{0}：latest 必须以 npm:、pypi:、github:、npm-tags:、json:、crat
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a zsync: latest is only for kind appimage, with an https address"
 msgstr "{0}：zsync: 类型的 latest 仅用于 kind appimage，且需要 https 地址"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Could not unpack the {0} restore point: {1}"
+msgstr "无法解包还原点 {0}：{1}"

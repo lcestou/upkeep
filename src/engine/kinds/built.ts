@@ -2,7 +2,7 @@ import { existsSync, lstatSync, readFileSync, renameSync, rmSync, statSync, writ
 import { dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, Serve, Service, Test } from "../../shared/types";
-import { listBackups, prune, readMeta } from "../backup";
+import { listBackups, packOlder, prune, readMeta, unpackPoint } from "../backup";
 import { isRecord } from "../manifest";
 import { dropTree } from "../drop";
 import { stripEscapes } from "../probe";
@@ -768,6 +768,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	if (installed === null || (installed === target.from && target.from !== target.version))
 		return rollBack(MESSAGES.failedTest(VERSION_CHECK, from));
 	prune(ctx.paths, spec.key, ctx.settings.keepBackups);
+	await packOlder(ctx.paths, spec.key, ctx.run, ctx.log);
 	await pruneBuilds(spec, ctx, built);
 	// Only now: until verify passed, the held copy is what a rollback renames back.
 	dropHeld(spec, ctx, built.dir);
@@ -897,6 +898,12 @@ export async function restoreBuilt(
 	const point = pointOf(ctx.paths, spec.key, version);
 	if (!readMeta(point)?.tree) return { ok: false, detail: MESSAGES.noRestorePoint(version) };
 	if (!(await sudoAllowed(spec, ctx))) return { ok: false, detail: SUDO_REFUSED };
+	// An older point is packed: made plain first, before anything stops, so the restore itself stays renames.
+	try {
+		await unpackPoint(point, ctx.paths, ctx.run);
+	} catch (err) {
+		return { ok: false, detail: err instanceof Error ? err.message : String(err) };
+	}
 	const busy = await busyNow(spec, ctx, false);
 	if (busy) return { ok: false, detail: MESSAGES.busySayNothingChanged(busy) };
 	const dir = spec.dir ? resolvePath(spec.dir, ctx.paths, null) : null;

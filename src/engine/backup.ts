@@ -6,9 +6,13 @@ import {
 	mkdirSync,
 	readdirSync,
 	readFileSync,
+	closeSync,
+	openSync,
 	readlinkSync,
+	readSync,
 	renameSync,
 	rmSync,
+	statSync,
 	symlinkSync,
 	writeFileSync,
 } from "node:fs";
@@ -192,6 +196,11 @@ async function putBack(
 	// A half-built point has a meta file and maybe not every file: it is never a version to go back to.
 	const meta = version.endsWith(".upkeep-tmp") ? null : readMeta(dir);
 	if (!meta) return { ok: false, detail: MESSAGES.noRestorePoint(version) };
+	try {
+		await unpackPoint(dir, paths, run);
+	} catch (err) {
+		return { ok: false, detail: err instanceof Error ? err.message : String(err) };
+	}
 	if (meta.command) {
 		const r = await run(meta.command, { timeoutMs: 600_000, cwd: paths.home });
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
@@ -271,6 +280,118 @@ export function prune(paths: Paths, key: string, keep: number): void {
 	const root = backupDir(paths, key);
 	if (existsSync(root))
 		for (const name of readdirSync(root))
-			if (name.endsWith(".upkeep-tmp") || name.includes(".upkeep-drop.")) dropTree(join(root, name), paths);
+			if (name.endsWith(".upkeep-tmp") || name.endsWith(".upkeep-unpack") || name.includes(".upkeep-drop."))
+				dropTree(join(root, name), paths);
 	for (const p of listBackups(paths, key).slice(Math.max(1, keep))) dropTree(join(root, p.version), paths);
+}
+
+/** A packed point's files, in its own folder beside meta.json, so the point is listed and read as before. */
+const PACKED = ".upkeep-packed.tar.zst";
+/** Marks a point that did not shrink by a tenth when packed, so it is not tried again. */
+const PLAIN = ".upkeep-plain";
+
+/** The bytes under p, links not followed; 0 for what cannot be read. */
+function bytesOf(p: string): number {
+	try {
+		const st = lstatSync(p);
+		if (!st.isDirectory()) return st.size;
+		return readdirSync(p).reduce((n, name) => n + bytesOf(join(p, name)), 0);
+	} catch {
+		return 0;
+	}
+}
+
+/** Whether the file starts as an AppImage does: ELF, with the type-2 magic at byte 8. False when it cannot be read. */
+function isAppImageFile(file: string): boolean {
+	let fd: number | null = null;
+	try {
+		fd = openSync(file, "r");
+		const b = Buffer.alloc(11);
+		return (
+			readSync(fd, b, 0, 11, 0) === 11 &&
+			b.toString("latin1", 0, 4) === "\x7fELF" &&
+			b.toString("latin1", 8, 11) === "AI\x02"
+		);
+	} catch {
+		return false;
+	} finally {
+		if (fd !== null) closeSync(fd);
+	}
+}
+
+/**
+ * Packs every restore point of key but the newest into one zstd tarball inside its folder: a source build's kept
+ * trees and a folder app's folder halve or better. The newest stays plain, since a rollback right after a failed start
+ * renames from it, with no unpack and no extra disk. Skipped: a package or command point (the package is compressed,
+ * a command has no files), a point whose files are all AppImages (squashfs, nothing to gain), and one that did not
+ * shrink by a tenth before. The tarball is written aside and renamed in before the plain files go, so a cut run
+ * leaves a whole tarball or none, and the next run finishes the delete. Needs GNU tar with zstd; when tar fails the
+ * points stay plain and it is tried again after the next update. Never throws.
+ */
+export async function packOlder(paths: Paths, key: string, run: Run, log: (line: string) => void): Promise<void> {
+	const root = backupDir(paths, key);
+	for (const p of listBackups(paths, key).slice(1)) {
+		const point = join(root, p.version);
+		const meta = readMeta(point);
+		if (!meta || meta.deb || meta.rpm || meta.command || existsSync(join(point, PLAIN))) continue;
+		const packed = join(point, PACKED);
+		const tmp = `${packed}.upkeep-tmp`;
+		const failed = (why: string) => log(`Could not pack the ${p.version} restore point of ${key}: ${why}`);
+		try {
+			rmSync(tmp, { force: true });
+			const entries = readdirSync(point).filter((n) => n !== "meta.json" && n !== PACKED && n !== PLAIN);
+			// A pack cut after its rename: the tarball is whole, so what is left plain goes.
+			if (existsSync(packed)) {
+				for (const n of entries) dropTree(join(point, n), paths);
+				continue;
+			}
+			const files = meta.files.filter((f) => f.link === undefined);
+			const images =
+				!meta.tree && files.length > 0 && files.every((f) => !f.dir && isAppImageFile(join(point, f.name)));
+			if (entries.length === 0 || images) continue;
+			// oxlint-disable-next-line no-await-in-loop -- one tarball at a time, so two never fill the disk together
+			const r = await run(["tar", "--zstd", "-cf", tmp, "-C", point, "--", ...entries], { timeoutMs: 600_000 });
+			if (r.code !== 0) {
+				rmSync(tmp, { force: true });
+				failed((r.stderr || r.stdout).trim());
+				return;
+			}
+			const before = entries.reduce((n, e) => n + bytesOf(join(point, e)), 0);
+			if (statSync(tmp).size > before * 0.9) {
+				rmSync(tmp, { force: true });
+				writeFileSync(join(point, PLAIN), "");
+				continue;
+			}
+			renameSync(tmp, packed);
+			for (const n of entries) dropTree(join(point, n), paths);
+			log(`Packed the ${p.version} restore point of ${key}.`);
+		} catch (err) {
+			rmSync(tmp, { force: true });
+			failed(err instanceof Error ? err.message : String(err));
+		}
+	}
+}
+
+/**
+ * Makes a packed point plain again before it is put back: unpacked beside it into <point>.upkeep-unpack, each entry
+ * renamed in over what a cut pack left, then the tarball removed. A plain point is left as it is. Throws when tar
+ * fails, with the tarball kept, so nothing of the point is lost.
+ */
+export async function unpackPoint(point: string, paths: Pick<Paths, "cache">, run: Run): Promise<void> {
+	const packed = join(point, PACKED);
+	if (!existsSync(packed)) return;
+	const aside = `${point}.upkeep-unpack`;
+	dropTree(aside, paths);
+	mkdirSync(aside, { recursive: true });
+	const r = await run(["tar", "--zstd", "-xpf", packed, "-C", aside], { timeoutMs: 600_000 });
+	if (r.code !== 0) {
+		dropTree(aside, paths);
+		throw new Error(MESSAGES.couldNotUnpackPoint(basename(point), (r.stderr || r.stdout).trim()));
+	}
+	for (const name of readdirSync(aside)) {
+		dropTree(join(point, name), paths);
+		renameSync(join(aside, name), join(point, name));
+	}
+	dropTree(aside, paths);
+	rmSync(packed, { force: true });
 }

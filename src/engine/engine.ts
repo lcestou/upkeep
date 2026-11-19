@@ -16,7 +16,7 @@ import type {
 } from "../shared/types";
 import { MESSAGES } from "../shared/messages";
 import type { Arch } from "./arch";
-import { backupDir, listBackups, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
+import { backupDir, listBackups, packOlder, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
 import { alsoOf, scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { readCopies } from "./extras/system";
 import { managedSpecs } from "./managers";
@@ -883,6 +883,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				const r = await restoreBackup(paths, spec, version, deps.run);
 				if (!r.ok) return r;
 				prune(paths, key, loadState(paths).settings.keepBackups);
+				await packOlder(paths, key, deps.run, kindCtx(key).log);
 				const probe = await probeInstalled(spec, kindCtx(key));
 				const installed = "version" in probe ? probe.version : null;
 				const app = apps.get(key);
