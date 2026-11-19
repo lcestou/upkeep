@@ -17,7 +17,7 @@ build = ["cmake --build build -j 6"]
 test = [{ name = "whisper-cli starts", run = ["build/bin/whisper-cli", "--help"], timeout_s = 30 }]
 ```
 
-`manifest/examples.toml` holds the long forms: llama.cpp builds into a stage beside the live copy and places one binary, Strata holds its running engine and writes config values, ComfyUI records its Python packages for an offline rollback, and dsh installs a second npm prefix and swaps it in.
+A service that runs from inside a checkout is best started through a small script outside it that finds the files, so an upstream that moves its folders does not break the unit; the Strata example shows one. `manifest/examples.toml` holds the long forms: llama.cpp builds into a stage beside the live copy and places one binary, Strata holds its running engine and writes config values, ComfyUI records its Python packages for an offline rollback, and dsh installs a second npm prefix and swaps it in.
 
 | Field         | What it does                                                                                                                                                                                   |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

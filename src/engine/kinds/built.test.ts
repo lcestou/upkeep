@@ -126,14 +126,28 @@ const argvs = (calls: { argv: string[] }[]) => calls.map((c) => c.argv.join(" ")
 test("a build that fails its check stops nothing in serve, puts the files back and starts what it paused", async () => {
 	const b = box({ "bash -c test -x out": fail("missing") });
 	const r = await prepareBuilt(spec(), target, ctx(b.run), clock);
-	expect(r).toEqual({
-		failed: "The build did not pass its check: test -x out. Nothing was changed.",
-	});
+	expect(r).toEqual({ failed: "The build did not pass its check: missing. Nothing was changed." });
 	const all = argvs(b.calls);
 	expect(all.filter((a) => a.startsWith("sudo stop") || a.startsWith("sudo -n stop"))).toEqual([]);
 	expect(all).toContain(`git -C ${srv} reset -q --keep c0ffee`);
 	expect(all.at(-1)).toBe("start api");
 	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("a failed check names the reason it printed last, else its own text", async () => {
+	const said: ProcessResult = {
+		code: 1,
+		stdout: "strata doctor: ok, engine 0.1.62\nstrata.service starts with serve/server.py, which is not there.\n",
+		stderr: "sed: noise",
+		timedOut: false,
+	};
+	expect(await prepareBuilt(spec(), target, ctx(box({ "bash -c test -x out": said }).run), clock)).toEqual({
+		failed:
+			"The build did not pass its check: strata.service starts with serve/server.py, which is not there. Nothing was changed.",
+	});
+	expect(await prepareBuilt(spec(), target, ctx(box({ "bash -c test -x out": fail("") }).run), clock)).toEqual({
+		failed: "The build did not pass its check: test -x out. Nothing was changed.",
+	});
 });
 
 test("busy is asked before the pause and again after it", async () => {

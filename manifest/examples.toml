@@ -281,6 +281,11 @@ exit $rc''',
 # Strata's own CLI checks the build: the version it reports, then strata doctor on the active run config, whose engine
 # must be the one just built from this source. Without the launcher, a built engine must match the source version.
 # The second step reads the unit itself: every file its start line names must still be there after the build.
+# A unit that names paths inside the checkout breaks on every layout move, and pointing it at the new paths first
+# breaks the version still running. Start it through a script outside the checkout that finds the layout, e.g.
+#   cd ~/Projects/Strata; [ -f terminal/setup.py ] && cd terminal
+#   exec .venv/bin/python serve/server.py --engine strata --config strata-active.json --port 8092
+# with the unit's ExecStart set to that script (a drop-in in /etc/systemd/system/strata.service.d/).
 check_built = [
 	'''cli=$(git ls-files -- bin/strata '*/bin/strata' | head -n 1)
 if [ -z "$cli" ]; then
@@ -318,7 +323,7 @@ for x in $a; do
 		*/* | *.py | *.json) ;;
 		*) continue ;;
 	esac
-	[ -e "$x" ] || { echo "strata.service starts with $x, which is not there after the build: point the unit at the new layout first."; exit 1; }
+	[ -e "$x" ] || { echo "strata.service starts with $x, which this build moved: start the unit through a script that finds the layout (see the Strata example in manifest/examples.toml)."; exit 1; }
 done''',
 ]
 config = [

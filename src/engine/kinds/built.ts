@@ -41,6 +41,14 @@ const SERVICE_MS = 120_000;
 /** The first line of s after trimming, or an empty string; the short form of a failed command's output for an error message. */
 const firstLine = (s: string) => s.trim().split("\n")[0] ?? "";
 
+/**
+ * What a failed check_built step tells the row: the last line it printed (stdout first, where a check echoes its
+ * reason; else stderr), without a closing full stop, since the sentence adds one. A silent step is named by its text.
+ * Each line was already logged as it came, so nothing is logged again here.
+ */
+const checkReason = (r: { stdout: string; stderr: string }, step: string) =>
+	(r.stdout.trim().split("\n").at(-1) || r.stderr.trim().split("\n").at(-1) || step).trim().replace(/\.$/, "");
+
 type Step = Inflight["tree"] extends infer T ? (T extends { step: infer S } ? S : never) : never;
 
 /**
@@ -439,10 +447,7 @@ export async function prepareBuilt(
 			killTree: true,
 			onLine: (l) => ctx.log(l),
 		});
-		if (r.code !== 0) {
-			ctx.log(firstLine(r.stderr || r.stdout));
-			return fail({ failed: MESSAGES.checkFailedStep(step), cleanup: "revert" });
-		}
+		if (r.code !== 0) return fail({ failed: MESSAGES.checkFailedStep(checkReason(r, step)), cleanup: "revert" });
 	}
 	return { dir, stage, point, tree, vars, active, paused, marker, treeCtx };
 }
