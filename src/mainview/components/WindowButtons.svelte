@@ -7,16 +7,15 @@
 
 	/** The button's accessible name; maximize reads "Restore" while the window is already maximized. */
 	const label = (b: WindowButton) => (b === "maximize" ? (chrome.maximized ? WIN.restore : WIN.maximize) : WIN[b]);
-
-	/**
-	 * Set by close and minimize, which hide the window with the pointer still on the button: a hidden webview never
-	 * hears the pointer leave, so the button would open lit (red, for close) the next time. Cleared when the pointer
-	 * comes into the buttons again from outside.
-	 */
-	let cold = $state(false);
 </script>
 
-<div class="win {chrome.side}" class:cold data-testid="window-buttons" onpointerenter={() => (cold = false)}>
+<!-- Hover waits for the pointer after a close or minimize (model.buttonsCold): the button stays where the pointer left it. -->
+<div
+	class="win {chrome.side}"
+	class:cold={model.buttonsCold}
+	data-testid="window-buttons"
+	onpointerenter={() => (model.buttonsCold = false)}
+>
 	{#each chrome.order as b (b)}
 		<button
 			type="button"
@@ -24,10 +23,7 @@
 			aria-label={label(b)}
 			title={label(b)}
 			data-testid="win-{b}"
-			onclick={() => {
-				if (b !== "maximize") cold = true;
-				model.send("window", { op: b });
-			}}
+			onclick={() => model.windowOp(b)}
 		>
 			<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
 				{#if b === "close"}

@@ -13,6 +13,7 @@ import type {
 	Settings,
 	Snapshot,
 	SystemRow,
+	WindowButton,
 	WindowChrome,
 } from "../../shared/types";
 import { followSetting } from "./language.svelte";
@@ -101,6 +102,11 @@ export class Model {
 	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
 	chrome = $state<WindowChrome | null>(null);
+	/**
+	 * True from a close or minimize until the pointer comes into the window buttons again. Either hides the window with
+	 * the pointer where it was, and a hidden webview never hears it leave, so a button would open in its hover colour.
+	 */
+	buttonsCold = $state(false);
 	rate = $state<Snapshot["rate"]>(null);
 	checkedAt = $state<string | null>(null);
 	version = $state("");
@@ -631,6 +637,12 @@ export class Model {
 	async loadHistory(): Promise<void> {
 		const rows = await this.send("history", { limit: 200 });
 		if (rows) this.history = rows;
+	}
+
+	/** Sends a title-bar op, from a button or a shortcut. Close and minimize mark the buttons cold (see buttonsCold). */
+	windowOp(op: WindowButton): void {
+		if (op !== "maximize") this.buttonsCold = true;
+		void this.send("window", { op });
 	}
 
 	/**

@@ -44,6 +44,11 @@ test("close and minimize do not open lit: their hover waits until the pointer co
 		await page.getByTestId(id).hover();
 		await expect.poll(() => bg(id)).not.toBe(idle);
 	}
+	// Ctrl+W hides the window too: with the pointer resting on close, close must not open lit either.
+	await page.getByTestId("win-close").hover();
+	await expect.poll(() => bg("win-close")).not.toBe(idle);
+	await page.keyboard.press("Control+w");
+	await expect.poll(() => bg("win-close")).toBe(idle);
 });
 
 test("buttons on the right are mirrored and come last", async ({ page }) => {
