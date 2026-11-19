@@ -791,8 +791,9 @@ const named = <T extends Service>(list: T[] | undefined, names: string[]) =>
 
 /**
  * Finishes or undoes one interrupted built update from its marker, by the step it names: a kill of the recorded
- * step first (only when the pid still has the same start time, so a reused pid is never signalled), then the
- * put-back that step needs, then every unit that was active or paused is started. Returns false when anything
+ * step first (only when the pid still has the same start time, so a reused pid is never signalled), then a stop of
+ * every unit that was active, even one that reads down (a crashing unit between two restarts would otherwise come up
+ * on a half put-back tree), then the put-back that step needs, then every unit that was active or paused is started. Returns false when anything
  * failed; the marker is kept then, so the next recovery tries again. Every step is safe to run twice.
  */
 export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): Promise<boolean> {

@@ -703,9 +703,13 @@ test("scan leaves out manager tools the list already tracks, by key, process, ch
 	expect(r.suggestions.map((x) => x.spec.key)).toEqual(["free"]);
 });
 
-test("an npm package is tracked by a table named as the package without its scope, whatever its latest source", async () => {
+test("a scoped npm package is tracked by a table named as the package without its scope, whatever its latest source", async () => {
 	managers.npm = JSON.stringify({
-		dependencies: { "@anthropic-ai/claude-code": { version: "2.1.328" }, "@scope/other": { version: "1.0.0" } },
+		dependencies: {
+			"@anthropic-ai/claude-code": { version: "2.1.328" },
+			"@scope/other": { version: "1.0.0" },
+			ripgrep: { version: "14.1.0" },
+		},
 	});
 	const specs: AppSpec[] = [
 		{
@@ -716,8 +720,10 @@ test("an npm package is tracked by a table named as the package without its scop
 			latest: "text:https://downloads.example.com/claude-code-releases/latest",
 			update: ["claude", "update"],
 		},
+		// An unscoped package is matched by key, process, check, update or latest only, never by a table's name.
+		{ key: "rg", name: "ripgrep", kind: "archive", repo: "BurntSushi/ripgrep" },
 	];
-	expect((await scan(ctx(specs).c)).suggestions.map((x) => x.spec.key)).toEqual(["scope-other"]);
+	expect((await scan(ctx(specs).c)).suggestions.map((x) => x.spec.key)).toEqual(["scope-other", "ripgrep"]);
 });
 
 test("a tool whose name has a shell character is not offered", async () => {
