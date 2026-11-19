@@ -54,6 +54,8 @@ async function setup(hold = false) {
 	await realRun(t.paths)(["tar", "czf", tarball, "-C", join(t.dir, "tar-fd"), "."]);
 	const tar = new Uint8Array(readFileSync(tarball));
 	const fetched: { slowWorking: boolean }[] = [];
+	/** Whether slow was still working when each held fetch was aborted. */
+	const aborted: boolean[] = [];
 	let slowWorking = false;
 	const fetch: FetchLike = async (url, init) => {
 		if (url.includes("registry.npmjs.org")) return Response.json({ version: "1.1.0" });
@@ -68,9 +70,16 @@ async function setup(hold = false) {
 		if (url !== `https://dl.test/${ASSET}`) return new Response("missing", { status: 404 });
 		fetched.push({ slowWorking });
 		if (!hold) return new Response(tar);
-		return new Promise<Response>((_, reject) =>
-			init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))),
-		);
+		return new Promise<Response>((_, reject) => {
+			const signal = init?.signal;
+			const stop = () => {
+				aborted.push(slowWorking);
+				reject(new DOMException("aborted", "AbortError"));
+			};
+			// As a real fetch does, a signal aborted before the call rejects at once.
+			if (signal?.aborted) stop();
+			else signal?.addEventListener("abort", stop);
+		});
 	};
 	const { run } = recordingRun(t.paths, (argv) =>
 		argv[0] === "gh"
@@ -98,7 +107,7 @@ async function setup(hold = false) {
 		if (e.app.key === "fd") fd.push(e.app);
 	});
 	await engine.check();
-	return { engine, fetched, fd, file: dlPath(t.paths, "fd", ASSET) };
+	return { engine, fetched, fd, aborted, file: dlPath(t.paths, "fd", ASSET) };
 }
 
 test("a release app behind a slow one downloads while it works, waits marked, and skips its download at its turn", async () => {
@@ -119,7 +128,7 @@ test("a release app behind a slow one downloads while it works, waits marked, an
 });
 
 test("Stop while the first app works stops the early download, deletes its file, and the row is ready", async () => {
-	const { engine, fetched, file } = await setup(true);
+	const { engine, fetched, aborted, file } = await setup(true);
 	let stopped = false;
 	engine.subscribe((e) => {
 		if (!stopped && e.type === "log" && e.line.text.includes("ahead of its turn")) {
@@ -131,6 +140,8 @@ test("Stop while the first app works stops the early download, deletes its file,
 	await engine.idle();
 	expect(stopped).toBe(true);
 	expect(fetched).toHaveLength(1);
+	// Stop itself aborts the early download, while slow still works; the run's end would only catch it later.
+	expect(aborted).toEqual([true]);
 	expect(existsSync(file)).toBe(false);
 	expect(engine.snapshot().run.results.map((r) => r.key)).toEqual(["slow"]);
 	const fd = engine.snapshot().apps.find((a) => a.key === "fd");

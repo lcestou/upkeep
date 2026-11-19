@@ -257,8 +257,25 @@ test("a cancel during the wait before the retry stops it: the second try never s
 	};
 	const ctl = new AbortController();
 	setTimeout(() => ctl.abort(), 20);
+	const began = Date.now();
+	// The wait is long: the cancel ends it at once rather than after it.
 	await expect(
-		download("https://x.test/asset", join(dir, "wait.bin"), { fetch: flaky, signal: ctl.signal, retryMs: 200 }),
+		download("https://x.test/asset", join(dir, "wait.bin"), { fetch: flaky, signal: ctl.signal, retryMs: 60_000 }),
 	).rejects.toThrow();
 	expect(calls).toBe(1);
+	expect(Date.now() - began).toBeLessThan(5000);
+});
+
+test("a signal aborted before the call starts no download", async () => {
+	let calls = 0;
+	const counted: FetchLike = async () => {
+		calls += 1;
+		return new Response(PAYLOAD);
+	};
+	const ctl = new AbortController();
+	ctl.abort();
+	await expect(
+		download("https://x.test/asset", join(dir, "early.bin"), { fetch: counted, signal: ctl.signal }),
+	).rejects.toThrow();
+	expect(calls).toBe(0);
 });

@@ -108,14 +108,26 @@ export function createAhead(o: AheadOpts): Ahead {
 	let reserved = 0;
 	let closed: Promise<void> | null = null;
 
+	/**
+	 * Bytes free on the download folder's disk. A folder that cannot be made or measured counts as no room, so the
+	 * app downloads at its turn and the run goes on.
+	 */
+	function room(): number {
+		try {
+			mkdirSync(o.dir, { recursive: true });
+			return freeBytes(o.dir);
+		} catch {
+			return 0;
+		}
+	}
+
 	/** Starts the next waiting downloads while a slot, the gate and the disk allow. */
 	function fill(): void {
 		for (const item of waiting) {
 			if (running >= AHEAD_AT_ONCE || !open || closed) return;
 			if (tried.has(item.key)) continue;
 			tried.add(item.key);
-			mkdirSync(o.dir, { recursive: true });
-			if (freeBytes(o.dir) - reserved - item.asset.size < AHEAD_ROOM)
+			if (room() - reserved - item.asset.size < AHEAD_ROOM)
 				o.log(item.key, "Not downloaded ahead: the disk is short of room. It downloads at its turn.");
 			else start(item);
 		}
@@ -129,7 +141,6 @@ export function createAhead(o: AheadOpts): Ahead {
 		const began = Date.now();
 		const entry: Entry = { item, ctl, claimed: false, done: Promise.resolve(null) };
 		entries.set(item.key, entry);
-		o.log(item.key, `Downloading ${item.asset.name} ahead of its turn`);
 		entry.done = download(item.asset.url, item.file, {
 			fetch: o.fetch,
 			signal: ctl.signal,
@@ -157,6 +168,8 @@ export function createAhead(o: AheadOpts): Ahead {
 				reserved -= item.asset.size;
 				fill();
 			});
+		// Logged once the download holds its signal: a Stop this line sets off aborts the download, not a placeholder.
+		o.log(item.key, `Downloading ${item.asset.name} ahead of its turn`);
 	}
 
 	return {

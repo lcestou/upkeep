@@ -178,6 +178,27 @@ test("a disk without room past the file's size downloads nothing ahead and says 
 	expect(lines).toEqual(["a: Not downloaded ahead: the disk is short of room. It downloads at its turn."]);
 });
 
+test("a disk that cannot be measured counts as no room: nothing downloads ahead and the run goes on", async () => {
+	const h = held();
+	const lines: string[] = [];
+	const a = createAhead({
+		dir: join(dir, "dl"),
+		fetch: h.fetch,
+		token: null,
+		freeBytes: () => {
+			throw new Error("statfs: not supported");
+		},
+		onReady: () => {},
+		log: (key, text) => lines.push(`${key}: ${text}`),
+	});
+	a.plan([item("a")]);
+	a.gate(true);
+	await until(() => lines.length === 1);
+	expect(h.asked).toEqual([]);
+	expect(lines).toEqual(["a: Not downloaded ahead: the disk is short of room. It downloads at its turn."]);
+	await a.cancel();
+});
+
 test("cancel stops what is coming down, deletes every file not handed over, and nothing starts after it", async () => {
 	const h = held();
 	const { a, ready, lines } = ahead(h.fetch);
