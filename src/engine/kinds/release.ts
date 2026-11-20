@@ -17,7 +17,7 @@ import type { AppSpec } from "../../shared/types";
 import { prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
 import { download, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
-import { forgeRelease, linksRelease } from "../forge";
+import { forgeRelease, linksRelease, zsyncRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
@@ -104,8 +104,8 @@ export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult
 
 /**
  * The release a check compares against, or with tag the release of that tag (a restore point's): the latest of repo
- * on its forge, else the page a "links:" latest names, else what latest names when it carries a download (a "json:"
- * source). A latest that only gives a version has nothing to install, which is a failure here.
+ * on its forge, else the page a "links:" latest names, else the file a "zsync:" one names, else what latest names
+ * when it carries a download (a "json:" source). A latest that only gives a version has nothing to install, which is a failure here.
  */
 async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Release | Failure> {
 	const opts = {
@@ -118,6 +118,7 @@ async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Rel
 	};
 	if (spec.repo || !spec.latest) return forgeRelease(spec.repo ?? "", spec.forge, opts);
 	if (spec.latest.startsWith("links:")) return linksRelease(spec.latest.slice(6), assetFor(spec, ctx.arch) ?? "", opts);
+	if (spec.latest.startsWith("zsync:")) return zsyncRelease(spec.latest.slice(6), ctx.fetch);
 	const r = await latestFromSource(spec.latest, opts);
 	if (isFailure(r)) return r;
 	return r.release ?? { failure: "http", detail: MESSAGES.sourceGivesNoDownload(spec.latest) };

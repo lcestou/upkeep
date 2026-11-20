@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add app follows an AppImage's own update information more closely. The publisher's file pattern from `gh-releases-zsync` becomes the table's `asset` when it picks one file. A `zsync|` address into a GitHub, GitLab or Codeberg release is read as that release, and a `zsync|` address on any other host is followed through the new `latest = "zsync:<address>"` source, which reads the latest file's name, address and size from the `.zsync` header. Thanks to @probonopd, whose question on the awesome-appimage listing started it.
 - The window's close button no longer opens red when you bring Upkeep back from the tray. Closing hid the window with the pointer on the button, and the button kept its hover colour until the mouse moved. Minimize did the same.
 - When a source build fails its check, the row says the reason the check printed, not the check's whole script. The Strata example and the source-build docs show how to start a service through a script that finds the files, so an upstream that moves its folders does not break the unit.
 - A service that crashes right after an update (systemd keeps restarting it, or it stops) is rolled back within seconds, instead of after its whole wait (five minutes for Strata). The rollback stops it first, so systemd cannot restart it while the old files go back.

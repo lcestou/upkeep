@@ -142,10 +142,13 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	const refused = liftRepo(key, table, spec);
 	if (refused) return refused;
 	// A source the check cannot read fails here, at load, not later at every check.
-	if (spec.latest !== undefined && !/^(npm|pypi|github|npm-tags|json|crates|text|links):./.test(spec.latest))
+	if (spec.latest !== undefined && !/^(npm|pypi|github|npm-tags|json|crates|text|links|zsync):./.test(spec.latest))
 		return MESSAGES.liftLatestScheme(key);
 	// Only an AppImage installs the download a json: answer names; any other kind would read it as a GitHub repo.
 	if (spec.latest?.startsWith("json:") && spec.kind !== "appimage") return MESSAGES.liftJsonOnlyAppimage(key);
+	// A .zsync address never changes between versions, so there is no older file to fetch: an AppImage only.
+	if (spec.latest?.startsWith("zsync:") && (spec.kind !== "appimage" || !/^zsync:https:\/\/[^/\s]+/.test(spec.latest)))
+		return MESSAGES.liftZsyncAppimage(key);
 	if (spec.latest?.startsWith("links:")) {
 		if (!RELEASE_KINDS.has(spec.kind)) return MESSAGES.liftLinksKinds(key);
 		if (!(spec.asset ?? spec.asset_aarch64) || !/^links:https:\/\/[^/\s]+/.test(spec.latest))

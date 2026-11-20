@@ -267,3 +267,48 @@ export async function linksRelease(page: string, pattern: string, opts: ReleaseO
 	if (assets.length === 0) return { failure: "http", detail: MESSAGES.linksNoMatch(page, pattern) };
 	return { tag: version, version, url: page, publishedAt: "", notes: "", assets };
 }
+
+/** The header of a .zsync file, which ends at its first empty line: field name to value. */
+export function zsyncHeader(text: string): Map<string, string> {
+	const fields = new Map<string, string>();
+	for (const line of text.split("\n")) {
+		if (line.trim() === "") break;
+		const at = line.indexOf(":");
+		if (at > 0) fields.set(line.slice(0, at).trim().toLowerCase(), line.slice(at + 1).trim());
+	}
+	return fields;
+}
+
+/**
+ * A "zsync:<url>" source: the .zsync file an AppImage's update information names, whose header says what the latest
+ * file is called (Filename, which holds the version) and where it is (URL, relative to the .zsync file). One release
+ * with that one file, its size from Length. The address never changes from version to version, so there is no older
+ * release to ask for: the source is for AppImages only, whose restore point is the old file itself. Only the first
+ * 8 kB is asked for, and a server that sends the whole file still has its header read.
+ */
+export async function zsyncRelease(address: string, fetch: ReleaseOpts["fetch"]): Promise<Release | Failure> {
+	if (!httpsUrl(address)) return { failure: "http", detail: MESSAGES.unknownVersionSource(`zsync:${address}`) };
+	let res: Response;
+	let text: string;
+	try {
+		res = await fetch(address, { headers: { Range: "bytes=0-8191", "User-Agent": "upkeep" } });
+		text = res.ok ? new TextDecoder("latin1").decode((await res.arrayBuffer()).slice(0, 8192)) : "";
+	} catch (err) {
+		return {
+			failure: "network",
+			detail: MESSAGES.couldNotReachUrl(address, err instanceof Error ? err.message : String(err)),
+		};
+	}
+	if (!res.ok) return { failure: "http", detail: MESSAGES.urlAnswered(address, res.status) };
+	const header = zsyncHeader(text);
+	const name = header.get("filename") ?? "";
+	// No URL line would resolve to the .zsync address itself and download the text file.
+	const url = header.get("url") ?? "";
+	const at = url ? httpsUrl(url, res.url || address) : null;
+	if (!header.has("zsync") || !name || name.includes("/") || !at)
+		return { failure: "http", detail: MESSAGES.zsyncUnreadable(address) };
+	const version = tagVersion(name);
+	const size = Number(header.get("length") ?? 0);
+	const asset = { name, url: at.href, size: Number.isSafeInteger(size) && size > 0 ? size : 0, digest: null };
+	return { tag: version ?? name, version, url: address, publishedAt: "", notes: "", assets: [asset] };
+}

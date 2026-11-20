@@ -24,6 +24,7 @@ import {
 	kindOf,
 	machineAssets,
 	readInput,
+	readUpdateInfo,
 	scan,
 	stem,
 	suggest,
@@ -60,6 +61,8 @@ let managers: Record<string, string> = {};
 let roots: Record<string, Record<string, string>> = {};
 /** Asset bodies the fake download server serves; the release then lists their real size and digest. */
 let bodies: Record<string, Uint8Array<ArrayBuffer>> = {};
+/** .zsync files the fake server serves, by address. */
+let zsyncs: Record<string, string> = {};
 
 const sha = (b: Uint8Array) => `sha256:${new Bun.CryptoHasher("sha256").update(b).digest("hex")}`;
 
@@ -87,6 +90,7 @@ async function archive(files: Record<string, string>, zip = false): Promise<Uint
 beforeEach(async () => {
 	t = tempHome("discover");
 	bodies = {};
+	zsyncs = {};
 	managers = {};
 	for (const libc of ["gnu", "musl"]) {
 		const top = `fd-v10.5.2-x86_64-unknown-linux-${libc}`;
@@ -149,6 +153,8 @@ const fakeFetch: FetchLike = async (url) => {
 		if (q[1] === "limited") return new Response('{"message":"API rate limit exceeded"}', { status: 403 });
 		return Response.json({ items: searches[decodeURIComponent(q[1] ?? "")] ?? [] });
 	}
+	const zsync = zsyncs[url];
+	if (zsync !== undefined) return new Response(zsync);
 	const body = bodies[url.replace("https://dl.test/", "")];
 	return body ? new Response(body) : new Response("", { status: 404 });
 };
@@ -506,6 +512,126 @@ test("from a file: an AppImage that names its own release source", async () => {
 		why: "The AppImage names its own release source. Matched zen-x86_64.AppImage for this machine. Could not read the installed version with --version.",
 	});
 	expect(fetched.some((u) => u.includes("/search/"))).toBe(false);
+});
+
+test("from a file: the publisher's file pattern is the table's when it picks one file, and passed over when it picks none", async () => {
+	const own = elf(join(t.paths.home, "Downloads/zen.AppImage"), {
+		image: true,
+		zsync: "gh-releases-zsync|zen-browser|desktop|latest|zen-x86*.AppImage.zsync",
+	});
+	expect((await suggest(own, ctx().c)).suggestions[0]?.spec.asset).toBe("^zen-x86.*\\.AppImage$");
+	// A pattern that also takes the aarch64 build is no table's: the picked file's own pattern is.
+	const both = elf(join(t.dir, "both/zen.AppImage"), {
+		image: true,
+		zsync: "gh-releases-zsync|zen-browser|desktop|latest|zen-*64.AppImage.zsync",
+	});
+	expect((await suggest(both, ctx().c)).suggestions[0]?.spec.asset).toBe("^zen-x86_64\\.AppImage$");
+	const renamed = elf(join(t.dir, "old/zen.AppImage"), {
+		image: true,
+		zsync: "gh-releases-zsync|zen-browser|desktop|latest|Zen-Browser-*.AppImage.zsync",
+	});
+	expect((await suggest(renamed, ctx().c)).suggestions[0]).toMatchObject({
+		spec: { repo: "zen-browser/desktop", asset: "^zen-x86_64\\.AppImage$" },
+		confidence: "sure",
+	});
+});
+
+test("from a file: a zsync| address into a forge's release is that release", async () => {
+	const img = elf(join(t.paths.home, "Downloads/zen.AppImage"), {
+		image: true,
+		zsync: "zsync|https://github.com/zen-browser/desktop/releases/latest/download/zen-x86_64.AppImage.zsync",
+	});
+	expect((await suggest(img, ctx().c)).suggestions[0]).toMatchObject({
+		spec: { repo: "zen-browser/desktop", kind: "appimage", asset: "^zen-x86_64\\.AppImage$" },
+		confidence: "sure",
+	});
+	expect(fetched.some((u) => u.includes("/search/"))).toBe(false);
+});
+
+test("from a file: a zsync| address on any other host is followed through its .zsync header", async () => {
+	const address = "https://dl.example.org/app/App-latest-x86_64.AppImage.zsync";
+	zsyncs[address] =
+		"zsync: 0.6.2\nFilename: App-2.3.1-x86_64.AppImage\nLength: 2048\nURL: App-latest-x86_64.AppImage\n\n";
+	const img = elf(join(t.paths.home, "Applications/App.AppImage"), { image: true, zsync: `zsync|${address}` });
+	const r = await suggest(img, ctx().c);
+	expect(r.suggestions[0]).toMatchObject({
+		spec: {
+			key: "app",
+			name: "App",
+			kind: "appimage",
+			latest: `zsync:${address}`,
+			asset: "^App-.*-x86_64\\.AppImage$",
+			dest: "~/Applications/App.AppImage",
+		},
+		latest: "2.3.1",
+		asset: { name: "App-2.3.1-x86_64.AppImage", size: 2048 },
+		source: "file",
+		path: img,
+		confidence: "sure",
+		why: "The AppImage names its own release source. Matched App-2.3.1-x86_64.AppImage for this machine. Could not read the installed version with --version.",
+	});
+	expect(r.suggestions[0]?.spec.repo).toBeUndefined();
+	expect(fetched.some((u) => u.includes("/search/"))).toBe(false);
+	// Already listed under that key: said on the card.
+	const listed = await suggest(img, ctx([{ key: "app", name: "App", kind: "appimage" }]).c);
+	expect(listed.suggestions[0]?.problem).toBe("App is already in the list.");
+	// A .zsync that cannot be read is the card's problem; the name is not searched instead.
+	const gone = elf(join(t.dir, "gone/Gone.AppImage"), {
+		image: true,
+		zsync: "zsync|https://dl.example.org/gone.zsync",
+	});
+	expect((await suggest(gone, ctx().c)).suggestions[0]).toMatchObject({
+		path: gone,
+		problem: "https://dl.example.org/gone.zsync answered 404.",
+	});
+	// A file name with no version gives nothing to compare.
+	zsyncs["https://dl.example.org/nover.zsync"] = "zsync: 0.6.2\nFilename: nover.AppImage\nURL: nover.AppImage\n\n";
+	const nover = elf(join(t.dir, "nover/nover.AppImage"), {
+		image: true,
+		zsync: "zsync|https://dl.example.org/nover.zsync",
+	});
+	expect((await suggest(nover, ctx().c)).suggestions[0]?.problem).toBe(
+		"The latest tag nover.AppImage is not a version Upkeep can compare.",
+	);
+});
+
+test("update information: each form, and the ones Upkeep cannot follow", () => {
+	expect(readUpdateInfo("gh-releases-zsync|probono|AppImages|latest|Subsurface-*x86_64.AppImage.zsync")).toEqual({
+		repo: "probono/AppImages",
+		asset: "^Subsurface-.*x86_64\\.AppImage$",
+	});
+	// A named tag such as continuous is not kept, and a missing pattern leaves the pick to Add app.
+	expect(readUpdateInfo("gh-releases-zsync|o|r|continuous|")).toEqual({ repo: "o/r", asset: "" });
+	expect(readUpdateInfo("gh-releases-zsync|../x|r|latest|a")).toBeNull();
+	expect(
+		readUpdateInfo("zsync|https://gitlab.com/g/sub/app/-/releases/permalink/latest/downloads/App.AppImage.zsync"),
+	).toEqual({
+		repo: "gitlab.com/g/sub/app",
+		asset: "^App\\.AppImage$",
+	});
+	expect(
+		readUpdateInfo("zsync|https://codeberg.org/o/app/releases/download/latest/App%20x86_64.AppImage.zsync"),
+	).toEqual({
+		repo: "codeberg.org/o/app",
+		asset: "^App x86_64\\.AppImage$",
+	});
+	// A self-hosted forge counts once a table names its host.
+	const own = "zsync|https://git.example.org/o/app/releases/download/v1/App.AppImage.zsync";
+	expect(readUpdateInfo(own, new Map([["git.example.org", "gitea"]]))).toEqual({
+		repo: "git.example.org/o/app",
+		forge: "gitea",
+		asset: "^App\\.AppImage$",
+	});
+	expect(readUpdateInfo(own)).toEqual({
+		zsync: "https://git.example.org/o/app/releases/download/v1/App.AppImage.zsync",
+	});
+	// A GitLab address outside its releases (a package registry) is followed as a .zsync file.
+	const registry = "https://gitlab.com/api/v4/projects/1/packages/generic/app/1.0/App.AppImage.zsync";
+	expect(readUpdateInfo(`zsync|${registry}`)).toEqual({ zsync: registry });
+	expect(readUpdateInfo("zsync|http://example.org/a.zsync")).toBeNull();
+	expect(readUpdateInfo("zsync|not a url")).toBeNull();
+	expect(readUpdateInfo("pling-v1-zsync|1623134|*-stable-x86_64.AppImage")).toBeNull();
+	expect(readUpdateInfo("bintray-zsync|a|b|c|d")).toBeNull();
 });
 
 test("from a file: the source in the last 2 MB of a big AppImage is found too", async () => {

@@ -1979,11 +1979,6 @@ msgstr "{0} non elenca nessun download che corrisponda a {1}."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:"
-msgstr "{0}: latest deve iniziare con npm:, pypi:, github:, npm-tags:, json:, crates:, text: o links:"
-
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
 msgid "{0}: repo must be owner/name on GitHub, or host/owner/name such as gitlab.com/group/name or codeberg.org/owner/name"
 msgstr "{0}: repo deve essere owner/name su GitHub, o host/owner/name come gitlab.com/group/name o codeberg.org/owner/name"
 
@@ -2727,3 +2722,18 @@ msgstr[2] "Poi Upkeep installa le # app spuntate."
 #: src/mainview/lib/copy.ts
 msgid "Wait for the system updates to finish."
 msgstr "Attendi la fine degli aggiornamenti di sistema."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is not a zsync file that names its download."
+msgstr "{0} non è un file zsync che indichi il suo download."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text:, links: or zsync:"
+msgstr "{0}: latest deve iniziare con npm:, pypi:, github:, npm-tags:, json:, crates:, text:, links: o zsync:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a zsync: latest is only for kind appimage, with an https address"
+msgstr "{0}: un latest zsync: vale solo per kind appimage, con un indirizzo https"

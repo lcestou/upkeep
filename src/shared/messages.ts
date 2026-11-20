@@ -177,6 +177,8 @@ export const MESSAGES = {
 	forgeAnswered: (v0: Value, v1: Value, v2: Value) => `${v0} answered ${v1} for ${v2}.`,
 	/** forge.ts. {0} page URL; {1} the table's asset pattern */
 	linksNoMatch: (v0: Value, v1: Value) => `${v0} lists no download matching ${v1}.`,
+	/** forge.ts. {0} address of a .zsync file */
+	zsyncUnreadable: (v0: Value) => `${v0} is not a zsync file that names its download.`,
 	/** github.ts. {0} installed version */
 	noVersionAtOrAbove: (v0: Value) => `No published version at or above ${v0}.`,
 	/** github.ts. {0} the latest source string as written */
@@ -355,7 +357,7 @@ export const MESSAGES = {
 	liftFolderPlace: (v0: Value) => `${v0}: folder must be a folder of its own under home, such as ~/.local/share/${v0}`,
 	/** manifest.ts. {0} app key */
 	liftLatestScheme: (v0: Value) =>
-		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:`,
+		`${v0}: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text:, links: or zsync:`,
 	/** manifest.ts. {0} app key */
 	liftJsonOnlyAppimage: (v0: Value) => `${v0}: a json: latest is only for kind appimage`,
 	/** manifest.ts. {0} app key */
@@ -374,6 +376,8 @@ export const MESSAGES = {
 	liftLinksPage: (v0: Value) => `${v0}: a links: latest needs an https page and an asset pattern`,
 	/** manifest.ts. {0} app key */
 	liftLinksKinds: (v0: Value) => `${v0}: a links: latest is only for kinds appimage, archive, file, deb and rpm`,
+	/** manifest.ts. {0} app key */
+	liftZsyncAppimage: (v0: Value) => `${v0}: a zsync: latest is only for kind appimage, with an https address`,
 	/** manifest.ts. {0} app key */
 	liftRelaunchNeedsDest: (v0: Value) => `${v0}: relaunch needs dest`,
 	/** manifest.ts. {0} app key */

@@ -239,8 +239,36 @@ test("a latest whose source the check cannot read is refused at load", () => {
 		].join("\n"),
 	);
 	expect(loadManifest(file).errors).toEqual([
-		"x: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text: or links:",
+		"x: latest must start with npm:, pypi:, github:, npm-tags:, json:, crates:, text:, links: or zsync:",
 	]);
+	// A zsync: address gives no older file, so it is for an AppImage only, and over https.
+	writeFileSync(file, readFileSync(file, "utf8").replace("gitlab:o/x", "zsync:https://dl.example.com/x.zsync"));
+	expect(loadManifest(file).errors).toEqual(["x: a zsync: latest is only for kind appimage, with an https address"]);
+	writeFileSync(
+		file,
+		[
+			"[apps.x]",
+			'name = "X"',
+			'kind = "appimage"',
+			'latest = "zsync:http://dl.example.com/x.zsync"',
+			'asset = "x"',
+			'dest = "~/x.AppImage"',
+		].join("\n"),
+	);
+	expect(loadManifest(file).errors).toEqual(["x: a zsync: latest is only for kind appimage, with an https address"]);
+	writeFileSync(file, readFileSync(file, "utf8").replace("zsync:http:", "zsync:https:"));
+	expect(loadManifest(file).errors).toEqual([]);
+	writeFileSync(
+		file,
+		[
+			"[apps.x]",
+			'name = "X"',
+			'kind = "command"',
+			'check = ["x", "--version"]',
+			'latest = "gitlab:o/x"',
+			'update = ["x", "up"]',
+		].join("\n"),
+	);
 	writeFileSync(file, readFileSync(file, "utf8").replace("gitlab:o/x", "text:https://downloads.example.com/x/latest"));
 	const loaded = loadManifest(file);
 	expect(loaded.errors).toEqual([]);
