@@ -58,7 +58,8 @@ export type AppSpec = {
 	/**
 	 * command: where the latest version comes from: "npm:<pkg>", "npm-tags:<pkg>", "pypi:<pkg>", "crates:<crate>",
 	 * "github:<owner>/<repo>", "json:<url>" or "text:<url>" (the answer's first line). A release kind may take
-	 * "links:<https page>", whose links matching asset are its downloads.
+	 * "links:<https page>", whose links matching asset are its downloads; an appimage may take "zsync:<https address>",
+	 * whose .zsync header names its download.
 	 */
 	latest?: string;
 	/** command: argv that performs the update. */

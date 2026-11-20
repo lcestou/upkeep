@@ -332,6 +332,10 @@ test("zsync: a file that is not one, a plain http address, a failed answer and a
 	const unreadable: Failure = { failure: "http", detail: `${address} is not a zsync file that names its download.` };
 	expect(await zsyncRelease(address, answer(["Filename: a-1.0.AppImage", "URL: a"]))).toEqual(unreadable);
 	expect(await zsyncRelease(address, answer(["zsync: 0.6.2", "URL: a"]))).toEqual(unreadable);
+	// No URL line: never the .zsync file itself as the download.
+	expect(await zsyncRelease(address, answer(["zsync: 0.6.2", "Filename: a-1.0.AppImage", "Length: 5000000"]))).toEqual(
+		unreadable,
+	);
 	expect(await zsyncRelease(address, answer(["zsync: 0.6.2", "Filename: ../a-1.0.AppImage", "URL: a"]))).toEqual(
 		unreadable,
 	);

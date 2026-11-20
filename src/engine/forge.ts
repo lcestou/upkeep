@@ -302,7 +302,9 @@ export async function zsyncRelease(address: string, fetch: ReleaseOpts["fetch"])
 	if (!res.ok) return { failure: "http", detail: MESSAGES.urlAnswered(address, res.status) };
 	const header = zsyncHeader(text);
 	const name = header.get("filename") ?? "";
-	const at = httpsUrl(header.get("url") ?? "", res.url || address);
+	// No URL line would resolve to the .zsync address itself and download the text file.
+	const url = header.get("url") ?? "";
+	const at = url ? httpsUrl(url, res.url || address) : null;
 	if (!header.has("zsync") || !name || name.includes("/") || !at)
 		return { failure: "http", detail: MESSAGES.zsyncUnreadable(address) };
 	const version = tagVersion(name);

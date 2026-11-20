@@ -47,7 +47,7 @@ dest = "~/.local/bin/hello"
 bins = ["hello"]
 ```
 
-An AppImage that publishes a `.zsync` file at an address that never changes can be followed through it: `latest = "zsync:https://example.org/app/App-latest-x86_64.AppImage.zsync"` in place of `repo`. Upkeep reads only the file's header: `Filename` names the latest AppImage and holds its version, `URL` says where it is (resolved against the `.zsync` address) and `Length` is the size the download must have. `asset` is matched against `Filename`. Only `appimage` takes this source, since the address gives no older version to go back to; the restore point is the old file. Add app writes it for an AppImage whose update information is a `zsync|` address on a host that is not a forge.
+An AppImage that publishes a `.zsync` file at an address that never changes can be followed through it: `latest = "zsync:https://example.org/app/App-latest-x86_64.AppImage.zsync"` in place of `repo`. Upkeep reads only the file's header: `Filename` names the latest AppImage and holds its version, `URL` says where it is (resolved against the `.zsync` address) and `Length` is the size the download must have. `asset` is matched against `Filename`. Only `appimage` takes this source, since the address gives no older version to go back to; the restore point is the old file. Add app writes it for an AppImage whose update information is a `zsync|` address that is not a release file on GitHub, GitLab, Codeberg or a forge a table already names (a forge's package registry counts as such an address).
 
 `asset` is a regular expression matched against the release's asset names. If it matches more than one, the app is listed under "Needs a look" until you narrow it. Anchor it with `^` when a project ships several variants.
 
