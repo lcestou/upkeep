@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { backupDir, packOlder } from "./backup";
 import { createEngine, type EngineDeps } from "./engine";
 import { REASON_UNRECOVERED } from "./kinds/context";
 import type { FetchLike } from "./github";
@@ -8,7 +9,7 @@ import { installBuilt, restoreBuilt, SUDO_REFUSED } from "./kinds/built";
 import { loadManifest } from "./manifest";
 import type { RunOpts, ProcessResult } from "./run";
 import { DEFAULT_SETTINGS, readInflight, writeInflight } from "./store";
-import { ok, strictRun, tempHome } from "./testkit";
+import { ok, realRun, strictRun, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
 let dir = "";
@@ -425,6 +426,37 @@ test("a kill during a built restore leaves a marker, and recover finishes the re
 	expect(box.units.srv?.running).toBe(true);
 	expect(box.units.api?.running).toBe(true);
 	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("a built restore from a packed point unpacks it before anything stops, then puts the old tree back", async () => {
+	put(join(dir, "lib/data"), "kept data ".repeat(50_000));
+	expect(await installBuilt(spec(), target, kindCtx(fakeBox()) as never)).toMatchObject({ result: "done" });
+	// A newer point makes f2918cabb an older one, which is packed.
+	const later = join(backupDir(t.paths, "srv"), "later");
+	put(
+		join(later, "meta.json"),
+		JSON.stringify({ version: "later", at: "2099-01-01T00:00:00Z", files: [], sudo: false }),
+	);
+	await packOlder(t.paths, "srv", realRun(t.paths), () => {});
+	const point = join(backupDir(t.paths, "srv"), "f2918cabb");
+	expect(readdirSync(point).toSorted()).toEqual([".upkeep-packed.tar.zst", "meta.json"]);
+	// tar failing leaves the point packed and stops nothing.
+	const refused = fakeBox();
+	const broken = async (argv: string[], opts?: RunOpts) =>
+		argv[0] === "tar" ? fail("zstd: not found") : refused.run(argv, opts);
+	expect(await restoreBuilt(spec(), "f2918cabb", { ...kindCtx(refused), run: broken } as never)).toEqual({
+		ok: false,
+		detail: "Could not unpack the f2918cabb restore point: zstd: not found",
+	});
+	expect([refused.units.srv?.running, refused.units.api?.running]).toEqual([true, true]);
+	expect(existsSync(join(point, ".upkeep-packed.tar.zst"))).toBe(true);
+	const box = fakeBox();
+	const run = async (argv: string[], opts?: RunOpts) =>
+		argv[0] === "tar" ? realRun(t.paths)(argv, opts) : box.run(argv, opts);
+	expect(await restoreBuilt(spec(), "f2918cabb", { ...kindCtx(box), run } as never)).toEqual({ ok: true });
+	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
+	expect(readFileSync(join(dir, "lib/core.so"), "utf8")).toBe("core 1");
+	expect(readFileSync(join(dir, "lib/data"), "utf8")).toBe("kept data ".repeat(50_000));
 });
 
 test("a built restore checks sudo -n -l before it stops anything", async () => {

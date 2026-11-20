@@ -2695,3 +2695,8 @@ msgstr "{0}：latest は npm:、pypi:、github:、npm-tags:、json:、crates:、
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a zsync: latest is only for kind appimage, with an https address"
 msgstr "{0}：zsync: の latest は kind appimage 専用で、https のアドレスが必要です"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Could not unpack the {0} restore point: {1}"
+msgstr "復元ポイント {0} を展開できませんでした：{1}"

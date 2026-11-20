@@ -14,7 +14,7 @@ import {
 import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
-import { prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
+import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
 import { download, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { forgeRelease, linksRelease, zsyncRelease } from "../forge";
@@ -461,6 +461,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			});
 		if ("version" in after) {
 			prune(ctx.paths, spec.key, ctx.settings.keepBackups);
+			await packOlder(ctx.paths, spec.key, ctx.run, ctx.log);
 			const detail = after.version !== target.version ? MESSAGES.reportsVersion(after.version) : undefined;
 			return finish({ result: "done", installed: after.version, detail, restartToApply: running });
 		}

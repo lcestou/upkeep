@@ -2737,3 +2737,8 @@ msgstr "{0}: latest deve iniziare con npm:, pypi:, github:, npm-tags:, json:, cr
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: a zsync: latest is only for kind appimage, with an https address"
 msgstr "{0}: un latest zsync: vale solo per kind appimage, con un indirizzo https"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Could not unpack the {0} restore point: {1}"
+msgstr "Impossibile decomprimere il punto di ripristino {0}: {1}"

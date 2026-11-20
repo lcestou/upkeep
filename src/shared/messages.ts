@@ -23,6 +23,8 @@ export const MESSAGES = {
 	packageCouldNotPutBack: (v0: Value, v1: Value) => `${v0} could not put ${v1} back. See the log.`,
 	/** backup.ts. {0} file name in the restore point; {1} raw stderr or stdout of install/mv, trimmed (can be run.ts:279 'size differs after copy') */
 	couldNotRestoreFile: (v0: Value, v1: Value) => `Could not restore ${v0}: ${v1}`,
+	/** backup.ts. {0} version of the restore point; {1} what tar said */
+	couldNotUnpackPoint: (v0: Value, v1: Value) => `Could not unpack the ${v0} restore point: ${v1}`,
 	/** discover.ts */
 	badInput: () =>
 		`Give an app's name, a repo like owner/name or gitlab.com/group/name, a GitHub, GitLab or Codeberg link, or a file path.`,
