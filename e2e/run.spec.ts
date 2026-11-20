@@ -92,6 +92,7 @@ test("apps behind the one installing download early, wait with their file, and s
 	// Every value fd's stem reports, from the moment it first shows.
 	await page.evaluate(() => {
 		const seen: number[] = [];
+		// SAFETY: the page's window gains one test-only field, written here and read back below.
 		(window as unknown as { __fd: number[] }).__fd = seen;
 		new MutationObserver(() => {
 			const now = document.querySelector('[data-testid="stem-fd"]')?.getAttribute("aria-valuenow");
@@ -105,6 +106,7 @@ test("apps behind the one installing download early, wait with their file, and s
 	await expect(page.getByTestId("status-wrangler")).toHaveText("Queued");
 	expect(await page.getByTestId("status-cursor").evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
 	await expect(sentence(page)).toHaveText(/^Installing wrangler/, { timeout: 10_000 });
+	// SAFETY: __fd was set on the page's window by the step above.
 	const fd = await page.evaluate(() => (window as unknown as { __fd: number[] }).__fd);
 	expect(fd.length).toBeGreaterThan(0);
 	// fd's download is 44 of its stem's 100 (its fixture stages): the stem starts past it, never at 0.

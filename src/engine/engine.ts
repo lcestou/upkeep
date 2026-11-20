@@ -768,8 +768,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			run = { ...run, index: i + 1, currentKey: spec.key };
 			emitRun();
 			emitApp(app);
-			planAhead();
+			// The gate first: still open from the app before, it would let the plan start downloads beside this app's own.
 			ahead?.gate(app.stage !== "download");
+			planAhead();
 			const started = Date.now();
 			say(spec.key, `Updating ${spec.name}${from ? ` from ${from}` : ""}${app.latest ? ` to ${app.latest}` : ""}`);
 			let outcome: Outcome;
