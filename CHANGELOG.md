@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.8, 2026-11-21
 
 - Add app follows an AppImage's own update information more closely. The publisher's file pattern from `gh-releases-zsync` becomes the table's `asset` when it picks one file. A `zsync|` address into a GitHub, GitLab or Codeberg release is read as that release, and a `zsync|` address on any other host is followed through the new `latest = "zsync:<address>"` source, which reads the latest file's name, address and size from the `.zsync` header. Thanks to @probonopd, whose question on the awesome-appimage listing started it.
 - With "Restore points to keep" above 1, older restore points take less disk: every point but the newest is packed with zstd after an update, which halves a source build's saved trees (a 676 MB Strata point packs to about 300 MB). The newest point stays as it was, so a rollback after a failed start is as quick as before. AppImages and packages are already compressed and stay as they are.
