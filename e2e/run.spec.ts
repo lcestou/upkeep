@@ -84,3 +84,41 @@ test("queued rows show their place and the rows outside the run step back", asyn
 	await expect(page.getByTestId("row-strata")).toHaveCSS("opacity", "0.72");
 	await expect(page.getByTestId("group-run")).toHaveText("Installing");
 });
+
+test("apps behind the one installing download early, wait with their file, and skip the download at their turn", async ({
+	page,
+}) => {
+	await load(page, "fixture&speed=1");
+	// Every value fd's stem reports, from the moment it first shows.
+	await page.evaluate(() => {
+		const seen: number[] = [];
+		// SAFETY: the page's window gains one test-only field, written here and read back below.
+		(window as unknown as { __fd: number[] }).__fd = seen;
+		new MutationObserver(() => {
+			const now = document.querySelector('[data-testid="stem-fd"]')?.getAttribute("aria-valuenow");
+			if (now) seen.push(Number(now));
+		}).observe(document.body, { subtree: true, childList: true, attributes: true });
+	});
+	await page.getByTestId("install").click();
+	await expect(page.getByTestId("status-fd")).toHaveText("Downloaded, waits its turn");
+	await expect(page.getByTestId("status-cursor")).toHaveText("Downloaded, waits its turn");
+	// A command app never downloads ahead.
+	await expect(page.getByTestId("status-wrangler")).toHaveText("Queued");
+	expect(await page.getByTestId("status-cursor").evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+	await expect(sentence(page)).toHaveText(/^Installing wrangler/, { timeout: 10_000 });
+	// SAFETY: __fd was set on the page's window by the step above.
+	const fd = await page.evaluate(() => (window as unknown as { __fd: number[] }).__fd);
+	expect(fd.length).toBeGreaterThan(0);
+	// fd's download is 44 of its stem's 100 (its fixture stages): the stem starts past it, never at 0.
+	expect(Math.min(...fd)).toBeGreaterThanOrEqual(44);
+});
+
+test("Stop drops the early files: the rows waiting say Queued again, then Ready", async ({ page }) => {
+	await load(page, "fixture&speed=1");
+	await page.getByTestId("install").click();
+	await expect(page.getByTestId("status-cursor")).toHaveText("Downloaded, waits its turn");
+	await page.getByTestId("stop").click();
+	await expect(page.getByTestId("status-cursor")).toHaveText("Queued");
+	await expect(sentence(page)).toHaveText("1 updated, 3 not started", { timeout: 10_000 });
+	await expect(page.getByTestId("status-cursor")).toHaveText("Ready");
+});

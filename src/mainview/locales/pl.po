@@ -2763,3 +2763,7 @@ msgstr "{0}: latest typu zsync: jest tylko dla kind appimage, z adresem https"
 #: src/mainview/lib/engine-text.ts
 msgid "Could not unpack the {0} restore point: {1}"
 msgstr "Nie udało się rozpakować punktu przywracania {0}: {1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded, waits its turn"
+msgstr "Pobrano, czeka na swoją kolej"

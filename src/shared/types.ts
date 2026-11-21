@@ -229,6 +229,11 @@ export type AppState = {
 	/** While working: the stage in progress and its percent, 0 to 100, or null when it cannot be measured. */
 	stage?: Stage;
 	stagePct?: number | null;
+	/**
+	 * Read while queued: the file came down ahead of the app's turn and matched the release. Cleared when the row
+	 * leaves the run and when Stop is pressed; a working row may still carry it.
+	 */
+	downloaded?: boolean;
 	/** The version a skip is set for, when status is held because of a skip. */
 	skipped?: string;
 	held: boolean;

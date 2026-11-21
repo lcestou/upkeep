@@ -2721,3 +2721,7 @@ msgstr "{0}: ein zsync:-latest gibt es nur für kind appimage, mit einer https-A
 #: src/mainview/lib/engine-text.ts
 msgid "Could not unpack the {0} restore point: {1}"
 msgstr "Der Wiederherstellungspunkt {0} ließ sich nicht entpacken: {1}"
+
+#: src/mainview/lib/copy.ts
+msgid "Downloaded, waits its turn"
+msgstr "Heruntergeladen, wartet, bis sie dran ist"

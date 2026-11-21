@@ -20,7 +20,7 @@ import type { Run } from "../run";
 import { readInflight } from "../store";
 import { ok, realRun, recordingRun, script, tempHome } from "../testkit";
 import type { KindCtx, Target } from "./context";
-import { checkRelease, installRelease, probeInstalled } from "./release";
+import { checkRelease, dlPath, installRelease, probeInstalled } from "./release";
 
 let t: ReturnType<typeof tempHome>;
 let proc = "";
@@ -984,4 +984,29 @@ test("install: a zip on a system without unzip says to install unzip, and keeps 
 		detail:
 			"Opening uv-x86_64-unknown-linux-gnu.zip needs the unzip program, which is not installed. Install unzip from the system's packages, then try again.",
 	});
+});
+
+test("install: a file fetched ahead of its turn installs without a download, and its early time is the download stage", async () => {
+	installZen("1.17.9b");
+	const body = bash('echo "zen 1.18.0b"');
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": body });
+	const c = ctx();
+	const target = await checkAndTarget(zen(), c);
+	mkdirSync(join(t.paths.cache, "dl"), { recursive: true });
+	writeFileSync(dlPath(t.paths, "zen", "zen.linux-x86_64.AppImage"), body);
+	let asked = 0;
+	const counted: FetchLike = async (url, init) => {
+		if (url.endsWith(".AppImage")) asked += 1;
+		return fakeFetch(url, init);
+	};
+	const sha256 = new Bun.CryptoHasher("sha256").update(body).digest("hex");
+	const outcome = await installRelease(zen(), target, {
+		...c,
+		fetch: counted,
+		early: async () => ({ bytes: body.length, sha256, ms: 1234 }),
+	});
+	expect(outcome).toMatchObject({ result: "done", installed: "1.18.0b" });
+	expect(outcome.stages.download).toBe(1234);
+	expect(asked).toBe(0);
+	expect(stages.find(([s, p]) => s === "download" && p === 100)).toBeDefined();
 });

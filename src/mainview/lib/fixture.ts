@@ -345,6 +345,9 @@ function toApp(seed: Seed): AppState {
 	};
 }
 
+/** The kinds the engine downloads ahead of their turn (canFetchEarly in src/engine/ahead.ts). */
+const EARLY_KINDS: ReadonlySet<AppKind> = new Set(["appimage", "archive", "file", "deb", "rpm"]);
+
 /** The five stages of a built app, weighted as the engine weighs them (plan 5 E); they sum to 100. */
 const BUILT_STAGES: [Stage, number][] = [
 	["download", 5],
@@ -871,8 +874,16 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const from = app.installed;
 		const to = app.latest;
 		const total = 3000 / speed;
-		put({ ...app, status: "working", stage: app.stages[0]?.id, stagePct: 0 });
+		const early = app.downloaded === true;
+		put({ ...app, status: "working", stage: app.stages[0]?.id, stagePct: early ? 100 : 0 });
 		for (const { id, weight } of app.stages) {
+			// As the engine does: early downloads start once the current app is past its own download.
+			if (id !== "download") fetchAhead(key);
+			// A file that came down ahead of its turn shows its download full and moves on.
+			if (id === "download" && early) {
+				log(runId, key, "Downloaded ahead of its turn");
+				continue;
+			}
 			const ms = (total * weight) / 100;
 			const steps = Math.max(2, Math.round(ms / 80));
 			const measured = id === "download";
@@ -923,6 +934,17 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	/** keep: results from the pass a retry continues; the engine keeps them in the summary. */
 	/** The run under way's order, which joinRun appends to; null outside a run. */
 	let running: string[] | null = null;
+
+	/** As the engine does: the next two release-kind apps waiting behind key get their file, unless Stop is pending. */
+	function fetchAhead(key: string): void {
+		if (!running || run.stopping) return;
+		const next = running
+			.slice(running.indexOf(key) + 1)
+			.map((k) => get(k))
+			.filter((a) => a?.status === "queued" && EARLY_KINDS.has(a.kind) && !a.downloaded)
+			.slice(0, 2);
+		for (const a of next) if (a) put({ ...a, downloaded: true });
+	}
 	/** A retry's first-pass order, kept on screen. */
 	let base: string[] = [];
 
@@ -1067,6 +1089,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		stopAfterCurrent: () => {
 			if (run.phase !== "installing") return { stopping: false };
 			setRun({ stopping: true });
+			// As the engine does: Stop drops the files that came down ahead.
+			for (const a of apps) if (a.downloaded) put({ ...a, downloaded: undefined });
 			return { stopping: true };
 		},
 		dismissSummary: () => {
@@ -1378,7 +1402,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 function resolveCheck(app: AppState): AppState {
 	if (app.status === "done") return { ...app, status: "fresh" };
 	if (app.status === "ready" && app.detail?.startsWith(lastTryFailed(""))) return { ...app, detail: undefined };
-	if (app.status === "queued" || app.status === "working") return { ...app, status: "ready" };
+	if (app.status === "queued" || app.status === "working") return { ...app, status: "ready", downloaded: undefined };
 	return app;
 }
 

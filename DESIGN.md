@@ -331,7 +331,7 @@ Every row has the same set of cells in every state. A row with a reason sentence
 | ----------- | ------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
 | checking    | `line`        | pulsing dot in `dot`                                               | "Checking", 440 weight, `text-3`; versions show a breathing skeleton               |
 | ready       | `sun`         | the mark (pixel sprout below 1.5 dppx)                             | "Ready" in sun                                                                     |
-| queued      | `sun`         | hourglass                                                          | "Queued" in sun, place number in the tick column                                   |
+| queued      | `sun`         | hourglass                                                          | "Queued" in sun, or "Downloaded, waits its turn" once its file came down early; place number in the tick column |
 | working     | `water`       | three rising dashes, as the tray's working picture, never the leaf | the stem with "Downloading 12.1 of 30 MB", "Backing up", "Installing", "Verifying" |
 | done        | `leaf`        | leaf                                                               | the full stem, "Updated to 10.5.2" or "Restart Zen Browser to finish"              |
 | fresh       | `leaf` at 0.3 | leaf in `text-3`                                                   | empty, or "Restart Zen Browser to finish"                                          |

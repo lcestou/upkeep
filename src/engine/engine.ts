@@ -33,7 +33,16 @@ import {
 	readInstalled,
 	type Target,
 } from "./kinds/context";
-import { canRestore, checkRelease, destOf, installedFiles, installRelease, probeInstalled } from "./kinds/release";
+import {
+	canRestore,
+	checkRelease,
+	destOf,
+	dlPath,
+	installedFiles,
+	installRelease,
+	probeInstalled,
+} from "./kinds/release";
+import { type Ahead, canFetchEarly, createAhead } from "./ahead";
 import { recoverTree, restoreBuilt } from "./kinds/built";
 import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
@@ -92,6 +101,8 @@ export type EngineDeps = {
 	retryMs?: number;
 	/** How often Restart now looks whether the app has quit. Default 200 ms. */
 	pollMs?: number;
+	/** Bytes free on a folder's disk, which early downloads keep room on. Default statfs; tests pass a number. */
+	freeBytes?: (dir: string) => number;
 };
 
 export type Engine = {
@@ -329,6 +340,8 @@ export function createEngine(deps: EngineDeps): Engine {
 					a.stagePct = pct;
 					emitApp(a);
 				}
+				// The current app's own download has the line to itself; early downloads start once it moves on.
+				if (key === run.currentKey) ahead?.gate(stage !== "download");
 			},
 			onRate: (r) => {
 				rate = r;
@@ -339,6 +352,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			now: deps.now,
 			stallMs: deps.stallMs,
 			retryMs: deps.retryMs,
+			early: (onProgress) => ahead?.claim(key, onProgress) ?? Promise.resolve(null),
 			...overrides,
 		};
 	}
@@ -349,6 +363,8 @@ export function createEngine(deps: EngineDeps): Engine {
 	const restarting = new Set<string>();
 	/** The run under way's queue, which addToRun appends to; null outside a run. */
 	let runQueue: AppSpec[] | null = null;
+	/** The run under way's early downloads; null outside a run. */
+	let ahead: Ahead | null = null;
 	/** A retry's first-pass order, which the order on screen keeps. */
 	let runBase: string[] = [];
 	/** The order the view shows: a retry's first pass as it was, then what this pass adds, in the order it runs. */
@@ -547,6 +563,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		app.restartToApply = o.result === "done" && o.restartToApply;
 		app.stage = undefined;
 		app.stagePct = undefined;
+		app.downloaded = undefined;
 		app.restorePoints = app.canRestore ? listBackups(paths, app.key) : [];
 		emitApp(app);
 	}
@@ -574,10 +591,32 @@ export function createEngine(deps: EngineDeps): Engine {
 			const a = apps.get(s.key);
 			const c = checked.get(s.key);
 			if (a && c) {
-				Object.assign(a, resting(s, c));
+				Object.assign(a, resting(s, c), { downloaded: undefined });
 				emitApp(a);
 			}
 		}
+	}
+
+	/** Hands the apps still waiting behind the current one, in run order, to the early downloads. */
+	function planAhead(): void {
+		const queue = runQueue;
+		if (!ahead || !queue) return;
+		const at = queue.findIndex((s) => s.key === run.currentKey);
+		ahead.plan(
+			queue.slice(at + 1).flatMap((s) => {
+				const asset = targets.get(s.key)?.asset;
+				return canFetchEarly(s, asset) ? [{ key: s.key, asset, file: dlPath(paths, s.key, asset.name) }] : [];
+			}),
+		);
+	}
+
+	/** Marks a waiting row whose file came down ahead of its turn. A row no longer waiting (Stop) shows nothing. */
+	function fetchedAhead(key: string): void {
+		const a = apps.get(key);
+		if (a?.status !== "queued" || run.stopping) return;
+		a.downloaded = true;
+		say(key, "Downloaded ahead of its turn");
+		emitApp(a);
 	}
 
 	/**
@@ -605,6 +644,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		say(null, `Added ${add.map((s) => s.name).join(", ")} to the run`);
 		run = { ...run, total: queue.length, queue: shownOrder(queue) };
 		emitRun();
+		planAhead();
 		return { started: true };
 	}
 
@@ -664,6 +704,17 @@ export function createEngine(deps: EngineDeps): Engine {
 			emitRun();
 			return { started: false, reason: err instanceof Error ? err.message : String(err) };
 		}
+		const early = createAhead({
+			dir: join(paths.cache, "dl"),
+			fetch: deps.fetch,
+			token,
+			stallMs: deps.stallMs,
+			retryMs: deps.retryMs,
+			freeBytes: deps.freeBytes,
+			onReady: fetchedAhead,
+			log: say,
+		});
+		ahead = early;
 		const p = doRun(queue)
 			.catch((err: Error) => {
 				const reason = err instanceof Error ? err.message : String(err);
@@ -687,9 +738,15 @@ export function createEngine(deps: EngineDeps): Engine {
 				run = { ...run, phase: "summary", currentKey: null, stopping: false };
 				emitRun();
 			})
-			.finally(() => {
-				runQueue = null;
-				releaseLock(paths);
+			.finally(async () => {
+				// What came down ahead and was never used goes before the lock does; the lock goes even if that fails.
+				try {
+					await early.cancel();
+				} finally {
+					if (ahead === early) ahead = null;
+					runQueue = null;
+					releaseLock(paths);
+				}
 			});
 		busy = p;
 		return { started: true };
@@ -711,6 +768,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			run = { ...run, index: i + 1, currentKey: spec.key };
 			emitRun();
 			emitApp(app);
+			// The gate first: still open from the app before, it would let the plan start downloads beside this app's own.
+			ahead?.gate(app.stage !== "download");
+			planAhead();
 			const started = Date.now();
 			say(spec.key, `Updating ${spec.name}${from ? ` from ${from}` : ""}${app.latest ? ` to ${app.latest}` : ""}`);
 			let outcome: Outcome;
@@ -823,6 +883,13 @@ export function createEngine(deps: EngineDeps): Engine {
 		stopAfterCurrent() {
 			if (run.phase !== "installing") return;
 			run = { ...run, stopping: true };
+			// The apps behind the current one will not run: their early downloads stop and their files go.
+			void ahead?.cancel();
+			for (const a of apps.values())
+				if (a.downloaded) {
+					a.downloaded = undefined;
+					emitApp(a);
+				}
 			emitRun();
 		},
 		dismissSummary() {

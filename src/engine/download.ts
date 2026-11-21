@@ -40,6 +40,8 @@ async function attempt(
 	started: { any: boolean },
 	headers?: Record<string, string>,
 ): Promise<DownloadResult> {
+	// A signal aborted before this try never fires its abort event: the try must not start at all.
+	opts.signal?.throwIfAborted();
 	const stallMs = opts.stallMs ?? 60_000;
 	const ctl = new AbortController();
 	const onOuterAbort = () => ctl.abort();
@@ -104,7 +106,20 @@ async function fetchTo(
 		return await attempt(url, file, opts, started, headers);
 	} catch (err) {
 		if (err instanceof Stalled || started.any || opts.signal?.aborted) throw err;
-		await new Promise((r) => setTimeout(r, opts.retryMs ?? 2000));
+		// A cancel ends the wait at once, so a Stop is never held up by it.
+		await new Promise<void>((r) => {
+			const wait = setTimeout(r, opts.retryMs ?? 2000);
+			opts.signal?.addEventListener(
+				"abort",
+				() => {
+					clearTimeout(wait);
+					r();
+				},
+				{ once: true },
+			);
+		});
+		// A cancel during the wait never reaches the second attempt: its listener would be added after the abort fired.
+		opts.signal?.throwIfAborted();
 		return attempt(url, file, opts, started, headers);
 	}
 }
