@@ -2,45 +2,120 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import { isRecord } from "../manifest";
+import { isNewer } from "../version";
 import { type Checked, type KindCtx, type Outcome, stageClock } from "./context";
 
 // The one place the code names Claude Code: this kind drives its plugin CLI, as package.ts drives dpkg and rpm.
 const REGISTRY = ".claude/plugins/installed_plugins.json";
+const MARKETS = ".claude/plugins/known_marketplaces.json";
+const MARKET_DIR = ".claude/plugins/marketplaces";
 const CLAUDE = "claude";
 const STEP_MS = 120_000;
 
-/** One installed copy of a plugin: the scope it was installed at, and the project it belongs to for a local one. */
-type Entry = { id: string; scope: string; cwd: string };
+/** One installed copy of a plugin: its scope, the project a local one belongs to, and what it was installed at. */
+type Entry = { id: string; scope: string; cwd: string; version: string; sha: string };
+
+/** A file's JSON, or null when it is missing or is not JSON. */
+function readJson(file: string): unknown {
+	try {
+		return JSON.parse(readFileSync(file, "utf8"));
+	} catch {
+		return null;
+	}
+}
+
+/** A string field, or "" when it is missing or is not a string. */
+const str = (r: Record<string, unknown>, k: string): string => (typeof r[k] === "string" ? r[k] : "");
 
 /**
  * Every (plugin, install) pair in the registry, in its order. A missing scope is "user"; a project or local entry
  * runs in its project's folder, as claude plugin update needs, else in home. An unreadable registry gives none.
  */
 function entries(file: string, home: string): Entry[] {
-	let reg: unknown;
-	try {
-		reg = JSON.parse(readFileSync(file, "utf8"));
-	} catch {
-		return [];
-	}
+	const reg = readJson(file);
 	const plugins = isRecord(reg) && isRecord(reg.plugins) ? reg.plugins : {};
 	return Object.entries(plugins).flatMap(([id, list]) =>
 		(Array.isArray(list) ? list : []).filter(isRecord).map((e) => ({
 			id,
-			scope: typeof e.scope === "string" && e.scope ? e.scope : "user",
-			cwd: typeof e.projectPath === "string" && e.projectPath ? e.projectPath : home,
+			scope: str(e, "scope") || "user",
+			cwd: str(e, "projectPath") || home,
+			version: str(e, "version"),
+			sha: str(e, "gitCommitSha"),
 		})),
 	);
 }
 
-/** Every plugin in Claude Code's registry, updated with claude plugin update. Versionless: the row is always fresh. Null without a registry. */
-export function checkClaudePlugins(ctx: KindCtx): Checked | null {
+/** Where a marketplace's clone lives: its installLocation in known_marketplaces.json, else Claude Code's default folder. */
+function marketDir(home: string, market: string): string {
+	const known = readJson(join(home, MARKETS));
+	const m = isRecord(known) ? known[market] : null;
+	return (isRecord(m) && str(m, "installLocation")) || join(home, MARKET_DIR, market);
+}
+
+/**
+ * What a marketplace clone offers for a plugin: a version, or "commit" when the plugin sits in the clone with no
+ * version anywhere, so Claude Code versions it by the clone's commit. A plugin.json version beats the marketplace
+ * entry's, as in Claude Code. Null when the plugin is not listed, or its source is another repo whose entry names no
+ * version: only claude plugin update can answer that one, so such a plugin is never reported as waiting.
+ */
+function offerOf(dir: string, name: string): { version: string } | "commit" | null {
+	const mk = readJson(join(dir, ".claude-plugin/marketplace.json"));
+	const listed = isRecord(mk) && Array.isArray(mk.plugins) ? mk.plugins.filter(isRecord) : [];
+	const p = listed.find((x) => x.name === name);
+	if (!p) return null;
+	const inClone = typeof p.source === "string";
+	const manifest = inClone ? readJson(join(dir, str(p, "source"), ".claude-plugin/plugin.json")) : null;
+	const version = (isRecord(manifest) && str(manifest, "version")) || str(p, "version");
+	if (version) return { version };
+	return inClone ? "commit" : null;
+}
+
+/** The commit a marketplace clone is at, or "" when git cannot say. */
+async function headOf(ctx: KindCtx, dir: string): Promise<string> {
+	const r = await ctx.run(["git", "-C", dir, "rev-parse", "HEAD"], { timeoutMs: STEP_MS, cwd: ctx.paths.home });
+	return r.code === 0 ? r.stdout.trim() : "";
+}
+
+/** Pulls every marketplace clone, as Claude Code does at its own start. A failure is logged and the old clones stand. */
+async function refreshMarkets(ctx: KindCtx): Promise<void> {
+	ctx.log(`$ ${CLAUDE} plugin marketplace update`);
+	const r = await ctx.run([CLAUDE, "plugin", "marketplace", "update"], { timeoutMs: STEP_MS, cwd: ctx.paths.home });
+	if (r.code !== 0) ctx.log("Marketplace refresh failed.");
+}
+
+/**
+ * Every plugin in Claude Code's registry, after a marketplace refresh: ready, naming each plugin whose marketplace
+ * holds a newer version (or, for one versioned by commit, another commit), else fresh. An install with no version
+ * in the registry, or a plugin from another repo with none in its entry, cannot be compared and counts as current.
+ * Null without a registry.
+ */
+export async function checkClaudePlugins(ctx: KindCtx): Promise<Checked | null> {
 	const file = join(ctx.paths.home, REGISTRY);
 	if (!existsSync(file)) {
 		ctx.log(`Claude Code plugins: no registry at ${file}, skipped.`);
 		return null;
 	}
-	return { installed: null, latest: null, status: "fresh", target: { from: null, version: "", tag: "" } };
+	await refreshMarkets(ctx);
+	const rows = entries(file, ctx.paths.home).map((e) => {
+		const at = e.id.lastIndexOf("@");
+		const name = at > 0 ? e.id.slice(0, at) : e.id;
+		const dir = marketDir(ctx.paths.home, e.id.slice(at + 1));
+		return { e, name, dir, offer: at > 0 ? offerOf(dir, name) : null };
+	});
+	const dirs = [...new Set(rows.filter((r) => r.offer === "commit").map((r) => r.dir))];
+	const heads = new Map(await Promise.all(dirs.map(async (d) => [d, await headOf(ctx, d)] as const)));
+	const behind = rows.filter(({ e, dir, offer }) => {
+		if (offer === null) return false;
+		if (offer !== "commit") return isNewer(e.version || null, offer.version);
+		const head = heads.get(dir) ?? "";
+		return e.sha !== "" && head !== "" && head !== e.sha;
+	});
+	for (const { e, offer } of behind)
+		ctx.log(`${e.id}: ${offer === "commit" ? "new commit" : `${e.version} to ${offer?.version}`} in its marketplace`);
+	const target = { from: null, version: "", tag: "" };
+	if (behind.length === 0) return { installed: null, latest: null, status: "fresh", target };
+	const names = [...new Set(behind.map((r) => r.name))].join(", ");
+	return { installed: null, latest: null, status: "ready", detail: MESSAGES.pluginsWaiting(names), target };
 }
 
 /** What one plugin's update came to, with Claude Code's own message. */
@@ -75,12 +150,7 @@ function outcomeOf(stdout: string, stderr: string): PluginOutcome {
 export async function installClaudePlugins(ctx: KindCtx): Promise<Outcome> {
 	const clock = stageClock(ctx);
 	clock.start("install", 0);
-	ctx.log(`$ ${CLAUDE} plugin marketplace update`);
-	const refresh = await ctx.run([CLAUDE, "plugin", "marketplace", "update"], {
-		timeoutMs: STEP_MS,
-		cwd: ctx.paths.home,
-	});
-	if (refresh.code !== 0) ctx.log("Marketplace refresh failed.");
+	await refreshMarkets(ctx);
 	const list = entries(join(ctx.paths.home, REGISTRY), ctx.paths.home);
 	const failed: string[] = [];
 	let updated = 0;

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The Claude Code plugins row now says when an update is waiting. A check refreshes the plugin marketplaces, as Claude Code does at start, and compares each installed plugin's version with the one its marketplace now holds (for a plugin with no version, the marketplace's commit). The row turns to Update and names the plugins, so it shows in the count and the tray like any other update. A plugin whose marketplace entry points to another repo and names no version is still only updated by Run now or an automatic run.
+
 ## 0.1.8, 2026-11-21
 
 - Add app follows an AppImage's own update information more closely. The publisher's file pattern from `gh-releases-zsync` becomes the table's `asset` when it picks one file. A `zsync|` address into a GitHub, GitLab or Codeberg release is read as that release, and a `zsync|` address on any other host is followed through the new `latest = "zsync:<address>"` source, which reads the latest file's name, address and size from the `.zsync` header. Thanks to @probonopd, whose question on the awesome-appimage listing started it.

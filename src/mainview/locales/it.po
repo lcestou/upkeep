@@ -2746,3 +2746,8 @@ msgstr "Impossibile decomprimere il punto di ripristino {0}: {1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "Scaricato, attende il suo turno"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "Nuove versioni nei loro marketplace: {0}."

@@ -2746,3 +2746,8 @@ msgstr "Impossible de décompresser le point de restauration {0} : {1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "Téléchargée, attend son tour"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "Nouvelles versions dans leurs marketplaces : {0}."

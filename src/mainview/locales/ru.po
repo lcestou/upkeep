@@ -2767,3 +2767,8 @@ msgstr "Не удалось распаковать точку восстанов
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "Скачано, ждёт своей очереди"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "Новые версии в их маркетплейсах: {0}."
