@@ -30,7 +30,16 @@ const STRING_FIELDS = [
 	"process",
 	"note",
 ] as const;
-const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore", "restart"] as const;
+const LIST_FIELDS = [
+	"bins",
+	"version_args",
+	"build",
+	"check",
+	"update",
+	"restore",
+	"restart",
+	"keep_with_restore",
+] as const;
 const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch", "probe"] as const;
 // Process names that many programs share: relaunch closes every process with its name, so it refuses these.
 // shortcut: a fixed list of common interpreters; a table naming another shared runtime is the owner's to get right.
@@ -165,7 +174,42 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 		const refusedSource = liftSource(key, table, spec);
 		if (refusedSource) return refusedSource;
 	}
-	return spec;
+	return liftKeepWithRestore(key, spec) ?? spec;
+}
+
+// Folders that hold many apps' files: a restore swaps the whole path, so naming one would put back every app's.
+const SHARED_HOME_FOLDERS = new Set([
+	"~/.config",
+	"~/.local",
+	"~/.local/share",
+	"~/.local/state",
+	"~/.local/bin",
+	"~/.cache",
+]);
+
+/**
+ * Checks keep_with_restore: every path is under home in ~/ form, never home itself, a shared folder such as ~/.config,
+ * or one with an empty, . or .. part; and the app keeps restore points (a source build with dir or stage, a command with restore, a
+ * release kind). Null when it passes or is absent. A folder directly in ~ (~/.mozilla) is allowed: dot folders are
+ * often one app's.
+ */
+function liftKeepWithRestore(key: string, spec: AppSpec): string | null {
+	const list = spec.keep_with_restore;
+	if (list === undefined) return null;
+	const points =
+		spec.kind === "source"
+			? Boolean(spec.dir || spec.stage)
+			: spec.kind === "command"
+				? (spec.restore?.length ?? 0) > 0
+				: spec.kind !== "manual" && spec.kind !== "claude-plugins";
+	if (!points) return MESSAGES.liftKeepWithRestoreKind(key);
+	for (const raw of list) {
+		const p = tidy(raw);
+		// An empty or . segment would let ~//.config or ~/./.config past the shared-folder check.
+		const odd = p.split("/").some((seg) => seg === "" || seg === "." || seg === "..");
+		if (!p.startsWith("~/") || odd || SHARED_HOME_FOLDERS.has(p)) return MESSAGES.liftKeepWithRestorePath(key);
+	}
+	return null;
 }
 
 /** The kinds that install a release file, and so may take their release from a links: page. */

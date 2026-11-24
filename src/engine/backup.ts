@@ -39,6 +39,8 @@ export type BackupMeta = {
 	command?: string[];
 	/** The tag that argv was filled with, so a later point of another version writes its tag the same way. */
 	tag?: string;
+	/** keep_with_restore paths saved in the point, each under upkeep-config/<i>, with where it goes back. */
+	config?: SavedConfig[];
 	tree?: {
 		/** The app's table as it was at the run, so recovery and restore never depend on a later edit. */
 		spec: AppSpec;
@@ -77,10 +79,11 @@ export function pointName(version: string): string {
  */
 export function takePoint(
 	paths: Paths,
-	spec: Pick<AppSpec, "key">,
+	spec: Pick<AppSpec, "key" | "keep_with_restore">,
 	version: string,
 	how: { package: PackageKind; file: string } | { command: string[]; tag?: string },
 	at = new Date().toISOString(),
+	log: (line: string) => void = () => undefined,
 ): RestorePoint {
 	const dir = join(backupDir(paths, spec.key), pointName(version));
 	const tmp = `${dir}.upkeep-tmp`;
@@ -97,6 +100,8 @@ export function takePoint(
 			meta.command = how.command;
 			meta.tag = how.tag;
 		}
+		const config = saveConfig(tmp, spec, paths, log);
+		if (config.length > 0) meta.config = config;
 		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
 		dropTree(dir, paths);
 		renameSync(tmp, dir);
@@ -107,13 +112,14 @@ export function takePoint(
 	return { version, at };
 }
 
-/** Copies each installed file aside before an install. files are absolute paths that exist. */
+/** Copies each installed file aside before an install, and the app's keep_with_restore paths. files are absolute paths that exist. */
 export function takeBackup(
 	paths: Paths,
-	spec: Pick<AppSpec, "key" | "sudo">,
+	spec: Pick<AppSpec, "key" | "sudo" | "keep_with_restore">,
 	version: string,
 	files: string[],
 	at = new Date().toISOString(),
+	log: (line: string) => void = () => undefined,
 ): RestorePoint {
 	const dir = join(backupDir(paths, spec.key), pointName(version));
 	// Built aside and renamed in: a copy that fails (disk full, unreadable file) must not cost the old point.
@@ -137,6 +143,8 @@ export function takeBackup(
 				meta.files.push({ name, dest: file, mode });
 			}
 		}
+		const config = saveConfig(tmp, spec, paths, log);
+		if (config.length > 0) meta.config = config;
 		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
 		dropTree(dir, paths);
 		renameSync(tmp, dir);
@@ -167,7 +175,10 @@ export function listBackups(paths: Paths, key: string): RestorePoint[] {
 		// A point still being built when the process died. prune removes it.
 		if (name.endsWith(".upkeep-tmp") || name.includes(".upkeep-drop.")) continue;
 		const meta = readMeta(join(root, name));
-		if (meta) points.push({ version: meta.version, at: meta.at });
+		if (!meta) continue;
+		const point: RestorePoint = { version: meta.version, at: meta.at };
+		if (meta.config?.length) point.config = true;
+		points.push(point);
 	}
 	return points.toSorted((a, b) => b.at.localeCompare(a.at));
 }
@@ -204,7 +215,9 @@ async function putBack(
 	if (meta.command) {
 		const r = await run(meta.command, { timeoutMs: 600_000, cwd: paths.home });
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
-		return r.code === 0 ? { ok: true } : { ok: false, detail: MESSAGES.commandExited(meta.command.join(" "), r.code) };
+		return r.code === 0
+			? configBack(dir, meta, paths, spec.key)
+			: { ok: false, detail: MESSAGES.commandExited(meta.command.join(" "), r.code) };
 	}
 	const kind = meta.deb ? "deb" : meta.rpm ? "rpm" : null;
 	if (kind && isPackage(kind)) {
@@ -212,7 +225,7 @@ async function putBack(
 		const r = await run(asRoot(packageInstall(kind, file), true), { timeoutMs: 600_000 });
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		return r.code === 0
-			? { ok: true }
+			? configBack(dir, meta, paths, spec.key)
 			: { ok: false, detail: MESSAGES.packageCouldNotPutBack(PACKAGE_TOOL[kind], version) };
 	}
 	for (const f of meta.files) {
@@ -233,7 +246,108 @@ async function putBack(
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		if (r.code !== 0) return { ok: false, detail: MESSAGES.couldNotRestoreFile(f.name, (r.stderr || r.stdout).trim()) };
 	}
-	return { ok: true };
+	return configBack(dir, meta, paths, spec.key);
+}
+
+/** putConfigBack as a restore result: ok, or the path that could not go back and why. */
+function configBack(point: string, meta: BackupMeta, paths: Paths, key: string): { ok: boolean; detail?: string } {
+	try {
+		putConfigBack(point, meta.config ?? [], paths, key);
+		return { ok: true };
+	} catch (err) {
+		return { ok: false, detail: err instanceof Error ? err.message : String(err) };
+	}
+}
+
+/** Settings bigger than this stay out of a restore point, with a log line: a browser profile can be gigabytes. */
+const CONFIG_CAP = 200 * 1024 * 1024;
+
+/** The folder in a point that holds its settings; a name no installed file or record takes. */
+export const CONFIG_DIR = "upkeep-config";
+
+/** One keep_with_restore path in a point: name is its place in the point, path the absolute path it goes back to. */
+export type SavedConfig = { path: string; name: string };
+
+/** Whether anything is at p, a broken link included. */
+function there(p: string): boolean {
+	try {
+		lstatSync(p);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Copies each keep_with_restore path into <into>/upkeep-config/<i>, links kept as links, mode and times kept. A path that is
+ * missing, over CONFIG_CAP or fails to copy is left out with a log line: settings never cost the update. The copy is
+ * taken while the app may run, so a file it is writing that moment can be caught half-written.
+ */
+export function saveConfig(
+	into: string,
+	spec: Pick<AppSpec, "key" | "keep_with_restore">,
+	paths: Paths,
+	log: (line: string) => void,
+): SavedConfig[] {
+	const saved: SavedConfig[] = [];
+	for (const [i, raw] of (spec.keep_with_restore ?? []).entries()) {
+		const path = expandHome(raw, paths.home);
+		if (!there(path)) continue;
+		const size = bytesOf(path);
+		if (size > CONFIG_CAP) {
+			log(`Left ${raw} out of the restore point of ${spec.key}: ${Math.round(size / 1024 / 1024)} MB is over 200 MB.`);
+			continue;
+		}
+		const name = join(CONFIG_DIR, String(i));
+		try {
+			mkdirSync(join(into, CONFIG_DIR), { recursive: true });
+			cpSync(path, join(into, name), { recursive: true, verbatimSymlinks: true, preserveTimestamps: true });
+			saved.push({ path, name });
+		} catch (err) {
+			rmSync(join(into, name), { recursive: true, force: true });
+			log(`Left ${raw} out of the restore point of ${spec.key}: ${err instanceof Error ? err.message : String(err)}`);
+		}
+	}
+	return saved;
+}
+
+/**
+ * Puts a point's saved settings back, each copied in beside the live path and then renamed over it. What was live is
+ * moved to <data>/config-aside/<key>/<i> first, so a restore never loses the settings it replaces; only the latest
+ * restore's are kept there. A path not strictly under home is skipped: meta.json is on disk and could have been
+ * edited. A path the point does not hold (it was missing when the point was taken) is left as it is. Throws on the
+ * first path that cannot go back.
+ */
+export function putConfigBack(point: string, saved: SavedConfig[], paths: Paths, key: string): void {
+	if (saved.length === 0) return;
+	const aside = join(paths.data, "config-aside", key);
+	dropTree(aside, paths);
+	for (const [i, c] of saved.entries()) {
+		const src = join(point, c.name);
+		if (!c.path.startsWith(`${paths.home}/`) || c.path.split("/").includes("..") || !there(src)) continue;
+		try {
+			const next = `${c.path}.upkeep-new`;
+			rmSync(next, { recursive: true, force: true });
+			mkdirSync(dirname(c.path), { recursive: true });
+			cpSync(src, next, { recursive: true, verbatimSymlinks: true, preserveTimestamps: true });
+			if (there(c.path)) {
+				mkdirSync(aside, { recursive: true });
+				const to = join(aside, String(i));
+				try {
+					renameSync(c.path, to);
+				} catch {
+					// Another file system: copied aside, then dropped.
+					cpSync(c.path, to, { recursive: true, verbatimSymlinks: true, preserveTimestamps: true });
+					dropTree(c.path, paths);
+				}
+			}
+			renameSync(next, c.path);
+		} catch (err) {
+			throw new Error(MESSAGES.couldNotRestoreFile(c.path, err instanceof Error ? err.message : String(err)), {
+				cause: err,
+			});
+		}
+	}
 }
 
 /** Points link at target, by a new link renamed over it, so the name is never missing. One already pointing there is left alone. */

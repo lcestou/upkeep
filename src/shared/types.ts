@@ -82,6 +82,11 @@ export type AppSpec = {
 	note?: string;
 	/** List the app as ready to install when nothing is at dest yet. Set when the owner adds an app that is not installed. */
 	install_if_missing?: boolean;
+	/**
+	 * Settings and data under home (~/.config/<app>, ~/.<app>) copied into each restore point before an update and put
+	 * back with it, so an old version never meets a config the new one migrated. Over 200 MB a path is left out.
+	 */
+	keep_with_restore?: string[];
 	// The source fields below are all optional and read only when kind is "source".
 	/** An existing git checkout, updated in place to the release tag. Without it the tag is cloned into the cache, as today. */
 	dir?: string;
@@ -181,7 +186,8 @@ export type AppStatus =
 	| "failed" // this run could not update it; nothing was changed or the change was undone
 	| "rolled_back"; // installed, would not start, previous copy restored
 
-export type RestorePoint = { version: string; at: string };
+/** config: the point also holds the settings keep_with_restore named, and a restore puts them back. */
+export type RestorePoint = { version: string; at: string; config?: boolean };
 
 export type AppState = {
 	key: string;

@@ -72,7 +72,7 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 		clock.start("backup");
 		const tag = tagOf(target, target.from);
 		const command = spec.restore.map((a) => fill(a, { version: target.from ?? "", tag }));
-		takePoint(ctx.paths, spec, target.from, { command, tag }, (ctx.now?.() ?? new Date()).toISOString());
+		takePoint(ctx.paths, spec, target.from, { command, tag }, (ctx.now?.() ?? new Date()).toISOString(), ctx.log);
 		point = target.from;
 		ctx.log(`Restore point ${target.from} taken`);
 	}

@@ -26,6 +26,18 @@ bins = ["fd"]
 
 Other fields: `version_args` (default `["--version"]`), `meta_path` (read an AppImage's version from a metainfo, `.desktop` or `.json` file inside it instead of running it), `probe = false` (never run the program to ask its version, for one that opens its window or names no version when asked: the version is the one Upkeep installed, kept while the file is unchanged, and a copy put there some other way is offered the latest so installing it makes the version known), `folder` (an archive whose program needs the files around it, such as a `lib/` folder: the whole archive unpacks into this folder under home, swapped in by rename, and each `bins` entry is a path inside it, linked from `dest`'s directory; a restore point keeps the whole folder), `sudo`, `process` (the process name to look for when deciding whether the app is running), `auto` (install without asking in background mode), `note`, `restart` (a command that restarts the app, such as `["systemctl", "restart", "rustdesk"]` for a service; `systemctl` asks for a password through the desktop's own prompt when it needs one) and `relaunch = true` (Upkeep may close the app and start `dest` again; it needs `process`, the name of the process it closes, which must be the app's own: the top processes with that name are asked to quit and their children go with them, so an interpreter's name such as `python` or `node` is refused).
 
+`keep_with_restore` names an app's settings and data, so they go back with an older version. Many apps rewrite their config the first time a new version starts, and the old version cannot read it afterwards. With this field, the config from before the update comes back too:
+
+```toml
+keep_with_restore = ["~/.config/tool", "~/.toolrc"]
+```
+
+- Before each update, Upkeep copies these paths into the restore point, beside the app's files. Links stay links. A missing path is skipped.
+- A path over 200 MB stays out of the point, and the log says so. The update goes ahead either way. A copy is taken while the app may be running, so a file it writes at that moment can be caught half-written.
+- Restoring that point puts back the app and these paths together. The window shows "with settings" beside such a point. The settings it replaces are first moved to `~/.local/share/upkeep/config-aside/<key>/`, and only the latest restore's are kept there. Except for a `source` build, a restore from the window also takes a restore point of the version it replaces, settings included, so pressing Restore on that point undoes it. A `source` build's restore keeps no such point, so its replaced settings are only in `config-aside`.
+- Each path must be under your home and written `~/…`. It cannot be home itself, a shared folder (`~/.config`, `~/.local`, `~/.local/share`, `~/.local/state`, `~/.local/bin`, `~/.cache`) or contain `..`. Upkeep never touches a path the table does not name.
+- It works for `appimage`, `archive`, `file`, `deb` and `rpm` apps, a `source` build with `dir` or `stage`, and a `command` app with `restore`. Other apps keep no restore points, so the field is refused there.
+
 `repo` says where the releases are:
 
 - `owner/name` is a GitHub repo, as every table before forges had it.

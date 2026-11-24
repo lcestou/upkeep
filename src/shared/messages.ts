@@ -394,6 +394,11 @@ export const MESSAGES = {
 	/** manifest.ts. {0} app key */
 	liftHoldInKeep: (v0: Value) => `${v0}: every hold path must also be in keep`,
 	/** manifest.ts. {0} app key */
+	liftKeepWithRestorePath: (v0: Value) =>
+		`${v0}: keep_with_restore takes paths of their own under home, such as ~/.config/${v0}`,
+	/** manifest.ts. {0} app key */
+	liftKeepWithRestoreKind: (v0: Value) => `${v0}: keep_with_restore needs an app that keeps restore points`,
+	/** manifest.ts. {0} app key */
 	liftPlaceInHome: (v0: Value) => `${v0}: place to cannot be a folder directly in the home directory`,
 	/** manifest.ts. {0} app key */
 	liftStageUnsafe: (v0: Value) => `${v0}: stage cannot be the home directory or the live copy`,

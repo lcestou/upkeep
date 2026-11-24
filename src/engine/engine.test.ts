@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING } from "./engine";
 import type { FetchLike } from "./github";
@@ -30,6 +30,7 @@ asset = 'x86_64-unknown-linux-gnu\\.tar\\.gz$'
 dest = "~/.local/bin/fd"
 bins = ["fd"]
 auto = true
+keep_with_restore = ["~/.config/fd"]
 
 [apps.bat]
 name = "bat"
@@ -417,6 +418,26 @@ test("a restore is a swap: the version it replaced becomes the restore point, so
 	expect(fd()).toMatchObject({ installed: "10.5.2", status: "fresh" });
 	expect(readFileSync(join(bin, "fd"), "utf8")).toContain("fd 10.5.2");
 	expect(fd()?.restorePoints.map((p) => p.version)).toEqual(["10.5.1"]);
+});
+
+test("settings travel with the point: the update saves them, a restore puts them back, and undoing it brings the new ones", async () => {
+	const cfg = join(t.paths.home, ".config/fd/ignore");
+	mkdirSync(dirname(cfg), { recursive: true });
+	writeFileSync(cfg, "old");
+	const engine = createEngine(await deps());
+	await engine.check();
+	await engine.install(["fd"]);
+	await engine.idle();
+	engine.dismissSummary();
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	expect(fd()?.restorePoints).toMatchObject([{ version: "10.5.1", config: true }]);
+	writeFileSync(cfg, "migrated");
+	expect(await engine.restore("fd", "10.5.1")).toEqual({ ok: true });
+	expect(readFileSync(cfg, "utf8")).toBe("old");
+	// The swap point of 10.5.2 took the migrated settings, so the restore is undone whole.
+	expect(fd()?.restorePoints).toMatchObject([{ version: "10.5.2", config: true }]);
+	expect(await engine.restore("fd", "10.5.2")).toEqual({ ok: true });
+	expect(readFileSync(cfg, "utf8")).toBe("migrated");
 });
 
 test("an interrupted install shows on its row at the next check", async () => {

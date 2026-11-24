@@ -340,6 +340,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 					target.from,
 					{ package: spec.kind, file: old.file },
 					(ctx.now?.() ?? new Date()).toISOString(),
+					ctx.log,
 				);
 				rmSync(dirname(old.file), { recursive: true, force: true });
 				backupVersion = target.from;
@@ -349,7 +350,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			clock.start("backup");
 			const existing = targets.filter((f) => existsSync(f));
 			if (existing.length > 0 && target.from) {
-				takeBackup(ctx.paths, spec, target.from, existing, (ctx.now?.() ?? new Date()).toISOString());
+				takeBackup(ctx.paths, spec, target.from, existing, (ctx.now?.() ?? new Date()).toISOString(), ctx.log);
 				backupVersion = target.from;
 				ctx.log(`Restore point ${target.from} taken`);
 			}

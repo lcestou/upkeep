@@ -551,3 +551,36 @@ test("probe = false only on an app installed from a release file, which is what 
 		"x: probe = false is only for an app installed from a release file",
 	);
 });
+
+test("keep_with_restore takes an app's own paths under home, on a kind that keeps restore points", () => {
+	const file = ['kind = "file"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/x"'];
+	expect(one(...file, 'keep_with_restore = ["~/.config/x", "~/.x", "~/.local/share/x/db/"]')).toMatchObject({
+		keep_with_restore: ["~/.config/x", "~/.x", "~/.local/share/x/db/"],
+	});
+	const path = "x: keep_with_restore takes paths of their own under home, such as ~/.config/x";
+	for (const bad of [
+		"/etc/x",
+		"~",
+		"~/",
+		"~/.config",
+		"~/.local/share/",
+		"~/../x",
+		"~/.config/../.ssh",
+		"~//.config",
+		"./x",
+		"x",
+	])
+		expect(one(...file, `keep_with_restore = ["${bad}"]`)).toBe(path);
+	expect(one(...file, "keep_with_restore = [1]")).toBe("x: keep_with_restore must be a list of strings");
+	const kind = "x: keep_with_restore needs an app that keeps restore points";
+	const manual = ['kind = "manual"', 'check = ["v"]', 'latest = "npm:x"', 'run = "x"'];
+	expect(one(...manual, 'keep_with_restore = ["~/.x"]')).toBe(kind);
+	const command = ['kind = "command"', 'check = ["v"]', 'latest = "npm:x"', 'update = ["u"]'];
+	expect(one(...command, 'keep_with_restore = ["~/.x"]')).toBe(kind);
+	expect(one(...command, 'restore = ["r", "{version}"]', 'keep_with_restore = ["~/.x"]')).toMatchObject({
+		keep_with_restore: ["~/.x"],
+	});
+	const source = ['kind = "source"', 'repo = "o/r"', 'build = ["make"]', 'dest = "~/x"'];
+	expect(one(...source, 'keep_with_restore = ["~/.x"]')).toBe(kind);
+	expect(one(...source, 'dir = "~/src/x"', 'keep_with_restore = ["~/.x"]')).toMatchObject({ dir: "~/src/x" });
+});

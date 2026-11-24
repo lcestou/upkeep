@@ -942,10 +942,10 @@ export function createEngine(deps: EngineDeps): Engine {
 						current,
 					);
 					const command = spec.restore.map((a) => fill(a, { version: current ?? "", tag }));
-					takePoint(paths, spec, current, { command, tag }, deps.now().toISOString());
+					takePoint(paths, spec, current, { command, tag }, deps.now().toISOString(), kindCtx(key).log);
 				} else if (canRestore(spec) && current && current !== version && !isPackage(spec.kind)) {
 					const files = installedFiles(spec, destOf(spec, { paths }), paths.home).filter((f) => existsSync(f));
-					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString());
+					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString(), kindCtx(key).log);
 				}
 				const r = await restoreBackup(paths, spec, version, deps.run);
 				if (!r.ok) return r;
