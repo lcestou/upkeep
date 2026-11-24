@@ -4,16 +4,18 @@ test("Follow pre-releases offers the next candidate, and switching it off goes b
 	page,
 }) => {
 	await load(page);
+	// The fresh group starts folded.
+	await page.getByTestId("group-fresh-toggle").click();
 	await page.getByTestId("open-yazi").click();
 	const box = page.getByTestId("prerelease-yazi");
 	await expect(box).not.toBeChecked();
 	await expect(page.getByTestId("prerelease-label")).toHaveText("Follow pre-releases");
-	await expect(page.getByTestId("status-yazi")).toHaveText("Fresh");
+	await expect(page.getByTestId("pane-status")).toHaveText("Fresh");
 	await box.check();
 	await expect(page.getByTestId("status-yazi")).toHaveText("Ready");
 	await expect(page.getByTestId("detail-yazi")).toContainText("26.1.23-rc.1");
 	await box.uncheck();
-	await expect(page.getByTestId("status-yazi")).toHaveText("Fresh");
+	await expect(page.getByTestId("pane-status")).toHaveText("Fresh");
 	// A command app has no release list: no switch and no other versions.
 	await page.getByTestId("open-wrangler").click();
 	await expect(page.getByTestId("prerelease-wrangler")).toHaveCount(0);
@@ -24,6 +26,7 @@ test("Other versions asks for the releases only on the press, and an older one i
 	page,
 }) => {
 	await load(page, "fixture&speed=4");
+	await page.getByTestId("group-fresh-toggle").click();
 	await page.getByTestId("open-yazi").click();
 	const block = page.getByTestId("versions-yazi");
 	await expect(block.getByTestId("versions-heading")).toHaveText("Other versions");
@@ -41,7 +44,7 @@ test("Other versions asks for the releases only on the press, and an older one i
 	await page.getByTestId("install-version-yazi-25.5.31").click();
 	await expect(page.getByTestId("version-yazi-25.5.31")).toHaveCount(0);
 	await expect(sentence(page)).toHaveText("1 updated", { timeout: 10_000 });
-	await expect(page.getByTestId("status-yazi")).toHaveText("Updated to 25.5.31");
+	await expect(page.getByTestId("pane-status")).toHaveText("Updated to 25.5.31");
 	await page.getByTestId("done").click();
 	await expect(page.getByTestId("group-held")).toHaveText("Held back");
 	await expect(page.getByTestId("status-yazi")).toHaveText("Held");
