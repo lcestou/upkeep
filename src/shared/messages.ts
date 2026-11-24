@@ -431,6 +431,10 @@ export const MESSAGES = {
 	metaMissing: (v0: Value, v1: Value) => `${v0} is missing inside ${v1}.`,
 	/** probe.ts. {0} meta_path from the table */
 	metaNoVersion: (v0: Value) => `${v0} names no version.`,
+	/** menu.ts. {0} the AppImage's path */
+	menuNoEntry: (v0: Value) => `Could not read a menu entry from ${v0}.`,
+	/** engine.ts. {0} path of the other tool's .desktop file */
+	menuElsewhere: (v0: Value) => `Already in the app menu through ${v0}, so Upkeep adds no second entry.`,
 	/** restart.ts */
 	nothingToStart: () => `nothing to start`,
 	/** restart.ts. {0} app name */

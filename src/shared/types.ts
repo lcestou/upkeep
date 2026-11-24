@@ -218,6 +218,13 @@ export type AppState = {
 	/** relaunch: Restart now closes the app's windows, so it asks first. */
 	closes?: boolean;
 	auto: boolean;
+	/**
+	 * AppImage rows only: whether Upkeep keeps a menu entry for it ("on"), could ("off"), or another tool already has
+	 * one for the same file ("elsewhere", with menuDetail saying which).
+	 */
+	menu?: "on" | "off" | "elsewhere";
+	/** The engine sentence for menu: "elsewhere". */
+	menuDetail?: string;
 	sudo: boolean;
 	versionless: boolean;
 	/** manual: the command to run. */
@@ -511,6 +518,7 @@ export type Requests = {
 	setSkip: { params: { key: string; version: string | null }; response: { ok: boolean } };
 	setHold: { params: { key: string; held: boolean }; response: { ok: boolean } };
 	setAuto: { params: { key: string; auto: boolean }; response: { ok: boolean } };
+	setMenu: { params: { key: string; menu: boolean }; response: { ok: boolean; detail?: string } };
 	setSettings: { params: Partial<Settings>; response: Settings };
 	history: { params: { limit: number }; response: HistoryRow[] };
 	runLog: { params: { runId: string }; response: LogLine[] };
