@@ -7,6 +7,7 @@ import type { FetchLike } from "./github";
 
 const PAYLOAD = new Uint8Array(200_000).map((_, i) => i % 251);
 const SHA = new Bun.CryptoHasher("sha256").update(PAYLOAD).digest("hex");
+const SHA512 = new Bun.CryptoHasher("sha512").update(PAYLOAD).digest("hex");
 
 let dir = "";
 let server: ReturnType<typeof Bun.serve>;
@@ -57,7 +58,7 @@ test("download streams to the file, reports progress and hashes", async () => {
 	const file = join(dir, "dl/fd.tar.gz");
 	const seen: number[] = [];
 	const r = await download(`${base()}/asset`, file, { fetch, onProgress: (got, total) => seen.push(total ?? -1, got) });
-	expect(r).toEqual({ bytes: PAYLOAD.length, sha256: SHA });
+	expect(r).toEqual({ bytes: PAYLOAD.length, sha256: SHA, sha512: SHA512 });
 	expect(new Uint8Array(readFileSync(file))).toEqual(PAYLOAD);
 	expect(seen.at(-1)).toBe(PAYLOAD.length);
 	expect(seen[0]).toBe(PAYLOAD.length);
@@ -191,12 +192,48 @@ test("a slow download that keeps sending is not stalled", async () => {
 	expect(r.bytes).toBe(8000);
 });
 
-test("verifyAsset checks size and digest", () => {
-	const r = { bytes: 10, sha256: "ab" };
-	expect(() => verifyAsset(r, { size: 10, digest: "sha256:ab" })).not.toThrow();
-	expect(() => verifyAsset(r, { size: 10, digest: null })).not.toThrow();
+test("verifyAsset checks size and digest, and says how", () => {
+	const r = { bytes: 10, sha256: "ab", sha512: "ef" };
+	expect(verifyAsset(r, { size: 10, digest: "sha256:ab" })).toBe("digest");
+	expect(verifyAsset(r, { size: 10, digest: null })).toBe("size");
 	expect(() => verifyAsset(r, { size: 11, digest: null })).toThrow("Download is 10 bytes, expected 11.");
 	expect(() => verifyAsset(r, { size: 10, digest: "sha256:cd" })).toThrow("Checksum does not match the release.");
+});
+
+test("verifyAsset: the release's checksum file when there is no digest, and the digest wins when there is", () => {
+	const r = { bytes: 10, sha256: "ab", sha512: "ef" };
+	const sum = (algo: "sha256" | "sha512", hex: string) => ({ algo, hex, file: "SHA256SUMS" });
+	expect(verifyAsset(r, { size: 10, digest: null, sum: sum("sha256", "ab") })).toBe("sums");
+	expect(verifyAsset({ ...r, bytes: 2 ** 20 }, { size: 0, digest: null, sum: sum("sha512", "ef") })).toBe("sums");
+	expect(() => verifyAsset(r, { size: 10, digest: null, sum: sum("sha256", "cd") })).toThrow(
+		"Checksum does not match SHA256SUMS in the release.",
+	);
+	// A result with no sha512 never passes a sha512 sum.
+	expect(() =>
+		verifyAsset({ bytes: 10, sha256: "ab" }, { size: 10, digest: null, sum: sum("sha512", "ef") }),
+	).toThrow();
+	expect(verifyAsset(r, { size: 10, digest: "sha256:ab", sum: sum("sha256", "cd") })).toBe("digest");
+});
+
+test("a redirect from https to plain http is refused before a byte is written", async () => {
+	const leaky: FetchLike = async () => {
+		const res = new Response(PAYLOAD);
+		Object.defineProperty(res, "url", { value: "http://mirror.example/fd.tar.gz" });
+		Object.defineProperty(res, "redirected", { value: true });
+		return res;
+	};
+	await expect(
+		download("https://example.org/fd.tar.gz", join(dir, "x.bin"), { fetch: leaky, retryMs: 1 }),
+	).rejects.toThrow("The download was sent on to an address that is not https, so it was refused.");
+	const kept: FetchLike = async () => {
+		const res = new Response(PAYLOAD);
+		Object.defineProperty(res, "url", { value: "https://mirror.example/fd.tar.gz" });
+		Object.defineProperty(res, "redirected", { value: true });
+		return res;
+	};
+	expect((await download("https://example.org/fd.tar.gz", join(dir, "y.bin"), { fetch: kept })).bytes).toBe(
+		PAYLOAD.length,
+	);
 });
 
 test("cancelling the caller's signal ends a download in flight, and it is not retried", async () => {
@@ -224,7 +261,7 @@ test("a download whose size nobody listed must be at least 1 MiB", () => {
 	expect(() => verifyAsset({ bytes: 500_000, sha256: "ab" }, { size: 0, digest: null })).toThrow(
 		"Download is 500000 bytes, too small to be a release.",
 	);
-	expect(() => verifyAsset({ bytes: 1024 * 1024, sha256: "ab" }, { size: 0, digest: null })).not.toThrow();
+	expect(verifyAsset({ bytes: 1024 * 1024, sha256: "ab" }, { size: 0, digest: null })).toBe("none");
 });
 
 test("statedSize: the length a HEAD answer states, else undefined", async () => {

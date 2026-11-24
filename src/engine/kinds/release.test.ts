@@ -251,6 +251,41 @@ test("install: a new version that will not start is rolled back to the restore p
 	expect(statSync(dest).mode & 0o777).toBe(0o775);
 });
 
+test("install: with no digest the release's own SHA256SUMS is read at check time and holds the download to it", async () => {
+	installZen("1.17.9b");
+	const file = bash('echo "zen 1.18.0b"');
+	const hex = sha(file).slice(7);
+	const sums = new TextEncoder().encode(`${hex}  zen.linux-x86_64.AppImage\n`);
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": file, SHA256SUMS: sums }, false);
+	const c = ctx();
+	const target = await checkAndTarget(zen(), c);
+	expect(target.asset?.sum).toEqual({ algo: "sha256", hex, file: "SHA256SUMS" });
+	expect(target.locked).toBeUndefined();
+	const outcome = await installRelease(zen(), target, c);
+	expect(outcome).toMatchObject({ result: "done", checked: "sums" });
+	expect(lines.some((l) => l.endsWith("matches SHA256SUMS"))).toBe(true);
+});
+
+test("install: a checksum file naming the file with another hash changes nothing; the forge's digest says so", async () => {
+	const dest = installZen("1.17.9b");
+	const file = bash('echo "zen 1.18.0b"');
+	const sums = new TextEncoder().encode(`${"0".repeat(64)}  zen.linux-x86_64.AppImage\n`);
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": file, "checksums.txt": sums }, false);
+	const c = ctx();
+	await expect(installRelease(zen(), await checkAndTarget(zen(), c), c)).rejects.toThrow(
+		"Checksum does not match checksums.txt in the release.",
+	);
+	expect(readFileSync(dest, "utf8")).toContain("zen 1.17.9b");
+	// With a digest the checksum file is never asked for, and the outcome says the forge's record matched.
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": file, "checksums.txt": sums });
+	release.immutable = true;
+	const target = await checkAndTarget(zen(), c);
+	expect(target.asset?.sum).toBeUndefined();
+	expect(target.locked).toBe(true);
+	expect(await installRelease(zen(), target, c)).toMatchObject({ result: "done", checked: "digest" });
+	expect(lines.some((l) => l.endsWith("matches the forge's SHA-256 record"))).toBe(true);
+});
+
 test("install: a checksum that does not match changes nothing", async () => {
 	const dest = installZen("1.17.9b");
 	publish("1.18.0b", { "zen.linux-x86_64.AppImage": bash('echo "zen 1.18.0b"') });

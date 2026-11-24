@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { open } from "node:fs/promises";
 import { dirname } from "node:path";
 import { MESSAGES } from "../shared/messages";
+import type { DownloadCheck } from "../shared/types";
 import { type Asset, type FetchLike, GITHUB_API } from "./github";
 
 export type DownloadOpts = {
@@ -19,7 +20,8 @@ export type DownloadOpts = {
 	signedIn?: { url: string; token: string };
 };
 
-export type DownloadResult = { bytes: number; sha256: string };
+/** sha512 is there for a download Upkeep hashed itself; a result read back from elsewhere may lack it. */
+export type DownloadResult = { bytes: number; sha256: string; sha512?: string };
 
 /** Marks a download that went quiet, so download() does not retry it as a network error. */
 class Stalled extends Error {}
@@ -61,10 +63,14 @@ async function attempt(
 		const res = await opts.fetch(url, { signal: ctl.signal, redirect: "follow", headers });
 		// An answer of any status is not a network error, so it is not retried.
 		started.any = true;
+		// A redirect from https to plain http would let anyone on the way swap the file.
+		if (url.startsWith("https://") && res.redirected && !res.url.startsWith("https://"))
+			throw new Error(MESSAGES.downloadLeftHttps());
 		if (!res.ok || !res.body) throw new HttpFailed(res.status);
 		const length = Number(res.headers.get("content-length"));
 		const total = length > 0 ? length : null;
 		const hasher = new Bun.CryptoHasher("sha256");
+		const hasher512 = new Bun.CryptoHasher("sha512");
 		let bytes = 0;
 		opts.onProgress?.(0, total);
 		const reader = res.body.getReader();
@@ -74,6 +80,7 @@ async function attempt(
 			if (done) break;
 			arm();
 			hasher.update(chunk);
+			hasher512.update(chunk);
 			// Awaited: a full disk must fail the download, not leave a short file behind a good hash.
 			for (let off = 0; off < chunk.byteLength;) {
 				// oxlint-disable-next-line no-await-in-loop -- a short write is finished before the next chunk
@@ -83,7 +90,7 @@ async function attempt(
 			opts.onProgress?.(bytes, total);
 		}
 		await fh.sync();
-		return { bytes, sha256: hasher.digest("hex") };
+		return { bytes, sha256: hasher.digest("hex"), sha512: hasher512.digest("hex") };
 	} catch (err) {
 		if (stalled) throw new Stalled(MESSAGES.downloadStalled());
 		throw err;
@@ -153,18 +160,26 @@ export function signedIn(asset: Asset, token: string | null): DownloadOpts["sign
 export const MIN_UNLISTED_BYTES = 1024 * 1024;
 
 /**
- * Throws when the file is not the asset the release describes. An asset with no digest is checked by size only, and
- * one with no listed size (size 0) only by the floor; a truncated download above the floor is caught by the verify
- * probe and its restore point.
+ * Throws when the file is not the asset the release describes, and otherwise says how it was checked. The forge's
+ * digest wins over the release's checksum file; an asset with neither is checked by size only, and one with no listed
+ * size (size 0) only by the floor, which counts as not checked; a truncated download above the floor is caught by
+ * the verify probe and its restore point. A sha512 sum with no sha512 in result fails, never passes unchecked.
  */
-export function verifyAsset(result: DownloadResult, asset: Pick<Asset, "size" | "digest">): void {
+export function verifyAsset(result: DownloadResult, asset: Pick<Asset, "size" | "digest" | "sum">): DownloadCheck {
 	if (asset.size > 0 && result.bytes !== asset.size)
 		throw new Error(MESSAGES.downloadSizeMismatch(result.bytes, asset.size));
 	if (asset.size === 0 && result.bytes < MIN_UNLISTED_BYTES) throw new Error(MESSAGES.downloadTooSmall(result.bytes));
 	if (asset.digest) {
 		const want = asset.digest.replace(/^sha256:/, "").toLowerCase();
 		if (want !== result.sha256) throw new Error(MESSAGES.checksumMismatch());
+		return "digest";
 	}
+	if (asset.sum) {
+		const got = asset.sum.algo === "sha512" ? result.sha512 : result.sha256;
+		if (got !== asset.sum.hex) throw new Error(MESSAGES.checksumFileMismatch(asset.sum.file));
+		return "sums";
+	}
+	return asset.size > 0 ? "size" : "none";
 }
 
 /**

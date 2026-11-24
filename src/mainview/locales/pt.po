@@ -2751,3 +2751,33 @@ msgstr "Baixada, aguarda a sua vez"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Novas versões nos seus marketplaces: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Download verificado: o SHA-256 confere com o registro da plataforma."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Download verificado: confere com o arquivo de checksums da versão."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Download verificado: só o tamanho."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Download não verificado: a versão não informa tamanho nem checksum."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release."
+msgstr "O checksum não confere com {0} na versão."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "O download foi redirecionado para um endereço sem https, então foi recusado."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The {0} download changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "O download de {0} mudou depois que o Upkeep o viu pela primeira vez. Confira a página da versão antes de retomar as atualizações."

@@ -78,9 +78,10 @@ function freeBytesOf(dir: string): number {
 	return fs.bavail * fs.bsize;
 }
 
-/** The size and SHA-256 of the file on disk now, read in one pass without holding it in memory. */
+/** The size, SHA-256 and SHA-512 of the file on disk now, read in one pass without holding it in memory. */
 async function onDisk(file: string): Promise<DownloadResult> {
 	const hasher = new Bun.CryptoHasher("sha256");
+	const hasher512 = new Bun.CryptoHasher("sha512");
 	let bytes = 0;
 	const reader = Bun.file(file).stream().getReader();
 	for (;;) {
@@ -88,9 +89,10 @@ async function onDisk(file: string): Promise<DownloadResult> {
 		const { done, value } = await reader.read();
 		if (done) break;
 		hasher.update(value);
+		hasher512.update(value);
 		bytes += value.byteLength;
 	}
-	return { bytes, sha256: hasher.digest("hex") };
+	return { bytes, sha256: hasher.digest("hex"), sha512: hasher512.digest("hex") };
 }
 
 /**

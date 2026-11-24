@@ -3,6 +3,10 @@
 ## Unreleased
 
 - The Claude Code plugins row now says when an update is waiting. A check refreshes the plugin marketplaces, as Claude Code does at start, and compares each installed plugin's version with the one its marketplace now holds (for a plugin with no version, new commits in its own folder of the marketplace). The row turns to Update and names the plugins, so it shows in the count and the tray like any other update. A plugin whose marketplace entry points to another repo and names no version is still only updated by Run now or an automatic run.
+- A release download with no GitHub digest is now held to the release's own checksum file when it has one (`SHA256SUMS`, `checksums.txt`, `<file>.sha256`, or electron-builder's `latest-linux.yml`), on GitHub, GitLab and Codeberg alike. A file that does not match fails like a digest mismatch, and nothing is changed.
+- After an update, the row's pane says how its download was checked: against the forge's SHA-256, against the release's checksum file, by size only, or not at all. The log and the history say the same.
+- When the file behind a release's tag changes after Upkeep first saw it, the row is held with the reason instead of offered. Release the hold to install it anyway. GitHub releases marked immutable are never held this way.
+- A download redirected from https to plain http is refused.
 
 ## 0.1.8, 2026-11-21
 

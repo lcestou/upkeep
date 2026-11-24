@@ -2,6 +2,7 @@
 	import { say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
 	import {
+		CHECKED,
 		CHIP,
 		COLUMN,
 		commitsHeading,
@@ -214,6 +215,7 @@
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
 		{#if app.detail}<p class="sentence" data-testid="pane-detail">{say(app.detail)}</p>{/if}
+		{#if app.checked}<p class="sentence" data-testid="pane-checked">{CHECKED[app.checked]}</p>{/if}
 		{#if app.restartToApply && app.canRestart}
 			<div class="restart-now">
 				{#if askingRestart}

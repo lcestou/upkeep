@@ -13,10 +13,11 @@ import {
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
-import type { AppSpec } from "../../shared/types";
+import type { AppSpec, DownloadCheck } from "../../shared/types";
 import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
 import { download, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
+import { releaseSum } from "../checksums";
 import { forgeRelease, linksRelease, zsyncRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
@@ -188,7 +189,10 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				detail: MESSAGES.severalAssetsMatch(String(pattern), pick.names.join(", ")),
 				...base,
 			};
-		target = { ...target, asset: pick.asset };
+		// Only for an update on offer: a release with no digest is read for its own checksum file, once per check.
+		const sum = status === "ready" && !pick.asset.digest ? await releaseSum(release, pick.asset, ctx.fetch) : null;
+		target = { ...target, asset: sum ? { ...pick.asset, sum } : pick.asset };
+		if (release.immutable) target.locked = true;
 		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
 		size = pick.asset.size || (status === "ready" ? await statedSize(pick.asset.url, ctx.fetch) : undefined);
 	}
@@ -266,6 +270,14 @@ export function dlPath(paths: KindCtx["paths"], key: string, name: string): stri
 	return join(paths.cache, "dl", `${key}-${name}`);
 }
 
+/** The log's English for how a download was checked. */
+const CHECK_LOG = {
+	digest: () => "matches the forge's SHA-256 record",
+	sums: (a) => `matches ${a.sum?.file ?? "the release's checksum file"}`,
+	size: () => "size only, the release lists no checksum",
+	none: () => "not checked, the release lists no size or checksum",
+} satisfies Record<DownloadCheck, (asset: NonNullable<Target["asset"]>) => string>;
+
 /** A stage of an install that failed with a message fit to show the person; anything else thrown is unexpected and rethrown. */
 class StepError extends Error {}
 
@@ -293,9 +305,10 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 	let backupVersion: string | null = null;
 	// A file fetched ahead records its real download time, so the next run's stem keeps the download's width.
 	let earlyMs: number | undefined;
+	let checked: DownloadCheck | undefined;
 	const finish = (o: Omit<Outcome, "stages">): Outcome => {
 		const stages = clock.stop();
-		return { ...o, stages: earlyMs === undefined ? stages : { ...stages, download: earlyMs } };
+		return { ...o, checked, stages: earlyMs === undefined ? stages : { ...stages, download: earlyMs } };
 	};
 	// Before any download or restore point: a folder Upkeep did not make is never copied, renamed or replaced.
 	if (spec.folder && !folderFree(expandHome(spec.folder, ctx.paths.home), spec.key))
@@ -326,8 +339,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				retryMs: ctx.retryMs,
 				signedIn: signedIn(asset, ctx.token),
 			}));
-		verifyAsset(got, asset);
-		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}`);
+		checked = verifyAsset(got, asset);
+		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}, ${CHECK_LOG[checked](asset)}`);
 
 		if (restorable && isPackage(spec.kind) && target.from) {
 			clock.start("backup");

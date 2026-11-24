@@ -407,14 +407,42 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/** The row's resting status from its check result and the owner's skip and hold. */
-	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped"> {
+	/**
+	 * The row's resting status and detail from its check result and the owner's skip and hold. An offered release whose
+	 * file changed since it was first seen is held too, with the reason as its detail, and releasing the hold lets it through.
+	 */
+	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped" | "detail"> {
 		const state = loadState(paths);
-		const held = state.hold[spec.key] === true;
+		const tag = c.target?.tag;
+		const changed = tag !== undefined && state.changed[spec.key] === tag;
+		const held = state.hold[spec.key] === true || (c.status === "ready" && changed);
 		const skip = state.skip[spec.key];
-		if (c.status !== "ready") return { status: c.status, held };
-		if (held) return { status: "held", held, skipped: skip };
-		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip };
-		return { status: spec.kind === "manual" ? "manual" : "ready", held };
+		const detail = c.status === "ready" && changed ? MESSAGES.releaseChanged(tag) : c.detail;
+		if (c.status !== "ready") return { status: c.status, held, detail };
+		if (held) return { status: "held", held, skipped: skip, detail };
+		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip, detail };
+		return { status: spec.kind === "manual" ? "manual" : "ready", held, detail };
+	}
+
+	/**
+	 * Remembers the release file a check offered and marks the app changed when the same tag and file name now carry
+	 * another hash of the same kind. A file added to the release later, a tag that moved on, a hash read another way
+	 * (a digest after a sha512 sum) or a release the forge locks never fires. Only a row on offer is marked: an
+	 * installed release has nothing left to hold.
+	 */
+	function noteRelease(key: string, c: Checked): void {
+		const t = c.target;
+		const a = t?.asset;
+		const hash = a?.digest ?? (a?.sum ? `${a.sum.algo}:${a.sum.hex}` : null);
+		if (!t || !a || !hash || t.locked) return;
+		const was = loadState(paths).seen[key];
+		if (was?.tag === t.tag && was.file === a.name && was.hash === hash) return;
+		const sameKind = was?.hash.split(":")[0] === hash.split(":")[0];
+		updateState(paths, (s) => {
+			if (s.changed[key] !== undefined && s.changed[key] !== t.tag) delete s.changed[key];
+			if (c.status === "ready" && was?.tag === t.tag && was.file === a.name && sameKind) s.changed[key] = t.tag;
+			s.seen[key] = { tag: t.tag, file: a.name, hash };
+		});
 	}
 
 	// What else keeps each app up to date, worked out once per check from the system's Flatpak and Snap lists.
@@ -431,7 +459,6 @@ export function createEngine(deps: EngineDeps): Engine {
 			installed: c.installed,
 			latest: c.latest,
 			...resting(spec, c),
-			detail: c.detail,
 			size: c.size,
 			notes: c.notes,
 			releaseUrl: c.releaseUrl,
@@ -484,6 +511,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			updateState(paths, (s) => {
 				delete s.skip[spec.key];
 			});
+		noteRelease(spec.key, c);
 		checked.set(spec.key, c);
 		if (c.target) targets.set(spec.key, c.target);
 		else targets.delete(spec.key);
@@ -560,6 +588,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		app.status = o.result;
 		app.installed = o.installed;
 		app.detail = o.detail;
+		app.checked = o.checked;
 		app.restartToApply = o.result === "done" && o.restartToApply;
 		app.stage = undefined;
 		app.stagePct = undefined;
@@ -810,6 +839,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				result: resultOf(outcome.result),
 				detail: outcome.detail,
 				ms: Date.now() - started,
+				checked: outcome.checked,
 			};
 			run.results.push(result);
 			history.push({ ...result, runId: run.id ?? "", at: deps.now().toISOString(), stages: outcome.stages });
@@ -1037,7 +1067,11 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!specOf(key)) return false;
 			updateState(paths, (s) => {
 				if (held) s.hold[key] = true;
-				else delete s.hold[key];
+				else {
+					delete s.hold[key];
+					// Releasing a hold Upkeep put on a changed release lets that release through.
+					delete s.changed[key];
+				}
 			});
 			refresh(key);
 			return true;
@@ -1122,6 +1156,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				delete s.hold[key];
 				delete s.auto[key];
 				delete s.restart[key];
+				delete s.seen[key];
+				delete s.changed[key];
 			});
 			emit({ type: "removed", key });
 			return { ok: true };

@@ -2709,3 +2709,33 @@ msgstr "ダウンロード済み、順番待ち"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "マーケットプレイスに新しいバージョンがあります：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "ダウンロード確認済み: SHA-256 が配布元の記録と一致します。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "ダウンロード確認済み: リリースのチェックサムファイルと一致します。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "ダウンロード確認済み: サイズのみ。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "ダウンロード未確認: リリースにサイズもチェックサムもありません。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release."
+msgstr "チェックサムがリリースの {0} と一致しません。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "ダウンロードが https ではないアドレスに転送されたため、拒否しました。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The {0} download changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "{0} のダウンロードは、Upkeep が最初に確認した後に変わりました。保留を解除する前にリリースページを確認してください。"

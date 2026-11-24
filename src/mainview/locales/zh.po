@@ -2709,3 +2709,33 @@ msgstr "已下载，等待轮到它"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "下载已校验：SHA-256 与发布平台的记录一致。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "下载已校验：与发布中的校验和文件一致。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "下载已校验：仅大小。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "下载未校验：发布未列出大小或校验和。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release."
+msgstr "校验和与发布中的 {0} 不符。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "下载被转到了非 https 地址，因此已拒绝。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The {0} download changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "{0} 的下载在 Upkeep 首次看到后发生了变化。取消暂缓前请先查看发布页面。"

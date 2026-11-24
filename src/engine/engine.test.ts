@@ -12,6 +12,8 @@ import { realRun, recordingRun, script, tempHome } from "./testkit";
 let t: ReturnType<typeof tempHome>;
 let releases: Record<string, { tag: string; assets: Record<string, Uint8Array<ArrayBuffer>> }> = {};
 let proc = "";
+/** Digests the fake GitHub lists, by asset name; an asset not named here has none. */
+let digests: Record<string, string> = {};
 let bin = "";
 
 const MANIFEST = `
@@ -95,7 +97,7 @@ const fakeFetch: FetchLike = async (url) => {
 				name,
 				browser_download_url: `https://dl.test/${m[1]}/${name}`,
 				size: b.length,
-				digest: null,
+				digest: digests[name] ?? null,
 			})),
 		});
 	}
@@ -160,6 +162,7 @@ async function deps(): Promise<EngineDeps> {
 
 beforeEach(() => {
 	t = tempHome("engine");
+	digests = {};
 	proc = join(t.dir, "proc");
 	mkdirSync(proc);
 });
@@ -306,6 +309,10 @@ test("retry from the summary runs only the failed app again", async () => {
 		["fd", "updated"],
 		["boom", "failed"],
 	]);
+	// fd's release lists a size and no checksum: the summary, the history and the row say so.
+	expect(snap.run.results.find((x) => x.key === "fd")?.checked).toBe("size");
+	expect(engine.history(10).find((h) => h.key === "fd")?.checked).toBe("size");
+	expect(snap.apps.find((a) => a.key === "fd")?.checked).toBe("size");
 	// The app that succeeded in the first pass is not installed again and still shows as done.
 	expect(statuses(engine)).toMatchObject({ boom: "failed", fd: "done" });
 	expect(engine.history(10).filter((h) => h.key === "fd")).toHaveLength(1);
@@ -360,6 +367,40 @@ test("skip and hold move a ready app to held; a newer version clears the skip", 
 	await engine.check(["fd"]);
 	expect(statuses(engine).fd).toBe("ready");
 	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).skip).toEqual({});
+});
+
+test("a release whose file changed under the same tag is held with its reason until the hold is released", async () => {
+	const fdAsset = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	const engine = createEngine(await deps());
+	const fdRow = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	// No digest at first, then one: a hash Upkeep had never seen does not fire.
+	await engine.check();
+	digests = { [fdAsset]: `sha256:${"1".repeat(64)}` };
+	await engine.check(["fd"]);
+	expect(fdRow()).toMatchObject({ status: "ready", held: false });
+	// Same tag, same file name, another digest.
+	digests = { [fdAsset]: `sha256:${"2".repeat(64)}` };
+	await engine.check(["fd"]);
+	expect(fdRow()).toMatchObject({
+		status: "held",
+		held: true,
+		detail:
+			"The v10.5.2 download changed after Upkeep first saw it. Check the release page before you release the hold.",
+	});
+	expect(engine.readyKeys(false)).not.toContain("fd");
+	// Checked again with the same new file: still held, nothing new learned.
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("held");
+	engine.setHold("fd", false);
+	expect(fdRow()).toMatchObject({ status: "ready", held: false });
+	expect(fdRow()?.detail).toBeUndefined();
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	const state = JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8"));
+	expect(state.changed).toEqual({});
+	expect(state.seen.fd).toEqual({ tag: "v10.5.2", file: fdAsset, hash: `sha256:${"2".repeat(64)}` });
+	expect(await engine.removeApp("fd")).toEqual({ ok: true });
+	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).seen).toEqual({});
 });
 
 test("settings and auto are kept in state", async () => {

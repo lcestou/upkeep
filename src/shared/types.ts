@@ -193,6 +193,8 @@ export type AppState = {
 	status: AppStatus;
 	/** A sentence for problem, failed and rolled_back, and for a passed row that needs a note. */
 	detail?: string;
+	/** After an install this session: how its downloaded file was checked. */
+	checked?: DownloadCheck;
 	/** What else keeps this app up to date (a Flatpak, a Snap, another table on its dest or repo), as of the last check: engine sentences. */
 	also?: string[];
 	/** Bytes of the release asset, when known. */
@@ -241,6 +243,12 @@ export type AppState = {
 
 export type RunPhase = "idle" | "checking" | "installing" | "summary";
 
+/**
+ * How a downloaded file was checked: "digest" against the forge's SHA-256, "sums" against the release's checksum
+ * file, "size" against the listed size alone, "none" when the release listed neither.
+ */
+export type DownloadCheck = "digest" | "sums" | "size" | "none";
+
 export type RunResult = {
 	key: string;
 	name: string;
@@ -253,6 +261,8 @@ export type RunResult = {
 	result: "updated" | "failed" | "rolled_back" | "restored" | "cleaned" | "skipped";
 	detail?: string;
 	ms: number;
+	/** How the downloaded file was checked; absent for an app that downloads no release file. */
+	checked?: DownloadCheck;
 };
 
 export type RunState = {
