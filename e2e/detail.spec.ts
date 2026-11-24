@@ -98,7 +98,8 @@ test("Show in the app menu is offered on an AppImage row, says why it is refused
 		"Could not read a menu entry from ~/.local/bin/lrcget.",
 	);
 	await page.getByTestId("inspector-close").click();
-	// Another tool's entry: no switch, the row says where the entry is.
+	// Another tool's entry: no switch, the row says where the entry is. Ghostty is up to date, so its group is folded.
+	await page.getByTestId("group-fresh-toggle").click();
 	await page.getByTestId("open-ghostty").click();
 	await expect(page.getByTestId("menu-ghostty")).toHaveCount(0);
 	await expect(page.getByTestId("menu-elsewhere-ghostty")).toHaveText(
