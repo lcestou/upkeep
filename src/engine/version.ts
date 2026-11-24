@@ -1,7 +1,13 @@
-/** The first dotted version in the text, else its first number-looking run. */
+/**
+ * The first dotted version in the text, else its first number-looking run. A pre-release suffix stays on
+ * ("2.0.0-rc.1", "1.3.0-beta2"), so it is never read as the release it comes before; a word that only starts like one
+ * ("1.2.3-prebuilt") is no suffix.
+ */
 export function extractVersion(text: string): string | null {
 	// A dotted version wins over an earlier bare number: lazygit prints "commit=0fbfd…, version=0.66.3".
-	const match = /[0-9]+(\.[0-9]+)+[a-z]*/.exec(text) ?? /[0-9]+[a-z]*/.exec(text);
+	const match =
+		/[0-9]+(\.[0-9]+)+(?:[-.~_]?(?:alpha|beta|preview|pre|rc)(?:[-.]?[0-9]+)?(?![A-Za-z])|[a-z]*)/.exec(text) ??
+		/[0-9]+[a-z]*/.exec(text);
 	return match ? match[0] : null;
 }
 
@@ -53,10 +59,36 @@ function sortV(a: string, b: string): number {
 	return 0;
 }
 
-/** True when latest is a later release than installed. Compares number by number, part by part. */
+/** A pre-release suffix at the end of a version, in the forms extractVersion keeps. */
+const PRE = /[-.~_]?(alpha|beta|preview|pre|rc)(?:[-.]?([0-9]+))?$/;
+/** Pre-release words from earliest to latest: a beta comes after an alpha and before a release candidate. */
+const PRE_RANK = ["alpha", "beta", "pre", "preview", "rc"];
+
+type Split = { base: string; pre: { rank: number; n: number } | null };
+
+/** A version cut into its release part and its pre-release part; pre is null for a release (3.6a is one). */
+function splitPre(v: string): Split {
+	const m = PRE.exec(v);
+	const base = m ? v.slice(0, m.index) : v;
+	if (!m || !/[0-9]$/.test(base)) return { base: v, pre: null };
+	return { base, pre: { rank: PRE_RANK.indexOf(m[1] ?? ""), n: Number(m[2] ?? 0) } };
+}
+
+/**
+ * True when latest is a later release than installed. Compares number by number, part by part. A pre-release comes
+ * before its own release and after the release before it: 2.0.0-rc.1 is newer than 1.9.0 and older than 2.0.0.
+ */
 export function isNewer(installed: string | null, latest: string | null): boolean {
 	if (installed === null || latest === null) return false;
 	if (SENTINELS.has(installed) || SENTINELS.has(latest)) return false;
+	const pa = splitPre(installed);
+	const pb = splitPre(latest);
+	if (pa.pre || pb.pre) {
+		if (isNewer(pa.base, pb.base)) return true;
+		if (isNewer(pb.base, pa.base) || !pa.pre) return false;
+		if (!pb.pre) return true;
+		return pb.pre.rank !== pa.pre.rank ? pb.pre.rank > pa.pre.rank : pb.pre.n > pa.pre.n;
+	}
 	const a = installed.replace(/[a-z]/g, "");
 	const b = latest.replace(/[a-z]/g, "");
 	if (a !== b) {

@@ -35,3 +35,31 @@ test("a -V tie between different strings falls back to byte order, as sort does"
 	expect(isNewer("1.01", "1.1")).toBe(true);
 	expect(isNewer("1.1", "1.01")).toBe(false);
 });
+
+test("a pre-release suffix stays on the version it is read with", () => {
+	expect(tagVersion("v2.0.0-rc.1")).toBe("2.0.0-rc.1");
+	expect(extractVersion("tool-1.3.0-beta2-linux.tar.gz")).toBe("1.3.0-beta2");
+	expect(extractVersion("app 2.10rc1")).toBe("2.10rc1");
+	expect(extractVersion("v0.9.0-alpha")).toBe("0.9.0-alpha");
+	// A word that only starts like one is no suffix.
+	expect(extractVersion("1.2.3-prebuilt")).toBe("1.2.3");
+	expect(extractVersion("1.2.3-linux")).toBe("1.2.3");
+});
+
+test.each([
+	["2.0.0-rc.1", "2.0.0", true],
+	["2.0.0", "2.0.0-rc.1", false],
+	["1.9.0", "2.0.0-rc.1", true],
+	["2.0.0-rc.1", "1.9.0", false],
+	["2.0.0-rc.1", "2.0.0-rc.2", true],
+	["2.0.0-rc.2", "2.0.0-rc.1", false],
+	["2.0.0-beta.3", "2.0.0-rc.1", true],
+	["2.0.0-rc.1", "2.0.0-beta.3", false],
+	["2.0.0-alpha", "2.0.0-alpha.1", true],
+	["2.0.0-rc.1", "2.0.0-rc.1", false],
+	["2.0.0-rc.1", "2.0.1", true],
+	["2.10rc1", "2.10", true],
+	["2.0.0-rc.1", "2.0.0-rc1", false],
+])("isNewer(%p, %p) is %p across pre-releases", (installed, latest, expected) => {
+	expect(isNewer(installed, latest)).toBe(expected);
+});
