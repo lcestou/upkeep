@@ -2772,3 +2772,21 @@ msgstr "Pobrano, czeka na swoją kolej"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nowe wersje w ich marketplace'ach: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "Przywracanie przywraca też zapisane ustawienia. Zastąpione ustawienia są odkładane na bok."
+
+#. 0: v0; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/{1}"
+msgstr "{0}: keep_with_restore przyjmuje własne ścieżki w katalogu domowym, np. ~/.config/{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}: keep_with_restore wymaga aplikacji, która ma punkty przywracania"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "z ustawieniami"

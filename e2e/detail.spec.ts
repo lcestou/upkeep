@@ -42,6 +42,23 @@ test("Restore swaps the point, lands in Held back unticked, and the pane stays o
 	await expect(page.getByTestId("history").locator("section").first()).toContainText("Restored");
 });
 
+test("a restore point that holds settings says so, and the swap keeps them with the replaced version", async ({
+	page,
+}) => {
+	await load(page);
+	await page.getByTestId("open-ghostty").click();
+	const tag = page.getByTestId("point-config-ghostty-1.3.0");
+	await expect(tag).toHaveText("with settings");
+	await expect(tag).toHaveAttribute(
+		"title",
+		"Restoring puts its saved settings back too. The settings it replaces are kept aside.",
+	);
+	await expect(page.getByTestId("point-config-fd-10.5.0")).toHaveCount(0);
+	await page.getByTestId("restore-ghostty-1.3.0").click();
+	await expect(page.getByTestId("restore-result")).toHaveText("Restored 1.3.0.");
+	await expect(page.getByTestId("point-config-ghostty-1.3.1")).toHaveText("with settings");
+});
+
 test("a kind with no restore point says why in the pane", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("open-wrangler").click();

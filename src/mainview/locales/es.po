@@ -2751,3 +2751,21 @@ msgstr "Descargada, espera su turno"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nuevas versiones en sus marketplaces: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "Al restaurar también vuelve su configuración guardada. La configuración que reemplaza se guarda aparte."
+
+#. 0: v0; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/{1}"
+msgstr "{0}: keep_with_restore admite rutas propias dentro de home, como ~/.config/{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}: keep_with_restore necesita una app que guarde puntos de restauración"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "con configuración"

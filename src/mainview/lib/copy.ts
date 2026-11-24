@@ -201,6 +201,13 @@ export const TEXT = {
 	get restorePoints() {
 		return "Restore points";
 	},
+	get withSettings() {
+		// @wc-include
+		return "with settings";
+	},
+	get withSettingsTitle() {
+		return "Restoring puts its saved settings back too. The settings it replaces are kept aside.";
+	},
 	get holdUpdates() {
 		return "Hold updates";
 	},

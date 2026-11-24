@@ -2709,3 +2709,21 @@ msgstr "已下载，等待轮到它"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "恢复时也会放回保存的设置。被替换的设置会另行保留。"
+
+#. 0: v0; 1: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/{1}"
+msgstr "{0}：keep_with_restore 只接受主目录下该应用自己的路径，例如 ~/.config/{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}：keep_with_restore 需要保留还原点的应用"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "含设置"

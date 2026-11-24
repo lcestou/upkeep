@@ -15,6 +15,7 @@ import type {
 	LogLine,
 	Requests,
 	RequestHandlers,
+	RestorePoint,
 	RunResult,
 	RunState,
 	SelfState,
@@ -52,6 +53,8 @@ type Seed = {
 	note?: string;
 	dest?: string;
 	restore?: string[];
+	/** Its table names keep_with_restore, so every restore point also holds its settings. */
+	restoreConfig?: boolean;
 	stages?: [Stage, number][];
 	notes?: string;
 	publishedDaysAgo?: number;
@@ -104,6 +107,7 @@ const SEEDS: Seed[] = [
 		running: true,
 		dest: "~/.local/bin/ghostty.appimage",
 		restore: ["1.3.0"],
+		restoreConfig: true,
 	},
 	{
 		key: "lrcget",
@@ -308,6 +312,12 @@ const NOW = Date.parse("2026-11-10T09:41:00Z");
 const DAY = 86_400_000;
 /** An epoch time in the ISO form the engine sends. */
 const iso = (ms: number) => new Date(ms).toISOString();
+/** A fixture restore point; config marks one that holds the app's settings, as keep_with_restore makes them. */
+function pointOf(version: string, at: string, config = false): RestorePoint {
+	const p: RestorePoint = { version, at };
+	if (config) p.config = true;
+	return p;
+}
 
 /** Fills an AppState from a seed, taking the engine's defaults for anything the seed leaves out. */
 function toApp(seed: Seed): AppState {
@@ -328,7 +338,7 @@ function toApp(seed: Seed): AppState {
 		publishedAt: seed.publishedDaysAgo === undefined ? undefined : iso(NOW - seed.publishedDaysAgo * DAY),
 		running: seed.running ?? false,
 		restartToApply: false,
-		restorePoints: restore.map((version, i) => ({ version, at: iso(NOW - (12 + i * 20) * DAY) })),
+		restorePoints: restore.map((version, i) => pointOf(version, iso(NOW - (12 + i * 20) * DAY), seed.restoreConfig)),
 		canRestore: seed.canRestore ?? CAN_RESTORE[seed.kind],
 		canRestart: seed.restarts !== undefined,
 		closes: seed.restarts === "relaunch",
@@ -1127,7 +1137,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			// A swap, as the engine does it: the replaced version becomes the restore point, and latest is skipped.
 			const replaced = app.installed;
 			const points = app.restorePoints.filter((p) => p.version !== version);
-			const restorePoints = replaced ? [{ version: replaced, at: iso(Date.now()) }, ...points] : points;
+			// The point taken of the replaced version holds its settings too when the table names them.
+			const config = app.restorePoints.some((p) => p.config);
+			const restorePoints = replaced ? [pointOf(replaced, iso(Date.now()), config), ...points] : points;
 			const skip = app.latest && app.latest !== version ? app.latest : undefined;
 			put({
 				...app,
