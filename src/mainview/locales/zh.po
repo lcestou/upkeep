@@ -2709,3 +2709,45 @@ msgstr "已下载，等待轮到它"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "跟随预发布版本"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "其他版本"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "显示版本"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "正在查询版本…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "没有列出的版本。"
+
+#: src/mainview/lib/copy.ts
+msgid "An older release is held once it is in, so checks stop offering the latest until you release the hold."
+msgstr "装上较旧的版本后会暂缓更新，在你选择“取消暂缓”之前，检查不会再提供最新版本。"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "安装 {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "暂缓在 {0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "预发布"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "已安装"

@@ -2751,3 +2751,45 @@ msgstr "Baixada, aguarda a sua vez"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Novas versões nos seus marketplaces: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "Seguir versões prévias"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "Outras versões"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "Mostrar versões"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "A consultar as versões…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "Nenhuma versão listada."
+
+#: src/mainview/lib/copy.ts
+msgid "An older release is held once it is in, so checks stop offering the latest until you release the hold."
+msgstr "Uma versão mais antiga fica em pausa depois de instalada, por isso as verificações não oferecem a mais recente até escolher «Retomar atualizações»."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "Instalar {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "Em pausa na {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "prévia"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "instalada"

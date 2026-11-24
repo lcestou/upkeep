@@ -2772,3 +2772,45 @@ msgstr "Скачано, ждёт своей очереди"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Новые версии в их маркетплейсах: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "Следить за предварительными версиями"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "Другие версии"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "Показать выпуски"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "Запрос выпусков…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "Выпусков нет."
+
+#: src/mainview/lib/copy.ts
+msgid "An older release is held once it is in, so checks stop offering the latest until you release the hold."
+msgstr "Более старый выпуск после установки приостанавливается, и проверки не предлагают новейший, пока вы не нажмёте «Возобновить обновления»."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "Установить {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "Приостановлено на {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "предварительная"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "установлена"

@@ -2772,3 +2772,45 @@ msgstr "Pobrano, czeka na swoją kolej"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nowe wersje w ich marketplace'ach: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "Śledź wersje przedpremierowe"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "Inne wersje"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "Pokaż wydania"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "Pobieranie listy wydań…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "Brak wydań."
+
+#: src/mainview/lib/copy.ts
+msgid "An older release is held once it is in, so checks stop offering the latest until you release the hold."
+msgstr "Starsze wydanie po instalacji zostaje wstrzymane, więc sprawdzanie nie proponuje najnowszego, dopóki nie wybierzesz „Wznów aktualizacje”."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "Zainstaluj {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "Wstrzymane na {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "przedpremierowa"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "zainstalowana"

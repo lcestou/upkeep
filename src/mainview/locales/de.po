@@ -2730,3 +2730,45 @@ msgstr "Heruntergeladen, wartet"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Neue Versionen in ihren Marktplätzen: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "Vorabversionen folgen"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "Andere Versionen"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "Versionen zeigen"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "Versionen werden abgefragt…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "Keine Versionen aufgeführt."
+
+#: src/mainview/lib/copy.ts
+msgid "An older release is held once it is in, so checks stop offering the latest until you release the hold."
+msgstr "Eine ältere Version wird nach der Installation zurückgestellt, sodass Prüfungen die neueste erst wieder anbieten, wenn du „Nicht mehr zurückstellen“ wählst."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "{0} installieren"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "Zurückgestellt bei {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "Vorabversion"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "installiert"

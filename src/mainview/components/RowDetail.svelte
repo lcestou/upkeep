@@ -5,6 +5,7 @@
 		CHIP,
 		COLUMN,
 		commitsHeading,
+		heldAt,
 		moreCommits,
 		KIND_LABEL,
 		NO_RESTORE,
@@ -27,6 +28,7 @@
 	import { type Inline, parseNotes } from "../lib/notes";
 	import { CARE, glyphColor } from "../lib/state";
 	import Glyph from "./Glyph.svelte";
+	import OtherVersions from "./OtherVersions.svelte";
 	import Stem from "./Stem.svelte";
 	import Versions from "./Versions.svelte";
 	import { tick } from "svelte";
@@ -214,6 +216,7 @@
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
 		{#if app.detail}<p class="sentence" data-testid="pane-detail">{say(app.detail)}</p>{/if}
+		{#if app.held && !app.skipped && app.installed}<p class="sentence" data-testid="held-at">{heldAt(app.installed)}</p>{/if}
 		{#if app.restartToApply && app.canRestart}
 			<div class="restart-now">
 				{#if askingRestart}
@@ -311,6 +314,10 @@
 		>
 	</div>
 
+	{#if app.prerelease !== undefined}
+		<OtherVersions {app} {model} />
+	{/if}
+
 	{#if app.kind !== "manual"}
 		<div class="actions">
 			{#if app.skipped || (pending && app.latest)}
@@ -347,6 +354,22 @@
 				/>
 				{TEXT.installAuto}
 			</label>
+			{#if app.prerelease !== undefined}
+				<label class="auto">
+					<input
+						type="checkbox"
+						checked={app.prerelease}
+						data-testid="prerelease-{app.key}"
+						onchange={async (e) => {
+							const box = e.currentTarget;
+							const res = await model.send("setPrerelease", { key: app.key, prerelease: box.checked });
+							// Refused: the box goes back to what the engine holds.
+							if (!res?.ok) box.checked = app.prerelease === true;
+						}}
+					/>
+					<span data-testid="prerelease-label">{TEXT.followPrerelease}</span>
+				</label>
+			{/if}
 			{#if app.releaseUrl}
 				<button
 					type="button"

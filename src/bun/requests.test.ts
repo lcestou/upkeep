@@ -97,6 +97,9 @@ test("the requests answer from the engine, and refuse what the engine refuses", 
 	expect(await r.setSkip({ key: "nope", version: "1" })).toEqual({ ok: false });
 	expect(await r.setHold({ key: "tool", held: true })).toEqual({ ok: true });
 	expect(await r.setAuto({ key: "nope", auto: true })).toEqual({ ok: false });
+	expect(await r.setPrerelease({ key: "nope", prerelease: true })).toEqual({ ok: false });
+	expect(await r.versions({ key: "nope" })).toEqual({ versions: [], problem: "No app nope." });
+	expect(await r.installVersion({ key: "nope", tag: "v1" })).toMatchObject({ started: false });
 	// A login entry that cannot be written does not lose the setting.
 	expect((await r.setSettings({ keepBackups: 3 })).keepBackups).toBe(3);
 	expect(await r.history({ limit: 5 })).toEqual([]);

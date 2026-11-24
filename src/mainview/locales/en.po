@@ -2730,3 +2730,45 @@ msgstr "Downloaded, waits its turn"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "New versions in their marketplaces: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "Follow pre-releases"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "Other versions"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "Show releases"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "Asking for the releases…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "No releases listed."
+
+#: src/mainview/lib/copy.ts
+msgid "An older release is held once it is in, so checks stop offering the latest until you release the hold."
+msgstr "An older release is held once it is in, so checks stop offering the latest until you release the hold."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "Install {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "Held at {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "pre-release"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "installed"

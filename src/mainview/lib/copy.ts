@@ -213,6 +213,33 @@ export const TEXT = {
 	get installAuto() {
 		return "Install automatically";
 	},
+	get followPrerelease() {
+		return "Follow pre-releases";
+	},
+	get otherVersions() {
+		return "Other versions";
+	},
+	get showVersions() {
+		return "Show releases";
+	},
+	get loadingVersions() {
+		return "Asking for the releases…";
+	},
+	get noVersions() {
+		return "No releases listed.";
+	},
+	/** Under Other versions: what installing an older one does, said before it is pressed. */
+	get versionsHint() {
+		return "An older release is held once it is in, so checks stop offering the latest until you release the hold.";
+	},
+	get prereleaseTag() {
+		// @wc-include
+		return "pre-release";
+	},
+	get installedTag() {
+		// @wc-include
+		return "installed";
+	},
 	get runItYourself() {
 		return "Run it yourself:";
 	},
@@ -342,6 +369,10 @@ export const restoreLabel = (v: string) => `Restore ${v}`;
 export const skipLabel = (v: string) => `Skip ${v}`;
 /** Button text that undoes a skip of that version. */
 export const stopSkipLabel = (v: string) => `Stop skipping ${v}`;
+/** Button text that installs one release from Other versions. */
+export const installVersionLabel = (v: string) => `Install ${v}`;
+/** The pane's line for a held app: the version it stays at. */
+export const heldAt = (v: string) => `Held at ${v}.`;
 /** The release line in the pane; relative is already a phrase such as "3 days ago". */
 export const releasedLabel = (relative: string) => `Released ${relative}`;
 /** Tooltip over the checked time; relative is already a phrase such as "2 hours ago". */
