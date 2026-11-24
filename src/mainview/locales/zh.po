@@ -1014,6 +1014,7 @@ msgid "Export"
 msgstr "导出"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "导入"
 
@@ -2709,3 +2710,20 @@ msgstr "已下载，等待轮到它"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "此文件中的应用会在这台电脑上运行以下命令。只有在信任其来源时才导入。"
+
+#: src/mainview/lib/copy.ts
+msgid "These apps come in with automatic installs off. You can turn them on again for each app."
+msgstr "这些应用导入后自动安装为关闭状态。你可以为每个应用重新打开。"
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "取消"
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that installs only what its releases ship."
+msgid_plural "It also has # apps that install only what their releases ship."
+msgstr[0] "另有 # 个应用只安装其发布版本提供的内容。"

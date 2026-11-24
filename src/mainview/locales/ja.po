@@ -1014,6 +1014,7 @@ msgid "Export"
 msgstr "書き出し"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "読み込み"
 
@@ -2709,3 +2710,20 @@ msgstr "ダウンロード済み、順番待ち"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "マーケットプレイスに新しいバージョンがあります：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "このファイルには、このコンピューターで次のコマンドを実行するアプリが含まれています。入手元を信頼できる場合にだけ読み込んでください。"
+
+#: src/mainview/lib/copy.ts
+msgid "These apps come in with automatic installs off. You can turn them on again for each app."
+msgstr "これらのアプリは自動インストールがオフの状態で追加されます。アプリごとに再びオンにできます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that installs only what its releases ship."
+msgid_plural "It also has # apps that install only what their releases ship."
+msgstr[0] "ほかに、リリースで配布されるものだけをインストールするアプリが # 件あります。"

@@ -1048,6 +1048,7 @@ msgid "Export"
 msgstr "Exporter"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "Importer"
 
@@ -2751,3 +2752,22 @@ msgstr "Téléchargée, attend son tour"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nouvelles versions dans leurs marketplaces : {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "Ce fichier contient des applications qui lancent ces commandes sur cet ordinateur. Ne l’importez que si vous faites confiance à sa provenance."
+
+#: src/mainview/lib/copy.ts
+msgid "These apps come in with automatic installs off. You can turn them on again for each app."
+msgstr "Ces applications arrivent avec les installations automatiques désactivées. Vous pouvez les réactiver pour chacune."
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that installs only what its releases ship."
+msgid_plural "It also has # apps that install only what their releases ship."
+msgstr[0] "Il contient aussi # application qui n’installe que ce que publient ses versions."
+msgstr[1] "Il contient aussi # applications qui n’installent que ce que publient leurs versions."
+msgstr[2] "Il contient aussi # applications qui n’installent que ce que publient leurs versions."

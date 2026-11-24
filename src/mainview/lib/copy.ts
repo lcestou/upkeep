@@ -329,6 +329,27 @@ export const TEXT = {
 	},
 } as const;
 
+/** The question before an import whose list has apps that run commands: what they run, read before anything is written. */
+export const IMPORT = {
+	get ask() {
+		return "This file has apps that run these commands on this computer. Import it only if you trust where it came from.";
+	},
+	get autoOff() {
+		return "These apps come in with automatic installs off. You can turn them on again for each app.";
+	},
+	get yes() {
+		return "Import";
+	},
+	get no() {
+		return "Cancel";
+	},
+} as const;
+/** Under the commands: the apps in the file that run nothing but what their releases ship. */
+export const importPlain = (n: number) =>
+	plural(n, [
+		"It also has # app that installs only what its releases ship.",
+		"It also has # apps that install only what their releases ship.",
+	]);
 /** After Export: the file it wrote. */
 export const exportedNote = (file: string) => `Saved ${file}.`;
 /** After Import: how many apps the new list holds. */
