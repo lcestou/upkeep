@@ -12,7 +12,7 @@ import type {
 	SystemOutcome,
 	SystemState,
 } from "../../shared/types";
-import { formatBytes, plural } from "./format";
+import { formatBytes, plural, shortDate } from "./format";
 import { language } from "./language.svelte";
 
 export const KIND_LABEL = {
@@ -303,6 +303,30 @@ export const TEXT = {
 	get keepBackups() {
 		return "Restore points to keep";
 	},
+	get waitDays() {
+		return "Wait before offering a new release";
+	},
+	get waitDaysHint() {
+		return "A new release often gets a quick fix in its first days. Counted from when it came out.";
+	},
+	get installNowAnyway() {
+		return "Install now anyway";
+	},
+	get githubToken() {
+		return "GitHub token";
+	},
+	get githubTokenHint() {
+		return "Raises GitHub's limit from 60 to 5,000 requests an hour and reaches private repos. Used before gh's own sign-in. Kept on this computer, readable by you alone.";
+	},
+	get saveToken() {
+		return "Save token";
+	},
+	get removeToken() {
+		return "Remove token";
+	},
+	get tokenRefused() {
+		return "That does not look like a GitHub token.";
+	},
 	get checkEvery() {
 		return "Check for updates";
 	},
@@ -344,6 +368,11 @@ export const skipLabel = (v: string) => `Skip ${v}`;
 export const stopSkipLabel = (v: string) => `Stop skipping ${v}`;
 /** The release line in the pane; relative is already a phrase such as "3 days ago". */
 export const releasedLabel = (relative: string) => `Released ${relative}`;
+/** The pane's sentence on a release still settling; day is already a short date such as "Nov 27". */
+export const settlesLine = (version: string, day: string) =>
+	`${version} is offered from ${day}, after the wait set in Settings.`;
+/** What Settings shows for a kept GitHub token: only its last four characters. */
+export const tokenKeptLine = (last: string) => `A token ending in ${last} is saved.`;
 /** Tooltip over the checked time; relative is already a phrase such as "2 hours ago". */
 export const checkedTitle = (relative: string) => `Checked ${relative}`;
 /** The note after a restore finishes. It ends with a full stop, unlike the button label. */
@@ -361,7 +390,7 @@ export const rateOutText = (time: string) =>
 /** The bar's second sentence, only without a GitHub sign-in: gh's token raises the limit. */
 export const RATE = {
 	get signIn() {
-		return "Run gh auth login in a terminal to raise it to 5,000 an hour.";
+		return "Paste a GitHub token in Settings, or run gh auth login in a terminal, to raise it to 5,000 an hour.";
 	},
 	get dismiss() {
 		return "Dismiss";
@@ -458,7 +487,8 @@ export function statusText(app: AppState): string {
 		case "manual":
 			return "By hand";
 		case "held":
-			return app.skipped ? `Skipping ${app.skipped}` : "Held";
+			if (app.skipped) return `Skipping ${app.skipped}`;
+			return app.settles ? `Offered from ${shortDate(app.settles)}` : "Held";
 		case "problem":
 			return "Needs a look";
 		case "queued":
@@ -1049,6 +1079,37 @@ export const CHECK_EVERY = [
 		},
 	},
 ] as const satisfies readonly { v: Settings["checkEvery"]; label: string }[];
+
+/** The waits Settings offers before a new release is offered, in days. */
+export const WAIT_DAYS = [
+	{
+		v: 0,
+		get label() {
+			return "Off";
+		},
+	},
+	{
+		v: 1,
+		get label() {
+			// @wc-include
+			return "1 day";
+		},
+	},
+	{
+		v: 3,
+		get label() {
+			// @wc-include
+			return "3 days";
+		},
+	},
+	{
+		v: 7,
+		get label() {
+			// @wc-include
+			return "7 days";
+		},
+	},
+] as const satisfies readonly { v: Settings["waitDays"]; label: string }[];
 
 /** The Cleanup tab: a fixed list of caches and leftovers, each deleted only after it is ticked and reviewed. */
 export const CLEAN = {

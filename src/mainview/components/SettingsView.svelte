@@ -8,11 +8,13 @@
 		SYS,
 		TEXT,
 		UNINSTALL,
+		WAIT_DAYS,
 		WIN,
 		exportedNote,
 		importedNote,
 		rateText,
 		setupFailed,
+		tokenKeptLine,
 		versionText,
 	} from "../lib/copy";
 	import { LOCKUP_SVG } from "../lib/brand";
@@ -107,6 +109,25 @@
 		else if (r?.problems?.length) note = setupFailed(r.problems.map((p) => say(p)).join(" "));
 	}
 
+	/** The last four characters of the kept GitHub token, or null; the token itself never reaches the window. */
+	let tokenHint = $state<string | null>(null);
+	let tokenDraft = $state("");
+	let tokenBad = $state(false);
+	$effect(() => {
+		void model.send("token", {}).then((r) => {
+			if (r) tokenHint = r.hint;
+		});
+	});
+
+	/** Saves the pasted token, or forgets the kept one with null. A refused paste stays in the field with the reason under it. */
+	async function setToken(token: string | null) {
+		const r = await model.send("setToken", { token });
+		if (!r) return;
+		tokenBad = !r.ok;
+		tokenHint = r.hint;
+		if (r.ok) tokenDraft = "";
+	}
+
 	/** Sends a settings change and shows what the main process saved; a request that fails leaves the old values on screen. */
 	async function set(patch: Partial<Settings>) {
 		const next = await model.send("setSettings", patch);
@@ -167,6 +188,25 @@
 				{/each}
 			</select>
 		</label>
+		<label class="row">
+			<span class="text">
+				<span data-testid="setting-wait-label">{TEXT.waitDays}</span>
+				<span class="hint" data-testid="setting-wait-hint">{TEXT.waitDaysHint}</span>
+			</span>
+			<select
+				value={String(model.settings.waitDays)}
+				data-testid="setting-wait"
+				onchange={(e) => {
+					const v = Number(e.currentTarget.value);
+					const picked = WAIT_DAYS.find((o) => o.v === v);
+					if (picked) set({ waitDays: picked.v });
+				}}
+			>
+				{#each WAIT_DAYS as o (o.v)}
+					<option value={String(o.v)}>{o.label}</option>
+				{/each}
+			</select>
+		</label>
 		<div class="row">
 			<span class="text" id="language-label" data-testid="setting-language-label">{TEXT.language}</span>
 			<LanguagePicker
@@ -187,6 +227,40 @@
 				{/each}
 			</select>
 		</label>
+		<div class="row stack">
+			<span class="text">
+				<span id="token-label" data-testid="setting-token-label">{TEXT.githubToken}</span>
+				<span class="hint" data-testid="setting-token-hint">{TEXT.githubTokenHint}</span>
+			</span>
+			{#if tokenHint}
+				<span class="buttons">
+					<span class="kept" data-testid="token-kept">{tokenKeptLine(tokenHint)}</span>
+					<button type="button" class="btn small" data-testid="token-remove" onclick={() => setToken(null)}
+						>{TEXT.removeToken}</button
+					>
+				</span>
+			{:else}
+				<form
+					class="buttons"
+					onsubmit={(e) => {
+						e.preventDefault();
+						if (tokenDraft.trim()) void setToken(tokenDraft);
+					}}
+				>
+					<input
+						class="token"
+						type="password"
+						autocomplete="off"
+						spellcheck="false"
+						aria-labelledby="token-label"
+						data-testid="token-input"
+						bind:value={tokenDraft}
+					/>
+					<button type="submit" class="btn small" data-testid="token-save">{TEXT.saveToken}</button>
+				</form>
+			{/if}
+			{#if tokenBad}<p class="help" role="status" data-testid="token-refused">{TEXT.tokenRefused}</p>{/if}
+		</div>
 		<div class="row stack">
 			<span class="text">{TEXT.appList}</span>
 			<span class="buttons">
@@ -440,6 +514,23 @@
 	.buttons {
 		display: inline-flex;
 		gap: var(--s2);
+	}
+	.kept {
+		align-self: center;
+		font-size: var(--fs-12);
+		color: var(--text-2);
+	}
+	.token {
+		height: 30px;
+		min-width: 0;
+		width: 16em;
+		padding: 0 var(--s2);
+		border-radius: var(--radius);
+		border: 1px solid var(--line);
+		background: var(--ground);
+		color: var(--text);
+		font-family: var(--mono);
+		font-size: var(--fs-12);
 	}
 	.help {
 		flex-basis: 100%;

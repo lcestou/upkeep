@@ -105,6 +105,7 @@ describe("events", () => {
 				language: "system",
 				selfAuto: false,
 				upkeepCommand: false,
+				waitDays: 0,
 			},
 			rate: null,
 			checkedAt: null,

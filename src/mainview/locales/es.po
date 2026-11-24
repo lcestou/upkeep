@@ -2578,10 +2578,6 @@ msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
 msgstr "Se agotó el límite por hora de GitHub para esta red. Las comprobaciones se reanudan a las {0}."
 
 #: src/mainview/lib/copy.ts
-msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
-msgstr "Ejecuta gh auth login en una terminal para subirlo a 5000 por hora."
-
-#: src/mainview/lib/copy.ts
 msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
 msgstr "Marca filas en el grupo Sistema e instálalas desde allí. Los kernels y el controlador de NVIDIA se quedan con el actualizador del propio sistema, porque ambos necesitan reiniciar. Los paquetes y los Snaps se instalan con sudo, que no debe pedir contraseña."
 
@@ -2751,3 +2747,70 @@ msgstr "Descargada, espera su turno"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nuevas versiones en sus marketplaces: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait before offering a new release"
+msgstr "Esperar antes de ofrecer una versión nueva"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release often gets a quick fix in its first days. Counted from when it came out."
+msgstr "Una versión nueva suele recibir un arreglo rápido en sus primeros días. Se cuenta desde su publicación."
+
+#: src/mainview/lib/copy.ts
+msgid "Install now anyway"
+msgstr "Instalar ahora de todos modos"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub token"
+msgstr "Token de GitHub"
+
+#: src/mainview/lib/copy.ts
+msgid "Raises GitHub's limit from 60 to 5,000 requests an hour and reaches private repos. Used before gh's own sign-in. Kept on this computer, readable by you alone."
+msgstr "Sube el límite de GitHub de 60 a 5.000 solicitudes por hora y llega a repositorios privados. Se usa antes del inicio de sesión de gh. Se guarda en este equipo y solo tú puedes leerlo."
+
+#: src/mainview/lib/copy.ts
+msgid "Save token"
+msgstr "Guardar token"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove token"
+msgstr "Quitar token"
+
+#: src/mainview/lib/copy.ts
+msgid "That does not look like a GitHub token."
+msgstr "Eso no parece un token de GitHub."
+
+#. 0: version; 1: day
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered from {1}, after the wait set in Settings."
+msgstr "{0} se ofrece a partir del {1}, tras la espera elegida en Ajustes."
+
+#. 0: last
+#: src/mainview/lib/copy.ts
+msgid "A token ending in {0} is saved."
+msgstr "Hay guardado un token que termina en {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Paste a GitHub token in Settings, or run gh auth login in a terminal, to raise it to 5,000 an hour."
+msgstr "Pega un token de GitHub en Ajustes o ejecuta gh auth login en una terminal para subirlo a 5.000 por hora."
+
+#. 0: shortDate(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered from {0}"
+msgstr "Se ofrece desde el {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Off"
+msgstr "No"
+
+#: src/mainview/lib/copy.ts
+msgid "1 day"
+msgstr "1 día"
+
+#: src/mainview/lib/copy.ts
+msgid "3 days"
+msgstr "3 días"
+
+#: src/mainview/lib/copy.ts
+msgid "7 days"
+msgstr "7 días"

@@ -1,5 +1,6 @@
 import {
 	appendFileSync,
+	chmodSync,
 	closeSync,
 	existsSync,
 	mkdirSync,
@@ -66,7 +67,11 @@ export const DEFAULT_SETTINGS: Settings = {
 	language: "system",
 	selfAuto: false,
 	upkeepCommand: false,
+	waitDays: 0,
 };
+
+/** The waits Settings offers, in days. */
+const WAITS = [0, 1, 3, 7] as const;
 
 /** Any missing or out-of-range field takes its default; keepBackups is rounded into 1 to 5. */
 function clampSettings(s: Partial<Settings>): Settings {
@@ -86,6 +91,7 @@ function clampSettings(s: Partial<Settings>): Settings {
 		language: s.language === "system" || isLanguage(s.language) ? s.language : DEFAULT_SETTINGS.language,
 		selfAuto: typeof s.selfAuto === "boolean" ? s.selfAuto : DEFAULT_SETTINGS.selfAuto,
 		upkeepCommand: typeof s.upkeepCommand === "boolean" ? s.upkeepCommand : DEFAULT_SETTINGS.upkeepCommand,
+		waitDays: WAITS.find((w) => w === s.waitDays) ?? DEFAULT_SETTINGS.waitDays,
 	};
 }
 
@@ -219,6 +225,44 @@ export function updateState(paths: Paths, change: (s: State) => void): State {
 		writeAtomic(stateFile(paths), JSON.stringify(s, null, "\t"));
 		return s;
 	});
+}
+
+/** The pasted GitHub token, kept apart from state.json so that an export, a log or an event never carries it. */
+const tokenFile = (paths: Paths) => join(paths.state, "github-token");
+
+/** What a GitHub token is made of: letters, digits and underscores (ghp_…, github_pat_…, or 40 hex digits). */
+const GITHUB_TOKEN = /^\w{20,255}$/;
+
+/** The token pasted in Settings, or null when none is kept or the file no longer holds one. Never throws. */
+export function readToken(paths: Paths): string | null {
+	try {
+		const t = readFileSync(tokenFile(paths), "utf8").trim();
+		return GITHUB_TOKEN.test(t) ? t : null;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Keeps a token in a file only its owner can read (0600), or deletes the file for null. False, and nothing written, for
+ * text that is not a token's shape, so a stray paste never reaches a request header.
+ */
+export function writeToken(paths: Paths, token: string | null): boolean {
+	const file = tokenFile(paths);
+	if (token === null) {
+		rmSync(file, { force: true });
+		return true;
+	}
+	const t = token.trim();
+	if (!GITHUB_TOKEN.test(t)) return false;
+	mkdirSync(paths.state, { recursive: true });
+	const tmp = `${file}.${process.pid}.tmp`;
+	// Made 0600 before the token is in it; rename keeps the mode.
+	writeFileSync(tmp, "", { mode: 0o600 });
+	chmodSync(tmp, 0o600);
+	writeFileSync(tmp, t);
+	renameSync(tmp, file);
+	return true;
 }
 
 /** Records that file holds version, as Upkeep just wrote it. A file that is not there drops the record instead. */

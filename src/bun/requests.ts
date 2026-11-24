@@ -94,7 +94,7 @@ export function upkeepRequests(
 			void engine.check(keys);
 			return { started: phase !== "installing" && phase !== "checking" };
 		},
-		install: ({ keys }) => engine.install(keys),
+		install: ({ keys, now }) => engine.install(keys, now === true),
 		stopAfterCurrent: () => {
 			engine.stopAfterCurrent();
 			// Only a run in progress can be stopped; outside one the engine does nothing.
@@ -118,6 +118,8 @@ export function upkeepRequests(
 			}
 			return settings;
 		},
+		token: () => ({ hint: engine.tokenHint() }),
+		setToken: ({ token }) => ({ ok: engine.setToken(token), hint: engine.tokenHint() }),
 		history: ({ limit }) => engine.history(limit),
 		runLog: ({ runId }) => engine.runLog(runId),
 		open: ({ what, key }) => {

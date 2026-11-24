@@ -18,11 +18,12 @@
 		restartedNote,
 		restoreLabel,
 		restoredText,
+		settlesLine,
 		skipLabel,
 		statusText,
 		stopSkipLabel,
 	} from "../lib/copy";
-	import { clockTime, formatBytes, relativeTime } from "../lib/format";
+	import { clockTime, formatBytes, relativeTime, shortDate } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { type Inline, parseNotes } from "../lib/notes";
 	import { CARE, glyphColor } from "../lib/state";
@@ -214,6 +215,18 @@
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
 		{#if app.detail}<p class="sentence" data-testid="pane-detail">{say(app.detail)}</p>{/if}
+		{#if app.status === "held" && app.settles}
+			<p class="sentence" data-testid="settles-line">{settlesLine(app.latest ?? "", shortDate(app.settles))}</p>
+			<div>
+				<button
+					type="button"
+					class="btn small"
+					data-testid="install-now-{app.key}"
+					disabled={model.run.phase === "checking"}
+					onclick={() => model.installNow(app.key)}>{TEXT.installNowAnyway}</button
+				>
+			</div>
+		{/if}
 		{#if app.restartToApply && app.canRestart}
 			<div class="restart-now">
 				{#if askingRestart}

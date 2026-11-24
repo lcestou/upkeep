@@ -3,6 +3,8 @@
 ## Unreleased
 
 - The Claude Code plugins row now says when an update is waiting. A check refreshes the plugin marketplaces, as Claude Code does at start, and compares each installed plugin's version with the one its marketplace now holds (for a plugin with no version, new commits in its own folder of the marketplace). The row turns to Update and names the plugins, so it shows in the count and the tray like any other update. A plugin whose marketplace entry points to another repo and names no version is still only updated by Run now or an automatic run.
+- Settings has "Wait before offering a new release": Off (the default), 1 day, 3 days or 7 days, counted from when the release came out. A release younger than that sits under Held back and says when it will be offered, for example "Offered from Nov 27". Automatic installs and the tray's Update all wait for it too. The app's pane has "Install now anyway" to take it at once. A release with no date (a `links`, `json` or command source) is offered as before.
+- Settings has a "GitHub token" field. A token pasted there raises GitHub's limit from 60 to 5,000 requests an hour and reaches private repos, without the gh CLI. It is used before gh's own sign-in, kept in its own file that only you can read (mode 0600), never written to the settings, an export or the log, and shown only by its last four characters. Remove forgets it.
 
 ## 0.1.8, 2026-11-21
 

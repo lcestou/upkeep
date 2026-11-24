@@ -603,6 +603,11 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 	return apps;
 }
 
+/** The engine's rule for what a run takes: Ready, or with now (Install now anyway) a row still settling. */
+function takesRow(a: AppState | undefined, now: boolean): boolean {
+	return a?.status === "ready" || (now && a?.settles !== undefined);
+}
+
 /** The state a self-update variant starts in: 0.1.0 running, 0.1.1 offered. */
 function selfStart(phase: FixtureOptions["self"]): SelfState {
 	if (!phase) return { phase: "none" };
@@ -662,6 +667,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		language: "system",
 		selfAuto: false,
 		upkeepCommand: false,
+		waitDays: 0,
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",
@@ -956,7 +962,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const fromSummary = run.phase === "summary";
 		for (const key of order) {
 			const app = get(key);
-			if (app) put({ ...app, status: "queued", detail: undefined });
+			if (app) put({ ...app, status: "queued", detail: undefined, settles: undefined });
 		}
 		setRun({
 			id: runId,
@@ -1013,15 +1019,15 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	}
 
 	/** The engine's addToRun: ready apps go after the apps waiting. */
-	function joinRun(order: string[], keys: string[]): Requests["install"]["response"] {
+	function joinRun(order: string[], keys: string[], now: boolean): Requests["install"]["response"] {
 		if (run.stopping)
 			return { started: false, reason: "The run stops after the current app, so nothing more can join it." };
-		const add = keys.filter((k) => !order.includes(k) && get(k)?.status === "ready");
+		const add = keys.filter((k) => !order.includes(k) && takesRow(get(k), now));
 		if (add.length === 0) return { started: false, reason: "Nothing to install." };
 		order.push(...add);
 		for (const k of add) {
 			const app = get(k);
-			if (app) put({ ...app, status: "queued", detail: undefined });
+			if (app) put({ ...app, status: "queued", detail: undefined, settles: undefined });
 		}
 		setRun({ total: order.length, queue: [...base, ...order.filter((k) => !base.includes(k))] });
 		return { started: true };
@@ -1052,6 +1058,22 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		emit({ type: "meta", rate, checkedAt, settings });
 	}
 
+	/** The token pasted in Settings; the fixture keeps it in memory only. */
+	let tokenKept: string | null = null;
+
+	/**
+	 * The engine's wait, on the fixture's clock: a Ready row whose release is younger than days is held until it
+	 * settles, and a settling row that is old enough by now goes back to Ready.
+	 */
+	function settleRows(days: number): void {
+		for (const a of apps) {
+			const at = Date.parse(a.publishedAt ?? "");
+			const until = days > 0 && !Number.isNaN(at) && at + days * DAY > NOW ? iso(at + days * DAY) : undefined;
+			if (a.status === "ready" && until) put({ ...a, status: "held", settles: until });
+			else if (a.settles) put(until ? { ...a, settles: until } : { ...a, status: "ready", settles: undefined });
+		}
+	}
+
 	const handlers: RequestHandlers = {
 		snapshot: () =>
 			({
@@ -1067,16 +1089,16 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			void runCheck(keys);
 			return { started: true };
 		},
-		install: ({ keys }) => {
+		install: ({ keys, now = false }) => {
 			if (run.phase === "checking") return { started: false, reason: "A check is running." };
 			// A System install holds the run lock, as in the engine.
 			if (extras.system.phase === "installing") return { started: false, reason: MESSAGES.reasonBusy() };
 			if (run.phase === "installing")
-				return running ? joinRun(running, keys) : { started: false, reason: "A run is already in progress." };
+				return running ? joinRun(running, keys, now) : { started: false, reason: "A run is already in progress." };
 			if (kept) return { started: false, reason: REASON_UNRECOVERED };
 			const ok = keys.filter((k) => {
 				const s = get(k)?.status;
-				return s === "ready" || s === "failed" || s === "rolled_back";
+				return takesRow(get(k), now) || s === "failed" || s === "rolled_back";
 			});
 			if (ok.length === 0) return { started: false, reason: "Nothing to install." };
 			// A retry from the summary keeps the first pass: done rows stay done and their results stay counted.
@@ -1193,8 +1215,16 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				...patch,
 				keepBackups: Math.min(5, Math.max(1, patch.keepBackups ?? settings.keepBackups)),
 			};
+			if (patch.waitDays !== undefined) settleRows(patch.waitDays);
 			emit({ type: "meta", rate, checkedAt, settings });
 			return clone(settings);
+		},
+		token: () => ({ hint: tokenKept?.slice(-4) ?? null }),
+		setToken: ({ token }) => {
+			const t = token?.trim() ?? null;
+			if (t !== null && !/^\w{20,255}$/.test(t)) return { ok: false, hint: tokenKept?.slice(-4) ?? null };
+			tokenKept = t;
+			return { ok: true, hint: t?.slice(-4) ?? null };
 		},
 		history: ({ limit }) => clone(history.slice(0, limit)),
 		runLog: ({ runId }) => clone(logs.get(runId) ?? []),

@@ -177,6 +177,9 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", skipped: "10.5.2" })).toBe(
 		"  HELD:   tmux 9.0.0 -> 10.5.2 (skipping 10.5.2)",
 	);
+	expect(
+		checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", settles: "2026-11-27T08:00:00.000Z" }),
+	).toBe("  HELD:   tmux 9.0.0 -> 10.5.2 (offered from 2026-11-27)");
 });
 
 test("recover with another Upkeep's run holding the lock says so and exits 1, leaving the marker", async () => {

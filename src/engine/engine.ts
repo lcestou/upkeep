@@ -58,6 +58,8 @@ import {
 	claimLock,
 	clearInflight,
 	loadState,
+	readToken,
+	writeToken,
 	openRunLog,
 	pruneLogs,
 	readHistory,
@@ -109,7 +111,8 @@ export type Engine = {
 	snapshot(): Snapshot;
 	subscribe(listener: (e: EngineEvent) => void): () => void;
 	check(keys?: string[]): Promise<void>;
-	install(keys: string[]): Promise<{ started: boolean; reason?: string }>;
+	/** now: a row held only because its release is still settling goes too, as Install now anyway asks. */
+	install(keys: string[], now?: boolean): Promise<{ started: boolean; reason?: string }>;
 	stopAfterCurrent(): void;
 	dismissSummary(): void;
 	restore(key: string, version: string): Promise<{ ok: boolean; detail?: string }>;
@@ -122,6 +125,10 @@ export type Engine = {
 	/** False, and nothing written, for a key not in the list. */
 	setAuto(key: string, auto: boolean): boolean;
 	setSettings(patch: Partial<Settings>): Settings;
+	/** The last four characters of the pasted GitHub token, or null when none is kept. */
+	tokenHint(): string | null;
+	/** Keeps or forgets the pasted token; false for text that is not a token's shape. The next request uses it. */
+	setToken(token: string | null): boolean;
 	history(limit: number): HistoryRow[];
 	runLog(runId: string): LogLine[];
 	readyKeys(autoOnly: boolean): string[];
@@ -229,6 +236,25 @@ const POINT_WEIGHTS = {
 
 /** A finished install is "updated" in the run's results; failures keep their own word. */
 const resultOf = (r: Outcome["result"]): RunResult["result"] => (r === "done" ? "updated" : r);
+
+const DAY_MS = 86_400_000;
+
+/**
+ * When a release published at publishedAt is offered under a wait of days, as an ISO time, or undefined when it is
+ * offered now: no wait, an old enough release, or no date to count from (a links, json or command source), which
+ * counts as published long ago. An unreadable date counts as none.
+ */
+export function settlesAt(publishedAt: string | undefined, days: number, now: Date): string | undefined {
+	const at = Date.parse(publishedAt ?? "");
+	if (days <= 0 || Number.isNaN(at)) return undefined;
+	const until = at + days * DAY_MS;
+	return until > now.getTime() ? new Date(until).toISOString() : undefined;
+}
+
+/** Whether a row goes into a run: Ready, or with now (Install now anyway) still settling. A held or skipped row never. */
+function takesRow(a: AppState | undefined, now: boolean): boolean {
+	return a?.status === "ready" || (now && a?.settles !== undefined);
+}
 
 /** Every file the engine writes comes from deps.paths and every process it starts goes through deps.run, so a test can run it in a temp home. */
 export function createEngine(deps: EngineDeps): Engine {
@@ -406,15 +432,20 @@ export function createEngine(deps: EngineDeps): Engine {
 		return isRunning({ kind: spec.kind, dest, process: spec.process }, deps.procRoot);
 	}
 
-	/** The row's resting status from its check result and the owner's skip and hold. */
-	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped"> {
+	/**
+	 * The row's resting status from its check result, the owner's skip and hold, and the wait in Settings. A hold or a
+	 * skip wins over the wait. settles is always present, undefined when not settling, so Object.assign clears it.
+	 */
+	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped" | "settles"> {
 		const state = loadState(paths);
 		const held = state.hold[spec.key] === true;
 		const skip = state.skip[spec.key];
-		if (c.status !== "ready") return { status: c.status, held };
-		if (held) return { status: "held", held, skipped: skip };
-		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip };
-		return { status: spec.kind === "manual" ? "manual" : "ready", held };
+		if (c.status !== "ready") return { status: c.status, held, settles: undefined };
+		if (held) return { status: "held", held, skipped: skip, settles: undefined };
+		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip, settles: undefined };
+		const settles = settlesAt(c.publishedAt, state.settings.waitDays, deps.now());
+		if (settles) return { status: "held", held, settles };
+		return { status: spec.kind === "manual" ? "manual" : "ready", held, settles: undefined };
 	}
 
 	// What else keeps each app up to date, worked out once per check from the system's Flatpak and Snap lists.
@@ -512,7 +543,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				emitApp(a);
 			}
 		}
-		token = await githubToken(deps.run);
+		token = await githubToken(deps.run, readToken(paths));
 		const history = readHistory(paths, 1000);
 		const all = loadSpecs();
 		// The notes are a nicety: a list that cannot be read leaves them out and never stops the check.
@@ -624,19 +655,20 @@ export function createEngine(deps: EngineDeps): Engine {
 	 * app already in the run is left where it is. Refused once Stop after current is pending, since the run is about
 	 * to end.
 	 */
-	function addToRun(keys: string[]): Requests["install"]["response"] {
+	function addToRun(keys: string[], now = false): Requests["install"]["response"] {
 		const queue = runQueue;
 		if (!queue) return { started: false, reason: REASON_BUSY };
 		if (run.stopping) return { started: false, reason: REASON_STOPPING };
 		const inRun = new Set(queue.map((s) => s.key));
 		const wanted = new Set(keys);
-		const add = specs.filter((s) => wanted.has(s.key) && !inRun.has(s.key) && apps.get(s.key)?.status === "ready");
+		const add = specs.filter((s) => wanted.has(s.key) && !inRun.has(s.key) && takesRow(apps.get(s.key), now));
 		if (add.length === 0) return { started: false, reason: REASON_NOTHING };
 		queue.push(...add);
 		for (const s of add) {
 			const a = apps.get(s.key);
 			if (a) {
 				a.status = "queued";
+				a.settles = undefined;
 				a.restartToApply = false;
 				emitApp(a);
 			}
@@ -649,7 +681,11 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/** The body of install() once its phase checks passed; install() holds `starting` around it. */
-	async function startInstall(this: Engine, keys: string[]): Promise<{ started: boolean; reason?: string }> {
+	async function startInstall(
+		this: Engine,
+		keys: string[],
+		now: boolean,
+	): Promise<{ started: boolean; reason?: string }> {
 		// A run would write its own marker over the one a failed recovery kept.
 		if ((await this.recover()).some((r) => !r.ok)) return { started: false, reason: REASON_UNRECOVERED };
 		// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
@@ -660,7 +696,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const wanted = new Set(keys);
 		const pick = specs.filter((s) => {
 			const a = apps.get(s.key);
-			return wanted.has(s.key) && a && (a.status === "ready" || a.versionless);
+			return wanted.has(s.key) && a && (takesRow(a, now) || a.versionless);
 		});
 		const queue = [...pick];
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
@@ -687,12 +723,13 @@ export function createEngine(deps: EngineDeps): Engine {
 				const a = apps.get(s.key);
 				if (a) {
 					a.status = "queued";
+					a.settles = undefined;
 					a.restartToApply = false;
 					emitApp(a);
 				}
 			}
 			emitRun();
-			if (!token) token = await githubToken(deps.run);
+			if (!token) token = await githubToken(deps.run, readToken(paths));
 		} catch (err) {
 			// Nothing ran yet: put the rows back and give the lock up.
 			log?.close();
@@ -866,15 +903,15 @@ export function createEngine(deps: EngineDeps): Engine {
 			busy = p;
 			return p;
 		},
-		async install(keys) {
+		async install(keys, now = false) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
-			if (run.phase === "installing" && runQueue) return addToRun(keys);
+			if (run.phase === "installing" && runQueue) return addToRun(keys, now);
 			if (run.phase === "installing" || starting) return { started: false, reason: REASON_BUSY };
 			// Between here and the run's own "installing", recover() may wait on disk: a check started in that gap
 			// (pressed, or the schedule's) would run beside the install, so check() refuses while this is set.
 			starting = true;
 			try {
-				return await startInstall.call(this, keys);
+				return await startInstall.call(this, keys, now);
 			} finally {
 				starting = false;
 			}
@@ -1058,8 +1095,19 @@ export function createEngine(deps: EngineDeps): Engine {
 			const s = updateState(paths, (st) => {
 				st.settings = { ...st.settings, ...patch };
 			});
+			// A new wait moves rows between Ready and settling at once, without a check.
+			if (patch.waitDays !== undefined) for (const key of apps.keys()) refresh(key);
 			emitMeta();
 			return s.settings;
+		},
+		tokenHint() {
+			return readToken(paths)?.slice(-4) ?? null;
+		},
+		setToken(t) {
+			if (!writeToken(paths, t)) return false;
+			// The next check or search reads the file again; a token from before must not linger.
+			token = null;
+			return true;
 		},
 		history(limit) {
 			return readHistory(paths, limit);
@@ -1168,7 +1216,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	};
 
 	async function discoverCtx(): Promise<DiscoverCtx> {
-		if (!token) token = await githubToken(deps.run);
+		if (!token) token = await githubToken(deps.run, readToken(paths));
 		return {
 			paths,
 			run: deps.run,

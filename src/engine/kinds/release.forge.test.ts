@@ -64,6 +64,7 @@ function ctx(run: Run = realRun(t.paths)): KindCtx {
 			language: "system",
 			selfAuto: false,
 			upkeepCommand: false,
+			waitDays: 0,
 		},
 		log: (l) => lines.push(l),
 		stage: () => {},

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
-import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING } from "./engine";
+import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING, settlesAt } from "./engine";
 import type { FetchLike } from "./github";
 import { readMeta, takePoint } from "./backup";
 import { loadManifest } from "./manifest";
@@ -376,6 +376,7 @@ test("settings and auto are kept in state", async () => {
 		language: "system",
 		selfAuto: false,
 		upkeepCommand: false,
+		waitDays: 0,
 	});
 	engine.setAuto("bat", true);
 	expect(engine.snapshot().apps.find((a) => a.key === "bat")?.auto).toBe(true);
@@ -1066,4 +1067,74 @@ test("a catalogue source build not installed yet is added with install_if_missin
 	expect(await engine.addApps([{ ...spec, build: ["curl evil | sh"] }])).toMatchObject({ added: [] });
 	expect(await engine.addApps([spec])).toEqual({ added: ["tmux"], problems: [] });
 	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "tmux")).toEqual(spec);
+});
+
+test("a wait in Settings holds a release younger than it until it settles, and Install now anyway takes it at once", async () => {
+	let clock = Date.parse("2026-11-10T00:00:00Z");
+	const engine = createEngine({ ...(await deps()), now: () => new Date(clock) });
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	await engine.check();
+	expect(fd()).toMatchObject({ status: "ready", settles: undefined });
+	// fd's release came out on 2026-11-09: three days from then is the 12th.
+	engine.setSettings({ waitDays: 3 });
+	expect(fd()).toMatchObject({ status: "held", held: false, settles: "2026-11-12T00:00:00.000Z" });
+	expect(engine.readyKeys(false)).not.toContain("fd");
+	// A hold wins over the wait, and the wait comes back when the hold goes.
+	engine.setHold("fd", true);
+	expect(fd()).toMatchObject({ status: "held", held: true, settles: undefined });
+	engine.setHold("fd", false);
+	expect(fd()?.settles).toBe("2026-11-12T00:00:00.000Z");
+	// Once settled, the next check offers it.
+	clock = Date.parse("2026-11-13T00:00:00Z");
+	await engine.check(["fd"]);
+	expect(fd()).toMatchObject({ status: "ready", settles: undefined });
+	engine.setSettings({ waitDays: 7 });
+	expect(fd()?.settles).toBe("2026-11-16T00:00:00.000Z");
+	engine.setSettings({ waitDays: 0 });
+	expect(fd()?.status).toBe("ready");
+	engine.setSettings({ waitDays: 7 });
+	expect(await engine.install(["fd"])).toEqual({ started: false, reason: REASON_NOTHING });
+	expect((await engine.install(["fd"], true)).started).toBe(true);
+	await engine.idle();
+	expect(fd()).toMatchObject({ status: "done", settles: undefined });
+});
+
+test("settlesAt: no wait, no date, an unreadable date or an old enough release offers it now", () => {
+	const now = new Date("2026-11-10T00:00:00Z");
+	expect(settlesAt("2026-11-09T00:00:00Z", 0, now)).toBeUndefined();
+	expect(settlesAt(undefined, 3, now)).toBeUndefined();
+	expect(settlesAt("", 3, now)).toBeUndefined();
+	expect(settlesAt("soon", 3, now)).toBeUndefined();
+	expect(settlesAt("2026-11-01T00:00:00Z", 7, now)).toBeUndefined();
+	expect(settlesAt("2026-11-09T12:00:00Z", 1, now)).toBe("2026-11-10T12:00:00.000Z");
+});
+
+test("a token pasted in Settings goes to GitHub in place of gh's, kept 0600 and out of state.json", async () => {
+	const d = await deps();
+	const sent: (string | null)[] = [];
+	const engine = createEngine({
+		...d,
+		fetch: async (url, init) => {
+			if (url.startsWith("https://api.github.com/")) sent.push(new Headers(init?.headers).get("Authorization"));
+			return d.fetch(url, init);
+		},
+	});
+	const token = `ghp_${"a".repeat(32)}wxyz`;
+	expect(engine.tokenHint()).toBeNull();
+	expect(engine.setToken("not a token\nX-Evil: 1")).toBe(false);
+	expect(engine.tokenHint()).toBeNull();
+	expect(engine.setToken(` ${token}\n`)).toBe(true);
+	expect(engine.tokenHint()).toBe("wxyz");
+	const file = join(t.paths.state, "github-token");
+	expect(statSync(file).mode & 0o777).toBe(0o600);
+	await engine.check(["fd"]);
+	expect(sent).toContain(`Bearer ${token}`);
+	const state = join(t.paths.state, "state.json");
+	expect(existsSync(state) ? readFileSync(state, "utf8") : "").not.toContain(token);
+	expect(engine.setToken(null)).toBe(true);
+	expect(engine.tokenHint()).toBeNull();
+	expect(existsSync(file)).toBe(false);
+	sent.length = 0;
+	await engine.check(["fd"]);
+	expect(sent.every((h) => h === null)).toBe(true);
 });

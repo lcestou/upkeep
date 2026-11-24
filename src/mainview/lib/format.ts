@@ -76,6 +76,13 @@ export function formatRunTime(iso: string): string {
 	return `${day}, ${time}`;
 }
 
+/** "Nov 27": a day and short month in the language shown, without the year. An unparseable date comes back unchanged. */
+export function shortDate(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return iso;
+	return d.toLocaleDateString(language.locale, { month: "short", day: "numeric" });
+}
+
 /** Local 24-hour time with seconds, for log lines. An unparseable date comes back unchanged. */
 export function clockTime(iso: string): string {
 	const d = new Date(iso);

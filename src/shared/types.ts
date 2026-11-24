@@ -236,6 +236,8 @@ export type AppState = {
 	downloaded?: boolean;
 	/** The version a skip is set for, when status is held because of a skip. */
 	skipped?: string;
+	/** When the release is offered, as an ISO time, while status is held because it is younger than the wait in Settings. */
+	settles?: string;
 	held: boolean;
 };
 
@@ -288,6 +290,8 @@ export type Settings = {
 	selfAuto: boolean;
 	/** An `upkeep` command in ~/.local/bin that runs this install's command line. Off: no such file from Upkeep. */
 	upkeepCommand: boolean;
+	/** Days a new release waits before it is offered, counted from when it was published. 0 offers it at once. */
+	waitDays: 0 | 1 | 3 | 7;
 };
 
 /**
@@ -504,7 +508,8 @@ export type EngineEvent =
 export type Requests = {
 	snapshot: { params: Record<string, never>; response: Snapshot };
 	check: { params: { keys?: string[] }; response: { started: boolean } };
-	install: { params: { keys: string[] }; response: { started: boolean; reason?: string } };
+	/** now: a row held only because its release is still settling is installed too. */
+	install: { params: { keys: string[]; now?: boolean }; response: { started: boolean; reason?: string } };
 	stopAfterCurrent: { params: Record<string, never>; response: { stopping: boolean } };
 	dismissSummary: { params: Record<string, never>; response: { ok: boolean } };
 	restore: { params: { key: string; version: string }; response: { ok: boolean; detail?: string } };
@@ -512,6 +517,10 @@ export type Requests = {
 	setHold: { params: { key: string; held: boolean }; response: { ok: boolean } };
 	setAuto: { params: { key: string; auto: boolean }; response: { ok: boolean } };
 	setSettings: { params: Partial<Settings>; response: Settings };
+	/** The last four characters of the GitHub token pasted in Settings, or null when none is kept. The token never comes back. */
+	token: { params: Record<string, never>; response: { hint: string | null } };
+	/** Keeps a pasted GitHub token, or forgets it with null. Refused, and nothing changed, when it does not read as one. */
+	setToken: { params: { token: string | null }; response: { ok: boolean; hint: string | null } };
 	history: { params: { limit: number }; response: HistoryRow[] };
 	runLog: { params: { runId: string }; response: LogLine[] };
 	open: {

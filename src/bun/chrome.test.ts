@@ -13,6 +13,7 @@ const settings: Settings = {
 	language: "system",
 	selfAuto: false,
 	upkeepCommand: false,
+	waitDays: 0,
 };
 
 test("button layouts as the desktop writes them", () => {
