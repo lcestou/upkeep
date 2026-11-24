@@ -69,6 +69,8 @@ export function upkeepRequests(
 	desktop: Desktop,
 ): RequestHandlers {
 	const logDir = join(deps.paths.state, "logs");
+	/** The text of the file an import last asked about; Import on the ask writes this, and any other press clears it. */
+	let asked: string | null = null;
 	return {
 		snapshot: () => {
 			hooks.onSnapshot?.();
@@ -179,22 +181,33 @@ export function upkeepRequests(
 				return { ok: false, problem: err instanceof Error ? err.message : String(err) };
 			}
 		},
-		importSetup: async () => {
-			const file = (await desktop.pickFile(deps.paths.home)).find((p) => p !== "");
-			if (!file) return { ok: false };
+		importSetup: async ({ sure }) => {
 			let text: string;
-			try {
-				text = readFileSync(file, "utf8");
-			} catch (err) {
-				return { ok: false, problems: [err instanceof Error ? err.message : String(err)] };
+			if (sure) {
+				// The text the ask was built from, not the file read again: what the person read is what lands.
+				if (asked === null) return { ok: false };
+				text = asked;
+			} else {
+				const file = (await desktop.pickFile(deps.paths.home)).find((p) => p !== "");
+				if (!file) return { ok: false };
+				try {
+					text = readFileSync(file, "utf8");
+				} catch (err) {
+					return { ok: false, problems: [err instanceof Error ? err.message : String(err)] };
+				}
 			}
+			asked = null;
 			// The same lock an install holds, so an import never lands during a run.
 			if (!claimLock(deps.paths)) return { ok: false, problems: [MESSAGES.importDuringRun()] };
 			let r: ReturnType<typeof importSetup>;
 			try {
-				r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
+				r = importSetup(deps.paths, deps.seedManifest, text, deps.now(), sure === true);
 			} finally {
 				releaseLock(deps.paths);
+			}
+			if ("ask" in r) {
+				asked = text;
+				return { ok: false, ask: r.ask };
 			}
 			if (!r.ok) return { ok: false, problems: r.problems };
 			// The new settings, extras and list reach the window: settings and extras by their events, the list by a check.

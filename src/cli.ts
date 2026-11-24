@@ -21,7 +21,7 @@ export const USAGE = [
 	"  add <name|owner/repo|link|file>",
 	"  remove <key>           take an app off the list; the app stays installed",
 	"  export [file]          settings and app list as one JSON file (stdout without a file)",
-	"  import <file>          replace settings and app list from an export; the old files are kept as .bak",
+	"  import <file> [--yes]  replace settings and app list from an export; --yes when its apps run commands",
 	"--json prints one JSON value per line instead of text.",
 ].join("\n");
 
@@ -269,8 +269,12 @@ function refuse(problem: string, json: boolean, out: Out): number {
 	return 1;
 }
 
-/** Replaces the setup from an export, holding the run lock so no install runs while the files change. */
-function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): number {
+/**
+ * Replaces the setup from an export, holding the run lock so no install runs while the files change. A list with apps
+ * that run commands writes nothing without sure (--yes): it prints every such app with its commands, or the ask as
+ * {"ok": false, "ask"} under --json, and exits 1, so a script that did not read the list never runs what it carries.
+ */
+function importFrom(deps: EngineDeps, file: string, sure: boolean, json: boolean, out: Out): number {
 	let text: string;
 	try {
 		text = readFileSync(file, "utf8");
@@ -285,10 +289,19 @@ function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): nu
 	}
 	if (!mine) return refuse(MESSAGES.importDuringRun(), json, out);
 	try {
-		const r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
+		const r = importSetup(deps.paths, deps.seedManifest, text, deps.now(), sure);
 		if (json) out(JSON.stringify(r));
 		else if (r.ok) out(`Imported ${r.apps} apps. The files it replaced are kept beside them as .pre-import-<time>.`);
-		else for (const p of r.problems) out(p);
+		else if ("ask" in r) {
+			out(`${file} has apps that run these commands on this computer:`);
+			for (const a of r.ask.apps) {
+				out(`  ${a.name} (${a.key})`);
+				for (const c of a.commands) out(`    ${c}`);
+			}
+			if (r.ask.plain > 0) out(`and ${r.ask.plain} apps that install only what their releases ship.`);
+			out("Nothing was changed. Read the commands, then run it again with --yes to import.");
+			out("Automatic installs come in off for the apps that run commands.");
+		} else for (const p of r.problems) out(p);
 		return r.ok ? 0 : 1;
 	} finally {
 		releaseLock(deps.paths);
@@ -310,7 +323,10 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 	if (cmd === "add" && args.length === 1 && args[0]) return add(createEngine(deps), args[0], json, out);
 	if (cmd === "remove" && args.length === 1 && args[0]) return remove(createEngine(deps), args[0], json, out);
 	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], json, out);
-	if (cmd === "import" && args.length === 1 && args[0]) return importFrom(deps, args[0], json, out);
+	if (cmd === "import") {
+		const files = args.filter((a) => a !== "--yes");
+		if (files.length === 1 && files[0]) return importFrom(deps, files[0], args.includes("--yes"), json, out);
+	}
 	out(USAGE);
 	return 2;
 }

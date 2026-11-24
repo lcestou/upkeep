@@ -17,7 +17,7 @@ upkeep list                  # the apps in apps.toml, without a check
 upkeep add sharkdp/fd        # add an app: a catalogue name, a repo, a GitHub, GitLab or Codeberg link, or a file
 upkeep remove fd             # take it off the list; the app itself stays installed
 upkeep export upkeep.json    # settings and app list as one file (to stdout without a name)
-upkeep import upkeep.json    # replace them from such a file
+upkeep import upkeep.json    # replace them from such a file; add --yes when its apps run commands
 ```
 
 `check` exits 0; an app it could not check is a SKIP line, not a failure. `install` exits 0 when every app it ran ended updated. Every other command exits 0 when it did what was asked and 1 when it did not, and prints why.
@@ -28,7 +28,7 @@ Every command takes `--json` and then prints one JSON value per line instead of 
 
 - `add` writes only a sure match: a catalogue app by its name, a repo, a link, or a file that names its source. A file whose repo could only be guessed from its name is named in the answer (`candidate`) and not added; add that repo by name instead.
 - `export` writes one file: `{"upkeep": 1, "exportedAt", "apps", "settings", "skip", "hold", "auto", "extras"}`, where `apps` is `apps.toml` as written, comments included, and `upkeep` is the format's version. Restore points, history and run state stay on the machine.
-- `import` reads the whole file before it writes anything. It refuses a file of another format version and a list with any table that does not load, and refuses while an install runs. It keeps each file it replaces beside it as `<file>.pre-import-<time>`, and if a write fails midway it puts them back and removes any file the import created, or names each file it could not put back and where its copy is. Skips, holds and automatic installs are kept only for apps the new list has; a setting out of range reads as its default.
+- `import` reads the whole file before it writes anything. It refuses a file of another format version and a list with any table that does not load, and refuses while an install runs. It keeps each file it replaces beside it as `<file>.pre-import-<time>`, and if a write fails midway it puts them back and removes any file the import created, or names each file it could not put back and where its copy is. Skips, holds and automatic installs are kept only for apps the new list has; a setting out of range reads as its default. A list with any app whose table makes Upkeep run a command (`check`, `update`, `restore`, `restart`, `version_args`, a source build's steps, services and tests) writes nothing without `--yes`: it prints each such app with every command it runs and exits 1, or under `--json` answers `{"ok": false, "ask": {"apps": [{"key", "name", "commands"}], "plain"}}`, where `plain` counts the apps that install only what their releases ship. With `--yes`, those apps come in with automatic installs off, whatever the file says, so nothing a file carries runs without a press; turn them on again per app. A list of release apps only imports as before. The window asks the same question before it writes.
 
 An open window reads `apps.toml` again at its next check, so a list changed from the command line shows there after Check again. `import` holds the run lock, so it never lands during an install; it can still race an app added in the window at the same moment, and the later write wins.
 

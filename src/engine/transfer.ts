@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
-import type { ExtrasSettings, Settings } from "../shared/types";
+import type { AppSpec, ExtrasSettings, ImportAsk, Service, Settings, Test } from "../shared/types";
 import { loadExtras, updateExtras } from "./extras/state";
 import { ensureManifest, isRecord, parseManifest } from "./manifest";
 import type { Paths } from "./paths";
@@ -47,20 +47,75 @@ function only<T>(v: unknown, keep: (x: unknown) => x is T): Record<string, T> {
 	return out;
 }
 
+/** One argument as a shell would need it typed: plain words bare, anything else in single quotes. */
+function shellWord(a: string): string {
+	return /^[\w@%+=:,./~{}-]+$/.test(a) ? a : `'${a.replaceAll("'", "'\\''")}'`;
+}
+
+/**
+ * Every command an app's table makes Upkeep run, one line each, led by the field it comes from: argv fields quoted
+ * as a shell would need them, shell steps (build, undo, check_built) as written. A release kind's version_args run
+ * dest, so they show as dest plus its arguments; the plain probe with no version_args is not listed. A manual app's
+ * run is only shown to the person, never run, and claude-plugins runs Claude Code's own CLI, so neither is listed.
+ * Empty means the table runs nothing but what its releases ship.
+ */
+export function commandsOf(spec: AppSpec): string[] {
+	const out: string[] = [];
+	const argv = (field: string, v: string[] | undefined) => {
+		if (v && v.length > 0) out.push(`${field}: ${v.map(shellWord).join(" ")}`);
+	};
+	const steps = (field: string, v: string[] | undefined) => {
+		for (const step of v ?? []) out.push(`${field}: ${step}`);
+	};
+	const tests = (field: string, v: Test[] | undefined) => {
+		for (const t of v ?? []) argv(field, t.run);
+	};
+	const services = (field: string, v: Service[] | undefined) => {
+		for (const s of v ?? []) {
+			argv(`${field} ${s.name} active`, s.active);
+			argv(`${field} ${s.name} stop`, s.stop);
+			argv(`${field} ${s.name} start`, s.start);
+			argv(`${field} ${s.name} since`, s.since);
+		}
+	};
+	argv("check", spec.check);
+	argv("update", spec.update);
+	argv("restore", spec.restore);
+	if (spec.version_args && spec.dest) argv("version_args", [spec.dest, ...spec.version_args]);
+	argv("restart", spec.restart);
+	argv("commit", spec.commit);
+	argv("needs", spec.needs);
+	steps("build", spec.build);
+	steps("check_built", spec.check_built);
+	steps("undo", spec.undo);
+	for (const r of spec.record ?? []) argv("record", r.run);
+	for (const b of spec.busy ?? []) argv("busy", b.run);
+	services("pause", spec.pause);
+	services("serve", spec.serve);
+	for (const s of spec.serve ?? []) tests("serve test", s.test);
+	tests("test", spec.test);
+	return out;
+}
+
 /**
  * Replaces the setup with the one in an exported file's text, or changes nothing and names every problem. The file
  * is read whole before anything is written: it must be this format's version, and its app list must load with no
- * error, so a broken file never replaces a working list. apps.toml, state.json and extras.json are each kept beside
- * themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes any the
- * import created. Skips, holds and automatic installs are kept only for apps the new list has; settings and extras
- * go through the same checks as the files they land in, so an out-of-range value reads as its default.
+ * error, so a broken file never replaces a working list. A list with any app whose table runs commands (commandsOf)
+ * is not written until the caller passes sure, after showing the person the ask; a file from someone else could
+ * otherwise run anything at the next check. With sure, those apps come in with automatic installs off, whatever the
+ * file says, so nothing it carries runs an update without a press. apps.toml, state.json and extras.json are each
+ * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
+ * any the import created. Skips, holds and the other automatic installs are kept only for apps the new list has;
+ * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
+ * default.
  */
 export function importSetup(
 	paths: Paths,
 	seedFile: string,
 	text: string,
 	now: Date,
-): { ok: true; apps: number; kept: string[] } | { ok: false; problems: string[] } {
+	sure = false,
+): { ok: true; apps: number; kept: string[] } | { ok: false; problems: string[] } | { ok: false; ask: ImportAsk } {
 	let doc: unknown;
 	try {
 		doc = JSON.parse(text);
@@ -74,6 +129,12 @@ export function importSetup(
 	if (list.errors.length > 0) return { ok: false, problems: list.errors };
 	const keys = new Set(list.apps.map((a) => a.key));
 	const mine = <T>(table: Record<string, T>) => Object.fromEntries(Object.entries(table).filter(([k]) => keys.has(k)));
+	const running = list.apps.flatMap((a) => {
+		const commands = commandsOf(a);
+		return commands.length > 0 ? [{ key: a.key, name: a.name, commands }] : [];
+	});
+	if (running.length > 0 && !sure)
+		return { ok: false, ask: { apps: running, plain: list.apps.length - running.length } };
 
 	const stamp = now.toISOString().replace(/[:.]/g, "-");
 	const files = [ensureManifest(paths, seedFile), join(paths.state, "state.json"), join(paths.state, "extras.json")];
@@ -101,6 +162,8 @@ export function importSetup(
 			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
 			s.auto = mine(only(doc.auto, (x): x is boolean => typeof x === "boolean"));
+			// false, not a missing entry: it also outweighs an auto = true written in the app's own table.
+			for (const a of running) s.auto[a.key] = false;
 		});
 		if (isRecord(doc.extras)) {
 			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.

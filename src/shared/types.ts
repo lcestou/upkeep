@@ -142,6 +142,12 @@ export type Test = {
 	required?: boolean;
 };
 
+/**
+ * What an imported list would run, shown before it is written: each app whose table carries commands, with every
+ * command as one line, and how many apps come in that run only what their releases ship.
+ */
+export type ImportAsk = { apps: { key: string; name: string; commands: string[] }[]; plain: number };
+
 /** One app Upkeep proposes to add, with everything needed to add it in one press. */
 export type Suggestion = {
 	/** The table that would be written to apps.toml. */
@@ -523,7 +529,11 @@ export type Requests = {
 	/** Asks for a folder and writes the settings and app list there as one file. Cancelled: ok false with no problem. */
 	exportSetup: { params: Record<string, never>; response: { ok: boolean; file?: string; problem?: string } };
 	/** Asks for an export file and replaces the settings and app list from it, then checks again. Refused during a run. */
-	importSetup: { params: Record<string, never>; response: { ok: boolean; apps?: number; problems?: string[] } };
+	/** sure imports the file the last ask came from; without it a list that runs commands answers with ask and writes nothing. */
+	importSetup: {
+		params: { sure?: boolean };
+		response: { ok: boolean; apps?: number; problems?: string[]; ask?: ImportAsk };
+	};
 	/** The desktop's languages, most preferred first, as the main process reads them from its environment; the tray uses the same list. */
 	languages: { params: Record<string, never>; response: string[] };
 	window: { params: { op: WindowButton }; response: { ok: boolean } };

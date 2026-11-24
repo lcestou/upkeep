@@ -315,6 +315,41 @@ test("export and import carry the list, settings, skips, holds and auto picks, a
 	expect(readdirSync(t.paths.state).filter((f) => f.startsWith("state.json.pre-import-"))).toHaveLength(1);
 });
 
+test("import of a list whose apps run commands prints them and needs --yes; those apps come in with auto off", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const file = join(t.dir, "shared.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.apps +=
+		'\n[apps.glow]\nname = "Glow"\nkind = "command"\ncheck = ["glow", "--version"]\nlatest = "npm:glow"\nupdate = ["glow", "up"]\n';
+	doc.auto = { glow: true, borg: true };
+	writeFileSync(file, JSON.stringify(doc));
+	const before = readFileSync(join(t.paths.config, "apps.toml"), "utf8");
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
+	expect(said).toEqual([
+		`${file} has apps that run these commands on this computer:`,
+		"  Glow (glow)",
+		"    check: glow --version",
+		"    update: glow up",
+		"and 2 apps that install only what their releases ship.",
+		"Nothing was changed. Read the commands, then run it again with --yes to import.",
+		"Automatic installs come in off for the apps that run commands.",
+	]);
+	const json: string[] = [];
+	expect(await main(["import", file, "--json"], d, (l) => json.push(l))).toBe(1);
+	expect(JSON.parse(json[0] ?? "{}")).toEqual({
+		ok: false,
+		ask: { apps: [{ key: "glow", name: "Glow", commands: ["check: glow --version", "update: glow up"] }], plain: 2 },
+	});
+	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
+	expect(await main(["import", "--yes", file], d, () => {})).toBe(0);
+	// The release app keeps its pick; the one that runs commands does not, whatever the file said.
+	expect(loadState(t.paths).auto).toEqual({ borg: true, glow: false });
+	expect(await main(["import", file, "--yes", "--yes"], d, () => {})).toBe(0);
+});
+
 test("import refuses a file that is not an export, or whose list does not load, and changes nothing", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
