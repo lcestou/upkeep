@@ -63,7 +63,12 @@ type Seed = {
 	ahead?: number;
 	/** What else keeps it up to date, as the engine words it. */
 	also?: string[];
+	/** An AppImage's menu switch; "off" when left out. */
+	menu?: "on" | "off" | "elsewhere";
 };
+
+/** The entry another tool wrote for Ghostty's AppImage, which the fixture's elsewhere row names. */
+const OTHER_ENTRY = "~/.local/share/applications/appimagekit_ghostty.desktop";
 
 export const ZEN_NOTES =
 	"# Zen Stable Release\n\n\n## Security\n- https://www.mozilla.org/en-US/security/advisories/mfsa2026-123/\n\n## New Features\n- Updated to Firefox 159.0.1\n- New grain options have been added to the theme picker. You can cycle through different grain effects by clicking on the circle inside the dial.\n\n## Fixes\n- Fixed a command prompt window briefly appearing on Windows when Zen restarts to apply an update.\n- Fixed passkey sign-in failing on websites that share passkeys across related sites, such as Facebook and Instagram.\n- Fixed crashes on Windows that could occur with some antivirus or other security software installed, in some cases also leaving WebGL disabled.\n- Fixed red and blue colors appearing swapped on some websites that use WebGL on Linux, including video call background effects.\n- More bug fixes and improvements.\n\n## Changes\n- On macOS, icons on the UI will now start using SF Symbols.\n- The 'About Zen' window has been redesigned.\n- 'My Review Request' option for Pull Requests live folder now searches for 'user-review-requested:@me' instead of 'review-requested:@me'";
@@ -104,6 +109,7 @@ const SEEDS: Seed[] = [
 		running: true,
 		dest: "~/.local/bin/ghostty.appimage",
 		restore: ["1.3.0"],
+		menu: "elsewhere",
 	},
 	{
 		key: "lrcget",
@@ -324,6 +330,8 @@ function toApp(seed: Seed): AppState {
 		size: seed.size,
 		notes: seed.notes,
 		also: seed.also,
+		menu: seed.kind === "appimage" ? (seed.menu ?? "off") : undefined,
+		menuDetail: seed.menu === "elsewhere" ? MESSAGES.menuElsewhere(OTHER_ENTRY) : undefined,
 		releaseUrl: seed.repo ? `https://github.com/${seed.repo}/releases/latest` : undefined,
 		publishedAt: seed.publishedDaysAgo === undefined ? undefined : iso(NOW - seed.publishedDaysAgo * DAY),
 		running: seed.running ?? false,
@@ -1174,6 +1182,15 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			const app = get(key);
 			if (!app) return { ok: false };
 			put({ ...app, auto });
+			return { ok: true };
+		},
+		setMenu: ({ key, menu }) => {
+			const app = get(key);
+			if (!app?.menu) return { ok: false };
+			if (app.menu === "elsewhere") return { ok: false, detail: app.menuDetail };
+			// Nothing is installed at a row with no version, so there is no AppImage to read the entry from.
+			if (menu && app.installed === null) return { ok: false, detail: MESSAGES.menuNoEntry(app.dest ?? "") };
+			put({ ...app, menu: menu ? "on" : "off" });
 			return { ok: true };
 		},
 		setSettings: (patch) => {

@@ -2772,3 +2772,15 @@ msgstr "Скачано, ждёт своей очереди"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Новые версии в их маркетплейсах: {0}."
+
+msgid "Could not read a menu entry from {0}."
+msgstr "Не удалось прочитать пункт меню из {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "Уже есть в меню приложений через {0}, поэтому Upkeep не добавляет второй пункт."
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "Показывать в меню приложений"

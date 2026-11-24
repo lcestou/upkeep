@@ -64,6 +64,19 @@
 	let asking = $state(false);
 	let keepBtn = $state<HTMLButtonElement | null>(null);
 	let removeBtn = $state<HTMLButtonElement | null>(null);
+	let menuNote = $state<string | null>(null);
+	let menuBusy = $state(false);
+
+	/** Asks the engine for the menu entry or its removal; a refusal puts the box back and shows the engine's reason. */
+	async function setMenu(box: HTMLInputElement) {
+		menuBusy = true;
+		menuNote = null;
+		const res = await model.send("setMenu", { key: app.key, menu: box.checked });
+		menuBusy = false;
+		if (res?.ok) return;
+		box.checked = app.menu === "on";
+		menuNote = res?.detail ?? null;
+	}
 
 	/** Opens the remove question and puts focus on Keep, the safe answer. */
 	async function ask() {
@@ -347,6 +360,24 @@
 				/>
 				{TEXT.installAuto}
 			</label>
+			{#if app.menu === "elsewhere"}
+				<span class="menu-note" data-testid="menu-elsewhere-{app.key}">{say(app.menuDetail)}</span>
+			{:else if app.menu}
+				<label class="auto" data-testid="menu-switch-{app.key}">
+					<input
+						type="checkbox"
+						checked={app.menu === "on"}
+						disabled={inRun || menuBusy}
+						title={inRun ? ADD.waitRun : undefined}
+						data-testid="menu-{app.key}"
+						onchange={(e) => setMenu(e.currentTarget)}
+					/>
+					{TEXT.showInMenu}
+				</label>
+			{/if}
+			{#if menuNote}
+				<span class="menu-note" role="status" data-testid="menu-result-{app.key}">{say(menuNote)}</span>
+			{/if}
 			{#if app.releaseUrl}
 				<button
 					type="button"
@@ -825,6 +856,11 @@
 		font-size: var(--fs-12);
 		color: var(--text-2);
 		cursor: pointer;
+	}
+	.menu-note {
+		font-size: var(--fs-12);
+		color: var(--text-2);
+		overflow-wrap: anywhere;
 	}
 	.facts {
 		margin: 0;

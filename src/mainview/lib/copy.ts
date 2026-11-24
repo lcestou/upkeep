@@ -213,6 +213,9 @@ export const TEXT = {
 	get installAuto() {
 		return "Install automatically";
 	},
+	get showInMenu() {
+		return "Show in the app menu";
+	},
 	get runItYourself() {
 		return "Run it yourself:";
 	},

@@ -2709,3 +2709,15 @@ msgstr "已下载，等待轮到它"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
+
+msgid "Could not read a menu entry from {0}."
+msgstr "无法从 {0} 读取菜单项。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "已通过 {0} 出现在应用菜单中，因此 Upkeep 不会再添加一个。"
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "在应用菜单中显示"

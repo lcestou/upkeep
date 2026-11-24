@@ -2730,3 +2730,15 @@ msgstr "Heruntergeladen, wartet"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Neue Versionen in ihren Marktplätzen: {0}."
+
+msgid "Could not read a menu entry from {0}."
+msgstr "Konnte keinen Menüeintrag aus {0} lesen."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "Schon über {0} im Anwendungsmenü, daher fügt Upkeep keinen zweiten Eintrag hinzu."
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "Im Anwendungsmenü zeigen"
