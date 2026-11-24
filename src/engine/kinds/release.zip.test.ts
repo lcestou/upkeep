@@ -58,6 +58,7 @@ const ctx = (): KindCtx => ({
 		language: "system",
 		selfAuto: false,
 		upkeepCommand: false,
+		waitUnmetered: false,
 	},
 	log: () => {},
 	stage: () => {},

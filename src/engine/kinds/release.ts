@@ -150,7 +150,14 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			detail: MESSAGES.noAssetForArch(spec.name, ctx.arch ?? "x86_64"),
 		};
 	const release = await releaseOf(spec, ctx);
-	if (isFailure(release)) return { installed, latest: null, status: "problem", detail: release.detail };
+	if (isFailure(release))
+		return {
+			installed,
+			latest: null,
+			status: "problem",
+			detail: release.detail,
+			offline: release.failure === "network",
+		};
 	const base = { ...fromRelease(release) };
 	if (!release.version)
 		return {

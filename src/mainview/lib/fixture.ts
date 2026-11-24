@@ -662,6 +662,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		language: "system",
 		selfAuto: false,
 		upkeepCommand: false,
+		waitUnmetered: false,
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",

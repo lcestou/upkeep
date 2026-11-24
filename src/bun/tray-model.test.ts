@@ -42,6 +42,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			language: "system",
 			selfAuto: false,
 			upkeepCommand: false,
+			waitUnmetered: false,
 		},
 		rate: null,
 		checkedAt: null,

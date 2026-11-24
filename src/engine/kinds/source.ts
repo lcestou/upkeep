@@ -62,13 +62,15 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 	let release: Release | undefined;
 	if (spec.latest) {
 		const l = await latestFromSource(spec.latest, opts);
-		if (isFailure(l)) return { installed, latest: null, status: "problem", detail: l.detail };
+		if (isFailure(l))
+			return { installed, latest: null, status: "problem", detail: l.detail, offline: l.failure === "network" };
 		latest = l.version;
 		release = l.release;
 		tag = l.release?.tag ?? l.version;
 	} else {
 		const r = await forgeRelease(spec.repo ?? "", spec.forge, opts);
-		if (isFailure(r)) return { installed, latest: null, status: "problem", detail: r.detail };
+		if (isFailure(r))
+			return { installed, latest: null, status: "problem", detail: r.detail, offline: r.failure === "network" };
 		release = r;
 		tag = r.tag;
 		// A dotless tag is not a comparable version, but a commit compare needs none: the row shows the tag.

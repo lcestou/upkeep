@@ -2751,3 +2751,11 @@ msgstr "Téléchargée, attend son tour"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nouvelles versions dans leurs marketplaces : {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic updates"
+msgstr "Attendre une connexion non limitée et le secteur pour les mises à jour automatiques"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works."
+msgstr "Les mises à jour automatiques et les téléchargements anticipés attendent sur une connexion limitée ou sur batterie. Les vérifications continuent, et Installer fonctionne toujours."

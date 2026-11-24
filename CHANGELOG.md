@@ -3,6 +3,9 @@
 ## Unreleased
 
 - The Claude Code plugins row now says when an update is waiting. A check refreshes the plugin marketplaces, as Claude Code does at start, and compares each installed plugin's version with the one its marketplace now holds (for a plugin with no version, new commits in its own folder of the marketplace). The row turns to Update and names the plugins, so it shows in the count and the tray like any other update. A plugin whose marketplace entry points to another repo and names no version is still only updated by Run now or an automatic run.
+- While Upkeep installs updates, the computer does not suspend or shut down: Upkeep holds a systemd-logind lock from the first install to the last check, and lets go when the run ends, is stopped or Upkeep quits. This is on for everyone, since it only prevents a half-done update. A system without `systemd-inhibit` installs as before, and the run log says so once.
+- A new setting, off by default: "Wait for an unmetered connection and mains power for automatic updates". When it is on, the apps marked automatic do not install at login while NetworkManager says the connection is metered or UPower says the computer runs on battery, and the release files behind the current app are not downloaded early. They are named in the "ready" notice instead. Checks still run, and pressing Install always installs. Without NetworkManager or UPower the connection counts as unmetered and the power as mains.
+- When Upkeep starts at login before the network is up, it checks again after 30 seconds, 2 minutes and 5 minutes, and the rows keep what the last check found meanwhile, instead of a network failure on every row. Only a check that still finds no network after the last wait shows the failures.
 
 ## 0.1.8, 2026-11-21
 

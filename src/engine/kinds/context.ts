@@ -57,6 +57,8 @@ export type Checked = {
 	ahead?: number;
 	/** What an install of this app would put in place. */
 	target?: Target;
+	/** The check failed before the forge answered at all: the network, not the app. */
+	offline?: boolean;
 };
 
 export type Target = { from: string | null; version: string; tag: string; asset?: Asset };

@@ -2709,3 +2709,11 @@ msgstr "ダウンロード済み、順番待ち"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "マーケットプレイスに新しいバージョンがあります：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic updates"
+msgstr "自動更新は従量制でない接続と AC 電源を待つ"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works."
+msgstr "従量制の接続やバッテリー駆動のときは、自動更新と先行ダウンロードを待たせます。確認は続き、インストールはいつでも使えます。"

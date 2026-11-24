@@ -2709,3 +2709,11 @@ msgstr "已下载，等待轮到它"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic updates"
+msgstr "自动更新等待非计量连接和交流电源"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works."
+msgstr "在计量连接或电池供电时，自动更新和提前下载会等待。检查照常进行，“安装”始终可用。"

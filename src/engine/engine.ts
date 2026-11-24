@@ -48,6 +48,7 @@ import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
 import { expandHome, type Paths } from "./paths";
+import { holdSleep, waitReason } from "./power";
 import { killTree, type Run, type RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
@@ -88,6 +89,11 @@ export type EngineDeps = {
 	catalogueUrl?: string;
 	fetch: FetchLike;
 	run: Run;
+	/**
+	 * Runs the sleep lock during an install and the metered and battery questions. Without it no lock is taken and
+	 * nothing waits; realDeps passes the real runner, and tests a fake so no real lock is ever held.
+	 */
+	power?: Run;
 	now: () => Date;
 	/** The app's version, shown in Settings. */
 	version?: string;
@@ -108,7 +114,10 @@ export type EngineDeps = {
 export type Engine = {
 	snapshot(): Snapshot;
 	subscribe(listener: (e: EngineEvent) => void): () => void;
-	check(keys?: string[]): Promise<void>;
+	/** quietOffline: an app whose check found no network keeps the row it had, so a start before the network is up shows nothing failed. */
+	check(keys?: string[], opts?: { quietOffline?: boolean }): Promise<void>;
+	/** Whether the last check found the network down: some app could not reach its forge and none that asks one got an answer. */
+	offline(): boolean;
 	install(keys: string[]): Promise<{ started: boolean; reason?: string }>;
 	stopAfterCurrent(): void;
 	dismissSummary(): void;
@@ -156,6 +165,22 @@ function restartWanted(spec: AppSpec): boolean {
 		(spec.restart?.length ?? 0) > 0 ||
 		spec.relaunch === true
 	);
+}
+
+/** The kinds whose check may answer from the disk alone, so a good answer says nothing about the network. */
+const LOCAL_CHECKS = new Set(["command", "manual", "claude-plugins"]);
+
+/**
+ * Whether a check's results say the network is down: some app failed before its source answered, and no app that
+ * always asks a forge got an answer. A command app's answer proves nothing, since its version may come from the disk.
+ * A partial outage (one forge down, another up) is not offline.
+ */
+function offlineIn(list: AppSpec[], found: Map<string, Checked | null>): boolean {
+	const rows = list.flatMap((s) => {
+		const c = found.get(s.key);
+		return c ? [{ c, local: LOCAL_CHECKS.has(s.kind) }] : [];
+	});
+	return rows.some((r) => r.c.offline) && !rows.some((r) => !r.local && r.c.status !== "problem");
 }
 
 /** Runs fn with at most n in flight at once. */
@@ -492,7 +517,11 @@ export function createEngine(deps: EngineDeps): Engine {
 		emitApp(app);
 	}
 
-	async function doCheck(keys?: string[]): Promise<void> {
+	/** Whether the last check found the network down; see offline(). */
+	let lastOffline = false;
+
+	/** quietOffline keeps a row that found no network as it was before, and leaves it and the check time unsaved. */
+	async function doCheck(keys?: string[], quietOffline = false): Promise<void> {
 		const list = loadSpecs().filter((s) => !keys || keys.includes(s.key));
 		run = {
 			...run,
@@ -530,8 +559,11 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.index += 1;
 			emitRun();
 		};
+		const found = new Map<string, Checked | null>();
+		const kept = new Set<string>();
 		await Promise.all(
 			list.map(async (spec) => {
+				const before = checked.get(spec.key);
 				let c: Checked | null;
 				try {
 					c = await checkOne(spec, kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
@@ -543,12 +575,21 @@ export function createEngine(deps: EngineDeps): Engine {
 						detail: err instanceof Error ? err.message : String(err),
 					};
 				}
-				accept(spec, c, history);
+				found.set(spec.key, c);
+				if (quietOffline && c?.offline && before) {
+					kept.add(spec.key);
+					accept(spec, before, history);
+				} else accept(spec, c, history);
 				done();
 			}),
 		);
-		checkedAt = deps.now().toISOString();
-		rememberRows(list, checkedAt);
+		lastOffline = offlineIn(list, found);
+		if (quietOffline && lastOffline) say(null, "No network yet: the rows keep what the last check found");
+		else checkedAt = deps.now().toISOString();
+		rememberRows(
+			list.filter((s) => !kept.has(s.key)),
+			checkedAt ?? deps.now().toISOString(),
+		);
 		log?.close();
 		log = null;
 		run = { ...run, id: null, phase: "idle", index: run.total, currentKey: null };
@@ -704,16 +745,22 @@ export function createEngine(deps: EngineDeps): Engine {
 			emitRun();
 			return { started: false, reason: err instanceof Error ? err.message : String(err) };
 		}
-		const early = createAhead({
-			dir: join(paths.cache, "dl"),
-			fetch: deps.fetch,
-			token,
-			stallMs: deps.stallMs,
-			retryMs: deps.retryMs,
-			freeBytes: deps.freeBytes,
-			onReady: fetchedAhead,
-			log: say,
-		});
+		const release = await sleepHeld();
+		// The setting holds early downloads back on a metered connection or on battery; the run itself still goes.
+		const wait = deps.power && loadState(paths).settings.waitUnmetered ? await waitReason(deps.power) : null;
+		if (wait) say(null, `Downloads ahead wait: ${wait === "metered" ? "metered connection" : "on battery"}`);
+		const early = wait
+			? null
+			: createAhead({
+					dir: join(paths.cache, "dl"),
+					fetch: deps.fetch,
+					token,
+					stallMs: deps.stallMs,
+					retryMs: deps.retryMs,
+					freeBytes: deps.freeBytes,
+					onReady: fetchedAhead,
+					log: say,
+				});
 		ahead = early;
 		const p = doRun(queue)
 			.catch((err: Error) => {
@@ -741,15 +788,31 @@ export function createEngine(deps: EngineDeps): Engine {
 			.finally(async () => {
 				// What came down ahead and was never used goes before the lock does; the lock goes even if that fails.
 				try {
-					await early.cancel();
+					await early?.cancel();
 				} finally {
 					if (ahead === early) ahead = null;
 					runQueue = null;
 					releaseLock(paths);
+					await release?.().catch(() => undefined);
 				}
 			});
 		busy = p;
 		return { started: true };
+	}
+
+	/** Said once per engine: a machine without systemd-inhibit runs every install without the lock. */
+	let noLockSaid = false;
+
+	/** Takes the sleep lock for a run; null, and one log line the first time, where there is none to take. */
+	async function sleepHeld(): Promise<(() => Promise<void>) | null> {
+		if (!deps.power) return null;
+		const release = await holdSleep(deps.power, process.pid, "Installing updates").catch(() => null);
+		if (release) say(null, "Sleep and shutdown held until the run ends");
+		else if (!noLockSaid) {
+			noLockSaid = true;
+			say(null, "No systemd-inhibit here: sleep is not held during installs");
+		}
+		return release;
 	}
 
 	async function doRun(queue: AppSpec[]): Promise<void> {
@@ -856,9 +919,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			listeners.add(listener);
 			return () => listeners.delete(listener);
 		},
-		check(keys) {
+		check(keys, opts) {
 			if (run.phase === "installing" || run.phase === "checking" || starting) return busy;
-			const p = doCheck(keys).catch((err: Error) => {
+			const p = doCheck(keys, opts?.quietOffline).catch((err: Error) => {
 				say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
 				run = { ...run, phase: "idle", currentKey: null };
 				emitRun();
@@ -892,6 +955,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			emitRun();
 		},
+		offline: () => lastOffline,
 		dismissSummary() {
 			if (run.phase !== "summary") return;
 			for (const a of apps.values()) {

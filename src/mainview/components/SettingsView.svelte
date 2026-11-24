@@ -152,6 +152,18 @@
 			/>
 		</label>
 		<label class="row">
+			<span class="text">
+				<span data-testid="setting-wait-label">{TEXT.waitUnmetered}</span>
+				<span class="hint" data-testid="setting-wait-hint">{TEXT.waitUnmeteredHint}</span>
+			</span>
+			<input
+				type="checkbox"
+				checked={model.settings.waitUnmetered}
+				data-testid="setting-wait"
+				onchange={(e) => set({ waitUnmetered: e.currentTarget.checked })}
+			/>
+		</label>
+		<label class="row">
 			<span class="text" data-testid="setting-check-every-label">{TEXT.checkEvery}</span>
 			<select
 				value={model.settings.checkEvery}

@@ -17,6 +17,7 @@ import { createRaiser, openX11 } from "./raise";
 import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/languages";
 import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
+import { autoInstall, checkAtStart } from "./start-check";
 import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
 import { entryArgv, SELF_FILES } from "./self-shim";
@@ -456,6 +457,8 @@ function notify(body: string): void {
 let firstBackgroundCheck = background;
 /** One notice per ready set: the same pending list is announced once, not after every check. */
 function announceReady(): void {
+	// A check that found no network learned nothing new; the next one speaks.
+	if (engine.offline()) return;
 	const all = engine.snapshot();
 	// At a login start the automatic apps are about to install and get their own "Updated" notice.
 	const auto = firstBackgroundCheck ? new Set(engine.readyKeys(true)) : new Set<string>();
@@ -562,9 +565,13 @@ try {
 const startHidden = wasOpen === null ? background : !wasOpen;
 
 if (startHidden && tray.visible) {
-	await engine.check();
-	const auto = engine.readyKeys(true);
-	if (auto.length > 0) await engine.install(auto);
+	await checkAtStart(engine);
+	const wait = await autoInstall(engine, deps.power);
+	if (wait) {
+		console.log(`automatic updates wait: ${wait === "metered" ? "metered connection" : "on battery"}`);
+		// The automatic apps were left out of the notice as about to install; they wait now, so they are named.
+		announceReady();
+	}
 } else {
 	openWindow();
 	const checked = engine.check();

@@ -2751,3 +2751,11 @@ msgstr "Scaricato, attende il suo turno"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nuove versioni nei loro marketplace: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic updates"
+msgstr "Attendi una connessione non a consumo e l'alimentazione di rete per gli aggiornamenti automatici"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works."
+msgstr "Gli aggiornamenti automatici e i download anticipati aspettano su una connessione a consumo o a batteria. I controlli continuano e Installazione funziona sempre."

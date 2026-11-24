@@ -300,6 +300,12 @@ export const TEXT = {
 	get upkeepCommandHint() {
 		return "Puts upkeep in ~/.local/bin for the terminal and scripts. A file already there that Upkeep did not write is left alone.";
 	},
+	get waitUnmetered() {
+		return "Wait for an unmetered connection and mains power for automatic updates";
+	},
+	get waitUnmeteredHint() {
+		return "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works.";
+	},
 	get keepBackups() {
 		return "Restore points to keep";
 	},

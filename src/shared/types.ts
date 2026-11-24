@@ -288,6 +288,8 @@ export type Settings = {
 	selfAuto: boolean;
 	/** An `upkeep` command in ~/.local/bin that runs this install's command line. Off: no such file from Upkeep. */
 	upkeepCommand: boolean;
+	/** Automatic installs and early downloads wait while the connection is metered or the machine is on battery. A pressed Install never waits. */
+	waitUnmetered: boolean;
 };
 
 /**
