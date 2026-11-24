@@ -3,6 +3,7 @@
 ## Unreleased
 
 - The Claude Code plugins row now says when an update is waiting. A check refreshes the plugin marketplaces, as Claude Code does at start, and compares each installed plugin's version with the one its marketplace now holds (for a plugin with no version, new commits in its own folder of the marketplace). The row turns to Update and names the plugins, so it shows in the count and the tray like any other update. A plugin whose marketplace entry points to another repo and names no version is still only updated by Run now or an automatic run.
+- An AppImage's pane has a "Show in the app menu" switch, off by default. On, Upkeep writes a menu entry and icon taken from the AppImage itself, writes them again after each update, and deletes exactly those files when the switch goes off or the app leaves the list. When AppImageLauncher, Gear Lever or the app already made an entry for the same file, the row says so and adds no second one.
 
 ## 0.1.8, 2026-11-21
 
