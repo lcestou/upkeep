@@ -30,7 +30,8 @@ test("Wait before offering a new release holds a young release back, says when, 
 	await expect(page.getByTestId("install-now-zen")).toHaveText("Install now anyway");
 	await page.getByTestId("install-now-zen").click();
 	await expect(page.getByTestId("settles-line")).toHaveCount(0);
-	await expect(page.getByTestId("status-zen")).not.toHaveText(/^Offered from/);
+	// Zen joins the run: its row shows the install's stem in place of a status word.
+	await expect(page.getByTestId("row-zen").getByTestId("stem-zen")).toBeVisible();
 });
 
 test("turning the wait off offers a settling release again", async ({ page }) => {
