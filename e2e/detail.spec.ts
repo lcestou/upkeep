@@ -46,6 +46,8 @@ test("a restore point that holds settings says so, and the swap keeps them with 
 	page,
 }) => {
 	await load(page);
+	// Ghostty is up to date, so its row sits in the folded group.
+	await page.getByTestId("group-fresh-toggle").click();
 	await page.getByTestId("open-ghostty").click();
 	const tag = page.getByTestId("point-config-ghostty-1.3.0");
 	await expect(tag).toHaveText("with settings");
