@@ -11,10 +11,13 @@ import {
 	type Asset,
 	type Failure,
 	fetchRelease,
+	fetchReleases,
 	isFailure,
 	parseRelease,
+	parseReleases,
 	record,
 	type Release,
+	RELEASE_LIST,
 	type ReleaseOpts,
 	type Revalidated,
 	revalidate,
@@ -124,22 +127,43 @@ function parseGitlab(body: unknown): Release | null {
 	};
 }
 
-/** A cached or fresh release body from a forge other than GitHub; text that is not JSON or has no tag is a failure. */
-function readRelease(text: string, f: Forge): Release | Failure {
-	let body: unknown = null;
-	try {
-		body = JSON.parse(text);
-	} catch {
-		// not JSON: no release, said below
-	}
+/**
+ * One release body from a forge other than GitHub, null when it has no tag. A Gitea asset is the uploader's own address
+ * on the host; only https is taken. No API address is kept: another forge's answer never decides where the GitHub
+ * token goes.
+ */
+function readOne(body: unknown, f: Forge): Release | null {
 	const r = f.kind === "gitlab" ? parseGitlab(body) : parseRelease(body);
-	if (!r) return { failure: "http", detail: MESSAGES.forgeSentNoRelease(f.host, f.path) };
-	// A Gitea asset is the uploader's own address on the host; only https is taken. No API address is kept: another
-	// forge's answer never decides where the GitHub token goes.
+	if (!r) return null;
 	const assets = r.assets
 		.filter((a) => httpsUrl(a.url) !== null)
 		.map((a) => ({ name: a.name, url: a.url, size: a.size, digest: a.digest }));
 	return { ...r, assets };
+}
+
+/** A cached or fresh release body from a forge other than GitHub; text that is not JSON or has no tag is a failure. */
+function readRelease(text: string, f: Forge): Release | Failure {
+	return readOne(jsonOf(text), f) ?? { failure: "http", detail: MESSAGES.forgeSentNoRelease(f.host, f.path) };
+}
+
+/** A cached or fresh release list from a forge other than GitHub; text that is not a JSON list is a failure. */
+function readList(text: string, f: Forge): Release[] | Failure {
+	const body = jsonOf(text);
+	if (!Array.isArray(body)) return { failure: "http", detail: MESSAGES.forgeSentNoRelease(f.host, f.path) };
+	// GitLab marks no pre-release; one dated in the future (upcoming_release) is not out yet.
+	return parseReleases(
+		body.filter((item) => record(item).upcoming_release !== true),
+		(item) => readOne(item, f),
+	);
+}
+
+/** The parsed text, or null when it is not JSON. */
+function jsonOf(text: string): unknown {
+	try {
+		return JSON.parse(text);
+	} catch {
+		return null;
+	}
 }
 
 /**
@@ -155,16 +179,44 @@ export async function forgeRelease(
 ): Promise<Release | Failure> {
 	const f = forgeOf(repo, forge);
 	if (!f || f.kind === "github") return fetchRelease(f?.path ?? repo, opts);
-	const base = `https://${f.host}`;
 	const tag = opts.tag === undefined ? null : encodeURIComponent(opts.tag);
+	const which = f.kind === "gitlab" ? (tag ?? "permalink/latest") : tag === null ? "latest" : `tags/${tag}`;
+	return forgeGet(f, `/${which}`, tag === null ? "" : `@${tag}`, opts, (text) => readRelease(text, f));
+}
+
+/**
+ * The newest RELEASE_LIST releases of a repo on whichever forge it names, pre-releases included and drafts left out,
+ * with GitHub's token and budget kept to GitHub as forgeRelease keeps them.
+ */
+export async function forgeReleases(
+	repo: string,
+	forge: ForgeKind | undefined,
+	opts: ReleaseOpts,
+): Promise<Release[] | Failure> {
+	const f = forgeOf(repo, forge);
+	if (!f || f.kind === "github") return fetchReleases(f?.path ?? repo, opts);
+	const query = f.kind === "gitlab" ? `?per_page=${RELEASE_LIST}` : `?limit=${RELEASE_LIST}`;
+	return forgeGet(f, query, "@list", opts, (text) => readList(text, f));
+}
+
+/**
+ * A GET of the releases address of a repo on GitLab or Gitea plus rest, revalidated with the etag cached under the
+ * repo's name and suffix. A cached answer read as a failure is deleted, so a corrupt cache does not stick until the
+ * host's etag changes.
+ */
+async function forgeGet<T extends object>(
+	f: Forge,
+	rest: string,
+	suffix: string,
+	opts: ReleaseOpts,
+	read: (text: string) => T | Failure,
+): Promise<T | Failure> {
+	const base = `https://${f.host}`;
 	const url =
 		f.kind === "gitlab"
-			? `${base}/api/v4/projects/${encodeURIComponent(f.path)}/releases/${tag ?? "permalink/latest"}`
-			: `${base}/api/v1/repos/${f.path}/releases/${tag === null ? "latest" : `tags/${tag}`}`;
-	const cacheFile = join(
-		opts.cacheDir,
-		`${f.host}__${f.path.replaceAll("/", "__")}${tag === null ? "" : `@${tag}`}.json`,
-	);
+			? `${base}/api/v4/projects/${encodeURIComponent(f.path)}/releases${rest}`
+			: `${base}/api/v1/repos/${f.path}/releases${rest}`;
+	const cacheFile = join(opts.cacheDir, `${f.host}__${f.path.replaceAll("/", "__")}${suffix}.json`);
 	let got: Revalidated;
 	try {
 		got = await revalidate(url, cacheFile, { Accept: "application/json", "User-Agent": "upkeep" }, opts.fetch);
@@ -175,8 +227,7 @@ export async function forgeRelease(
 		};
 	}
 	if (got.fromCache) {
-		const r = readRelease(got.text, f);
-		// A corrupt cache would otherwise stick until the host's etag changes.
+		const r = read(got.text);
 		if (isFailure(r)) rmSync(cacheFile, { force: true });
 		return r;
 	}
@@ -190,7 +241,7 @@ export async function forgeRelease(
 		};
 	}
 	if (!got.res.ok) return { failure: "http", detail: MESSAGES.forgeAnswered(f.host, got.res.status, f.path) };
-	return readRelease(got.text, f);
+	return read(got.text);
 }
 
 // An <a> tag's href, in double, single or no quotes.

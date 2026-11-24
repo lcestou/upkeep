@@ -17,7 +17,7 @@ import type { AppSpec } from "../../shared/types";
 import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
 import { download, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
-import { forgeRelease, linksRelease, zsyncRelease } from "../forge";
+import { forgeRelease, forgeReleases, linksRelease, zsyncRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
@@ -102,13 +102,29 @@ export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult
 	return probeVersion(dest, spec.version_args ?? ["--version"], { run: ctx.run });
 }
 
+/** Whether an app's releases can be listed: a file kind whose table names a repo, which a pre-release pick and Install another version both need. */
+export function canList(spec: Pick<AppSpec, "kind" | "repo">): boolean {
+	return Boolean(spec.repo) && (["appimage", "archive", "file"].includes(spec.kind) || isPackage(spec.kind));
+}
+
 /**
- * The release a check compares against, or with tag the release of that tag (a restore point's): the latest of repo
- * on its forge, else the page a "links:" latest names, else the file a "zsync:" one names, else what latest names
- * when it carries a download (a "json:" source). A latest that only gives a version has nothing to install, which is a failure here.
+ * The newest release of a list by version, pre-releases included; a release whose tag holds no version is passed over.
+ * Null when none holds one. The forge's own order is by date, and a backport can be published after a newer release.
  */
-async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Release | Failure> {
-	const opts = {
+export function newestOf(list: Release[]): Release | null {
+	let best: Release | null = null;
+	for (const r of list) if (r.version && (!best || isNewer(best.version, r.version))) best = r;
+	return best;
+}
+
+/** The release list of a listable app on its forge, newest first, as a person picks a version from it. */
+export function listReleases(spec: AppSpec, ctx: KindCtx): Promise<Release[] | Failure> {
+	return forgeReleases(spec.repo ?? "", spec.forge, releaseOpts(ctx));
+}
+
+/** The options every release lookup of this app passes: its cache, token, fetch and budget callback. */
+function releaseOpts(ctx: KindCtx, tag?: string) {
+	return {
 		cacheDir: join(ctx.paths.cache, "github"),
 		token: ctx.token,
 		fetch: ctx.fetch,
@@ -116,6 +132,20 @@ async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Rel
 		api: ctx.api,
 		tag,
 	};
+}
+
+/**
+ * The release a check compares against, or with tag the release of that tag (a restore point's): the latest of repo
+ * on its forge (with prerelease, the newest of its release list), else the page a "links:" latest names, else the file a "zsync:" one names, else what latest names
+ * when it carries a download (a "json:" source). A latest that only gives a version has nothing to install, which is a failure here.
+ */
+export async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Release | Failure> {
+	const opts = releaseOpts(ctx, tag);
+	if (spec.prerelease && tag === undefined && canList(spec)) {
+		const list = await listReleases(spec, ctx);
+		if (isFailure(list)) return list;
+		return newestOf(list) ?? list[0] ?? { failure: "http", detail: MESSAGES.noPublishedRelease(spec.repo ?? "") };
+	}
 	if (spec.repo || !spec.latest) return forgeRelease(spec.repo ?? "", spec.forge, opts);
 	if (spec.latest.startsWith("links:")) return linksRelease(spec.latest.slice(6), assetFor(spec, ctx.arch) ?? "", opts);
 	if (spec.latest.startsWith("zsync:")) return zsyncRelease(spec.latest.slice(6), ctx.fetch);
@@ -194,6 +224,28 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 	}
 	const detail = untracked ? { detail: MESSAGES.versionNotRecorded(spec.name) } : {};
 	return { installed, latest, status, size, target, ...detail, ...base };
+}
+
+/**
+ * The install target for one release of a listable app, by its tag: what Install another version runs. The tag must
+ * hold a version, and the app's asset pattern for this machine must match exactly one of its files, as a check asks.
+ */
+export async function versionTarget(
+	spec: AppSpec,
+	ctx: KindCtx,
+	tag: string,
+	installed: string | null,
+): Promise<Target | Failure> {
+	const pattern = assetFor(spec, ctx.arch);
+	if (pattern === undefined)
+		return { failure: "http", detail: MESSAGES.noAssetForArch(spec.name, ctx.arch ?? "x86_64") };
+	const release = await releaseOf(spec, ctx, tag);
+	if (isFailure(release)) return release;
+	if (!release.version) return { failure: "http", detail: MESSAGES.latestTagNotTracked(release.tag) };
+	const pick = pickAsset(release, pattern);
+	if (!pick) return { failure: "http", detail: MESSAGES.noAssetMatches(pattern) };
+	if (pick.count > 1) return { failure: "http", detail: MESSAGES.severalAssetsMatch(pattern, pick.names.join(", ")) };
+	return { from: installed, version: release.version, tag: release.tag, asset: pick.asset };
 }
 
 /** Depth-first search under dir for a file whose name matches; null when none, and the first match in directory order wins. */

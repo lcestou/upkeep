@@ -20,7 +20,7 @@ import type { Run } from "../run";
 import { readInflight } from "../store";
 import { ok, realRun, recordingRun, script, tempHome } from "../testkit";
 import type { KindCtx, Target } from "./context";
-import { checkRelease, dlPath, installRelease, probeInstalled } from "./release";
+import { canList, checkRelease, dlPath, installRelease, newestOf, probeInstalled } from "./release";
 
 let t: ReturnType<typeof tempHome>;
 let proc = "";
@@ -1009,4 +1009,23 @@ test("install: a file fetched ahead of its turn installs without a download, and
 	expect(outcome.stages.download).toBe(1234);
 	expect(asked).toBe(0);
 	expect(stages.find(([s, p]) => s === "download" && p === 100)).toBeDefined();
+});
+
+test("newestOf picks by version, not by the forge's date order, and passes over a tag with no version", () => {
+	const rel = (tag: string, version: string | null) => ({
+		tag,
+		version,
+		url: "",
+		publishedAt: "",
+		notes: "",
+		assets: [],
+	});
+	// A backport published after the newer line comes first in the forge's list.
+	const list = [rel("v1.9.5", "1.9.5"), rel("nightly", null), rel("v2.0.0-rc.2", "2.0.0-rc.2"), rel("v1.9.4", "1.9.4")];
+	expect(newestOf(list)?.tag).toBe("v2.0.0-rc.2");
+	expect(newestOf([rel("nightly", null)])).toBeNull();
+	expect(canList({ kind: "appimage", repo: "o/p" })).toBe(true);
+	expect(canList({ kind: "deb", repo: "o/p" })).toBe(true);
+	expect(canList({ kind: "appimage" })).toBe(false);
+	expect(canList({ kind: "source", repo: "o/p" })).toBe(false);
 });

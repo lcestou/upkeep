@@ -20,6 +20,8 @@ export type State = {
 	skip: Record<string, string>;
 	hold: Record<string, true>;
 	auto: Record<string, boolean>;
+	/** The person's pre-release switch per app, over its table's prerelease field. */
+	prerelease: Record<string, boolean>;
 	settings: Settings;
 	notified: string;
 	/** Apps replaced while they ran: key to the ISO time the install ended. Cleared once no older process remains. */
@@ -95,7 +97,7 @@ function obj<T>(v: unknown): Record<string, T> {
 	return typeof v === "object" && v !== null && !Array.isArray(v) ? (v as Record<string, T>) : {};
 }
 
-/** Skips, holds, auto flags and settings, in the state directory beside run.lock rather than with apps.toml. */
+/** Skips, holds, auto and pre-release flags and settings, in the state directory beside run.lock rather than with apps.toml. */
 const stateFile = (paths: Paths) => join(paths.state, "state.json");
 
 /**
@@ -126,6 +128,7 @@ export function loadState(paths: Paths): State {
 		skip: obj<string>(raw.skip),
 		hold: obj<true>(raw.hold),
 		auto: obj<boolean>(raw.auto),
+		prerelease: obj<boolean>(raw.prerelease),
 		settings: clampSettings(obj(raw.settings)),
 		notified: typeof raw.notified === "string" ? raw.notified : "",
 		restart: obj<string>(raw.restart),

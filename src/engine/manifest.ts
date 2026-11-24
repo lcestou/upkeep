@@ -31,7 +31,7 @@ const STRING_FIELDS = [
 	"note",
 ] as const;
 const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore", "restart"] as const;
-const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch", "probe"] as const;
+const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch", "probe", "prerelease"] as const;
 // Process names that many programs share: relaunch closes every process with its name, so it refuses these.
 // shortcut: a fixed list of common interpreters; a table naming another shared runtime is the owner's to get right.
 const SHARED_NAMES = new Set([

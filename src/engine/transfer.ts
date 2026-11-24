@@ -9,7 +9,7 @@ import { loadState, updateState, withStateLock, writeAtomic } from "./store";
 
 /**
  * Everything a person set up, in one file to carry to another machine or hand to an agent: the app list as written
- * (apps.toml, comments included), the settings, the skips, holds and automatic installs, and the extras' switches.
+ * (apps.toml, comments included), the settings, the skips, holds, automatic installs and pre-release switches, and the extras' switches.
  * `upkeep` is the format's version; a reader refuses one it does not know. Run state (the notified set, restarts
  * pending, history, restore points) stays behind: it belongs to the machine.
  */
@@ -21,6 +21,8 @@ export type Transfer = {
 	skip: Record<string, string>;
 	hold: Record<string, true>;
 	auto: Record<string, boolean>;
+	/** Absent in a file exported before pre-releases could be followed. */
+	prerelease?: Record<string, boolean>;
 	extras: ExtrasSettings;
 };
 
@@ -35,6 +37,7 @@ export function exportSetup(paths: Paths, seedFile: string, now: Date): Transfer
 		skip: state.skip,
 		hold: state.hold,
 		auto: state.auto,
+		prerelease: state.prerelease,
 		extras: loadExtras(paths),
 	};
 }
@@ -101,6 +104,7 @@ export function importSetup(
 			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
 			s.auto = mine(only(doc.auto, (x): x is boolean => typeof x === "boolean"));
+			s.prerelease = mine(only(doc.prerelease, (x): x is boolean => typeof x === "boolean"));
 		});
 		if (isRecord(doc.extras)) {
 			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.

@@ -23,7 +23,12 @@ export type Release = {
 	publishedAt: string;
 	notes: string;
 	assets: Asset[];
+	/** The forge marks it a pre-release. Only a release list says so; releases/latest never answers with one. */
+	prerelease?: boolean;
 };
+
+/** How many releases a list asks for: the newest few, for a pre-release pick and the versions a person may install. */
+export const RELEASE_LIST = 10;
 
 export type Failure = { failure: "rate" | "network" | "http"; detail: string; resetAt?: string };
 
@@ -102,7 +107,17 @@ export function parseRelease(body: unknown): Release | null {
 		publishedAt: str(b.published_at),
 		notes: str(b.body),
 		assets,
+		prerelease: b.prerelease === true,
 	};
+}
+
+/** A release list's body as releases, newest first as the forge lists them. A draft or an entry with no tag is left out. */
+export function parseReleases(body: unknown, parse: (item: unknown) => Release | null = parseRelease): Release[] {
+	if (!Array.isArray(body)) return [];
+	return body.flatMap((item) => {
+		const r = record(item).draft === true ? null : parse(item);
+		return r ? [r] : [];
+	});
 }
 
 type Cached = { etag: string; body: string };
@@ -278,17 +293,44 @@ export function pickDistTag(tags: Record<string, unknown>, installed?: string): 
  * release costs no budget. Each tag has a cache file of its own.
  */
 export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Release | Failure> {
-	const api = opts.api ?? GITHUB_API;
 	const which = opts.tag === undefined ? "latest" : `tags/${encodeURIComponent(opts.tag)}`;
-	const cacheFile = join(
-		opts.cacheDir,
-		`${repo.replace("/", "__")}${opts.tag === undefined ? "" : `@${encodeURIComponent(opts.tag)}`}.json`,
+	const at = opts.tag === undefined ? "" : `@${encodeURIComponent(opts.tag)}`;
+	return cachedGithub(`/repos/${repo}/releases/${which}`, at, repo, opts, (body) =>
+		body === undefined
+			? { failure: "http", detail: MESSAGES.githubReleaseNotJson(repo) }
+			: (parseRelease(body) ?? { failure: "http", detail: MESSAGES.githubNoReleaseTag(repo) }),
 	);
+}
+
+/**
+ * The newest RELEASE_LIST releases of owner/repo, pre-releases included and drafts left out, revalidated with its own
+ * cached etag as fetchRelease is. An empty list is an answer, not a failure.
+ */
+export async function fetchReleases(repo: string, opts: ReleaseOpts): Promise<Release[] | Failure> {
+	return cachedGithub(`/repos/${repo}/releases?per_page=${RELEASE_LIST}`, "@list", repo, opts, (body) =>
+		Array.isArray(body) ? parseReleases(body) : { failure: "http", detail: MESSAGES.githubReleaseNotJson(repo) },
+	);
+}
+
+/**
+ * A GitHub GET of path with the token and the rate rules, its answer kept in the cache file named for repo and suffix.
+ * read gets the parsed body, or undefined when the text is not JSON; a cached answer read as a failure is deleted, so a
+ * corrupt cache does not stick until upstream's etag changes.
+ */
+async function cachedGithub<T extends object>(
+	path: string,
+	suffix: string,
+	repo: string,
+	opts: ReleaseOpts,
+	read: (body: unknown) => T | Failure,
+): Promise<T | Failure> {
+	const api = opts.api ?? GITHUB_API;
+	const cacheFile = join(opts.cacheDir, `${repo.replace("/", "__")}${suffix}.json`);
 	const headers: Record<string, string> = { Accept: "application/vnd.github+json", "User-Agent": "upkeep" };
 	if (opts.token && api === GITHUB_API) headers.Authorization = `Bearer ${opts.token}`;
 	let got: Revalidated;
 	try {
-		got = await revalidate(`${api}/repos/${repo}/releases/${which}`, cacheFile, headers, opts.fetch);
+		got = await revalidate(`${api}${path}`, cacheFile, headers, opts.fetch);
 	} catch (err) {
 		return {
 			failure: "network",
@@ -297,26 +339,23 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
 	}
 	const rate = readRate(got.res, opts);
 	if (got.fromCache) {
-		const r = toRelease(got.text, repo);
-		// A corrupt cache would otherwise stick until upstream's etag changes.
+		const r = read(parseJson(got.text));
 		if (isFailure(r)) rmSync(cacheFile, { force: true });
 		return r;
 	}
 	const limited = rateFailure(got.res, got.text, rate);
 	if (limited) return limited;
 	if (!got.res.ok) return { failure: "http", detail: MESSAGES.githubAnsweredSearch(got.res.status, repo) };
-	return toRelease(got.text, repo);
+	return read(parseJson(got.text));
 }
 
-/** A cached or fresh releases/latest body. Text that is not JSON or has no tag is an http failure. */
-function toRelease(text: string, repo: string): Release | Failure {
-	let body: unknown;
+/** The parsed text, or undefined when it is not JSON. */
+function parseJson(text: string): unknown {
 	try {
-		body = JSON.parse(text);
+		return JSON.parse(text);
 	} catch {
-		return { failure: "http", detail: MESSAGES.githubReleaseNotJson(repo) };
+		return undefined;
 	}
-	return parseRelease(body) ?? { failure: "http", detail: MESSAGES.githubNoReleaseTag(repo) };
 }
 
 /** One repository of a search answer, with the fields discovery decides on. */

@@ -108,6 +108,9 @@ export function upkeepRequests(
 		setSkip: ({ key, version }) => ({ ok: engine.setSkip(key, version) }),
 		setHold: ({ key, held }) => ({ ok: engine.setHold(key, held) }),
 		setAuto: ({ key, auto }) => ({ ok: engine.setAuto(key, auto) }),
+		setPrerelease: ({ key, prerelease }) => ({ ok: engine.setPrerelease(key, prerelease) }),
+		versions: ({ key }) => engine.versions(key),
+		installVersion: ({ key, tag }) => engine.installVersion(key, tag),
 		setSettings: (patch) => {
 			const settings = engine.setSettings(patch);
 			try {

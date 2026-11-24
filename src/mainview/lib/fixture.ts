@@ -1,5 +1,6 @@
 // The dev bridge: the 32 seeded apps with the real pending list of 2026-11-10, and a scripted run.
 import type {
+	VersionChoice,
 	AppKind,
 	AppState,
 	AppStatus,
@@ -335,6 +336,7 @@ function toApp(seed: Seed): AppState {
 		commits: seed.commits,
 		ahead: seed.ahead,
 		auto: seed.auto ?? false,
+		prerelease: seed.repo && EARLY_KINDS.has(seed.kind) ? false : undefined,
 		sudo: seed.sudo ?? false,
 		versionless: seed.versionless ?? false,
 		run: seed.run,
@@ -343,6 +345,27 @@ function toApp(seed: Seed): AppState {
 		stages: (seed.stages ?? DEFAULT_STAGES[seed.kind]).map(([id, weight]) => ({ id, weight })),
 		held: false,
 	};
+}
+
+/** The last part of a dotted version, one up: 1.3.1 gives 1.3.2. A version with no number at its end is kept. */
+function bump(version: string): string {
+	return version.replace(/(\d+)([a-z]*)$/, (_, n: string, s: string) => `${Number(n) + 1}${s}`);
+}
+
+/**
+ * The fixture's release list of an app, newest first as a forge lists it: a release candidate of the next version,
+ * the latest, what is installed and each restore point's version.
+ */
+export function fixtureVersions(app: AppState, stable: string | null): VersionChoice[] {
+	const latest = stable ?? app.installed;
+	if (!latest) return [];
+	const list = [`${bump(latest)}-rc.1`, latest, ...(app.installed ? [app.installed] : [])];
+	return [...new Set([...list, ...app.restorePoints.map((p) => p.version)])].map((version, i) => ({
+		tag: `v${version}`,
+		version,
+		publishedAt: iso(NOW - (i * 18 + 3) * DAY),
+		prerelease: version.includes("-rc."),
+	}));
 }
 
 /** The kinds the engine downloads ahead of their turn (canFetchEarly in src/engine/ahead.ts). */
@@ -872,7 +895,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const app = get(key);
 		if (!app) throw new Error(`No app ${key}`);
 		const from = app.installed;
-		const to = app.latest;
+		const to = picked.get(key) ?? app.latest;
 		const total = 3000 / speed;
 		const early = app.downloaded === true;
 		put({ ...app, status: "working", stage: app.stages[0]?.id, stagePct: early ? 100 : 0 });
@@ -918,8 +941,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				? [{ version: from, at: iso(Date.now()) }, ...after.restorePoints].slice(0, settings.keepBackups)
 				: after.restorePoints;
 		log(runId, key, `${app.name} reports ${to}.`);
+		// As the engine does: a picked version older than the latest holds the app there.
+		const order = fixtureVersions(after, stableOf(after)).map((v) => v.version);
+		const older = to !== null && after.latest !== null && order.indexOf(to) > order.indexOf(after.latest);
+		const held = after.held || (picked.delete(key) && older);
 		put({
 			...after,
+			held,
 			status: "done",
 			installed: to,
 			stage: undefined,
@@ -930,6 +958,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		});
 		return { key, name: app.name, from, to, result: "updated", ms };
 	}
+
+	/** Versions the person picked from the release list, until their install is in. */
+	const picked = new Map<string, string>();
+	/** The latest stable release of an app that follows pre-releases, so switching back finds it. */
+	const stableLatest = new Map<string, string | null>();
+	/** The latest stable release of an app: the one kept when it follows pre-releases, else its latest. */
+	const stableOf = (app: AppState) => (stableLatest.has(app.key) ? (stableLatest.get(app.key) ?? null) : app.latest);
 
 	/** keep: results from the pass a retry continues; the engine keeps them in the summary. */
 	/** The run under way's order, which joinRun appends to; null outside a run. */
@@ -1094,7 +1129,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			return { stopping: true };
 		},
 		dismissSummary: () => {
-			for (const app of apps) if (app.status === "done") put({ ...app, status: "fresh" });
+			for (const app of apps)
+				if (app.status === "done") put({ ...app, status: app.held && app.installed !== app.latest ? "held" : "fresh" });
+			picked.clear();
 			// As the engine does: a failed app is ready to try again and says why its last try ended, until the next check.
 			for (const app of apps)
 				if (app.status === "failed" || app.status === "rolled_back")
@@ -1175,6 +1212,37 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (!app) return { ok: false };
 			put({ ...app, auto });
 			return { ok: true };
+		},
+		setPrerelease: ({ key, prerelease }) => {
+			const app = get(key);
+			if (!app || app.prerelease === undefined) return { ok: false };
+			// As the engine's check would answer: on, the newest release is the next version's candidate.
+			const stable = stableOf(app);
+			if (prerelease) stableLatest.set(key, stable);
+			else stableLatest.delete(key);
+			const latest = prerelease ? (fixtureVersions(app, stable)[0]?.version ?? stable) : stable;
+			const pending = latest !== null && latest !== app.installed;
+			const status: AppStatus = app.held || app.skipped ? "held" : pending ? "ready" : "fresh";
+			put({ ...app, prerelease, latest, status });
+			return { ok: true };
+		},
+		versions: async ({ key }) => {
+			const app = get(key);
+			if (!app || app.prerelease === undefined) return { versions: [], problem: MESSAGES.noApp(key) };
+			// A forge takes a moment to answer.
+			await sleep(120 / speed);
+			return { versions: fixtureVersions(app, stableOf(app)) };
+		},
+		installVersion: ({ key, tag }) => {
+			const app = get(key);
+			if (!app) return { started: false, reason: MESSAGES.noApp(key) };
+			if (run.phase === "checking") return { started: false, reason: MESSAGES.reasonChecking() };
+			if (run.phase === "installing") return { started: false, reason: MESSAGES.reasonBusy() };
+			const version = fixtureVersions(app, stableOf(app)).find((v) => v.tag === tag)?.version;
+			if (!version || version === app.installed) return { started: false, reason: MESSAGES.reasonNothing() };
+			picked.set(key, version);
+			void runQueue([key]);
+			return { started: true };
 		},
 		setSettings: (patch) => {
 			// The real main process rebuilds the window for a new frame or corners; the fixture just re-dresses it.
