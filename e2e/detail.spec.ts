@@ -46,19 +46,30 @@ test("a restore point that holds settings says so, and the swap keeps them with 
 	page,
 }) => {
 	await load(page);
-	// Ghostty is up to date, so its row sits in the folded group.
+	// Both are up to date, so their rows sit in the folded group.
 	await page.getByTestId("group-fresh-toggle").click();
-	await page.getByTestId("open-ghostty").click();
-	const tag = page.getByTestId("point-config-ghostty-1.3.0");
+	await page.getByTestId("open-yazi").click();
+	const tag = page.getByTestId("point-config-yazi-25.5.31");
 	await expect(tag).toHaveText("with settings");
 	await expect(tag).toHaveAttribute(
 		"title",
 		"Restoring puts its saved settings back too. The settings it replaces are kept aside.",
 	);
-	await expect(page.getByTestId("point-config-fd-10.5.0")).toHaveCount(0);
+	await page.getByTestId("restore-yazi-25.5.31").click();
+	await expect(page.getByTestId("restore-result")).toHaveText("Restored 25.5.31.");
+	await expect(page.getByTestId("point-config-yazi-26.1.22")).toHaveText("with settings");
+});
+
+test("a running app's settings are not swapped under it: the restore asks to close it first", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-ghostty").click();
+	await expect(page.getByTestId("point-config-ghostty-1.3.0")).toHaveText("with settings");
 	await page.getByTestId("restore-ghostty-1.3.0").click();
-	await expect(page.getByTestId("restore-result")).toHaveText("Restored 1.3.0.");
-	await expect(page.getByTestId("point-config-ghostty-1.3.1")).toHaveText("with settings");
+	await expect(page.getByTestId("restore-result")).toHaveText(
+		"Close Ghostty Terminal first: its settings go back with this restore, and it could write over them when it quits.",
+	);
+	await expect(page.getByTestId("restore-ghostty-1.3.0")).toBeVisible();
 });
 
 test("a kind with no restore point says why in the pane", async ({ page }) => {

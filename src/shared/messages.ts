@@ -395,9 +395,12 @@ export const MESSAGES = {
 	liftHoldInKeep: (v0: Value) => `${v0}: every hold path must also be in keep`,
 	/** manifest.ts. {0} app key */
 	liftKeepWithRestorePath: (v0: Value) =>
-		`${v0}: keep_with_restore takes paths of their own under home, such as ~/.config/${v0}`,
+		`${v0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>`,
 	/** manifest.ts. {0} app key */
 	liftKeepWithRestoreKind: (v0: Value) => `${v0}: keep_with_restore needs an app that keeps restore points`,
+	/** engine.ts. {0} app name */
+	closeBeforeSettingsRestore: (v0: Value) =>
+		`Close ${v0} first: its settings go back with this restore, and it could write over them when it quits.`,
 	/** manifest.ts. {0} app key */
 	liftPlaceInHome: (v0: Value) => `${v0}: place to cannot be a folder directly in the home directory`,
 	/** manifest.ts. {0} app key */

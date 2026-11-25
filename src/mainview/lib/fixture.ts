@@ -130,7 +130,15 @@ const SEEDS: Seed[] = [
 		dest: "/usr/local/bin/starship",
 		restore: ["1.24.0"],
 	},
-	{ key: "yazi", name: "Yazi", kind: "archive", repo: "sxyazi/yazi", installed: "26.1.22", restore: ["25.5.31"] },
+	{
+		key: "yazi",
+		name: "Yazi",
+		kind: "archive",
+		repo: "sxyazi/yazi",
+		installed: "26.1.22",
+		restore: ["25.5.31"],
+		restoreConfig: true,
+	},
 	{ key: "zoxide", name: "Zoxide", kind: "archive", repo: "ajeetdsouza/zoxide", installed: "0.9.9" },
 	{ key: "bat", name: "bat", kind: "archive", repo: "sharkdp/bat", installed: "0.26.1", restore: ["0.26.0"] },
 	{
@@ -1133,6 +1141,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (!app || run.phase === "installing") return { ok: false, detail: "Restore is not possible during a run." };
 			// The kept marker is put back by restoring its own app; every other restore waits, as Install does.
 			if (kept && !KEPT_MARKER.has(key)) return { ok: false, detail: REASON_UNRECOVERED };
+			// As the engine: settings swapped under a running app would be written over when it quits.
+			if (app.running && app.restorePoints.some((p) => p.version === version && p.config))
+				return { ok: false, detail: MESSAGES.closeBeforeSettingsRestore(app.name) };
 			kept = false;
 			// A swap, as the engine does it: the replaced version becomes the restore point, and latest is skipped.
 			const replaced = app.installed;

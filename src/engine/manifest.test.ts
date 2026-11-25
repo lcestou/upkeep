@@ -554,10 +554,11 @@ test("probe = false only on an app installed from a release file, which is what 
 
 test("keep_with_restore takes an app's own paths under home, on a kind that keeps restore points", () => {
 	const file = ['kind = "file"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/x"'];
-	expect(one(...file, 'keep_with_restore = ["~/.config/x", "~/.x", "~/.local/share/x/db/"]')).toMatchObject({
-		keep_with_restore: ["~/.config/x", "~/.x", "~/.local/share/x/db/"],
+	const fine = ["~/.config/x", "~/.x", "~/.local/share/x/db/", "~/.cache/x", "~/Documents/x"];
+	expect(one(...file, `keep_with_restore = ${JSON.stringify(fine)}`)).toMatchObject({
+		keep_with_restore: fine,
 	});
-	const path = "x: keep_with_restore takes paths of their own under home, such as ~/.config/x";
+	const path = "x: keep_with_restore takes paths of their own under home, such as ~/.config/<app>";
 	for (const bad of [
 		"/etc/x",
 		"~",
@@ -569,6 +570,17 @@ test("keep_with_restore takes an app's own paths under home, on a kind that keep
 		"~//.config",
 		"./x",
 		"x",
+		"~/Documents",
+		"~/.config/upkeep",
+		"~/.local/share/upkeep/backups",
+		"~/.local/state/upkeep",
+		"~/.cache/upkeep",
+		"~/.local/share/applications",
+		"~/.config/autostart/x.desktop",
+		"~/.config/systemd/user",
+		"~/.ssh",
+		"~/.gnupg",
+		"~/.local/share/keyrings",
 	])
 		expect(one(...file, `keep_with_restore = ["${bad}"]`)).toBe(path);
 	expect(one(...file, "keep_with_restore = [1]")).toBe("x: keep_with_restore must be a list of strings");

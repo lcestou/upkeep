@@ -440,6 +440,25 @@ test("settings travel with the point: the update saves them, a restore puts them
 	expect(readFileSync(cfg, "utf8")).toBe("migrated");
 });
 
+test("a restore that would put settings back under a running app asks to close it, and changes nothing", async () => {
+	const cfg = join(t.paths.home, ".config/fd/ignore");
+	mkdirSync(dirname(cfg), { recursive: true });
+	writeFileSync(cfg, "old");
+	const engine = createEngine(await deps());
+	await engine.check();
+	await engine.install(["fd"]);
+	await engine.idle();
+	engine.dismissSummary();
+	writeFileSync(cfg, "migrated");
+	fdProcess(5151, 10);
+	expect(await engine.restore("fd", "10.5.1")).toEqual({
+		ok: false,
+		detail: "Close fd first: its settings go back with this restore, and it could write over them when it quits.",
+	});
+	expect(readFileSync(cfg, "utf8")).toBe("migrated");
+	expect(readFileSync(join(bin, "fd"), "utf8")).toContain("fd 10.5.2");
+});
+
 test("an interrupted install shows on its row at the next check", async () => {
 	const d = await deps();
 	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });

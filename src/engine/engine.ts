@@ -400,6 +400,13 @@ export function createEngine(deps: EngineDeps): Engine {
 		return apps.get(spec.key)?.restartToApply ?? false;
 	}
 
+	/** Whether restoring this point would put settings back: it saved some that the table still names. */
+	function pointPutsSettingsBack(spec: AppSpec, version: string): boolean {
+		const named = new Set((spec.keep_with_restore ?? []).map((c) => expandHome(c, paths.home).replace(/\/+$/, "")));
+		return (readMeta(join(backupDir(paths, spec.key), version))?.config ?? []).some((c) => named.has(c.path));
+	}
+
+	/** Whether the app has a live process, by dest or process name; false for an app with neither. */
 	function runningNow(spec: AppSpec): boolean {
 		if (!spec.dest && !spec.process) return false;
 		const dest = spec.dest ? expandHome(spec.dest, paths.home) : undefined;
@@ -923,6 +930,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!spec) return { ok: false, detail: MESSAGES.noApp(key) };
 			// Only the app whose recovery failed may be restored; its restore replaces the kept marker.
 			if ((await this.recover()).some((r) => !r.ok && r.key !== key)) return { ok: false, detail: REASON_UNRECOVERED };
+			// Settings swapped under a running app are written over when it saves on quit. A served app is stopped first.
+			if (!spec.serve?.length && pointPutsSettingsBack(spec, version) && runningNow(spec))
+				return { ok: false, detail: MESSAGES.closeBeforeSettingsRestore(spec.name) };
 			if (!claimLock(paths, process.pid, deps.procRoot)) return { ok: false, detail: REASON_BUSY };
 			try {
 				if (canRestore(spec) && spec.kind === "source") return await restoreBuiltApp(spec, version);
@@ -947,7 +957,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					const files = installedFiles(spec, destOf(spec, { paths }), paths.home).filter((f) => existsSync(f));
 					if (files.length > 0) takeBackup(paths, spec, current, files, deps.now().toISOString(), kindCtx(key).log);
 				}
-				const r = await restoreBackup(paths, spec, version, deps.run);
+				const r = await restoreBackup(paths, spec, version, deps.run, spec.keep_with_restore);
 				if (!r.ok) return r;
 				prune(paths, key, loadState(paths).settings.keepBackups);
 				await packOlder(paths, key, deps.run, kindCtx(key).log);

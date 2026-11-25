@@ -2756,11 +2756,6 @@ msgstr "Novas versões nos seus marketplaces: {0}."
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Restaurar também devolve as configurações salvas. As configurações substituídas ficam guardadas à parte."
 
-#. 0: v0; 1: v0
-#: src/mainview/lib/engine-text.ts
-msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/{1}"
-msgstr "{0}: keep_with_restore aceita caminhos próprios dentro da home, como ~/.config/{1}"
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: keep_with_restore needs an app that keeps restore points"
@@ -2769,3 +2764,13 @@ msgstr "{0}: keep_with_restore precisa de um app que guarde pontos de restauraç
 #: src/mainview/lib/copy.ts
 msgid "with settings"
 msgstr "com configurações"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+msgstr "{0}: keep_with_restore aceita caminhos próprios dentro da home, como ~/.config/<app>"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+msgstr "Feche {0} primeiro: as configurações dele voltam com esta restauração, e ele poderia sobrescrevê-las ao fechar."

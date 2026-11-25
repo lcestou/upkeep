@@ -209,8 +209,10 @@ export const ENGINE_COPY = {
 	liftInsideDir: (v0: string, v1: string) => `${v0}: ${v1} must stay inside dir`,
 	liftHoldInKeep: (v0: string) => `${v0}: every hold path must also be in keep`,
 	liftKeepWithRestorePath: (v0: string) =>
-		`${v0}: keep_with_restore takes paths of their own under home, such as ~/.config/${v0}`,
+		`${v0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>`,
 	liftKeepWithRestoreKind: (v0: string) => `${v0}: keep_with_restore needs an app that keeps restore points`,
+	closeBeforeSettingsRestore: (v0: string) =>
+		`Close ${v0} first: its settings go back with this restore, and it could write over them when it quits.`,
 	liftPlaceInHome: (v0: string) => `${v0}: place to cannot be a folder directly in the home directory`,
 	liftStageUnsafe: (v0: string) => `${v0}: stage cannot be the home directory or the live copy`,
 	liftSourceCheckOrDest: (v0: string) => `${v0}: check or dest is required for kind source`,

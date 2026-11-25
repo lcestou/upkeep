@@ -185,13 +185,36 @@ const SHARED_HOME_FOLDERS = new Set([
 	"~/.local/state",
 	"~/.local/bin",
 	"~/.cache",
+	"~/Desktop",
+	"~/Documents",
+	"~/Downloads",
+	"~/Music",
+	"~/Pictures",
+	"~/Public",
+	"~/Templates",
+	"~/Videos",
 ]);
+// Never swapped, nor anything under them: Upkeep's own files (at their default places; the engine also checks the
+// real ones when it copies), every app's menu and login entries and user units, and keys.
+const REFUSED_HOME_TREES = [
+	"~/.config/upkeep",
+	"~/.local/state/upkeep",
+	"~/.local/share/upkeep",
+	"~/.cache/upkeep",
+	"~/.local/share/applications",
+	"~/.config/autostart",
+	"~/.config/systemd",
+	"~/.ssh",
+	"~/.gnupg",
+	"~/.local/share/keyrings",
+];
 
 /**
- * Checks keep_with_restore: every path is under home in ~/ form, never home itself, a shared folder such as ~/.config,
- * or one with an empty, . or .. part; and the app keeps restore points (a source build with dir or stage, a command with restore, a
- * release kind). Null when it passes or is absent. A folder directly in ~ (~/.mozilla) is allowed: dot folders are
- * often one app's.
+ * Checks keep_with_restore: every path is under home in ~/ form, never home itself, a shared folder such as ~/.config
+ * or ~/Documents, at or under one of REFUSED_HOME_TREES, or one with an empty, . or .. part; and the app keeps restore
+ * points (a source build with dir or stage, a command with restore, a release kind). Null when it passes or is absent.
+ * A folder directly in ~ (~/.mozilla) is allowed: dot folders are often one app's. Links and mount points are only
+ * known on the machine, so the engine refuses those when it copies.
  */
 function liftKeepWithRestore(key: string, spec: AppSpec): string | null {
 	const list = spec.keep_with_restore;
@@ -207,7 +230,9 @@ function liftKeepWithRestore(key: string, spec: AppSpec): string | null {
 		const p = tidy(raw);
 		// An empty or . segment would let ~//.config or ~/./.config past the shared-folder check.
 		const odd = p.split("/").some((seg) => seg === "" || seg === "." || seg === "..");
-		if (!p.startsWith("~/") || odd || SHARED_HOME_FOLDERS.has(p)) return MESSAGES.liftKeepWithRestorePath(key);
+		const refused = REFUSED_HOME_TREES.some((r) => p === r || p.startsWith(`${r}/`));
+		if (!p.startsWith("~/") || odd || refused || SHARED_HOME_FOLDERS.has(p))
+			return MESSAGES.liftKeepWithRestorePath(key);
 	}
 	return null;
 }

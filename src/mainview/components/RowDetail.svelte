@@ -293,7 +293,7 @@
 						<span class="mono">{point.version}</span>
 						<span class="when">{relativeTime(point.at)}</span>
 						{#if point.config}
-							<span class="when" title={TEXT.withSettingsTitle} data-testid="point-config-{app.key}-{point.version}"
+							<span class="tag" title={TEXT.withSettingsTitle} data-testid="point-config-{app.key}-{point.version}"
 								>{TEXT.withSettings}</span
 							>
 						{/if}
@@ -805,6 +805,10 @@
 		flex-wrap: wrap;
 	}
 	.when {
+		font-size: var(--fs-12);
+		color: var(--text-3);
+	}
+	.tag {
 		font-size: var(--fs-12);
 		color: var(--text-3);
 	}

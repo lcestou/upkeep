@@ -2714,11 +2714,6 @@ msgstr "マーケットプレイスに新しいバージョンがあります：
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "復元すると保存した設定も戻ります。置き換えられる設定は別に保管されます。"
 
-#. 0: v0; 1: v0
-#: src/mainview/lib/engine-text.ts
-msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/{1}"
-msgstr "{0}：keep_with_restore にはホーム内の専用パスを指定します（例: ~/.config/{1}）"
-
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: keep_with_restore needs an app that keeps restore points"
@@ -2727,3 +2722,13 @@ msgstr "{0}：keep_with_restore は復元ポイントを持つアプリでのみ
 #: src/mainview/lib/copy.ts
 msgid "with settings"
 msgstr "設定付き"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+msgstr "{0}：keep_with_restore にはホーム内の専用パスを指定します（例: ~/.config/<app>）"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+msgstr "先に {0} を閉じてください。この復元で設定も戻りますが、終了時に上書きされるおそれがあります。"
