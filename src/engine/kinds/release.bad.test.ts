@@ -12,7 +12,7 @@ type Rel = { tag: string; prerelease?: boolean; file?: string };
 let t: ReturnType<typeof tempHome>;
 let lines: string[] = [];
 /** The release list, newest first; releases/latest answers latest, and asking for the list fails when it is null. */
-let list: Rel[] | null = [];
+let list: Rel[] | null | "offline" = [];
 let latest = "v2.4.1";
 let asked: string[] = [];
 beforeEach(() => {
@@ -45,7 +45,10 @@ const fetch: FetchLike = async (url) => {
 	asked.push(url);
 	const api = "https://api.github.com/repos/o/tool/releases";
 	if (url === `${api}/latest`) return Response.json(body({ tag: latest }));
-	if (url === `${api}?per_page=10`) return list ? Response.json(list.map(body)) : new Response("{}", { status: 500 });
+	if (url === `${api}?per_page=10`) {
+		if (list === "offline") throw new Error("getaddrinfo ENOTFOUND api.github.com");
+		return list ? Response.json(list.map(body)) : new Response("{}", { status: 500 });
+	}
 	return new Response("{}", { status: 404 });
 };
 
@@ -101,12 +104,22 @@ test("a bad latest is passed over for the newest stable release that is not list
 test("with nothing newer than the installed copy left, the row rests where it is and never offers the bad version", async () => {
 	installed("2.4.0");
 	expect(await checkRelease(tool(), ctx())).toMatchObject({ installed: "2.4.0", status: "fresh", detail: PASSED });
-	// Every release listed bad, or a list that cannot be read: nothing to offer, and no target.
+	// Every release listed bad: nothing to offer, and no target.
 	const none = await checkRelease(tool({ bad_versions: ["2.4.1", "2.4.0", "2.3.0"] }), ctx());
 	expect(none).toMatchObject({ installed: "2.4.0", latest: "2.4.0", status: "fresh", detail: PASSED });
 	expect(none?.target).toBeUndefined();
+});
+
+test("a release list that cannot be read is a problem or offline, never a pass over the bad version", async () => {
+	installed("2.3.0");
 	list = null;
-	expect((await checkRelease(tool(), ctx()))?.target).toBeUndefined();
+	const failed = await checkRelease(tool(), ctx());
+	expect(failed).toMatchObject({ installed: "2.3.0", latest: null, status: "problem" });
+	expect(failed?.detail).not.toBe(PASSED);
+	expect(failed?.offline).toBe(false);
+	expect(failed?.target).toBeUndefined();
+	list = "offline";
+	expect(await checkRelease(tool(), ctx())).toMatchObject({ status: "problem", offline: true });
 });
 
 test("a listed version that is not the latest costs no list request, and a missing copy with none to offer is a problem", async () => {
@@ -115,7 +128,7 @@ test("a listed version that is not the latest costs no list request, and a missi
 	expect(await checkRelease(tool(), ctx())).toMatchObject({ latest: "2.4.0", status: "ready" });
 	expect(asked.some((u) => u.includes("per_page"))).toBe(false);
 	latest = "v2.4.1";
-	list = null;
+	list = [{ tag: "v2.4.1" }];
 	const missing = await checkRelease(tool({ dest: "~/.local/bin/absent", install_if_missing: true }), ctx());
 	expect(missing).toMatchObject({ installed: null, status: "problem", detail: PASSED });
 });

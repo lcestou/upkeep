@@ -203,3 +203,10 @@ test("a stage row reads no tag commit, and a row that is fresh asks no remote", 
 	expect(fresh.calls.some((x) => x.argv.includes("ls-remote"))).toBe(false);
 	expect(calls.some((x) => x.argv.includes("ls-remote"))).toBe(false);
 });
+
+test("a bad latest whose release list cannot be read is a problem, not a pass", async () => {
+	const { c } = ctx({ [PROBE.join(" ")]: "0.8.0\n" });
+	const r = await checkSource(srv({ commit: undefined, bad_versions: ["0.9.0"], bad_reason: "eats data" }), c);
+	expect(r).toMatchObject({ installed: "0.8.0", latest: null, status: "problem", offline: false });
+	expect(r?.detail).not.toContain("bad version");
+});

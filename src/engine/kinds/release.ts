@@ -182,7 +182,8 @@ export function isBad(spec: Pick<AppSpec, "bad_versions">, release: Pick<Release
 /**
  * When the table lists release as bad: the newest release of its forge's list that is not listed, holds a version and
  * (with needAsset) a file the table's pattern matches, and is a pre-release only when the table follows them; null
- * when none is, or the list cannot be read. Undefined when release is not listed. The list holds the newest
+ * when none is, and the list's failure when it cannot be read, so no row claims a pass it never made. Undefined when
+ * release is not listed. The list holds the newest
  * RELEASE_LIST releases, so a bad version far back in a busy repo has nothing older to fall back to.
  */
 export async function passBad(
@@ -190,16 +191,21 @@ export async function passBad(
 	ctx: KindCtx,
 	release: Pick<Release, "tag" | "version">,
 	needAsset: boolean,
-): Promise<Release | null | undefined> {
+): Promise<Release | Failure | null | undefined> {
 	if (!isBad(spec, release)) return undefined;
 	ctx.log(`${release.tag} is listed in bad_versions: ${spec.bad_reason ?? ""}`);
 	if (!spec.repo) return null;
 	const list = await forgeReleases(spec.repo, spec.forge, releaseOpts(ctx));
-	if (isFailure(list)) return null;
+	if (isFailure(list)) return list;
 	const good = (needAsset ? fitting(list, spec, ctx) : list).filter(
 		(r) => !isBad(spec, r) && (spec.prerelease === true || r.prerelease !== true),
 	);
 	return newestOf(good);
+}
+
+/** The row of a check whose release list could not be read while passing a bad version: offline or a problem, never fresh. */
+export function listFailed(installed: string | null, f: Failure): Checked {
+	return { installed, latest: null, status: "problem", detail: f.detail, offline: f.failure === "network" };
 }
 
 /**
@@ -237,6 +243,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			offline: first.failure === "network",
 		};
 	const passed = await passBad(spec, ctx, first, needAsset);
+	if (passed && isFailure(passed)) return listFailed(installed, passed);
 	const avoided =
 		passed === undefined
 			? {}

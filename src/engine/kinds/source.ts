@@ -22,7 +22,7 @@ import {
 	stoppedOutcome,
 	type Target,
 } from "./context";
-import { checkRelease, destOf, passBad, probeInstalled } from "./release";
+import { checkRelease, destOf, listFailed, passBad, probeInstalled } from "./release";
 import { resolvePath } from "./tree";
 
 /**
@@ -124,6 +124,7 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 			};
 	}
 	const passed = await passBad(spec, ctx, { tag, version: latest }, false);
+	if (passed && isFailure(passed)) return listFailed(installed, passed);
 	const avoided = passed === undefined ? {} : { detail: MESSAGES.badVersionPassed(latest, spec.bad_reason ?? "") };
 	// Nothing else to offer: the row rests at the build it has, saying why.
 	if (passed === null)
