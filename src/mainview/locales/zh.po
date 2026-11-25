@@ -2716,10 +2716,6 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "此文件中的应用会在这台电脑上运行以下命令。只有在信任其来源时才导入。"
 
 #: src/mainview/lib/copy.ts
-msgid "These apps come in with automatic installs off. You can turn them on again for each app."
-msgstr "这些应用导入后自动安装为关闭状态。你可以为每个应用重新打开。"
-
-#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "取消"
 
@@ -2727,3 +2723,12 @@ msgstr "取消"
 msgid "It also has # app that installs only what its releases ship."
 msgid_plural "It also has # apps that install only what their releases ship."
 msgstr[0] "另有 # 个应用只安装其发布版本提供的内容。"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "凡是这台电脑上没有、或与这里的表不同的应用，导入后自动安装均为关闭状态。你可以为每个应用重新打开。"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "有 # 个在此处新增或已更改的应用，导入后自动安装为关闭状态。"

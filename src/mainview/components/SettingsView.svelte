@@ -11,6 +11,7 @@
 		UNINSTALL,
 		WIN,
 		exportedNote,
+		importAutoOffNote,
 		importPlain,
 		importedNote,
 		rateText,
@@ -111,11 +112,19 @@
 	 * press on the ask's Import: the main process then writes the file it asked about, not a newly picked one.
 	 */
 	async function importSetup(sure = false) {
+		const shown = importAsk;
 		importAsk = null;
 		const r = await model.send("importSetup", sure ? { sure } : {});
 		if (r?.ask) importAsk = r.ask;
-		else if (r?.ok) note = importedNote(r.apps ?? 0);
-		else if (r?.problems?.length) note = setupFailed(r.problems.map((p) => say(p)).join(" "));
+		else if (r?.ok) {
+			const off = r.autoOff ?? 0;
+			note = off > 0 ? `${importedNote(r.apps ?? 0)} ${importAutoOffNote(off)}` : importedNote(r.apps ?? 0);
+		}
+		else if (r?.problems?.length) {
+			note = setupFailed(r.problems.map((p) => say(p)).join(" "));
+			// A refused Import (a run started) keeps the ask open, so the press can be made again once the run ends.
+			if (sure) importAsk = shown;
+		}
 	}
 
 	/** Focus lands on Cancel when the ask opens, so a stray Enter writes nothing. */

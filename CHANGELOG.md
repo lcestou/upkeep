@@ -3,7 +3,7 @@
 ## Unreleased
 
 - The Claude Code plugins row now says when an update is waiting. A check refreshes the plugin marketplaces, as Claude Code does at start, and compares each installed plugin's version with the one its marketplace now holds (for a plugin with no version, new commits in its own folder of the marketplace). The row turns to Update and names the plugins, so it shows in the count and the tray like any other update. A plugin whose marketplace entry points to another repo and names no version is still only updated by Run now or an automatic run.
-- Import no longer runs commands from a file you were handed without showing them first. When the imported list has apps that run commands on this computer (a command app's check and update, a source build's steps, a restart), Settings, Import lists each one with its exact commands and waits for Import or Cancel, and `upkeep import` prints them and needs `--yes`. Those apps come in with automatic installs off, even when the file had them on. A list of release apps only imports in one step, as before.
+- Import no longer runs commands from a file you were handed without showing them first. When the imported list has apps that run commands on this computer (a command app's check and update, a source build's steps and the files it writes, a restart), Settings, Import lists each one with where its code comes from and its exact commands, and waits for Import or Cancel; `upkeep import` prints them and needs `--yes`. Every app that is new to this computer or whose table differs from the one here comes in with automatic installs off, even when the file had them on, and Import says which. A list of release apps only imports in one step, as before.
 
 ## 0.1.8, 2026-11-21
 

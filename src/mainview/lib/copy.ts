@@ -335,7 +335,7 @@ export const IMPORT = {
 		return "This file has apps that run these commands on this computer. Import it only if you trust where it came from.";
 	},
 	get autoOff() {
-		return "These apps come in with automatic installs off. You can turn them on again for each app.";
+		return "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app.";
 	},
 	get yes() {
 		return "Import";
@@ -349,6 +349,12 @@ export const importPlain = (n: number) =>
 	plural(n, [
 		"It also has # app that installs only what its releases ship.",
 		"It also has # apps that install only what their releases ship.",
+	]);
+/** After Import, beside importedNote: apps the file wanted installed automatically that came in off, being new or changed. */
+export const importAutoOffNote = (n: number) =>
+	plural(n, [
+		"Automatic installs came in off for # app that is new here or changed.",
+		"Automatic installs came in off for # apps that are new here or changed.",
 	]);
 /** After Export: the file it wrote. */
 export const exportedNote = (file: string) => `Saved ${file}.`;

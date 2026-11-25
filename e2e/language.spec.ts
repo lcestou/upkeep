@@ -118,6 +118,7 @@ test("Import of a file whose apps run commands shows them first; Cancel writes n
 	);
 	await expect(page.getByTestId("import-app-name")).toHaveText(["llama.cpp"]);
 	await expect(page.getByTestId("import-command")).toHaveText([
+		"source: ggml-org/llama.cpp",
 		"build: cmake -B build -DGGML_CUDA=ON",
 		"build: cmake --build build -j",
 		"restart: systemctl --user restart llama-server",
@@ -126,7 +127,7 @@ test("Import of a file whose apps run commands shows them first; Cancel writes n
 		/^It also has \d+ apps that install only what their releases ship\.$/,
 	);
 	await expect(page.getByTestId("import-auto-off")).toHaveText(
-		"These apps come in with automatic installs off. You can turn them on again for each app.",
+		"Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app.",
 	);
 	// Focus starts on Cancel, so a stray Enter writes nothing.
 	await expect(page.getByTestId("import-cancel")).toBeFocused();
@@ -140,7 +141,9 @@ test("Import of a file whose apps run commands shows them first; Cancel writes n
 	await expect(page.getByTestId("import-confirm")).toHaveText("Import");
 	await page.getByTestId("import-confirm").click();
 	await expect(page.getByTestId("import-ask")).toHaveCount(0);
-	await expect(note).toHaveText(/^Imported a list of \d+ apps\.$/);
+	await expect(note).toHaveText(
+		/^Imported a list of \d+ apps\. Automatic installs came in off for 1 app that is new here or changed\.$/,
+	);
 });
 
 test("what the engine reports follows the language: a row's problem is worded from the catalog", async ({ page }) => {

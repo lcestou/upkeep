@@ -1381,6 +1381,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 								key: "llama",
 								name: "llama.cpp",
 								commands: [
+									"source: ggml-org/llama.cpp",
 									"build: cmake -B build -DGGML_CUDA=ON",
 									"build: cmake --build build -j",
 									"restart: systemctl --user restart llama-server",
@@ -1392,7 +1393,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				};
 			}
 			emit({ type: "meta", rate, checkedAt, settings });
-			return { ok: true, apps: apps.length };
+			return variant === "built" ? { ok: true, apps: apps.length, autoOff: 1 } : { ok: true, apps: apps.length };
 		},
 		pickFile: async () => {
 			await sleep(200 / speed);

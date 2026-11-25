@@ -2758,10 +2758,6 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "Este archivo tiene apps que ejecutan estos comandos en este equipo. Impórtalo solo si confías en su origen."
 
 #: src/mainview/lib/copy.ts
-msgid "These apps come in with automatic installs off. You can turn them on again for each app."
-msgstr "Estas apps llegan con las instalaciones automáticas desactivadas. Puedes volver a activarlas en cada app."
-
-#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -2771,3 +2767,14 @@ msgid_plural "It also has # apps that install only what their releases ship."
 msgstr[0] "También tiene # app que instala solo lo que publican sus versiones."
 msgstr[1] "También tiene # apps que instalan solo lo que publican sus versiones."
 msgstr[2] "También tiene # apps que instalan solo lo que publican sus versiones."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "Las instalaciones automáticas llegan desactivadas en cada app nueva en este equipo o cuya tabla difiere de la de aquí. Puedes volver a activarlas en cada app."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "Las instalaciones automáticas llegaron desactivadas en # app nueva aquí o cambiada."
+msgstr[1] "Las instalaciones automáticas llegaron desactivadas en # apps nuevas aquí o cambiadas."
+msgstr[2] "Las instalaciones automáticas llegaron desactivadas en # apps nuevas aquí o cambiadas."

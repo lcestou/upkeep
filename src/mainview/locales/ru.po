@@ -2779,10 +2779,6 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "В этом файле есть приложения, которые выполняют эти команды на этом компьютере. Импортируйте его, только если доверяете источнику."
 
 #: src/mainview/lib/copy.ts
-msgid "These apps come in with automatic installs off. You can turn them on again for each app."
-msgstr "Эти приложения добавляются с выключенной автоматической установкой. Её можно снова включить для каждого приложения."
-
-#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -2793,3 +2789,15 @@ msgstr[0] "В нём также # приложение, которое став�
 msgstr[1] "В нём также # приложения, которые ставят только то, что выходит в их релизах."
 msgstr[2] "В нём также # приложений, которые ставят только то, что выходит в их релизах."
 msgstr[3] "В нём также # приложения, которые ставят только то, что выходит в их релизах."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "Автоматическая установка выключается для каждого приложения, которого нет на этом компьютере или чья таблица отличается от здешней. Её можно снова включить для каждого приложения."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "Автоматическая установка выключена для # приложения, нового здесь или изменённого."
+msgstr[1] "Автоматическая установка выключена для # приложений, новых здесь или изменённых."
+msgstr[2] "Автоматическая установка выключена для # приложений, новых здесь или изменённых."
+msgstr[3] "Автоматическая установка выключена для # приложения, нового здесь или изменённого."

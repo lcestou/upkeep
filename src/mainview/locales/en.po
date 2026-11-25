@@ -2737,10 +2737,6 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 
 #: src/mainview/lib/copy.ts
-msgid "These apps come in with automatic installs off. You can turn them on again for each app."
-msgstr "These apps come in with automatic installs off. You can turn them on again for each app."
-
-#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -2749,3 +2745,13 @@ msgid "It also has # app that installs only what its releases ship."
 msgid_plural "It also has # apps that install only what their releases ship."
 msgstr[0] "It also has # app that installs only what its releases ship."
 msgstr[1] "It also has # apps that install only what their releases ship."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "Automatic installs came in off for # app that is new here or changed."
+msgstr[1] "Automatic installs came in off for # apps that are new here or changed."

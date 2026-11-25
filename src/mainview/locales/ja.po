@@ -2716,10 +2716,6 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "このファイルには、このコンピューターで次のコマンドを実行するアプリが含まれています。入手元を信頼できる場合にだけ読み込んでください。"
 
 #: src/mainview/lib/copy.ts
-msgid "These apps come in with automatic installs off. You can turn them on again for each app."
-msgstr "これらのアプリは自動インストールがオフの状態で追加されます。アプリごとに再びオンにできます。"
-
-#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -2727,3 +2723,12 @@ msgstr "キャンセル"
 msgid "It also has # app that installs only what its releases ship."
 msgid_plural "It also has # apps that install only what their releases ship."
 msgstr[0] "ほかに、リリースで配布されるものだけをインストールするアプリが # 件あります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "このコンピューターにとって新しいアプリ、またはここの表と異なるアプリは、自動インストールがオフの状態で追加されます。アプリごとに再びオンにできます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "ここで新しいか変更された # 件のアプリは、自動インストールがオフの状態で追加されました。"
