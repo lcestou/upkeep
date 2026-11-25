@@ -1460,11 +1460,14 @@ export function createEngine(deps: EngineDeps): Engine {
 			updateState(paths, (s) => {
 				if (held) s.hold[key] = true;
 				else {
+					// A swapped repo's hold is released only on a press of its own: releasing the person's own hold
+					// leaves it, so no press meant for one accepts another repository unseen.
+					const own = s.hold[key] === true;
 					delete s.hold[key];
 					// Releasing a hold Upkeep put on a changed release lets that release through.
 					delete s.changed[key];
 					// Releasing a swapped repo's hold takes the repository now under the name as the one to follow.
-					if (s.swapped[key] !== undefined) {
+					if (!own && s.swapped[key] !== undefined) {
 						delete s.swapped[key];
 						delete s.origin[key];
 					}

@@ -452,7 +452,7 @@ test("a pre-release followed by the switch waits like any release, and a version
 
 test("a repo whose name now answers with another repository holds its update until the person releases the hold", async () => {
 	const { engine, row } = await setup();
-	expect(loadState(t.paths).origin.tool).toEqual({ name: "o/tool", id: 7, owner: 1 });
+	expect(loadState(t.paths).origin.tool).toEqual({ repo: "o/tool", name: "o/tool", id: 7, owner: 1 });
 	repoId = 9;
 	// Fresh: nothing on offer, so the repo is not asked again and nothing is held.
 	await engine.check();
@@ -462,6 +462,11 @@ test("a repo whose name now answers with another repository holds its update unt
 	const reason = MESSAGES.repoReplaced("github.com/o/tool");
 	expect(row()).toMatchObject({ latest: "1.2.0-rc.1", status: "held", held: true, detail: reason });
 	expect(await engine.installVersion("tool", "v1.0.0")).toEqual({ started: false, reason });
+	// Held by the person as well: releasing that hold leaves the swap, which needs a press of its own.
+	engine.setHold("tool", true);
+	engine.setHold("tool", false);
+	expect(loadState(t.paths).swapped).toEqual({ tool: "o/tool" });
+	expect(row()).toMatchObject({ status: "held", held: true, detail: reason });
 	// Releasing it takes the repository now under the name: the next check learns its id and offers the update.
 	engine.setHold("tool", false);
 	expect(loadState(t.paths).swapped).toEqual({});
