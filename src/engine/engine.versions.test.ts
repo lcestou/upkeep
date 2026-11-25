@@ -40,6 +40,8 @@ const START: Rel[] = [
 	{ tag: "v0.7.0", draft: true },
 ];
 let releases: Rel[] = [];
+/** While set, a release file sends one byte and then waits until its fetch is aborted, as a slow download does. */
+let stall = false;
 /** The tag releases/latest answers. */
 let latestTag = "v1.1.0";
 
@@ -82,10 +84,21 @@ async function setup() {
 	script(join(bin, "cmd"), 'echo "cmd 1.0.0"');
 	const asked: { url: string; etag?: string }[] = [];
 	releases = [...START];
+	stall = false;
 	latestTag = "v1.1.0";
 	const fetch: FetchLike = async (url, init) => {
 		if (url.includes("registry.npmjs.org")) return Response.json({ version: "1.0.0" });
 		const dl = /^https:\/\/dl\.test\/([^/]+)\/[^/]+$/.exec(url);
+		if (dl && stall)
+			return new Response(
+				new ReadableStream<Uint8Array>({
+					start(c) {
+						c.enqueue(new Uint8Array([1]));
+						init?.signal?.addEventListener("abort", () => c.error(new Error("aborted")));
+					},
+				}),
+				{ headers: { "content-length": "100" } },
+			);
 		if (dl) {
 			const r = releases.find((x) => x.tag === dl[1]);
 			return r && !r.broken ? new Response(program(r.tag)) : new Response("missing", { status: 404 });
@@ -280,3 +293,20 @@ test("a picked version that fails leaves the latest as the target once the summa
 	await engine.idle();
 	expect(row()).toMatchObject({ installed: "1.3.0", status: "done" });
 });
+
+test("Stop now ends a picked install like any other: nothing is skipped and the latest is the target again", async () => {
+	const { engine, row } = await setup();
+	stall = true;
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "tool" && e.app.status === "working") engine.stopNow();
+	});
+	expect(await engine.installVersion("tool", "v1.0.0")).toEqual({ started: true });
+	await engine.idle();
+	expect(row()).toMatchObject({ status: "stopped", installed: "1.1.0" });
+	expect(engine.snapshot().run.results.map((r) => [r.result, r.to])).toEqual([["stopped", "1.0.0"]]);
+	expect(loadState(t.paths).skip).toEqual({});
+	stall = false;
+	engine.dismissSummary();
+	expect(row()?.status).toBe("fresh");
+	expect(await engine.install(["tool"])).toMatchObject({ started: false });
+}, 15_000);
