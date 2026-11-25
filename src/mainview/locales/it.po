@@ -2806,6 +2806,52 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "Nuove versioni nei loro marketplace: {0}."
 
 #: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Download verificato: lo SHA-256 corrisponde a quello della piattaforma."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Download verificato: corrisponde al file dei checksum della versione."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Download verificato: solo la dimensione."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Download non verificato: la versione non indica dimensione né checksum."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "Il download è stato inoltrato a un indirizzo senza https, quindi è stato rifiutato."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "Il checksum non corrisponde a {0} nella versione, quindi non è stato installato nulla. Puoi saltare questa versione."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "Il file dietro {0} è cambiato dopo che Upkeep l'ha visto la prima volta. Controlla la pagina della versione prima di riprendere gli aggiornamenti."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "Lo SHA-256 corrisponde alla piattaforma"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Corrisponde al file dei checksum"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Verificata solo la dimensione"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Download non verificato"
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Il ripristino rimette anche le impostazioni salvate. Quelle sostituite vengono messe da parte."
 

@@ -2,6 +2,7 @@
 	import { isStopNote, say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
 	import {
+		CHECKED,
 		CHIP,
 		COLUMN,
 		commitsHeading,
@@ -226,6 +227,7 @@
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
 		{#if app.detail}<p class="sentence" class:note={isStopNote(app.detail)} data-testid="pane-detail">{say(app.detail)}</p>{/if}
+		{#if app.checked}<p class="sentence" data-testid="pane-checked">{CHECKED[app.checked]}</p>{/if}
 		{#if app.status === "working" && app.waiting}<p class="sentence note" data-testid="pane-wait">{say(app.waiting)}</p>
 		{:else if quiet}<p class="sentence note" data-testid="pane-quiet">{quietLine(quiet.m, quiet.n)}</p>{/if}
 		{#if app.restartToApply && app.canRestart}

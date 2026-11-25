@@ -2785,6 +2785,52 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "New versions in their marketplaces: {0}."
 
 #: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Download checked: SHA-256 matches the forge's record."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Download checked: matches the release's checksum file."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Download checked: size only."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Download not checked: the release lists no size or checksum."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "The download was sent on to an address that is not https, so it was refused."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 matches the forge"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Matches the checksum file"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Size checked only"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Download not checked"
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 

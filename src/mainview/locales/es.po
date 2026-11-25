@@ -2806,6 +2806,52 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "Nuevas versiones en sus marketplaces: {0}."
 
 #: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Descarga comprobada: el SHA-256 coincide con el registro de la plataforma."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Descarga comprobada: coincide con el archivo de sumas de la versión."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Descarga comprobada: solo el tamaño."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Descarga sin comprobar: la versión no indica tamaño ni suma de comprobación."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "La descarga se redirigió a una dirección sin https, así que se rechazó."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "La suma de comprobación no coincide con {0} de la versión, así que no se instaló nada. Puedes omitir esta versión."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "El archivo de {0} cambió después de que Upkeep lo viera por primera vez. Revisa la página de la versión antes de reanudar las actualizaciones."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "El SHA-256 coincide con la plataforma"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Coincide con el archivo de sumas"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Solo se comprobó el tamaño"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Descarga sin comprobar"
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Al restaurar también vuelve su configuración guardada. La configuración que reemplaza se guarda aparte."
 

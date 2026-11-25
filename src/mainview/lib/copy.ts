@@ -433,6 +433,38 @@ export function selectionText(n: number, bytes: number | null, partial = false, 
 	return `${plural(n, ["# selected", "# selected"])}${size}${tail}`;
 }
 
+/** How an install's download was checked, said in the pane after it. */
+export const CHECKED = {
+	get digest() {
+		return "Download checked: SHA-256 matches the forge's record.";
+	},
+	get sums() {
+		return "Download checked: matches the release's checksum file.";
+	},
+	get size() {
+		return "Download checked: size only.";
+	},
+	get none() {
+		return "Download not checked: the release lists no size or checksum.";
+	},
+};
+
+/** How a download was checked, as the short line under a History row. */
+export const CHECKED_SHORT = {
+	get digest() {
+		return "SHA-256 matches the forge";
+	},
+	get sums() {
+		return "Matches the checksum file";
+	},
+	get size() {
+		return "Size checked only";
+	},
+	get none() {
+		return "Download not checked";
+	},
+};
+
 /** Why a kind keeps no restore point, said in the pane only. */
 export const NO_RESTORE = {
 	appimage: undefined,

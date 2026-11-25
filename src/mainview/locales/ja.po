@@ -2764,6 +2764,52 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "マーケットプレイスに新しいバージョンがあります：{0}。"
 
 #: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "ダウンロード確認済み: SHA-256 が配布元の記録と一致します。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "ダウンロード確認済み: リリースのチェックサムファイルと一致します。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "ダウンロード確認済み: サイズのみ。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "ダウンロード未確認: リリースにサイズもチェックサムもありません。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "ダウンロードが https ではないアドレスに転送されたため、拒否しました。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "チェックサムがリリースの {0} と一致しないため、何もインストールしませんでした。このバージョンはスキップできます。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "{0} のファイルは、Upkeep が最初に確認した後に変わりました。保留を解除する前にリリースページを確認してください。"
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 が配布元と一致"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "チェックサムファイルと一致"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "サイズのみ確認"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "ダウンロード未確認"
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "復元すると保存した設定も戻ります。置き換えられる設定は別に保管されます。"
 

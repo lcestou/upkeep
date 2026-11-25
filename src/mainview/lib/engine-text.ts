@@ -62,6 +62,11 @@ export const ENGINE_COPY = {
 	downloadSizeMismatch: (v0: string, v1: string) => `Download is ${v0} bytes, expected ${v1}.`,
 	downloadTooSmall: (v0: string) => `Download is ${v0} bytes, too small to be a release.`,
 	checksumMismatch: () => `Checksum does not match the release.`,
+	checksumFileMismatch: (v0: string) =>
+		`Checksum does not match ${v0} in the release, so nothing was installed. You can skip this version.`,
+	downloadLeftHttps: () => `The download was sent on to an address that is not https, so it was refused.`,
+	releaseChanged: (v0: string) =>
+		`The file behind ${v0} changed after Upkeep first saw it. Check the release page before you release the hold.`,
 	reasonChecking: () => `A check is running.`,
 	oldCopyRuns: (v0: string) =>
 		`Updated. A copy of ${v0} that was running keeps the old version until it exits; new runs use the new one.`,
