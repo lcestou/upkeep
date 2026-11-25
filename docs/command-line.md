@@ -7,8 +7,8 @@ From a checkout of this repo, `bun run cli` takes the same commands as `upkeep`.
 ```sh
 upkeep check                 # one line per app: OK, UPDATE, HELD, SKIP or BROKEN
 upkeep check --json          # the same as JSON, one app per line
-upkeep install fd zen        # install named apps
-upkeep install --all         # everything that is ready
+upkeep install fd zen        # install named apps, even inside the release wait set in Settings
+upkeep install --all         # everything that is ready (a release still inside the wait is not)
 upkeep install --auto        # only apps marked auto
 upkeep restore fd            # put back the newest restore point
 upkeep history
@@ -21,6 +21,8 @@ upkeep import upkeep.json    # replace them from such a file; add --yes when its
 ```
 
 During `upkeep install`, the first Ctrl-C (or SIGTERM, or closing the terminal, which sends SIGHUP) is Stop now: Upkeep prints "Stopping: putting fd back. Press Ctrl-C again to quit at once, which can leave fd half-installed.", puts the app back as the window's Stop now does, and the apps behind it do not start. A step it must wait out prints what it waits for. A second Ctrl-C quits without putting the app back: it ends the step in progress (TERM, then KILL five seconds later) and exits. A step that runs as root (`sudo dpkg -i`, `sudo make install`) cannot be ended from there, so it keeps running, and Upkeep says so; run `upkeep recover` once it has finished. Ctrl-C during the check before an install quits at once, since nothing has changed yet. If the install starts by finishing or undoing an earlier interrupted update, a Ctrl-C then waits for that to end and installs nothing; a second one quits in the middle of it, and `upkeep recover` takes it up again.
+
+With **Wait before offering a new release** on in Settings, a release younger than the wait is a HELD line, `(offered from 2026-11-27)` with the local day. Naming the app (`upkeep install zen`) installs it at once, as Install now anyway does in the window; `--all` and `--auto` leave it waiting. When the wait runs out, the window's row turns Ready and the ready notice goes out on its own, but an app marked to install automatically installs at the next check, not at that moment.
 
 `check` exits 0; an app it could not check is a SKIP line, not a failure. `install` exits 0 when every app it ran ended updated. Every other command exits 0 when it did what was asked and 1 when it did not, and prints why.
 
