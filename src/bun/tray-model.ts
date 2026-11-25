@@ -116,19 +116,34 @@ export function readyFingerprint(snapshot: Snapshot, wait?: "metered" | "battery
 	return ready && wait ? `${ready};wait=${wait}` : ready;
 }
 
+/** What createSettleWatch hands index.ts: one call per row event, one when Upkeep is idle again. */
+export type SettleWatch = { row(app: AppState, quiet: boolean): boolean; idle(): boolean };
+
 /**
  * Watches row events for a release that was waiting (it had settles) and is Ready now, which the engine's own timer
- * does without a check, so the ready notice can go out then as after a check. Returns true for that one event. A row
- * that stops waiting any other way (held, a check under way) is just forgotten.
+ * does without a check, so the ready notice can go out then as after a check. row answers true when the notice is due
+ * now: quiet is true while a run, its summary or a held check is showing, and the notice then waits for idle(), called
+ * once when Upkeep is idle again, which answers whether one is owed. A row that stops waiting any other way (held, a
+ * check under way) is just forgotten.
  */
-export function createSettleWatch(): (app: AppState) => boolean {
+export function createSettleWatch(): SettleWatch {
 	const waiting = new Set<string>();
-	return (app) => {
-		if (app.settles) {
-			waiting.add(app.key);
+	let owed = false;
+	return {
+		row(app, quiet) {
+			if (app.settles) {
+				waiting.add(app.key);
+				return false;
+			}
+			if (!waiting.delete(app.key) || app.status !== "ready") return false;
+			if (!quiet) return true;
+			owed = true;
 			return false;
-		}
-		if (!waiting.delete(app.key)) return false;
-		return app.status === "ready";
+		},
+		idle() {
+			const was = owed;
+			owed = false;
+			return was;
+		},
 	};
 }

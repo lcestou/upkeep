@@ -152,16 +152,23 @@ test("after a run, notices say what updated and each failure, and nothing for an
 	expect(runNotices([{ name: "C", result: "stopped" }])).toEqual([]);
 });
 
-test("the settle watch fires once, when a waiting row turns Ready, and not for rows that never waited", () => {
+test("the settle watch fires once when a waiting row turns Ready, and owes the notice to idle when it is quiet", () => {
 	const watch = createSettleWatch();
 	// SAFETY: the watch reads only key, status and settles.
 	const row = (over: Partial<AppState>) => ({ key: "zen", status: "held", ...over }) as AppState;
-	expect(watch(row({ status: "ready" }))).toBe(false);
-	expect(watch(row({ settles: "2026-11-27T00:00:00.000Z" }))).toBe(false);
-	expect(watch(row({ status: "ready" }))).toBe(true);
-	expect(watch(row({ status: "ready" }))).toBe(false);
+	const waiting = row({ settles: "2026-11-27T00:00:00.000Z" });
+	expect(watch.row(row({ status: "ready" }), false)).toBe(false);
+	expect(watch.row(waiting, false)).toBe(false);
+	expect(watch.row(row({ status: "ready" }), false)).toBe(true);
+	expect(watch.row(row({ status: "ready" }), false)).toBe(false);
+	expect(watch.idle()).toBe(false);
+	// During a run or its summary: nothing now, one notice when Upkeep is idle again.
+	watch.row(waiting, true);
+	expect(watch.row(row({ status: "ready" }), true)).toBe(false);
+	expect(watch.idle()).toBe(true);
+	expect(watch.idle()).toBe(false);
 	// A waiting row that went to a check, not Ready, is forgotten.
-	expect(watch(row({ settles: "2026-11-27T00:00:00.000Z" }))).toBe(false);
-	expect(watch(row({ status: "checking" }))).toBe(false);
-	expect(watch(row({ status: "ready" }))).toBe(false);
+	watch.row(waiting, false);
+	expect(watch.row(row({ status: "checking" }), false)).toBe(false);
+	expect(watch.row(row({ status: "ready" }), false)).toBe(false);
 });
