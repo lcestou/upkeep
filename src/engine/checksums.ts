@@ -89,14 +89,21 @@ export function sumInYml(text: string, name: string): Omit<Sum, "file"> | null {
  * A 404 for a file with a GitHub API address is asked again there with the person's token, as a private repo's asset
  * is; the token goes only to api.github.com.
  */
-async function readSmall(side: Asset, fetch: FetchLike, token: string | null): Promise<string | null> {
+async function readSmall(
+	side: Asset,
+	fetch: FetchLike,
+	token: string | null,
+	cancel?: AbortSignal,
+): Promise<string | null> {
+	// Stop now ends the read at once, like any download of the run.
+	const limit = () => (cancel ? AbortSignal.any([cancel, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000));
 	if (!side.url.startsWith("https://")) return null;
 	try {
-		let res = await fetch(side.url, { redirect: "follow", signal: AbortSignal.timeout(15_000) });
+		let res = await fetch(side.url, { redirect: "follow", signal: limit() });
 		if (res.status === 404 && token && side.api?.startsWith(`${GITHUB_API}/`))
 			res = await fetch(side.api, {
 				redirect: "follow",
-				signal: AbortSignal.timeout(15_000),
+				signal: limit(),
 				headers: { Accept: "application/octet-stream", Authorization: `Bearer ${token}` },
 			});
 		if (!res.ok || !res.body || (res.redirected && !res.url.startsWith("https://"))) return null;
@@ -131,10 +138,11 @@ export async function releaseSum(
 	asset: Asset,
 	fetch: FetchLike,
 	token: string | null = null,
+	cancel?: AbortSignal,
 ): Promise<Sum | null> {
 	for (const side of sumFiles(release, asset.name)) {
 		// oxlint-disable-next-line no-await-in-loop -- the best file is read first, and the rest only when it names nothing
-		const text = await readSmall(side, fetch, token);
+		const text = await readSmall(side, fetch, token, cancel);
 		if (text === null) continue;
 		const sum = YML.test(side.name)
 			? sumInYml(text, asset.name)

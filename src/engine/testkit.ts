@@ -81,3 +81,9 @@ export function strictRun(
 	};
 	return { run, calls };
 }
+
+/** run with the run's Stop now on every call, as the engine's kind context passes it. Keeps start. */
+export function withCancel(run: Run, cancel: AbortSignal): Run {
+	const wrapped: Run = (argv, opts) => run(argv, { cancel, ...opts });
+	return run.start ? Object.assign(wrapped, { start: run.start }) : wrapped;
+}

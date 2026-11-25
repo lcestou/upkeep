@@ -57,9 +57,10 @@ export type Ahead = {
 	/**
 	 * Hands an app's early file to its turn: waits for one still coming down (its progress then goes to onProgress),
 	 * reads the file back and checks it against the release again. Null when there is none, it failed, or it no longer
-	 * matches; the turn then downloads as usual.
+	 * matches; the turn then downloads as usual. stop (the run's Stop now) aborts the download being handed over too,
+	 * which cancel alone leaves alone once it is claimed.
 	 */
-	claim(key: string, onProgress: NonNullable<DownloadOpts["onProgress"]>): Promise<Early | null>;
+	claim(key: string, onProgress: NonNullable<DownloadOpts["onProgress"]>, stop?: AbortSignal): Promise<Early | null>;
 	/** Stops every early download not yet handed over and deletes its file, whole or partial. Later calls get the same promise. */
 	cancel(): Promise<void>;
 };
@@ -185,13 +186,15 @@ export function createAhead(o: AheadOpts): Ahead {
 			open = next;
 			fill();
 		},
-		async claim(key, onProgress) {
+		async claim(key, onProgress, stop) {
 			tried.add(key);
 			const entry = entries.get(key);
 			if (!entry) return null;
 			entries.delete(key);
 			entry.claimed = true;
 			entry.report = onProgress;
+			if (stop?.aborted) entry.ctl.abort();
+			else stop?.addEventListener("abort", () => entry.ctl.abort(), { once: true });
 			const got = await entry.done;
 			if (!got) return null;
 			// The download is done: the bar shows it full while the file is read back.

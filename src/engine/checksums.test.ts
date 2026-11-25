@@ -174,3 +174,18 @@ test("releaseSum: a private repo's checksum file is asked again at GitHub's API 
 	expect(await releaseSum({ assets: [tool, sums] }, tool, fetch)).toBeNull();
 	expect(asked.map((a) => a.url)).toEqual(["https://dl.example/SHA256SUMS"]);
 });
+
+test("releaseSum: Stop now's cancel reaches the checksum file's fetch, which then reads as no file", async () => {
+	const tool = asset("tool.tar.gz");
+	const stop = new AbortController();
+	stop.abort();
+	let sawAborted = false;
+	const fetch: FetchLike = async (_url, init) => {
+		sawAborted = init?.signal?.aborted === true;
+		init?.signal?.throwIfAborted();
+		return new Response(`${H256}  tool.tar.gz\n`);
+	};
+	expect(await releaseSum({ assets: [tool, asset("SHA256SUMS")] }, tool, fetch, null, stop.signal)).toBeNull();
+	expect(sawAborted).toBe(true);
+	expect(await releaseSum({ assets: [tool, asset("SHA256SUMS")] }, tool, fetch)).toMatchObject({ hex: H256 });
+});

@@ -142,6 +142,28 @@ export type Test = {
 	required?: boolean;
 };
 
+/**
+ * What an imported file would run or turn on, shown before it is written: each app whose table carries commands,
+ * with every command as one line, how many apps come in that only install their release files, and each setting or
+ * extra the file turns on that is off on this machine.
+ */
+export type ImportAsk = {
+	apps: { key: string; name: string; commands: string[] }[];
+	plain: number;
+	turnsOn: ImportSwitch[];
+};
+
+/** A setting or extra an import would turn on that is off here: each one acts (writes a file, installs, shows a group). */
+export type ImportSwitch =
+	| "notify"
+	| "checkAtLogin"
+	| "selfAuto"
+	| "upkeepCommand"
+	| "system"
+	| "systemInstall"
+	| "cleanup"
+	| "devCaches";
+
 /** One app Upkeep proposes to add, with everything needed to add it in one press. */
 export type Suggestion = {
 	/** The table that would be written to apps.toml. */
@@ -179,7 +201,8 @@ export type AppStatus =
 	| "working" // being installed now
 	| "done" // updated in this run
 	| "failed" // this run could not update it; nothing was changed or the change was undone
-	| "rolled_back"; // installed, would not start, previous copy restored
+	| "rolled_back" // installed, would not start, previous copy restored
+	| "stopped"; // the person pressed Stop now: what was changed was put back, or the detail says what is there
 
 export type RestorePoint = { version: string; at: string };
 
@@ -232,6 +255,18 @@ export type AppState = {
 	stage?: Stage;
 	stagePct?: number | null;
 	/**
+	 * While working: when the app last wrote a log line or moved its download (ISO). The quiet line counts silence from
+	 * this or from the newest log line the window holds for the app, whichever is later.
+	 */
+	activeAt?: string;
+	/** While working: the step running now, when it started (ISO) and its own limit in ms, null when it has none. */
+	step?: { at: string; limitMs: number | null };
+	/**
+	 * While working, after Stop now: what the run waits for before the app is put back (an engine sentence), until the
+	 * waited step returns. Its own field, so a note the row carried from its check never reads as one.
+	 */
+	waiting?: string;
+	/**
 	 * Read while queued: the file came down ahead of the app's turn and matched the release. Cleared when the row
 	 * leaves the run and when Stop is pressed; a working row may still carry it.
 	 */
@@ -258,7 +293,7 @@ export type RunResult = {
 	 * "restored", "cleaned" and "skipped" appear only in history: the owner put a restore point back by hand, Cleanup
 	 * deleted something, or Cleanup left an item alone on purpose (changed since review, no sudo, polkit said no).
 	 */
-	result: "updated" | "failed" | "rolled_back" | "restored" | "cleaned" | "skipped";
+	result: "updated" | "failed" | "rolled_back" | "stopped" | "restored" | "cleaned" | "skipped";
 	detail?: string;
 	ms: number;
 	/** How the downloaded file was checked; absent for an app that downloads no release file. */
@@ -273,6 +308,8 @@ export type RunState = {
 	total: number;
 	currentKey: string | null;
 	stopping: boolean;
+	/** Stop now was pressed: the current app is being put back, and stopping is set too. */
+	stoppingNow?: boolean;
 	results: RunResult[];
 	/** This run was started from a summary to try the failed apps again. */
 	retry: boolean;
@@ -516,6 +553,8 @@ export type Requests = {
 	check: { params: { keys?: string[] }; response: { started: boolean } };
 	install: { params: { keys: string[] }; response: { started: boolean; reason?: string } };
 	stopAfterCurrent: { params: Record<string, never>; response: { stopping: boolean } };
+	/** Ends the run now: the current app is put back, the rest stay ready. */
+	stopNow: { params: Record<string, never>; response: { stopping: boolean } };
 	dismissSummary: { params: Record<string, never>; response: { ok: boolean } };
 	restore: { params: { key: string; version: string }; response: { ok: boolean; detail?: string } };
 	setSkip: { params: { key: string; version: string | null }; response: { ok: boolean } };
@@ -533,7 +572,12 @@ export type Requests = {
 	/** Asks for a folder and writes the settings and app list there as one file. Cancelled: ok false with no problem. */
 	exportSetup: { params: Record<string, never>; response: { ok: boolean; file?: string; problem?: string } };
 	/** Asks for an export file and replaces the settings and app list from it, then checks again. Refused during a run. */
-	importSetup: { params: Record<string, never>; response: { ok: boolean; apps?: number; problems?: string[] } };
+	/** sure imports the file the last ask came from; without it a list that runs commands answers with ask and writes nothing. */
+	importSetup: {
+		params: { sure?: boolean };
+		/** autoOff: how many apps the file wanted installed automatically that came in off, being new or changed here. */
+		response: { ok: boolean; apps?: number; autoOff?: number; problems?: string[]; ask?: ImportAsk };
+	};
 	/** The desktop's languages, most preferred first, as the main process reads them from its environment; the tray uses the same list. */
 	languages: { params: Record<string, never>; response: string[] };
 	window: { params: { op: WindowButton }; response: { ok: boolean } };

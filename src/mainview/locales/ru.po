@@ -1065,6 +1065,7 @@ msgid "Export"
 msgstr "Экспорт"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "Импорт"
 
@@ -2768,6 +2769,58 @@ msgstr "Не удалось распаковать точку восстанов
 msgid "Downloaded, waits its turn"
 msgstr "Скачано, ждёт своей очереди"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "Остановлено вами"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "Остановлено"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "Остановлено. {0} снова на месте."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "Остановлено. {0} по-прежнему сообщает {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "Остановлено. {0} сейчас не запускается: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "Ждём завершения {0}, затем возвращаем {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "Ждём завершения {0}."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Нет вывода {0} мин."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Нет вывода {0} мин. Остановится сам через {1} мин."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Остановить сейчас"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Остановка {0}…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
@@ -2818,3 +2871,49 @@ msgstr "Проверен только размер"
 #: src/mainview/lib/copy.ts
 msgid "Download not checked"
 msgstr "Загрузка не проверена"
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "В этом файле есть приложения, которые выполняют эти команды на этом компьютере. Импортируйте его, только если доверяете источнику."
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "Отмена"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "Автоматическая установка выключается для каждого приложения, которого нет на этом компьютере или чья таблица отличается от здешней. Её можно снова включить для каждого приложения."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "Автоматическая установка выключена для # приложения, нового здесь или изменённого."
+msgstr[1] "Автоматическая установка выключена для # приложений, новых здесь или изменённых."
+msgstr[2] "Автоматическая установка выключена для # приложений, новых здесь или изменённых."
+msgstr[3] "Автоматическая установка выключена для # приложения, нового здесь или изменённого."
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "В нём также # приложение, которое только ставит свои файлы релизов, без root."
+msgstr[1] "В нём также # приложения, которые только ставят свои файлы релизов, без root."
+msgstr[2] "В нём также # приложений, которые только ставят свои файлы релизов, без root."
+msgstr[3] "В нём также # приложения, которые только ставят свои файлы релизов, без root."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}: dest не может содержать часть .."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "Он включает эти настройки, выключенные на этом компьютере:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: файл config не может содержать часть .."
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "Нет файла, ожидающего импорта. Нажмите «Импорт» и выберите его снова."
