@@ -116,6 +116,14 @@ export const MESSAGES = {
 	downloadTooSmall: (v0: Value) => `Download is ${v0} bytes, too small to be a release.`,
 	/** download.ts */
 	checksumMismatch: () => `Checksum does not match the release.`,
+	/** download.ts. {0} the checksum file's name in the release (SHA256SUMS, checksums.txt, latest-linux.yml) */
+	checksumFileMismatch: (v0: Value) =>
+		`Checksum does not match ${v0} in the release, so nothing was installed. You can skip this version.`,
+	/** download.ts */
+	downloadLeftHttps: () => `The download was sent on to an address that is not https, so it was refused.`,
+	/** engine.ts. {0} the release's tag */
+	releaseChanged: (v0: Value) =>
+		`The file behind ${v0} changed after Upkeep first saw it. Check the release page before you release the hold.`,
 	/** engine.ts */
 	reasonChecking: () => `A check is running.`,
 	/** engine.ts */
@@ -403,6 +411,11 @@ export const MESSAGES = {
 	importNothingAsked: () => "There is no file waiting to import. Press Import and pick it again.",
 	/** manifest.ts. {0} app key */
 	liftDestDotDot: (v0: Value) => `${v0}: dest may not contain a .. part`,
+	/** manifest.ts. {0} the key, JSON-quoted */
+	liftBadKey: (v0: Value) =>
+		`${v0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit.`,
+	/** manifest.ts. {0} app key; {1} field name */
+	liftControlChar: (v0: Value, v1: Value) => `${v0}: ${v1} may not contain a line break or other control character`,
 	/** manifest.ts. {0} app key */
 	liftRelaunchNeedsProcess: (v0: Value) => `${v0}: relaunch needs process`,
 	/** manifest.ts. {0} app key; {1} process name */
@@ -458,6 +471,17 @@ export const MESSAGES = {
 	metaMissing: (v0: Value, v1: Value) => `${v0} is missing inside ${v1}.`,
 	/** probe.ts. {0} meta_path from the table */
 	metaNoVersion: (v0: Value) => `${v0} names no version.`,
+	/** menu.ts. {0} the AppImage's path */
+	menuNoEntry: (v0: Value) => `Could not read a menu entry from ${v0}.`,
+	/** menu.ts. {0} the error's own text */
+	menuCouldNotWrite: (v0: Value) => `Could not write the menu entry: ${v0}`,
+	/** menu.ts. {0} the AppImage's path */
+	menuNotInstalled: (v0: Value) =>
+		`Nothing is installed at ${v0} yet, so there is no menu entry to read. Install it first.`,
+	/** menu.ts. {0} the AppImage's path */
+	menuStaysOut: (v0: Value) => `The AppImage at ${v0} asks to stay out of the app menu, so Upkeep adds no entry.`,
+	/** engine.ts. {0} path of the other tool's .desktop file */
+	menuElsewhere: (v0: Value) => `Already in the app menu through ${v0}, so Upkeep adds no second entry.`,
 	/** restart.ts */
 	nothingToStart: () => `nothing to start`,
 	/** restart.ts. {0} app name */

@@ -131,7 +131,7 @@ A program your system's package manager owns is left alone. [The app list](docs/
 
 ```mermaid
 flowchart LR
-  A[Download] --> B[Check size<br>and SHA-256]
+  A[Download] --> B[Check size and SHA-256<br>against the forge or the<br>release's checksum file]
   B --> C[Save a<br>restore point]
   C --> D[Swap in the<br>new version]
   D --> E{Does it<br>start?}

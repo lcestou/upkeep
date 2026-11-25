@@ -2805,6 +2805,76 @@ msgstr "Arrêt de {0}…"
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nouvelles versions dans leurs marketplaces : {0}."
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read a menu entry from {0}."
+msgstr "Impossible de lire une entrée de menu dans {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "Déjà dans le menu des applications via {0}, donc Upkeep n'ajoute pas de deuxième entrée."
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "Afficher dans le menu des applications"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "Rien n'est encore installé à {0}, il n'y a donc pas d'entrée de menu à lire. Installez-le d'abord."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "L'AppImage à {0} demande à rester hors du menu des applications, donc Upkeep n'ajoute pas d'entrée."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Téléchargement vérifié : le SHA-256 correspond à celui de la plateforme."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Téléchargement vérifié : correspond au fichier de sommes de la version."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Téléchargement vérifié : taille seulement."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Téléchargement non vérifié : la version n'indique ni taille ni somme de contrôle."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "Le téléchargement a été redirigé vers une adresse sans https, il a donc été refusé."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "La somme de contrôle ne correspond pas à {0} dans la version, rien n'a donc été installé. Vous pouvez ignorer cette version."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "Le fichier derrière {0} a changé depuis qu'Upkeep l'a vu pour la première fois. Consultez la page de la version avant de reprendre les mises à jour."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "Le SHA-256 correspond à la plateforme"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Correspond au fichier de sommes"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Taille vérifiée seulement"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Téléchargement non vérifié"
+
 #: src/mainview/lib/copy.ts
 msgid "Follow pre-releases"
 msgstr "Suivre les préversions"
@@ -2918,3 +2988,30 @@ msgstr "{0} : un fichier de config ne peut pas contenir de partie .."
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "Aucun fichier n’attend d’être importé. Cliquez sur Importer et choisissez-le à nouveau."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "Attendre une connexion non limitée et le secteur pour les mises à jour automatiques des applications"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "Les mises à jour automatiques des applications attendent sur une connexion limitée ou sur batterie. Les vérifications continuent, et Installer fonctionne toujours. La mise à jour d'Upkeep lui-même n'attend pas."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "Il désactive ces paramètres, activés sur cet ordinateur :"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} ne peut pas être une clé d'application : utilisez des lettres, chiffres, points, tirets et tirets bas, en commençant par une lettre ou un chiffre."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0} : {1} ne peut pas contenir de saut de ligne ni d'autre caractère de contrôle"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "Impossible d'écrire l'entrée de menu : {0}"

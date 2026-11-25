@@ -117,6 +117,7 @@ export function upkeepRequests(
 		setPrerelease: ({ key, prerelease }) => ({ ok: engine.setPrerelease(key, prerelease) }),
 		versions: ({ key }) => engine.versions(key),
 		installVersion: ({ key, tag }) => engine.installVersion(key, tag),
+		setMenu: ({ key, menu }) => engine.setMenu(key, menu),
 		setSettings: (patch) => {
 			const settings = engine.setSettings(patch);
 			try {

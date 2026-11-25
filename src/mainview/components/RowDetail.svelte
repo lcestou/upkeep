@@ -2,6 +2,7 @@
 	import { isStopNote, say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
 	import {
+		CHECKED,
 		CHIP,
 		COLUMN,
 		commitsHeading,
@@ -78,6 +79,19 @@
 	let asking = $state(false);
 	let keepBtn = $state<HTMLButtonElement | null>(null);
 	let removeBtn = $state<HTMLButtonElement | null>(null);
+	let menuNote = $state<string | null>(null);
+	let menuBusy = $state(false);
+
+	/** Asks the engine for the menu entry or its removal; a refusal puts the box back and shows the engine's reason. */
+	async function setMenu(box: HTMLInputElement) {
+		menuBusy = true;
+		menuNote = null;
+		const res = await model.send("setMenu", { key: app.key, menu: box.checked });
+		menuBusy = false;
+		if (res?.ok) return;
+		box.checked = app.menu === "on";
+		menuNote = res?.detail ?? null;
+	}
 
 	/** Opens the remove question and puts focus on Keep, the safe answer. */
 	async function ask() {
@@ -228,6 +242,7 @@
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
 		{#if app.detail}<p class="sentence" class:note={isStopNote(app.detail)} data-testid="pane-detail">{say(app.detail)}</p>{/if}
+		{#if app.checked}<p class="sentence" data-testid="pane-checked">{CHECKED[app.checked]}</p>{/if}
 		{#if app.status === "working" && app.waiting}<p class="sentence note" data-testid="pane-wait">{say(app.waiting)}</p>
 		{:else if quiet}<p class="sentence note" data-testid="pane-quiet">{quietLine(quiet.m, quiet.n)}</p>{/if}
 		{#if app.held && !app.skipped && app.installed}<p class="sentence" data-testid="held-at">{heldAt(app.installed)}</p>{/if}
@@ -388,6 +403,24 @@
 					/>
 					<span data-testid="prerelease-label">{TEXT.followPrerelease}</span>
 				</label>
+			{/if}
+			{#if app.menu === "elsewhere"}
+				<span class="menu-note" data-testid="menu-elsewhere-{app.key}">{say(app.menuDetail)}</span>
+			{:else if app.menu}
+				<label class="auto" data-testid="menu-switch-{app.key}">
+					<input
+						type="checkbox"
+						checked={app.menu === "on"}
+						disabled={inRun || menuBusy}
+						title={inRun ? ADD.waitRun : undefined}
+						data-testid="menu-{app.key}"
+						onchange={(e) => setMenu(e.currentTarget)}
+					/>
+					{TEXT.showInMenu}
+				</label>
+			{/if}
+			{#if menuNote}
+				<span class="menu-note" role="status" data-testid="menu-result-{app.key}">{say(menuNote)}</span>
 			{/if}
 			{#if app.releaseUrl}
 				<button
@@ -875,6 +908,11 @@
 		font-size: var(--fs-12);
 		color: var(--text-2);
 		cursor: pointer;
+	}
+	.menu-note {
+		font-size: var(--fs-12);
+		color: var(--text-2);
+		overflow-wrap: anywhere;
 	}
 	.facts {
 		margin: 0;

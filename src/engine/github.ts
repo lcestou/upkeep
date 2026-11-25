@@ -13,7 +13,12 @@ export type Asset = {
 	digest: string | null;
 	/** GitHub's API address for the file: the way in to a private repo's file, with a token. Set for GitHub only. */
 	api?: string;
+	/** The hash the release's own checksum file lists for this file, read at check time when there is no digest. */
+	sum?: Sum;
 };
+
+/** A hash a release's checksum file lists for one asset, as lowercase hex, and that file's name. */
+export type Sum = { algo: "sha256" | "sha512"; hex: string; file: string };
 
 export type Release = {
 	tag: string;
@@ -25,6 +30,8 @@ export type Release = {
 	assets: Asset[];
 	/** The forge marks it a pre-release. Only a release list says so; releases/latest never answers with one. */
 	prerelease?: boolean;
+	/** GitHub says the release is immutable: its files cannot change after it was published. */
+	immutable?: boolean;
 };
 
 /** How many releases a list asks for: the newest few, for a pre-release pick and the versions a person may install. */
@@ -100,7 +107,7 @@ export function parseRelease(body: unknown): Release | null {
 			});
 		}
 	}
-	return {
+	const release: Release = {
 		tag,
 		version: tagVersion(tag),
 		url: str(b.html_url),
@@ -109,6 +116,8 @@ export function parseRelease(body: unknown): Release | null {
 		assets,
 		prerelease: b.prerelease === true,
 	};
+	if (b.immutable === true) release.immutable = true;
+	return release;
 }
 
 /** A release list's body as releases, newest first as the forge lists them. A draft or an entry with no tag is left out. */
@@ -375,7 +384,8 @@ export function parseRepoSearch(body: unknown): RepoHit[] {
 	return hits;
 }
 
-const SIDE_FILES = /\.(sha256|sig|asc|zsync)$/;
+/** Checksum and signature files beside a release file: never the file to install, whatever the pattern matches. */
+const SIDE_FILES = /\.(sha256|sha256sum|sha512|sha512sum|sig|asc|minisig|zsync)$/i;
 
 /**
  * The first asset matching pattern, skipping checksum and signature files and source rpms (which install only sources),

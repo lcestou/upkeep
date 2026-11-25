@@ -98,8 +98,17 @@ export function isRecord(v: unknown): v is Record<string, unknown> {
 	return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
+/**
+ * A line break or other control character: in a value Upkeep writes into a file (a menu entry's Exec=, a unit) it
+ * would add a line of its own. A name and a note are only shown, so they are not checked.
+ */
+// oxlint-disable-next-line no-control-regex -- control characters are what it finds
+const hasControl = (v: string) => /[\x00-\x1f\x7f]/.test(v);
+
 /** One [apps.<key>] table checked and lifted into an AppSpec, or the reason it is refused. */
 export function lift(key: string, table: Record<string, unknown>): AppSpec | string {
+	// A key names files (the menu entry, restore points): a / or a leading dot would let it name one anywhere.
+	if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(key)) return MESSAGES.liftBadKey(JSON.stringify(key));
 	const kind = KINDS.find((k) => k === table.kind);
 	if (kind === undefined) return MESSAGES.liftKindNotOneOf(key, KINDS.join(", "));
 	const spec: AppSpec = { key, name: "", kind };
@@ -107,6 +116,7 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 		const v = table[f];
 		if (v === undefined) continue;
 		if (typeof v !== "string") return MESSAGES.liftMustBeString(key, f);
+		if (f !== "note" && f !== "name" && hasControl(v)) return MESSAGES.liftControlChar(key, f);
 		spec[f] = v;
 	}
 	for (const f of LIST_FIELDS) {
@@ -417,6 +427,7 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 		const v = table[f];
 		if (v === undefined) continue;
 		if (typeof v !== "string") return MESSAGES.liftMustBeString(key, f);
+		if (hasControl(v)) return MESSAGES.liftControlChar(key, f);
 		spec[f] = v;
 	}
 	for (const f of SOURCE_LISTS) {

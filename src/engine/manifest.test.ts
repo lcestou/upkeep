@@ -663,3 +663,43 @@ test("keep_with_restore takes an app's own paths under home, on a kind that keep
 	expect(one(...source, 'keep_with_restore = ["~/.x"]')).toBe(kind);
 	expect(one(...source, 'dir = "~/src/x"', 'keep_with_restore = ["~/.x"]')).toMatchObject({ dir: "~/src/x" });
 });
+
+test("an app key that could name a file elsewhere is refused, and every shipped table's key passes", () => {
+	const table = (key: string) => `[apps.${key}]\nname = "X"\nkind = "file"\nrepo = "a/b"\nasset = "x"\ndest = "~/x"\n`;
+	const { apps, errors } = parseManifest(
+		[
+			table('"../../../x"'),
+			table('"a/b"'),
+			table('".hidden"'),
+			table('"a b"'),
+			table("zen-browser"),
+			table('"a.b_c"'),
+		].join("\n"),
+		"apps",
+	);
+	expect(errors).toEqual(
+		['"../../../x"', '"a/b"', '".hidden"', '"a b"'].map(
+			(k) =>
+				`${k} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit.`,
+		),
+	);
+	expect(apps.map((a) => a.key)).toEqual(["zen-browser", "a.b_c"]);
+	for (const f of [EXAMPLES, SEED]) expect(parseManifest(readFileSync(f, "utf8"), "apps").errors).toEqual([]);
+	expect(loadCatalogue(CATALOGUE).errors).toEqual([]);
+});
+
+test("a line break in a path field is refused; a note may wrap", () => {
+	const { apps, errors } = parseManifest(
+		[
+			'[apps.a]\nname = "A"\nkind = "file"\nrepo = "a/b"\nasset = "x"\ndest = "~/a\\nExec=/bin/sh"\n',
+			'[apps.b]\nname = "B"\nkind = "file"\nrepo = "a/b"\nasset = "x"\ndest = "~/b"\nnote = """one\ntwo"""\n',
+			'[apps.c]\nname = "C"\nkind = "source"\ndir = "~/c\\u0007"\nbuild = ["make"]\n',
+		].join("\n"),
+		"apps",
+	);
+	expect(errors).toEqual([
+		"a: dest may not contain a line break or other control character",
+		"c: dir may not contain a line break or other control character",
+	]);
+	expect(apps.map((a) => a.key)).toEqual(["b"]);
+});

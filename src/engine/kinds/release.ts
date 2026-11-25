@@ -13,10 +13,11 @@ import {
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
-import type { AppSpec } from "../../shared/types";
+import type { AppSpec, DownloadCheck } from "../../shared/types";
 import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
-import { download, signedIn, statedSize, verifyAsset } from "../download";
+import { download, type DownloadResult, hashFile, needsSha512, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
+import { cachedSum } from "../checksums";
 import { forgeRelease, forgeReleases, linksRelease, zsyncRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
@@ -196,7 +197,14 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			detail: MESSAGES.noAssetForArch(spec.name, ctx.arch ?? "x86_64"),
 		};
 	const release = await releaseOf(spec, ctx);
-	if (isFailure(release)) return { installed, latest: null, status: "problem", detail: release.detail };
+	if (isFailure(release))
+		return {
+			installed,
+			latest: null,
+			status: "problem",
+			detail: release.detail,
+			offline: release.failure === "network",
+		};
 	const base = { ...fromRelease(release) };
 	if (!release.version)
 		return {
@@ -234,7 +242,17 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				detail: MESSAGES.severalAssetsMatch(String(pattern), pick.names.join(", ")),
 				...base,
 			};
-		target = { ...target, asset: pick.asset };
+		// Only for an update on offer: a release with no digest is read for its own checksum file, once per check.
+		const sum =
+			status === "ready" && !pick.asset.digest
+				? await cachedSum(sumCache(ctx, spec.key), release, pick.asset, ctx.fetch, {
+						token: ctx.token,
+						cancel: ctx.cancel,
+						now: (ctx.now?.() ?? new Date()).getTime(),
+					})
+				: null;
+		target = { ...target, asset: sum ? { ...pick.asset, sum } : pick.asset };
+		if (release.immutable) target.locked = true;
 		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
 		size = pick.asset.size || (status === "ready" ? await statedSize(pick.asset.url, ctx.fetch) : undefined);
 	}
@@ -334,6 +352,49 @@ export function dlPath(paths: KindCtx["paths"], key: string, name: string): stri
 	return join(paths.cache, "dl", `${key}-${name}`);
 }
 
+/** Where the answer of a release app's checksum files is kept between checks. */
+function sumCache(ctx: Pick<KindCtx, "paths">, key: string): string {
+	return join(ctx.paths.cache, "sums", `${key}.json`);
+}
+
+/**
+ * verifyAsset for the target's file. A mismatch against a hash from the release's checksum file reads that file again
+ * once, past the cache: a maintainer who re-uploaded the file and its checksum under the same tag is checked against
+ * the new line, and the next check sees the changed hash. A checksum file that still disagrees fails as before.
+ */
+async function verified(
+	spec: AppSpec,
+	target: Target,
+	got: DownloadResult,
+	file: string,
+	ctx: KindCtx,
+): Promise<DownloadCheck> {
+	const asset = target.asset;
+	if (!asset) throw new Error(MESSAGES.noReleaseAssetFor(spec.name));
+	try {
+		return verifyAsset(got, asset);
+	} catch (err) {
+		if (!asset.sum || asset.digest) throw err;
+		const release = await releaseOf(spec, ctx, target.tag);
+		if (isFailure(release)) throw err;
+		const now = (ctx.now?.() ?? new Date()).getTime();
+		const opts = { token: ctx.token, cancel: ctx.cancel, now, fresh: true };
+		const sum = await cachedSum(sumCache(ctx, spec.key), release, asset, ctx.fetch, opts);
+		if (!sum || (sum.algo === asset.sum.algo && sum.hex === asset.sum.hex)) throw err;
+		ctx.log(`${sum.file} changed since the check; checking the download against it again`);
+		const again = needsSha512({ sum }) && !got.sha512 ? await hashFile(file, true) : got;
+		return verifyAsset(again, { ...asset, sum });
+	}
+}
+
+/** The log's English for how a download was checked. */
+const CHECK_LOG = {
+	digest: () => "matches the forge's SHA-256 record",
+	sums: (a) => `matches ${a.sum?.file ?? "the release's checksum file"}`,
+	size: () => "size only, the release lists no checksum",
+	none: () => "not checked, the release lists no size or checksum",
+} satisfies Record<DownloadCheck, (asset: NonNullable<Target["asset"]>) => string>;
+
 /** A stage of an install that failed with a message fit to show the person; anything else thrown is unexpected and rethrown. */
 class StepError extends Error {}
 
@@ -365,9 +426,10 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 	const added: string[] = [];
 	// A file fetched ahead records its real download time, so the next run's stem keeps the download's width.
 	let earlyMs: number | undefined;
+	let checked: DownloadCheck | undefined;
 	const finish = (o: Omit<Outcome, "stages">): Outcome => {
 		const stages = clock.stop();
-		return { ...o, stages: earlyMs === undefined ? stages : { ...stages, download: earlyMs } };
+		return { ...o, checked, stages: earlyMs === undefined ? stages : { ...stages, download: earlyMs } };
 	};
 	// Before any download or restore point: a folder Upkeep did not make is never copied, renamed or replaced.
 	if (spec.folder && !folderFree(expandHome(spec.folder, ctx.paths.home), spec.key))
@@ -389,18 +451,22 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			earlyMs = early.ms;
 			ctx.stage("download", 100);
 		} else ctx.log(`Downloading ${asset.name}`);
+		// A check during the run can give the asset a sha512 sum its early download was not hashed for.
 		const got =
-			early ??
-			(await download(asset.url, dl, {
-				fetch: ctx.fetch,
-				onProgress,
-				stallMs: ctx.stallMs,
-				retryMs: ctx.retryMs,
-				signedIn: signedIn(asset, ctx.token),
-				signal: ctx.cancel,
-			}));
-		verifyAsset(got, asset);
-		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}`);
+			early && needsSha512(asset) && !early.sha512
+				? await hashFile(dl, true)
+				: (early ??
+					(await download(asset.url, dl, {
+						fetch: ctx.fetch,
+						onProgress,
+						stallMs: ctx.stallMs,
+						retryMs: ctx.retryMs,
+						signedIn: signedIn(asset, ctx.token),
+						sha512: needsSha512(asset),
+						signal: ctx.cancel,
+					})));
+		checked = await verified(spec, target, got, dl, ctx);
+		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}, ${CHECK_LOG[checked](asset)}`);
 
 		if (restorable && isPackage(spec.kind) && target.from) {
 			clock.start("backup");

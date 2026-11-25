@@ -61,7 +61,13 @@ function publish(tag: string, files: Record<string, Uint8Array<ArrayBuffer>>, di
 const limited: FetchLike = async () => new Response('{"message":"API rate limit exceeded"}', { status: 403 });
 
 /** A release by tag answers only when a test published one with publishOld; by default it is GitHub's 404. */
-let oldRelease: { tag: string; files: Record<string, Uint8Array<ArrayBuffer>> } | null = null;
+let oldRelease: {
+	tag: string;
+	files: Record<string, Uint8Array<ArrayBuffer>>;
+	/** The forge lists no digest for its files. */
+	bare?: boolean;
+	immutable?: boolean;
+} | null = null;
 
 const fakeFetch: FetchLike = async (url) => {
 	const byTag = /\/releases\/tags\/([^/]+)$/.exec(url);
@@ -71,11 +77,12 @@ const fakeFetch: FetchLike = async (url) => {
 		return Response.json({
 			tag_name: oldRelease.tag,
 			html_url: "",
+			immutable: oldRelease.immutable === true,
 			assets: Object.entries(oldRelease.files).map(([name, b]) => ({
 				name,
 				browser_download_url: `https://dl.test/old/${name}`,
 				size: b.length,
-				digest: sha(b),
+				digest: oldRelease?.bare ? null : sha(b),
 			})),
 		});
 	}
@@ -107,6 +114,7 @@ function ctx(run: Run = realRun(t.paths)): KindCtx {
 			language: "system",
 			selfAuto: false,
 			upkeepCommand: false,
+			waitUnmetered: false,
 		},
 		log: (l) => lines.push(l),
 		stage: (s, p) => stages.push([s, p]),
@@ -249,6 +257,65 @@ test("install: a new version that will not start is rolled back to the restore p
 		detail: "Would not start after the update. Restored 1.17.9b.",
 	});
 	expect(statSync(dest).mode & 0o777).toBe(0o775);
+});
+
+test("install: with no digest the release's own SHA256SUMS is read at check time and holds the download to it", async () => {
+	installZen("1.17.9b");
+	const file = bash('echo "zen 1.18.0b"');
+	const hex = sha(file).slice(7);
+	const sums = new TextEncoder().encode(`${hex}  zen.linux-x86_64.AppImage\n`);
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": file, SHA256SUMS: sums }, false);
+	const c = ctx();
+	const target = await checkAndTarget(zen(), c);
+	expect(target.asset?.sum).toEqual({ algo: "sha256", hex, file: "SHA256SUMS" });
+	expect(target.locked).toBeUndefined();
+	const outcome = await installRelease(zen(), target, c);
+	expect(outcome).toMatchObject({ result: "done", checked: "sums" });
+	expect(lines.some((l) => l.endsWith("matches SHA256SUMS"))).toBe(true);
+});
+
+test("install: a checksum file naming the file with another hash changes nothing; the forge's digest says so", async () => {
+	const dest = installZen("1.17.9b");
+	const file = bash('echo "zen 1.18.0b"');
+	const sums = new TextEncoder().encode(`${"0".repeat(64)}  zen.linux-x86_64.AppImage\n`);
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": file, "checksums.txt": sums }, false);
+	const c = ctx();
+	await expect(installRelease(zen(), await checkAndTarget(zen(), c), c)).rejects.toThrow(
+		"Checksum does not match checksums.txt in the release, so nothing was installed. You can skip this version.",
+	);
+	expect(readFileSync(dest, "utf8")).toContain("zen 1.17.9b");
+	// With a digest the checksum file is never asked for, and the outcome says the forge's record matched.
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": file, "checksums.txt": sums });
+	release.immutable = true;
+	const target = await checkAndTarget(zen(), c);
+	expect(target.asset?.sum).toBeUndefined();
+	expect(target.locked).toBe(true);
+	expect(await installRelease(zen(), target, c)).toMatchObject({ result: "done", checked: "digest" });
+	expect(lines.some((l) => l.endsWith("matches the forge's SHA-256 record"))).toBe(true);
+});
+
+test("install: a download that fails a kept checksum reads the checksum file again once, and passes a re-upload", async () => {
+	const dest = installZen("1.17.9b");
+	const name = "zen.linux-x86_64.AppImage";
+	const first = bash('echo "zen 1.18.0b"');
+	const sumsOf = (b: Uint8Array) => new TextEncoder().encode(`${sha(b).slice(7)}  ${name}\n`);
+	publish("1.18.0b", { [name]: first, SHA256SUMS: sumsOf(first) }, false);
+	const c = ctx();
+	await checkAndTarget(zen(), c);
+	// The maintainer re-uploads the file under the same tag, but not yet its checksum file: still a mismatch. The next
+	// check sees the new size, and the kept hash from the first.
+	const rebuilt = bash('echo "zen 1.18.0b" # rebuilt');
+	publish("1.18.0b", { [name]: rebuilt, SHA256SUMS: sumsOf(first) }, false);
+	const target = await checkAndTarget(zen(), c);
+	expect(target.asset?.sum?.hex).toBe(sha(first).slice(7));
+	oldRelease = { tag: "1.18.0b", files: { [name]: rebuilt, SHA256SUMS: sumsOf(first) } };
+	await expect(installRelease(zen(), target, c)).rejects.toThrow(`Checksum does not match SHA256SUMS in the release`);
+	expect(readFileSync(dest, "utf8")).toContain("zen 1.17.9b");
+	// Then the checksum file too: the install reads it again and checks the download against the new line.
+	oldRelease = { tag: "1.18.0b", files: { [name]: rebuilt, SHA256SUMS: sumsOf(rebuilt) } };
+	expect(await installRelease(zen(), target, c)).toMatchObject({ result: "done", checked: "sums" });
+	expect(lines.some((l) => l.startsWith("SHA256SUMS changed since the check"))).toBe(true);
+	oldRelease = null;
 });
 
 test("install: a checksum that does not match changes nothing", async () => {
@@ -1028,6 +1095,29 @@ test("newestOf picks by version, not by the forge's date order, and passes over 
 	expect(canList({ kind: "deb", repo: "o/p" })).toBe(true);
 	expect(canList({ kind: "appimage" })).toBe(false);
 	expect(canList({ kind: "source", repo: "o/p" })).toBe(false);
+});
+
+test("install: a file fetched ahead before a sha512 sum appeared is hashed again for it, never failed", async () => {
+	installZen("1.17.9b");
+	const body = bash('echo "zen 1.18.0b"');
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": body }, false);
+	const c = ctx();
+	const target = await checkAndTarget(zen(), c);
+	const sha512 = new Bun.CryptoHasher("sha512").update(body).digest("hex");
+	// A later check read latest-linux.yml: the target now carries a sha512 the early file was not hashed with.
+	const asset = { ...target.asset, name: "zen.linux-x86_64.AppImage", url: "", size: body.length, digest: null };
+	const withSum = {
+		...target,
+		asset: { ...asset, sum: { algo: "sha512" as const, hex: sha512, file: "latest-linux.yml" } },
+	};
+	mkdirSync(join(t.paths.cache, "dl"), { recursive: true });
+	writeFileSync(dlPath(t.paths, "zen", "zen.linux-x86_64.AppImage"), body);
+	const sha256 = new Bun.CryptoHasher("sha256").update(body).digest("hex");
+	const outcome = await installRelease(zen(), withSum, {
+		...c,
+		early: async () => ({ bytes: body.length, sha256, ms: 5 }),
+	});
+	expect(outcome).toMatchObject({ result: "done", installed: "1.18.0b", checked: "sums" });
 });
 
 test("Stop now during sudo -n dpkg waits it out, then puts the installed version's package back", async () => {

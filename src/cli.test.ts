@@ -101,7 +101,8 @@ test("install updates, exits 0, then restore and history work", async () => {
 	const h: string[] = [];
 	expect(await main(["history"], d, (l) => h.push(l))).toBe(0);
 	expect(h[0]).toMatch(/ BorgBackup 1\.4\.2 to 1\.4\.1 Restored$/);
-	expect(h[1]).toMatch(/ BorgBackup 1\.4\.1 to 1\.4\.2 Updated$/);
+	// The update says how its download was checked.
+	expect(h[1]).toMatch(/ BorgBackup 1\.4\.1 to 1\.4\.2 Updated \(size checked only\)$/);
 	// A Cleanup row has no versions: it says what it freed.
 	appendHistory(t.paths, [
 		{
@@ -177,6 +178,47 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", skipped: "10.5.2" })).toBe(
 		"  HELD:   tmux 9.0.0 -> 10.5.2 (skipping 10.5.2)",
 	);
+	// A hold Upkeep put on a changed release says why.
+	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", detail: "Why." })).toBe(
+		"  HELD:   tmux 9.0.0 -> 10.5.2 Why.",
+	);
+});
+
+test("hold on and off set and release an app's hold; an unknown key or a missing on/off is refused", async () => {
+	const d = deps();
+	const out: string[] = [];
+	expect(await main(["hold", "bat", "on"], d, (l) => out.push(l))).toBe(0);
+	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).hold).toEqual({ bat: true });
+	expect(await main(["hold", "bat", "off"], d, (l) => out.push(l))).toBe(0);
+	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).hold).toEqual({});
+	expect(out).toEqual(["Holding bat.", "Released the hold on bat."]);
+	const json: string[] = [];
+	expect(await main(["hold", "nope", "off", "--json"], d, (l) => json.push(l))).toBe(1);
+	expect(JSON.parse(json[0] ?? "{}")).toEqual({ key: "nope", held: false, ok: false });
+	expect(await main(["hold", "nope", "off"], d, (l) => json.push(l))).toBe(1);
+	expect(json[1]).toBe("No app nope in the list.");
+	expect(await main(["hold", "bat"], d, () => undefined)).toBe(2);
+});
+
+test("install --auto with the wait on and a metered connection installs nothing, says why and exits 0", async () => {
+	const d = deps();
+	const power: EngineDeps["run"] = async (argv) => ({
+		code: 0,
+		stdout: argv.includes("Metered") ? "u 1" : "b false",
+		stderr: "",
+		timedOut: false,
+	});
+	mkdirSync(t.paths.state, { recursive: true });
+	writeFileSync(
+		join(t.paths.state, "state.json"),
+		JSON.stringify({ settings: { waitUnmetered: true }, auto: { borg: true } }),
+	);
+	const out: string[] = [];
+	expect(await main(["install", "--auto"], { ...d, power }, (l) => out.push(l))).toBe(0);
+	expect(out.at(-1)).toBe("Automatic updates wait: the connection is metered.");
+	const json: string[] = [];
+	expect(await main(["install", "--auto", "--json"], { ...d, power }, (l) => json.push(l))).toBe(0);
+	expect(JSON.parse(json.at(-1) ?? "{}")).toMatchObject({ started: false, wait: "metered" });
 });
 
 test("recover with another Upkeep's run holding the lock says so and exits 1, leaving the marker", async () => {
@@ -268,6 +310,32 @@ test("add adds only a single sure match; nothing found, or an app already listed
 	expect(listed).toHaveLength(2);
 });
 
+test("import drops what a check remembered of a release for an app it drops or changes", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const seen = (tag: string) => ({ tag, file: "f", hash: "sha256:ab" });
+	const remember = () =>
+		updateState(t.paths, (s) => {
+			s.seen = { borg: seen("v1"), bat: seen("v2") };
+			s.changed = { borg: "v1", bat: "v2" };
+		});
+	remember();
+	const file = join(t.dir, "upkeep.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const exported = JSON.parse(readFileSync(file, "utf8"));
+	// bat dropped, borg the same table: only borg's memory stays.
+	writeFileSync(file, JSON.stringify({ ...exported, apps: exported.apps.replace(/\[apps\.bat\][\s\S]*$/, "") }));
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	const first = loadState(t.paths);
+	expect([first.seen, first.changed]).toEqual([{ borg: seen("v1") }, { borg: "v1" }]);
+	// borg's table changed, and bat comes back as an app this machine no longer lists: neither keeps its memory.
+	remember();
+	writeFileSync(file, JSON.stringify({ ...exported, apps: exported.apps.replace("borg-linux$", "borg-linux64$") }));
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	const after = loadState(t.paths);
+	expect([after.seen, after.changed]).toEqual([{}, {}]);
+});
+
 test("export and import carry the list, settings, skips, holds and auto picks, and keep the old files", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
@@ -315,6 +383,23 @@ test("export and import carry the list, settings, skips, holds and auto picks, a
 	expect(readdirSync(t.paths.state).filter((f) => f.startsWith("state.json.pre-import-"))).toHaveLength(1);
 });
 
+test("import that would turn the wait for an unmetered connection off says so and needs --yes", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const file = join(t.dir, "nowait.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	updateState(t.paths, (s) => {
+		s.settings.waitUnmetered = true;
+	});
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
+	expect(said.slice(0, 2)).toEqual([
+		`${file} turns off these settings on this computer:`,
+		"  Wait for an unmetered connection and mains power for automatic app updates",
+	]);
+	expect(loadState(t.paths).settings.waitUnmetered).toBe(true);
+});
+
 test("import of a list whose apps run commands prints them and needs --yes; new or changed apps come in with auto off", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
@@ -356,6 +441,7 @@ test("import of a list whose apps run commands prints them and needs --yes; new 
 			apps: [{ key: "glow", name: "Glow", commands: ["source: npm:glow", "check: glow --version", "update: glow up"] }],
 			plain: 3,
 			turnsOn: [],
+			turnsOff: [],
 		},
 	});
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
