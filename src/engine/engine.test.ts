@@ -1679,3 +1679,47 @@ test("a token check GitHub never answers gives up after its wait: Save keeps the
 	expect(engine.snapshot().run.phase).toBe("idle");
 	expect(statuses(engine).fd).toBe("ready");
 });
+
+test("a token GitHub revokes after a check falls back to gh at the next search, and an accepted answer is reused for a minute", async () => {
+	const d = await deps();
+	let clock = Date.parse("2026-11-10T00:00:00Z");
+	let expired = false;
+	let probes = 0;
+	const sent: (string | null)[] = [];
+	const run = Object.assign(
+		(argv: string[], opts?: Parameters<typeof d.run>[1]) =>
+			argv[0] === "gh"
+				? Promise.resolve({ code: 0, stdout: "gho_fromgh\n", stderr: "", timedOut: false })
+				: d.run(argv, opts),
+		{ start: d.run.start },
+	);
+	const engine = createEngine({
+		...d,
+		run,
+		now: () => new Date(clock),
+		fetch: async (url, init) => {
+			const auth = new Headers(init?.headers).get("Authorization");
+			if (url === "https://api.github.com/rate_limit") {
+				probes++;
+				return new Response("{}", { status: expired ? 401 : 200 });
+			}
+			if (url.startsWith("https://api.github.com/")) sent.push(auth);
+			return d.fetch(url, init);
+		},
+	});
+	const token = `ghp_${"r".repeat(36)}`;
+	expect(await engine.setToken(token)).toBe("ok");
+	await engine.check(["fd"]);
+	const afterCheck = probes;
+	// Within the minute a search reuses the check's answer.
+	await engine.suggest("sharkdp/fd");
+	expect(probes).toBe(afterCheck);
+	expect(sent.at(-1)).toBe(`Bearer ${token}`);
+	// Revoked after the check: the next search, past the minute, asks again and goes through gh.
+	expired = true;
+	clock += 61_000;
+	await engine.suggest("sharkdp/fd");
+	expect(probes).toBe(afterCheck + 1);
+	expect(sent.at(-1)).toBe("Bearer gho_fromgh");
+	expect(engine.tokenState().refused).toBe("gh");
+});

@@ -768,7 +768,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				emitApp(a);
 			}
 		}
-		token = await freshToken();
+		token = await freshToken(true);
 		const history = readHistory(paths, 1000);
 		const all = loadSpecs();
 		// The notes are a nicety: a list that cannot be read leaves them out and never stops the check.
@@ -985,7 +985,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			}
 			emitRun();
-			if (!token) token = await freshToken();
+			token = await freshToken();
 		} catch (err) {
 			// Nothing ran yet: put the rows back and give the lock up.
 			log?.close();
@@ -1478,7 +1478,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		async versions(key) {
 			const spec = specOf(key);
 			if (!spec || !canList(spec)) return { versions: [], problem: MESSAGES.noApp(key) };
-			if (!token) token = await freshToken();
+			token = await freshToken();
 			const list = await listReleases(spec, kindCtx(key));
 			if (isFailure(list)) return { versions: [], problem: list.detail };
 			return {
@@ -1498,7 +1498,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			const first = apps.get(key);
 			if (!spec || !first || !checked.has(key) || !canList(spec))
 				return { started: false, reason: MESSAGES.noApp(key) };
-			if (!token) token = await freshToken();
+			token = await freshToken();
 			const t = await versionTarget(spec, kindCtx(key), tag, first.installed);
 			if (isFailure(t)) return { started: false, reason: t.detail };
 			if (t.version === first.installed) return { started: false, reason: REASON_NOTHING };
@@ -1703,7 +1703,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	};
 
 	async function discoverCtx(): Promise<DiscoverCtx> {
-		if (!token) token = await freshToken();
+		token = await freshToken();
 		return {
 			paths,
 			run: deps.run,
@@ -1887,13 +1887,28 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 	}
 
+	/** The last answer GitHub gave about the pasted token, and when, so requests close together ask it once. */
+	let probed: { token: string; at: number; refused: boolean } | null = null;
+
+	/**
+	 * Whether GitHub refuses the pasted token now. An accepted token's answer is reused for 60 s, so Other versions and
+	 * Add app do not each ask; a refusal is never reused, so a token put right is seen at once. force (a check) always asks.
+	 */
+	async function tokenRefused(pasted: string, force: boolean): Promise<boolean> {
+		const now = deps.now().getTime();
+		if (!force && probed?.token === pasted && !probed.refused && now - probed.at < 60_000) return false;
+		const refused = (await tokenStatus(pasted)) === 401;
+		probed = { token: pasted, at: now, refused };
+		return refused;
+	}
+
 	/**
 	 * The token for one check or search: the pasted one, unless GitHub now answers it 401 (an expired or revoked token),
 	 * then gh's sign-in for this check, so a token gone stale is never worse than none. A network fault keeps the pasted one.
 	 */
-	async function freshToken(): Promise<string | null> {
+	async function freshToken(force = false): Promise<string | null> {
 		const pasted = readToken(paths);
-		const refused = pasted !== null && (await tokenStatus(pasted)) === 401;
+		const refused = pasted !== null && (await tokenRefused(pasted, force));
 		const t = await githubToken(deps.run, refused ? null : pasted);
 		tokenFallback = refused ? (t ? "gh" : "none") : null;
 		return t;
