@@ -73,3 +73,35 @@ test("a stopped app is not offered as Retry; the apps not started are, and after
 	await expect(page.getByTestId("sentence-zen")).toHaveText("Stopped. 1.24b is back in place.");
 	await expect(page.getByTestId("tick-zen")).toBeEnabled();
 });
+
+test("from the keyboard, Stop after this one leads to Stop now, and focus lands on Install once the run ends", async ({
+	page,
+}) => {
+	await load(page, "fixture&speed=0.5");
+	await page.getByTestId("install").click();
+	await expect(page.getByTestId("stop")).toBeFocused();
+	await page.keyboard.press("Enter");
+	await expect(page.getByTestId("stop-now")).toBeVisible();
+	// The row's own Stop now stays out of the tab order; the footer is the keyboard's way to it.
+	await page.keyboard.press("Tab");
+	await expect(page.getByTestId("stop-now")).toBeFocused();
+	await page.keyboard.press("Enter");
+	await expect(page.getByTestId("stop-now")).toHaveAttribute("aria-disabled", "true");
+	await expect(page.getByTestId("stop-now")).toBeFocused();
+	await expect(page.getByTestId("install")).toBeFocused({ timeout: 10_000 });
+});
+
+test("the quiet line and the row's Stop now do not move under reduced motion", async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: "reduce" });
+	await load(page, "fixture&speed=2&quiet=cut");
+	await page.getByTestId("install").click();
+	await page.getByTestId("stop-now-zen").waitFor();
+	const moving = await page.evaluate(() =>
+		["quiet-zen", "stop-now-zen"].map((id) => {
+			const el = document.querySelector(`[data-testid="${id}"]`);
+			const s = el ? getComputedStyle(el) : null;
+			return s ? s.animationName !== "none" || Number.parseFloat(s.transitionDuration) > 0.01 : true;
+		}),
+	);
+	expect(moving).toEqual([false, false]);
+});
