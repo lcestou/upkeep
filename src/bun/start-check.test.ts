@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { checkAtStart } from "./start-check";
+import { checkAndRetry, checkAtStart } from "./start-check";
 
 /** An engine stand-in whose checks find the network down for the first `down` tries. */
 function fakeEngine(down: number) {
@@ -57,4 +57,35 @@ test("when the network never comes, only the last try may show the failure", asy
 	const once = fakeEngine(99);
 	await checkAtStart(once, async () => undefined, []);
 	expect(once.checks).toEqual([false]);
+});
+
+/** An engine stand-in for the retry: each installAuto answers the next wait in turn. */
+function retryEngine(offline: boolean, waits: ("metered" | "battery" | undefined)[]) {
+	const calls: string[] = [];
+	return {
+		calls,
+		check: async () => {
+			calls.push("check");
+		},
+		offline: () => offline,
+		installAuto: async () => {
+			calls.push("installAuto");
+			const wait = waits.shift();
+			return wait ? { started: false, wait } : { started: true };
+		},
+	};
+}
+
+test("a scheduled check retries automatic apps only while they wait, and keeps the wait when offline", async () => {
+	const none = retryEngine(false, []);
+	expect(await checkAndRetry(none, undefined)).toBeUndefined();
+	expect(none.calls).toEqual(["check"]);
+	const still = retryEngine(false, ["battery"]);
+	expect(await checkAndRetry(still, "metered")).toBe("battery");
+	expect(still.calls).toEqual(["check", "installAuto"]);
+	const goes = retryEngine(false, [undefined]);
+	expect(await checkAndRetry(goes, "metered")).toBeUndefined();
+	const offline = retryEngine(true, []);
+	expect(await checkAndRetry(offline, "metered")).toBe("metered");
+	expect(offline.calls).toEqual(["check"]);
 });

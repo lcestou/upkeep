@@ -106,10 +106,12 @@ export function runNotices(results: Pick<RunResult, "name" | "result">[], code: 
 }
 
 /** Identifies a ready set, so the same set is announced once and not after every check. */
-export function readyFingerprint(snapshot: Snapshot): string {
-	return snapshot.apps
+export function readyFingerprint(snapshot: Snapshot, wait?: "metered" | "battery"): string {
+	const ready = snapshot.apps
 		.filter((app) => app.status === "ready")
 		.map((app) => `${app.key}@${app.latest ?? ""}`)
 		.toSorted()
 		.join(",");
+	// The same set waiting for a reason is a new notice, so a second metered login still says why.
+	return ready && wait ? `${ready};wait=${wait}` : ready;
 }

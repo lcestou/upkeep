@@ -17,7 +17,7 @@ import { createRaiser, openX11 } from "./raise";
 import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/languages";
 import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
-import { checkAtStart } from "./start-check";
+import { checkAndRetry, checkAtStart } from "./start-check";
 import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
 import { entryArgv, SELF_FILES } from "./self-shim";
@@ -453,18 +453,34 @@ function notify(body: string): void {
 	if (engine.snapshot().settings.notify) Utils.showNotification({ title: "Upkeep", body });
 }
 
-// While a login start checks and starts its automatic installs, its checks say nothing: the one notice comes after,
-// once the automatic apps are either queued (and get their own "Updated" notice) or waiting (and are named).
-let loginStart = false;
+// While a login start, or a scheduled check that retries waiting automatic apps, checks and starts its automatic
+// installs, its checks say nothing: the one notice comes after, once the automatic apps are either queued (and get
+// their own "Updated" notice) or waiting (and are named with what they wait for).
+let noticeHeld = false;
+// What the automatic apps wait for since a check held them back; each scheduled check tries them again.
+let heldBack: "metered" | "battery" | undefined;
+
+/** The schedule's check. While automatic apps wait, it tries them again after the check and sends one notice after. */
+async function scheduledCheck(): Promise<void> {
+	if (!heldBack) return engine.check();
+	noticeHeld = true;
+	try {
+		heldBack = await checkAndRetry(engine, heldBack);
+	} finally {
+		noticeHeld = false;
+	}
+	announceReady(heldBack);
+}
+
 /**
  * One notice per ready set: the same pending list is announced once, not after every check. wait names what the
  * automatic apps wait for, on the notice that follows a login start that held them back.
  */
 function announceReady(wait?: "metered" | "battery"): void {
 	// A check that found no network learned nothing new; the next one speaks.
-	if (loginStart || engine.offline()) return;
+	if (noticeHeld || engine.offline()) return;
 	const snapshot = engine.snapshot();
-	const fingerprint = readyFingerprint(snapshot);
+	const fingerprint = readyFingerprint(snapshot, wait);
 	if (fingerprint === loadState(deps.paths).notified) return;
 	updateState(deps.paths, (s) => {
 		s.notified = fingerprint;
@@ -487,7 +503,7 @@ let phase: RunPhase = "idle";
 const schedule = startSchedule({
 	every: () => engine.snapshot().settings.checkEvery,
 	idle: () => phase === "idle",
-	check: () => void engine.check(),
+	check: () => void scheduledCheck(),
 });
 
 // Through the same coalescer as the engine's events: a non-row event flushes pending rows first, so order holds.
@@ -561,13 +577,14 @@ try {
 const startHidden = wasOpen === null ? background : !wasOpen;
 
 if (startHidden && tray.visible) {
-	loginStart = true;
+	noticeHeld = true;
 	let wait: "metered" | "battery" | undefined;
 	try {
 		await checkAtStart(engine);
 		wait = (await engine.installAuto()).wait;
+		heldBack = wait;
 	} finally {
-		loginStart = false;
+		noticeHeld = false;
 	}
 	announceReady(wait);
 } else {

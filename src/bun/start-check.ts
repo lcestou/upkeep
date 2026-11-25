@@ -22,3 +22,17 @@ export async function checkAtStart(
 		await engine.check(undefined, { quietOffline: i < delays.length - 1 });
 	}
 }
+
+/**
+ * A scheduled check while the automatic apps wait for an unmetered connection or mains power: checks, then asks the
+ * engine to install them again, which holds them again or starts. Returns what they still wait for, undefined once
+ * they no longer wait (installed, or none left ready). A check that found no network leaves the wait as it was.
+ */
+export async function checkAndRetry(
+	engine: Pick<Engine, "check" | "offline" | "installAuto">,
+	held: "metered" | "battery" | undefined,
+): Promise<"metered" | "battery" | undefined> {
+	await engine.check();
+	if (!held || engine.offline()) return held;
+	return (await engine.installAuto()).wait;
+}

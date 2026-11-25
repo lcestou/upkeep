@@ -124,6 +124,9 @@ test("the fingerprint changes when the ready set or a version changes, and only 
 	const b = snap(2);
 	expect(readyFingerprint(a)).toBe(readyFingerprint(b));
 	expect(readyFingerprint(a)).toBe("app0@1.0,app1@1.1");
+	// The same set held back for a reason is a new notice; nothing ready stays nothing, whatever the wait.
+	expect(readyFingerprint(a, "metered")).toBe("app0@1.0,app1@1.1;wait=metered");
+	expect(readyFingerprint(snap(0), "battery")).toBe("");
 	b.apps[1]!.latest = "9.9";
 	expect(readyFingerprint(a)).not.toBe(readyFingerprint(b));
 	expect(readyFingerprint(snap(0))).toBe("");
