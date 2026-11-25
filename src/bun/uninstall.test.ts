@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { paths, type Paths } from "../engine/paths";
+import { updateState } from "../engine/store";
 import { script } from "../engine/testkit";
 import { autostartFile, syncAutostart } from "./autostart";
 import { commandFile, syncCommand } from "./command";
@@ -67,6 +68,22 @@ test("uninstall removes the entries, the command, the self-update's files and th
 	// Settings, the list, history and restore points stay for a later install.
 	expect(existsSync(join(p.config, "apps.toml"))).toBe(true);
 	expect(existsSync(p.data)).toBe(true);
+});
+
+test("uninstall deletes the menu entries and icons Upkeep wrote for AppImages, and nothing beside them", () => {
+	const apps = join(dirname(p.data), "applications");
+	const entry = join(apps, "upkeep-zen.desktop");
+	const icon = join(dirname(p.data), "icons/upkeep-zen.png");
+	const theirs = join(apps, "appimagekit_zen.desktop");
+	for (const f of [entry, icon, theirs]) {
+		mkdirSync(dirname(f), { recursive: true });
+		writeFileSync(f, "x");
+	}
+	updateState(p, (s) => {
+		s.menu.zen = [icon, entry, theirs];
+	});
+	expect(uninstallUpkeep(ctx(false, now))).toBe(true);
+	expect([existsSync(entry), existsSync(icon), existsSync(theirs)]).toEqual([false, false, true]);
 });
 
 test("uninstall with purge also deletes Upkeep's own data folders, and nothing else in home", () => {

@@ -1,13 +1,15 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { removeMenuFiles } from "../engine/menu";
 import type { Paths } from "../engine/paths";
+import { loadState } from "../engine/store";
 import { removeMenuEntry, syncAutostart } from "./autostart";
 import { syncCommand } from "./command";
 import { SELF_FILES } from "./self-shim";
 
 // Upkeep's own uninstall. The framework's uninstaller removes the app folder and itself, but not what Upkeep writes
-// for itself: the login entry, the menu entry it rewrote, the upkeep command, the start script and the copies a
-// self-update keeps. This removes those first, then hands the rest to a detached shell that waits for Upkeep to quit.
+// for itself: the login entry, the menu entry it rewrote, the upkeep command, the menu entries it wrote for
+// AppImages, the start script and the copies a self-update keeps. This removes those first, then hands the rest to a detached shell that waits for Upkeep to quit.
 
 /** An install root Upkeep will hand to rm: absolute and made of plain characters only (…/dev.afk.upkeep/stable). */
 const ROOT = /^\/[A-Za-z0-9._/+@-]+\/[A-Za-z0-9._+@-]+\/[A-Za-z0-9._+@-]+$/;
@@ -71,7 +73,8 @@ export function desktopShortcuts(home: string, configHome: string): string[] {
 const ownData = (p: string, home: string) => p.startsWith(`${home}/`) && p.endsWith("/upkeep");
 
 /**
- * Removes the login entry, the menu entry and the upkeep command where they are Upkeep's own, then starts the
+ * Removes the login entry, the menu entry, the upkeep command and the menu entries written for AppImages where they
+ * are Upkeep's own, then starts the
  * detached finish. A root that is not a plain <XDG data>/<identifier>/<channel> path under home, holding the
  * launcher, is refused before anything is touched, since the finish deletes inside it. Returns false when refused; the caller quits Upkeep after true.
  */
@@ -89,6 +92,8 @@ export function uninstallUpkeep(c: UninstallCtx): boolean {
 	removeMenuEntry(c.menu, c.launcher, SELF_FILES.shim);
 	for (const s of c.shortcuts) removeMenuEntry(s, c.launcher, SELF_FILES.shim);
 	syncCommand(home, false, c.root);
+	// The menu entries and icons Upkeep wrote for AppImages go too; the AppImages themselves stay.
+	for (const files of Object.values(loadState(c.paths).menu)) removeMenuFiles(files, c.paths);
 	const data = c.purge
 		? [c.paths.config, c.paths.state, c.paths.cache, c.paths.data].filter((p) => ownData(p, home))
 		: [];
