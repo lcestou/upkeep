@@ -5,6 +5,7 @@ import type { AppSpec, ExtrasSettings, ImportAsk, ImportSwitch, Service, Setting
 import { clampExtras, loadExtras, updateExtras } from "./extras/state";
 import { packageInstall } from "./kinds/package";
 import { ensureManifest, isRecord, loadManifest, parseManifest } from "./manifest";
+import { removeMenuFiles } from "./menu";
 import type { Paths } from "./paths";
 import { clampSettings, loadState, updateState, withStateLock, writeAtomic } from "./store";
 
@@ -187,7 +188,9 @@ function switchesOn(
  * the same shared file twice leaves its apps off, and re-importing one's own list here changes nothing. autoOff
  * names the new or changed apps the file wanted on, which came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
- * any the import created. Skips and holds are kept only for apps the new list has;
+ * any the import created. Skips and holds are kept only for apps the new list has. The file never carries a menu
+ * entry: an app it drops or changes has its entry switched off and its files deleted, so no entry points at a dest
+ * the new table no longer names;
  * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
  * default.
  */
@@ -248,6 +251,8 @@ export function importSetup(
 	// does not exist yet is noted, so a rollback removes what the import created.
 	const kept: [string, string][] = [];
 	const absent: string[] = [];
+	// The menu entries of apps the import drops or changes: their switch goes off, and their files go once it is in.
+	let staleMenu: string[] = [];
 	try {
 		mkdirSync(paths.state, { recursive: true });
 		for (const f of files) {
@@ -268,6 +273,8 @@ export function importSetup(
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
 			// Every app gets an entry, so an auto = true written in an imported table never decides.
 			s.auto = picks;
+			staleMenu = Object.entries(s.menu).flatMap(([k, f]) => (stays(k) ? [] : f));
+			s.menu = Object.fromEntries(Object.entries(s.menu).filter(([k]) => stays(k)));
 			// What a check remembered of a release goes with an app the import drops or changes, so a changed-release hold
 			// never outlives the table it was about.
 			s.seen = Object.fromEntries(Object.entries(s.seen).filter(([k]) => stays(k)));
@@ -286,6 +293,7 @@ export function importSetup(
 				stuck.length === 0 ? [MESSAGES.busySayNothingChanged(why)] : [MESSAGES.importSomeNotPutBack(why), ...stuck],
 		};
 	}
+	removeMenuFiles(staleMenu, paths);
 	return { ok: true, apps: list.apps.length, kept: kept.map(([, copy]) => copy), autoOff };
 }
 

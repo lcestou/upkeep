@@ -30,6 +30,8 @@ export type State = {
 	selfNotified: string;
 	/** What Upkeep last wrote at each app's dest, by key: read back when the program itself names no version. */
 	installed: Record<string, Stamp>;
+	/** Apps whose menu entry is on, by key: the files Upkeep wrote for it, which are all it ever deletes. */
+	menu: Record<string, string[]>;
 	/** The release file each app's last check offered, by key, so a later check can tell when the same tag's file changed. */
 	seen: Record<string, Seen>;
 	/** Apps held because their offered release's file changed after it was first seen: key to that tag. */
@@ -113,6 +115,14 @@ function obj<T>(v: unknown): Record<string, T> {
 	return typeof v === "object" && v !== null && !Array.isArray(v) ? (v as Record<string, T>) : {};
 }
 
+/** The entries that hold a list of strings; any other value a hand edit left is dropped. */
+function filesOf(v: unknown): Record<string, string[]> {
+	const out: Record<string, string[]> = {};
+	for (const [key, files] of Object.entries(obj<unknown>(v)))
+		if (Array.isArray(files) && files.every((f) => typeof f === "string")) out[key] = files;
+	return out;
+}
+
 /** Skips, holds, auto flags and settings, in the state directory beside run.lock rather than with apps.toml. */
 const stateFile = (paths: Paths) => join(paths.state, "state.json");
 
@@ -150,6 +160,7 @@ export function loadState(paths: Paths): State {
 		selfFailed: typeof raw.selfFailed === "string" ? raw.selfFailed : "",
 		selfNotified: typeof raw.selfNotified === "string" ? raw.selfNotified : "",
 		installed: stampsOf(raw.installed),
+		menu: filesOf(raw.menu),
 		seen: seenOf(raw.seen),
 		changed: obj<string>(raw.changed),
 	};

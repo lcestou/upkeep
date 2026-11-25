@@ -57,6 +57,7 @@ import { recoverTree, restoreBuilt } from "./kinds/built";
 import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
+import { entryOwners, foreignEntry, removeMenu, writeMenu } from "./menu";
 import { expandHome, type Paths } from "./paths";
 import { endGroup, killTree, type Run, type RunOpts, runsAsRoot, stepName } from "./run";
 import { earliestStart, isRunning } from "./running";
@@ -142,6 +143,11 @@ export type Engine = {
 	setHold(key: string, held: boolean): boolean;
 	/** False, and nothing written, for a key not in the list. */
 	setAuto(key: string, auto: boolean): boolean;
+	/**
+	 * Writes or deletes an AppImage's menu entry. Refused for another kind, during a run, and when another tool already
+	 * has an entry for the same file; detail says why when there is a sentence for it.
+	 */
+	setMenu(key: string, menu: boolean): Promise<{ ok: boolean; detail?: string }>;
 	setSettings(patch: Partial<Settings>): Settings;
 	history(limit: number): HistoryRow[];
 	runLog(runId: string): LogLine[];
@@ -516,6 +522,8 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	// What else keeps each app up to date, worked out once per check from the system's Flatpak and Snap lists.
 	let alsoNotes = new Map<string, string[]>();
+	// Other tools' menu entries by the program they start, read once per check rather than once per row.
+	let owners = new Map<string, string>();
 
 	function buildApp(spec: AppSpec, c: Checked, history: HistoryRow[]): AppState {
 		const state = loadState(paths);
@@ -541,6 +549,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			canRestart: Boolean(spec.restart?.length || spec.relaunch),
 			closes: !spec.restart?.length && spec.relaunch === true,
 			auto: state.auto[spec.key] ?? spec.auto ?? false,
+			...menuOf(spec, state.menu),
 			sudo: spec.sudo === true,
 			versionless: spec.versionless === true,
 			run: spec.run,
@@ -565,6 +574,48 @@ export function createEngine(deps: EngineDeps): Engine {
 			interrupted.delete(spec.key);
 		}
 		return app;
+	}
+
+	/** An AppImage row's menu switch; nothing for another kind. Reads the applications folder on every call. */
+	function menuOf(spec: AppSpec, menu: Record<string, string[]>): Pick<AppState, "menu" | "menuDetail"> {
+		if (spec.kind !== "appimage") return {};
+		if (menu[spec.key]) return { menu: "on" };
+		const other = foreignEntry(owners, destOf(spec, { paths }));
+		return other ? { menu: "elsewhere", menuDetail: MESSAGES.menuElsewhere(other) } : { menu: "off" };
+	}
+
+	/**
+	 * Writes the app's entry again from the AppImage now at dest, after an update or a restore, since a new version may
+	 * change its name or icon. Files the new write did not produce again (an icon of another size) are deleted. A failed
+	 * write keeps the old entry and only logs: the update itself went through. An AppImage no longer at dest has its
+	 * entry removed, since it would start nothing.
+	 */
+	async function refreshMenu(spec: AppSpec): Promise<void> {
+		const had = loadState(paths).menu[spec.key];
+		if (!had || spec.kind !== "appimage") return;
+		const ctx = { paths, run: deps.run };
+		const dest = destOf(spec, { paths });
+		// An entry that would start a file no longer there is worse than none.
+		if (!existsSync(dest)) {
+			await removeMenu(had, ctx);
+			updateState(paths, (s) => {
+				delete s.menu[spec.key];
+			});
+			say(spec.key, `Removed the menu entry: ${dest} is not there any more.`);
+			return;
+		}
+		const r = await writeMenu(spec.key, dest, ctx);
+		if ("problem" in r) {
+			say(spec.key, r.problem);
+			return;
+		}
+		await removeMenu(
+			had.filter((f) => !r.files.includes(f)),
+			ctx,
+		);
+		updateState(paths, (s) => {
+			s.menu[spec.key] = r.files;
+		});
 	}
 
 	function accept(spec: AppSpec, c: Checked | null, history: HistoryRow[]): void {
@@ -614,6 +665,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const all = loadSpecs();
 		// The notes are a nicety: a list that cannot be read leaves them out and never stops the check.
 		const copies = await readCopies({ run: deps.run }).catch(() => ({ flatpaks: [], snaps: [] }));
+		owners = entryOwners(paths);
 		alsoNotes = new Map(
 			all.map((s) => [s.key, alsoOf(s, all, copies, paths.home)] as const).filter(([, a]) => a.length > 0),
 		);
@@ -923,6 +975,9 @@ export function createEngine(deps: EngineDeps): Engine {
 					detail: outcome.detail ?? (WATCHED.has(spec.kind) ? MESSAGES.oldCopyRuns(spec.name) : undefined),
 				};
 			finishApp(app, outcome);
+			// After Stop now nothing more is started, the entry's refresh included: the old entry still starts dest.
+			// oxlint-disable-next-line no-await-in-loop -- the entry follows its own app's install, before the next starts
+			if (outcome.result === "done" && !run.stoppingNow) await refreshMenu(spec);
 			if (outcome.result === "done" && outcome.restartToApply && WATCHED.has(spec.kind)) {
 				const at = deps.now().toISOString();
 				updateState(paths, (s) => {
@@ -1103,6 +1158,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				const r = await restoreBackup(paths, spec, version, deps.run, spec.keep_with_restore);
 				if (!r.ok) return r;
 				prune(paths, key, loadState(paths).settings.keepBackups);
+				await refreshMenu(spec);
 				await packOlder(paths, key, deps.run, kindCtx(key).log);
 				const probe = await probeInstalled(spec, kindCtx(key));
 				const installed = "version" in probe ? probe.version : null;
@@ -1211,6 +1267,37 @@ export function createEngine(deps: EngineDeps): Engine {
 			}
 			return true;
 		},
+		async setMenu(key, menu) {
+			const spec = specOf(key);
+			if (spec?.kind !== "appimage") return { ok: false };
+			if (run.phase === "installing") return { ok: false, detail: REASON_BUSY };
+			const ctx = { paths, run: deps.run };
+			const had = loadState(paths).menu[key] ?? [];
+			let files: string[] | null = null;
+			if (menu) {
+				const dest = destOf(spec, { paths });
+				owners = entryOwners(paths);
+				const other = foreignEntry(owners, dest);
+				if (other) return { ok: false, detail: MESSAGES.menuElsewhere(other) };
+				const r = await writeMenu(key, dest, ctx);
+				if ("problem" in r) return { ok: false, detail: r.problem };
+				files = r.files;
+			}
+			await removeMenu(
+				had.filter((f) => !files?.includes(f)),
+				ctx,
+			);
+			updateState(paths, (s) => {
+				if (files) s.menu[key] = files;
+				else delete s.menu[key];
+			});
+			const a = apps.get(key);
+			if (a) {
+				Object.assign(a, { menuDetail: undefined }, menuOf(spec, loadState(paths).menu));
+				emitApp(a);
+			}
+			return { ok: true };
+		},
 		setSettings(patch) {
 			const s = updateState(paths, (st) => {
 				st.settings = { ...st.settings, ...patch };
@@ -1269,6 +1356,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			const cut = cutTable(text, key);
 			if (cut === null) return { ok: false, detail: MESSAGES.noAppInList(key) };
 			replaceManifest(file, cut);
+			// The menu entry Upkeep wrote goes with the app; the AppImage itself stays, as removing from the list always left it.
+			const menu = loadState(paths).menu[key];
+			if (menu) await removeMenu(menu, { paths, run: deps.run });
 			loadSpecs();
 			apps.delete(key);
 			checked.delete(key);
@@ -1279,6 +1369,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				delete s.hold[key];
 				delete s.auto[key];
 				delete s.restart[key];
+				delete s.menu[key];
 				delete s.seen[key];
 				delete s.changed[key];
 			});

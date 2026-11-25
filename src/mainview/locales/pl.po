@@ -2826,6 +2826,30 @@ msgstr "Zatrzymywanie {0}…"
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nowe wersje w ich marketplace'ach: {0}."
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read a menu entry from {0}."
+msgstr "Nie udało się odczytać wpisu menu z {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "Już jest w menu aplikacji przez {0}, więc Upkeep nie dodaje drugiego wpisu."
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "Pokaż w menu aplikacji"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "Pod {0} nic jeszcze nie jest zainstalowane, więc nie ma wpisu menu do odczytania. Najpierw je zainstaluj."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "AppImage pod {0} prosi, by nie pokazywać go w menu aplikacji, więc Upkeep nie dodaje wpisu."
+
 #: src/mainview/lib/copy.ts
 msgid "Download checked: SHA-256 matches the forge's record."
 msgstr "Pobieranie sprawdzone: SHA-256 zgadza się z zapisem platformy."
@@ -2940,3 +2964,18 @@ msgstr "{0}: plik config nie może zawierać części .."
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "Żaden plik nie czeka na import. Naciśnij Importuj i wybierz go ponownie."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} nie może być kluczem aplikacji: użyj liter, cyfr, kropek, myślników i podkreśleń, zaczynając od litery lub cyfry."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}: {1} nie może zawierać podziału wiersza ani innego znaku sterującego"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "Nie udało się zapisać wpisu menu: {0}"

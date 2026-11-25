@@ -127,6 +127,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		selfFailed: "",
 		selfNotified: "",
 		installed: {},
+		menu: {},
 		seen: {},
 		changed: {},
 	});

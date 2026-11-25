@@ -74,3 +74,13 @@ asset_aarch64 = 'aarch64-unknown-linux-gnu\.tar\.gz$'
 ```
 
 Upkeep reads the machine's architecture once at start and uses only that machine's pattern. An app added on an arm64 machine is written with `asset_aarch64`. A list moved to a machine of the other architecture (Export and Import) keeps its tables, and an app whose table has no pattern for that machine shows "The table for … names no release file for … machines." instead of installing another architecture's file. Add the missing pattern by hand to fix it.
+
+## Menu entries for AppImages
+
+An AppImage row's pane has a **Show in the app menu** switch, off until you turn it on. On, Upkeep reads the AppImage's own `.desktop` file and its icon with `--appimage-extract` into a temp folder, following a top-level file that links further into the image. It asks only a type-2 AppImage, and never starts the AppImage any other way. Each `Exec=` is pointed at the AppImage's `dest`, keeping an `env VAR=value` prefix and the arguments it had (such as `%U`). `TryExec=` and `DBusActivatable=` are dropped, since both would hide or break an entry that starts the AppImage. The entry is written as `upkeep-<key>.desktop` in `$XDG_DATA_HOME/applications` (`~/.local/share/applications` by default). The icon, a PNG or SVG, goes to `$XDG_DATA_HOME/icons/upkeep-<key>.<ext>`, and the entry names it by its full path. Upkeep then runs `update-desktop-database` on that folder when the system has it.
+
+An AppImage whose own entry says `NoDisplay=true`, `Hidden=true` or `X-AppImage-Integrate=false` gets no entry, and the pane says why. Nothing installed at `dest` yet gets no entry either.
+
+After each update or restore of that app, the entry and icon are written again from the new file, since a new version may change its name or icon. Turning the switch off, removing the app from the list, or Uninstall Upkeep deletes exactly the files Upkeep wrote, which it records in `state.json`. The AppImage itself stays.
+
+When another tool already has an entry for the same file, the row says so and offers no switch, so the menu never shows the app twice. Such tools include AppImageLauncher, Gear Lever and the app's own prompt; they leave a `.desktop` in that folder whose `Exec=` starts the AppImage, matched through links on either side. Upkeep never takes over another tool's entry.

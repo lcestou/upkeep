@@ -108,6 +108,38 @@ test("Install automatically adds the Auto chip", async ({ page }) => {
 	await expect(page.getByTestId("row-fd").getByTestId("chip-auto")).toHaveCount(0);
 });
 
+test("Show in the app menu is offered on an AppImage row, says why it is refused, and not on other kinds", async ({
+	page,
+}) => {
+	await load(page);
+	await page.getByTestId("open-cursor").click();
+	await expect(page.getByTestId("menu-switch-cursor")).toHaveText("Show in the app menu");
+	await expect(page.getByTestId("menu-cursor")).not.toBeChecked();
+	await page.getByTestId("menu-cursor").check();
+	await expect(page.getByTestId("menu-cursor")).toBeChecked();
+	await page.getByTestId("menu-cursor").uncheck();
+	await expect(page.getByTestId("menu-cursor")).not.toBeChecked();
+	await page.getByTestId("inspector-close").click();
+	// Nothing installed: the box goes back and the engine's reason shows.
+	await page.getByTestId("open-lrcget").click();
+	await page.getByTestId("menu-lrcget").click();
+	await expect(page.getByTestId("menu-lrcget")).not.toBeChecked();
+	await expect(page.getByTestId("menu-result-lrcget")).toHaveText(
+		"Nothing is installed at ~/.local/bin/lrcget yet, so there is no menu entry to read. Install it first.",
+	);
+	await page.getByTestId("inspector-close").click();
+	// Another tool's entry: no switch, the row says where the entry is. Ghostty is up to date, so its group is folded.
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-ghostty").click();
+	await expect(page.getByTestId("menu-ghostty")).toHaveCount(0);
+	await expect(page.getByTestId("menu-elsewhere-ghostty")).toHaveText(
+		"Already in the app menu through ~/.local/share/applications/appimagekit_ghostty.desktop, so Upkeep adds no second entry.",
+	);
+	await page.getByTestId("inspector-close").click();
+	await page.getByTestId("open-fd").click();
+	await expect(page.getByTestId("menu-switch-fd")).toHaveCount(0);
+});
+
 test("a restore that runs out of time leaves the buttons usable and says nothing false", async ({ page }) => {
 	await load(page, "fixture&fail=restore");
 	await page.getByTestId("open-fd").click();
