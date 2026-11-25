@@ -103,7 +103,7 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop());
 	clock.start("verify");
 	const after = await probeCommand(spec.check ?? [], { run: cuttableRun(ctx) });
-	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop());
+	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop(), true);
 	const stages = clock.stop();
 	if (!("version" in after)) {
 		// The update and the check ran the new version, which may have rewritten its settings: they go back too.
@@ -147,6 +147,7 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 /**
  * After Stop now cut the update: a restore point goes back; without one the tool's own updater was interrupted, so
  * Upkeep cannot promise the old state and says what a version probe finds instead. Never cut itself: it is the undo.
+ * ran: the check ran the new version, which may have rewritten its settings, so they go back too.
  */
 async function stoppedAfterCut(
 	spec: AppSpec,
@@ -154,9 +155,10 @@ async function stoppedAfterCut(
 	ctx: KindCtx,
 	point: string | null,
 	stages: Outcome["stages"],
+	ran = false,
 ): Promise<Outcome> {
 	if (point) {
-		const back = await restoreBackup(ctx.paths, spec, point, ctx.run);
+		const back = await restoreBackup(ctx.paths, spec, point, ctx.run, ran ? spec.keep_with_restore : undefined);
 		if (back.ok) return { ...stoppedOutcome(point), stages };
 		// The restore's own sentence says what went wrong; the update itself was cut, so "would not start" would be wrong.
 		return { result: "failed", installed: target.from, detail: back.detail, restartToApply: false, stages };
