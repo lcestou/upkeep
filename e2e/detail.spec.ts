@@ -95,7 +95,7 @@ test("Show in the app menu is offered on an AppImage row, says why it is refused
 	await page.getByTestId("menu-lrcget").click();
 	await expect(page.getByTestId("menu-lrcget")).not.toBeChecked();
 	await expect(page.getByTestId("menu-result-lrcget")).toHaveText(
-		"Could not read a menu entry from ~/.local/bin/lrcget.",
+		"Nothing is installed at ~/.local/bin/lrcget yet, so there is no menu entry to read. Install it first.",
 	);
 	await page.getByTestId("inspector-close").click();
 	// Another tool's entry: no switch, the row says where the entry is. Ghostty is up to date, so its group is folded.

@@ -2723,3 +2723,13 @@ msgstr "{0} によってすでにアプリメニューにあるため、Upkeep �
 #: src/mainview/lib/copy.ts
 msgid "Show in the app menu"
 msgstr "アプリメニューに表示"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "{0} にはまだ何もインストールされていないため、読み取るメニュー項目がありません。先にインストールしてください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "{0} の AppImage はアプリメニューに表示しないよう指定しているため、Upkeep は項目を追加しません。"

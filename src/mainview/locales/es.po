@@ -2765,3 +2765,13 @@ msgstr "Ya está en el menú de aplicaciones mediante {0}, así que Upkeep no a�
 #: src/mainview/lib/copy.ts
 msgid "Show in the app menu"
 msgstr "Mostrar en el menú de aplicaciones"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "Aún no hay nada instalado en {0}, así que no hay entrada de menú que leer. Instálalo primero."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "El AppImage de {0} pide quedar fuera del menú de aplicaciones, así que Upkeep no añade ninguna entrada."

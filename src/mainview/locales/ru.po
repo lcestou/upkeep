@@ -2786,3 +2786,13 @@ msgstr "Уже есть в меню приложений через {0}, поэ�
 #: src/mainview/lib/copy.ts
 msgid "Show in the app menu"
 msgstr "Показывать в меню приложений"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "По пути {0} пока ничего не установлено, поэтому читать пункт меню неоткуда. Сначала установите приложение."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "AppImage по пути {0} просит не показывать его в меню приложений, поэтому Upkeep не добавляет пункт."

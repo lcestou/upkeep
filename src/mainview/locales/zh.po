@@ -2723,3 +2723,13 @@ msgstr "已通过 {0} 出现在应用菜单中，因此 Upkeep 不会再添加�
 #: src/mainview/lib/copy.ts
 msgid "Show in the app menu"
 msgstr "在应用菜单中显示"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "{0} 处尚未安装任何内容，因此没有可读取的菜单项。请先安装。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "{0} 处的 AppImage 要求不显示在应用菜单中，因此 Upkeep 不添加菜单项。"
