@@ -2704,3 +2704,8 @@ msgstr "无法解包还原点 {0}：{1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "已下载，等待轮到它"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "其市场中有新版本：{0}。"

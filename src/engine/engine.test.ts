@@ -935,6 +935,36 @@ test("Claude Code's plugins are a versionless row: fresh, listed for auto runs, 
 	expect(engine.snapshot().run.results.find((r) => r.key === "cc")).toMatchObject({ result: "updated" });
 });
 
+test("the plugins row turns ready when a marketplace holds a newer version, and counts as an update", async () => {
+	const d = await deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		`${MANIFEST}\n[apps.cc]\nname = "Claude Code plugins"\nkind = "claude-plugins"\n`,
+	);
+	const plugins = join(t.paths.home, ".claude/plugins");
+	mkdirSync(join(plugins, "marketplaces/m/.claude-plugin"), { recursive: true });
+	mkdirSync(join(plugins, "marketplaces/m/a/.claude-plugin"), { recursive: true });
+	writeFileSync(
+		join(plugins, "installed_plugins.json"),
+		JSON.stringify({ plugins: { "a@m": [{ version: "1.0.0" }] } }),
+	);
+	writeFileSync(
+		join(plugins, "marketplaces/m/.claude-plugin/marketplace.json"),
+		JSON.stringify({ plugins: [{ name: "a", source: "./a" }] }),
+	);
+	writeFileSync(join(plugins, "marketplaces/m/a/.claude-plugin/plugin.json"), JSON.stringify({ version: "1.1.0" }));
+	script(join(bin, "claude"), "exit 0");
+	const engine = createEngine(d);
+	await engine.check();
+	expect(engine.snapshot().apps.find((a) => a.key === "cc")).toMatchObject({
+		status: "ready",
+		detail: "New versions in their marketplaces: a.",
+	});
+	// Ready like any other row: Update all and the tray take it even with auto off.
+	expect(engine.readyKeys(false)).toContain("cc");
+	expect(engine.readyKeys(true)).not.toContain("cc");
+});
+
 test("skip, hold and auto answer no for a key that is not in the list, and write nothing", async () => {
 	const engine = createEngine(await deps());
 	expect(engine.setSkip("nope", "1.0")).toBe(false);

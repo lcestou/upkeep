@@ -2746,3 +2746,8 @@ msgstr "Não foi possível descompactar o ponto de restauração {0}: {1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "Baixada, aguarda a sua vez"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "Novas versões nos seus marketplaces: {0}."

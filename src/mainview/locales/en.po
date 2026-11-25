@@ -2725,3 +2725,8 @@ msgstr "Could not unpack the {0} restore point: {1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "Downloaded, waits its turn"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "New versions in their marketplaces: {0}."

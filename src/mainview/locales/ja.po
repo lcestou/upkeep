@@ -2704,3 +2704,8 @@ msgstr "復元ポイント {0} を展開できませんでした：{1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "ダウンロード済み、順番待ち"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "マーケットプレイスに新しいバージョンがあります：{0}。"

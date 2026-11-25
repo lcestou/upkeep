@@ -35,6 +35,8 @@ export function checkLine(a: AppState): string {
 			return a.installed ? `  OK:     ${a.name} ${a.installed}` : `  OK:     ${a.name}`;
 		case "ready":
 		case "manual":
+			// Claude Code's plugins have no one version; their detail names the plugins that wait.
+			if (a.versionless) return `  UPDATE: ${a.name}${a.detail ? ` ${a.detail}` : ""}`;
 			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
 		// install --all passes these by, so they are not offered as updates.
 		case "held":

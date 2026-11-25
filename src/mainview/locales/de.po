@@ -2725,3 +2725,8 @@ msgstr "Der Wiederherstellungspunkt {0} ließ sich nicht entpacken: {1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "Heruntergeladen, wartet"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "Neue Versionen in ihren Marktplätzen: {0}."
