@@ -335,6 +335,36 @@ export const TEXT = {
 	},
 } as const;
 
+/** The question before an import whose list has apps that run commands: what they run, read before anything is written. */
+export const IMPORT = {
+	get ask() {
+		return "This file has apps that run these commands on this computer. Import it only if you trust where it came from.";
+	},
+	get autoOff() {
+		return "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app.";
+	},
+	get turnsOn() {
+		return "It turns on these settings, which are off on this computer:";
+	},
+	get yes() {
+		return "Import";
+	},
+	get no() {
+		return "Cancel";
+	},
+} as const;
+/** Under the commands: the apps in the file that only install their release files, with no command and no root. */
+export const importPlain = (n: number) =>
+	plural(n, [
+		"It also has # app that only installs its release files, without root.",
+		"It also has # apps that only install their release files, without root.",
+	]);
+/** After Import, beside importedNote: apps the file wanted installed automatically that came in off, being new or changed. */
+export const importAutoOffNote = (n: number) =>
+	plural(n, [
+		"Automatic installs came in off for # app that is new here or changed.",
+		"Automatic installs came in off for # apps that are new here or changed.",
+	]);
 /** After Export: the file it wrote. */
 export const exportedNote = (file: string) => `Saved ${file}.`;
 /** After Import: how many apps the new list holds. */

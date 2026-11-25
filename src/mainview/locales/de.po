@@ -1031,6 +1031,7 @@ msgid "Export"
 msgstr "Exportieren"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "Importieren"
 
@@ -2782,3 +2783,45 @@ msgstr "Stoppe {0} …"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "Neue Versionen in ihren Marktplätzen: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "Diese Datei enthält Apps, die diese Befehle auf diesem Rechner ausführen. Importiere sie nur, wenn du ihrer Herkunft vertraust."
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "Automatische Installationen kommen für jede App ausgeschaltet an, die auf diesem Rechner neu ist oder deren Tabelle von der hiesigen abweicht. Du kannst sie für jede App wieder einschalten."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "Automatische Installationen kamen für # App ausgeschaltet an, die hier neu oder geändert ist."
+msgstr[1] "Automatische Installationen kamen für # Apps ausgeschaltet an, die hier neu oder geändert sind."
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "Sie enthält außerdem # App, die nur ihre Release-Dateien installiert, ohne root."
+msgstr[1] "Sie enthält außerdem # Apps, die nur ihre Release-Dateien installieren, ohne root."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}: dest darf keinen ..-Teil enthalten"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "Sie schaltet diese Einstellungen ein, die auf diesem Rechner aus sind:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: eine config-Datei darf keinen ..-Teil enthalten"
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "Es wartet keine Datei auf den Import. Klicke auf Importieren und wähle sie erneut."

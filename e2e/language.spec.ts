@@ -106,6 +106,50 @@ test("Export and Import in Settings say what they did", async ({ page }) => {
 	await expect(note).toHaveText(/^Imported a list of \d+ apps\.$/);
 });
 
+test("Import of a file whose apps run commands shows them first; Cancel writes nothing, Import goes ahead", async ({
+	page,
+}) => {
+	await load(page, "fixture=built");
+	await page.getByTestId("tab-settings").click();
+	const note = page.getByTestId("setup-note");
+	await page.getByTestId("import-setup").click();
+	await expect(page.getByTestId("import-ask")).toHaveText(
+		"This file has apps that run these commands on this computer. Import it only if you trust where it came from.",
+	);
+	await expect(page.getByTestId("import-app-name")).toHaveText(["llama.cpp"]);
+	await expect(page.getByTestId("import-command")).toHaveText([
+		"source: ggml-org/llama.cpp",
+		"build: cmake -B build -DGGML_CUDA=ON",
+		"build: cmake --build build -j",
+		"restart: systemctl --user restart llama-server",
+	]);
+	await expect(page.getByTestId("import-plain")).toHaveText(
+		/^It also has \d+ apps that only install their release files, without root\.$/,
+	);
+	await expect(page.getByTestId("import-auto-off")).toHaveText(
+		"Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app.",
+	);
+	await expect(page.getByTestId("import-turns-on")).toHaveText(
+		"It turns on these settings, which are off on this computer:",
+	);
+	await expect(page.getByTestId("import-switch")).toHaveText(["Update Upkeep automatically"]);
+	// Focus starts on Cancel, so a stray Enter writes nothing.
+	await expect(page.getByTestId("import-cancel")).toBeFocused();
+	await expect(page.getByTestId("import-cancel")).toHaveText("Cancel");
+	await page.keyboard.press("Enter");
+	await expect(page.getByTestId("import-ask")).toHaveCount(0);
+	await expect(note).toHaveText(
+		"Export saves the settings and the app list as one file, for another computer or a script. Import replaces them from such a file.",
+	);
+	await page.getByTestId("import-setup").click();
+	await expect(page.getByTestId("import-confirm")).toHaveText("Import");
+	await page.getByTestId("import-confirm").click();
+	await expect(page.getByTestId("import-ask")).toHaveCount(0);
+	await expect(note).toHaveText(
+		/^Imported a list of \d+ apps\. Automatic installs came in off for 1 app that is new here or changed\.$/,
+	);
+});
+
 test("what the engine reports follows the language: a row's problem is worded from the catalog", async ({ page }) => {
 	await load(page, "fixture=problems");
 	const line = page.getByTestId("sentence-borg");

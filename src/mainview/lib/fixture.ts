@@ -1427,9 +1427,31 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		// The file dialogs answer at once in the fixture; the real ones are the desktop's.
 		exportSetup: async () => ({ ok: true, file: "/home/you/upkeep-settings-2026-11-12.json" }),
-		importSetup: async () => {
+		// The built variant's file carries a source build, so Import asks first; the default one runs no commands.
+		importSetup: async ({ sure }) => {
+			if (variant === "built" && !sure) {
+				return {
+					ok: false,
+					ask: {
+						apps: [
+							{
+								key: "llama",
+								name: "llama.cpp",
+								commands: [
+									"source: ggml-org/llama.cpp",
+									"build: cmake -B build -DGGML_CUDA=ON",
+									"build: cmake --build build -j",
+									"restart: systemctl --user restart llama-server",
+								],
+							},
+						],
+						plain: apps.length - 1,
+						turnsOn: ["selfAuto"],
+					},
+				};
+			}
 			emit({ type: "meta", rate, checkedAt, settings });
-			return { ok: true, apps: apps.length };
+			return variant === "built" ? { ok: true, apps: apps.length, autoOff: 1 } : { ok: true, apps: apps.length };
 		},
 		pickFile: async () => {
 			await sleep(200 / speed);

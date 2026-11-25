@@ -1031,6 +1031,7 @@ msgid "Export"
 msgstr "Export"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "Import"
 
@@ -2782,3 +2783,45 @@ msgstr "Stopping {0}…"
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
 msgstr "New versions in their marketplaces: {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "Cancel"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "Automatic installs came in off for # app that is new here or changed."
+msgstr[1] "Automatic installs came in off for # apps that are new here or changed."
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "It also has # app that only installs its release files, without root."
+msgstr[1] "It also has # apps that only install their release files, without root."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}: dest may not contain a .. part"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "It turns on these settings, which are off on this computer:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: a config file may not contain a .. part"
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "There is no file waiting to import. Press Import and pick it again."

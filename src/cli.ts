@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "./shared/messages";
-import type { AppState, EngineEvent, Suggestion } from "./shared/types";
+import type { AppState, EngineEvent, ImportAsk, ImportSwitch, Suggestion } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
@@ -21,7 +21,7 @@ export const USAGE = [
 	"  add <name|owner/repo|link|file>",
 	"  remove <key>           take an app off the list; the app stays installed",
 	"  export [file]          settings and app list as one JSON file (stdout without a file)",
-	"  import <file>          replace settings and app list from an export; the old files are kept as .bak",
+	"  import <file> [--yes]  replace settings and app list from an export; --yes when its apps run commands",
 	"--json prints one JSON value per line instead of text.",
 ].join("\n");
 
@@ -356,8 +356,46 @@ function refuse(problem: string, json: boolean, out: Out): number {
 	return 1;
 }
 
-/** Replaces the setup from an export, holding the run lock so no install runs while the files change. */
-function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): number {
+/** The window's names for what an import may turn on, in the English the command line prints. */
+const SWITCH_NAME = {
+	notify: "Notify when updates are ready",
+	checkAtLogin: "Start at login",
+	selfAuto: "Update Upkeep automatically",
+	upkeepCommand: "Add the upkeep command",
+	system: "Show system updates",
+	systemInstall: "Install system updates from Upkeep",
+	cleanup: "Show Cleanup",
+	devCaches: "Include developer caches",
+} satisfies Record<ImportSwitch, string>;
+
+/**
+ * The ask as text: each app that runs commands with every command it runs, how many plain apps come with it, then
+ * each setting the file turns on that is off here. A file that only turns settings on prints no app header.
+ */
+function printAsk(file: string, ask: ImportAsk, out: Out): void {
+	if (ask.apps.length > 0) out(`${file} has apps that run these commands on this computer:`);
+	for (const a of ask.apps) {
+		out(`  ${a.name} (${a.key})`);
+		for (const c of a.commands) out(`    ${c}`);
+	}
+	if (ask.apps.length > 0 && ask.plain > 0)
+		out(
+			ask.plain === 1
+				? "and 1 app that only installs its release files, without root."
+				: `and ${ask.plain} apps that only install their release files, without root.`,
+		);
+	if (ask.turnsOn.length > 0) out(`${file} turns on these settings on this computer:`);
+	for (const k of ask.turnsOn) out(`  ${SWITCH_NAME[k]}`);
+}
+
+/**
+ * Replaces the setup from an export, holding the run lock so no install runs while the files change. A list with apps
+ * that run commands writes nothing without sure (--yes): it prints every such app with its commands, or the ask as
+ * {"ok": false, "ask"} under --json, and exits 1, so a script that did not read the list never runs what it carries.
+ * With --yes the same list is printed before the result, so a log records what came in, and the result names the
+ * apps whose automatic installs came in off.
+ */
+function importFrom(deps: EngineDeps, file: string, sure: boolean, json: boolean, out: Out): number {
 	let text: string;
 	try {
 		text = readFileSync(file, "utf8");
@@ -372,10 +410,23 @@ function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): nu
 	}
 	if (!mine) return refuse(MESSAGES.importDuringRun(), json, out);
 	try {
-		const r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
+		let r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
+		if ("ask" in r && sure) {
+			if (!json) printAsk(file, r.ask, out);
+			r = importSetup(deps.paths, deps.seedManifest, text, deps.now(), true);
+		}
 		if (json) out(JSON.stringify(r));
-		else if (r.ok) out(`Imported ${r.apps} apps. The files it replaced are kept beside them as .pre-import-<time>.`);
-		else for (const p of r.problems) out(p);
+		else if (r.ok) {
+			out(`Imported ${r.apps} apps. The files it replaced are kept beside them as .pre-import-<time>.`);
+			if (r.autoOff.length > 0)
+				out(
+					`Automatic installs came in off for ${r.autoOff.join(", ")}: new here or changed from this computer's table.`,
+				);
+		} else if ("ask" in r) {
+			printAsk(file, r.ask, out);
+			out("Nothing was changed. Read the list, then run it again with --yes to import.");
+			out("Automatic installs come in off for every app that is new here or differs from this computer's table.");
+		} else for (const p of r.problems) out(p);
 		return r.ok ? 0 : 1;
 	} finally {
 		releaseLock(deps.paths);
@@ -402,7 +453,10 @@ export async function main(
 	if (cmd === "add" && args.length === 1 && args[0]) return add(createEngine(deps), args[0], json, out);
 	if (cmd === "remove" && args.length === 1 && args[0]) return remove(createEngine(deps), args[0], json, out);
 	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], json, out);
-	if (cmd === "import" && args.length === 1 && args[0]) return importFrom(deps, args[0], json, out);
+	if (cmd === "import") {
+		const files = args.filter((a) => a !== "--yes");
+		if (files.length === 1 && files[0]) return importFrom(deps, files[0], args.includes("--yes"), json, out);
+	}
 	out(USAGE);
 	return 2;
 }
