@@ -2814,6 +2814,29 @@ msgid "Automatic updates hold off on a metered connection or on battery. Checks 
 msgstr "As atualizações automáticas esperam numa ligação limitada ou com bateria. As verificações continuam e Instalar funciona sempre."
 
 #: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "Restaurar também devolve as configurações salvas. As configurações substituídas ficam guardadas à parte."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}: keep_with_restore precisa de um app que guarde pontos de restauração"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "com configurações"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+msgstr "{0}: keep_with_restore aceita caminhos próprios dentro da home, como ~/.config/<app>"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+msgstr "Feche {0} primeiro: as configurações dele voltam com esta restauração, e ele poderia sobrescrevê-las ao fechar."
+
+#: src/mainview/lib/copy.ts
 msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 msgstr "Este arquivo tem apps que executam estes comandos neste computador. Importe-o só se confiar na origem dele."
 
