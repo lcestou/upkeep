@@ -25,6 +25,7 @@ import type {
 	Snapshot,
 	Stage,
 	Suggestion,
+	TokenState,
 	SystemState,
 	WindowButton,
 	WindowChrome,
@@ -662,6 +663,11 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 	return apps;
 }
 
+/** The engine's rule for what a run takes: Ready, or with now (Install now anyway) a row still settling. */
+function takesRow(a: AppState | undefined, now: boolean): boolean {
+	return a?.status === "ready" || (now && a?.settles !== undefined);
+}
+
 /** The state a self-update variant starts in: 0.1.0 running, 0.1.1 offered. */
 function selfStart(phase: FixtureOptions["self"]): SelfState {
 	if (!phase) return { phase: "none" };
@@ -695,6 +701,8 @@ export type FixtureOptions = {
 	self?: Exclude<SelfState["phase"], "none">;
 	/** The offered version fails its start test, so a press on Update ends failed and never ready. */
 	selfTestFails?: boolean;
+	/** "refused": a token is saved and the last check found GitHub refused it, so gh's sign-in stood in. */
+	token?: "refused";
 	/** GitHub's budget is used up for the next half hour: "out" with no sign-in (60), "signed" with one (5,000); "soon" starts over in 1.5 s. */
 	rate?: "out" | "signed" | "soon";
 	/**
@@ -726,6 +734,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		language: "system",
 		selfAuto: false,
 		upkeepCommand: false,
+		waitDays: 0,
 		waitUnmetered: false,
 	};
 	let chrome: WindowChrome = {
@@ -1077,7 +1086,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		for (const key of order) {
 			const app = get(key);
 			// As the engine does: a row that joins the run drops its note, so one that never starts does not keep it.
-			if (app) put({ ...app, status: "queued", detail: undefined });
+			if (app) put({ ...app, status: "queued", detail: undefined, settles: undefined });
 		}
 		setRun({
 			id: runId,
@@ -1135,15 +1144,15 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	}
 
 	/** The engine's addToRun: ready apps go after the apps waiting. */
-	function joinRun(order: string[], keys: string[]): Requests["install"]["response"] {
+	function joinRun(order: string[], keys: string[], now: boolean): Requests["install"]["response"] {
 		if (run.stopping)
 			return { started: false, reason: "The run stops after the current app, so nothing more can join it." };
-		const add = keys.filter((k) => !order.includes(k) && get(k)?.status === "ready");
+		const add = keys.filter((k) => !order.includes(k) && takesRow(get(k), now));
 		if (add.length === 0) return { started: false, reason: "Nothing to install." };
 		order.push(...add);
 		for (const k of add) {
 			const app = get(k);
-			if (app) put({ ...app, status: "queued", detail: undefined });
+			if (app) put({ ...app, status: "queued", detail: undefined, settles: undefined });
 		}
 		setRun({ total: order.length, queue: [...base, ...order.filter((k) => !base.includes(k))] });
 		return { started: true };
@@ -1174,6 +1183,28 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		emit({ type: "meta", rate, checkedAt, settings });
 	}
 
+	/** The token pasted in Settings; the fixture keeps it in memory only. */
+	let tokenKept: string | null = opts.token ? `ghp_${"f".repeat(32)}dead` : null;
+	/** As the engine's last check: GitHub refused the kept token and gh stood in. */
+	let tokenFallback: TokenState["refused"] = opts.token === "refused" ? "gh" : null;
+	const tokenState = (): TokenState => ({
+		hint: tokenKept?.slice(-4) ?? null,
+		refused: tokenKept ? tokenFallback : null,
+	});
+
+	/**
+	 * The engine's wait, on the fixture's clock: a Ready row whose release is younger than days is held until it
+	 * settles, and a settling row that is old enough by now goes back to Ready.
+	 */
+	function settleRows(days: number): void {
+		for (const a of apps) {
+			const at = Date.parse(a.publishedAt ?? "");
+			const until = days > 0 && !Number.isNaN(at) && at + days * DAY > NOW ? iso(at + days * DAY) : undefined;
+			if (a.status === "ready" && until) put({ ...a, status: "held", settles: until });
+			else if (a.settles) put(until ? { ...a, settles: until } : { ...a, status: "ready", settles: undefined });
+		}
+	}
+
 	const handlers: RequestHandlers = {
 		snapshot: () =>
 			({
@@ -1189,16 +1220,16 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			void runCheck(keys);
 			return { started: true };
 		},
-		install: ({ keys }) => {
+		install: ({ keys, now = false }) => {
 			if (run.phase === "checking") return { started: false, reason: "A check is running." };
 			// A System install holds the run lock, as in the engine.
 			if (extras.system.phase === "installing") return { started: false, reason: MESSAGES.reasonBusy() };
 			if (run.phase === "installing")
-				return running ? joinRun(running, keys) : { started: false, reason: "A run is already in progress." };
+				return running ? joinRun(running, keys, now) : { started: false, reason: "A run is already in progress." };
 			if (kept) return { started: false, reason: REASON_UNRECOVERED };
 			const ok = keys.filter((k) => {
 				const s = get(k)?.status;
-				return s === "ready" || s === "failed" || s === "rolled_back" || s === "stopped";
+				return takesRow(get(k), now) || s === "failed" || s === "rolled_back" || s === "stopped";
 			});
 			if (ok.length === 0) return { started: false, reason: "Nothing to install." };
 			// A retry from the summary keeps the first pass: done rows stay done and their results stay counted.
@@ -1232,6 +1263,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 					put({ ...app, status: "ready", detail: app.detail ? lastTryFailed(app.detail) : undefined });
 			// A stopped app did not fail: it is ready again and keeps its own sentence.
 			for (const app of apps) if (app.status === "stopped") put({ ...app, status: "ready" });
+			// As the engine's resting(): a release still inside the wait goes back to waiting.
+			settleRows(settings.waitDays);
 			setRun({
 				id: null,
 				phase: "idle",
@@ -1376,8 +1409,19 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				...patch,
 				keepBackups: Math.min(5, Math.max(1, patch.keepBackups ?? settings.keepBackups)),
 			};
+			if (patch.waitDays !== undefined) settleRows(patch.waitDays);
 			emit({ type: "meta", rate, checkedAt, settings });
 			return clone(settings);
+		},
+		token: () => tokenState(),
+		setToken: ({ token }) => {
+			const t = token?.trim() ?? null;
+			if (t !== null && !/^\w{20,255}$/.test(t)) return { ok: false, problem: "shape", ...tokenState() };
+			// A token ending in "dead" stands for one GitHub answers 401.
+			if (t?.endsWith("dead")) return { ok: false, problem: "refused", ...tokenState() };
+			tokenKept = t;
+			tokenFallback = null;
+			return { ok: true, ...tokenState() };
 		},
 		history: ({ limit }) => clone(history.slice(0, limit)),
 		runLog: ({ runId }) => clone(logs.get(runId) ?? []),
@@ -1576,6 +1620,22 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 						turnsOff: ["waitUnmetered"],
 					},
 				};
+			}
+			// The default file's settings have no release wait: with one set here, Import asks before taking it off.
+			if (variant !== "built" && settings.waitDays > 0) {
+				if (!sure)
+					return {
+						ok: false,
+						ask: {
+							apps: [],
+							plain: apps.length,
+							turnsOn: [],
+							turnsOff: [],
+							waitDays: { from: settings.waitDays, to: 0 },
+						},
+					};
+				settings = { ...settings, waitDays: 0 };
+				settleRows(0);
 			}
 			emit({ type: "meta", rate, checkedAt, settings });
 			return variant === "built" ? { ok: true, apps: apps.length, autoOff: 1 } : { ok: true, apps: apps.length };

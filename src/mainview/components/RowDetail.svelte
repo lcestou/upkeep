@@ -20,6 +20,7 @@
 		restartedNote,
 		restoreLabel,
 		restoredText,
+		settlesLine,
 		skipLabel,
 		quietLine,
 		statusText,
@@ -242,6 +243,18 @@
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
 		{#if app.detail}<p class="sentence" class:note={isStopNote(app.detail)} data-testid="pane-detail">{say(app.detail)}</p>{/if}
+		{#if app.status === "held" && app.settles}
+			<p class="sentence" data-testid="settles-line">{settlesLine(app.latest ?? "", app.settles)}</p>
+			<div>
+				<button
+					type="button"
+					class="btn small"
+					data-testid="install-now-{app.key}"
+					disabled={model.run.phase === "checking"}
+					onclick={() => model.installNow(app.key)}>{TEXT.installNowAnyway}</button
+				>
+			</div>
+		{/if}
 		{#if app.checked}<p class="sentence" data-testid="pane-checked">{CHECKED[app.checked]}</p>{/if}
 		{#if app.status === "working" && app.waiting}<p class="sentence note" data-testid="pane-wait">{say(app.waiting)}</p>
 		{:else if quiet}<p class="sentence note" data-testid="pane-quiet">{quietLine(quiet.m, quiet.n)}</p>{/if}

@@ -160,6 +160,8 @@ export type ImportAsk = {
 	turnsOn: ImportSwitch[];
 	/** Each protection the file turns off that is on on this machine: off, it would let automatic updates run. */
 	turnsOff: ImportProtection[];
+	/** Set when the file shortens the wait before a new release is offered (a protection); lengthening it is not asked. */
+	waitDays?: { from: Settings["waitDays"]; to: Settings["waitDays"] };
 };
 
 /** A setting that holds something back, which an import asks before turning off. */
@@ -295,6 +297,8 @@ export type AppState = {
 	downloaded?: boolean;
 	/** The version a skip is set for, when status is held because of a skip. */
 	skipped?: string;
+	/** When the release is offered, as an ISO time, while status is held because it is younger than the wait in Settings. */
+	settles?: string;
 	held: boolean;
 };
 
@@ -342,6 +346,12 @@ export type RunState = {
 	queue?: string[];
 };
 
+/**
+ * The token pasted in Settings as the window may see it: its last four characters (null when none is kept), and, when
+ * GitHub refused it at the last check, whether gh's sign-in stood in ("gh") or nothing did ("none").
+ */
+export type TokenState = { hint: string | null; refused: "gh" | "none" | null };
+
 export type Settings = {
 	keepBackups: number;
 	notify: boolean;
@@ -360,6 +370,8 @@ export type Settings = {
 	selfAuto: boolean;
 	/** An `upkeep` command in ~/.local/bin that runs this install's command line. Off: no such file from Upkeep. */
 	upkeepCommand: boolean;
+	/** Days a new release waits before it is offered, counted from when it was published. 0 offers it at once. */
+	waitDays: 0 | 1 | 3 | 7;
 	/** Automatic installs and early downloads wait while the connection is metered or the machine is on battery. A pressed Install never waits. */
 	waitUnmetered: boolean;
 };
@@ -578,7 +590,8 @@ export type EngineEvent =
 export type Requests = {
 	snapshot: { params: Record<string, never>; response: Snapshot };
 	check: { params: { keys?: string[] }; response: { started: boolean } };
-	install: { params: { keys: string[] }; response: { started: boolean; reason?: string } };
+	/** now: a row held only because its release is still settling is installed too. */
+	install: { params: { keys: string[]; now?: boolean }; response: { started: boolean; reason?: string } };
 	stopAfterCurrent: { params: Record<string, never>; response: { stopping: boolean } };
 	/** Ends the run now: the current app is put back, the rest stay ready. */
 	stopNow: { params: Record<string, never>; response: { stopping: boolean } };
@@ -595,6 +608,16 @@ export type Requests = {
 	installVersion: { params: { key: string; tag: string }; response: { started: boolean; reason?: string } };
 	setMenu: { params: { key: string; menu: boolean }; response: { ok: boolean; detail?: string } };
 	setSettings: { params: Partial<Settings>; response: Settings };
+	/** The pasted GitHub token's last four characters and whether the last check found it refused. The token never comes back. */
+	token: { params: Record<string, never>; response: TokenState };
+	/**
+	 * Keeps a pasted GitHub token, or forgets it with null. Refused, and nothing changed, when it does not read as one
+	 * ("shape") or GitHub answers it 401 ("refused").
+	 */
+	setToken: {
+		params: { token: string | null };
+		response: { ok: boolean; problem?: "shape" | "refused" } & TokenState;
+	};
 	history: { params: { limit: number }; response: HistoryRow[] };
 	runLog: { params: { runId: string }; response: LogLine[] };
 	open: {

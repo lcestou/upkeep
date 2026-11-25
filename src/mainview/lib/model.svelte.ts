@@ -106,6 +106,7 @@ export class Model {
 		language: "system",
 		selfAuto: false,
 		upkeepCommand: false,
+		waitDays: 0,
 		waitUnmetered: false,
 	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
@@ -577,6 +578,23 @@ export class Model {
 			await this.#ask(bridge.request("install", { keys }));
 		} catch {
 			// A run that did start reports itself through events; one that did not leaves the list as it was.
+		} finally {
+			this.starting = false;
+		}
+	}
+
+	/**
+	 * Install now anyway: installs one app whose release is still settling, the wait in Settings set aside for it. Starts
+	 * a run, or joins the one under way, as a tick would.
+	 */
+	async installNow(key: string): Promise<void> {
+		const bridge = this.#bridge;
+		if (!bridge || this.starting) return;
+		this.starting = true;
+		try {
+			await this.#ask(bridge.request("install", { keys: [key], now: true }));
+		} catch {
+			// The row stays as it was; the refusal, if any, is shown by #ask.
 		} finally {
 			this.starting = false;
 		}

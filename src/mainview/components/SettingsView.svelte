@@ -9,6 +9,7 @@
 		SYS,
 		TEXT,
 		UNINSTALL,
+		WAIT_DAYS,
 		WIN,
 		exportedNote,
 		importAutoOffNote,
@@ -16,6 +17,7 @@
 		importedNote,
 		rateText,
 		setupFailed,
+		tokenKeptLine,
 		versionText,
 	} from "../lib/copy";
 	import { LOCKUP_SVG } from "../lib/brand";
@@ -127,6 +129,31 @@
 		}
 	}
 
+	/** The last four characters of the kept GitHub token, or null; the token itself never reaches the window. */
+	let tokenHint = $state<string | null>(null);
+	let tokenDraft = $state("");
+	/** Why the last paste was not kept: not a token's characters, or GitHub answered it 401. */
+	let tokenProblem = $state<"shape" | "refused" | null>(null);
+	/** The last check found GitHub refusing the kept token: "gh" when gh's sign-in stood in. */
+	let tokenFallback = $state<"gh" | "none" | null>(null);
+	$effect(() => {
+		void model.send("token", {}).then((r) => {
+			if (!r) return;
+			tokenHint = r.hint;
+			tokenFallback = r.refused;
+		});
+	});
+
+	/** Saves the pasted token, or forgets the kept one with null. A refused paste stays in the field with the reason under it. */
+	async function setToken(token: string | null) {
+		const r = await model.send("setToken", { token });
+		if (!r) return;
+		tokenProblem = r.ok ? null : (r.problem ?? "shape");
+		tokenHint = r.hint;
+		tokenFallback = r.refused;
+		if (r.ok) tokenDraft = "";
+	}
+
 	/** The Settings label of what an import would turn on, the same words the person finds the switch under. */
 	function switchName(k: ImportSwitch): string {
 		const names = {
@@ -141,6 +168,9 @@
 		} satisfies Record<ImportSwitch, string>;
 		return names[k];
 	}
+
+	/** A release wait in Settings' own words: "Off", "3 days". */
+	const waitLabel = (d: number) => WAIT_DAYS.find((o) => o.v === d)?.label ?? String(d);
 
 	/** Focus lands on Cancel when the ask opens, so a stray Enter writes nothing. */
 	const focusFirst: Attachment<HTMLButtonElement> = (node) => {
@@ -219,6 +249,25 @@
 				{/each}
 			</select>
 		</label>
+		<label class="row">
+			<span class="text">
+				<span data-testid="setting-wait-days-label">{TEXT.waitDays}</span>
+				<span class="hint" data-testid="setting-wait-days-hint">{TEXT.waitDaysHint}</span>
+			</span>
+			<select
+				value={String(model.settings.waitDays)}
+				data-testid="setting-wait-days"
+				onchange={(e) => {
+					const v = Number(e.currentTarget.value);
+					const picked = WAIT_DAYS.find((o) => o.v === v);
+					if (picked) set({ waitDays: picked.v });
+				}}
+			>
+				{#each WAIT_DAYS as o (o.v)}
+					<option value={String(o.v)}>{o.label}</option>
+				{/each}
+			</select>
+		</label>
 		<div class="row">
 			<span class="text" id="language-label" data-testid="setting-language-label">{TEXT.language}</span>
 			<LanguagePicker
@@ -239,6 +288,45 @@
 				{/each}
 			</select>
 		</label>
+		<div class="row stack">
+			<span class="text">
+				<span id="token-label" data-testid="setting-token-label">{TEXT.githubToken}</span>
+				<span class="hint" data-testid="setting-token-hint">{TEXT.githubTokenHint}</span>
+			</span>
+			{#if tokenHint}
+				<span class="buttons">
+					<span class="kept" data-testid="token-kept">{tokenKeptLine(tokenHint)}</span>
+					<button type="button" class="btn small" data-testid="token-remove" onclick={() => setToken(null)}
+						>{TEXT.removeToken}</button
+					>
+				</span>
+			{:else}
+				<form
+					class="buttons"
+					onsubmit={(e) => {
+						e.preventDefault();
+						if (tokenDraft.trim()) void setToken(tokenDraft);
+					}}
+				>
+					<input
+						class="token"
+						type="password"
+						autocomplete="off"
+						spellcheck="false"
+						aria-labelledby="token-label"
+						data-testid="token-input"
+						bind:value={tokenDraft}
+					/>
+					<button type="submit" class="btn small" data-testid="token-save">{TEXT.saveToken}</button>
+				</form>
+			{/if}
+			{#if tokenProblem}<p class="help" role="status" data-testid="token-refused">
+					{tokenProblem === "refused" ? TEXT.tokenGithubRefused : TEXT.tokenRefused}
+				</p>{/if}
+			{#if tokenHint && tokenFallback}<p class="help" role="status" data-testid="token-fallback">
+					{tokenFallback === "gh" ? TEXT.tokenFallbackGh : TEXT.tokenFallbackNone}
+				</p>{/if}
+		</div>
 		<div class="row stack">
 			<span class="text">{TEXT.appList}</span>
 			<span class="buttons">
@@ -280,6 +368,21 @@
 						</p>
 						<ul class="switches">
 							{#each importAsk.turnsOff as k (k)}<li data-testid="import-switch-off">{TEXT.waitUnmetered}</li>{/each}
+						</ul>
+					{/if}
+					{#if importAsk.waitDays}
+						<p
+							id={importAsk.apps.length > 0 || importAsk.turnsOn.length > 0 || importAsk.turnsOff.length > 0
+								? undefined
+								: "import-ask"}
+							data-testid="import-wait"
+						>
+							{IMPORT.waitShorter}
+						</p>
+						<ul class="switches">
+							<li data-testid="import-wait-change">
+								{waitLabel(importAsk.waitDays.from)} → {waitLabel(importAsk.waitDays.to)}
+							</li>
 						</ul>
 					{/if}
 					<p data-testid="import-auto-off">{IMPORT.autoOff}</p>
@@ -540,6 +643,23 @@
 	.buttons {
 		display: inline-flex;
 		gap: var(--s2);
+	}
+	.kept {
+		align-self: center;
+		font-size: var(--fs-12);
+		color: var(--text-2);
+	}
+	.token {
+		height: 30px;
+		min-width: 0;
+		width: 16em;
+		padding: 0 var(--s2);
+		border-radius: var(--radius);
+		border: 1px solid var(--line);
+		background: var(--ground);
+		color: var(--text);
+		font-family: var(--mono);
+		font-size: var(--fs-12);
 	}
 	.help {
 		flex-basis: 100%;

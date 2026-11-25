@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { mkdirSync, readdirSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, readdirSync, readFileSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { HistoryRow } from "../shared/types";
 import {
@@ -15,12 +15,14 @@ import {
 	readHistory,
 	readInflight,
 	readRunLog,
+	readToken,
 	releaseLock,
 	saveRows,
 	stageWeights,
 	startTime,
 	updateState,
 	writeInflight,
+	writeToken,
 } from "./store";
 import { tempHome } from "./testkit";
 
@@ -86,6 +88,43 @@ test("the upkeep command switch is off by default, survives other writes, and a 
 	expect(loadState(t.paths).settings.upkeepCommand).toBe(false);
 });
 
+test("the wait before a release is offered is off by default and takes only the offered choices", () => {
+	expect(loadState(t.paths).settings.waitDays).toBe(0);
+	updateState(t.paths, (s) => {
+		s.settings.waitDays = 3;
+	});
+	expect(loadState(t.paths).settings.waitDays).toBe(3);
+	for (const bad of [2, "3", -1, null]) {
+		writeFileSync(join(t.paths.state, "state.json"), JSON.stringify({ settings: { waitDays: bad } }));
+		expect(loadState(t.paths).settings.waitDays).toBe(0);
+	}
+});
+
+test("a pasted token is kept 0600, read back trimmed, refused when it is not a token's shape, and forgotten with null", () => {
+	expect(readToken(t.paths)).toBeNull();
+	expect(writeToken(t.paths, "ghp_short")).toBe(false);
+	expect(writeToken(t.paths, `ghp_${"b".repeat(36)} extra`)).toBe(false);
+	expect(readToken(t.paths)).toBeNull();
+	const token = `github_pat_${"C".repeat(40)}`;
+	expect(writeToken(t.paths, `${token}\n`)).toBe(true);
+	expect(readToken(t.paths)).toBe(token);
+	const file = join(t.paths.state, "github-token");
+	expect(statSync(file).mode & 0o777).toBe(0o600);
+	// A file made readable by others is closed again before it is used.
+	chmodSync(file, 0o644);
+	expect(readToken(t.paths)).toBe(token);
+	expect(statSync(file).mode & 0o777).toBe(0o600);
+	// A crash's leftover temp file does not stop the next save.
+	writeFileSync(`${file}.${process.pid}.tmp`, "old");
+	expect(writeToken(t.paths, token)).toBe(true);
+	// A hand edit that leaves something else there reads as no token.
+	writeFileSync(file, "Bearer x\r\nHost: evil");
+	expect(readToken(t.paths)).toBeNull();
+	expect(writeToken(t.paths, null)).toBe(true);
+	expect(readToken(t.paths)).toBeNull();
+	expect(writeToken(t.paths, null)).toBe(true);
+});
+
 test("the self-update switch and the skipped build survive a write that changes something else", () => {
 	updateState(t.paths, (s) => {
 		s.settings.selfAuto = true;
@@ -122,6 +161,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			language: "system",
 			selfAuto: false,
 			upkeepCommand: false,
+			waitDays: 0,
 			waitUnmetered: false,
 		},
 		notified: "",

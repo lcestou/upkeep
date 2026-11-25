@@ -400,8 +400,12 @@ export function pickAsset(release: Release, pattern: string): { asset: Asset; co
 	return first ? { asset: first, count: matches.length, names: matches.map((m) => m.name) } : null;
 }
 
-/** The owner's GitHub token from the gh CLI, or null when gh is missing or logged out. */
-export async function githubToken(run: Run): Promise<string | null> {
+/**
+ * The token the person pasted in Settings when there is one, else the gh CLI's, else null when gh is missing or
+ * logged out. gh is not asked at all once a token was pasted.
+ */
+export async function githubToken(run: Run, pasted: string | null = null): Promise<string | null> {
+	if (pasted) return pasted;
 	const r = await run(["gh", "auth", "token"], { timeoutMs: 10_000 });
 	const token = r.stdout.trim();
 	return r.code === 0 && token ? token : null;

@@ -65,7 +65,9 @@ import {
 	skipLabel,
 	STAGE_NAME,
 	stateSentence,
+	settlesLine,
 	statusText,
+	tokenKeptLine,
 	stoppingLabel,
 	stopSkipLabel,
 	SYS,
@@ -154,6 +156,20 @@ test("status text", () => {
 	expect(statusText(app({ status: "rolled_back", installed: "10.5.1" }))).toBe("Rolled back to 10.5.1");
 	expect(statusText(app({ status: "held", skipped: "10.5.2" }))).toBe("Skipping 10.5.2");
 	expect(statusText(app({ status: "held" }))).toBe("Held");
+	// The day reads in the window's locale: "Nov 27" or "27 Nov".
+	expect(statusText(app({ status: "held", settles: "2026-11-27T12:00:00.000Z" }))).toMatch(
+		/^Offered from (Nov 27|27 Nov)$/,
+	);
+	expect(settlesLine("3.2.0", "2026-11-27T12:00:00.000Z")).toMatch(
+		/^3\.2\.0 is offered from (Nov 27|27 Nov), after the wait set in Settings\.$/,
+	);
+	// Later today: the hour, not today's date, which would read as already due.
+	const soon = new Date(Date.now() + 1000).toISOString();
+	expect(statusText(app({ status: "held", settles: soon }))).toMatch(/^Offered at \d\d:\d\d$/);
+	expect(settlesLine("3.2.0", soon)).toMatch(
+		/^3\.2\.0 is offered at \d\d:\d\d today, after the wait set in Settings\.$/,
+	);
+	expect(tokenKeptLine("wxyz")).toBe("A token ending in wxyz is saved.");
 });
 
 test("the System group's problem lines name the source and end cleanly without a detail", () => {

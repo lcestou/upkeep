@@ -1,5 +1,9 @@
 import { expect, test } from "bun:test";
-import { commandsOf } from "./transfer";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { loadState, readToken, updateState, writeToken } from "./store";
+import { tempHome } from "./testkit";
+import { commandsOf, exportSetup, importSetup } from "./transfer";
 
 test("commandsOf lists every command a table runs, quoted as a shell would need it, and nothing for a plain release", () => {
 	expect(commandsOf({ key: "fd", name: "fd", kind: "file", repo: "sharkdp/fd", dest: "~/.local/bin/fd" })).toEqual([]);
@@ -175,6 +179,24 @@ test("commandsOf shows an HTTP test's body, quoted, and cuts a long one", () => 
 	expect(lines("x".repeat(250))).toContain(`test: POST http://h/v1 '${"x".repeat(200)}…'`);
 });
 
+test("a pasted GitHub token never leaves in an export, and an import neither carries one in nor drops the kept one", () => {
+	const t = tempHome("transfer-token");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		const token = `ghp_${"t".repeat(36)}`;
+		expect(writeToken(t.paths, token)).toBe(true);
+		const out = exportSetup(t.paths, seed, new Date());
+		expect(JSON.stringify(out)).not.toContain(token);
+		// A file that names a token anywhere is not where one comes from.
+		const doc = { ...out, token: `ghp_${"x".repeat(36)}`, settings: { ...out.settings, waitDays: 0 } };
+		expect(importSetup(t.paths, seed, JSON.stringify(doc), new Date()).ok).toBe(true);
+		expect(readToken(t.paths)).toBe(token);
+	} finally {
+		t.cleanup();
+	}
+});
+
 test("commandsOf lists the settings paths a restore would put back, so an import asks before taking them", () => {
 	expect(
 		commandsOf({
@@ -186,4 +208,30 @@ test("commandsOf lists the settings paths a restore would put back, so an import
 			keep_with_restore: ["~/.config/t", "~/.trc"],
 		}),
 	).toEqual(["source: o/t", "keep_with_restore: ~/.config/t", "keep_with_restore: ~/.trc"]);
+});
+
+test("an import that shortens the release wait asks first; one that lengthens it does not", () => {
+	const t = tempHome("transfer-wait");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		updateState(t.paths, (s) => {
+			s.settings.waitDays = 7;
+		});
+		const out = exportSetup(t.paths, seed, new Date());
+		const off = JSON.stringify({ ...out, settings: { ...out.settings, waitDays: 0 } });
+		const r = importSetup(t.paths, seed, off, new Date());
+		expect(r).toEqual({
+			ok: false,
+			ask: { apps: [], plain: 0, turnsOn: [], turnsOff: [], waitDays: { from: 7, to: 0 } },
+		});
+		expect(loadState(t.paths).settings.waitDays).toBe(7);
+		expect(importSetup(t.paths, seed, off, new Date(), true).ok).toBe(true);
+		expect(loadState(t.paths).settings.waitDays).toBe(0);
+		const longer = JSON.stringify({ ...out, settings: { ...out.settings, waitDays: 3 } });
+		expect(importSetup(t.paths, seed, longer, new Date()).ok).toBe(true);
+		expect(loadState(t.paths).settings.waitDays).toBe(3);
+	} finally {
+		t.cleanup();
+	}
 });

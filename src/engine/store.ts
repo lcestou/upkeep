@@ -1,5 +1,6 @@
 import {
 	appendFileSync,
+	chmodSync,
 	closeSync,
 	existsSync,
 	mkdirSync,
@@ -88,8 +89,12 @@ export const DEFAULT_SETTINGS: Settings = {
 	language: "system",
 	selfAuto: false,
 	upkeepCommand: false,
+	waitDays: 0,
 	waitUnmetered: false,
 };
+
+/** The waits Settings offers, in days. */
+const WAITS = [0, 1, 3, 7] as const;
 
 /** Any missing or out-of-range field takes its default; keepBackups is rounded into 1 to 5. */
 export function clampSettings(s: Partial<Settings>): Settings {
@@ -109,6 +114,7 @@ export function clampSettings(s: Partial<Settings>): Settings {
 		language: s.language === "system" || isLanguage(s.language) ? s.language : DEFAULT_SETTINGS.language,
 		selfAuto: typeof s.selfAuto === "boolean" ? s.selfAuto : DEFAULT_SETTINGS.selfAuto,
 		upkeepCommand: typeof s.upkeepCommand === "boolean" ? s.upkeepCommand : DEFAULT_SETTINGS.upkeepCommand,
+		waitDays: WAITS.find((w) => w === s.waitDays) ?? DEFAULT_SETTINGS.waitDays,
 		waitUnmetered: typeof s.waitUnmetered === "boolean" ? s.waitUnmetered : DEFAULT_SETTINGS.waitUnmetered,
 	};
 }
@@ -255,6 +261,50 @@ export function updateState(paths: Paths, change: (s: State) => void): State {
 		writeAtomic(stateFile(paths), JSON.stringify(s, null, "\t"));
 		return s;
 	});
+}
+
+/** The pasted GitHub token, kept apart from state.json so that an export, a log or an event never carries it. */
+const tokenFile = (paths: Paths) => join(paths.state, "github-token");
+
+/** What a GitHub token is made of: letters, digits and underscores (ghp_…, github_pat_…, or 40 hex digits). */
+const GITHUB_TOKEN = /^\w{20,255}$/;
+
+/** Whether text is made only of a GitHub token's characters, at a token's length. */
+export const isTokenText = (t: string) => GITHUB_TOKEN.test(t);
+
+/** The token pasted in Settings, or null when none is kept or the file no longer holds one. A file others can read is made 0600 first. Never throws. */
+export function readToken(paths: Paths): string | null {
+	try {
+		const file = tokenFile(paths);
+		const t = readFileSync(file, "utf8").trim();
+		if (!GITHUB_TOKEN.test(t)) return null;
+		// A file copied in readable by others is closed to its owner before it is used.
+		if (statSync(file).mode & 0o077) chmodSync(file, 0o600);
+		return t;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Keeps a token in a file only its owner can read (0600), or deletes the file for null. False, and nothing written, for
+ * text that is not a token's shape, so a stray paste never reaches a request header.
+ */
+export function writeToken(paths: Paths, token: string | null): boolean {
+	const file = tokenFile(paths);
+	if (token === null) {
+		rmSync(file, { force: true });
+		return true;
+	}
+	const t = token.trim();
+	if (!GITHUB_TOKEN.test(t)) return false;
+	mkdirSync(paths.state, { recursive: true });
+	const tmp = `${file}.${process.pid}.tmp`;
+	// A fresh file made 0600 as it is written (a crash's leftover goes first); rename keeps the mode.
+	rmSync(tmp, { force: true });
+	writeFileSync(tmp, t, { mode: 0o600, flag: "wx" });
+	renameSync(tmp, file);
+	return true;
 }
 
 /** Records that file holds version, as Upkeep just wrote it. A file that is not there drops the record instead. */

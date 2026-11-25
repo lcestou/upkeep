@@ -28,6 +28,7 @@ import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
 import {
+	createSettleWatch,
 	readyFingerprint,
 	readyNames,
 	readyNotice,
@@ -531,8 +532,12 @@ async function selfLook(): Promise<void> {
 	}
 }
 
+const settled = createSettleWatch();
 engine.subscribe((event) => {
 	toView.push(event);
+	// A release whose wait ran out turned Ready without a check: say so as a check would. During a run or its summary
+	// the notice waits for idle; while a login or scheduled check holds its notice, that check says it.
+	if (event.type === "app" && settled.row(event.app, phase !== "idle" || noticeHeld)) announceReady(heldBack);
 	if (event.type !== "run") {
 		// A meta event carries the settings, which may switch the language the tray speaks.
 		if (event.type === "app" || event.type === "meta") refreshTray();
@@ -543,6 +548,8 @@ engine.subscribe((event) => {
 	refreshTray();
 	// A finished check or a dismissed run both just looked at every app: the schedule's wait starts again.
 	if (phase === "idle" && (before === "checking" || before === "summary")) schedule.checked();
+	// A wait that ran out during the run: its notice goes out now. After a check, that check's own notice covers it.
+	if (phase === "idle" && settled.idle() && before === "summary") announceReady(heldBack);
 	if (before === "checking" && phase === "idle") {
 		announceReady(heldBack);
 		void selfLook();

@@ -13,6 +13,7 @@ import type {
 	Snapshot,
 	Stage,
 	Suggestion,
+	TokenState,
 } from "../shared/types";
 import { MESSAGES } from "../shared/messages";
 import type { Arch } from "./arch";
@@ -30,7 +31,7 @@ import {
 import { alsoOf, scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { readCopies } from "./extras/system";
 import { managedSpecs } from "./managers";
-import { type FetchLike, githubToken, isFailure, type Rate } from "./github";
+import { type FetchLike, GITHUB_API, githubToken, isFailure, type Rate } from "./github";
 import { checkClaudePlugins, installClaudePlugins } from "./kinds/plugins";
 import { checkCommand, installCommand, tagOf } from "./kinds/command";
 import { isPackage } from "./kinds/package";
@@ -73,6 +74,9 @@ import {
 	claimLock,
 	clearInflight,
 	loadState,
+	isTokenText,
+	readToken,
+	writeToken,
 	openRunLog,
 	pruneLogs,
 	readHistory,
@@ -121,6 +125,8 @@ export type EngineDeps = {
 	/** Test overrides for waits inside kinds. */
 	stallMs?: number;
 	retryMs?: number;
+	/** How long a pasted token's check at GitHub may take before it counts as no answer. Default 10 s. */
+	tokenWaitMs?: number;
 	/** How often Restart now looks whether the app has quit. Default 200 ms. */
 	pollMs?: number;
 	/** Bytes free on a folder's disk, which early downloads keep room on. Default statfs; tests pass a number. */
@@ -134,7 +140,8 @@ export type Engine = {
 	check(keys?: string[], opts?: { quietOffline?: boolean }): Promise<void>;
 	/** Whether the last check found the network down: some app could not reach its forge and none that asks one got an answer. */
 	offline(): boolean;
-	install(keys: string[]): Promise<{ started: boolean; reason?: string }>;
+	/** now: a row held only because its release is still settling goes too, as Install now anyway asks. */
+	install(keys: string[], now?: boolean): Promise<{ started: boolean; reason?: string }>;
 	stopAfterCurrent(): void;
 	/**
 	 * Ends the run now: a cuttable step of the current app is cut and the app put back; a step that is never cut (a
@@ -169,6 +176,13 @@ export type Engine = {
 	 */
 	setMenu(key: string, menu: boolean): Promise<{ ok: boolean; detail?: string }>;
 	setSettings(patch: Partial<Settings>): Settings;
+	/** The pasted token's last four characters, and what the last check did when GitHub refused it (see TokenState). */
+	tokenState(): TokenState;
+	/**
+	 * Keeps or forgets the pasted token. "shape": not a token's characters; "refused": GitHub answered it 401 when asked
+	 * once now. Either way nothing is written. A network fault on that ask keeps the token. The next request uses it.
+	 */
+	setToken(token: string | null): Promise<"ok" | "shape" | "refused">;
 	history(limit: number): HistoryRow[];
 	runLog(runId: string): LogLine[];
 	readyKeys(autoOnly: boolean): string[];
@@ -306,6 +320,25 @@ type InStep = { argv: string[]; cuttable: boolean; pid?: number; waitedOn?: bool
 
 /** A finished install is "updated" in the run's results; failures keep their own word. */
 const resultOf = (r: Outcome["result"]): RunResult["result"] => (r === "done" ? "updated" : r);
+
+const DAY_MS = 86_400_000;
+
+/**
+ * When a release published at publishedAt is offered under a wait of days, as an ISO time, or undefined when it is
+ * offered now: no wait, an old enough release, or no date to count from (a links, json or command source), which
+ * counts as published long ago. An unreadable date counts as none.
+ */
+export function settlesAt(publishedAt: string | undefined, days: number, now: Date): string | undefined {
+	const at = Date.parse(publishedAt ?? "");
+	if (days <= 0 || Number.isNaN(at)) return undefined;
+	const until = at + days * DAY_MS;
+	return until > now.getTime() ? new Date(until).toISOString() : undefined;
+}
+
+/** Whether a row goes into a run: Ready, or with now (Install now anyway) still settling. A held or skipped row never. */
+function takesRow(a: AppState | undefined, now: boolean): boolean {
+	return a?.status === "ready" || (now && a?.settles !== undefined);
+}
 
 /** Every file the engine writes comes from deps.paths and every process it starts goes through deps.run, so a test can run it in a temp home. */
 export function createEngine(deps: EngineDeps): Engine {
@@ -544,20 +577,27 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/**
-	 * The row's resting status and detail from its check result and the owner's skip and hold. An offered release whose
-	 * file changed since it was first seen is held too, with the reason as its detail, and releasing the hold lets it through.
+	 * The row's resting status and detail from its check result, the owner's skip and hold, and the wait in Settings. An
+	 * offered release whose file changed since it was first seen is held too, with the reason as its detail, and releasing
+	 * the hold lets it through. A hold or a skip wins over the wait; a manual app never waits. settles is always present,
+	 * undefined when not settling, so Object.assign clears it.
 	 */
-	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped" | "detail"> {
+	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped" | "detail" | "settles"> {
 		const state = loadState(paths);
 		const tag = c.target?.tag;
 		const changed = tag !== undefined && state.changed[spec.key] === tag;
 		const held = state.hold[spec.key] === true || (c.status === "ready" && changed);
 		const skip = state.skip[spec.key];
 		const detail = c.status === "ready" && changed ? MESSAGES.releaseChanged(tag) : c.detail;
-		if (c.status !== "ready") return { status: c.status, held, detail };
-		if (held) return { status: "held", held, skipped: skip, detail };
-		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip, detail };
-		return { status: spec.kind === "manual" ? "manual" : "ready", held, detail };
+		if (c.status !== "ready") return { status: c.status, held, detail, settles: undefined };
+		if (held) return { status: "held", held, skipped: skip, detail, settles: undefined };
+		if (skip !== undefined && skip === c.latest)
+			return { status: "held", held, skipped: skip, detail, settles: undefined };
+		// A manual app is run by the person, so it never waits: Install now anyway could not run it.
+		if (spec.kind === "manual") return { status: "manual", held, detail, settles: undefined };
+		const settles = settlesAt(c.publishedAt, state.settings.waitDays, deps.now());
+		if (settles) return { status: "held", held, detail, settles };
+		return { status: "ready", held, detail, settles: undefined };
 	}
 
 	/**
@@ -701,6 +741,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const app = buildApp(spec, c, history);
 		apps.set(spec.key, app);
 		emitApp(app);
+		armSettle();
 	}
 
 	/** Whether the last check found the network down; see offline(). */
@@ -727,7 +768,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				emitApp(a);
 			}
 		}
-		token = await githubToken(deps.run);
+		token = await freshToken(true);
 		const history = readHistory(paths, 1000);
 		const all = loadSpecs();
 		// The notes are a nicety: a list that cannot be read leaves them out and never stops the check.
@@ -859,19 +900,20 @@ export function createEngine(deps: EngineDeps): Engine {
 	 * app already in the run is left where it is. Refused once Stop after current is pending, since the run is about
 	 * to end.
 	 */
-	function addToRun(keys: string[]): Requests["install"]["response"] {
+	function addToRun(keys: string[], now = false): Requests["install"]["response"] {
 		const queue = runQueue;
 		if (!queue) return { started: false, reason: REASON_BUSY };
 		if (run.stopping) return { started: false, reason: REASON_STOPPING };
 		const inRun = new Set(queue.map((s) => s.key));
 		const wanted = new Set(keys);
-		const add = specs.filter((s) => wanted.has(s.key) && !inRun.has(s.key) && apps.get(s.key)?.status === "ready");
+		const add = specs.filter((s) => wanted.has(s.key) && !inRun.has(s.key) && takesRow(apps.get(s.key), now));
 		if (add.length === 0) return { started: false, reason: REASON_NOTHING };
 		queue.push(...add);
 		for (const s of add) {
 			const a = apps.get(s.key);
 			if (a) {
 				a.status = "queued";
+				a.settles = undefined;
 				// A note from the check or a last try is about the row at rest; an app that never starts must not keep it.
 				a.detail = undefined;
 				a.restartToApply = false;
@@ -886,18 +928,28 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/** The body of install() once its phase checks passed; install() holds `starting` around it. */
-	async function startInstall(this: Engine, keys: string[]): Promise<{ started: boolean; reason?: string }> {
+	async function startInstall(
+		this: Engine,
+		keys: string[],
+		now: boolean,
+	): Promise<{ started: boolean; reason?: string }> {
 		// A run would write its own marker over the one a failed recovery kept.
 		if ((await this.recover()).some((r) => !r.ok)) return { started: false, reason: REASON_UNRECOVERED };
 		// Retry from the summary: the failed apps go back to ready, which is what gets picked below.
 		// What the first pass updated stays on screen and in the count, so the summary reads as one run.
 		const retry = run.phase === "summary";
 		const carried = retry ? run.results.filter((r) => r.result === "updated") : [];
+		// A failed row goes back through the release wait; its retry still takes it, as Install now anyway did.
+		const failed = new Set(
+			[...apps.values()]
+				.filter((a) => a.status === "failed" || a.status === "rolled_back" || a.status === "stopped")
+				.map((a) => a.key),
+		);
 		if (run.phase === "summary") resetFailed();
 		const wanted = new Set(keys);
 		const pick = specs.filter((s) => {
 			const a = apps.get(s.key);
-			return wanted.has(s.key) && a && (a.status === "ready" || a.versionless);
+			return wanted.has(s.key) && a && (takesRow(a, now || (retry && failed.has(s.key))) || a.versionless);
 		});
 		const queue = [...pick];
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
@@ -925,6 +977,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				const a = apps.get(s.key);
 				if (a) {
 					a.status = "queued";
+					a.settles = undefined;
 					// A note from the check or a last try is about the row at rest; an app that never starts must not keep it.
 					a.detail = undefined;
 					a.restartToApply = false;
@@ -932,7 +985,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			}
 			emitRun();
-			if (!token) token = await githubToken(deps.run);
+			token = await freshToken();
 		} catch (err) {
 			// Nothing ran yet: put the rows back and give the lock up.
 			log?.close();
@@ -1168,15 +1221,15 @@ export function createEngine(deps: EngineDeps): Engine {
 			busy = p;
 			return p;
 		},
-		async install(keys) {
+		async install(keys, now = false) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
-			if (run.phase === "installing" && runQueue) return addToRun(keys);
+			if (run.phase === "installing" && runQueue) return addToRun(keys, now);
 			if (run.phase === "installing" || starting) return { started: false, reason: REASON_BUSY };
 			// Between here and the run's own "installing", recover() may wait on disk: a check started in that gap
 			// (pressed, or the schedule's) would run beside the install, so check() refuses while this is set.
 			starting = true;
 			try {
-				return await startInstall.call(this, keys);
+				return await startInstall.call(this, keys, now);
 			} finally {
 				starting = false;
 			}
@@ -1425,7 +1478,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		async versions(key) {
 			const spec = specOf(key);
 			if (!spec || !canList(spec)) return { versions: [], problem: MESSAGES.noApp(key) };
-			if (!token) token = await githubToken(deps.run);
+			token = await freshToken();
 			const list = await listReleases(spec, kindCtx(key));
 			if (isFailure(list)) return { versions: [], problem: list.detail };
 			return {
@@ -1445,7 +1498,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			const first = apps.get(key);
 			if (!spec || !first || !checked.has(key) || !canList(spec))
 				return { started: false, reason: MESSAGES.noApp(key) };
-			if (!token) token = await githubToken(deps.run);
+			token = await freshToken();
 			const t = await versionTarget(spec, kindCtx(key), tag, first.installed);
 			if (isFailure(t)) return { started: false, reason: t.detail };
 			if (t.version === first.installed) return { started: false, reason: REASON_NOTHING };
@@ -1509,8 +1562,24 @@ export function createEngine(deps: EngineDeps): Engine {
 			const s = updateState(paths, (st) => {
 				st.settings = { ...st.settings, ...patch };
 			});
+			// A new wait moves rows between Ready and settling at once, without a check.
+			if (patch.waitDays !== undefined) for (const key of apps.keys()) refresh(key);
 			emitMeta();
 			return s.settings;
+		},
+		tokenState() {
+			const hint = readToken(paths)?.slice(-4) ?? null;
+			return { hint, refused: hint ? tokenFallback : null };
+		},
+		async setToken(t) {
+			const trimmed = t?.trim() ?? null;
+			if (trimmed !== null && !isTokenText(trimmed)) return "shape";
+			if (trimmed !== null && (await tokenStatus(trimmed)) === 401) return "refused";
+			if (!writeToken(paths, trimmed)) return "shape";
+			// The next check or search reads the file again; a token from before must not linger.
+			token = null;
+			tokenFallback = null;
+			return "ok";
 		},
 		history(limit) {
 			return readHistory(paths, limit);
@@ -1634,7 +1703,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	};
 
 	async function discoverCtx(): Promise<DiscoverCtx> {
-		if (!token) token = await githubToken(deps.run);
+		token = await freshToken();
 		return {
 			paths,
 			run: deps.run,
@@ -1717,6 +1786,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			Object.assign(app, resting(spec, next), { installed, detail: undefined, restartToApply: false });
 			app.restorePoints = listBackups(paths, spec.key);
 			emitApp(app);
+			armSettle();
 		}
 		return { ok: true };
 	}
@@ -1770,6 +1840,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			a.detail = why ? (stopped ? why : MESSAGES.lastTryFailed(why)) : c.detail;
 			emitApp(a);
 		}
+		armSettle();
 	}
 
 	/** Re-derives a resting row after a skip or hold change. */
@@ -1781,6 +1852,92 @@ export function createEngine(deps: EngineDeps): Engine {
 		if (!["ready", "held", "manual", "fresh"].includes(a.status)) return;
 		Object.assign(a, { skipped: undefined }, resting(spec, c));
 		emitApp(a);
+		armSettle();
+	}
+
+	/** Set by the last check when GitHub refused the pasted token: whether gh's sign-in stood in. Null otherwise. */
+	let tokenFallback: TokenState["refused"] = null;
+
+	/**
+	 * GitHub's answer status for a token at /rate_limit, which costs none of the hour's budget; null on a network fault
+	 * or no answer within tokenWaitMs (10 s), so Save answers and a check never sits in checking. Asked only of the real
+	 * GitHub API: the token never goes to a test server or another host.
+	 */
+	async function tokenStatus(t: string): Promise<number | null> {
+		if ((deps.api ?? GITHUB_API) !== GITHUB_API) return null;
+		const ms = deps.tokenWaitMs ?? 10_000;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		// The race ends the wait even for a fetch that ignores its signal.
+		const late = new Promise<null>((done) => {
+			timer = setTimeout(() => done(null), ms);
+		});
+		try {
+			const res = await Promise.race([
+				deps.fetch(`${GITHUB_API}/rate_limit`, {
+					headers: { Authorization: `Bearer ${t}`, Accept: "application/vnd.github+json" },
+					signal: AbortSignal.timeout(ms),
+				}),
+				late,
+			]);
+			return res?.status ?? null;
+		} catch {
+			return null;
+		} finally {
+			clearTimeout(timer);
+		}
+	}
+
+	/** The last answer GitHub gave about the pasted token, and when, so requests close together ask it once. */
+	let probed: { token: string; at: number; refused: boolean } | null = null;
+
+	/**
+	 * Whether GitHub refuses the pasted token now. An accepted token's answer is reused for 60 s, so Other versions and
+	 * Add app do not each ask; a refusal is never reused, so a token put right is seen at once. force (a check) always asks.
+	 */
+	async function tokenRefused(pasted: string, force: boolean): Promise<boolean> {
+		const now = deps.now().getTime();
+		if (!force && probed?.token === pasted && !probed.refused && now - probed.at < 60_000) return false;
+		const refused = (await tokenStatus(pasted)) === 401;
+		probed = { token: pasted, at: now, refused };
+		return refused;
+	}
+
+	/**
+	 * The token for one check or search: the pasted one, unless GitHub now answers it 401 (an expired or revoked token),
+	 * then gh's sign-in for this check, so a token gone stale is never worse than none. A network fault keeps the pasted one.
+	 */
+	async function freshToken(force = false): Promise<string | null> {
+		const pasted = readToken(paths);
+		const refused = pasted !== null && (await tokenRefused(pasted, force));
+		const t = await githubToken(deps.run, refused ? null : pasted);
+		tokenFallback = refused ? (t ? "gh" : "none") : null;
+		return t;
+	}
+
+	let settleTimer: ReturnType<typeof setTimeout> | null = null;
+
+	/**
+	 * Keeps one timer set to the earliest moment a settling row is offered, so the row turns Ready then without a check
+	 * (with "Only when I ask" there may be none for days). It re-derives the settling rows and sets itself again. Called
+	 * after anything that can change a wait: a check's rows, a refresh, failed rows put back. The timer never keeps a
+	 * process alive, so the command line still exits.
+	 */
+	function armSettle(): void {
+		if (settleTimer) clearTimeout(settleTimer);
+		settleTimer = null;
+		// Only resting waiting rows: refresh leaves a checking or problem row alone, so its old date would fire forever.
+		const next = Math.min(
+			...[...apps.values()].map((a) => (a.status === "held" && a.settles ? Date.parse(a.settles) : Infinity)),
+		);
+		if (!Number.isFinite(next)) return;
+		// setTimeout holds at most 2^31-1 ms (about 24 days); a later moment is reached by setting it again.
+		const ms = Math.min(Math.max(0, next - deps.now().getTime()) + 50, 2 ** 31 - 1);
+		settleTimer = setTimeout(() => {
+			settleTimer = null;
+			for (const a of apps.values()) if (a.status === "held" && a.settles) refresh(a.key);
+			armSettle();
+		}, ms);
+		settleTimer.unref();
 	}
 
 	/** Writes what this check learned, on top of what earlier checks knew about the other apps. */
@@ -1813,6 +1970,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		checked.set(spec.key, c);
 		apps.set(spec.key, buildApp(spec, c, []));
 	}
+	armSettle();
 	checkedAt =
 		Object.values(known)
 			.map((r) => r.checkedAt)

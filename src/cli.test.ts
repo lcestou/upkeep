@@ -89,6 +89,30 @@ test("check --json prints one AppState per line", async () => {
 	expect(rows.map((r) => r.key).toSorted()).toEqual(["bat", "borg"]);
 });
 
+test("a release inside the wait: check says HELD, --all passes it by, and naming the app installs it", async () => {
+	const d = deps();
+	const fresh = new Date(Date.now() - 3_600_000).toISOString();
+	d.fetch = async (url, init) => {
+		const res = await fakeFetch(url, init);
+		if (!url.endsWith("borgbackup/borg/releases/latest")) return res;
+		return Response.json({ ...(await res.json()), published_at: fresh });
+	};
+	updateState(t.paths, (s) => {
+		s.settings.waitDays = 3;
+	});
+	const out: string[] = [];
+	expect(await main(["check"], d, (l) => out.push(l))).toBe(0);
+	expect(out).toContain(
+		`  HELD:   BorgBackup 1.4.1 -> 1.4.2 (offered from ${new Date(Date.parse(fresh) + 3 * 86_400_000).toLocaleDateString("sv-SE")})`,
+	);
+	const all: string[] = [];
+	expect(await main(["install", "--all"], d, (l) => all.push(l))).toBe(1);
+	expect(all).toContain("Nothing to install.");
+	const named: string[] = [];
+	expect(await main(["install", "borg"], d, (l) => named.push(l))).toBe(0);
+	expect(named).toContain("[borg] done 1.4.2");
+});
+
 test("install updates, exits 0, then restore and history work", async () => {
 	const d = deps();
 	const out: string[] = [];
@@ -178,6 +202,9 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", skipped: "10.5.2" })).toBe(
 		"  HELD:   tmux 9.0.0 -> 10.5.2 (skipping 10.5.2)",
 	);
+	expect(
+		checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", settles: "2026-11-27T08:00:00.000Z" }),
+	).toBe("  HELD:   tmux 9.0.0 -> 10.5.2 (offered from 2026-11-27)");
 	// A hold Upkeep put on a changed release says why.
 	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", detail: "Why." })).toBe(
 		"  HELD:   tmux 9.0.0 -> 10.5.2 Why.",
@@ -308,6 +335,30 @@ test("add adds only a single sure match; nothing found, or an app already listed
 	const listed: string[] = [];
 	await main(["list"], d, (l) => listed.push(l));
 	expect(listed).toHaveLength(2);
+});
+
+test("import of a file that takes the release wait off says so and needs --yes", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	updateState(t.paths, (s) => {
+		s.settings.waitDays = 7;
+	});
+	const file = join(t.dir, "upkeep.json");
+	await main(["export", file], d, () => {});
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	writeFileSync(file, JSON.stringify({ ...doc, settings: { ...doc.settings, waitDays: 1 } }));
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
+	expect(said).toContain(`${file} shortens this setting on this computer:`);
+	expect(said).toContain("  Wait before offering a new release: 7 days -> 1 day");
+	expect(loadState(t.paths).settings.waitDays).toBe(7);
+	writeFileSync(file, JSON.stringify({ ...doc, settings: { ...doc.settings, waitDays: 0 } }));
+	const off: string[] = [];
+	expect(await main(["import", file], d, (l) => off.push(l))).toBe(1);
+	expect(off).toContain(`${file} shortens this setting on this computer:`);
+	expect(off).toContain("  Wait before offering a new release: 7 days -> Off");
+	expect(await main(["import", file, "--yes"], d, () => {})).toBe(0);
+	expect(loadState(t.paths).settings.waitDays).toBe(0);
 });
 
 test("import drops what a check remembered of a release for an app it drops or changes", async () => {

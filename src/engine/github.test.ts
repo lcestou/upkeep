@@ -194,6 +194,9 @@ test("githubToken trims gh's answer and is null when gh fails", async () => {
 	expect(await githubToken(ok)).toBe("gho_abc");
 	expect(calls).toEqual([["gh", "auth", "token"]]);
 	expect(await githubToken(loggedOut)).toBeNull();
+	// A token pasted in Settings comes first, and gh is not asked.
+	expect(await githubToken(ok, "ghp_pasted")).toBe("ghp_pasted");
+	expect(calls).toHaveLength(1);
 });
 
 test("latestFromSource reads npm, PyPI and GitHub", async () => {

@@ -13,6 +13,7 @@ const settings: Settings = {
 	language: "system",
 	selfAuto: false,
 	upkeepCommand: false,
+	waitDays: 0,
 	waitUnmetered: false,
 };
 

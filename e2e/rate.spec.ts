@@ -8,7 +8,7 @@ test("a used-up GitHub budget shows a bar with when checks resume and how gh rai
 		/^GitHub's hourly limit for this network is used up\. Checks resume at \d\d:\d\d\.$/,
 	);
 	await expect(page.getByTestId("rate-signin")).toHaveText(
-		"Run gh auth login in a terminal to raise it to 5,000 an hour.",
+		"Paste a GitHub token in Settings, or run gh auth login in a terminal, to raise it to 5,000 an hour.",
 	);
 	// The list stays below the bar, not under it.
 	const bar = await page.getByTestId("rate-bar").boundingBox();

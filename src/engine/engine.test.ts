@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
-import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING } from "./engine";
+import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING, settlesAt } from "./engine";
 import type { FetchLike } from "./github";
 import { SUM_KEEP_MS } from "./checksums";
 import { readMeta, takePoint } from "./backup";
@@ -503,6 +503,7 @@ test("settings and auto are kept in state", async () => {
 		language: "system",
 		selfAuto: false,
 		upkeepCommand: false,
+		waitDays: 0,
 		waitUnmetered: false,
 	});
 	engine.setAuto("bat", true);
@@ -1235,6 +1236,169 @@ test("a catalogue source build not installed yet is added with install_if_missin
 	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "tmux")).toEqual(spec);
 });
 
+test("a wait in Settings holds a release younger than it until it settles, and Install now anyway takes it at once", async () => {
+	let clock = Date.parse("2026-11-10T00:00:00Z");
+	const engine = createEngine({ ...(await deps()), now: () => new Date(clock) });
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	await engine.check();
+	expect(fd()).toMatchObject({ status: "ready", settles: undefined });
+	// fd's release came out on 2026-11-09: three days from then is the 12th.
+	engine.setSettings({ waitDays: 3 });
+	expect(fd()).toMatchObject({ status: "held", held: false, settles: "2026-11-12T00:00:00.000Z" });
+	expect(engine.readyKeys(false)).not.toContain("fd");
+	// A hold wins over the wait, and the wait comes back when the hold goes.
+	engine.setHold("fd", true);
+	expect(fd()).toMatchObject({ status: "held", held: true, settles: undefined });
+	engine.setHold("fd", false);
+	expect(fd()?.settles).toBe("2026-11-12T00:00:00.000Z");
+	// Once settled, the next check offers it.
+	clock = Date.parse("2026-11-13T00:00:00Z");
+	await engine.check(["fd"]);
+	expect(fd()).toMatchObject({ status: "ready", settles: undefined });
+	engine.setSettings({ waitDays: 7 });
+	expect(fd()?.settles).toBe("2026-11-16T00:00:00.000Z");
+	engine.setSettings({ waitDays: 0 });
+	expect(fd()?.status).toBe("ready");
+	engine.setSettings({ waitDays: 7 });
+	expect(await engine.install(["fd"])).toEqual({ started: false, reason: REASON_NOTHING });
+	expect((await engine.install(["fd"], true)).started).toBe(true);
+	await engine.idle();
+	expect(fd()).toMatchObject({ status: "done", settles: undefined });
+});
+
+test("settlesAt: no wait, no date, an unreadable date or an old enough release offers it now", () => {
+	const now = new Date("2026-11-10T00:00:00Z");
+	expect(settlesAt("2026-11-09T00:00:00Z", 0, now)).toBeUndefined();
+	expect(settlesAt(undefined, 3, now)).toBeUndefined();
+	expect(settlesAt("", 3, now)).toBeUndefined();
+	expect(settlesAt("soon", 3, now)).toBeUndefined();
+	expect(settlesAt("2026-11-01T00:00:00Z", 7, now)).toBeUndefined();
+	expect(settlesAt("2026-11-09T12:00:00Z", 1, now)).toBe("2026-11-10T12:00:00.000Z");
+});
+
+test("a pasted token goes to GitHub in place of gh's, kept 0600 and out of state.json; one GitHub refuses is not kept", async () => {
+	const d = await deps();
+	const sent: (string | null)[] = [];
+	const engine = createEngine({
+		...d,
+		fetch: async (url, init) => {
+			const auth = new Headers(init?.headers).get("Authorization");
+			if (url === "https://api.github.com/rate_limit")
+				return new Response("{}", { status: auth?.endsWith("dead") ? 401 : 200 });
+			if (url.startsWith("https://api.github.com/")) sent.push(auth);
+			return d.fetch(url, init);
+		},
+	});
+	const token = `ghp_${"a".repeat(32)}wxyz`;
+	expect(engine.tokenState()).toEqual({ hint: null, refused: null });
+	expect(await engine.setToken("not a token\nX-Evil: 1")).toBe("shape");
+	expect(await engine.setToken(`ghp_${"a".repeat(32)}dead`)).toBe("refused");
+	expect(engine.tokenState().hint).toBeNull();
+	expect(await engine.setToken(` ${token}\n`)).toBe("ok");
+	expect(engine.tokenState()).toEqual({ hint: "wxyz", refused: null });
+	const file = join(t.paths.state, "github-token");
+	expect(statSync(file).mode & 0o777).toBe(0o600);
+	await engine.check(["fd"]);
+	expect(sent).toContain(`Bearer ${token}`);
+	const state = join(t.paths.state, "state.json");
+	expect(existsSync(state) ? readFileSync(state, "utf8") : "").not.toContain(token);
+	expect(await engine.setToken(null)).toBe("ok");
+	expect(engine.tokenState().hint).toBeNull();
+	expect(existsSync(file)).toBe(false);
+	sent.length = 0;
+	await engine.check(["fd"]);
+	expect(sent.every((h) => h === null)).toBe(true);
+});
+
+test("a saved token GitHub stops taking falls back to gh's sign-in for the check, and says so", async () => {
+	const d = await deps();
+	const sent: (string | null)[] = [];
+	let gh = true;
+	const run = Object.assign(
+		(argv: string[], opts?: Parameters<typeof d.run>[1]) =>
+			argv[0] === "gh"
+				? Promise.resolve({ code: gh ? 0 : 1, stdout: gh ? "gho_fromgh\n" : "", stderr: "", timedOut: false })
+				: d.run(argv, opts),
+		{ start: d.run.start },
+	);
+	let expired = false;
+	const engine = createEngine({
+		...d,
+		run,
+		fetch: async (url, init) => {
+			const auth = new Headers(init?.headers).get("Authorization");
+			if (url === "https://api.github.com/rate_limit") return new Response("{}", { status: expired ? 401 : 200 });
+			if (url.startsWith("https://api.github.com/")) sent.push(auth);
+			return d.fetch(url, init);
+		},
+	});
+	const token = `github_pat_${"b".repeat(40)}`;
+	expect(await engine.setToken(token)).toBe("ok");
+	expired = true;
+	await engine.check(["fd"]);
+	expect(sent).toEqual(["Bearer gho_fromgh"]);
+	expect(engine.tokenState()).toEqual({ hint: "bbbb", refused: "gh" });
+	gh = false;
+	await engine.check(["fd"]);
+	expect(engine.tokenState().refused).toBe("none");
+	expired = false;
+	await engine.check(["fd"]);
+	expect(engine.tokenState().refused).toBeNull();
+	expect(sent.at(-1)).toBe(`Bearer ${token}`);
+});
+
+test("a settling row turns Ready on its own when its moment comes, without a check", async () => {
+	// fd's release came out 2026-11-09; a one-day wait ends 2026-11-10T00:00Z, here 150 ms from now.
+	const offset = Date.parse("2026-11-10T00:00:00Z") - 150 - Date.now();
+	const engine = createEngine({ ...(await deps()), now: () => new Date(Date.now() + offset) });
+	await engine.check(["fd"]);
+	engine.setSettings({ waitDays: 1 });
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("held");
+	await Bun.sleep(400);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({ status: "ready", settles: undefined });
+	expect(engine.readyKeys(false)).toContain("fd");
+});
+
+test("Retry after a failed Install now anyway takes the app again, though its release is still settling", async () => {
+	const engine = createEngine({ ...(await deps()), now: () => new Date("2026-11-10T00:00:00Z") });
+	await engine.check();
+	engine.setSettings({ waitDays: 3 });
+	expect(statuses(engine).boom).toBe("held");
+	await engine.install(["boom"], true);
+	await engine.idle();
+	expect(statuses(engine).boom).toBe("failed");
+	expect(await engine.install(["boom"])).toEqual({ started: true });
+	await engine.idle();
+	expect(statuses(engine).boom).toBe("failed");
+	// Done puts it back to waiting, where only Install now anyway takes it.
+	engine.dismissSummary();
+	expect(engine.snapshot().apps.find((a) => a.key === "boom")).toMatchObject({ status: "held" });
+	expect(await engine.install(["boom"])).toEqual({ started: false, reason: REASON_NOTHING });
+});
+
+test("Install now anyway joins a run under way; without it a settling row does not", async () => {
+	const engine = createEngine({ ...(await deps()), now: () => new Date("2026-11-10T00:00:00Z") });
+	await engine.check();
+	engine.setSettings({ waitDays: 3 });
+	engine.setSettings({ waitDays: 0 });
+	const joins: Promise<{ started: boolean; reason?: string }>[] = [];
+	let asked = false;
+	const off = engine.subscribe((e) => {
+		// Once: the join itself emits another installing event.
+		if (e.type !== "run" || e.run.phase !== "installing" || asked) return;
+		asked = true;
+		engine.setSettings({ waitDays: 3 });
+		joins.push(engine.install(["boom"]), engine.install(["boom"], true));
+	});
+	await engine.install(["fd"]);
+	const [plain, now] = await Promise.all(joins);
+	await engine.idle();
+	off();
+	expect(plain).toEqual({ started: false, reason: REASON_NOTHING });
+	expect(now).toEqual({ started: true });
+	expect(engine.snapshot().run.results.map((r) => r.key)).toEqual(["fd", "boom"]);
+});
+
 /** The history file's rows, as appendHistory wrote them. */
 const historyRows = (): { key: string; result: string }[] =>
 	existsSync(join(t.paths.data, "history.jsonl"))
@@ -1427,3 +1591,135 @@ test("a row that was ready with a note drops it as it joins the run: never a wai
 	expect(working.length).toBeGreaterThan(0);
 	expect(working.every((w) => w.detail === undefined && w.waiting === undefined)).toBe(true);
 }, 20_000);
+
+test("Stop now cuts an Install now anyway like any install, and Retry takes the settling app again", async () => {
+	const d = await deps();
+	const engine = createEngine({
+		...d,
+		now: () => new Date("2026-11-10T00:00:00Z"),
+		// fd's file comes slowly, so Stop now lands during its download.
+		fetch: async (url, init) => {
+			if (url.startsWith("https://dl.test/sharkdp/fd/")) await Bun.sleep(300);
+			return d.fetch(url, init);
+		},
+	});
+	await engine.check();
+	engine.setSettings({ waitDays: 3 });
+	expect(statuses(engine).fd).toBe("held");
+	let stopped = false;
+	engine.subscribe((e) => {
+		if (!stopped && e.type === "app" && e.app.key === "fd" && e.app.status === "working") {
+			stopped = true;
+			engine.stopNow();
+		}
+	});
+	expect(await engine.install(["fd"], true)).toEqual({ started: true });
+	await engine.idle();
+	expect(statuses(engine).fd).toBe("stopped");
+	expect(engine.snapshot().run.results.map((r) => [r.key, r.result])).toEqual([["fd", "stopped"]]);
+	expect(await engine.install(["fd"])).toEqual({ started: true });
+	await engine.idle();
+	expect(statuses(engine).fd).toBe("done");
+}, 15_000);
+
+test("a manual app never waits: its young release is offered by hand at once", async () => {
+	const engine = createEngine({ ...(await deps()), now: () => new Date("2026-11-10T00:00:00Z") });
+	await engine.check();
+	engine.setSettings({ waitDays: 3 });
+	expect(engine.snapshot().apps.find((a) => a.key === "strata")).toMatchObject({
+		status: "manual",
+		settles: undefined,
+	});
+	expect(statuses(engine).fd).toBe("held");
+});
+
+test("a waiting row mid-check whose moment passes does not keep setting the wait timer", async () => {
+	const d = await deps();
+	// fd's one-day wait ends 100 ms from now; its next check answers only after that.
+	const offset = Date.parse("2026-11-10T00:00:00Z") - 100 - Date.now();
+	let slow = false;
+	const engine = createEngine({
+		...d,
+		now: () => new Date(Date.now() + offset),
+		fetch: async (url, init) => {
+			if (slow && url.includes("sharkdp/fd/releases")) await Bun.sleep(600);
+			return d.fetch(url, init);
+		},
+	});
+	await engine.check(["fd"]);
+	engine.setSettings({ waitDays: 1 });
+	slow = true;
+	const real = globalThis.setTimeout;
+	let rearms = 0;
+	const spy = ((fn: () => void, ms?: number) => {
+		if (ms !== undefined && ms <= 50) rearms++;
+		return real(fn, ms);
+	}) as typeof setTimeout;
+	globalThis.setTimeout = Object.assign(spy, real);
+	try {
+		await engine.check(["fd"]);
+	} finally {
+		globalThis.setTimeout = real;
+	}
+	expect(rearms).toBeLessThan(3);
+	expect(statuses(engine).fd).toBe("ready");
+});
+
+test("a token check GitHub never answers gives up after its wait: Save keeps the token and a check finishes", async () => {
+	const d = await deps();
+	const engine = createEngine({
+		...d,
+		tokenWaitMs: 50,
+		fetch: (url, init) => (url.endsWith("/rate_limit") ? new Promise<Response>(() => {}) : d.fetch(url, init)),
+	});
+	const token = `ghp_${"n".repeat(36)}`;
+	expect(await engine.setToken(token)).toBe("ok");
+	expect(engine.tokenState()).toEqual({ hint: "nnnn", refused: null });
+	await engine.check(["fd"]);
+	expect(engine.snapshot().run.phase).toBe("idle");
+	expect(statuses(engine).fd).toBe("ready");
+});
+
+test("a token GitHub revokes after a check falls back to gh at the next search, and an accepted answer is reused for a minute", async () => {
+	const d = await deps();
+	let clock = Date.parse("2026-11-10T00:00:00Z");
+	let expired = false;
+	let probes = 0;
+	const sent: (string | null)[] = [];
+	const run = Object.assign(
+		(argv: string[], opts?: Parameters<typeof d.run>[1]) =>
+			argv[0] === "gh"
+				? Promise.resolve({ code: 0, stdout: "gho_fromgh\n", stderr: "", timedOut: false })
+				: d.run(argv, opts),
+		{ start: d.run.start },
+	);
+	const engine = createEngine({
+		...d,
+		run,
+		now: () => new Date(clock),
+		fetch: async (url, init) => {
+			const auth = new Headers(init?.headers).get("Authorization");
+			if (url === "https://api.github.com/rate_limit") {
+				probes++;
+				return new Response("{}", { status: expired ? 401 : 200 });
+			}
+			if (url.startsWith("https://api.github.com/")) sent.push(auth);
+			return d.fetch(url, init);
+		},
+	});
+	const token = `ghp_${"r".repeat(36)}`;
+	expect(await engine.setToken(token)).toBe("ok");
+	await engine.check(["fd"]);
+	const afterCheck = probes;
+	// Within the minute a search reuses the check's answer.
+	await engine.suggest("sharkdp/fd");
+	expect(probes).toBe(afterCheck);
+	expect(sent.at(-1)).toBe(`Bearer ${token}`);
+	// Revoked after the check: the next search, past the minute, asks again and goes through gh.
+	expired = true;
+	clock += 61_000;
+	await engine.suggest("sharkdp/fd");
+	expect(probes).toBe(afterCheck + 1);
+	expect(sent.at(-1)).toBe("Bearer gho_fromgh");
+	expect(engine.tokenState().refused).toBe("gh");
+});

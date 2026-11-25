@@ -2599,10 +2599,6 @@ msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
 msgstr "Часовой лимит GitHub для этой сети исчерпан. Проверки возобновятся в {0}."
 
 #: src/mainview/lib/copy.ts
-msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
-msgstr "Выполните gh auth login в терминале, чтобы поднять его до 5000 в час."
-
-#: src/mainview/lib/copy.ts
 msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
 msgstr "Отмечайте строки в группе «Система» и устанавливайте их оттуда. Ядра и драйвер NVIDIA остаются за средством обновления самой системы: обоим нужна перезагрузка. Пакеты и Snap устанавливаются через sudo, который не должен спрашивать пароль."
 
@@ -2897,6 +2893,95 @@ msgid "Download not checked"
 msgstr "Загрузка не проверена"
 
 #: src/mainview/lib/copy.ts
+msgid "Wait before offering a new release"
+msgstr "Ждать, прежде чем предлагать новую версию"
+
+#: src/mainview/lib/copy.ts
+msgid "Install now anyway"
+msgstr "Всё равно установить сейчас"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub token"
+msgstr "Токен GitHub"
+
+#: src/mainview/lib/copy.ts
+msgid "Raises GitHub's limit from 60 to 5,000 requests an hour and reaches private repos. Used before gh's own sign-in. Kept on this computer, readable by you alone."
+msgstr "Поднимает лимит GitHub с 60 до 5000 запросов в час и открывает доступ к закрытым репозиториям. Используется раньше входа через gh. Хранится на этом компьютере, читать его можете только вы."
+
+#: src/mainview/lib/copy.ts
+msgid "Save token"
+msgstr "Сохранить токен"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove token"
+msgstr "Удалить токен"
+
+#: src/mainview/lib/copy.ts
+msgid "That does not look like a GitHub token."
+msgstr "Это не похоже на токен GitHub."
+
+#. 0: version; 1: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered from {1}, after the wait set in Settings."
+msgstr "{0} будет предложена с {1}, после ожидания, заданного в настройках."
+
+#. 0: last
+#: src/mainview/lib/copy.ts
+msgid "A token ending in {0} is saved."
+msgstr "Сохранён токен, оканчивающийся на {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "Paste a GitHub token in Settings, or run gh auth login in a terminal, to raise it to 5,000 an hour."
+msgstr "Вставьте токен GitHub в настройках или выполните gh auth login в терминале, чтобы поднять его до 5000 в час."
+
+#. 0: shortDate(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered from {0}"
+msgstr "Предлагается с {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Off"
+msgstr "Выкл."
+
+#: src/mainview/lib/copy.ts
+msgid "1 day"
+msgstr "1 день"
+
+#: src/mainview/lib/copy.ts
+msgid "3 days"
+msgstr "3 дня"
+
+#: src/mainview/lib/copy.ts
+msgid "7 days"
+msgstr "7 дней"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+msgstr "Новая версия приложения часто получает быстрое исправление в первые дни. Отсчёт с момента выхода. Обновления самого Upkeep не ждут."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused this token. It may have expired or been revoked."
+msgstr "GitHub отклонил этот токен. Возможно, он истёк или отозван."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token; using the gh sign-in."
+msgstr "GitHub отклонил сохранённый токен; используется вход gh."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+msgstr "GitHub отклонил сохранённый токен, а gh не выполнил вход. Вставьте новый токен."
+
+#. 0: version; 1: shortTime(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered at {1} today, after the wait set in Settings."
+msgstr "{0} будет предложена сегодня в {1}, после ожидания, заданного в настройках."
+
+#. 0: shortTime(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered at {0}"
+msgstr "Предлагается в {0}"
+
+#: src/mainview/lib/copy.ts
 msgid "Follow pre-releases"
 msgstr "Следить за предварительными версиями"
 
@@ -3011,6 +3096,10 @@ msgstr "{0}: файл config не может содержать часть .."
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "Нет файла, ожидающего импорта. Нажмите «Импорт» и выберите его снова."
+
+#: src/mainview/lib/copy.ts
+msgid "It shortens the wait before a new release is offered:"
+msgstr "Сокращает ожидание перед тем, как предложить новую версию:"
 
 #: src/mainview/lib/copy.ts
 msgid "Wait for an unmetered connection and mains power for automatic app updates"

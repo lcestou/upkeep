@@ -21,7 +21,7 @@ import { exportSetup, importSetup } from "./engine/transfer";
 export const USAGE = [
 	"Usage: upkeep <command> [--json]",
 	"  check                  check every app; one line each",
-	"  install <key>...|--all|--auto",
+	"  install <key>...|--all|--auto   an app named here skips the release wait set in Settings",
 	"  restore <key> [version]",
 	"  history                the last 200 runs",
 	"  recover                finish or undo an interrupted built update",
@@ -35,6 +35,9 @@ export const USAGE = [
 ].join("\n");
 
 type Out = (line: string) => void;
+
+/** The local calendar day of an ISO time as YYYY-MM-DD, the day the window shows, so a script can compare it with `date +%F`. */
+const localDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE");
 
 /** One line per app, as OK, UPDATE, HELD, BROKEN or SKIP first, so a script or a glance reads the state from the first word. */
 export function checkLine(a: AppState): string {
@@ -50,7 +53,7 @@ export function checkLine(a: AppState): string {
 		// install --all passes these by, so they are not offered as updates.
 		case "held":
 			// The detail says why when Upkeep held it itself (a release whose file changed).
-			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : ""}${a.detail ? ` ${a.detail}` : ""}`;
+			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${localDay(a.settles)})` : ""}${a.detail ? ` ${a.detail}` : ""}`;
 		default: {
 			const detail = a.detail ?? "";
 			const broken = `${a.name} will not start`;
@@ -158,7 +161,11 @@ export function stopOnSignal(
 	};
 }
 
-/** Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. Exits 0 only when every result is "updated". */
+/**
+ * Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. An
+ * app named by key skips the release wait, as Install now anyway does in the window; --all and --auto keep it. Exits 0
+ * only when every result is "updated".
+ */
 async function install(engine: Engine, args: string[], json: boolean, out: Out, signals: Signals): Promise<number> {
 	const gate: Starting = { starting: false, pending: false };
 	const unlisten = stopOnSignal(engine, signals, out, gate);
@@ -174,6 +181,8 @@ async function installRun(engine: Engine, args: string[], json: boolean, out: Ou
 	await engine.check();
 	await engine.idle();
 	const auto = args.includes("--auto");
+	// An app named by key skips the release wait; --all and --auto keep it.
+	const named = !args.includes("--all") && !auto;
 	const keys = args.includes("--all") ? engine.readyKeys(false) : args;
 	const off = engine.subscribe((e) => {
 		if (json) out(JSON.stringify(e));
@@ -183,7 +192,9 @@ async function installRun(engine: Engine, args: string[], json: boolean, out: Ou
 		}
 	});
 	gate.starting = true;
-	const r: Awaited<ReturnType<Engine["installAuto"]>> = auto ? await engine.installAuto() : await engine.install(keys);
+	const r: Awaited<ReturnType<Engine["installAuto"]>> = auto
+		? await engine.installAuto()
+		: await engine.install(keys, named);
 	gate.starting = false;
 	// Waiting for an unmetered connection or mains power is the setting working, not a failure.
 	if (r.wait) {
@@ -405,7 +416,7 @@ const PROTECTION_NAME = {
 
 /**
  * The ask as text: each app that runs commands with every command it runs, how many plain apps come with it, then
- * each setting the file turns on that is off here. A file that only turns settings on prints no app header.
+ * each setting the file turns on that is off here, and a release wait it shortens. A file that only turns settings on prints no app header.
  */
 function printAsk(file: string, ask: ImportAsk, out: Out): void {
 	if (ask.apps.length > 0) out(`${file} has apps that run these commands on this computer:`);
@@ -423,7 +434,13 @@ function printAsk(file: string, ask: ImportAsk, out: Out): void {
 	for (const k of ask.turnsOn) out(`  ${SWITCH_NAME[k]}`);
 	if (ask.turnsOff.length > 0) out(`${file} turns off these settings on this computer:`);
 	for (const k of ask.turnsOff) out(`  ${PROTECTION_NAME[k]}`);
+	if (ask.waitDays) out(`${file} shortens this setting on this computer:`);
+	if (ask.waitDays)
+		out(`  Wait before offering a new release: ${waitWords(ask.waitDays.from)} -> ${waitWords(ask.waitDays.to)}`);
 }
+
+/** A release wait as Settings words it, in English: "Off", "1 day", "3 days". */
+const waitWords = (d: number) => (d === 0 ? "Off" : d === 1 ? "1 day" : `${d} days`);
 
 /**
  * Replaces the setup from an export, holding the run lock so no install runs while the files change. A list with apps

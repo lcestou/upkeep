@@ -96,7 +96,7 @@ export function upkeepRequests(
 			void engine.check(keys);
 			return { started: phase !== "installing" && phase !== "checking" };
 		},
-		install: ({ keys }) => engine.install(keys),
+		install: ({ keys, now }) => engine.install(keys, now === true),
 		stopNow: () => {
 			engine.stopNow();
 			return { stopping: engine.snapshot().run.stopping };
@@ -127,6 +127,11 @@ export function upkeepRequests(
 				console.error("login entry:", err);
 			}
 			return settings;
+		},
+		token: () => engine.tokenState(),
+		setToken: async ({ token }) => {
+			const r = await engine.setToken(token);
+			return r === "ok" ? { ok: true, ...engine.tokenState() } : { ok: false, problem: r, ...engine.tokenState() };
 		},
 		history: ({ limit }) => engine.history(limit),
 		runLog: ({ runId }) => engine.runLog(runId),

@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunState, Snapshot } from "../shared/types";
 import {
+	createSettleWatch,
 	failedNotice,
 	readyFingerprint,
 	readyNotice,
@@ -43,6 +44,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			language: "system",
 			selfAuto: false,
 			upkeepCommand: false,
+			waitDays: 0,
 			waitUnmetered: false,
 		},
 		rate: null,
@@ -148,4 +150,25 @@ test("after a run, notices say what updated and each failure, and nothing for an
 		]),
 	).toEqual([updatedNotice(["A"]), failedNotice("B")]);
 	expect(runNotices([{ name: "C", result: "stopped" }])).toEqual([]);
+});
+
+test("the settle watch fires once when a waiting row turns Ready, and owes the notice to idle when it is quiet", () => {
+	const watch = createSettleWatch();
+	// SAFETY: the watch reads only key, status and settles.
+	const row = (over: Partial<AppState>) => ({ key: "zen", status: "held", ...over }) as AppState;
+	const waiting = row({ settles: "2026-11-27T00:00:00.000Z" });
+	expect(watch.row(row({ status: "ready" }), false)).toBe(false);
+	expect(watch.row(waiting, false)).toBe(false);
+	expect(watch.row(row({ status: "ready" }), false)).toBe(true);
+	expect(watch.row(row({ status: "ready" }), false)).toBe(false);
+	expect(watch.idle()).toBe(false);
+	// During a run or its summary: nothing now, one notice when Upkeep is idle again.
+	watch.row(waiting, true);
+	expect(watch.row(row({ status: "ready" }), true)).toBe(false);
+	expect(watch.idle()).toBe(true);
+	expect(watch.idle()).toBe(false);
+	// A waiting row that went to a check, not Ready, is forgotten.
+	watch.row(waiting, false);
+	expect(watch.row(row({ status: "checking" }), false)).toBe(false);
+	expect(watch.row(row({ status: "ready" }), false)).toBe(false);
 });

@@ -2539,10 +2539,6 @@ msgid "GitHub's hourly limit for this network is used up. Checks resume at {0}."
 msgstr "このネットワークの GitHub の 1 時間あたりの上限に達しました。{0} にチェックを再開します。"
 
 #: src/mainview/lib/copy.ts
-msgid "Run gh auth login in a terminal to raise it to 5,000 an hour."
-msgstr "ターミナルで gh auth login を実行すると、上限が 1 時間 5,000 回に上がります。"
-
-#: src/mainview/lib/copy.ts
 msgid "Tick rows in the System group and install them from there. Kernels and the NVIDIA driver stay with the system's own updater, because both need a restart. Packages and Snaps install through sudo, which must not ask for a password."
 msgstr "システムグループで行にチェックを入れ、そこからインストールします。カーネルと NVIDIA ドライバーはどちらも再起動が必要なため、システム自身の更新ツールに任せます。パッケージと Snap は sudo でインストールされ、sudo がパスワードを求めないことが条件です。"
 
@@ -2834,6 +2830,95 @@ msgid "Download not checked"
 msgstr "ダウンロード未確認"
 
 #: src/mainview/lib/copy.ts
+msgid "Wait before offering a new release"
+msgstr "新しいリリースを案内するまで待つ"
+
+#: src/mainview/lib/copy.ts
+msgid "Install now anyway"
+msgstr "それでも今すぐインストール"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub token"
+msgstr "GitHub トークン"
+
+#: src/mainview/lib/copy.ts
+msgid "Raises GitHub's limit from 60 to 5,000 requests an hour and reaches private repos. Used before gh's own sign-in. Kept on this computer, readable by you alone."
+msgstr "GitHub の上限を 1 時間 60 件から 5,000 件に上げ、非公開リポジトリにも届きます。gh 自身のサインインより先に使います。このコンピューターにだけ保存され、あなただけが読めます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Save token"
+msgstr "トークンを保存"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove token"
+msgstr "トークンを削除"
+
+#: src/mainview/lib/copy.ts
+msgid "That does not look like a GitHub token."
+msgstr "GitHub のトークンではないようです。"
+
+#. 0: version; 1: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered from {1}, after the wait set in Settings."
+msgstr "{0} は {1} から案内します（設定の待機期間のあと）。"
+
+#. 0: last
+#: src/mainview/lib/copy.ts
+msgid "A token ending in {0} is saved."
+msgstr "末尾が {0} のトークンを保存済みです。"
+
+#: src/mainview/lib/copy.ts
+msgid "Paste a GitHub token in Settings, or run gh auth login in a terminal, to raise it to 5,000 an hour."
+msgstr "設定に GitHub トークンを貼り付けるか、ターミナルで gh auth login を実行すると、1 時間 5,000 件に上がります。"
+
+#. 0: shortDate(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered from {0}"
+msgstr "{0} から案内"
+
+#: src/mainview/lib/copy.ts
+msgid "Off"
+msgstr "オフ"
+
+#: src/mainview/lib/copy.ts
+msgid "1 day"
+msgstr "1 日"
+
+#: src/mainview/lib/copy.ts
+msgid "3 days"
+msgstr "3 日"
+
+#: src/mainview/lib/copy.ts
+msgid "7 days"
+msgstr "7 日"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+msgstr "アプリの新しいリリースは最初の数日で手早く修正されることがよくあります。公開日から数えます。Upkeep 自身の更新は待ちません。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused this token. It may have expired or been revoked."
+msgstr "GitHub がこのトークンを拒否しました。期限切れか取り消された可能性があります。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token; using the gh sign-in."
+msgstr "GitHub が保存済みのトークンを拒否しました。gh のサインインを使います。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+msgstr "GitHub が保存済みのトークンを拒否し、gh もサインインしていません。新しいトークンを貼り付けてください。"
+
+#. 0: version; 1: shortTime(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered at {1} today, after the wait set in Settings."
+msgstr "{0} は今日 {1} に案内します（設定の待機期間のあと）。"
+
+#. 0: shortTime(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered at {0}"
+msgstr "{0} に案内"
+
+#: src/mainview/lib/copy.ts
 msgid "Follow pre-releases"
 msgstr "プレリリースを追う"
 
@@ -2942,6 +3027,10 @@ msgstr "{0}：config ファイルに .. を含めることはできません"
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "読み込みを待っているファイルはありません。読み込みを押して、もう一度選んでください。"
+
+#: src/mainview/lib/copy.ts
+msgid "It shortens the wait before a new release is offered:"
+msgstr "新しいリリースを案内するまでの待機期間を短くします:"
 
 #: src/mainview/lib/copy.ts
 msgid "Wait for an unmetered connection and mains power for automatic app updates"
