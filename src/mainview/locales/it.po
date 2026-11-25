@@ -2757,5 +2757,5 @@ msgid "Wait for an unmetered connection and mains power for automatic updates"
 msgstr "Attendi una connessione non a consumo e l'alimentazione di rete per gli aggiornamenti automatici"
 
 #: src/mainview/lib/copy.ts
-msgid "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works."
-msgstr "Gli aggiornamenti automatici e i download anticipati aspettano su una connessione a consumo o a batteria. I controlli continuano e Installazione funziona sempre."
+msgid "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works."
+msgstr "Gli aggiornamenti automatici aspettano su una connessione a consumo o a batteria. I controlli continuano e Installazione funziona sempre."

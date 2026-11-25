@@ -179,6 +179,27 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 	);
 });
 
+test("install --auto with the wait on and a metered connection installs nothing, says why and exits 0", async () => {
+	const d = deps();
+	const power: EngineDeps["run"] = async (argv) => ({
+		code: 0,
+		stdout: argv.includes("Metered") ? "u 1" : "b false",
+		stderr: "",
+		timedOut: false,
+	});
+	mkdirSync(t.paths.state, { recursive: true });
+	writeFileSync(
+		join(t.paths.state, "state.json"),
+		JSON.stringify({ settings: { waitUnmetered: true }, auto: { borg: true } }),
+	);
+	const out: string[] = [];
+	expect(await main(["install", "--auto"], { ...d, power }, (l) => out.push(l))).toBe(0);
+	expect(out.at(-1)).toBe("Automatic updates wait: the connection is metered.");
+	const json: string[] = [];
+	expect(await main(["install", "--auto", "--json"], { ...d, power }, (l) => json.push(l))).toBe(0);
+	expect(JSON.parse(json.at(-1) ?? "{}")).toMatchObject({ started: false, wait: "metered" });
+});
+
 test("recover with another Upkeep's run holding the lock says so and exits 1, leaving the marker", async () => {
 	const d = deps();
 	const marker = {

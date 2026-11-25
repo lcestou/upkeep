@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { holdSleep, inhibitArgv, metered, onBattery, waitReason } from "./power";
+import { canHoldSleep, holdSleep, inhibitArgv, metered, onBattery, waitReason } from "./power";
 import type { ProcessResult, Run } from "./run";
 import { ok } from "./testkit";
 
@@ -11,10 +11,10 @@ const answering =
 	async (argv) =>
 		answers[argv.at(-1) ?? ""] ?? fail;
 
-test("the lock blocks sleep and shutdown, names Upkeep and ends with the pid it watches", () => {
+test("the lock blocks sleep only, names Upkeep and ends with the pid it watches", () => {
 	expect(inhibitArgv(42, "Installing updates")).toEqual([
 		"systemd-inhibit",
-		"--what=sleep:shutdown",
+		"--what=sleep",
 		"--mode=block",
 		"--who=Upkeep",
 		"--why=Installing updates",
@@ -26,7 +26,8 @@ test("the lock blocks sleep and shutdown, names Upkeep and ends with the pid it 
 });
 
 test("no lock without a way to start one or without systemd-inhibit, and a release stops the lock only once", async () => {
-	expect(await holdSleep(answering({ "--version": ok() }), 1, "x")).toBeNull();
+	expect(await canHoldSleep(answering({ "--version": ok() }))).toBe(false);
+	expect(holdSleep(answering({ "--version": ok() }), 1, "x")).toBeNull();
 	let stops = 0;
 	const started: string[][] = [];
 	const start = (argv: string[]) => {
@@ -39,10 +40,11 @@ test("no lock without a way to start one or without systemd-inhibit, and a relea
 		};
 	};
 	const missing: Run = Object.assign(answering({ "--version": { ...fail, code: 127 } }), { start });
-	expect(await holdSleep(missing, 1, "x")).toBeNull();
-	expect(started).toHaveLength(0);
+	expect(await canHoldSleep(missing)).toBe(false);
 	const there: Run = Object.assign(answering({ "--version": ok("systemd 255") }), { start });
-	const release = await holdSleep(there, 7, "x");
+	expect(await canHoldSleep(there)).toBe(true);
+	expect(started).toHaveLength(0);
+	const release = holdSleep(there, 7, "x");
 	expect(started[0]).toContain("--pid=7");
 	await release?.();
 	await release?.();

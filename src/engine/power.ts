@@ -4,12 +4,14 @@ import type { Run, Started } from "./run";
 // coreutils' tail to end that lock with Upkeep, and busctl to ask NetworkManager and UPower over the system bus.
 
 /**
- * Holds sleep and shutdown off while pid lives. tail --pid ends on its own when pid goes, so a crash of Upkeep never
+ * Holds sleep off while pid lives. Shutdown is left alone: a person who shuts down mid-install chose to, and a
+ * restore point covers them, while a blocked shutdown asks a standard user for an admin password. Closing the lid
+ * still suspends under logind's default LidSwitchIgnoreInhibited=yes. tail --pid ends on its own when pid goes, so a crash of Upkeep never
  * leaves the lock behind; systemd-inhibit ends its child when it is stopped itself.
  */
 export const inhibitArgv = (pid: number, why: string) => [
 	"systemd-inhibit",
-	"--what=sleep:shutdown",
+	"--what=sleep",
 	"--mode=block",
 	"--who=Upkeep",
 	`--why=${why}`,
@@ -37,14 +39,19 @@ export const UPOWER_ON_BATTERY = [
 	"OnBattery",
 ];
 
+/** Whether this machine can take the sleep lock: the runner can start a process and systemd-inhibit answers. */
+export async function canHoldSleep(run: Run): Promise<boolean> {
+	if (!run.start) return false;
+	return (await run(INHIBIT_PROBE, { timeoutMs: 5000 })).code === 0;
+}
+
 /**
- * Starts the sleep lock and returns its release. Null when the machine has no systemd-inhibit or the runner cannot
- * start a process: the run goes on as it would without the lock. A release called twice stops the lock once.
+ * Starts the sleep lock and returns its release; null when the runner cannot start a process. It does not wait to see
+ * the lock take: a refused inhibit (no logind session) ends at once and holds nothing. A release called twice stops
+ * the lock once.
  */
-export async function holdSleep(run: Run, pid: number, why: string): Promise<(() => Promise<void>) | null> {
+export function holdSleep(run: Run, pid: number, why: string): (() => Promise<void>) | null {
 	if (!run.start) return null;
-	const probe = await run(INHIBIT_PROBE, { timeoutMs: 5000 });
-	if (probe.code !== 0) return null;
 	const lock: Started = run.start(inhibitArgv(pid, why));
 	let released = false;
 	return async () => {

@@ -304,7 +304,7 @@ export const TEXT = {
 		return "Wait for an unmetered connection and mains power for automatic updates";
 	},
 	get waitUnmeteredHint() {
-		return "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works.";
+		return "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works.";
 	},
 	get keepBackups() {
 		return "Restore points to keep";

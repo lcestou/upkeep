@@ -26,6 +26,13 @@ bins = ["fd"]
 `;
 const ASSET = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
 
+/** Waits until cond holds, every 5 ms for up to 2 s. */
+const until = async (cond: () => boolean, left = 400): Promise<void> => {
+	if (cond() || left === 0) return;
+	await Bun.sleep(5);
+	return until(cond, left - 1);
+};
+
 let t: ReturnType<typeof tempHome>;
 beforeEach(() => {
 	t = tempHome("engine-power");
@@ -60,8 +67,11 @@ function fakePower(o: { inhibit?: boolean; metered?: boolean }) {
 	return { run, asked, locks };
 }
 
-/** The engine over a temp home with both apps ready. offline makes every GitHub answer a network error. */
-async function setup(power?: Run, net = { offline: false }) {
+/**
+ * The engine over a temp home with both apps ready, unless the first check (quiet when asked) finds no network: offline
+ * makes every fetch a network error, githubDown only GitHub's.
+ */
+async function setup(power?: Run, net = { offline: false, githubDown: false }, quiet = false) {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
 	const bin = join(t.paths.home, ".local/bin");
 	const version = join(t.dir, "slow-version");
@@ -76,7 +86,8 @@ async function setup(power?: Run, net = { offline: false }) {
 	const fetched: boolean[] = [];
 	let slowWorking = false;
 	const fetch: FetchLike = async (url) => {
-		if (net.offline) throw new TypeError("Unable to connect. Is the computer able to access the url?");
+		if (net.offline || (net.githubDown && url.includes("github")))
+			throw new TypeError("Unable to connect. Is the computer able to access the url?");
 		if (url.includes("registry.npmjs.org")) return Response.json({ version: "1.1.0" });
 		if (url.endsWith("/releases/latest"))
 			return Response.json({
@@ -118,27 +129,37 @@ async function setup(power?: Run, net = { offline: false }) {
 		if (e.app.key === "slow") slowWorking = e.app.status === "working";
 		if (e.app.key === "fd") fd.push(e.app);
 	});
-	await engine.check();
+	await engine.check(undefined, { quietOffline: quiet });
 	return { engine, fetched, logs, fd };
 }
 
-test("a run holds sleep and shutdown for as long as it lasts, then lets go once", async () => {
+test("a run holds sleep for as long as it lasts, lets go once, and asks about systemd-inhibit only once", async () => {
 	const power = fakePower({ inhibit: true });
 	const { engine, logs } = await setup(power.run);
-	expect(await engine.install(["slow", "fd"])).toEqual({ started: true });
+	expect(await engine.install(["slow"])).toEqual({ started: true });
+	await engine.idle();
 	expect(power.locks).toHaveLength(1);
-	expect(power.locks[0]?.argv.slice(0, 4)).toEqual([
-		"systemd-inhibit",
-		"--what=sleep:shutdown",
-		"--mode=block",
-		"--who=Upkeep",
-	]);
+	expect(power.locks[0]?.argv.slice(0, 4)).toEqual(["systemd-inhibit", "--what=sleep", "--mode=block", "--who=Upkeep"]);
 	// The lock ends with this process: a crash never leaves it held.
 	expect(power.locks[0]?.argv).toContain(`--pid=${process.pid}`);
-	await engine.idle();
-	expect(engine.snapshot().run.results.map((r) => r.result)).toEqual(["updated", "updated"]);
 	expect(power.locks[0]?.stopped).toBe(1);
-	expect(logs).toContain("Sleep and shutdown held until the run ends");
+	expect(logs).toContain("Asked logind to hold sleep until the run ends");
+	engine.dismissSummary();
+	await engine.install(["fd"]);
+	await engine.idle();
+	expect(power.locks.map((l) => l.stopped)).toEqual([1, 1]);
+	expect(power.asked.filter((a) => a.startsWith("systemd-inhibit"))).toHaveLength(1);
+});
+
+test("a run stopped after the current app lets the lock go too", async () => {
+	const power = fakePower({ inhibit: true });
+	const { engine } = await setup(power.run);
+	await engine.install(["slow", "fd"]);
+	await until(() => engine.snapshot().run.currentKey === "slow");
+	engine.stopAfterCurrent();
+	await engine.idle();
+	expect(engine.snapshot().run.results.map((r) => r.result)).toEqual(["updated"]);
+	expect(power.locks.map((l) => l.stopped)).toEqual([1]);
 });
 
 test("without systemd-inhibit every run goes on as before, and says so once", async () => {
@@ -154,30 +175,37 @@ test("without systemd-inhibit every run goes on as before, and says so once", as
 	expect(logs.filter((l) => l.startsWith("No systemd-inhibit here"))).toHaveLength(1);
 });
 
-test("with the wait switched on, a metered connection keeps downloads back until each app's own turn", async () => {
+test("automatic installs wait on a metered connection only with the switch on, and a pressed Install never waits", async () => {
 	const power = fakePower({ inhibit: true, metered: true });
-	const { engine, fetched, logs, fd } = await setup(power.run);
+	const { engine, fetched, logs } = await setup(power.run);
+	expect(await engine.installAuto()).toEqual({ started: false, reason: "Nothing to install." });
+	engine.setAuto("slow", true);
+	engine.setAuto("fd", true);
 	engine.setSettings({ waitUnmetered: true });
+	expect(await engine.installAuto()).toEqual({ started: false, wait: "metered" });
+	expect(logs).toContain("Automatic updates wait: metered connection");
+	expect(engine.snapshot().run.phase).toBe("idle");
+	// A pressed Install runs, early downloads included.
 	expect(await engine.install(["slow", "fd"])).toEqual({ started: true });
 	await engine.idle();
-	// A pressed Install still runs; fd's file came down only once slow was done.
-	expect(engine.snapshot().run.results.map((r) => r.result)).toEqual(["updated", "updated"]);
-	expect(fetched).toEqual([false]);
-	expect(fd.some((a) => a.downloaded)).toBe(false);
-	expect(logs).toContain("Downloads ahead wait: metered connection");
+	expect(fetched).toEqual([true]);
+	engine.dismissSummary();
+	await engine.check();
+	expect(engine.readyKeys(true)).toEqual([]);
 });
 
-test("with the wait switched off, a metered connection is not even asked about", async () => {
+test("with the switch off, automatic installs start and the connection is not even asked about", async () => {
 	const power = fakePower({ inhibit: true, metered: true });
-	const { engine, fetched } = await setup(power.run);
-	await engine.install(["slow", "fd"]);
+	const { engine } = await setup(power.run);
+	engine.setAuto("slow", true);
+	expect(await engine.installAuto()).toEqual({ started: true });
 	await engine.idle();
-	expect(fetched).toEqual([true]);
+	expect(engine.snapshot().run.results.map((r) => r.result)).toEqual(["updated"]);
 	expect(power.asked.some((a) => a.includes("Metered"))).toBe(false);
 });
 
 test("a quiet check with no network keeps the rows and the check time, and a loud one shows the failure", async () => {
-	const net = { offline: false };
+	const net = { offline: false, githubDown: false };
 	const { engine } = await setup(undefined, net);
 	const at = engine.snapshot().checkedAt;
 	expect(engine.offline()).toBe(false);
@@ -196,4 +224,18 @@ test("a quiet check with no network keeps the rows and the check time, and a lou
 	await engine.check(undefined, { quietOffline: true });
 	expect(engine.offline()).toBe(false);
 	expect(fd()?.status).toBe("ready");
+});
+
+test("a command app that got its answer means the network is up, even with GitHub down", async () => {
+	const net = { offline: false, githubDown: true };
+	const { engine } = await setup(undefined, net);
+	expect(engine.offline()).toBe(false);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("problem");
+	expect(engine.snapshot().apps.find((a) => a.key === "slow")?.status).toBe("ready");
+});
+
+test("a first quiet check with no network shows no row at all rather than a failure", async () => {
+	const { engine } = await setup(undefined, { offline: true, githubDown: false }, true);
+	expect(engine.offline()).toBe(true);
+	expect(engine.snapshot().apps).toEqual([]);
 });

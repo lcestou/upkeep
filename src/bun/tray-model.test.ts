@@ -98,6 +98,12 @@ test("titles and notices read as sentences", () => {
 	expect(trayTitle(snap(1))).toBe("Upkeep, 1 update ready");
 	expect(trayTitle(snap(7))).toBe("Upkeep, 7 updates ready");
 	expect(readyNotice(["fd"])).toBe("1 update ready: fd");
+	expect(readyNotice(["fd"], "en", "metered")).toBe(
+		"1 update ready: fd\nAutomatic updates wait for an unmetered connection.",
+	);
+	expect(readyNotice(["fd"], "de", "battery")).toBe(
+		"1 Aktualisierung bereit: fd\nAutomatische Aktualisierungen warten auf Netzstrom.",
+	);
 	expect(readyNotice(["fd", "Zen Browser", "Cursor", "wrangler"])).toBe(
 		"4 updates ready: fd, Zen Browser, Cursor, wrangler",
 	);

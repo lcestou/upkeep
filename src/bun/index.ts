@@ -17,7 +17,7 @@ import { createRaiser, openX11 } from "./raise";
 import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/languages";
 import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
-import { autoInstall, checkAtStart } from "./start-check";
+import { checkAtStart } from "./start-check";
 import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
 import { entryArgv, SELF_FILES } from "./self-shim";
@@ -454,23 +454,24 @@ function notify(body: string): void {
 	if (engine.snapshot().settings.notify) Utils.showNotification({ title: "Upkeep", body });
 }
 
-let firstBackgroundCheck = background;
-/** One notice per ready set: the same pending list is announced once, not after every check. */
-function announceReady(): void {
+// While a login start checks and starts its automatic installs, its checks say nothing: the one notice comes after,
+// once the automatic apps are either queued (and get their own "Updated" notice) or waiting (and are named).
+let loginStart = false;
+/**
+ * One notice per ready set: the same pending list is announced once, not after every check. wait names what the
+ * automatic apps wait for, on the notice that follows a login start that held them back.
+ */
+function announceReady(wait?: "metered" | "battery"): void {
 	// A check that found no network learned nothing new; the next one speaks.
-	if (engine.offline()) return;
-	const all = engine.snapshot();
-	// At a login start the automatic apps are about to install and get their own "Updated" notice.
-	const auto = firstBackgroundCheck ? new Set(engine.readyKeys(true)) : new Set<string>();
-	firstBackgroundCheck = false;
-	const snapshot = { ...all, apps: all.apps.filter((a) => !auto.has(a.key)) };
+	if (loginStart || engine.offline()) return;
+	const snapshot = engine.snapshot();
 	const fingerprint = readyFingerprint(snapshot);
 	if (fingerprint === loadState(deps.paths).notified) return;
 	updateState(deps.paths, (s) => {
 		s.notified = fingerprint;
 	});
 	// A visible window already shows the list.
-	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot), trayLanguage()));
+	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot), trayLanguage(), wait));
 }
 
 /** Says the outcome of an install with no window to read it: one notice for the updated apps, one per failure. */
@@ -565,13 +566,15 @@ try {
 const startHidden = wasOpen === null ? background : !wasOpen;
 
 if (startHidden && tray.visible) {
-	await checkAtStart(engine);
-	const wait = await autoInstall(engine, deps.power);
-	if (wait) {
-		console.log(`automatic updates wait: ${wait === "metered" ? "metered connection" : "on battery"}`);
-		// The automatic apps were left out of the notice as about to install; they wait now, so they are named.
-		announceReady();
+	loginStart = true;
+	let wait: "metered" | "battery" | undefined;
+	try {
+		await checkAtStart(engine);
+		wait = (await engine.installAuto()).wait;
+	} finally {
+		loginStart = false;
 	}
+	announceReady(wait);
 } else {
 	openWindow();
 	const checked = engine.check();

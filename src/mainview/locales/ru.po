@@ -2778,5 +2778,5 @@ msgid "Wait for an unmetered connection and mains power for automatic updates"
 msgstr "Ждать безлимитного подключения и питания от сети для автоматических обновлений"
 
 #: src/mainview/lib/copy.ts
-msgid "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works."
-msgstr "Автоматические обновления и предварительные загрузки ждут при лимитном подключении или работе от батареи. Проверки идут, а «Установка» работает всегда."
+msgid "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works."
+msgstr "Автоматические обновления ждут при лимитном подключении или работе от батареи. Проверки идут, а «Установка» работает всегда."

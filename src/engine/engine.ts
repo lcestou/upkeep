@@ -48,7 +48,7 @@ import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
 import { expandHome, type Paths } from "./paths";
-import { holdSleep, waitReason } from "./power";
+import { canHoldSleep, holdSleep, waitReason } from "./power";
 import { killTree, type Run, type RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
@@ -134,6 +134,11 @@ export type Engine = {
 	history(limit: number): HistoryRow[];
 	runLog(runId: string): LogLine[];
 	readyKeys(autoOnly: boolean): string[];
+	/**
+	 * Installs the ready apps marked automatic. With "wait for an unmetered connection" on, nothing starts while the
+	 * connection is metered or the machine is on battery, and wait says which; a pressed Install never comes here.
+	 */
+	installAuto(): Promise<{ started: boolean; reason?: string; wait?: "metered" | "battery" }>;
 	/** Resolves when no check or run is in progress. */
 	idle(): Promise<void>;
 	suggest(input: string, asset?: string): Promise<{ suggestions: Suggestion[]; problem?: string }>;
@@ -167,13 +172,13 @@ function restartWanted(spec: AppSpec): boolean {
 	);
 }
 
-/** The kinds whose check may answer from the disk alone, so a good answer says nothing about the network. */
-const LOCAL_CHECKS = new Set(["command", "manual", "claude-plugins"]);
+/** The kinds whose check answers from the disk alone, so a good answer says nothing about the network. */
+const LOCAL_CHECKS = new Set(["claude-plugins"]);
 
 /**
- * Whether a check's results say the network is down: some app failed before its source answered, and no app that
- * always asks a forge got an answer. A command app's answer proves nothing, since its version may come from the disk.
- * A partial outage (one forge down, another up) is not offline.
+ * Whether a check's results say the network is down: some app failed before its source answered, and no app whose
+ * check fetches got an answer. Command and manual apps fetch their latest version too, so their answer counts. A
+ * partial outage (one host down, another up) is not offline.
  */
 function offlineIn(list: AppSpec[], found: Map<string, Checked | null>): boolean {
 	const rows = list.flatMap((s) => {
@@ -576,9 +581,10 @@ export function createEngine(deps: EngineDeps): Engine {
 					};
 				}
 				found.set(spec.key, c);
-				if (quietOffline && c?.offline && before) {
+				// A row with nothing before it (a first start, an app just added) stays out of the list until a check gets through.
+				if (quietOffline && c?.offline) {
 					kept.add(spec.key);
-					accept(spec, before, history);
+					if (before) accept(spec, before, history);
 				} else accept(spec, c, history);
 				done();
 			}),
@@ -745,24 +751,26 @@ export function createEngine(deps: EngineDeps): Engine {
 			emitRun();
 			return { started: false, reason: err instanceof Error ? err.message : String(err) };
 		}
-		const release = await sleepHeld();
-		// The setting holds early downloads back on a metered connection or on battery; the run itself still goes.
-		const wait = deps.power && loadState(paths).settings.waitUnmetered ? await waitReason(deps.power) : null;
-		if (wait) say(null, `Downloads ahead wait: ${wait === "metered" ? "metered connection" : "on battery"}`);
-		const early = wait
-			? null
-			: createAhead({
-					dir: join(paths.cache, "dl"),
-					fetch: deps.fetch,
-					token,
-					stallMs: deps.stallMs,
-					retryMs: deps.retryMs,
-					freeBytes: deps.freeBytes,
-					onReady: fetchedAhead,
-					log: say,
-				});
+		const early = createAhead({
+			dir: join(paths.cache, "dl"),
+			fetch: deps.fetch,
+			token,
+			stallMs: deps.stallMs,
+			retryMs: deps.retryMs,
+			freeBytes: deps.freeBytes,
+			onReady: fetchedAhead,
+			log: say,
+		});
 		ahead = early;
-		const p = doRun(queue)
+		// The lock is taken inside the run, so busy covers it, and let go however the run ends: done, stopped or thrown.
+		const p = (async () => {
+			const release = await sleepHeld();
+			try {
+				await doRun(queue);
+			} finally {
+				await release?.().catch(() => undefined);
+			}
+		})()
 			.catch((err: Error) => {
 				const reason = err instanceof Error ? err.message : String(err);
 				say(null, `Run failed: ${reason}`);
@@ -788,26 +796,29 @@ export function createEngine(deps: EngineDeps): Engine {
 			.finally(async () => {
 				// What came down ahead and was never used goes before the lock does; the lock goes even if that fails.
 				try {
-					await early?.cancel();
+					await early.cancel();
 				} finally {
 					if (ahead === early) ahead = null;
 					runQueue = null;
 					releaseLock(paths);
-					await release?.().catch(() => undefined);
 				}
 			});
 		busy = p;
 		return { started: true };
 	}
 
+	/** Whether systemd-inhibit answered, asked once per engine; null until the first run asks. */
+	let lockable: Promise<boolean> | null = null;
 	/** Said once per engine: a machine without systemd-inhibit runs every install without the lock. */
 	let noLockSaid = false;
 
 	/** Takes the sleep lock for a run; null, and one log line the first time, where there is none to take. */
 	async function sleepHeld(): Promise<(() => Promise<void>) | null> {
-		if (!deps.power) return null;
-		const release = await holdSleep(deps.power, process.pid, "Installing updates").catch(() => null);
-		if (release) say(null, "Sleep and shutdown held until the run ends");
+		const power = deps.power;
+		if (!power) return null;
+		lockable ??= canHoldSleep(power).catch(() => false);
+		const release = (await lockable) ? holdSleep(power, process.pid, "Installing updates") : null;
+		if (release) say(null, "Asked logind to hold sleep until the run ends");
 		else if (!noLockSaid) {
 			noLockSaid = true;
 			say(null, "No systemd-inhibit here: sleep is not held during installs");
@@ -1130,6 +1141,14 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		runLog(runId) {
 			return readRunLog(paths, runId);
+		},
+		async installAuto() {
+			const keys = engine.readyKeys(true);
+			if (keys.length === 0) return { started: false, reason: REASON_NOTHING };
+			const wait = deps.power && loadState(paths).settings.waitUnmetered ? await waitReason(deps.power) : null;
+			if (!wait) return engine.install(keys);
+			say(null, `Automatic updates wait: ${wait === "metered" ? "metered connection" : "on battery"}`);
+			return { started: false, wait };
 		},
 		readyKeys(autoOnly) {
 			const keys: string[] = [];

@@ -81,11 +81,8 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 async function install(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
 	await engine.check();
 	await engine.idle();
-	const keys = args.includes("--all")
-		? engine.readyKeys(false)
-		: args.includes("--auto")
-			? engine.readyKeys(true)
-			: args;
+	const auto = args.includes("--auto");
+	const keys = args.includes("--all") ? engine.readyKeys(false) : args;
 	const off = engine.subscribe((e) => {
 		if (json) out(JSON.stringify(e));
 		else {
@@ -93,7 +90,14 @@ async function install(engine: Engine, args: string[], json: boolean, out: Out):
 			if (line) out(line);
 		}
 	});
-	const r = await engine.install(keys);
+	const r: Awaited<ReturnType<Engine["installAuto"]>> = auto ? await engine.installAuto() : await engine.install(keys);
+	// Waiting for an unmetered connection or mains power is the setting working, not a failure.
+	if (r.wait) {
+		off();
+		const reason = `Automatic updates wait: ${r.wait === "metered" ? "the connection is metered" : "on battery"}.`;
+		out(json ? JSON.stringify({ started: false, wait: r.wait, reason }) : reason);
+		return 0;
+	}
 	if (!r.started) {
 		off();
 		const reason = r.reason ?? "Nothing to install.";

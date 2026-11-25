@@ -1,6 +1,4 @@
 import type { Engine } from "../engine/engine";
-import { waitReason } from "../engine/power";
-import type { Run } from "../engine/run";
 
 /** The waits between checks while a start at login finds no network: a slow Wi-Fi first, then a longer gap. */
 const OFFLINE_RETRY_MS = [30_000, 120_000, 300_000];
@@ -23,19 +21,4 @@ export async function checkAtStart(
 		// oxlint-disable-next-line no-await-in-loop -- each try waits for the one before it
 		await engine.check(undefined, { quietOffline: i < delays.length - 1 });
 	}
-}
-
-/**
- * Installs the apps marked automatic after a start at login, unless the person asked automatic updates to wait for
- * an unmetered connection and mains power and either is missing now. Returns why it waited, or null when it did not.
- */
-export async function autoInstall(
-	engine: Pick<Engine, "readyKeys" | "install" | "snapshot">,
-	power: Run | undefined,
-): Promise<"metered" | "battery" | null> {
-	const auto = engine.readyKeys(true);
-	if (auto.length === 0) return null;
-	const wait = power && engine.snapshot().settings.waitUnmetered ? await waitReason(power) : null;
-	if (!wait) await engine.install(auto);
-	return wait;
 }

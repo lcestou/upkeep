@@ -2715,5 +2715,5 @@ msgid "Wait for an unmetered connection and mains power for automatic updates"
 msgstr "自动更新等待非计量连接和交流电源"
 
 #: src/mainview/lib/copy.ts
-msgid "Automatic updates and early downloads hold off on a metered connection or on battery. Checks still run, and Install always works."
-msgstr "在计量连接或电池供电时，自动更新和提前下载会等待。检查照常进行，“安装”始终可用。"
+msgid "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works."
+msgstr "在计量连接或电池供电时，自动更新会等待。检查照常进行，“安装”始终可用。"
