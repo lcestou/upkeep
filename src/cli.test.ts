@@ -289,6 +289,32 @@ test("add adds only a single sure match; nothing found, or an app already listed
 	expect(listed).toHaveLength(2);
 });
 
+test("import drops what a check remembered of a release for an app it drops or changes", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const seen = (tag: string) => ({ tag, file: "f", hash: "sha256:ab" });
+	const remember = () =>
+		updateState(t.paths, (s) => {
+			s.seen = { borg: seen("v1"), bat: seen("v2") };
+			s.changed = { borg: "v1", bat: "v2" };
+		});
+	remember();
+	const file = join(t.dir, "upkeep.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const exported = JSON.parse(readFileSync(file, "utf8"));
+	// bat dropped, borg the same table: only borg's memory stays.
+	writeFileSync(file, JSON.stringify({ ...exported, apps: exported.apps.replace(/\[apps\.bat\][\s\S]*$/, "") }));
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	const first = loadState(t.paths);
+	expect([first.seen, first.changed]).toEqual([{ borg: seen("v1") }, { borg: "v1" }]);
+	// borg's table changed, and bat comes back as an app this machine no longer lists: neither keeps its memory.
+	remember();
+	writeFileSync(file, JSON.stringify({ ...exported, apps: exported.apps.replace("borg-linux$", "borg-linux64$") }));
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	const after = loadState(t.paths);
+	expect([after.seen, after.changed]).toEqual([{}, {}]);
+});
+
 test("export and import carry the list, settings, skips, holds and auto picks, and keep the old files", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
