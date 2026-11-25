@@ -1,5 +1,14 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
+import {
+	chmodSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	symlinkSync,
+	utimesSync,
+	writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import {
@@ -219,4 +228,35 @@ test("execProgram and quoteExec read and write both escape layers of the spec", 
 	);
 	expect(rewriteEntry('Exec="/unclosed', "/n", "/i.png")).toBe('Exec="/n"\n');
 	expect(rewriteEntry("Exec=env", "/n", null)).toBe('Exec=env "/n"\n');
+});
+
+test("writeMenu refuses a key or dest that could write elsewhere or add a line, and a failed write is a sentence", async () => {
+	const dest = fakeImage(join(t.paths.home, "w.AppImage"), { "w.desktop": "[Desktop Entry]\nExec=w\n" });
+	expect(await writeMenu("../../x", dest, ctx().ctx)).toEqual({ problem: MESSAGES.menuNoEntry(dest) });
+	const broken = `${dest}\nExec=/bin/sh`;
+	expect(await writeMenu("w", broken, ctx().ctx)).toEqual({ problem: MESSAGES.menuNoEntry(broken) });
+	expect(() => quoteExec("/a\nb")).toThrow();
+	expect(existsSync(appsDir(t.paths))).toBe(false);
+	// The applications folder cannot be made: a file stands where it would go.
+	mkdirSync(dirname(appsDir(t.paths)), { recursive: true });
+	writeFileSync(appsDir(t.paths), "");
+	const r = await writeMenu("w", dest, ctx().ctx);
+	expect("problem" in r && r.problem.startsWith("Could not write the menu entry: ")).toBe(true);
+});
+
+test("removeMenuFiles goes on past a file it may not delete", () => {
+	const locked = join(share(), "applications");
+	const stuck = join(locked, "upkeep-a.desktop");
+	const icon = join(share(), "icons/upkeep-a.svg");
+	for (const f of [stuck, icon]) {
+		mkdirSync(dirname(f), { recursive: true });
+		writeFileSync(f, "x");
+	}
+	chmodSync(locked, 0o500);
+	try {
+		removeMenuFiles([stuck, icon], t.paths);
+	} finally {
+		chmodSync(locked, 0o700);
+	}
+	expect([existsSync(stuck), existsSync(icon)]).toEqual([true, false]);
 });

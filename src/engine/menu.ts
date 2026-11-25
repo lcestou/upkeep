@@ -91,8 +91,24 @@ export function execProgram(exec: string): string {
 	return ws[programAt(ws)]?.text ?? "";
 }
 
-/** A path as an Exec= word inside the quotes: the spec's four escapes, % doubled so it is never a field code. */
-const quoteWord = (path: string) => `"${path.replace(/[\\"`$]/g, (c) => `\\${c}`).replaceAll("%", "%%")}"`;
+/**
+ * A path as an Exec= word inside the quotes: the spec's four escapes, % doubled so it is never a field code. Throws on
+ * a control character, which no escape keeps on one line; writeMenu refuses such a dest before it gets here.
+ */
+function quoteWord(path: string): string {
+	if (hasControl(path)) throw new Error(MESSAGES.menuNoEntry(JSON.stringify(path)));
+	return `"${path.replace(/[\\"`$]/g, (c) => `\\${c}`).replaceAll("%", "%%")}"`;
+}
+
+/** A line break or other control character, which no Exec= escape keeps on one line. */
+// oxlint-disable-next-line no-control-regex -- control characters are what it finds
+const hasControl = (v: string) => /[\x00-\x1f\x7f]/.test(v);
+
+/** file, when it sits directly in dir; else throws, so a key that slipped past the manifest never writes elsewhere. */
+function directlyIn(dir: string, file: string): string {
+	if (dirname(resolve(file)) !== resolve(dir)) throw new Error(MESSAGES.menuNoEntry(file));
+	return file;
+}
 
 /** A path as an Exec= program, as written in the file: quoted, then string-escaped. */
 export const quoteExec = (path: string) => escapeValue(quoteWord(path));
@@ -207,6 +223,22 @@ export async function writeMenu(
 	dest: string,
 	ctx: MenuCtx,
 ): Promise<{ files: string[] } | { problem: string }> {
+	try {
+		return await writeMenuFiles(key, dest, ctx);
+	} catch (err) {
+		// A full disk or a folder Upkeep may not write is a sentence for the row, never an error out of the request.
+		return { problem: MESSAGES.menuCouldNotWrite(err instanceof Error ? err.message : String(err)) };
+	}
+}
+
+/** writeMenu's work; it may throw on a write that fails, which writeMenu turns into a sentence. */
+async function writeMenuFiles(
+	key: string,
+	dest: string,
+	ctx: MenuCtx,
+): Promise<{ files: string[] } | { problem: string }> {
+	// The manifest refuses both; a dest with a line break would add a line of its own to the entry.
+	if (hasControl(dest) || !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(key)) return { problem: MESSAGES.menuNoEntry(dest) };
 	if (!existsSync(dest)) return { problem: MESSAGES.menuNotInstalled(dest) };
 	// Only the type-2 runtime answers --appimage-extract; anything else would start the app itself.
 	if (!isAppImage(head(dest, 16))) return { problem: MESSAGES.menuNoEntry(dest) };
@@ -244,13 +276,14 @@ export async function writeMenu(
 		const files: string[] = [];
 		const ext = icon ? iconExt(icon) : null;
 		// Icon= names the file by its full path, so it shows whatever its size, with no icon theme cache to update.
-		const iconDest = ext ? join(dirname(ctx.paths.data), "icons", `${OWN}${key}${ext}`) : null;
+		const icons = join(dirname(ctx.paths.data), "icons");
+		const iconDest = ext ? directlyIn(icons, join(icons, `${OWN}${key}${ext}`)) : null;
 		if (icon && iconDest) {
 			mkdirSync(dirname(iconDest), { recursive: true });
 			writeFileSync(iconDest, readFileSync(icon));
 			files.push(iconDest);
 		}
-		const entry = join(appsDir(ctx.paths), entryName(key));
+		const entry = directlyIn(appsDir(ctx.paths), join(appsDir(ctx.paths), entryName(key)));
 		mkdirSync(dirname(entry), { recursive: true });
 		writeFileSync(entry, rewriteEntry(text, dest, iconDest));
 		files.push(entry);
@@ -268,12 +301,16 @@ export async function writeMenu(
 export function removeMenuFiles(files: string[], paths: Paths): void {
 	const share = `${resolve(dirname(paths.data))}/`;
 	for (const f of files)
-		if (
-			resolve(f).startsWith(share) &&
-			basename(f).startsWith(OWN) &&
-			lstatSync(f, { throwIfNoEntry: false })?.isFile()
-		)
-			rmSync(f, { force: true });
+		try {
+			if (
+				resolve(f).startsWith(share) &&
+				basename(f).startsWith(OWN) &&
+				lstatSync(f, { throwIfNoEntry: false })?.isFile()
+			)
+				rmSync(f, { force: true });
+		} catch {
+			// A file in a folder Upkeep may no longer write stays; the others still go.
+		}
 }
 
 /** removeMenuFiles, then the menu's database refreshed. */

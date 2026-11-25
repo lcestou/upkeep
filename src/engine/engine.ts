@@ -561,13 +561,24 @@ export function createEngine(deps: EngineDeps): Engine {
 	/**
 	 * Writes the app's entry again from the AppImage now at dest, after an update or a restore, since a new version may
 	 * change its name or icon. Files the new write did not produce again (an icon of another size) are deleted. A failed
-	 * write keeps the old entry and only logs: the update itself went through.
+	 * write keeps the old entry and only logs: the update itself went through. An AppImage no longer at dest has its
+	 * entry removed, since it would start nothing.
 	 */
 	async function refreshMenu(spec: AppSpec): Promise<void> {
 		const had = loadState(paths).menu[spec.key];
 		if (!had || spec.kind !== "appimage") return;
 		const ctx = { paths, run: deps.run };
-		const r = await writeMenu(spec.key, destOf(spec, { paths }), ctx);
+		const dest = destOf(spec, { paths });
+		// An entry that would start a file no longer there is worse than none.
+		if (!existsSync(dest)) {
+			await removeMenu(had, ctx);
+			updateState(paths, (s) => {
+				delete s.menu[spec.key];
+			});
+			say(spec.key, `Removed the menu entry: ${dest} is not there any more.`);
+			return;
+		}
+		const r = await writeMenu(spec.key, dest, ctx);
 		if ("problem" in r) {
 			say(spec.key, r.problem);
 			return;

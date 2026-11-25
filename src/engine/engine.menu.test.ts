@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import { createEngine, type EngineDeps, REASON_BUSY } from "./engine";
@@ -174,4 +174,29 @@ test("Stop now during an update leaves the entry as it was: the old version is p
 	expect(row(engine, "img")?.installed).toBe("1.0.0");
 	expect(readFileSync(entry(), "utf8")).toContain("Name=Img 1.0.0");
 	expect(loadState(t.paths).menu.img).toHaveLength(2);
+});
+
+test("an AppImage gone after its update has its entry removed, and a write that fails is the switch's sentence", async () => {
+	const engine = createEngine(deps());
+	await engine.check();
+	await engine.setMenu("img", true);
+	const files = loadState(t.paths).menu.img ?? [];
+	const dest = join(t.paths.home, "Applications/img.AppImage");
+	// finishApp tells the row before the entry is refreshed: the file goes in between.
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "img" && e.app.status === "done") rmSync(dest, { force: true });
+	});
+	await engine.install(["img"]);
+	await engine.idle();
+	expect(files.some((f) => existsSync(f))).toBe(false);
+	expect(loadState(t.paths).menu.img).toBeUndefined();
+	engine.dismissSummary();
+	// A file where the applications folder would be: the switch says why, and nothing is recorded.
+	writeFileSync(dest, "\x7fELF\x02\x01\x01\x00AI\x02\x00\x00\x00\x00\x00\nVERSION=1.1.0\n", "latin1");
+	rmSync(appsDir(t.paths), { recursive: true, force: true });
+	writeFileSync(appsDir(t.paths), "");
+	const r = await engine.setMenu("img", true);
+	expect(r.ok).toBe(false);
+	expect(r.detail?.startsWith("Could not write the menu entry: ")).toBe(true);
+	expect(loadState(t.paths).menu.img).toBeUndefined();
 });
