@@ -15,10 +15,10 @@ import {
 import { dirname, join } from "node:path";
 import type { AppSpec, Serve } from "../../shared/types";
 import type { FetchLike } from "../github";
-import type { RunOpts, ProcessResult } from "../run";
+import type { ProcessResult, Run, RunOpts } from "../run";
 import { DEFAULT_SETTINGS, readInflight } from "../store";
 import { ok, strictRun, tempHome, withCancel } from "../testkit";
-import { installBuilt } from "./built";
+import { installBuilt, startService, stopService } from "./built";
 import type { KindCtx } from "./context";
 
 let t: ReturnType<typeof tempHome>;
@@ -656,4 +656,56 @@ test("Stop now during the health check after the start rolls the old version bac
 	expect(box.svc).toMatchObject({ running: true, servedVersion: "f2918cabb" });
 	// The root stop and start are never cut; only the forward steps are offered to Stop now.
 	expect(box.calls.filter((c) => c.argv[0] === "sudo" && c.argv[2] !== "-l").every((c) => !c.opts.cuttable)).toBe(true);
+});
+
+test("Stop now may cut a built app's fetch, build, check and verify read; root stops and starts and undos never", async () => {
+	const box = fakeBox();
+	// check_built runs as the build does; the fake box answers it like the build step.
+	const run: Run = (argv, opts) =>
+		argv.join(" ") === "bash -c make check" ? box.run(["bash", "-c", "make all"], opts) : box.run(argv, opts);
+	const checks: RunOpts[] = [];
+	const watched: Run = (argv, opts = {}) => {
+		if (argv.join(" ") === "bash -c make check") checks.push(opts);
+		return run(argv, opts);
+	};
+	expect(
+		await installBuilt(spec({ check_built: ["make check"] }), target, { ...ctx(box), run: watched }),
+	).toMatchObject({
+		result: "done",
+	});
+	const cut = box.calls.filter((c) => c.opts.cuttable).map((c) => c.argv.join(" "));
+	expect(cut).toEqual([
+		expect.stringMatching(/^git -C .* fetch --no-tags origin tag v0\.9\.0$/),
+		"bash -c make all",
+		"bash -c make all",
+		"print-version",
+	]);
+	expect(checks.map((o) => o.cuttable)).toEqual([true]);
+});
+
+test("a unit's stop or start is cuttable on the way forward only when it does not run as root", async () => {
+	const seen: [string, boolean][] = [];
+	const run: Run = async (argv, opts = {}) => {
+		seen.push([argv.join(" "), opts.cuttable === true]);
+		return ok();
+	};
+	const user = {
+		name: "u",
+		active: ["is-active"],
+		stop: ["systemctl", "--user", "stop", "u"],
+		start: ["systemctl", "--user", "start", "u"],
+	};
+	const root = { ...user, stop: ["sudo", "systemctl", "stop", "u"], start: ["sudo", "systemctl", "start", "u"] };
+	await stopService(run, user, true);
+	await startService(run, user, true);
+	await stopService(run, root, true);
+	await startService(run, root, true);
+	await stopService(run, user);
+	expect(seen).toEqual([
+		["systemctl --user stop u", true],
+		["systemctl --user start u", true],
+		["sudo -n systemctl stop u", false],
+		["sudo -n systemctl start u", false],
+		["systemctl --user stop u", false],
+	]);
 });

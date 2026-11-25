@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
 import { listBackups } from "../backup";
-import { realRun, script, tempHome, withCancel } from "../testkit";
+import { realRun, recordingRun, script, tempHome, withCancel } from "../testkit";
 import type { KindCtx } from "./context";
 import { checkCommand, installCommand, tagOf } from "./command";
 
@@ -268,4 +268,17 @@ test("Stop now pressed before the update starts leaves the tool alone", async ()
 		installed: "2.1.322",
 	});
 	expect(existsSync(marker)).toBe(false);
+});
+
+test("Stop now may cut a command app's update and its version probe after, nothing else", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf 2.1.400 > ${state}`);
+	const { run, calls } = recordingRun(t.paths, () => undefined);
+	const target = { from: "2.1.322", version: "2.1.400", tag: "2.1.400" };
+	const spec = { ...claude(["~/.local/bin/claude-up"]), restore: ["true"] };
+	expect(await installCommand(spec, target, { ...ctx(), run })).toMatchObject({ result: "done" });
+	expect(calls.map((c) => [c.argv[0], c.opts.cuttable === true])).toEqual([
+		["~/.local/bin/claude-up", true],
+		["claude", true],
+	]);
 });

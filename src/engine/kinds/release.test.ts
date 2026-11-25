@@ -1068,3 +1068,16 @@ test("Stop now during the download ends it and leaves the installed copy alone",
 	expect(readFileSync(join(t.paths.home, ".local/bin/zen-browser.AppImage"), "utf8")).toContain("zen 1.0.0");
 	expect(listBackups(t.paths, "zen")).toEqual([]);
 });
+
+test("Stop now may cut only the unpack and the version probe of an archive; installs and undos are never cut", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	script(join(bin, "uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ "uv/uv": 'echo "uv 0.9.2"' }) });
+	const spec = uv(["uv/uv"]);
+	const { run, calls } = recordingRun(t.paths, () => undefined);
+	const c = ctx(run);
+	expect(await installRelease(spec, await checkAndTarget(spec, ctx()), c)).toMatchObject({ result: "done" });
+	const cut = calls.filter((x) => x.opts.cuttable).map((x) => x.argv[0]);
+	expect(cut).toEqual(["tar", join(bin, "uv")]);
+	expect(calls.some((x) => x.argv[0] === "install" && x.opts.cuttable)).toBe(false);
+});
