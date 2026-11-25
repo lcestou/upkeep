@@ -2710,6 +2710,8 @@ msgstr "已下载，等待轮到它"
 msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
 msgid "Could not read a menu entry from {0}."
 msgstr "无法从 {0} 读取菜单项。"
 

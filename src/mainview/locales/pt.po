@@ -2752,6 +2752,8 @@ msgstr "Baixada, aguarda a sua vez"
 msgid "New versions in their marketplaces: {0}."
 msgstr "Novas versões nos seus marketplaces: {0}."
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
 msgid "Could not read a menu entry from {0}."
 msgstr "Não foi possível ler uma entrada de menu de {0}."
 
