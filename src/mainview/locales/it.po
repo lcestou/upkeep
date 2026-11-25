@@ -3104,3 +3104,22 @@ msgstr "{0}: {1} non può contenere un a capo o un altro carattere di controllo"
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Impossibile scrivere la voce di menu: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Modifiche incompatibili"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Righe di queste note che citano una modifica incompatibile o una migrazione. Leggile prima di aggiornare."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Le versioni più vecchie non sono elencate qui. La pagina della versione le ha tutte."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# versione più vecchia non mostrata."
+msgstr[1] "# versioni più vecchie non mostrate."
+msgstr[2] "# versioni più vecchie non mostrate."

@@ -3058,3 +3058,20 @@ msgstr "{0}：{1} 不能包含换行符或其他控制字符"
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "无法写入菜单项：{0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "不兼容的变更"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "这些说明中提到不兼容变更或迁移的行。更新前请先阅读。"
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "这里不列出更早的版本。发布页面上有全部版本。"
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "还有 # 个更早的版本未显示。"

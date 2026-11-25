@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An app several releases behind shows the release notes of every version it skips, newest first, each under its version, not only the latest's. A "Breaking changes" line above them quotes up to three lines that mention a breaking change, a migration, an incompatibility, a removal after deprecation or a manual step, with the version each comes from. The list is asked of GitHub, GitLab or Codeberg only when the pane opens.
 - A run can now be stopped at once. After Stop after this one, the footer offers Stop now: the app being installed goes back to how it was and the apps behind it stay ready. Downloads, builds and a self-updating tool's own update command are cut; a step that runs as root (`dpkg -i`, `rpm -U`, `sudo make install`) or an undo is waited out first, and the row says what it waits for. A tool with no `restore` command is cut too, and its row says what version it reports afterwards. History shows the app as Stopped by you, and a run that ends early still records the apps it finished.
 - A row whose step has printed nothing for two minutes says so, with the time left before the step's own limit ends it ("No output for 3 min. It stops on its own in 7 min."), and offers Stop now.
 - In `upkeep install`, the first Ctrl-C (or SIGTERM, or closing the terminal) is Stop now, and a second one ends the step in progress and quits (a root step keeps running, and Upkeep says so). Before, Ctrl-C killed Upkeep straight away and reached a `sudo dpkg` in progress directly. Every process Upkeep starts now runs in a process group of its own.

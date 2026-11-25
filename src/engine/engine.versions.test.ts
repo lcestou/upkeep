@@ -470,7 +470,7 @@ test("the notes of every release skipped over come newest first, with the lines 
 	expect(span.releases.map((r) => r.version)).toEqual(["1.3.0", "1.2.0"]);
 	expect(span.releases[0]?.notes).toBe("## Breaking changes\n- The config file moved to ~/.config/tool/tool.toml.");
 	expect(span.breaking).toEqual([
-		{ version: "1.3.0", line: "Breaking changes" },
+		{ version: "1.3.0", line: "The config file moved to ~/.config/tool/tool.toml." },
 		{ version: "1.2.0", line: "Migrate old settings by hand." },
 	]);
 	expect(span).toMatchObject({ older: 0, more: false });

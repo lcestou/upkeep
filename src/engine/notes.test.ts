@@ -61,20 +61,36 @@ test("breaking lines are matched by the marker list, trimmed, deduplicated and c
 		},
 		{ version: "1.9.0", tag: "v1.9.0", publishedAt: "", notes: "## BREAKING CHANGE\nRequires manual steps." },
 	]);
+	// The heading is not quoted: the line under it is.
 	expect(lines).toEqual([
-		{ version: "2.0.0", line: "BREAKING CHANGE" },
 		{ version: "2.0.0", line: "Removed the old flag (deprecated in 1.4, now removed)." },
 		{ version: "2.0.0", line: "The plugin API is incompatible with 1.x." },
+		{ version: "1.9.0", line: "Requires manual steps." },
 	]);
 	expect(lines.length).toBe(BREAKING_MAX);
 	expect(
 		breakingLines([
-			{ version: "1.9.0", tag: "", publishedAt: "", notes: "BREAKING CHANGE\nbreaking change\nRequires manual steps." },
+			{
+				version: "1.9.0",
+				tag: "",
+				publishedAt: "",
+				notes: "BREAKING CHANGE\nbreaking change\nRequires manual steps.\nBREAKING CHANGE",
+			},
+			// A matching heading with nothing under it is quoted itself.
+			{ version: "1.8.0", tag: "", publishedAt: "", notes: "## Migration\n## Fixes\n- A fix\n# Breaking" },
 		]),
 	).toEqual([
 		{ version: "1.9.0", line: "BREAKING CHANGE" },
 		{ version: "1.9.0", line: "breaking change" },
 		{ version: "1.9.0", line: "Requires manual steps." },
+	]);
+	expect(
+		breakingLines([
+			{ version: "1.8.0", tag: "", publishedAt: "", notes: "## Migration\n## Fixes\n- A fix\n# Breaking" },
+		]),
+	).toEqual([
+		{ version: "1.8.0", line: "Migration" },
+		{ version: "1.8.0", line: "Breaking" },
 	]);
 });
 

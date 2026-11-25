@@ -1,6 +1,6 @@
 /**
  * The release notes of every version a person skips over, and the lines in them that read as a breaking change.
- * Plain rules, no model: BREAKING_MARKERS is the whole word list, and docs/release-notes.md documents it. The line
+ * Plain rules, no model: BREAKING_MARKERS is the whole word list, and docs/window.md documents it. The line
  * only informs; nothing here holds or blocks an update.
  */
 import type { BreakingLine, NotesSpan, ReleaseNotes } from "../shared/types";
@@ -10,7 +10,7 @@ import { isNewer } from "./version";
 /**
  * What marks a line of release notes as a breaking change, matched case-insensitively against one line at a time.
  * "deprecated" alone is not enough (it warns of a later removal); it counts only with "removed" on the same line.
- * Keep docs/release-notes.md in step with this list.
+ * Keep the list in docs/window.md in step with this one.
  */
 export const BREAKING_MARKERS: readonly RegExp[] = [
 	// "Non-breaking" says the opposite.
@@ -60,18 +60,34 @@ export function notesSpan(list: Release[], installed: string, latest: string, wi
 
 /**
  * The first BREAKING_MAX lines across releases (newest first) that a marker matches, trimmed of list and heading marks
- * and cut at LINE_MAX. The same line repeated in two releases is quoted once, with the newer version.
+ * and cut at LINE_MAX. A heading that matches ("## Breaking changes") is not quoted itself: the first line under it
+ * is, whatever it says, and the heading only when nothing follows it. The same line in two releases is quoted once,
+ * with the newer version.
  */
 export function breakingLines(releases: ReleaseNotes[]): BreakingLine[] {
 	const found: BreakingLine[] = [];
 	const seen = new Set<string>();
-	for (const r of releases)
+	const take = (version: string, line: string) => {
+		if (seen.has(line) || found.length === BREAKING_MAX) return;
+		seen.add(line);
+		found.push({ version, line: line.length > LINE_MAX ? `${line.slice(0, LINE_MAX - 1)}…` : line });
+	};
+	for (const r of releases) {
+		// A matching heading waiting for the first line under it.
+		let heading: string | null = null;
 		for (const raw of r.notes.split("\n")) {
 			const line = raw.replace(/^\s*(?:#+|[-*+]|\d+[.)])\s*/, "").trim();
-			if (!line || seen.has(line) || !BREAKING_MARKERS.some((m) => m.test(line))) continue;
-			seen.add(line);
-			found.push({ version: r.version, line: line.length > LINE_MAX ? `${line.slice(0, LINE_MAX - 1)}…` : line });
-			if (found.length === BREAKING_MAX) return found;
+			if (!line) continue;
+			const marked = BREAKING_MARKERS.some((m) => m.test(line));
+			if (/^\s*#/.test(raw)) {
+				if (heading !== null) take(r.version, heading);
+				heading = marked ? line : null;
+			} else if (heading !== null || marked) {
+				heading = null;
+				take(r.version, line);
+			}
 		}
+		if (heading !== null) take(r.version, heading);
+	}
 	return found;
 }
