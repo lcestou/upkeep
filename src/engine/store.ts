@@ -233,11 +233,18 @@ const tokenFile = (paths: Paths) => join(paths.state, "github-token");
 /** What a GitHub token is made of: letters, digits and underscores (ghp_…, github_pat_…, or 40 hex digits). */
 const GITHUB_TOKEN = /^\w{20,255}$/;
 
-/** The token pasted in Settings, or null when none is kept or the file no longer holds one. Never throws. */
+/** Whether text is made only of a GitHub token's characters, at a token's length. */
+export const isTokenText = (t: string) => GITHUB_TOKEN.test(t);
+
+/** The token pasted in Settings, or null when none is kept or the file no longer holds one. A file others can read is made 0600 first. Never throws. */
 export function readToken(paths: Paths): string | null {
 	try {
-		const t = readFileSync(tokenFile(paths), "utf8").trim();
-		return GITHUB_TOKEN.test(t) ? t : null;
+		const file = tokenFile(paths);
+		const t = readFileSync(file, "utf8").trim();
+		if (!GITHUB_TOKEN.test(t)) return null;
+		// A file copied in readable by others is closed to its owner before it is used.
+		if (statSync(file).mode & 0o077) chmodSync(file, 0o600);
+		return t;
 	} catch {
 		return null;
 	}
@@ -257,10 +264,9 @@ export function writeToken(paths: Paths, token: string | null): boolean {
 	if (!GITHUB_TOKEN.test(t)) return false;
 	mkdirSync(paths.state, { recursive: true });
 	const tmp = `${file}.${process.pid}.tmp`;
-	// Made 0600 before the token is in it; rename keeps the mode.
-	writeFileSync(tmp, "", { mode: 0o600 });
-	chmodSync(tmp, 0o600);
-	writeFileSync(tmp, t);
+	// A fresh file made 0600 as it is written (a crash's leftover goes first); rename keeps the mode.
+	rmSync(tmp, { force: true });
+	writeFileSync(tmp, t, { mode: 0o600, flag: "wx" });
 	renameSync(tmp, file);
 	return true;
 }

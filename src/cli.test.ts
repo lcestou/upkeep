@@ -89,6 +89,30 @@ test("check --json prints one AppState per line", async () => {
 	expect(rows.map((r) => r.key).toSorted()).toEqual(["bat", "borg"]);
 });
 
+test("a release inside the wait: check says HELD, --all passes it by, and naming the app installs it", async () => {
+	const d = deps();
+	const fresh = new Date(Date.now() - 3_600_000).toISOString();
+	d.fetch = async (url, init) => {
+		const res = await fakeFetch(url, init);
+		if (!url.endsWith("borgbackup/borg/releases/latest")) return res;
+		return Response.json({ ...(await res.json()), published_at: fresh });
+	};
+	updateState(t.paths, (s) => {
+		s.settings.waitDays = 3;
+	});
+	const out: string[] = [];
+	expect(await main(["check"], d, (l) => out.push(l))).toBe(0);
+	expect(out).toContain(
+		`  HELD:   BorgBackup 1.4.1 -> 1.4.2 (offered from ${new Date(Date.parse(fresh) + 3 * 86_400_000).toLocaleDateString("sv-SE")})`,
+	);
+	const all: string[] = [];
+	expect(await main(["install", "--all"], d, (l) => all.push(l))).toBe(1);
+	expect(all).toContain("Nothing to install.");
+	const named: string[] = [];
+	expect(await main(["install", "borg"], d, (l) => named.push(l))).toBe(0);
+	expect(named).toContain("[borg] done 1.4.2");
+});
+
 test("install updates, exits 0, then restore and history work", async () => {
 	const d = deps();
 	const out: string[] = [];

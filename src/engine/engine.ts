@@ -13,6 +13,7 @@ import type {
 	Snapshot,
 	Stage,
 	Suggestion,
+	TokenState,
 } from "../shared/types";
 import { MESSAGES } from "../shared/messages";
 import type { Arch } from "./arch";
@@ -20,7 +21,7 @@ import { backupDir, listBackups, packOlder, prune, readMeta, restoreBackup, take
 import { alsoOf, scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { readCopies } from "./extras/system";
 import { managedSpecs } from "./managers";
-import { type FetchLike, githubToken, type Rate } from "./github";
+import { type FetchLike, GITHUB_API, githubToken, type Rate } from "./github";
 import { checkClaudePlugins, installClaudePlugins } from "./kinds/plugins";
 import { checkCommand, installCommand, tagOf } from "./kinds/command";
 import { isPackage } from "./kinds/package";
@@ -58,6 +59,7 @@ import {
 	claimLock,
 	clearInflight,
 	loadState,
+	isTokenText,
 	readToken,
 	writeToken,
 	openRunLog,
@@ -125,10 +127,13 @@ export type Engine = {
 	/** False, and nothing written, for a key not in the list. */
 	setAuto(key: string, auto: boolean): boolean;
 	setSettings(patch: Partial<Settings>): Settings;
-	/** The last four characters of the pasted GitHub token, or null when none is kept. */
-	tokenHint(): string | null;
-	/** Keeps or forgets the pasted token; false for text that is not a token's shape. The next request uses it. */
-	setToken(token: string | null): boolean;
+	/** The pasted token's last four characters, and what the last check did when GitHub refused it (see TokenState). */
+	tokenState(): TokenState;
+	/**
+	 * Keeps or forgets the pasted token. "shape": not a token's characters; "refused": GitHub answered it 401 when asked
+	 * once now. Either way nothing is written. A network fault on that ask keeps the token. The next request uses it.
+	 */
+	setToken(token: string | null): Promise<"ok" | "shape" | "refused">;
 	history(limit: number): HistoryRow[];
 	runLog(runId: string): LogLine[];
 	readyKeys(autoOnly: boolean): string[];
@@ -521,6 +526,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const app = buildApp(spec, c, history);
 		apps.set(spec.key, app);
 		emitApp(app);
+		armSettle();
 	}
 
 	async function doCheck(keys?: string[]): Promise<void> {
@@ -543,7 +549,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				emitApp(a);
 			}
 		}
-		token = await githubToken(deps.run, readToken(paths));
+		token = await freshToken();
 		const history = readHistory(paths, 1000);
 		const all = loadSpecs();
 		// The notes are a nicety: a list that cannot be read leaves them out and never stops the check.
@@ -692,11 +698,15 @@ export function createEngine(deps: EngineDeps): Engine {
 		// What the first pass updated stays on screen and in the count, so the summary reads as one run.
 		const retry = run.phase === "summary";
 		const carried = retry ? run.results.filter((r) => r.result === "updated") : [];
+		// A failed row goes back through the release wait; its retry still takes it, as Install now anyway did.
+		const failed = new Set(
+			[...apps.values()].filter((a) => a.status === "failed" || a.status === "rolled_back").map((a) => a.key),
+		);
 		if (run.phase === "summary") resetFailed();
 		const wanted = new Set(keys);
 		const pick = specs.filter((s) => {
 			const a = apps.get(s.key);
-			return wanted.has(s.key) && a && (takesRow(a, now) || a.versionless);
+			return wanted.has(s.key) && a && (takesRow(a, now || (retry && failed.has(s.key))) || a.versionless);
 		});
 		const queue = [...pick];
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
@@ -729,7 +739,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			}
 			emitRun();
-			if (!token) token = await githubToken(deps.run, readToken(paths));
+			if (!token) token = await freshToken();
 		} catch (err) {
 			// Nothing ran yet: put the rows back and give the lock up.
 			log?.close();
@@ -1100,14 +1110,19 @@ export function createEngine(deps: EngineDeps): Engine {
 			emitMeta();
 			return s.settings;
 		},
-		tokenHint() {
-			return readToken(paths)?.slice(-4) ?? null;
+		tokenState() {
+			const hint = readToken(paths)?.slice(-4) ?? null;
+			return { hint, refused: hint ? tokenFallback : null };
 		},
-		setToken(t) {
-			if (!writeToken(paths, t)) return false;
+		async setToken(t) {
+			const trimmed = t?.trim() ?? null;
+			if (trimmed !== null && !isTokenText(trimmed)) return "shape";
+			if (trimmed !== null && (await tokenStatus(trimmed)) === 401) return "refused";
+			if (!writeToken(paths, trimmed)) return "shape";
 			// The next check or search reads the file again; a token from before must not linger.
 			token = null;
-			return true;
+			tokenFallback = null;
+			return "ok";
 		},
 		history(limit) {
 			return readHistory(paths, limit);
@@ -1216,7 +1231,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	};
 
 	async function discoverCtx(): Promise<DiscoverCtx> {
-		if (!token) token = await githubToken(deps.run, readToken(paths));
+		if (!token) token = await freshToken();
 		return {
 			paths,
 			run: deps.run,
@@ -1299,6 +1314,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			Object.assign(app, resting(spec, next), { installed, detail: undefined, restartToApply: false });
 			app.restorePoints = listBackups(paths, spec.key);
 			emitApp(app);
+			armSettle();
 		}
 		return { ok: true };
 	}
@@ -1317,6 +1333,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			a.detail = why ? MESSAGES.lastTryFailed(why) : c.detail;
 			emitApp(a);
 		}
+		armSettle();
 	}
 
 	function refresh(key: string): void {
@@ -1327,6 +1344,61 @@ export function createEngine(deps: EngineDeps): Engine {
 		if (!["ready", "held", "manual", "fresh"].includes(a.status)) return;
 		Object.assign(a, { skipped: undefined }, resting(spec, c));
 		emitApp(a);
+		armSettle();
+	}
+
+	/** Set by the last check when GitHub refused the pasted token: whether gh's sign-in stood in. Null otherwise. */
+	let tokenFallback: TokenState["refused"] = null;
+
+	/**
+	 * GitHub's answer status for a token at /rate_limit, which costs none of the hour's budget; null on a network fault.
+	 * Asked only of the real GitHub API: the token never goes to a test server or another host.
+	 */
+	async function tokenStatus(t: string): Promise<number | null> {
+		if ((deps.api ?? GITHUB_API) !== GITHUB_API) return null;
+		try {
+			const res = await deps.fetch(`${GITHUB_API}/rate_limit`, {
+				headers: { Authorization: `Bearer ${t}`, Accept: "application/vnd.github+json" },
+			});
+			return res.status;
+		} catch {
+			return null;
+		}
+	}
+
+	/**
+	 * The token for one check or search: the pasted one, unless GitHub now answers it 401 (an expired or revoked token),
+	 * then gh's sign-in for this check, so a token gone stale is never worse than none. A network fault keeps the pasted one.
+	 */
+	async function freshToken(): Promise<string | null> {
+		const pasted = readToken(paths);
+		const refused = pasted !== null && (await tokenStatus(pasted)) === 401;
+		const t = await githubToken(deps.run, refused ? null : pasted);
+		tokenFallback = refused ? (t ? "gh" : "none") : null;
+		return t;
+	}
+
+	let settleTimer: ReturnType<typeof setTimeout> | null = null;
+
+	/**
+	 * Keeps one timer set to the earliest moment a settling row is offered, so the row turns Ready then without a check
+	 * (with "Only when I ask" there may be none for days). It re-derives the settling rows and sets itself again. Called
+	 * after anything that can change a wait: a check's rows, a refresh, failed rows put back. The timer never keeps a
+	 * process alive, so the command line still exits.
+	 */
+	function armSettle(): void {
+		if (settleTimer) clearTimeout(settleTimer);
+		settleTimer = null;
+		const next = Math.min(...[...apps.values()].map((a) => (a.settles ? Date.parse(a.settles) : Infinity)));
+		if (!Number.isFinite(next)) return;
+		// setTimeout holds at most 2^31-1 ms (about 24 days); a later moment is reached by setting it again.
+		const ms = Math.min(Math.max(0, next - deps.now().getTime()) + 50, 2 ** 31 - 1);
+		settleTimer = setTimeout(() => {
+			settleTimer = null;
+			for (const a of apps.values()) if (a.settles) refresh(a.key);
+			armSettle();
+		}, ms);
+		settleTimer.unref();
 	}
 
 	/** Writes what this check learned, on top of what earlier checks knew about the other apps. */
@@ -1359,6 +1431,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		checked.set(spec.key, c);
 		apps.set(spec.key, buildApp(spec, c, []));
 	}
+	armSettle();
 	checkedAt =
 		Object.values(known)
 			.map((r) => r.checkedAt)

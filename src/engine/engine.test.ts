@@ -1109,32 +1109,125 @@ test("settlesAt: no wait, no date, an unreadable date or an old enough release o
 	expect(settlesAt("2026-11-09T12:00:00Z", 1, now)).toBe("2026-11-10T12:00:00.000Z");
 });
 
-test("a token pasted in Settings goes to GitHub in place of gh's, kept 0600 and out of state.json", async () => {
+test("a pasted token goes to GitHub in place of gh's, kept 0600 and out of state.json; one GitHub refuses is not kept", async () => {
 	const d = await deps();
 	const sent: (string | null)[] = [];
 	const engine = createEngine({
 		...d,
 		fetch: async (url, init) => {
-			if (url.startsWith("https://api.github.com/")) sent.push(new Headers(init?.headers).get("Authorization"));
+			const auth = new Headers(init?.headers).get("Authorization");
+			if (url === "https://api.github.com/rate_limit")
+				return new Response("{}", { status: auth?.endsWith("dead") ? 401 : 200 });
+			if (url.startsWith("https://api.github.com/")) sent.push(auth);
 			return d.fetch(url, init);
 		},
 	});
 	const token = `ghp_${"a".repeat(32)}wxyz`;
-	expect(engine.tokenHint()).toBeNull();
-	expect(engine.setToken("not a token\nX-Evil: 1")).toBe(false);
-	expect(engine.tokenHint()).toBeNull();
-	expect(engine.setToken(` ${token}\n`)).toBe(true);
-	expect(engine.tokenHint()).toBe("wxyz");
+	expect(engine.tokenState()).toEqual({ hint: null, refused: null });
+	expect(await engine.setToken("not a token\nX-Evil: 1")).toBe("shape");
+	expect(await engine.setToken(`ghp_${"a".repeat(32)}dead`)).toBe("refused");
+	expect(engine.tokenState().hint).toBeNull();
+	expect(await engine.setToken(` ${token}\n`)).toBe("ok");
+	expect(engine.tokenState()).toEqual({ hint: "wxyz", refused: null });
 	const file = join(t.paths.state, "github-token");
 	expect(statSync(file).mode & 0o777).toBe(0o600);
 	await engine.check(["fd"]);
 	expect(sent).toContain(`Bearer ${token}`);
 	const state = join(t.paths.state, "state.json");
 	expect(existsSync(state) ? readFileSync(state, "utf8") : "").not.toContain(token);
-	expect(engine.setToken(null)).toBe(true);
-	expect(engine.tokenHint()).toBeNull();
+	expect(await engine.setToken(null)).toBe("ok");
+	expect(engine.tokenState().hint).toBeNull();
 	expect(existsSync(file)).toBe(false);
 	sent.length = 0;
 	await engine.check(["fd"]);
 	expect(sent.every((h) => h === null)).toBe(true);
+});
+
+test("a saved token GitHub stops taking falls back to gh's sign-in for the check, and says so", async () => {
+	const d = await deps();
+	const sent: (string | null)[] = [];
+	let gh = true;
+	const run = Object.assign(
+		(argv: string[], opts?: Parameters<typeof d.run>[1]) =>
+			argv[0] === "gh"
+				? Promise.resolve({ code: gh ? 0 : 1, stdout: gh ? "gho_fromgh\n" : "", stderr: "", timedOut: false })
+				: d.run(argv, opts),
+		{ start: d.run.start },
+	);
+	let expired = false;
+	const engine = createEngine({
+		...d,
+		run,
+		fetch: async (url, init) => {
+			const auth = new Headers(init?.headers).get("Authorization");
+			if (url === "https://api.github.com/rate_limit") return new Response("{}", { status: expired ? 401 : 200 });
+			if (url.startsWith("https://api.github.com/")) sent.push(auth);
+			return d.fetch(url, init);
+		},
+	});
+	const token = `github_pat_${"b".repeat(40)}`;
+	expect(await engine.setToken(token)).toBe("ok");
+	expired = true;
+	await engine.check(["fd"]);
+	expect(sent).toEqual(["Bearer gho_fromgh"]);
+	expect(engine.tokenState()).toEqual({ hint: "bbbb", refused: "gh" });
+	gh = false;
+	await engine.check(["fd"]);
+	expect(engine.tokenState().refused).toBe("none");
+	expired = false;
+	await engine.check(["fd"]);
+	expect(engine.tokenState().refused).toBeNull();
+	expect(sent.at(-1)).toBe(`Bearer ${token}`);
+});
+
+test("a settling row turns Ready on its own when its moment comes, without a check", async () => {
+	// fd's release came out 2026-11-09; a one-day wait ends 2026-11-10T00:00Z, here 150 ms from now.
+	const offset = Date.parse("2026-11-10T00:00:00Z") - 150 - Date.now();
+	const engine = createEngine({ ...(await deps()), now: () => new Date(Date.now() + offset) });
+	await engine.check(["fd"]);
+	engine.setSettings({ waitDays: 1 });
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("held");
+	await Bun.sleep(400);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({ status: "ready", settles: undefined });
+	expect(engine.readyKeys(false)).toContain("fd");
+});
+
+test("Retry after a failed Install now anyway takes the app again, though its release is still settling", async () => {
+	const engine = createEngine({ ...(await deps()), now: () => new Date("2026-11-10T00:00:00Z") });
+	await engine.check();
+	engine.setSettings({ waitDays: 3 });
+	expect(statuses(engine).boom).toBe("held");
+	await engine.install(["boom"], true);
+	await engine.idle();
+	expect(statuses(engine).boom).toBe("failed");
+	expect(await engine.install(["boom"])).toEqual({ started: true });
+	await engine.idle();
+	expect(statuses(engine).boom).toBe("failed");
+	// Done puts it back to waiting, where only Install now anyway takes it.
+	engine.dismissSummary();
+	expect(engine.snapshot().apps.find((a) => a.key === "boom")).toMatchObject({ status: "held" });
+	expect(await engine.install(["boom"])).toEqual({ started: false, reason: REASON_NOTHING });
+});
+
+test("Install now anyway joins a run under way; without it a settling row does not", async () => {
+	const engine = createEngine({ ...(await deps()), now: () => new Date("2026-11-10T00:00:00Z") });
+	await engine.check();
+	engine.setSettings({ waitDays: 3 });
+	engine.setSettings({ waitDays: 0 });
+	const joins: Promise<{ started: boolean; reason?: string }>[] = [];
+	let asked = false;
+	const off = engine.subscribe((e) => {
+		// Once: the join itself emits another installing event.
+		if (e.type !== "run" || e.run.phase !== "installing" || asked) return;
+		asked = true;
+		engine.setSettings({ waitDays: 3 });
+		joins.push(engine.install(["boom"]), engine.install(["boom"], true));
+	});
+	await engine.install(["fd"]);
+	const [plain, now] = await Promise.all(joins);
+	await engine.idle();
+	off();
+	expect(plain).toEqual({ started: false, reason: REASON_NOTHING });
+	expect(now).toEqual({ started: true });
+	expect(engine.snapshot().run.results.map((r) => r.key)).toEqual(["fd", "boom"]);
 });

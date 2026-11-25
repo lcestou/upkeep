@@ -13,7 +13,7 @@ import { exportSetup, importSetup } from "./engine/transfer";
 export const USAGE = [
 	"Usage: upkeep <command> [--json]",
 	"  check                  check every app; one line each",
-	"  install <key>...|--all|--auto",
+	"  install <key>...|--all|--auto   an app named here skips the release wait set in Settings",
 	"  restore <key> [version]",
 	"  history                the last 200 runs",
 	"  recover                finish or undo an interrupted built update",
@@ -26,6 +26,9 @@ export const USAGE = [
 ].join("\n");
 
 type Out = (line: string) => void;
+
+/** The local calendar day of an ISO time as YYYY-MM-DD, the day the window shows, so a script can compare it with `date +%F`. */
+const localDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE");
 
 /** One line per app, as OK, UPDATE, HELD, BROKEN or SKIP first, so a script or a glance reads the state from the first word. */
 export function checkLine(a: AppState): string {
@@ -40,7 +43,7 @@ export function checkLine(a: AppState): string {
 			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
 		// install --all passes these by, so they are not offered as updates.
 		case "held":
-			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${a.settles.slice(0, 10)})` : ""}`;
+			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${localDay(a.settles)})` : ""}`;
 		default: {
 			const detail = a.detail ?? "";
 			const broken = `${a.name} will not start`;
@@ -77,10 +80,15 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	return 0;
 }
 
-/** Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. Exits 0 only when every result is "updated". */
+/**
+ * Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. An
+ * app named by key skips the release wait, as Install now anyway does in the window; --all and --auto keep it. Exits 0
+ * only when every result is "updated".
+ */
 async function install(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
 	await engine.check();
 	await engine.idle();
+	const named = !args.includes("--all") && !args.includes("--auto");
 	const keys = args.includes("--all")
 		? engine.readyKeys(false)
 		: args.includes("--auto")
@@ -93,7 +101,7 @@ async function install(engine: Engine, args: string[], json: boolean, out: Out):
 			if (line) out(line);
 		}
 	});
-	const r = await engine.install(keys);
+	const r = await engine.install(keys, named);
 	if (!r.started) {
 		off();
 		const reason = r.reason ?? "Nothing to install.";

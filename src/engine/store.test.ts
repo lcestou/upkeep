@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { mkdirSync, readdirSync, readFileSync, statSync, utimesSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, readdirSync, readFileSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { HistoryRow } from "../shared/types";
 import {
@@ -110,6 +110,13 @@ test("a pasted token is kept 0600, read back trimmed, refused when it is not a t
 	expect(readToken(t.paths)).toBe(token);
 	const file = join(t.paths.state, "github-token");
 	expect(statSync(file).mode & 0o777).toBe(0o600);
+	// A file made readable by others is closed again before it is used.
+	chmodSync(file, 0o644);
+	expect(readToken(t.paths)).toBe(token);
+	expect(statSync(file).mode & 0o777).toBe(0o600);
+	// A crash's leftover temp file does not stop the next save.
+	writeFileSync(`${file}.${process.pid}.tmp`, "old");
+	expect(writeToken(t.paths, token)).toBe(true);
 	// A hand edit that leaves something else there reads as no token.
 	writeFileSync(file, "Bearer x\r\nHost: evil");
 	expect(readToken(t.paths)).toBeNull();

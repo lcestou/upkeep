@@ -272,6 +272,12 @@ export type RunState = {
 	queue?: string[];
 };
 
+/**
+ * The token pasted in Settings as the window may see it: its last four characters (null when none is kept), and, when
+ * GitHub refused it at the last check, whether gh's sign-in stood in ("gh") or nothing did ("none").
+ */
+export type TokenState = { hint: string | null; refused: "gh" | "none" | null };
+
 export type Settings = {
 	keepBackups: number;
 	notify: boolean;
@@ -517,10 +523,16 @@ export type Requests = {
 	setHold: { params: { key: string; held: boolean }; response: { ok: boolean } };
 	setAuto: { params: { key: string; auto: boolean }; response: { ok: boolean } };
 	setSettings: { params: Partial<Settings>; response: Settings };
-	/** The last four characters of the GitHub token pasted in Settings, or null when none is kept. The token never comes back. */
-	token: { params: Record<string, never>; response: { hint: string | null } };
-	/** Keeps a pasted GitHub token, or forgets it with null. Refused, and nothing changed, when it does not read as one. */
-	setToken: { params: { token: string | null }; response: { ok: boolean; hint: string | null } };
+	/** The pasted GitHub token's last four characters and whether the last check found it refused. The token never comes back. */
+	token: { params: Record<string, never>; response: TokenState };
+	/**
+	 * Keeps a pasted GitHub token, or forgets it with null. Refused, and nothing changed, when it does not read as one
+	 * ("shape") or GitHub answers it 401 ("refused").
+	 */
+	setToken: {
+		params: { token: string | null };
+		response: { ok: boolean; problem?: "shape" | "refused" } & TokenState;
+	};
 	history: { params: { limit: number }; response: HistoryRow[] };
 	runLog: { params: { runId: string }; response: LogLine[] };
 	open: {

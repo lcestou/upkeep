@@ -118,8 +118,11 @@ export function upkeepRequests(
 			}
 			return settings;
 		},
-		token: () => ({ hint: engine.tokenHint() }),
-		setToken: ({ token }) => ({ ok: engine.setToken(token), hint: engine.tokenHint() }),
+		token: () => engine.tokenState(),
+		setToken: async ({ token }) => {
+			const r = await engine.setToken(token);
+			return r === "ok" ? { ok: true, ...engine.tokenState() } : { ok: false, problem: r, ...engine.tokenState() };
+		},
 		history: ({ limit }) => engine.history(limit),
 		runLog: ({ runId }) => engine.runLog(runId),
 		open: ({ what, key }) => {
