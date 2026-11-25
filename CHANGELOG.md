@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- A run can now be stopped at once. After Stop after this one, the footer offers Stop now: the app being installed goes back to how it was and the apps behind it stay ready. Downloads, builds and a self-updating tool's own update command are cut; a step that runs as root (`dpkg -i`, `rpm -U`, `sudo make install`) or an undo is waited out first, and the row says what it waits for. A tool with no `restore` command is cut too, and its row says what version it reports afterwards. History shows the app as Stopped by you, and a run that ends early still records the apps it finished.
+- A row whose step has printed nothing for two minutes says so, with the time left before the step's own limit ends it ("No output for 3 min. It stops on its own in 7 min."), and offers Stop now.
+- In `upkeep install`, the first Ctrl-C (or SIGTERM) is Stop now, and a second one quits at once. Before, Ctrl-C killed Upkeep straight away and reached a `sudo dpkg` in progress directly. Every process Upkeep starts now runs in a process group of its own.
+
 ## 0.1.8, 2026-11-21
 
 - Add app follows an AppImage's own update information more closely. The publisher's file pattern from `gh-releases-zsync` becomes the table's `asset` when it picks one file. A `zsync|` address into a GitHub, GitLab or Codeberg release is read as that release, and a `zsync|` address on any other host is followed through the new `latest = "zsync:<address>"` source, which reads the latest file's name, address and size from the `.zsync` header. Thanks to @probonopd, whose question on the awesome-appimage listing started it.
