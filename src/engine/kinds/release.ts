@@ -349,6 +349,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 					target.from,
 					{ package: spec.kind, file: old.file },
 					(ctx.now?.() ?? new Date()).toISOString(),
+					ctx.log,
 				);
 				rmSync(dirname(old.file), { recursive: true, force: true });
 				backupVersion = target.from;
@@ -358,7 +359,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			clock.start("backup");
 			const existing = targets.filter((f) => existsSync(f));
 			if (existing.length > 0 && target.from) {
-				takeBackup(ctx.paths, spec, target.from, existing, (ctx.now?.() ?? new Date()).toISOString());
+				takeBackup(ctx.paths, spec, target.from, existing, (ctx.now?.() ?? new Date()).toISOString(), ctx.log);
 				backupVersion = target.from;
 				ctx.log(`Restore point ${target.from} taken`);
 			}
@@ -486,7 +487,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		// Before the probe, so a table with probe false reads back the version just installed.
 		stampInstalled(ctx.paths, spec.key, dest, target.version);
 		const after = await probeInstalled(spec, { ...ctx, run: cuttableRun(ctx) });
-		if (stopPressed(ctx)) return finish(await putBack(spec, ctx, backupVersion, added));
+		if (stopPressed(ctx)) return finish(await putBack(spec, ctx, backupVersion, added, true));
 		if ("version" in after && after.version === target.from && target.from !== target.version)
 			return finish({
 				result: "failed",
@@ -565,17 +566,19 @@ async function installedNow(spec: AppSpec, ctx: KindCtx): Promise<string | null>
 
 /**
  * Stop now after the install changed things: the bins this run added go, and the point this run took goes back. With
- * no point (a first install, a kind without one) the new copy stays, and the row says what a probe reads now.
+ * no point (a first install, a kind without one) the new copy stays, and the row says what a probe reads now. ran:
+ * the probe ran the new copy, which may have rewritten its settings, so they go back too; before it they are as saved.
  */
 async function putBack(
 	spec: AppSpec,
 	ctx: KindCtx,
 	backupVersion: string | null,
 	added: string[],
+	ran = false,
 ): Promise<Omit<Outcome, "stages">> {
 	await Promise.all(added.map((f) => ctx.run(asRoot(["rm", "-f", f], spec.sudo), { timeoutMs: 60_000 })));
 	if (backupVersion && canRestore(spec)) {
-		const r = await restoreBackup(ctx.paths, spec, backupVersion, ctx.run);
+		const r = await restoreBackup(ctx.paths, spec, backupVersion, ctx.run, ran ? spec.keep_with_restore : undefined);
 		if (r.ok) return stoppedOutcome(backupVersion);
 		ctx.log(`Restore failed: ${r.detail ?? ""}`);
 		return { result: "failed", installed: await installedNow(spec, ctx), detail: r.detail, restartToApply: false };
@@ -599,7 +602,8 @@ async function rollBack(
 	// Only the point this run took: an older one may be another version or another dest.
 	const point = backupVersion;
 	if (point && canRestore(spec)) {
-		const r = await restoreBackup(ctx.paths, spec, point, ctx.run);
+		// The probe ran the new copy, which may have rewritten its settings: they go back too.
+		const r = await restoreBackup(ctx.paths, spec, point, ctx.run, spec.keep_with_restore);
 		if (r.ok)
 			return {
 				result: "rolled_back",

@@ -174,3 +174,16 @@ test("commandsOf shows an HTTP test's body, quoted, and cuts a long one", () => 
 	expect(lines()).toContain("test: POST http://h/v1");
 	expect(lines("x".repeat(250))).toContain(`test: POST http://h/v1 '${"x".repeat(200)}…'`);
 });
+
+test("commandsOf lists the settings paths a restore would put back, so an import asks before taking them", () => {
+	expect(
+		commandsOf({
+			key: "t",
+			name: "T",
+			kind: "file",
+			repo: "o/t",
+			dest: "~/.local/bin/t",
+			keep_with_restore: ["~/.config/t", "~/.trc"],
+		}),
+	).toEqual(["source: o/t", "keep_with_restore: ~/.config/t", "keep_with_restore: ~/.trc"]);
+});

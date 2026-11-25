@@ -2785,6 +2785,29 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "New versions in their marketplaces: {0}."
 
 #: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}: keep_with_restore needs an app that keeps restore points"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "with settings"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+msgstr "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+msgstr "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+
+#: src/mainview/lib/copy.ts
 msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 msgstr "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 
