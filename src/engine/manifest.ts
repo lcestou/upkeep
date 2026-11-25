@@ -444,6 +444,8 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	// The loop above returned every string, so each list is an array or absent.
 	if (Array.isArray(record)) spec.record = record;
 	if (Array.isArray(config)) spec.config = config;
+	// Like dest and folder: a .. part would let a config write land outside the paths the table names.
+	if (spec.config?.some((c) => c.file.split("/").includes(".."))) return MESSAGES.liftConfigDotDot(key);
 	if (Array.isArray(place)) spec.place = place;
 	if (Array.isArray(busy)) spec.busy = busy;
 	if (Array.isArray(pause)) spec.pause = pause;

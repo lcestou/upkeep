@@ -130,6 +130,23 @@ test("a dest with a .. part is refused: it could read as under home and resolve 
 	expect(apps.map((a) => a.key)).toEqual(["dots"]);
 });
 
+test("a config file with a .. part is refused, like dest", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(
+		file,
+		[
+			"[apps.s]",
+			'name = "S"',
+			'kind = "source"',
+			'repo = "a/b"',
+			'check = ["s", "--version"]',
+			'build = ["make"]',
+			'config = [{ file = "~/.s/../../.bashrc", key = "k", value = "v" }]',
+		].join("\n"),
+	);
+	expect(loadManifest(file).errors).toEqual(["s: a config file may not contain a .. part"]);
+});
+
 test("relaunch needs dest, and an AppImage's needs process too; restart is a list", () => {
 	const file = join(dir, "apps.toml");
 	writeFileSync(
