@@ -214,7 +214,11 @@ export function upkeepRequests(
 				asked = text;
 				return { ok: false, ask: r.ask };
 			}
-			if (!r.ok) return { ok: false, problems: r.problems };
+			// A failed import writes nothing (it puts every file back), so the ask stays answerable, as the window keeps it open.
+			if (!r.ok) {
+				if (sure) asked = text;
+				return { ok: false, problems: r.problems };
+			}
 			// The new settings, extras and list reach the window: settings and extras by their events, the list by a check.
 			engine.setSettings({});
 			hooks.extras.setSettings({});

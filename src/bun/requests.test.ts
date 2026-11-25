@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createEngine, type EngineDeps } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
@@ -293,6 +293,13 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 			turnsOn: [],
 		},
 	});
+	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
+	// A confirm whose write fails writes nothing and keeps the ask answerable, as the window keeps it open.
+	chmodSync(t.paths.config, 0o500);
+	const failed = await r.r.importSetup({ sure: true });
+	chmodSync(t.paths.config, 0o700);
+	expect(failed.ok).toBe(false);
+	expect(failed.problems?.length).toBeGreaterThan(0);
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
 	// The file changing after the ask does not change what lands.
 	writeFileSync(file, "{");
