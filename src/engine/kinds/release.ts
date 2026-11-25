@@ -19,7 +19,7 @@ import { download, type DownloadResult, hashFile, needsSha512, signedIn, statedS
 import { assetFor } from "../arch";
 import { cachedSum } from "../checksums";
 import { forgeRelease, forgeReleases, linksRelease, zsyncRelease } from "../forge";
-import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
+import { type Asset, type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
 import { asRoot, installAside, type ProcessResult, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
@@ -243,15 +243,11 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				...base,
 			};
 		// Only for an update on offer: a release with no digest is read for its own checksum file, once per check.
-		const sum =
-			status === "ready" && !pick.asset.digest
-				? await cachedSum(sumCache(ctx, spec.key), release, pick.asset, ctx.fetch, {
-						token: ctx.token,
-						cancel: ctx.cancel,
-						now: (ctx.now?.() ?? new Date()).getTime(),
-					})
-				: null;
-		target = { ...target, asset: sum ? { ...pick.asset, sum } : pick.asset };
+		target =
+			status === "ready"
+				? await checkedTarget(spec, ctx, release, pick.asset, target)
+				: { ...target, asset: pick.asset };
+		// A fresh row is locked as well, so a check never records its file as one that could change.
 		if (release.immutable) target.locked = true;
 		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
 		size = pick.asset.size || (status === "ready" ? await statedSize(pick.asset.url, ctx.fetch) : undefined);
@@ -279,7 +275,30 @@ export async function versionTarget(
 	const pick = pickAsset(release, pattern);
 	if (!pick) return { failure: "http", detail: MESSAGES.noAssetMatches(pattern) };
 	if (pick.count > 1) return { failure: "http", detail: MESSAGES.severalAssetsMatch(pattern, pick.names.join(", ")) };
-	return { from: installed, version: release.version, tag: release.tag, asset: pick.asset };
+	return checkedTarget(spec, ctx, release, pick.asset, { from: installed, version: release.version, tag: release.tag });
+}
+
+/**
+ * target with its file, checked as an offered update is: a file with no digest carries the hash its release's own
+ * checksum file lists, when one does, and a release the forge marks immutable is locked, so a changed file never holds it.
+ */
+async function checkedTarget(
+	spec: AppSpec,
+	ctx: KindCtx,
+	release: Release,
+	asset: Asset,
+	target: Target,
+): Promise<Target> {
+	const sum = asset.digest
+		? null
+		: await cachedSum(sumCache(ctx, spec.key), release, asset, ctx.fetch, {
+				token: ctx.token,
+				cancel: ctx.cancel,
+				now: (ctx.now?.() ?? new Date()).getTime(),
+			});
+	const out: Target = { ...target, asset: sum ? { ...asset, sum } : asset };
+	if (release.immutable) out.locked = true;
+	return out;
 }
 
 /** Depth-first search under dir for a file whose name matches; null when none, and the first match in directory order wins. */

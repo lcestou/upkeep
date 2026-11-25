@@ -20,7 +20,7 @@ import type { Run } from "../run";
 import { readInflight } from "../store";
 import { ok, realRun, recordingRun, script, tempHome, withCancel } from "../testkit";
 import type { KindCtx, Target } from "./context";
-import { canList, checkRelease, dlPath, installRelease, newestOf, probeInstalled } from "./release";
+import { canList, checkRelease, dlPath, installRelease, newestOf, probeInstalled, versionTarget } from "./release";
 
 let t: ReturnType<typeof tempHome>;
 let proc = "";
@@ -1313,4 +1313,25 @@ test("Stop now after the version probe ran the new copy puts its settings back w
 	const outcome = await installRelease(spec, target, { ...ctx(withCancel(run, stop.signal)), cancel: stop.signal });
 	expect(outcome.result).toBe("stopped");
 	expect(readFileSync(cfg, "utf8")).toBe("old");
+});
+
+test("a picked release is checked as an offered update: its checksum file is read, and an immutable one is locked", async () => {
+	installZen("1.17.9b");
+	const name = "zen.linux-x86_64.AppImage";
+	const file = bash('echo "zen 1.17.0b"');
+	const hex = sha(file).slice(7);
+	oldRelease = {
+		tag: "1.17.0b",
+		files: { [name]: file, SHA256SUMS: new TextEncoder().encode(`${hex}  ${name}\n`) },
+		bare: true,
+		immutable: true,
+	};
+	const target = await versionTarget(zen(), ctx(), "1.17.0b", "1.17.9b");
+	expect(target).toMatchObject({
+		from: "1.17.9b",
+		version: "1.17.0b",
+		locked: true,
+		asset: { name, sum: { algo: "sha256", hex, file: "SHA256SUMS" } },
+	});
+	oldRelease = null;
 });

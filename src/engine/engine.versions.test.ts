@@ -5,7 +5,7 @@ import { MESSAGES } from "../shared/messages";
 import { backupDir } from "./backup";
 import { createEngine, REASON_NOTHING } from "./engine";
 import type { FetchLike } from "./github";
-import { claimLock, loadState, releaseLock } from "./store";
+import { claimLock, loadState, releaseLock, updateState } from "./store";
 import { recordingRun, script, tempHome } from "./testkit";
 
 const MANIFEST = `
@@ -393,4 +393,16 @@ test("a Codeberg app lists its releases through versions and installs one", asyn
 	expect(await engine.installVersion("cb", "v1.0.0")).toEqual({ started: true });
 	await engine.idle();
 	expect(row("cb")).toMatchObject({ installed: "1.0.0", status: "done" });
+});
+
+test("a picked release whose file changed since it was first seen is refused until the hold is released", async () => {
+	const { engine } = await setup();
+	updateState(t.paths, (s) => {
+		s.changed.tool = "v1.0.0";
+	});
+	expect(await engine.installVersion("tool", "v1.0.0")).toEqual({
+		started: false,
+		reason: MESSAGES.releaseChanged("v1.0.0"),
+	});
+	expect(engine.snapshot().run.phase).toBe("idle");
 });

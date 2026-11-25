@@ -1444,6 +1444,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			const t = await versionTarget(spec, kindCtx(key), tag, first.installed);
 			if (isFailure(t)) return { started: false, reason: t.detail };
 			if (t.version === first.installed) return { started: false, reason: REASON_NOTHING };
+			// A release whose file changed since it was first seen stays held here too, until the person releases the hold.
+			if (loadState(paths).changed[key] === t.tag) return { started: false, reason: MESSAGES.releaseChanged(t.tag) };
 			// A new run, not a retry of the one on the summary. Dismissing may start the check a switch changed in the run
 			// was waiting for; the pick waits for it instead of being refused, then reads the row it left.
 			if (run.phase === "summary") {
