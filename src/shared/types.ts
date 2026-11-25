@@ -156,6 +156,8 @@ export type ImportAsk = {
 	apps: { key: string; name: string; commands: string[] }[];
 	plain: number;
 	turnsOn: ImportSwitch[];
+	/** Set when the file shortens the wait before a new release is offered (a protection); lengthening it is not asked. */
+	waitDays?: { from: Settings["waitDays"]; to: Settings["waitDays"] };
 };
 
 /** A setting or extra an import would turn on that is off here: each one acts (writes a file, installs, shows a group). */

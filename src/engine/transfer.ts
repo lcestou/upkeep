@@ -174,13 +174,24 @@ function switchesOn(
 }
 
 /**
+ * The wait before a new release is offered, when the file would shorten it here (7 days to off, say): that drops a
+ * protection, so the import asks. A longer wait only holds releases back, and is not asked.
+ */
+function waitLowered(paths: Paths, settings: Record<string, unknown>): ImportAsk["waitDays"] {
+	const from = loadState(paths).settings.waitDays;
+	// SAFETY: clampSettings reads every field by its own checks; a wrong value takes its default.
+	const to = clampSettings({ ...loadState(paths).settings, ...(settings as Partial<Settings>) }).waitDays;
+	return to < from ? { from, to } : undefined;
+}
+
+/**
  * Replaces the setup with the one in an exported file's text, or changes nothing and names every problem. The file
  * is read whole before anything is written: it must be this format's version, and its app list must load with no
  * error, so a broken file never replaces a working list. A list with any app whose table runs commands (commandsOf)
  * is not written until the caller passes sure, after showing the person the ask; a file from someone else could
  * otherwise run anything at the next check. A setting or extra the file turns on that is off here (switchesOn) asks
  * the same way, so a file cannot quietly turn on Upkeep's own automatic update, the upkeep command, a login entry or
- * an extra. Automatic installs come in off, whatever the file says, for every app
+ * an extra; a file that shortens the release wait (waitLowered) asks too. Automatic installs come in off, whatever the file says, for every app
  * that is not on this machine's list with the same table (sameness), release kinds too: a release table's repo is
  * the file writer's choice, and with auto and install_if_missing it would install unseen. An app that matches the
  * local one keeps this machine's pick, never the file's, so no import can turn an automatic install on: importing
@@ -220,8 +231,12 @@ export function importSetup(
 	});
 	const settings = isRecord(doc.settings) ? doc.settings : {};
 	const turnsOn = switchesOn(paths, settings, isRecord(doc.extras) ? doc.extras : null);
-	if ((running.length > 0 || turnsOn.length > 0) && !sure)
-		return { ok: false, ask: { apps: running, plain: list.apps.length - running.length, turnsOn } };
+	const waitDays = waitLowered(paths, settings);
+	if ((running.length > 0 || turnsOn.length > 0 || waitDays) && !sure) {
+		const ask: ImportAsk = { apps: running, plain: list.apps.length - running.length, turnsOn };
+		if (waitDays) ask.waitDays = waitDays;
+		return { ok: false, ask };
+	}
 
 	const here = join(paths.config, "apps.toml");
 	const local = new Map((existsSync(here) ? loadManifest(here).apps : []).map((a) => [a.key, a] as const));

@@ -2956,3 +2956,7 @@ msgstr "{0}: un file di config non può contenere una parte .."
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "Nessun file è in attesa di importazione. Premi Importa e sceglilo di nuovo."
+
+#: src/mainview/lib/copy.ts
+msgid "It shortens the wait before a new release is offered:"
+msgstr "Accorcia l'attesa prima che venga proposta una nuova versione:"

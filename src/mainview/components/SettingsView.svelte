@@ -169,6 +169,9 @@
 		return names[k];
 	}
 
+	/** A release wait in Settings' own words: "Off", "3 days". */
+	const waitLabel = (d: number) => WAIT_DAYS.find((o) => o.v === d)?.label ?? String(d);
+
 	/** Focus lands on Cancel when the ask opens, so a stray Enter writes nothing. */
 	const focusFirst: Attachment<HTMLButtonElement> = (node) => {
 		node.focus();
@@ -342,6 +345,19 @@
 						<p id={importAsk.apps.length > 0 ? undefined : "import-ask"} data-testid="import-turns-on">{IMPORT.turnsOn}</p>
 						<ul class="switches">
 							{#each importAsk.turnsOn as k (k)}<li data-testid="import-switch">{switchName(k)}</li>{/each}
+						</ul>
+					{/if}
+					{#if importAsk.waitDays}
+						<p
+							id={importAsk.apps.length > 0 || importAsk.turnsOn.length > 0 ? undefined : "import-ask"}
+							data-testid="import-wait"
+						>
+							{IMPORT.waitShorter}
+						</p>
+						<ul class="switches">
+							<li data-testid="import-wait-change">
+								{waitLabel(importAsk.waitDays.from)} → {waitLabel(importAsk.waitDays.to)}
+							</li>
 						</ul>
 					{/if}
 					<p data-testid="import-auto-off">{IMPORT.autoOff}</p>

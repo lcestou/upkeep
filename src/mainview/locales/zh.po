@@ -2910,3 +2910,7 @@ msgstr "{0}：config 文件不能包含 .. 部分"
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "没有等待导入的文件。请按“导入”并重新选择。"
+
+#: src/mainview/lib/copy.ts
+msgid "It shortens the wait before a new release is offered:"
+msgstr "它会缩短提供新版本前的等待期："

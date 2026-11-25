@@ -93,3 +93,15 @@ test("a saved token GitHub refused at the last check says gh's sign-in stands in
 	await expect(page.getByTestId("token-kept")).toHaveText("A token ending in good is saved.");
 	await expect(page.getByTestId("token-fallback")).toHaveCount(0);
 });
+
+test("an import that takes the release wait off asks first, and names the change", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("tab-settings").click();
+	await page.getByTestId("setting-wait").selectOption("7");
+	await page.getByTestId("import-setup").click();
+	await expect(page.getByTestId("import-wait")).toHaveText("It shortens the wait before a new release is offered:");
+	await expect(page.getByTestId("import-wait-change")).toHaveText("7 days → Off");
+	await expect(page.getByTestId("setting-wait")).toHaveValue("7");
+	await page.getByTestId("import-confirm").click();
+	await expect(page.getByTestId("import-wait")).toHaveCount(0);
+});

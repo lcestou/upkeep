@@ -386,6 +386,9 @@ export const IMPORT = {
 	get turnsOn() {
 		return "It turns on these settings, which are off on this computer:";
 	},
+	get waitShorter() {
+		return "It shortens the wait before a new release is offered:";
+	},
 	get yes() {
 		return "Import";
 	},

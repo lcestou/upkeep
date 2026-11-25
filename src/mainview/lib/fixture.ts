@@ -1517,6 +1517,16 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 					},
 				};
 			}
+			// The default file's settings have no release wait: with one set here, Import asks before taking it off.
+			if (variant !== "built" && settings.waitDays > 0) {
+				if (!sure)
+					return {
+						ok: false,
+						ask: { apps: [], plain: apps.length, turnsOn: [], waitDays: { from: settings.waitDays, to: 0 } },
+					};
+				settings = { ...settings, waitDays: 0 };
+				settleRows(0);
+			}
 			emit({ type: "meta", rate, checkedAt, settings });
 			return variant === "built" ? { ok: true, apps: apps.length, autoOff: 1 } : { ok: true, apps: apps.length };
 		},

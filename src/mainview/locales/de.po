@@ -2933,3 +2933,7 @@ msgstr "{0}: eine config-Datei darf keinen ..-Teil enthalten"
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "Es wartet keine Datei auf den Import. Klicke auf Importieren und wähle sie erneut."
+
+#: src/mainview/lib/copy.ts
+msgid "It shortens the wait before a new release is offered:"
+msgstr "Es verkürzt die Wartezeit, bevor eine neue Version angeboten wird:"

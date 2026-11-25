@@ -2910,3 +2910,7 @@ msgstr "{0}：config ファイルに .. を含めることはできません"
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "読み込みを待っているファイルはありません。読み込みを押して、もう一度選んでください。"
+
+#: src/mainview/lib/copy.ts
+msgid "It shortens the wait before a new release is offered:"
+msgstr "新しいリリースを案内するまでの待機期間を短くします:"

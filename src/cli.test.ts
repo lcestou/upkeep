@@ -295,6 +295,28 @@ test("add adds only a single sure match; nothing found, or an app already listed
 	expect(listed).toHaveLength(2);
 });
 
+test("import of a file that takes the release wait off says so and needs --yes", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	updateState(t.paths, (s) => {
+		s.settings.waitDays = 7;
+	});
+	const file = join(t.dir, "upkeep.json");
+	await main(["export", file], d, () => {});
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	writeFileSync(file, JSON.stringify({ ...doc, settings: { ...doc.settings, waitDays: 1 } }));
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
+	expect(said).toContain(`${file} shortens the wait before a new release is offered: 7 days -> 1 day`);
+	expect(loadState(t.paths).settings.waitDays).toBe(7);
+	writeFileSync(file, JSON.stringify({ ...doc, settings: { ...doc.settings, waitDays: 0 } }));
+	const off: string[] = [];
+	expect(await main(["import", file], d, (l) => off.push(l))).toBe(1);
+	expect(off).toContain(`${file} shortens the wait before a new release is offered: 7 days -> Off`);
+	expect(await main(["import", file, "--yes"], d, () => {})).toBe(0);
+	expect(loadState(t.paths).settings.waitDays).toBe(0);
+});
+
 test("export and import carry the list, settings, skips, holds and auto picks, and keep the old files", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});

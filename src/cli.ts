@@ -378,7 +378,7 @@ const SWITCH_NAME = {
 
 /**
  * The ask as text: each app that runs commands with every command it runs, how many plain apps come with it, then
- * each setting the file turns on that is off here. A file that only turns settings on prints no app header.
+ * each setting the file turns on that is off here, and a release wait it shortens. A file that only turns settings on prints no app header.
  */
 function printAsk(file: string, ask: ImportAsk, out: Out): void {
 	if (ask.apps.length > 0) out(`${file} has apps that run these commands on this computer:`);
@@ -394,7 +394,14 @@ function printAsk(file: string, ask: ImportAsk, out: Out): void {
 		);
 	if (ask.turnsOn.length > 0) out(`${file} turns on these settings on this computer:`);
 	for (const k of ask.turnsOn) out(`  ${SWITCH_NAME[k]}`);
+	if (ask.waitDays)
+		out(
+			`${file} shortens the wait before a new release is offered: ${waitWords(ask.waitDays.from)} -> ${waitWords(ask.waitDays.to)}`,
+		);
 }
+
+/** A release wait as Settings words it, in English: "Off", "1 day", "3 days". */
+const waitWords = (d: number) => (d === 0 ? "Off" : d === 1 ? "1 day" : `${d} days`);
 
 /**
  * Replaces the setup from an export, holding the run lock so no install runs while the files change. A list with apps

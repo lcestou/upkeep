@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { readToken, writeToken } from "./store";
+import { loadState, readToken, updateState, writeToken } from "./store";
 import { tempHome } from "./testkit";
 import { commandsOf, exportSetup, importSetup } from "./transfer";
 
@@ -208,4 +208,27 @@ test("commandsOf lists the settings paths a restore would put back, so an import
 			keep_with_restore: ["~/.config/t", "~/.trc"],
 		}),
 	).toEqual(["source: o/t", "keep_with_restore: ~/.config/t", "keep_with_restore: ~/.trc"]);
+});
+
+test("an import that shortens the release wait asks first; one that lengthens it does not", () => {
+	const t = tempHome("transfer-wait");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		updateState(t.paths, (s) => {
+			s.settings.waitDays = 7;
+		});
+		const out = exportSetup(t.paths, seed, new Date());
+		const off = JSON.stringify({ ...out, settings: { ...out.settings, waitDays: 0 } });
+		const r = importSetup(t.paths, seed, off, new Date());
+		expect(r).toEqual({ ok: false, ask: { apps: [], plain: 0, turnsOn: [], waitDays: { from: 7, to: 0 } } });
+		expect(loadState(t.paths).settings.waitDays).toBe(7);
+		expect(importSetup(t.paths, seed, off, new Date(), true).ok).toBe(true);
+		expect(loadState(t.paths).settings.waitDays).toBe(0);
+		const longer = JSON.stringify({ ...out, settings: { ...out.settings, waitDays: 3 } });
+		expect(importSetup(t.paths, seed, longer, new Date()).ok).toBe(true);
+		expect(loadState(t.paths).settings.waitDays).toBe(3);
+	} finally {
+		t.cleanup();
+	}
 });
