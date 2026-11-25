@@ -89,6 +89,7 @@ import {
 } from "./store";
 import { launchDetached, restartApp, terminate } from "./restart";
 import { isNewer, isPrerelease } from "./version";
+import { notesSpan } from "./notes";
 
 export type EngineDeps = {
 	/** Ends a process tree during recovery. Default killTree; tests pass a recorder so no real pid is signalled. */
@@ -168,6 +169,11 @@ export type Engine = {
 	setPrerelease(key: string, prerelease: boolean): boolean;
 	/** The newest releases of an app whose releases can be listed, asked of its forge only now. */
 	versions(key: string): Promise<Requests["versions"]["response"]>;
+	/**
+	 * The notes of every release after the installed version up to the latest, asked of the forge only now (its etag
+	 * cache keeps a repeat cheap). Empty for an app with nothing newer or whose releases cannot be listed.
+	 */
+	releaseNotes(key: string): Promise<Requests["releaseNotes"]["response"]>;
 	/** Installs one release by its tag through the usual run; one older than the latest skips the latest once it is in. */
 	installVersion(key: string, tag: string): Promise<{ started: boolean; reason?: string }>;
 	/**
@@ -1488,6 +1494,17 @@ export function createEngine(deps: EngineDeps): Engine {
 						: [],
 				),
 			};
+		},
+		async releaseNotes(key) {
+			const spec = specOf(key);
+			const app = apps.get(key);
+			const none = { releases: [], breaking: [], older: 0, more: false };
+			if (!spec || !canList(spec)) return { ...none, problem: MESSAGES.noApp(key) };
+			if (!app?.installed || !app.latest || !isNewer(app.installed, app.latest)) return none;
+			token = await freshToken();
+			const list = await listReleases(spec, kindCtx(key));
+			if (isFailure(list)) return { ...none, problem: list.detail };
+			return notesSpan(list, app.installed, app.latest, app.prerelease === true);
 		},
 		async installVersion(key, tag) {
 			// A check under way is waited for, as one the summary's dismissal starts is below; one started meanwhile refuses.
