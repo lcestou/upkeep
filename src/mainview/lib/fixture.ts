@@ -1189,7 +1189,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (!app?.menu) return { ok: false };
 			if (app.menu === "elsewhere") return { ok: false, detail: app.menuDetail };
 			// Nothing is installed at a row with no version, so there is no AppImage to read the entry from.
-			if (menu && app.installed === null) return { ok: false, detail: MESSAGES.menuNoEntry(app.dest ?? "") };
+			if (menu && app.installed === null) return { ok: false, detail: MESSAGES.menuNotInstalled(app.dest ?? "") };
 			put({ ...app, menu: menu ? "on" : "off" });
 			return { ok: true };
 		},

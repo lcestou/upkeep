@@ -1,24 +1,25 @@
 /**
  * The app menu entry Upkeep may write for an AppImage it manages, when the person turns it on for that row. The entry
  * and its icon come from the AppImage's own files, read with the runtime's --appimage-extract into a temp folder;
- * the AppImage is never started any other way. Upkeep records the files it wrote and deletes exactly those.
+ * the AppImage is never started any other way, and only a type-2 AppImage is asked. Upkeep records the files it
+ * wrote and deletes exactly those.
  */
 import {
-	closeSync,
 	existsSync,
 	lstatSync,
 	mkdirSync,
 	mkdtempSync,
-	openSync,
 	readdirSync,
 	readFileSync,
-	readSync,
 	readlinkSync,
+	realpathSync,
 	rmSync,
+	statSync,
 	writeFileSync,
 } from "node:fs";
-import { basename, dirname, extname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { MESSAGES } from "../shared/messages";
+import { head, isAppImage } from "./discover";
 import type { Paths } from "./paths";
 import type { Run } from "./run";
 
@@ -28,90 +29,126 @@ export const appsDir = (paths: Paths) => join(dirname(paths.data), "applications
 /** The file name Upkeep gives an app's entry, so it never takes the name of an entry another tool wrote. */
 const entryName = (key: string) => `upkeep-${key}.desktop`;
 
-/** The sizes hicolor's index.theme lists; a PNG of another size goes to pixmaps, which the Icon= path still reaches. */
-const HICOLOR = new Set([16, 22, 24, 32, 48, 64, 96, 128, 192, 256, 512]);
+/** Every file Upkeep writes for a menu entry starts with this, which is how a leftover one is told from another tool's. */
+const OWN = "upkeep-";
 
 /**
- * The program an Exec= line starts, unquoted as the desktop entry spec says: a quoted first word keeps its spaces and
- * its backslash escapes are undone. Wrong for an Exec that starts with env VAR=x, which names env, not the app.
+ * Undoes the desktop entry spec's string escapes (\s \n \t \r \\), which apply before Exec's own quoting. An unknown
+ * escape keeps its character.
  */
-export function execProgram(exec: string): string {
-	const s = exec.trim();
-	if (!s.startsWith('"')) return s.split(/\s+/)[0] ?? "";
-	let out = "";
-	for (let i = 1; i < s.length; i++) {
-		const c = s[i];
-		if (c === "\\" && i + 1 < s.length) out += s[++i];
-		else if (c === '"') break;
-		else out += c;
+function unescapeValue(v: string): string {
+	return v.replace(/\\(.)/g, (_, c: string) => ({ s: " ", n: "\n", t: "\t", r: "\r" })[c] ?? c);
+}
+
+/** The string layer for a value written back: only the backslash needs it in an Exec line. */
+const escapeValue = (v: string) => v.replaceAll("\\", "\\\\");
+
+type Word = { text: string; start: number; end: number };
+
+/**
+ * The words of an Exec value whose string escapes are already undone, by the spec's quoting rule: a quoted word keeps
+ * its spaces and its backslash escapes are undone. An unclosed quote runs to the end.
+ */
+function words(exec: string): Word[] {
+	const out: Word[] = [];
+	let i = 0;
+	while (i < exec.length) {
+		if (/\s/.test(exec[i] ?? "")) {
+			i++;
+			continue;
+		}
+		const start = i;
+		let text = "";
+		if (exec[i] === '"') {
+			i++;
+			while (i < exec.length && exec[i] !== '"') {
+				if (exec[i] === "\\" && i + 1 < exec.length) i++;
+				text += exec[i++];
+			}
+			i++;
+		} else {
+			while (i < exec.length && !/\s/.test(exec[i] ?? "")) text += exec[i++];
+		}
+		out.push({ text, start, end: Math.min(i, exec.length) });
 	}
 	return out;
 }
 
-/** The rest of an Exec= line after its program, with its leading space, so %U and the app's own flags stay. */
-function execArgs(exec: string): string {
-	const s = exec.trim();
-	if (!s.startsWith('"')) return s.replace(/^\S+/, "");
-	for (let i = 1; i < s.length; i++) {
-		if (s[i] === "\\") i++;
-		else if (s[i] === '"') return s.slice(i + 1);
-	}
-	return "";
+/**
+ * Which word starts the program: the first, or after `env` the first that is neither a VAR=value nor a flag. Wrong for
+ * an env flag that takes its own argument (-u NAME), which reads NAME as the program.
+ */
+function programAt(ws: Word[]): number {
+	if (ws[0]?.text !== "env" && !ws[0]?.text.endsWith("/env")) return 0;
+	let i = 1;
+	while (ws[i] && (/^[A-Za-z_][A-Za-z0-9_]*=/.test(ws[i]?.text ?? "") || ws[i]?.text.startsWith("-"))) i++;
+	return i;
 }
 
-/** A path as an Exec= program: always quoted, with the spec's four escapes and % doubled so it is never a field code. */
-export const quoteExec = (path: string) => `"${path.replace(/[\\"`$]/g, (c) => `\\${c}`).replaceAll("%", "%%")}"`;
+/** The program an Exec= value starts, past an env prefix, with both escape layers undone. */
+export function execProgram(exec: string): string {
+	const ws = words(unescapeValue(exec.trim()));
+	return ws[programAt(ws)]?.text ?? "";
+}
+
+/** A path as an Exec= word inside the quotes: the spec's four escapes, % doubled so it is never a field code. */
+const quoteWord = (path: string) => `"${path.replace(/[\\"`$]/g, (c) => `\\${c}`).replaceAll("%", "%%")}"`;
+
+/** A path as an Exec= program, as written in the file: quoted, then string-escaped. */
+export const quoteExec = (path: string) => escapeValue(quoteWord(path));
+
+/** The Exec= value with its program replaced by dest; an env prefix and every argument (%U, flags) stay. */
+function rewriteExec(exec: string, dest: string): string {
+	const value = unescapeValue(exec.trim());
+	const ws = words(value);
+	const w = ws[programAt(ws)];
+	// No program after an env prefix (or no value at all): dest goes at the end.
+	if (!w) return escapeValue(`${value}${value ? " " : ""}${quoteWord(dest)}`);
+	return escapeValue(`${value.slice(0, w.start)}${quoteWord(dest)}${value.slice(w.end)}`);
+}
 
 /**
  * The AppImage's entry, made Upkeep's: every Exec= (the main one and each action's) starts dest with the arguments it
- * had, TryExec= goes (it names AppRun, which is not on PATH, and would hide the entry), and Icon= is the written icon's
- * path, or the AppImage's own name when there is no icon file.
+ * had; TryExec= goes (it names AppRun, which is not on PATH, and would hide the entry) and so does DBusActivatable=
+ * (the desktop would start it over D-Bus, where no service file exists); the main group's Icon= is the written icon's
+ * path when there is one. CRLF lines come back as LF.
  */
 export function rewriteEntry(text: string, dest: string, icon: string | null): string {
-	const lines = text.split("\n").flatMap((line) => {
-		if (/^TryExec\s*=/.test(line)) return [];
+	let group = "";
+	const lines = text.split(/\r?\n/).flatMap((line) => {
+		if (line.startsWith("[")) group = line.trim();
+		if (/^(TryExec|DBusActivatable)\s*=/.test(line)) return [];
 		const exec = /^Exec\s*=(.*)$/.exec(line);
-		if (exec) return [`Exec=${quoteExec(dest)}${execArgs(exec[1] ?? "")}`];
-		if (icon && /^Icon\s*=/.test(line)) return [`Icon=${icon}`];
+		if (exec) return [`Exec=${rewriteExec(exec[1] ?? "", dest)}`];
+		if (icon && group === "[Desktop Entry]" && /^Icon\s*=/.test(line)) return [`Icon=${icon}`];
 		return [line];
 	});
 	return lines.join("\n").replace(/\n*$/, "\n");
 }
 
-/** The Icon= name of the [Desktop Entry] group, or null. */
-function iconName(text: string): string | null {
-	return /^Icon\s*=\s*(.+?)\s*$/m.exec(text)?.[1] ?? null;
-}
-
-/** A PNG's width and height from its IHDR, or null for a file that is not a PNG. */
-function pngSize(file: string): { w: number; h: number } | null {
-	const b = Buffer.alloc(24);
-	const fd = openSync(file, "r");
-	try {
-		readSync(fd, b, 0, 24, 0);
-	} finally {
-		closeSync(fd);
+/** A key's value in the [Desktop Entry] group, trimmed, or null. Another group's key of the same name is not read. */
+function mainValue(text: string, key: string): string | null {
+	let main = false;
+	for (const line of text.split(/\r?\n/)) {
+		if (line.startsWith("[")) main = line.trim() === "[Desktop Entry]";
+		else if (main) {
+			const m = new RegExp(`^${key}\\s*=\\s*(.*?)\\s*$`).exec(line);
+			if (m) return m[1] ?? "";
+		}
 	}
-	if (b.toString("latin1", 1, 4) !== "PNG") return null;
-	return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+	return null;
 }
 
-/**
- * Where the icon goes under $XDG_DATA_HOME: an SVG in hicolor/scalable, a PNG of a listed square size in
- * hicolor/<n>x<n>, any other PNG in pixmaps. Null for anything that is neither.
- */
-function iconPath(paths: Paths, key: string, file: string): string | null {
-	const share = dirname(paths.data);
-	const ext = extname(file).toLowerCase();
-	if (ext === ".svg") return join(share, "icons/hicolor/scalable/apps", `upkeep-${key}.svg`);
-	const size = pngSize(file);
-	if (!size) return null;
-	if (size.w === size.h && HICOLOR.has(size.w))
-		return join(share, `icons/hicolor/${size.w}x${size.w}/apps`, `upkeep-${key}.png`);
-	return join(share, "pixmaps", `upkeep-${key}.png`);
+/** The icon's extension by its first bytes: .png, .svg, or null for anything else. */
+function iconExt(file: string): ".png" | ".svg" | null {
+	const b = head(file, 256);
+	if (!b) return null;
+	if (b.subarray(1, 4).toString("latin1") === "PNG") return ".png";
+	const start = b.toString("utf8").trimStart();
+	return start.startsWith("<svg") || start.startsWith("<?xml") ? ".svg" : null;
 }
 
-/** A regular file inside root, following at most one symlink that stays inside it (.DirIcon is often a link). */
+/** A regular file inside root, following at most one symlink that stays inside it. */
 function insideFile(root: string, p: string): string | null {
 	try {
 		let file = p;
@@ -134,47 +171,80 @@ async function extract(dest: string, pattern: string, root: string, run: Run): P
 }
 
 /**
+ * A top-level file of the image as a regular file in the temp folder. A link (linuxdeploy's `App.desktop ->
+ * usr/share/applications/App.desktop`) has its target extracted too; a target outside the image is refused.
+ */
+async function pull(dest: string, tmp: string, name: string, run: Run): Promise<string | null> {
+	const p = join(tmp, "squashfs-root", name);
+	const st = lstatSync(p, { throwIfNoEntry: false });
+	if (!st) return null;
+	if (st.isSymbolicLink()) {
+		const target = readlinkSync(p);
+		if (!target.startsWith("/")) await extract(dest, target, tmp, run);
+	}
+	return insideFile(join(tmp, "squashfs-root"), p);
+}
+
+/** Temp folders a crash or kill left, older than an hour, so a write under way in another call is never touched. */
+function sweep(cache: string): void {
+	try {
+		for (const n of readdirSync(cache))
+			if (n.startsWith("menu-") && Date.now() - statSync(join(cache, n)).mtimeMs > 3_600_000)
+				rmSync(join(cache, n), { recursive: true, force: true });
+	} catch {
+		// no cache folder yet
+	}
+}
+
+/**
  * Writes the app's menu entry and icon from the AppImage at dest and returns every file written, or the sentence for
- * why not. It does not look for another tool's entry first; the caller does (foreignEntry). Its icon search covers the
- * top level of the image only, where the AppImage format puts it.
+ * why not: nothing at dest, not a type-2 AppImage, no entry inside, or an entry that asks to stay out of the menu
+ * (NoDisplay, Hidden, X-AppImage-Integrate=false). It does not look for another tool's entry first; the caller does.
+ * Its search covers the top level of the image, where the AppImage format puts the entry and the icon.
  */
 export async function writeMenu(
 	key: string,
 	dest: string,
 	ctx: MenuCtx,
 ): Promise<{ files: string[] } | { problem: string }> {
+	if (!existsSync(dest)) return { problem: MESSAGES.menuNotInstalled(dest) };
+	// Only the type-2 runtime answers --appimage-extract; anything else would start the app itself.
+	if (!isAppImage(head(dest, 16))) return { problem: MESSAGES.menuNoEntry(dest) };
 	const cache = ctx.paths.cache;
 	mkdirSync(cache, { recursive: true });
+	sweep(cache);
 	const tmp = mkdtempSync(join(cache, "menu-"));
 	try {
 		const root = join(tmp, "squashfs-root");
 		await extract(dest, "*.desktop", tmp, ctx.run);
-		const desktop = existsSync(root)
-			? readdirSync(root)
-					.filter((n) => n.endsWith(".desktop"))
-					.map((n) => insideFile(root, join(root, n)))
-					.find((f) => f !== null)
-			: undefined;
+		const names = existsSync(root) ? readdirSync(root).filter((n) => n.endsWith(".desktop")) : [];
+		let desktop: string | null = null;
+		for (const n of names) {
+			// oxlint-disable-next-line no-await-in-loop -- the first entry that reads is the one, in order
+			desktop = await pull(dest, tmp, n, ctx.run);
+			if (desktop) break;
+		}
 		if (!desktop) return { problem: MESSAGES.menuNoEntry(dest) };
 		const text = readFileSync(desktop, "utf8");
-		const name = iconName(text);
+		const hidden = (k: string, v: string) => mainValue(text, k)?.toLowerCase() === v;
+		if (hidden("NoDisplay", "true") || hidden("Hidden", "true") || hidden("X-AppImage-Integrate", "false"))
+			return { problem: MESSAGES.menuStaysOut(dest) };
+		const name = mainValue(text, "Icon");
 		// The icon named by Icon= at the top level, else .DirIcon, which the format requires.
 		let icon: string | null = null;
 		if (name && !name.includes("/")) {
 			await extract(dest, `${name}.*`, tmp, ctx.run);
 			const hit = readdirSync(root).find((n) => n === `${name}.png` || n === `${name}.svg`);
-			icon = hit ? insideFile(root, join(root, hit)) : null;
+			icon = hit ? await pull(dest, tmp, hit, ctx.run) : null;
 		}
 		if (!icon) {
 			await extract(dest, ".DirIcon", tmp, ctx.run);
-			const link = join(root, ".DirIcon");
-			const st = lstatSync(link, { throwIfNoEntry: false });
-			// A .DirIcon that links to a file needs that file extracted too.
-			if (st?.isSymbolicLink()) await extract(dest, readlinkSync(link), tmp, ctx.run);
-			if (st) icon = insideFile(root, link);
+			icon = await pull(dest, tmp, ".DirIcon", ctx.run);
 		}
 		const files: string[] = [];
-		const iconDest = icon ? iconPath(ctx.paths, key, icon) : null;
+		const ext = icon ? iconExt(icon) : null;
+		// Icon= names the file by its full path, so it shows whatever its size, with no icon theme cache to update.
+		const iconDest = ext ? join(dirname(ctx.paths.data), "icons", `${OWN}${key}${ext}`) : null;
 		if (icon && iconDest) {
 			mkdirSync(dirname(iconDest), { recursive: true });
 			writeFileSync(iconDest, readFileSync(icon));
@@ -193,17 +263,22 @@ export async function writeMenu(
 
 /**
  * Deletes the files given, each only when it is a regular file named upkeep-* under $XDG_DATA_HOME, so a hand edit of
- * state.json cannot point it anywhere else; then refreshes the menu's database.
+ * state.json cannot point it anywhere else. Synchronous and quiet, for Uninstall Upkeep too.
  */
-export async function removeMenu(files: string[], ctx: MenuCtx): Promise<void> {
-	const share = `${resolve(dirname(ctx.paths.data))}/`;
+export function removeMenuFiles(files: string[], paths: Paths): void {
+	const share = `${resolve(dirname(paths.data))}/`;
 	for (const f of files)
 		if (
 			resolve(f).startsWith(share) &&
-			basename(f).startsWith("upkeep-") &&
+			basename(f).startsWith(OWN) &&
 			lstatSync(f, { throwIfNoEntry: false })?.isFile()
 		)
 			rmSync(f, { force: true });
+}
+
+/** removeMenuFiles, then the menu's database refreshed. */
+export async function removeMenu(files: string[], ctx: MenuCtx): Promise<void> {
+	removeMenuFiles(files, ctx.paths);
 	await refreshDatabase(ctx);
 }
 
@@ -212,30 +287,40 @@ async function refreshDatabase(ctx: MenuCtx): Promise<void> {
 	await ctx.run(["update-desktop-database", appsDir(ctx.paths)], { timeoutMs: 30_000 });
 }
 
+/** A path with its links resolved, or as given when it does not exist. */
+function real(p: string): string {
+	try {
+		return realpathSync(p);
+	} catch {
+		return resolve(p);
+	}
+}
+
 /**
- * Another tool's entry for the same AppImage (AppImageLauncher, Gear Lever, the app's own prompt): a .desktop in the
- * person's applications folder whose Exec= starts dest. Upkeep's own files are skipped. Null when there is none.
+ * Every other tool's entry in the person's applications folder, by the real path of the program its Exec= starts
+ * (AppImageLauncher, Gear Lever, an app's own prompt). Upkeep's own upkeep-* files are left out, a leftover one
+ * included, since writing the entry takes that name again. A bare program name is looked up on PATH, so it is skipped.
  */
-export function foreignEntry(paths: Paths, dest: string, own: string[]): string | null {
+export function entryOwners(paths: Paths): Map<string, string> {
+	const out = new Map<string, string>();
 	const dir = appsDir(paths);
 	let names: string[];
 	try {
-		names = readdirSync(dir).filter((n) => n.endsWith(".desktop"));
+		names = readdirSync(dir).filter((n) => n.endsWith(".desktop") && !n.startsWith(OWN));
 	} catch {
-		return null;
+		return out;
 	}
-	const want = resolve(dest);
 	for (const n of names) {
-		const file = join(dir, n);
-		if (own.includes(file)) continue;
 		try {
-			const exec = /^Exec\s*=(.*)$/m.exec(readFileSync(file, "utf8"))?.[1];
+			const exec = mainValue(readFileSync(join(dir, n), "utf8"), "Exec");
 			const program = exec ? execProgram(exec) : "";
-			// A bare name is looked up on PATH, so it is never this file.
-			if (program.startsWith("/") && resolve(program) === want) return file;
+			if (program.startsWith("/") && !out.has(real(program))) out.set(real(program), join(dir, n));
 		} catch {
 			// an unreadable entry is not this app's
 		}
 	}
-	return null;
+	return out;
 }
+
+/** The other tool's entry for dest among owners, matched through links on either side, or null. */
+export const foreignEntry = (owners: Map<string, string>, dest: string) => owners.get(real(dest)) ?? null;

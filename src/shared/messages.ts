@@ -433,6 +433,11 @@ export const MESSAGES = {
 	metaNoVersion: (v0: Value) => `${v0} names no version.`,
 	/** menu.ts. {0} the AppImage's path */
 	menuNoEntry: (v0: Value) => `Could not read a menu entry from ${v0}.`,
+	/** menu.ts. {0} the AppImage's path */
+	menuNotInstalled: (v0: Value) =>
+		`Nothing is installed at ${v0} yet, so there is no menu entry to read. Install it first.`,
+	/** menu.ts. {0} the AppImage's path */
+	menuStaysOut: (v0: Value) => `The AppImage at ${v0} asks to stay out of the app menu, so Upkeep adds no entry.`,
 	/** engine.ts. {0} path of the other tool's .desktop file */
 	menuElsewhere: (v0: Value) => `Already in the app menu through ${v0}, so Upkeep adds no second entry.`,
 	/** restart.ts */

@@ -47,7 +47,7 @@ import { recoverTree, restoreBuilt } from "./kinds/built";
 import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
-import { foreignEntry, removeMenu, writeMenu } from "./menu";
+import { entryOwners, foreignEntry, removeMenu, writeMenu } from "./menu";
 import { expandHome, type Paths } from "./paths";
 import { killTree, type Run, type RunOpts } from "./run";
 import { earliestStart, isRunning } from "./running";
@@ -425,6 +425,8 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	// What else keeps each app up to date, worked out once per check from the system's Flatpak and Snap lists.
 	let alsoNotes = new Map<string, string[]>();
+	// Other tools' menu entries by the program they start, read once per check rather than once per row.
+	let owners = new Map<string, string>();
 
 	function buildApp(spec: AppSpec, c: Checked, history: HistoryRow[]): AppState {
 		const state = loadState(paths);
@@ -482,7 +484,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	function menuOf(spec: AppSpec, menu: Record<string, string[]>): Pick<AppState, "menu" | "menuDetail"> {
 		if (spec.kind !== "appimage") return {};
 		if (menu[spec.key]) return { menu: "on" };
-		const other = foreignEntry(paths, destOf(spec, { paths }), []);
+		const other = foreignEntry(owners, destOf(spec, { paths }));
 		return other ? { menu: "elsewhere", menuDetail: MESSAGES.menuElsewhere(other) } : { menu: "off" };
 	}
 
@@ -555,6 +557,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const all = loadSpecs();
 		// The notes are a nicety: a list that cannot be read leaves them out and never stops the check.
 		const copies = await readCopies({ run: deps.run }).catch(() => ({ flatpaks: [], snaps: [] }));
+		owners = entryOwners(paths);
 		alsoNotes = new Map(
 			all.map((s) => [s.key, alsoOf(s, all, copies, paths.home)] as const).filter(([, a]) => a.length > 0),
 		);
@@ -1104,7 +1107,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			let files: string[] | null = null;
 			if (menu) {
 				const dest = destOf(spec, { paths });
-				const other = foreignEntry(paths, dest, had);
+				owners = entryOwners(paths);
+				const other = foreignEntry(owners, dest);
 				if (other) return { ok: false, detail: MESSAGES.menuElsewhere(other) };
 				const r = await writeMenu(key, dest, ctx);
 				if ("problem" in r) return { ok: false, detail: r.problem };

@@ -1,70 +1,93 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
-import { appsDir, execProgram, foreignEntry, quoteExec, removeMenu, rewriteEntry, writeMenu } from "./menu";
+import {
+	appsDir,
+	entryOwners,
+	execProgram,
+	foreignEntry,
+	quoteExec,
+	removeMenu,
+	removeMenuFiles,
+	rewriteEntry,
+	writeMenu,
+} from "./menu";
 import { recordingRun, script, tempHome } from "./testkit";
+import { createRunner } from "./run";
 
 let t: ReturnType<typeof tempHome>;
+let images: Map<string, string>;
 beforeEach(() => {
 	t = tempHome("menu");
+	images = new Map();
 });
 afterEach(() => t.cleanup());
 
-/** A PNG header of the given size: enough for the IHDR read, not a picture. */
-function png(w: number, h: number): Buffer {
-	const b = Buffer.alloc(33);
-	b.write("\x89PNG\r\n\x1a\n", 0, "latin1");
-	b.writeUInt32BE(13, 8);
-	b.write("IHDR", 12, "latin1");
-	b.writeUInt32BE(w, 16);
-	b.writeUInt32BE(h, 20);
-	return b;
-}
+/** The first bytes of a type-2 AppImage: the ELF magic, then AI\x02 at byte 8. */
+const MAGIC = "\x7fELF\x02\x01\x01\x00AI\x02\x00\x00\x00\x00\x00";
 
 /**
- * A fake AppImage at dest whose --appimage-extract copies the top-level payload names that match its pattern into
- * ./squashfs-root, keeping symlinks, as the type-2 runtime does. Any other argument exits 1.
+ * A fake AppImage at dest: a file with the type-2 magic, whose --appimage-extract (answered by a script the runner
+ * starts in its place) copies the payload paths that match into ./squashfs-root, keeping symlinks. A pattern with a
+ * glob matches top-level names only; a path inside the image must be named exactly.
  */
 function fakeImage(dest: string, payload: Record<string, string | Buffer | { link: string }>): string {
-	const dir = join(t.dir, "payload");
-	mkdirSync(dir, { recursive: true });
+	const dir = join(t.dir, `payload-${images.size}`);
 	for (const [name, body] of Object.entries(payload)) {
+		mkdirSync(dirname(join(dir, name)), { recursive: true });
 		if (typeof body === "object" && "link" in body) symlinkSync(body.link, join(dir, name));
 		else writeFileSync(join(dir, name), body);
 	}
-	return script(
+	mkdirSync(dirname(dest), { recursive: true });
+	writeFileSync(dest, MAGIC, "latin1");
+	images.set(
 		dest,
-		`[ "$1" = --appimage-extract ] || exit 1
-mkdir -p squashfs-root
-shopt -s dotglob nullglob
-for f in "${dir}"/*; do n=$(basename "$f"); case "$n" in $2) cp -P "$f" squashfs-root/;; esac; done`,
+		script(
+			join(t.dir, `extract-${images.size}.sh`),
+			`[ "$1" = --appimage-extract ] || exit 1
+cd "${dir}" && find . -mindepth 1 \\( -type f -o -type l \\) | sed 's|^\\./||' | while read -r rel; do
+  case "$rel" in */*) [ "$rel" = "$2" ] || continue;; *) case "$rel" in $2) ;; *) continue;; esac;; esac
+  mkdir -p "$OLDPWD/squashfs-root/$(dirname "$rel")"; cp -P "$rel" "$OLDPWD/squashfs-root/$rel"
+done`,
+		),
 	);
+	return dest;
 }
 
 const DESKTOP =
-	"[Desktop Entry]\nName=Zed\nExec=AppRun --foreground %U\nTryExec=AppRun\nIcon=zed\nType=Application\n\n[Desktop Action New]\nExec=AppRun --new\n";
+	"[Desktop Entry]\nName=Zed\nExec=AppRun --foreground %U\nTryExec=AppRun\nDBusActivatable=true\nIcon=zed\nType=Application\n\n[Desktop Action New]\nExec=AppRun --new\nIcon=zed-new\n";
 
+/** A recording runner that starts each fake image's script in its place and has no update-desktop-database. */
 function ctx() {
-	const r = recordingRun(t.paths, (argv) =>
-		argv[0] === "update-desktop-database" ? { code: 127, stdout: "", stderr: "", timedOut: false } : undefined,
-	);
+	// Its own capture folder: two runners counting from 0 in one folder would share output files.
+	const real = createRunner(t.paths.home, join(t.dir, "fake-tmp"), "/usr/bin:/bin");
+	const r = recordingRun(t.paths, (argv, opts) => {
+		if (argv[0] === "update-desktop-database") return { code: 127, stdout: "", stderr: "", timedOut: false };
+		const fake = images.get(argv[0] ?? "");
+		return fake ? real(["bash", fake, ...argv.slice(1)], opts) : undefined;
+	});
 	return { calls: r.calls, ctx: { paths: t.paths, run: r.run } };
 }
 
-test("writeMenu: the entry starts the AppImage with its own arguments and an SVG icon goes to hicolor/scalable", async () => {
+const share = () => join(t.dir, "data");
+
+test("writeMenu: the entry starts the AppImage with its own arguments, and the icon is named by its path", async () => {
 	const dest = fakeImage(join(t.paths.home, "Apps/Zed 1%.AppImage"), { "zed.desktop": DESKTOP, "zed.svg": "<svg/>" });
 	const { calls, ctx: c } = ctx();
 	const r = await writeMenu("zed", dest, c);
-	const share = join(t.dir, "data");
-	const icon = join(share, "icons/hicolor/scalable/apps/upkeep-zed.svg");
-	const entry = join(share, "applications/upkeep-zed.desktop");
+	const icon = join(share(), "icons/upkeep-zed.svg");
+	const entry = join(share(), "applications/upkeep-zed.desktop");
 	expect(r).toEqual({ files: [icon, entry] });
 	const text = readFileSync(entry, "utf8");
-	expect(text).toContain(`Exec="${dest.replace("%", "%%")}" --foreground %U`);
-	expect(text).toContain(`Exec="${dest.replace("%", "%%")}" --new`);
+	const quoted = `"${dest.replace("%", "%%")}"`;
+	expect(text).toContain(`Exec=${quoted} --foreground %U`);
+	expect(text).toContain(`Exec=${quoted} --new`);
 	expect(text).toContain(`Icon=${icon}`);
+	// An action's own icon stays.
+	expect(text).toContain("Icon=zed-new");
 	expect(text).not.toContain("TryExec");
+	expect(text).not.toContain("DBusActivatable");
 	expect(readFileSync(icon, "utf8")).toBe("<svg/>");
 	// The AppImage is only ever asked to extract, and the menu's database is refreshed on the person's folder.
 	const toImage = calls.filter((x) => x.argv[0] === dest).map((x) => x.argv.slice(1));
@@ -73,26 +96,29 @@ test("writeMenu: the entry starts the AppImage with its own arguments and an SVG
 		["--appimage-extract", "zed.*"],
 	]);
 	expect(calls.at(-1)?.argv).toEqual(["update-desktop-database", appsDir(t.paths)]);
-	// The temp folder is gone.
 	expect(readdirSync(t.paths.cache).filter((n) => n.startsWith("menu-"))).toEqual([]);
 });
 
-test("writeMenu: a .DirIcon link is followed, a listed PNG size goes to hicolor and any other to pixmaps", async () => {
-	const share = join(t.dir, "data");
+test("writeMenu: a linked entry and icon are followed into the image, and a .DirIcon PNG or SVG is kept", async () => {
 	const dest = fakeImage(join(t.paths.home, "a.AppImage"), {
-		"a.desktop": "[Desktop Entry]\nExec=a\nIcon=missing\n",
-		".DirIcon": { link: "a.png" },
-		"a.png": png(256, 256),
+		"CC Switch.desktop": { link: "usr/share/applications/CC Switch.desktop" },
+		"usr/share/applications/CC Switch.desktop": "[Desktop Entry]\r\nExec=env A=1 AppRun %U\r\nIcon=a\r\n",
+		"a.png": { link: "usr/share/icons/a.png" },
+		"usr/share/icons/a.png": Buffer.from("\x89PNG\r\n\x1a\n", "latin1"),
 	});
-	expect(await writeMenu("a", dest, ctx().ctx)).toEqual({
-		files: [join(share, "icons/hicolor/256x256/apps/upkeep-a.png"), join(share, "applications/upkeep-a.desktop")],
+	const r = await writeMenu("a", dest, ctx().ctx);
+	const entry = join(share(), "applications/upkeep-a.desktop");
+	expect(r).toEqual({ files: [join(share(), "icons/upkeep-a.png"), entry] });
+	expect(readFileSync(entry, "utf8")).toBe(
+		`[Desktop Entry]\nExec=env A=1 "${dest}" %U\nIcon=${join(share(), "icons/upkeep-a.png")}\n`,
+	);
+	const svg = fakeImage(join(t.paths.home, "b.AppImage"), {
+		"b.desktop": "[Desktop Entry]\nExec=b\n",
+		".DirIcon": '<?xml version="1.0"?><svg/>',
 	});
-	const odd = fakeImage(join(t.paths.home, "b.AppImage"), {
-		"a.desktop": "[Desktop Entry]\nExec=b\nIcon=b\n",
-		"b.png": png(300, 200),
+	expect(await writeMenu("b", svg, ctx().ctx)).toEqual({
+		files: [join(share(), "icons/upkeep-b.svg"), join(share(), "applications/upkeep-b.desktop")],
 	});
-	const r = await writeMenu("b", odd, ctx().ctx);
-	expect(r).toEqual({ files: [join(share, "pixmaps/upkeep-b.png"), join(share, "applications/upkeep-b.desktop")] });
 });
 
 test("writeMenu: an icon link that leaves the image is not followed, and the entry is still written", async () => {
@@ -101,57 +127,96 @@ test("writeMenu: an icon link that leaves the image is not followed, and the ent
 		".DirIcon": { link: "/etc/hostname" },
 	});
 	const r = await writeMenu("c", dest, ctx().ctx);
-	expect(r).toEqual({ files: [join(t.dir, "data/applications/upkeep-c.desktop")] });
-	expect(readFileSync(join(t.dir, "data/applications/upkeep-c.desktop"), "utf8")).toBe(
+	expect(r).toEqual({ files: [join(share(), "applications/upkeep-c.desktop")] });
+	expect(readFileSync(join(share(), "applications/upkeep-c.desktop"), "utf8")).toBe(
 		`[Desktop Entry]\nExec="${dest}"\n`,
 	);
 });
 
-test("writeMenu: an AppImage with no entry, or one that is not there, writes nothing", async () => {
+test("writeMenu: nothing installed, not a type-2 AppImage, no entry inside, or an entry that stays out: nothing written", async () => {
+	const gone = join(t.paths.home, "nothing.AppImage");
+	expect(await writeMenu("e", gone, ctx().ctx)).toEqual({ problem: MESSAGES.menuNotInstalled(gone) });
+	// A script named .AppImage is never run.
+	const plain = script(join(t.paths.home, "plain.AppImage"), `touch "${join(t.dir, "ran")}"`);
+	const { calls, ctx: c } = ctx();
+	expect(await writeMenu("p", plain, c)).toEqual({ problem: MESSAGES.menuNoEntry(plain) });
+	expect(calls).toEqual([]);
 	const dest = fakeImage(join(t.paths.home, "d.AppImage"), { "d.svg": "<svg/>" });
 	expect(await writeMenu("d", dest, ctx().ctx)).toEqual({ problem: MESSAGES.menuNoEntry(dest) });
-	const gone = join(t.paths.home, "nothing.AppImage");
-	expect(await writeMenu("e", gone, ctx().ctx)).toEqual({ problem: MESSAGES.menuNoEntry(gone) });
-	expect(existsSync(appsDir(t.paths))).toBe(false);
+	for (const [i, line] of ["NoDisplay=true", "Hidden=true", "X-AppImage-Integrate=false"].entries()) {
+		const img = fakeImage(join(t.paths.home, `h${i}.AppImage`), { "h.desktop": `[Desktop Entry]\nExec=h\n${line}\n` });
+		// oxlint-disable-next-line no-await-in-loop -- each image is its own case
+		expect(await writeMenu(`h${i}`, img, ctx().ctx)).toEqual({ problem: MESSAGES.menuStaysOut(img) });
+	}
+	// An action's NoDisplay is not the entry's.
+	const shown = fakeImage(join(t.paths.home, "s.AppImage"), {
+		"s.desktop": "[Desktop Entry]\nExec=s\n[Desktop Action x]\nNoDisplay=true\n",
+	});
+	expect(await writeMenu("s", shown, ctx().ctx)).toHaveProperty("files");
+	expect(existsSync(join(t.dir, "ran"))).toBe(false);
 });
 
-test("foreignEntry: finds another tool's entry for the same file, skipping Upkeep's own and bare names", () => {
+test("writeMenu sweeps temp folders an interrupted write left, only when they are old", async () => {
+	const old = join(t.paths.cache, "menu-old");
+	const fresh = join(t.paths.cache, "menu-fresh");
+	mkdirSync(old, { recursive: true });
+	mkdirSync(fresh);
+	utimesSync(old, new Date(0), new Date(0));
+	const dest = fakeImage(join(t.paths.home, "z.AppImage"), { "z.desktop": "[Desktop Entry]\nExec=z\n" });
+	await writeMenu("z", dest, ctx().ctx);
+	expect(readdirSync(t.paths.cache).filter((n) => n.startsWith("menu-"))).toEqual(["menu-fresh"]);
+});
+
+test("entryOwners and foreignEntry: another tool's entry is found through links and env, Upkeep's own never", () => {
 	const dir = appsDir(t.paths);
-	const dest = join(t.paths.home, "Applications/My App.AppImage");
-	expect(foreignEntry(t.paths, dest, [])).toBeNull();
+	const realFile = join(t.paths.home, "Applications/My App.AppImage");
+	mkdirSync(dirname(realFile), { recursive: true });
+	writeFileSync(realFile, MAGIC);
+	const link = join(t.paths.home, ".local/bin/myapp.AppImage");
+	mkdirSync(dirname(link), { recursive: true });
+	symlinkSync(realFile, link);
+	expect(foreignEntry(entryOwners(t.paths), link)).toBeNull();
 	mkdirSync(dir, { recursive: true });
 	writeFileSync(join(dir, "other.desktop"), "[Desktop Entry]\nExec=firefox %u\n");
-	writeFileSync(join(dir, "README"), `Exec=${dest}`);
-	const own = join(dir, "upkeep-my.desktop");
-	writeFileSync(own, `[Desktop Entry]\nExec=${quoteExec(dest)} %U\n`);
-	expect(foreignEntry(t.paths, dest, [own])).toBeNull();
+	writeFileSync(join(dir, "README"), `Exec=${realFile}`);
+	// A leftover of Upkeep's own is not another tool's, whatever state.json says.
+	writeFileSync(join(dir, "upkeep-my.desktop"), `[Desktop Entry]\nExec=${quoteExec(realFile)} %U\n`);
+	expect(foreignEntry(entryOwners(t.paths), link)).toBeNull();
 	const theirs = join(dir, "appimagekit_abc-My_App.desktop");
-	writeFileSync(theirs, `[Desktop Entry]\nExec="${dest}" %U\n`);
-	expect(foreignEntry(t.paths, dest, [own])).toBe(theirs);
+	writeFileSync(theirs, `[Desktop Entry]\nExec=env DESKTOPINTEGRATION=1 "${realFile}" %U\n`);
+	expect(foreignEntry(entryOwners(t.paths), link)).toBe(theirs);
+	expect(foreignEntry(entryOwners(t.paths), realFile)).toBe(theirs);
 });
 
 test("removeMenu: deletes only Upkeep's files under the data folder", async () => {
-	const share = join(t.dir, "data");
-	const mine = join(share, "applications/upkeep-x.desktop");
-	const notMine = join(share, "applications/x.desktop");
+	const mine = join(share(), "applications/upkeep-x.desktop");
+	const notMine = join(share(), "applications/x.desktop");
 	const outside = join(t.dir, "upkeep-elsewhere.desktop");
 	for (const f of [mine, notMine, outside]) {
 		mkdirSync(dirname(f), { recursive: true });
 		writeFileSync(f, "x");
 	}
 	const { calls, ctx: c } = ctx();
-	await removeMenu([mine, notMine, outside, join(share, "applications/upkeep-gone.desktop")], c);
+	await removeMenu([mine, notMine, outside, join(share(), "applications/upkeep-gone.desktop")], c);
 	expect([existsSync(mine), existsSync(notMine), existsSync(outside)]).toEqual([false, true, true]);
 	expect(calls.map((x) => x.argv[0])).toEqual(["update-desktop-database"]);
+	removeMenuFiles([notMine], t.paths);
+	expect(existsSync(notMine)).toBe(true);
 });
 
-test("execProgram and quoteExec read and write the spec's quoting", () => {
+test("execProgram and quoteExec read and write both escape layers of the spec", () => {
 	expect(execProgram("AppRun %U")).toBe("AppRun");
-	expect(execProgram(' "/a b/c \\"d\\".AppImage" --x')).toBe('/a b/c "d".AppImage');
+	expect(execProgram('"/a b/c \\\\"d\\\\".AppImage" --x')).toBe('/a b/c "d".AppImage');
 	expect(execProgram('"/unclosed')).toBe("/unclosed");
-	expect(quoteExec('/a b/$x`y"z\\.AppImage')).toBe('"/a b/\\$x\\`y\\"z\\\\.AppImage"');
+	expect(execProgram("env -i A=1 B=2 /x/y %U")).toBe("/x/y");
+	expect(execProgram("env")).toBe("");
+	// The spec's own example: a $ inside quotes is \\$ in the file.
+	expect(quoteExec('/a b/$x`y"z\\.AppImage')).toBe('"/a b/\\\\$x\\\\`y\\\\"z\\\\\\\\.AppImage"');
+	expect(execProgram(quoteExec('/a b/$x`y"z\\.AppImage'))).toBe('/a b/$x`y"z\\.AppImage');
+	expect(execProgram("/a\\sb")).toBe("/a");
 	expect(rewriteEntry('[Desktop Entry]\nExec="/old path" %F\nIcon=old', "/new", null)).toBe(
 		'[Desktop Entry]\nExec="/new" %F\nIcon=old\n',
 	);
 	expect(rewriteEntry('Exec="/unclosed', "/n", "/i.png")).toBe('Exec="/n"\n');
+	expect(rewriteEntry("Exec=env", "/n", null)).toBe('Exec=env "/n"\n');
 });

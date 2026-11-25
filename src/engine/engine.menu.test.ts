@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import { createEngine, type EngineDeps, REASON_BUSY } from "./engine";
 import type { FetchLike } from "./github";
 import { appsDir } from "./menu";
 import { loadState } from "./store";
 import { recordingRun, script, tempHome } from "./testkit";
+import { createRunner } from "./run";
 
 let t: ReturnType<typeof tempHome>;
 beforeEach(() => {
@@ -31,21 +32,30 @@ asset = 'tool$'
 dest = "~/.local/bin/tool"
 `;
 
+/** The first bytes of a type-2 AppImage, then the version the fake answers with. */
+const image = (v: string) => `\x7fELF\x02\x01\x01\x00AI\x02\x00\x00\x00\x00\x00\nVERSION=${v}\n`;
+
 /**
- * A fake AppImage of the given version: --version prints it, and --appimage-extract writes the entry (named after the
- * version, so a refresh shows) and an SVG icon when the pattern matches, as the type-2 runtime does.
+ * What runs in place of the fake image (its path is $1): --version prints the version written in it, and
+ * --appimage-extract writes the entry (named after the version, so a refresh shows) and an SVG icon when the pattern
+ * matches, as the type-2 runtime does.
  */
-const image = (v: string) => `#!/bin/bash
-if [ "$1" = --version ]; then echo "img ${v}"; exit 0; fi
+const RUNTIME = `d=$1; shift
+v=$(grep -ao 'VERSION=[0-9.]*' "$d" | cut -d= -f2)
+if [ "$1" = --version ]; then echo "img $v"; exit 0; fi
 [ "$1" = --appimage-extract ] || exit 1
 mkdir -p squashfs-root
-case img.desktop in $2) printf '[Desktop Entry]\\nName=Img ${v}\\nExec=AppRun %%U\\nIcon=img\\n' > squashfs-root/img.desktop;; esac
-case img.svg in $2) echo '<svg/>' > squashfs-root/img.svg;; esac
-`;
+case img.desktop in $2) printf '[Desktop Entry]\\nName=Img %s\\nExec=AppRun %%%%U\\nIcon=img\\n' "$v" > squashfs-root/img.desktop;; esac
+case img.svg in $2) echo '<svg/>' > squashfs-root/img.svg;; esac`;
 
 function deps(): EngineDeps {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
-	script(join(t.paths.home, "Applications/img.AppImage"), image("1.0.0").replace("#!/bin/bash\n", ""));
+	const dest = join(t.paths.home, "Applications/img.AppImage");
+	mkdirSync(dirname(dest), { recursive: true });
+	writeFileSync(dest, image("1.0.0"), "latin1");
+	const runtime = script(join(t.dir, "runtime.sh"), RUNTIME);
+	// Its own capture folder: two runners counting from 0 in one folder would share output files.
+	const real = createRunner(t.paths.home, join(t.dir, "fake-tmp"), "/usr/bin:/bin");
 	script(join(t.paths.home, ".local/bin/tool"), 'echo "tool 1.0.0"');
 	const fetch: FetchLike = async (url) => {
 		if (url === "https://api.github.com/repos/o/img/releases/latest")
@@ -58,20 +68,22 @@ function deps(): EngineDeps {
 					{
 						name: "img.AppImage",
 						browser_download_url: "https://dl.test/img.AppImage",
-						size: image("1.1.0").length,
+						size: Buffer.from(image("1.1.0"), "latin1").length,
 						digest: null,
 					},
 				],
 			});
-		if (url === "https://dl.test/img.AppImage") return new Response(image("1.1.0"));
+		if (url === "https://dl.test/img.AppImage") return new Response(Buffer.from(image("1.1.0"), "latin1"));
 		return new Response("{}", { status: 404 });
 	};
-	const { run } = recordingRun(t.paths, (argv) =>
-		argv[0] === "gh"
-			? { code: 1, stdout: "", stderr: "", timedOut: false }
-			: ["flatpak", "snap", "apt-cache", "update-desktop-database"].includes(argv[0] ?? "")
-				? { code: 127, stdout: "", stderr: "", timedOut: false }
-				: undefined,
+	const { run } = recordingRun(t.paths, (argv, opts) =>
+		argv[0] === dest
+			? real(["bash", runtime, ...argv], opts)
+			: argv[0] === "gh"
+				? { code: 1, stdout: "", stderr: "", timedOut: false }
+				: ["flatpak", "snap", "apt-cache", "update-desktop-database"].includes(argv[0] ?? "")
+					? { code: 127, stdout: "", stderr: "", timedOut: false }
+					: undefined,
 	);
 	return {
 		paths: t.paths,
@@ -98,7 +110,7 @@ test("the menu switch is off for an AppImage row, absent for another kind, and o
 	expect(await engine.setMenu("img", true)).toEqual({ ok: true });
 	expect(row(engine, "img")?.menu).toBe("on");
 	const files = loadState(t.paths).menu.img ?? [];
-	expect(files).toEqual([join(t.dir, "data/icons/hicolor/scalable/apps/upkeep-img.svg"), entry()]);
+	expect(files).toEqual([join(t.dir, "data/icons/upkeep-img.svg"), entry()]);
 	expect(readFileSync(entry(), "utf8")).toContain("Name=Img 1.0.0");
 	// Off deletes exactly what was recorded.
 	expect(await engine.setMenu("img", false)).toEqual({ ok: true });
