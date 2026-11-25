@@ -41,18 +41,29 @@ export type State = {
 	/** Apps held because their offered release's file changed after it was first seen: key to that tag. */
 	changed: Record<string, string>;
 	/** The GitHub repo each app's first check saw, by key: its ids, which a rename keeps and a new repo under the name does not. */
-	origin: Record<string, RepoId>;
+	origin: Record<string, Origin>;
 	/** Apps held because their repo's name now answers with another repository: key to that owner/name. */
 	swapped: Record<string, string>;
 };
 
-/** The entries that hold a string name and two numeric ids; anything else a hand edit left is dropped. */
-function originsOf(v: unknown): Record<string, RepoId> {
-	const out: Record<string, RepoId> = {};
+/**
+ * A repo's ids as GitHub gave them, with repo, the table's own repo field when they were read: a table that names
+ * another repo since starts afresh instead of reading as a swap.
+ */
+export type Origin = RepoId & { repo: string };
+
+/** The entries that hold a string repo and name and two numeric ids; anything else a hand edit left is dropped. */
+function originsOf(v: unknown): Record<string, Origin> {
+	const out: Record<string, Origin> = {};
 	for (const [key, o] of Object.entries(obj<unknown>(v))) {
 		const r = obj<unknown>(o);
-		if (typeof r.name === "string" && typeof r.id === "number" && typeof r.owner === "number")
-			out[key] = { name: r.name, id: r.id, owner: r.owner };
+		if (
+			typeof r.repo === "string" &&
+			typeof r.name === "string" &&
+			typeof r.id === "number" &&
+			typeof r.owner === "number"
+		)
+			out[key] = { repo: r.repo, name: r.name, id: r.id, owner: r.owner };
 	}
 	return out;
 }
