@@ -1067,3 +1067,196 @@ test("a catalogue source build not installed yet is added with install_if_missin
 	expect(await engine.addApps([spec])).toEqual({ added: ["tmux"], problems: [] });
 	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "tmux")).toEqual(spec);
 });
+
+/** The history file's rows, as appendHistory wrote them. */
+const historyRows = (): { key: string; result: string }[] =>
+	existsSync(join(t.paths.data, "history.jsonl"))
+		? readFileSync(join(t.paths.data, "history.jsonl"), "utf8")
+				.trim()
+				.split("\n")
+				// SAFETY: appendHistory writes one HistoryRow per line, and each has a key and a result.
+				.map((l) => JSON.parse(l) as { key: string; result: string })
+		: [];
+
+test("Stop now cuts the current app, leaves the rest ready, and history says stopped", async () => {
+	const d = await deps();
+	script(join(bin, "claude-up"), "sleep 30");
+	const engine = createEngine(d);
+	await engine.check();
+	engine.subscribe((e) => {
+		if (e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) {
+			engine.stopNow();
+		}
+	});
+	const started = Date.now();
+	// Manifest order: claude runs first, plugins waits behind it.
+	await engine.install(["claude", "plugins"]);
+	await engine.idle();
+	expect(Date.now() - started).toBeLessThan(8000);
+	const snap = engine.snapshot();
+	expect(statuses(engine)).toMatchObject({ claude: "stopped", plugins: "fresh" });
+	expect(snap.apps.find((a) => a.key === "claude")?.detail).toBe("Stopped. Claude Code still reports 2.1.322.");
+	expect(snap.run).toMatchObject({ phase: "summary", stopping: false, stoppingNow: false });
+	expect(snap.run.results.map((r) => [r.key, r.result])).toEqual([["claude", "stopped"]]);
+	expect(historyRows().map((r) => [r.key, r.result])).toEqual([["claude", "stopped"]]);
+	expect(lockHeld()).toBe(false);
+}, 15_000);
+
+test("Stop now during a step it never cuts says what it waits for, and the step runs to its end", async () => {
+	const d = await deps();
+	const claudeState = join(t.dir, "claude-version");
+	// The marketplace refresh takes a moment; plugin steps are never cut.
+	script(
+		join(bin, "claude"),
+		`if [ "$1" = plugin ]; then [ "$2" = marketplace ] && sleep 0.5; [ "$2" = update ] && echo '{"updateOutcome":"up_to_date"}'; exit 0; fi; read -r v < "${claudeState}"; echo "$v (Claude Code)"`,
+	);
+	const engine = createEngine(d);
+	await engine.check();
+	const details: string[] = [];
+	let pressed = false;
+	engine.subscribe((e) => {
+		if (e.type !== "app" || e.app.key !== "plugins") return;
+		if (e.app.status === "working") details.push(e.app.waiting ?? "-");
+		if (!pressed && e.app.status === "working") {
+			pressed = true;
+			setTimeout(() => engine.stopNow(), 100);
+		}
+	});
+	await engine.install(["plugins"]);
+	await engine.idle();
+	// The line shows while the waited step runs and goes once it returns, before the plugins' own put-back.
+	expect(details.filter((d, i) => d !== details[i - 1])).toEqual([
+		"-",
+		"Waiting for claude plugin marketplace to finish.",
+		"-",
+	]);
+	expect(statuses(engine).plugins).toBe("stopped");
+	expect(lockHeld()).toBe(false);
+});
+
+test("a run that throws between apps still writes the history of the apps it finished", async () => {
+	const d = await deps();
+	let armed = false;
+	const now = d.now;
+	d.now = () => {
+		if (armed) {
+			armed = false;
+			throw new Error("clock gone");
+		}
+		return now();
+	};
+	const engine = createEngine(d);
+	await engine.check();
+	engine.subscribe((e) => {
+		// Once fd's result is in, the next clock read (the second app's first line) throws.
+		if (e.type === "run" && e.run.results.some((r) => r.key === "fd")) armed = true;
+	});
+	await engine.install(["fd", "claude"]);
+	await engine.idle();
+	expect(engine.snapshot().run.phase).toBe("summary");
+	expect(historyRows().map((r) => [r.key, r.result])).toEqual([["fd", "updated"]]);
+	expect(lockHeld()).toBe(false);
+});
+
+test("a working row carries its step's start and limit, and when it last wrote anything, for the quiet line", async () => {
+	const d = await deps();
+	script(join(bin, "claude-up"), "sleep 30");
+	const engine = createEngine(d);
+	await engine.check();
+	const seen: { step?: { at: string; limitMs: number | null }; activeAt?: string }[] = [];
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "claude" && e.app.step) {
+			seen.push({ step: e.app.step, activeAt: e.app.activeAt });
+			if (e.app.step.limitMs === 600_000) engine.stopNow();
+		}
+	});
+	await engine.install(["claude"]);
+	await engine.idle();
+	const update = seen.find((s) => s.step?.limitMs === 600_000);
+	expect(update?.step?.at).toMatch(/^\d{4}-\d\d-\d\dT/);
+	expect(update?.activeAt).toMatch(/^\d{4}-\d\d-\d\dT/);
+	const row = engine.snapshot().apps.find((a) => a.key === "claude");
+	expect(row?.step).toBeUndefined();
+	expect(row?.activeAt).toBeUndefined();
+}, 15_000);
+
+test("after Done a stopped app is ready again and keeps its own sentence, not Last try failed", async () => {
+	const d = await deps();
+	script(join(bin, "claude-up"), "sleep 30");
+	const engine = createEngine(d);
+	await engine.check();
+	engine.subscribe((e) => {
+		if (e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) engine.stopNow();
+	});
+	await engine.install(["claude"]);
+	await engine.idle();
+	expect(statuses(engine).claude).toBe("stopped");
+	engine.dismissSummary();
+	const row = engine.snapshot().apps.find((a) => a.key === "claude");
+	expect(row).toMatchObject({ status: "ready", detail: "Stopped. Claude Code still reports 2.1.322." });
+	expect(engine.readyKeys(false)).toContain("claude");
+}, 15_000);
+
+test("quitting at once ends the step in progress when it is not root, and leaves a root step running", async () => {
+	const d = await deps();
+	const seed = join(t.dir, "seed.toml");
+	const pidFile = join(t.dir, "up.pid");
+	script(join(bin, "claude-up"), `echo $$ > "${pidFile}"; sleep 30`);
+	// The table says sudo, so Stop now never cuts the update; quitting at once still ends it, as it runs as the person.
+	writeFileSync(
+		seed,
+		readFileSync(seed, "utf8").replace(
+			'update = ["~/.local/bin/claude-up"]',
+			'update = ["~/.local/bin/claude-up"]\nsudo = true',
+		),
+	);
+	const engine = createEngine(d);
+	await engine.check();
+	// A holder, since the subscriber below fills it after the type checker has narrowed a plain let to null.
+	const quit: { ended: Promise<{ step: string; root: boolean } | null> | null } = { ended: null };
+	engine.subscribe((e) => {
+		if (!quit.ended && e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) {
+			engine.stopNow();
+			quit.ended = (async () => {
+				// oxlint-disable-next-line no-await-in-loop -- polling until the step has written its pid
+				while (!existsSync(pidFile)) await Bun.sleep(20);
+				return engine.endStep();
+			})();
+		}
+	});
+	await engine.install(["claude"]);
+	await engine.idle();
+	expect(await quit.ended).toEqual({ step: "claude-up", root: false });
+	expect(existsSync(`/proc/${Number(readFileSync(pidFile, "utf8"))}`)).toBe(false);
+	expect(await engine.endStep()).toBeNull();
+}, 20_000);
+
+test("a row that was ready with a note drops it as it joins the run: never a waiting line, never kept if it does not start", async () => {
+	const d = await deps();
+	script(join(bin, "claude-up"), "sleep 30");
+	const engine = createEngine(d);
+	await engine.check();
+	let presses = 0;
+	const working: { detail?: string; waiting?: string }[] = [];
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "claude" && (e.app.status === "working" || e.app.status === "queued"))
+			working.push({ detail: e.app.detail, waiting: e.app.waiting });
+		if (e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) {
+			presses += 1;
+			engine.stopNow();
+		}
+	});
+	await engine.install(["claude"]);
+	await engine.idle();
+	engine.dismissSummary();
+	// The ready row now carries a note from the last try.
+	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.detail).toBe(
+		"Stopped. Claude Code still reports 2.1.322.",
+	);
+	working.length = 0;
+	await engine.install(["claude"]);
+	await engine.idle();
+	expect(presses).toBe(2);
+	expect(working.length).toBeGreaterThan(0);
+	expect(working.every((w) => w.detail === undefined && w.waiting === undefined)).toBe(true);
+}, 20_000);

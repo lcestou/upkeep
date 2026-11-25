@@ -93,6 +93,8 @@ test("the requests answer from the engine, and refuse what the engine refuses", 
 	expect(await r.check({})).toEqual({ started: true });
 	expect(await r.install({ keys: ["nope"] })).toMatchObject({ started: false });
 	expect(await r.stopAfterCurrent({})).toEqual({ stopping: false });
+	// Stop now outside a run changes nothing, and says it is not stopping.
+	expect(await r.stopNow({})).toEqual({ stopping: false });
 	expect(await r.dismissSummary({})).toEqual({ ok: true });
 	expect(await r.setSkip({ key: "nope", version: "1" })).toEqual({ ok: false });
 	expect(await r.setHold({ key: "tool", held: true })).toEqual({ ok: true });

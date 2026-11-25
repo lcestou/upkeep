@@ -137,6 +137,16 @@ export const MESSAGES = {
 	cannotInstallHere: (v0: Value) => `${v0} cannot be installed here.`,
 	/** engine.ts. {0} error message of the crash (raw) */
 	runStopped: (v0: Value) => `The run stopped: ${v0}`,
+	/** engine.ts and kinds, after Stop now. {0} version put back, or the one still in place */
+	stoppedPutBack: (v0: Value) => `Stopped. ${v0} is back in place.`,
+	/** kinds/command.ts, after Stop now cut an update with no restore command. {0} app name; {1} version it reports */
+	stoppedStillAt: (v0: Value, v1: Value) => `Stopped. ${v0} still reports ${v1}.`,
+	/** kinds/command.ts, after Stop now cut an update with no restore command. {0} app name; {1} why it will not start (raw or a probe sentence) */
+	stoppedWontStart: (v0: Value, v1: Value) => `Stopped. ${v0} does not start now: ${v1}`,
+	/** engine.ts, at Stop now during a step that is never cut. {0} the step, as the log names it (dpkg, git); {1} version */
+	waitingThenPutBack: (v0: Value, v1: Value) => `Waiting for ${v0} to finish, then putting ${v1} back.`,
+	/** engine.ts, at Stop now during a step that is never cut, with no restore point. {0} the step, as the log names it */
+	waitingFor: (v0: Value) => `Waiting for ${v0} to finish.`,
 	/** engine.ts. {0} app key */
 	noApp: (v0: Value) => `No app ${v0}.`,
 	/** engine.ts. {0} app name */

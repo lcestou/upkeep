@@ -179,7 +179,8 @@ export type AppStatus =
 	| "working" // being installed now
 	| "done" // updated in this run
 	| "failed" // this run could not update it; nothing was changed or the change was undone
-	| "rolled_back"; // installed, would not start, previous copy restored
+	| "rolled_back" // installed, would not start, previous copy restored
+	| "stopped"; // the person pressed Stop now: what was changed was put back, or the detail says what is there
 
 export type RestorePoint = { version: string; at: string };
 
@@ -230,6 +231,18 @@ export type AppState = {
 	stage?: Stage;
 	stagePct?: number | null;
 	/**
+	 * While working: when the app last wrote a log line or moved its download (ISO). The quiet line counts silence from
+	 * this or from the newest log line the window holds for the app, whichever is later.
+	 */
+	activeAt?: string;
+	/** While working: the step running now, when it started (ISO) and its own limit in ms, null when it has none. */
+	step?: { at: string; limitMs: number | null };
+	/**
+	 * While working, after Stop now: what the run waits for before the app is put back (an engine sentence), until the
+	 * waited step returns. Its own field, so a note the row carried from its check never reads as one.
+	 */
+	waiting?: string;
+	/**
 	 * Read while queued: the file came down ahead of the app's turn and matched the release. Cleared when the row
 	 * leaves the run and when Stop is pressed; a working row may still carry it.
 	 */
@@ -250,7 +263,7 @@ export type RunResult = {
 	 * "restored", "cleaned" and "skipped" appear only in history: the owner put a restore point back by hand, Cleanup
 	 * deleted something, or Cleanup left an item alone on purpose (changed since review, no sudo, polkit said no).
 	 */
-	result: "updated" | "failed" | "rolled_back" | "restored" | "cleaned" | "skipped";
+	result: "updated" | "failed" | "rolled_back" | "stopped" | "restored" | "cleaned" | "skipped";
 	detail?: string;
 	ms: number;
 };
@@ -263,6 +276,8 @@ export type RunState = {
 	total: number;
 	currentKey: string | null;
 	stopping: boolean;
+	/** Stop now was pressed: the current app is being put back, and stopping is set too. */
+	stoppingNow?: boolean;
 	results: RunResult[];
 	/** This run was started from a summary to try the failed apps again. */
 	retry: boolean;
@@ -506,6 +521,8 @@ export type Requests = {
 	check: { params: { keys?: string[] }; response: { started: boolean } };
 	install: { params: { keys: string[] }; response: { started: boolean; reason?: string } };
 	stopAfterCurrent: { params: Record<string, never>; response: { stopping: boolean } };
+	/** Ends the run now: the current app is put back, the rest stay ready. */
+	stopNow: { params: Record<string, never>; response: { stopping: boolean } };
 	dismissSummary: { params: Record<string, never>; response: { ok: boolean } };
 	restore: { params: { key: string; version: string }; response: { ok: boolean; detail?: string } };
 	setSkip: { params: { key: string; version: string | null }; response: { ok: boolean } };

@@ -2747,6 +2747,58 @@ msgstr "Impossibile decomprimere il punto di ripristino {0}: {1}"
 msgid "Downloaded, waits its turn"
 msgstr "Scaricato, attende il suo turno"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "Fermato da te"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "Fermato"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "Fermato. {0} è di nuovo al suo posto."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "Fermato. {0} riporta ancora {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "Fermato. {0} ora non si avvia: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "In attesa che {0} finisca, poi rimetto {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "In attesa che {0} finisca."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Nessun output da {0} min."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Nessun output da {0} min. Si ferma da solo tra {1} min."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Ferma ora"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Fermo {0}…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."

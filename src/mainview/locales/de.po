@@ -2726,6 +2726,58 @@ msgstr "Der Wiederherstellungspunkt {0} ließ sich nicht entpacken: {1}"
 msgid "Downloaded, waits its turn"
 msgstr "Heruntergeladen, wartet"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "Von dir gestoppt"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "Gestoppt"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "Gestoppt. {0} ist wieder an seinem Platz."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "Gestoppt. {0} meldet weiterhin {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "Gestoppt. {0} startet jetzt nicht: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "Warte, bis {0} fertig ist, dann wird {1} zurückgesetzt."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "Warte, bis {0} fertig ist."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Seit {0} Min. keine Ausgabe."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Seit {0} Min. keine Ausgabe. Es endet von selbst in {1} Min."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Jetzt stoppen"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Stoppe {0} …"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."

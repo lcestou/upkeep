@@ -54,6 +54,7 @@ export async function getBridge(): Promise<Bridge> {
 			self: SELF_PHASES.find((v) => v === query.get("self")),
 			selfTestFails: query.get("selftest") === "fail",
 			rate: RATES.find((r) => r === query.get("rate")),
+			quiet: query.get("quiet") === "cut" ? "cut" : query.get("quiet") === "root" ? "root" : undefined,
 		});
 	}
 
