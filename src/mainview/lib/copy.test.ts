@@ -7,6 +7,8 @@ import {
 	importAutoOffNote,
 	importPlain,
 	CLEAN,
+	heldAt,
+	installVersionLabel,
 	copiesLine,
 	deleteLabel,
 	finalLine,
@@ -340,6 +342,23 @@ test("the System subline names every source it read; Update Manager already cove
 	expect(
 		systemProblem({ code: "failed", command: "cinnamon-spice-updater --list-json applet", detail: "offline" }),
 	).toBe("Could not read the Cinnamon list: offline");
+});
+
+test("Other versions and the held line name the version", () => {
+	expect(installVersionLabel("1.2.0")).toBe("Install 1.2.0");
+	expect(heldAt("1.0.0")).toBe("Held at 1.0.0.");
+	expect([TEXT.followPrerelease, TEXT.prereleaseTag, TEXT.installedTag]).toEqual([
+		"Follow pre-releases",
+		"pre-release",
+		"installed",
+	]);
+	expect([TEXT.otherVersions, TEXT.showVersions, TEXT.loadingVersions, TEXT.noVersions]).toEqual([
+		"Other versions",
+		"Show releases",
+		"Asking for the releases…",
+		"No releases listed.",
+	]);
+	expect(TEXT.versionsHint).toContain("skips the latest");
 });
 
 test("the import ask names its parts and counts plain apps and apps that came in off, one and many", () => {

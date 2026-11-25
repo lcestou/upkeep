@@ -2897,6 +2897,53 @@ msgid "Download not checked"
 msgstr "Загрузка не проверена"
 
 #: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "Следить за предварительными версиями"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "Другие версии"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "Показать выпуски"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "Запрос выпусков…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "Выпусков нет."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "Установить {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "Приостановлено на {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "предварительная"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "установлена"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo"
+msgstr "{0}: prerelease подходит только для таблицы appimage, archive, file, deb или rpm с repo"
+
+#: src/mainview/lib/copy.ts
+msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
+msgstr "Возврат к более старому выпуску пропускает новейший, и следующая проверка предложит только более новый."
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Восстановление возвращает и сохранённые настройки. Заменяемые настройки откладываются в сторону."
 

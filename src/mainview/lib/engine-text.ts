@@ -220,6 +220,8 @@ export const ENGINE_COPY = {
 		`${v0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit.`,
 	liftControlChar: (v0: string, v1: string) => `${v0}: ${v1} may not contain a line break or other control character`,
 	liftRelaunchNeedsProcess: (v0: string) => `${v0}: relaunch needs process`,
+	liftPrereleaseNeedsList: (v0: string) =>
+		`${v0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo`,
 	liftRelaunchShared: (v0: string, v1: string) =>
 		`${v0}: relaunch would close every ${v1} process; give process the app's own name`,
 	liftInsideDir: (v0: string, v1: string) => `${v0}: ${v1} must stay inside dir`,

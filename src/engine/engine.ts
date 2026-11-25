@@ -30,7 +30,7 @@ import {
 import { alsoOf, scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { readCopies } from "./extras/system";
 import { managedSpecs } from "./managers";
-import { type FetchLike, githubToken, type Rate } from "./github";
+import { type FetchLike, githubToken, isFailure, type Rate } from "./github";
 import { checkClaudePlugins, installClaudePlugins } from "./kinds/plugins";
 import { checkCommand, installCommand, tagOf } from "./kinds/command";
 import { isPackage } from "./kinds/package";
@@ -44,13 +44,16 @@ import {
 	type Target,
 } from "./kinds/context";
 import {
+	canList,
 	canRestore,
 	checkRelease,
 	destOf,
 	dlPath,
 	installedFiles,
 	installRelease,
+	listReleases,
 	probeInstalled,
+	versionTarget,
 } from "./kinds/release";
 import { type Ahead, canFetchEarly, createAhead } from "./ahead";
 import { recoverTree, restoreBuilt } from "./kinds/built";
@@ -81,7 +84,7 @@ import {
 	updateState,
 } from "./store";
 import { launchDetached, restartApp, terminate } from "./restart";
-import { isNewer } from "./version";
+import { isNewer, isPrerelease } from "./version";
 
 export type EngineDeps = {
 	/** Ends a process tree during recovery. Default killTree; tests pass a recorder so no real pid is signalled. */
@@ -154,6 +157,12 @@ export type Engine = {
 	setHold(key: string, held: boolean): boolean;
 	/** False, and nothing written, for a key not in the list. */
 	setAuto(key: string, auto: boolean): boolean;
+	/** Writes the person's pre-release switch, then checks the app again when nothing else runs. False for an app whose releases cannot be listed. */
+	setPrerelease(key: string, prerelease: boolean): boolean;
+	/** The newest releases of an app whose releases can be listed, asked of its forge only now. */
+	versions(key: string): Promise<Requests["versions"]["response"]>;
+	/** Installs one release by its tag through the usual run; one older than the latest skips the latest once it is in. */
+	installVersion(key: string, tag: string): Promise<{ started: boolean; reason?: string }>;
 	/**
 	 * Writes or deletes an AppImage's menu entry. Refused for another kind, during a run, and when another tool already
 	 * has an entry for the same file; detail says why when there is a sentence for it.
@@ -240,6 +249,12 @@ const pad = (n: number) => String(n).padStart(2, "0");
 export function stamp(d: Date): string {
 	const rand = Math.random().toString(36).slice(2, 6);
 	return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${rand}`;
+}
+
+/** The table as a check reads it: the person's pre-release switch (switches, read once per check) over the table's own field. */
+function effective(spec: AppSpec, switches: Record<string, boolean>): AppSpec {
+	const pre = switches[spec.key];
+	return pre === undefined ? spec : { ...spec, prerelease: pre };
 }
 
 /** Every kind not named here is checked against a GitHub release. Null when the app is not installed, which the kind has already logged as skipped. */
@@ -393,6 +408,20 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	const specOf = (key: string) => specs.find((s) => s.key === key);
+	// Apps whose target is a version the person picked, until that install is in or the summary is dismissed.
+	const chosen = new Set<string>();
+	// Apps whose pre-release switch changed while a check or run was under way: checked again once it is over.
+	const stale = new Set<string>();
+	// Apps a picked version went into, until the summary is dismissed: only they rest by the latest again, skipping it or not.
+	const picked = new Set<string>();
+
+	/** Checks the apps whose switch changed during a check or run, once nothing is under way; a later change waits again. */
+	function checkStale(): void {
+		if (stale.size === 0 || run.phase !== "idle" || starting) return;
+		const keys = [...stale];
+		stale.clear();
+		void engine.check(keys);
+	}
 
 	function kindCtx(key: string, overrides: Partial<KindCtx> = {}): KindCtx {
 		const cancel = stopNow.signal;
@@ -581,6 +610,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			canRestart: Boolean(spec.restart?.length || spec.relaunch),
 			closes: !spec.restart?.length && spec.relaunch === true,
 			auto: state.auto[spec.key] ?? spec.auto ?? false,
+			prerelease: canList(spec) ? (state.prerelease[spec.key] ?? spec.prerelease ?? false) : undefined,
 			...menuOf(spec, state.menu),
 			sudo: spec.sudo === true,
 			versionless: spec.versionless === true,
@@ -665,6 +695,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			});
 		noteRelease(spec.key, c);
 		checked.set(spec.key, c);
+		chosen.delete(spec.key);
 		if (c.target) targets.set(spec.key, c.target);
 		else targets.delete(spec.key);
 		const app = buildApp(spec, c, history);
@@ -715,6 +746,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.index += 1;
 			emitRun();
 		};
+		const switches = loadState(paths).prerelease;
 		const found = new Map<string, Checked | null>();
 		const kept = new Set<string>();
 		await Promise.all(
@@ -722,7 +754,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				const before = checked.get(spec.key);
 				let c: Checked | null;
 				try {
-					c = await checkOne(spec, kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
+					c = await checkOne(effective(spec, switches), kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
 				} catch (err) {
 					c = {
 						installed: null,
@@ -1038,7 +1070,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			ahead?.gate(app.stage !== "download");
 			planAhead();
 			const started = Date.now();
-			say(spec.key, `Updating ${spec.name}${from ? ` from ${from}` : ""}${app.latest ? ` to ${app.latest}` : ""}`);
+			const to = targets.get(spec.key)?.version ?? app.latest;
+			say(spec.key, `Updating ${spec.name}${from ? ` from ${from}` : ""}${to ? ` to ${to}` : ""}`);
 			let outcome: Outcome;
 			try {
 				// oxlint-disable-next-line no-await-in-loop -- one app at a time is the point of the queue
@@ -1061,6 +1094,10 @@ export function createEngine(deps: EngineDeps): Engine {
 					detail: outcome.detail ?? (WATCHED.has(spec.kind) ? MESSAGES.oldCopyRuns(spec.name) : undefined),
 				};
 			finishApp(app, outcome);
+			if (outcome.result === "done" && chosen.delete(spec.key)) {
+				picked.add(spec.key);
+				skipIfBehind(spec, app, from);
+			}
 			// After Stop now nothing more is started, the entry's refresh included: the old entry still starts dest.
 			// oxlint-disable-next-line no-await-in-loop -- the entry follows its own app's install, before the next starts
 			if (outcome.result === "done" && !run.stoppingNow) await refreshMenu(spec);
@@ -1075,7 +1112,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				key: spec.key,
 				name: spec.name,
 				from,
-				to: outcome.result === "done" ? outcome.installed : app.latest,
+				to: outcome.result === "done" ? outcome.installed : to,
 				result: resultOf(outcome.result),
 				detail: outcome.detail,
 				ms: Date.now() - started,
@@ -1121,11 +1158,13 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		check(keys, opts) {
 			if (run.phase === "installing" || run.phase === "checking" || starting) return busy;
-			const p = doCheck(keys, opts?.quietOffline).catch((err: Error) => {
-				say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
-				run = { ...run, phase: "idle", currentKey: null };
-				emitRun();
-			});
+			const p = doCheck(keys, opts?.quietOffline)
+				.catch((err: Error) => {
+					say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
+					run = { ...run, phase: "idle", currentKey: null };
+					emitRun();
+				})
+				.then(checkStale);
 			busy = p;
 			return p;
 		},
@@ -1187,6 +1226,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		dismissSummary() {
 			if (run.phase !== "summary") return;
 			for (const a of apps.values()) {
+				// Only a picked version: an update whose probe reads 1.2 for the tag's 1.2.0 still rests fresh.
+				if (a.status === "done" && picked.delete(a.key) && behindLatest(a)) continue;
 				if (a.status === "done") {
 					a.status = "fresh";
 					a.detail = undefined;
@@ -1197,6 +1238,13 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			}
 			resetFailed();
+			// A picked version that did not go in: the row's target is the latest again, so Install all never installs it.
+			for (const key of chosen) {
+				const t = checked.get(key)?.target;
+				if (t) targets.set(key, t);
+				else targets.delete(key);
+			}
+			chosen.clear();
 			run = {
 				id: null,
 				phase: "idle",
@@ -1208,6 +1256,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				retry: false,
 			};
 			emitRun();
+			checkStale();
 		},
 		async restore(key, version) {
 			if (run.phase === "installing" || run.phase === "checking") return { ok: false, detail: REASON_BUSY };
@@ -1354,6 +1403,77 @@ export function createEngine(deps: EngineDeps): Engine {
 			}
 			return true;
 		},
+		setPrerelease(key, prerelease) {
+			const spec = specOf(key);
+			if (!spec || !canList(spec)) return false;
+			updateState(paths, (s) => {
+				s.prerelease[key] = prerelease;
+				// A skipped pre-release can never be offered once the switch is off, and would hide nothing but itself.
+				const skip = s.skip[key];
+				if (!prerelease && skip !== undefined && isPrerelease(skip)) delete s.skip[key];
+			});
+			const a = apps.get(key);
+			if (a) {
+				a.prerelease = prerelease;
+				emitApp(a);
+			}
+			// What counts as the latest changed: the row asks its forge again, now or once the check or run is over.
+			stale.add(key);
+			checkStale();
+			return true;
+		},
+		async versions(key) {
+			const spec = specOf(key);
+			if (!spec || !canList(spec)) return { versions: [], problem: MESSAGES.noApp(key) };
+			if (!token) token = await githubToken(deps.run);
+			const list = await listReleases(spec, kindCtx(key));
+			if (isFailure(list)) return { versions: [], problem: list.detail };
+			return {
+				versions: list.flatMap((r) =>
+					r.version
+						? [{ tag: r.tag, version: r.version, publishedAt: r.publishedAt, prerelease: r.prerelease === true }]
+						: [],
+				),
+			};
+		},
+		async installVersion(key, tag) {
+			// A check under way is waited for, as one the summary's dismissal starts is below; one started meanwhile refuses.
+			if (run.phase === "checking") await busy;
+			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
+			if (run.phase === "installing" || starting) return { started: false, reason: REASON_BUSY };
+			const spec = specOf(key);
+			const first = apps.get(key);
+			if (!spec || !first || !checked.has(key) || !canList(spec))
+				return { started: false, reason: MESSAGES.noApp(key) };
+			if (!token) token = await githubToken(deps.run);
+			const t = await versionTarget(spec, kindCtx(key), tag, first.installed);
+			if (isFailure(t)) return { started: false, reason: t.detail };
+			if (t.version === first.installed) return { started: false, reason: REASON_NOTHING };
+			// A release whose file changed since it was first seen stays held here too, until the person releases the hold.
+			if (loadState(paths).changed[key] === t.tag) return { started: false, reason: MESSAGES.releaseChanged(t.tag) };
+			// A new run, not a retry of the one on the summary. Dismissing may start the check a switch changed in the run
+			// was waiting for; the pick waits for it instead of being refused, then reads the row it left.
+			if (run.phase === "summary") {
+				engine.dismissSummary();
+				// The run that left the summary is over, so busy is that check when one started, else already settled.
+				await busy;
+			}
+			const a = apps.get(key);
+			const c = checked.get(key);
+			if (!a || !c) return { started: false, reason: MESSAGES.noApp(key) };
+			chosen.add(key);
+			targets.set(key, t);
+			a.status = "ready";
+			const r = await engine.install([key]);
+			if (!r.started) {
+				chosen.delete(key);
+				if (c.target) targets.set(key, c.target);
+				else targets.delete(key);
+				Object.assign(a, resting(spec, c));
+				emitApp(a);
+			}
+			return r;
+		},
 		async setMenu(key, menu) {
 			const spec = specOf(key);
 			if (spec?.kind !== "appimage") return { ok: false };
@@ -1463,6 +1583,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				delete s.skip[key];
 				delete s.hold[key];
 				delete s.auto[key];
+				delete s.prerelease[key];
 				delete s.restart[key];
 				delete s.menu[key];
 				delete s.seen[key];
@@ -1598,6 +1719,38 @@ export function createEngine(deps: EngineDeps): Engine {
 			emitApp(app);
 		}
 		return { ok: true };
+	}
+
+	/**
+	 * A picked version older than the latest and than what was installed before it (from) went in: the latest is
+	 * skipped, as a restore point's going back skips it, so the next check does not offer it straight back and a newer
+	 * release is offered when it comes out. A pick between from and the latest skips nothing.
+	 */
+	function skipIfBehind(spec: AppSpec, app: AppState, from: string | null): void {
+		const latest = checked.get(spec.key)?.latest ?? null;
+		// Only a step back from what was installed: a pick between it and the latest (1.0.5 over 1.0.0) hides nothing.
+		if (latest === null || !isNewer(app.installed, latest) || !isNewer(app.installed, from)) return;
+		updateState(paths, (s) => {
+			s.skip[spec.key] = latest;
+		});
+		say(spec.key, `Skipping ${latest} for ${spec.name}`);
+	}
+
+	/**
+	 * Settles a done row that is behind the latest (a picked version) when the summary is dismissed: it rests with the
+	 * latest as its target again, held as skipping it after a step back (Stop skipping offers it), ready after a step up.
+	 * False for a row at or past the latest.
+	 */
+	function behindLatest(a: AppState): boolean {
+		const spec = specOf(a.key);
+		const c = checked.get(a.key);
+		if (!spec || !c?.target || !isNewer(a.installed, c.latest)) return false;
+		const next: Checked = { ...c, installed: a.installed, status: "ready", target: { ...c.target, from: a.installed } };
+		checked.set(a.key, next);
+		targets.set(a.key, next.target ?? c.target);
+		Object.assign(a, resting(spec, next), { detail: undefined });
+		emitApp(a);
+		return true;
 	}
 
 	/**

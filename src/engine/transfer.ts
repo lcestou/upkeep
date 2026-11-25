@@ -206,7 +206,10 @@ function switchesOn(
  * the same shared file twice leaves its apps off, and re-importing one's own list here changes nothing. autoOff
  * names the new or changed apps the file wanted on, which came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
- * any the import created. Skips and holds are kept only for apps the new list has. The file never carries a menu
+ * any the import created. Skips and holds are kept only for apps the new list has. A pre-release switch is never
+ * taken from the file, since it changes what installs: a matching app keeps this machine's, any other has none, and a
+ * table's own prerelease field makes it differ, so its auto comes in off. The file never carries a menu
+
  * entry: an app it drops or changes has its entry switched off and its files deleted, so no entry points at a dest
  * the new table no longer names;
  * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
@@ -247,14 +250,19 @@ export function importSetup(
 
 	const here = join(paths.config, "apps.toml");
 	const local = new Map((existsSync(here) ? loadManifest(here).apps : []).map((a) => [a.key, a] as const));
-	const ours = loadState(paths).auto;
+	const state = loadState(paths);
+	const ours = state.auto;
 	// This machine's effective pick (its state over its table's auto = true) for a table that matches; off otherwise.
 	const picks: Record<string, boolean> = {};
+	const prePicks: Record<string, boolean> = {};
 	const changed = new Set<string>();
 	for (const a of list.apps) {
 		const was = local.get(a.key);
-		if (was !== undefined && sameness(was) === sameness(a)) picks[a.key] = ours[a.key] ?? was.auto ?? false;
-		else {
+		if (was !== undefined && sameness(was) === sameness(a)) {
+			picks[a.key] = ours[a.key] ?? was.auto ?? false;
+			const pre = state.prerelease[a.key];
+			if (pre !== undefined) prePicks[a.key] = pre;
+		} else {
 			picks[a.key] = false;
 			changed.add(a.key);
 		}
@@ -292,6 +300,8 @@ export function importSetup(
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
 			// Every app gets an entry, so an auto = true written in an imported table never decides.
 			s.auto = picks;
+			// A pre-release switch changes what installs: kept from this machine for a matching table, never the file's.
+			s.prerelease = prePicks;
 			staleMenu = Object.entries(s.menu).flatMap(([k, f]) => (stays(k) ? [] : f));
 			s.menu = Object.fromEntries(Object.entries(s.menu).filter(([k]) => stays(k)));
 			// What a check remembered of a release goes with an app the import drops or changes, so a changed-release hold

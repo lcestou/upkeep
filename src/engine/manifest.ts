@@ -40,7 +40,7 @@ const LIST_FIELDS = [
 	"restart",
 	"keep_with_restore",
 ] as const;
-const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch", "probe"] as const;
+const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch", "probe", "prerelease"] as const;
 // Process names that many programs share: relaunch closes every process with its name, so it refuses these.
 // shortcut: a fixed list of common interpreters; a table naming another shared runtime is the owner's to get right.
 const SHARED_NAMES = new Set([
@@ -175,6 +175,9 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	}
 	if (RELEASE_KINDS.has(spec.kind) && spec.kind !== "appimage" && !spec.repo && !spec.latest?.startsWith("links:"))
 		return MESSAGES.liftRepoOrLinks(key, spec.kind);
+	// Pre-releases are read from a forge's release list: a table without one would switch on nothing.
+	if (spec.prerelease && !(spec.repo && ["appimage", "archive", "file", "deb", "rpm"].includes(spec.kind)))
+		return MESSAGES.liftPrereleaseNeedsList(key);
 	// A .. part lets a dest that reads as under home resolve anywhere; no real table needs one.
 	if (spec.dest?.split("/").includes("..")) return MESSAGES.liftDestDotDot(key);
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.

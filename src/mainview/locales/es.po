@@ -2876,6 +2876,53 @@ msgid "Download not checked"
 msgstr "Descarga sin comprobar"
 
 #: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "Seguir versiones preliminares"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "Otras versiones"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "Mostrar versiones"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "Consultando las versiones…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "No hay versiones."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "Instalar {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "En pausa en {0}."
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "preliminar"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "instalada"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo"
+msgstr "{0}: prerelease solo vale para una tabla appimage, archive, file, deb o rpm con repo"
+
+#: src/mainview/lib/copy.ts
+msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
+msgstr "Volver a una versión anterior omite la más reciente, así que la próxima comprobación solo ofrece una más nueva."
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Al restaurar también vuelve su configuración guardada. La configuración que reemplaza se guarda aparte."
 
