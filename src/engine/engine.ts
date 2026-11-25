@@ -82,7 +82,7 @@ import {
 	updateState,
 } from "./store";
 import { launchDetached, restartApp, terminate } from "./restart";
-import { isNewer } from "./version";
+import { isNewer, isPrerelease } from "./version";
 
 export type EngineDeps = {
 	/** Ends a process tree during recovery. Default killTree; tests pass a recorder so no real pid is signalled. */
@@ -374,6 +374,8 @@ export function createEngine(deps: EngineDeps): Engine {
 	const chosen = new Set<string>();
 	// Apps whose pre-release switch changed while a check or run was under way: checked again once it is over.
 	const stale = new Set<string>();
+	// Apps a picked older version went into, until the summary is dismissed: only they rest skipping the latest.
+	const wentBack = new Set<string>();
 
 	/** Checks the apps whose switch changed during a check or run, once nothing is under way; a later change waits again. */
 	function checkStale(): void {
@@ -1050,7 +1052,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		dismissSummary() {
 			if (run.phase !== "summary") return;
 			for (const a of apps.values()) {
-				if (a.status === "done" && behindLatest(a)) continue;
+				// Only a picked older version: an update whose probe reads 1.2 for the tag's 1.2.0 still rests fresh.
+				if (a.status === "done" && wentBack.delete(a.key) && behindLatest(a)) continue;
 				if (a.status === "done") {
 					a.status = "fresh";
 					a.detail = undefined;
@@ -1226,6 +1229,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!spec || !canList(spec)) return false;
 			updateState(paths, (s) => {
 				s.prerelease[key] = prerelease;
+				// A skipped pre-release can never be offered once the switch is off, and would hide nothing but itself.
+				const skip = s.skip[key];
+				if (!prerelease && skip !== undefined && isPrerelease(skip)) delete s.skip[key];
 			});
 			const a = apps.get(key);
 			if (a) {
@@ -1255,15 +1261,23 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
 			if (run.phase === "installing" || starting) return { started: false, reason: REASON_BUSY };
 			const spec = specOf(key);
+			const first = apps.get(key);
+			if (!spec || !first || !checked.has(key) || !canList(spec))
+				return { started: false, reason: MESSAGES.noApp(key) };
+			if (!token) token = await githubToken(deps.run);
+			const t = await versionTarget(spec, kindCtx(key), tag, first.installed);
+			if (isFailure(t)) return { started: false, reason: t.detail };
+			if (t.version === first.installed) return { started: false, reason: REASON_NOTHING };
+			// A new run, not a retry of the one on the summary. Dismissing may start the check a switch changed in the run
+			// was waiting for; the pick waits for it instead of being refused, then reads the row it left.
+			if (run.phase === "summary") {
+				engine.dismissSummary();
+				// The run that left the summary is over, so busy is that check when one started, else already settled.
+				await busy;
+			}
 			const a = apps.get(key);
 			const c = checked.get(key);
-			if (!spec || !a || !c || !canList(spec)) return { started: false, reason: MESSAGES.noApp(key) };
-			if (!token) token = await githubToken(deps.run);
-			const t = await versionTarget(spec, kindCtx(key), tag, a.installed);
-			if (isFailure(t)) return { started: false, reason: t.detail };
-			if (t.version === a.installed) return { started: false, reason: REASON_NOTHING };
-			// A new run, not a retry of the one on the summary.
-			if (run.phase === "summary") engine.dismissSummary();
+			if (!a || !c) return { started: false, reason: MESSAGES.noApp(key) };
 			chosen.add(key);
 			targets.set(key, t);
 			a.status = "ready";
@@ -1489,6 +1503,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		updateState(paths, (s) => {
 			s.skip[spec.key] = latest;
 		});
+		wentBack.add(spec.key);
 		say(spec.key, `Skipping ${latest} for ${spec.name}`);
 	}
 

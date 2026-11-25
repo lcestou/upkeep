@@ -74,6 +74,11 @@ function splitPre(v: string): Split {
 	return { base, pre: { rank: PRE_RANK.indexOf((m[1] ?? "").toLowerCase()), n: Number(m[2] ?? 0) } };
 }
 
+/** Whether a version carries a pre-release suffix (2.0.0-rc.1, 0.7.2-Beta); 3.6a is a release. */
+export function isPrerelease(v: string): boolean {
+	return splitPre(v).pre !== null;
+}
+
 /**
  * True when latest is a later release than installed. Compares number by number, part by part. A pre-release comes
  * before its own release and after the release before it: 2.0.0-rc.1 is newer than 1.9.0 and older than 2.0.0.

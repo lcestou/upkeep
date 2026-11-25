@@ -158,12 +158,9 @@ export async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Prom
 	if (spec.prerelease && tag === undefined && canList(spec)) {
 		const list = await forgeReleases(spec.repo ?? "", spec.forge, opts);
 		if (isFailure(list)) return list;
-		// Ranked by version among the releases this table can install; with none, the newest says why it cannot.
-		return (
-			newestOf(fitting(list, spec, ctx)) ??
-			newestOf(list) ??
-			list[0] ?? { failure: "http", detail: MESSAGES.noPublishedRelease(spec.repo ?? "") }
-		);
+		// Ranked by version among the releases this table can install; with none, the newest says why it cannot. A list of
+		// only rolling tags (nightly, continuous) holds no version: the forge's latest release is still seen.
+		return newestOf(fitting(list, spec, ctx)) ?? newestOf(list) ?? forgeRelease(spec.repo ?? "", spec.forge, opts);
 	}
 	if (spec.repo || !spec.latest) return forgeRelease(spec.repo ?? "", spec.forge, opts);
 	if (spec.latest.startsWith("links:")) return linksRelease(spec.latest.slice(6), assetFor(spec, ctx.arch) ?? "", opts);
