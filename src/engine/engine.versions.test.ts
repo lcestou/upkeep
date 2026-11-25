@@ -406,3 +406,26 @@ test("a picked release whose file changed since it was first seen is refused unt
 	});
 	expect(engine.snapshot().run.phase).toBe("idle");
 });
+
+test("a pick between what is installed and the latest skips nothing, and the latest stays on offer", async () => {
+	const { engine, row } = await setup();
+	releases = [{ tag: "v1.3.0" }, ...releases];
+	latestTag = "v1.3.0";
+	await engine.check();
+	expect(await engine.installVersion("tool", "v1.2.0-rc.1")).toEqual({ started: true });
+	await engine.idle();
+	expect(row()).toMatchObject({ installed: "1.2.0-rc.1", status: "done" });
+	expect(loadState(t.paths).skip).toEqual({});
+	engine.dismissSummary();
+	expect(row()).toMatchObject({ installed: "1.2.0-rc.1", latest: "1.3.0", status: "ready" });
+});
+
+test("a pick pressed while a check runs waits for it, then installs", async () => {
+	const { engine, row } = await setup();
+	const p = engine.check();
+	expect(engine.snapshot().run.phase).toBe("checking");
+	expect(await engine.installVersion("tool", "v1.0.0")).toEqual({ started: true });
+	await p;
+	await engine.idle();
+	expect(row()).toMatchObject({ installed: "1.0.0", status: "done" });
+});

@@ -412,8 +412,8 @@ export function createEngine(deps: EngineDeps): Engine {
 	const chosen = new Set<string>();
 	// Apps whose pre-release switch changed while a check or run was under way: checked again once it is over.
 	const stale = new Set<string>();
-	// Apps a picked older version went into, until the summary is dismissed: only they rest skipping the latest.
-	const wentBack = new Set<string>();
+	// Apps a picked version went into, until the summary is dismissed: only they rest by the latest again, skipping it or not.
+	const picked = new Set<string>();
 
 	/** Checks the apps whose switch changed during a check or run, once nothing is under way; a later change waits again. */
 	function checkStale(): void {
@@ -1094,7 +1094,10 @@ export function createEngine(deps: EngineDeps): Engine {
 					detail: outcome.detail ?? (WATCHED.has(spec.kind) ? MESSAGES.oldCopyRuns(spec.name) : undefined),
 				};
 			finishApp(app, outcome);
-			if (outcome.result === "done" && chosen.delete(spec.key)) skipIfBehind(spec, app);
+			if (outcome.result === "done" && chosen.delete(spec.key)) {
+				picked.add(spec.key);
+				skipIfBehind(spec, app, from);
+			}
 			// After Stop now nothing more is started, the entry's refresh included: the old entry still starts dest.
 			// oxlint-disable-next-line no-await-in-loop -- the entry follows its own app's install, before the next starts
 			if (outcome.result === "done" && !run.stoppingNow) await refreshMenu(spec);
@@ -1223,8 +1226,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		dismissSummary() {
 			if (run.phase !== "summary") return;
 			for (const a of apps.values()) {
-				// Only a picked older version: an update whose probe reads 1.2 for the tag's 1.2.0 still rests fresh.
-				if (a.status === "done" && wentBack.delete(a.key) && behindLatest(a)) continue;
+				// Only a picked version: an update whose probe reads 1.2 for the tag's 1.2.0 still rests fresh.
+				if (a.status === "done" && picked.delete(a.key) && behindLatest(a)) continue;
 				if (a.status === "done") {
 					a.status = "fresh";
 					a.detail = undefined;
@@ -1434,6 +1437,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			};
 		},
 		async installVersion(key, tag) {
+			// A check under way is waited for, as one the summary's dismissal starts is below; one started meanwhile refuses.
+			if (run.phase === "checking") await busy;
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
 			if (run.phase === "installing" || starting) return { started: false, reason: REASON_BUSY };
 			const spec = specOf(key);
@@ -1717,22 +1722,24 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/**
-	 * A picked version older than the latest went in: the latest is skipped, as a restore point's going back skips it,
-	 * so the next check does not offer it straight back and a newer release is offered when it comes out.
+	 * A picked version older than the latest and than what was installed before it (from) went in: the latest is
+	 * skipped, as a restore point's going back skips it, so the next check does not offer it straight back and a newer
+	 * release is offered when it comes out. A pick between from and the latest skips nothing.
 	 */
-	function skipIfBehind(spec: AppSpec, app: AppState): void {
+	function skipIfBehind(spec: AppSpec, app: AppState, from: string | null): void {
 		const latest = checked.get(spec.key)?.latest ?? null;
-		if (latest === null || !isNewer(app.installed, latest)) return;
+		// Only a step back from what was installed: a pick between it and the latest (1.0.5 over 1.0.0) hides nothing.
+		if (latest === null || !isNewer(app.installed, latest) || !isNewer(app.installed, from)) return;
 		updateState(paths, (s) => {
 			s.skip[spec.key] = latest;
 		});
-		wentBack.add(spec.key);
 		say(spec.key, `Skipping ${latest} for ${spec.name}`);
 	}
 
 	/**
-	 * Settles a done row that is behind the latest (a picked older version) when the summary is dismissed: it rests as
-	 * skipping the latest, with the latest as its target again, so Stop skipping offers it. False for any other row.
+	 * Settles a done row that is behind the latest (a picked version) when the summary is dismissed: it rests with the
+	 * latest as its target again, held as skipping it after a step back (Stop skipping offers it), ready after a step up.
+	 * False for a row at or past the latest.
 	 */
 	function behindLatest(a: AppState): boolean {
 		const spec = specOf(a.key);
