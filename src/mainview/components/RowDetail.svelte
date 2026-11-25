@@ -93,7 +93,12 @@
 		});
 		return () => (live = false);
 	});
-	const spanned = $derived(span && span.releases.length > 1 ? span.releases : null);
+	// One release alone is the latest's notes, unless older ones were left out: then the pane says so under it.
+	const spanned = $derived(
+		span && (span.releases.length > 1 || (span.releases.length === 1 && (span.older > 0 || span.more)))
+			? span.releases
+			: null,
+	);
 	let asking = $state(false);
 	let keepBtn = $state<HTMLButtonElement | null>(null);
 	let removeBtn = $state<HTMLButtonElement | null>(null);

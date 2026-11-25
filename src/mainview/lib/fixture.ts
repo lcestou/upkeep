@@ -733,6 +733,8 @@ export type FixtureOptions = {
 	 * a step Stop now cuts; "root" one it waits out (dpkg), saying so on the row first.
 	 */
 	quiet?: "cut" | "root";
+	/** "long": Zen's newest notes alone fill the notes budget, so its span holds one release and says older ones are left out. */
+	notes?: "long";
 };
 
 // Cinnamon can put the window buttons on the left: close, maximize, minimize.
@@ -1400,7 +1402,10 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			const none = { releases: [], breaking: [], older: 0, more: false };
 			if (!app || app.prerelease === undefined) return { ...none, problem: MESSAGES.noApp(key) };
 			await sleep(80 / speed);
-			return key === "zen" && app.installed === "1.24b" && app.latest === "1.24.1b" ? ZEN_SPAN : none;
+			if (key !== "zen" || app.installed !== "1.24b" || app.latest !== "1.24.1b") return none;
+			return opts.notes === "long"
+				? { ...ZEN_SPAN, releases: ZEN_SPAN.releases.slice(0, 1), breaking: [], older: 2 }
+				: ZEN_SPAN;
 		},
 		installVersion: ({ key, tag }) => {
 			const app = get(key);

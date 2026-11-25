@@ -101,3 +101,11 @@ test("words that only look like a marker do not match, and a long line is cut", 
 	expect(lines[0]?.line.length).toBe(200);
 	expect(lines[0]?.line.endsWith("…")).toBe(true);
 });
+
+test("a quoted line loses its markdown marks and stays plain text", () => {
+	const notes = "- **Breaking:** `config.toml` moved, __migrate__ by hand\n* Requires manual [steps](https://x.test)";
+	expect(breakingLines([{ version: "1.0.0", tag: "", publishedAt: "", notes }]).map((l) => l.line)).toEqual([
+		"Breaking: config.toml moved, migrate by hand",
+		"Requires manual [steps](https://x.test)",
+	]);
+});

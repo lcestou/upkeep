@@ -59,14 +59,26 @@ export function notesSpan(list: Release[], installed: string, latest: string, wi
 }
 
 /**
+ * A line of notes as plain text: a leading heading, list or number mark and the inline marks **, __ and backticks
+ * dropped. Other markdown (links, single * or _) stays as written: those can be part of the words.
+ */
+function plain(raw: string): string {
+	return raw
+		.replace(/^\s*(?:#+|[-*+]|\d+[.)])\s*/, "")
+		.replaceAll(/\*\*|__|`/g, "")
+		.trim();
+}
+
+/**
  * The first BREAKING_MAX lines across releases (newest first) that a marker matches, trimmed of list and heading marks
- * and cut at LINE_MAX. A heading that matches ("## Breaking changes") is not quoted itself: the first line under it
+ * and inline marks, and cut at LINE_MAX. A heading that matches ("## Breaking changes") is not quoted itself: the first line under it
  * is, whatever it says, and the heading only when nothing follows it. The same line in two releases is quoted once,
  * with the newer version.
  */
 export function breakingLines(releases: ReleaseNotes[]): BreakingLine[] {
 	const found: BreakingLine[] = [];
 	const seen = new Set<string>();
+	/** Quotes line with its version unless it is already quoted or the quota is full; a long line is cut at LINE_MAX. */
 	const take = (version: string, line: string) => {
 		if (seen.has(line) || found.length === BREAKING_MAX) return;
 		seen.add(line);
@@ -76,7 +88,7 @@ export function breakingLines(releases: ReleaseNotes[]): BreakingLine[] {
 		// A matching heading waiting for the first line under it.
 		let heading: string | null = null;
 		for (const raw of r.notes.split("\n")) {
-			const line = raw.replace(/^\s*(?:#+|[-*+]|\d+[.)])\s*/, "").trim();
+			const line = plain(raw);
 			if (!line) continue;
 			const marked = BREAKING_MARKERS.some((m) => m.test(line));
 			if (/^\s*#/.test(raw)) {

@@ -52,6 +52,7 @@ import {
 	dlPath,
 	installedFiles,
 	installRelease,
+	allReleases,
 	listReleases,
 	probeInstalled,
 	versionTarget,
@@ -1499,10 +1500,11 @@ export function createEngine(deps: EngineDeps): Engine {
 			const spec = specOf(key);
 			const app = apps.get(key);
 			const none = { releases: [], breaking: [], older: 0, more: false };
-			if (!spec || !canList(spec)) return { ...none, problem: MESSAGES.noApp(key) };
-			if (!app?.installed || !app.latest || !isNewer(app.installed, app.latest)) return none;
+			if (!spec) return { ...none, problem: MESSAGES.noApp(key) };
+			// A source build shows its commits and a command app has no release list: no span, and nothing wrong.
+			if (!canList(spec) || !app?.installed || !app.latest || !isNewer(app.installed, app.latest)) return none;
 			token = await freshToken();
-			const list = await listReleases(spec, kindCtx(key));
+			const list = await allReleases(spec, kindCtx(key));
 			if (isFailure(list)) return { ...none, problem: list.detail };
 			return notesSpan(list, app.installed, app.latest, app.prerelease === true);
 		},

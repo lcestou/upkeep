@@ -474,8 +474,27 @@ test("the notes of every release skipped over come newest first, with the lines 
 		{ version: "1.2.0", line: "Migrate old settings by hand." },
 	]);
 	expect(span).toMatchObject({ older: 0, more: false });
-	expect(await engine.releaseNotes("cmd")).toMatchObject({ releases: [], problem: MESSAGES.noApp("cmd") });
 	// A list that holds none of them (the forge answered with nothing) shows nothing more than the latest's notes.
 	listed = [];
 	expect(await engine.releaseNotes("tool")).toEqual({ releases: [], breaking: [], older: 0, more: false });
+});
+
+test("the notes read every release, with or without a file for this machine", async () => {
+	const { engine } = await setup();
+	// 1.2.0 shipped no file this table installs, and the installed 1.1.0's file was renamed: both still count.
+	releases = [
+		{ tag: "v1.3.0", notes: "Faster." },
+		{ tag: "v1.2.0", file: "cli-linux", notes: "- **Breaking:** the `--old` flag is gone." },
+		{ tag: "v1.1.0", file: "Tool-x86_64" },
+	];
+	latestTag = "v1.3.0";
+	await engine.check();
+	const span = await engine.releaseNotes("tool");
+	expect(span.releases.map((r) => r.version)).toEqual(["1.3.0", "1.2.0"]);
+	expect(span.breaking).toEqual([{ version: "1.2.0", line: "Breaking: the --old flag is gone." }]);
+	// The list reaches the installed version, so nothing is said about older ones.
+	expect(span).toMatchObject({ older: 0, more: false });
+	// An app that keeps no release list answers with no span and no problem.
+	expect(await engine.releaseNotes("cmd")).toEqual({ releases: [], breaking: [], older: 0, more: false });
+	expect(await engine.releaseNotes("nope")).toMatchObject({ problem: MESSAGES.noApp("nope") });
 });

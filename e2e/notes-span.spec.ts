@@ -37,3 +37,16 @@ test("a row one release behind keeps the latest release's notes alone", async ({
 	await expect(pane.locator(".notes .nv")).toHaveCount(0);
 	await expect(pane.getByTestId("notes-more")).toHaveCount(0);
 });
+
+test("one release whose notes fill the budget still says older releases are left out", async ({ page }) => {
+	await load(page, "fixture&notes=long");
+	await page.getByTestId("open-zen").click();
+	const pane = page.getByTestId("detail-zen");
+	await expect(pane.locator(".notes .nv")).toHaveCount(1);
+	await expect(pane.getByTestId("notes-version-1.24.1b")).toContainText("1.24.1b");
+	await expect(pane.getByTestId("notes-older")).toHaveText("2 older releases not shown.");
+	await expect(pane.getByTestId("notes-more")).toHaveText(
+		"Older releases are not listed here. The release page has them all.",
+	);
+	await expect(pane.getByTestId("breaking")).toHaveCount(0);
+});

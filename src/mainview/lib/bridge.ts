@@ -56,6 +56,7 @@ export async function getBridge(): Promise<Bridge> {
 			rate: RATES.find((r) => r === query.get("rate")),
 			token: query.get("token") === "refused" ? "refused" : undefined,
 			quiet: query.get("quiet") === "cut" ? "cut" : query.get("quiet") === "root" ? "root" : undefined,
+			notes: query.get("notes") === "long" ? "long" : undefined,
 		});
 	}
 
