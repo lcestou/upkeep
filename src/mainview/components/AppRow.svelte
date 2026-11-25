@@ -50,7 +50,7 @@
 	// What a working row waits for after Stop now (an engine sentence), else its quiet line.
 	const workLine = $derived(
 		// The row has room for the short form only; the pane carries the step's limit too.
-		app.status === "working" && app.detail ? say(app.detail) : quiet ? quietLine(quiet.m, null) : null,
+		app.status === "working" && app.waiting ? say(app.waiting) : quiet ? quietLine(quiet.m, null) : null,
 	);
 </script>
 
@@ -58,7 +58,7 @@
 	class="row ledger-cols s-{app.status}"
 	class:fresh
 	class:said={sentence !== null || workLine !== null}
-	class:quiet={quiet !== null && !app.detail && !model.run.stoppingNow}
+	class:quiet={quiet !== null && !app.waiting && !model.run.stoppingNow}
 	class:wide={sentence !== null && noVersions}
 	class:open
 	class:back
@@ -123,7 +123,7 @@
 				{#if app.repo}<span class="latin">{app.repo}</span>{/if}
 			</span>
 			{#if sentence}<span class="sentence" title={sentence} data-testid="sentence-{app.key}">{sentence}</span>{/if}
-			{#if workLine}<span class="sentence" title={workLine} data-testid="{app.detail ? 'wait' : 'quiet'}-{app.key}">{workLine}</span
+			{#if workLine}<span class="sentence" title={workLine} data-testid="{app.waiting ? 'wait' : 'quiet'}-{app.key}">{workLine}</span
 				>{/if}
 		</span>
 		<span class="cell kind" title={KIND_LABEL[app.kind]}>{KIND_LABEL[app.kind]}</span>
@@ -158,7 +158,7 @@
 		<!-- Always present and absolutely placed, so opening a row never changes the button's set of grid items. -->
 		<svg class="marker" class:shown={open} viewBox="0 0 8 14" aria-hidden="true"><path d="M8 0v14L1 7Z" /></svg>
 	</button>
-	{#if quiet !== null && !app.detail && !model.run.stoppingNow}
+	{#if quiet !== null && !app.waiting && !model.run.stoppingNow}
 		<!-- Outside the row's own button: a quiet row carries its Stop now where the reason is read. The list stays one
 			tab stop; from the keyboard the footer's Stop after this one escalates to Stop now. -->
 		<button

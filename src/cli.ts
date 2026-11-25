@@ -77,24 +77,49 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	return 0;
 }
 
-/** Where install hears Ctrl-C and SIGTERM, and how it quits at once; tests pass a fake that raises them. */
+/** The signals install turns into Stop now: Ctrl-C, a kill or systemd's stop, and the terminal closing. */
+type StopSignal = "SIGINT" | "SIGTERM" | "SIGHUP";
+
+/** Where install hears Ctrl-C, SIGTERM and SIGHUP, and how it quits at once; tests pass a fake that raises them. */
 export type Signals = {
-	on(name: "SIGINT" | "SIGTERM", fn: () => void): void;
-	off(name: "SIGINT" | "SIGTERM", fn: () => void): void;
+	on(name: StopSignal, fn: () => void): void;
+	off(name: StopSignal, fn: () => void): void;
 	exit(code: number): void;
 };
 
 /**
- * The first Ctrl-C or SIGTERM during an install is Stop now: the current app is put back and the rest do not start.
- * A second one ends the step in progress (TERM, then KILL after 5 s) and quits, which can leave that app
- * half-installed; a step that runs as root cannot be ended from here, so it keeps running and the line says so. Outside the install itself (the check before
- * it) nothing is being changed, so the first one quits at once. Returns the function that stops listening.
+ * Between the check and the run's first app: starting is set while engine.install() recovers an earlier interrupted
+ * update and claims the lock; pending records a press that came then, to be turned into Stop now once the run starts.
  */
-function stopOnSignal(engine: Engine, signals: Signals, out: Out): () => void {
+export type Starting = { starting: boolean; pending: boolean };
+
+/**
+ * The first Ctrl-C, SIGTERM or SIGHUP during an install is Stop now: the current app is put back and the rest do not
+ * start. A second one ends the step in progress (TERM, then KILL after 5 s) and quits, which can leave that app
+ * half-installed; a step that runs as root cannot be ended from here, so it keeps running and the line says so. During
+ * the check before the install nothing is being changed, so the first one quits at once. While the install starts (it
+ * may be finishing an earlier interrupted update) the first one waits for that, then stops before any app; a second
+ * one quits mid-recovery. Returns the function that stops listening.
+ */
+export function stopOnSignal(
+	engine: Pick<Engine, "snapshot" | "stopNow" | "endStep">,
+	signals: Signals,
+	out: Out,
+	gate: Starting,
+): () => void {
 	let quitting = false;
 	const onSignal = () => {
 		const run = engine.snapshot().run;
 		const name = engine.snapshot().apps.find((a) => a.key === run.currentKey)?.name ?? "the current app";
+		if (gate.starting && run.phase !== "installing") {
+			if (gate.pending) {
+				out("Quit while an earlier interrupted update was being finished or undone. Run upkeep recover.");
+				return signals.exit(130);
+			}
+			gate.pending = true;
+			out("Stopping: no app will be installed. Press Ctrl-C again to quit at once.");
+			return;
+		}
 		if (run.phase !== "installing") return signals.exit(130);
 		if (run.stoppingNow) {
 			// Children run in their own process groups, so the terminal's Ctrl-C never reached the step: end it here.
@@ -116,26 +141,26 @@ function stopOnSignal(engine: Engine, signals: Signals, out: Out): () => void {
 		out(`Stopping: putting ${name} back. Press Ctrl-C again to quit at once, which can leave ${name} half-installed.`);
 		engine.stopNow();
 	};
-	signals.on("SIGINT", onSignal);
-	signals.on("SIGTERM", onSignal);
+	const names: StopSignal[] = ["SIGINT", "SIGTERM", "SIGHUP"];
+	for (const n of names) signals.on(n, onSignal);
 	return () => {
-		signals.off("SIGINT", onSignal);
-		signals.off("SIGTERM", onSignal);
+		for (const n of names) signals.off(n, onSignal);
 	};
 }
 
 /** Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. Exits 0 only when every result is "updated". */
 async function install(engine: Engine, args: string[], json: boolean, out: Out, signals: Signals): Promise<number> {
-	const unlisten = stopOnSignal(engine, signals, out);
+	const gate: Starting = { starting: false, pending: false };
+	const unlisten = stopOnSignal(engine, signals, out, gate);
 	try {
-		return await installRun(engine, args, json, out);
+		return await installRun(engine, args, json, out, gate);
 	} finally {
 		unlisten();
 	}
 }
 
-/** install's body, with Ctrl-C already turned into Stop now. */
-async function installRun(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
+/** install's body, with Ctrl-C already turned into Stop now; a press while the install starts stops it once started. */
+async function installRun(engine: Engine, args: string[], json: boolean, out: Out, gate: Starting): Promise<number> {
 	await engine.check();
 	await engine.idle();
 	const keys = args.includes("--all")
@@ -150,7 +175,11 @@ async function installRun(engine: Engine, args: string[], json: boolean, out: Ou
 			if (line) out(line);
 		}
 	});
+	gate.starting = true;
 	const r = await engine.install(keys);
+	gate.starting = false;
+	// Pressed during the recovery or setup: the run stops before its first app.
+	if (r.started && gate.pending) engine.stopNow();
 	if (!r.started) {
 		off();
 		const reason = r.reason ?? "Nothing to install.";

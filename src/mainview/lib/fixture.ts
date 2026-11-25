@@ -865,7 +865,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		emit({ type: "run", run });
 	};
 	const log = (runId: string, key: string | null, text: string) => {
-		const line: LogLine = { at: iso(Date.now()), key, text };
+		// A quiet run's lines are three minutes old, so a row that spoke in an earlier run still reads quiet now.
+		const line: LogLine = { at: iso(Date.now() - (opts.quiet ? 3 * 60_000 : 0)), key, text };
 		const lines = logs.get(runId) ?? [];
 		lines.push(line);
 		logs.set(runId, lines);
@@ -880,7 +881,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const to = app.latest;
 		const total = 3000 / speed;
 		const early = app.downloaded === true;
-		put({ ...app, status: "working", stage: app.stages[0]?.id, stagePct: early ? 100 : 0 });
+		put({ ...app, status: "working", detail: undefined, stage: app.stages[0]?.id, stagePct: early ? 100 : 0 });
 		/** As the engine does at Stop now: the app is put back and the row says so. */
 		const stopped = (): RunResult => {
 			const now = get(key) ?? app;
@@ -893,6 +894,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				stagePct: undefined,
 				activeAt: undefined,
 				step: undefined,
+				waiting: undefined,
 				detail,
 			});
 			return { key, name: app.name, from, to, result: "stopped", detail, ms: Date.now() - start };
@@ -903,6 +905,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			put({
 				...app,
 				status: "working",
+				detail: undefined,
 				stage: first,
 				stagePct: null,
 				activeAt: ago,
@@ -912,9 +915,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			while (!run.stoppingNow) await sleep(50);
 			if (opts.quiet === "root") {
 				const now = get(key) ?? app;
-				const detail = MESSAGES.waitingThenPutBack("dpkg", from ?? "");
-				log(runId, key, detail);
-				put({ ...now, detail });
+				const waiting = MESSAGES.waitingThenPutBack("dpkg", from ?? "");
+				log(runId, key, waiting);
+				put({ ...now, waiting });
 				await sleep(1500 / speed);
 			}
 			return stopped();
@@ -1000,7 +1003,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const fromSummary = run.phase === "summary";
 		for (const key of order) {
 			const app = get(key);
-			if (app) put({ ...app, status: "queued", detail: undefined });
+			// As the engine does: a queued row keeps its note until it starts working.
+			if (app) put({ ...app, status: "queued" });
 		}
 		setRun({
 			id: runId,

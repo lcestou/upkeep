@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { asRoot, asRootArgv, runsAsRoot, sudoNeedsPassword } from "./run";
+import { asRoot, asRootArgv, runsAsRoot, stepName, sudoNeedsPassword } from "./run";
 import { realRun, script, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -273,3 +273,21 @@ async function until(cond: () => boolean, left = 150): Promise<void> {
 	await Bun.sleep(20);
 	return until(cond, left - 1);
 }
+
+test("root is seen through a full path to sudo and an env prefix", () => {
+	expect(runsAsRoot(["/usr/bin/sudo", "-n", "dpkg", "-i", "x.deb"])).toBe(true);
+	expect(runsAsRoot(["env", "DEBIAN_FRONTEND=noninteractive", "sudo", "apt-get", "install", "x"])).toBe(true);
+	expect(runsAsRoot(["/usr/bin/env", "-i", "PATH=/bin", "/usr/bin/sudo", "true"])).toBe(true);
+	expect(runsAsRoot(["/bin/bash", "-c", "make install && sudo make install"])).toBe(true);
+	expect(runsAsRoot(["env", "FOO=1", "make"])).toBe(false);
+});
+
+test("a step is named as the log names it: without env, sudo or a path, with its subcommand words", () => {
+	expect(stepName(["sudo", "-n", "dpkg", "-i", "/tmp/x.deb"])).toBe("dpkg");
+	expect(stepName(["/usr/bin/sudo", "-n", "rpm", "-U", "x.rpm"])).toBe("rpm");
+	expect(stepName(["env", "A=1", "sudo", "-n", "make", "install"])).toBe("make install");
+	expect(stepName(["claude", "plugin", "marketplace", "update"])).toBe("claude plugin marketplace");
+	expect(stepName(["bash", "-c", "sudo -n make install PREFIX=/usr"])).toBe("make install");
+	expect(stepName(["/home/me/.local/bin/claude-up"])).toBe("claude-up");
+	expect(stepName(["git", "-C", "/x", "fetch"])).toBe("git");
+});

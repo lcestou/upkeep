@@ -1116,7 +1116,7 @@ test("Stop now during a step it never cuts says what it waits for, and the step 
 	let pressed = false;
 	engine.subscribe((e) => {
 		if (e.type !== "app" || e.app.key !== "plugins") return;
-		if (e.app.status === "working" && e.app.detail) details.push(e.app.detail);
+		if (e.app.status === "working") details.push(e.app.waiting ?? "-");
 		if (!pressed && e.app.status === "working") {
 			pressed = true;
 			setTimeout(() => engine.stopNow(), 100);
@@ -1124,7 +1124,12 @@ test("Stop now during a step it never cuts says what it waits for, and the step 
 	});
 	await engine.install(["plugins"]);
 	await engine.idle();
-	expect([...new Set(details)]).toEqual(["Waiting for claude plugin marketplace to finish."]);
+	// The line shows while the waited step runs and goes once it returns, before the plugins' own put-back.
+	expect(details.filter((d, i) => d !== details[i - 1])).toEqual([
+		"-",
+		"Waiting for claude plugin marketplace to finish.",
+		"-",
+	]);
 	expect(statuses(engine).plugins).toBe("stopped");
 	expect(lockHeld()).toBe(false);
 });
@@ -1224,4 +1229,34 @@ test("quitting at once ends the step in progress when it is not root, and leaves
 	expect(await quit.ended).toEqual({ step: "claude-up", root: false });
 	expect(existsSync(`/proc/${Number(readFileSync(pidFile, "utf8"))}`)).toBe(false);
 	expect(await engine.endStep()).toBeNull();
+}, 20_000);
+
+test("a row that was ready with a note starts working without it: the note never reads as a waiting line", async () => {
+	const d = await deps();
+	script(join(bin, "claude-up"), "sleep 30");
+	const engine = createEngine(d);
+	await engine.check();
+	let presses = 0;
+	const working: { detail?: string; waiting?: string }[] = [];
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "claude" && e.app.status === "working")
+			working.push({ detail: e.app.detail, waiting: e.app.waiting });
+		if (e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) {
+			presses += 1;
+			engine.stopNow();
+		}
+	});
+	await engine.install(["claude"]);
+	await engine.idle();
+	engine.dismissSummary();
+	// The ready row now carries a note from the last try.
+	expect(engine.snapshot().apps.find((a) => a.key === "claude")?.detail).toBe(
+		"Stopped. Claude Code still reports 2.1.322.",
+	);
+	working.length = 0;
+	await engine.install(["claude"]);
+	await engine.idle();
+	expect(presses).toBe(2);
+	expect(working.length).toBeGreaterThan(0);
+	expect(working.every((w) => w.detail === undefined && w.waiting === undefined)).toBe(true);
 }, 20_000);

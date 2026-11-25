@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { checkLine, main, pickSure, USAGE } from "./cli";
-import type { EngineDeps } from "./engine/engine";
+import { checkLine, main, pickSure, stopOnSignal, USAGE } from "./cli";
+import { createEngine, type EngineDeps } from "./engine/engine";
 import {
 	appendHistory,
 	claimLock,
@@ -525,7 +525,7 @@ function fakeSignals() {
 	const exits: number[] = [];
 	return {
 		exits,
-		raise: (name: "SIGINT" | "SIGTERM") => {
+		raise: (name: "SIGINT" | "SIGTERM" | "SIGHUP") => {
 			for (const fn of listeners.get(name) ?? []) fn();
 		},
 		listening: () => [...listeners.values()].reduce((n, s) => n + s.size, 0),
@@ -638,4 +638,43 @@ test("a second Ctrl-C during a root step quits and says the step runs on as root
 		"Quit before BorgBackup was put back. install runs as root and is still running; run upkeep recover once it ends.",
 	);
 	expect(sig.exits).toEqual([130]);
+});
+
+test("closing the terminal (SIGHUP) during an install is Stop now too", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const code = await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) sig.raise("SIGHUP");
+		},
+		sig,
+	);
+	expect(code).toBe(1);
+	expect(out).toContain("[borg] stopped Stopped. 1.4.1 is back in place.");
+	expect(sig.exits).toEqual([]);
+	expect(sig.listening()).toBe(0);
+});
+
+test("Ctrl-C while the install starts waits for the recovery of an earlier update; a second one quits", () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const engine = {
+		snapshot: () => createEngine(deps()).snapshot(),
+		stopNow: () => out.push("stopNow"),
+		endStep: async () => null,
+	};
+	const gate = { starting: true, pending: false };
+	const unlisten = stopOnSignal(engine, sig, (l) => out.push(l), gate);
+	sig.raise("SIGINT");
+	expect(gate.pending).toBe(true);
+	expect(sig.exits).toEqual([]);
+	expect(out).toEqual(["Stopping: no app will be installed. Press Ctrl-C again to quit at once."]);
+	sig.raise("SIGINT");
+	expect(out.at(-1)).toBe("Quit while an earlier interrupted update was being finished or undone. Run upkeep recover.");
+	expect(sig.exits).toEqual([130]);
+	unlisten();
+	expect(sig.listening()).toBe(0);
 });

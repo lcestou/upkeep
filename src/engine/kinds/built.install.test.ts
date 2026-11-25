@@ -746,3 +746,27 @@ test("Stop now pressed after verify passed keeps the update: the run just ends",
 	expect(box.svc).toMatchObject({ running: true, servedVersion: "a1b2c3d4e" });
 	expect(readInflight(t.paths)).toBeNull();
 });
+
+test("Stop now pressed before the health check starts ends it without a poll, and the old version goes back", async () => {
+	const stop = new AbortController();
+	const box = fakeBox();
+	let polls = 0;
+	// The press lands on the new unit's since read, just before health would poll.
+	const run: Run = (argv, opts) => {
+		if (argv.join(" ") === "since srv" && box.svc.servedVersion === "a1b2c3d4e" && !stop.signal.aborted) stop.abort();
+		return box.run(argv, opts);
+	};
+	const fetch: FetchLike = async (url, init) => {
+		if (box.svc.servedVersion === "a1b2c3d4e") polls += 1;
+		return box.fetch(url, init);
+	};
+	const o = await installBuilt(spec({ serve: [{ ...SERVE, wait_s: 30 }] }), target, {
+		...ctx(box),
+		fetch,
+		run: withCancel(run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(o).toMatchObject({ result: "stopped", installed: "f2918cabb" });
+	expect(polls).toBe(0);
+	expect(box.svc).toMatchObject({ running: true, servedVersion: "f2918cabb" });
+});

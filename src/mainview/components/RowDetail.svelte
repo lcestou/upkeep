@@ -226,7 +226,8 @@
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
 		{#if app.detail}<p class="sentence" class:note={isStopNote(app.detail)} data-testid="pane-detail">{say(app.detail)}</p>{/if}
-		{#if quiet && !app.detail}<p class="sentence note" data-testid="pane-quiet">{quietLine(quiet.m, quiet.n)}</p>{/if}
+		{#if app.status === "working" && app.waiting}<p class="sentence note" data-testid="pane-wait">{say(app.waiting)}</p>
+		{:else if quiet}<p class="sentence note" data-testid="pane-quiet">{quietLine(quiet.m, quiet.n)}</p>{/if}
 		{#if app.restartToApply && app.canRestart}
 			<div class="restart-now">
 				{#if askingRestart}

@@ -1,5 +1,5 @@
 import { copyFileSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import type {
 	AppSpec,
 	AppState,
@@ -48,7 +48,7 @@ import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
 import { expandHome, type Paths } from "./paths";
-import { endGroup, killTree, type Run, type RunOpts, runsAsRoot } from "./run";
+import { endGroup, killTree, type Run, type RunOpts, runsAsRoot, stepName } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
 	appendHistory,
@@ -239,21 +239,7 @@ const POINT_WEIGHTS = {
 } satisfies Record<"deb" | "rpm" | "command", [Stage, number][]>;
 
 /** A step a kind runs now: its argv, whether Stop now may cut it, and its pid once it started. */
-type InStep = { argv: string[]; cuttable: boolean; pid?: number };
-
-/** The step as the log names it: the program without sudo or its path, its subcommand words, a shell step's own. */
-function stepName(argv: string[]): string {
-	const words = argv[0] === "sudo" ? argv.slice(argv[1] === "-n" ? 2 : 1) : argv;
-	const [prog = "", flag, script] = words;
-	const name = basename(prog);
-	if ((name === "bash" || name === "sh") && flag === "-c" && script) return stepName(script.trim().split(/\s+/));
-	const sub: string[] = [];
-	for (const w of words.slice(1, 3)) {
-		if (!/^[a-z][a-z-]*$/.test(w)) break;
-		sub.push(w);
-	}
-	return [name, ...sub].join(" ");
-}
+type InStep = { argv: string[]; cuttable: boolean; pid?: number; waitedOn?: boolean };
 
 /** A finished install is "updated" in the run's results; failures keep their own word. */
 const resultOf = (r: Outcome["result"]): RunResult["result"] => (r === "done" ? "updated" : r);
@@ -385,6 +371,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				if (inStep === mine) inStep = null;
 				if (working?.status === "working" && working.step) {
 					working.step = undefined;
+					// The step Stop now waited on has ended: the put-back that follows is not that wait.
+					if (mine.waitedOn) working.waiting = undefined;
 					emitApp(working);
 				}
 			}
@@ -630,6 +618,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		app.stagePct = undefined;
 		app.activeAt = undefined;
 		app.step = undefined;
+		app.waiting = undefined;
 		app.downloaded = undefined;
 		app.restorePoints = app.canRestore ? listBackups(paths, app.key) : [];
 		emitApp(app);
@@ -820,6 +809,11 @@ export function createEngine(deps: EngineDeps): Engine {
 		return { started: true };
 	}
 
+	/**
+	 * Runs the queue, then ends the run: the history of every app that finished is appended in a finally, so a stopped
+	 * run or one that throws still records them; the log closes and the run moves to summary with stopping and
+	 * stoppingNow cleared. A throw skips the summary here; startInstall's catch fails the open rows instead.
+	 */
 	async function doRun(queue: AppSpec[]): Promise<void> {
 		const history: HistoryRow[] = [];
 		// In a finally: a run that throws or is stopped still records the apps it finished.
@@ -847,6 +841,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!app) continue;
 			const from = app.installed;
 			app.status = "working";
+			// A note from the check (or a last try) is about the row at rest, not the install now under way.
+			app.detail = undefined;
 			app.stage = app.stages[0]?.id;
 			app.stagePct = 0;
 			app.activeAt = deps.now().toISOString();
@@ -992,7 +988,8 @@ export function createEngine(deps: EngineDeps): Engine {
 					? MESSAGES.waitingThenPutBack(stepName(step.argv), back)
 					: MESSAGES.waitingFor(stepName(step.argv));
 				say(app.key, line);
-				app.detail = line;
+				step.waitedOn = true;
+				app.waiting = line;
 				emitApp(app);
 			}
 			emitRun();

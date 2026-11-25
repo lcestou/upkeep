@@ -1,5 +1,5 @@
 import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import { expandHome } from "./paths";
 
@@ -155,14 +155,52 @@ export async function endGroup(pid: number, graceMs = 5000): Promise<void> {
 	await goneWithin(graceMs);
 }
 
+/** argv past an `env` prefix (its NAME=value and option words), so the program that runs comes first. */
+function pastEnv(argv: string[]): string[] {
+	if (basename(argv[0] ?? "") !== "env") return argv;
+	let i = 1;
+	while (i < argv.length && /^(-|[A-Za-z_][A-Za-z0-9_]*=)/.test(argv[i] ?? "")) i += 1;
+	return argv.slice(i);
+}
+
+/** True for a shell step (`bash -c`, `sh -c`, by name or full path) and its script. */
+function shellScript(argv: string[]): string | null {
+	const [prog = "", flag, script] = argv;
+	const name = basename(prog);
+	return (name === "bash" || name === "sh") && flag === "-c" && script !== undefined ? script : null;
+}
+
 /**
- * True for a step that runs as root: an argv that starts with sudo, or a shell step whose script calls sudo. Stop now
- * never cuts one: sudo cannot hand a KILL on to the root command, so a cut would only orphan it.
+ * True for a step that runs as root: sudo by name or full path, after an `env` prefix or not, or a shell step whose
+ * script calls sudo. Stop now never cuts one: sudo cannot hand a KILL on to the root command, so a cut would only
+ * orphan it. A program that becomes root some other way (pkexec, a setuid helper) is not seen.
  */
 export function runsAsRoot(argv: string[]): boolean {
-	if (argv[0] === "sudo") return true;
-	const [prog = "", flag, script] = argv;
-	return /(^|\/)(ba)?sh$/.test(prog) && flag === "-c" && /\bsudo\b/.test(script ?? "");
+	const words = pastEnv(argv);
+	if (basename(words[0] ?? "") === "sudo") return true;
+	return /\bsudo\b/.test(shellScript(words) ?? "");
+}
+
+/**
+ * The step as the log names it, for "Waiting for {step} to finish": the program without env, sudo or its path, then
+ * up to two plain subcommand words ("claude plugin marketplace", "make install"); a shell step is named by its own
+ * script. sudo's option words are skipped; one that takes a value (sudo -u name) is not understood.
+ */
+export function stepName(argv: string[]): string {
+	let words = pastEnv(argv);
+	if (basename(words[0] ?? "") === "sudo") {
+		words = words.slice(1);
+		while (words[0]?.startsWith("-")) words = words.slice(1);
+		words = pastEnv(words);
+	}
+	const script = shellScript(words);
+	if (script) return stepName(script.trim().split(/\s+/));
+	const sub: string[] = [];
+	for (const w of words.slice(1, 3)) {
+		if (!/^[a-z][a-z-]*$/.test(w)) break;
+		sub.push(w);
+	}
+	return [basename(words[0] ?? ""), ...sub].join(" ");
 }
 
 /**

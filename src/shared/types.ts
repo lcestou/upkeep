@@ -238,6 +238,11 @@ export type AppState = {
 	/** While working: the step running now, when it started (ISO) and its own limit in ms, null when it has none. */
 	step?: { at: string; limitMs: number | null };
 	/**
+	 * While working, after Stop now: what the run waits for before the app is put back (an engine sentence), until the
+	 * waited step returns. Its own field, so a note the row carried from its check never reads as one.
+	 */
+	waiting?: string;
+	/**
 	 * Read while queued: the file came down ahead of the app's turn and matched the release. Cleared when the row
 	 * leaves the run and when Stop is pressed; a working row may still carry it.
 	 */
