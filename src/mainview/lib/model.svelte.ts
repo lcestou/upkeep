@@ -65,7 +65,14 @@ export type Group = { id: GroupId; label: string; apps: AppState[] };
 // its own lines from these, so a quiet app's early lines last as long as 2000 do.
 const LOG_CAP = 2000;
 
-export const IN_RUN: ReadonlySet<AppStatus> = new Set(["queued", "working", "done", "failed", "rolled_back"]);
+export const IN_RUN: ReadonlySet<AppStatus> = new Set([
+	"queued",
+	"working",
+	"done",
+	"failed",
+	"rolled_back",
+	"stopped",
+]);
 
 /** An empty run state, used before the first snapshot and as the reset value; a fresh object each call so callers never share one. */
 const idleRun = (): RunState => ({
@@ -264,7 +271,10 @@ export class Model {
 			total: this.apps.length,
 		}),
 	);
-	failedKeys: string[] = $derived(this.run.results.filter((r) => r.result !== "updated").map((r) => r.key));
+	// A stopped app is the person's choice, not a failure: it is never offered as Retry.
+	failedKeys: string[] = $derived(
+		this.run.results.filter((r) => r.result !== "updated" && r.result !== "stopped").map((r) => r.key),
+	);
 	/** The apps in this run in the engine's order: list order, with apps added during the run after them. */
 	queue: AppState[] = $derived(
 		this.run.phase === "installing" || this.run.phase === "summary"
@@ -357,7 +367,7 @@ export class Model {
 				}
 				this.pinned = false;
 				// A run that ends with failures opens the inspector on the first one; a clean run leaves it alone.
-				const failed = e.run.results.find((r) => r.result !== "updated");
+				const failed = e.run.results.find((r) => r.result !== "updated" && r.result !== "stopped");
 				if (before === "installing" && e.run.phase === "summary" && failed) this.openKey = failed.key;
 				return;
 			}
@@ -639,6 +649,11 @@ export class Model {
 				packages: on ? (system?.packages ?? null) : null,
 			},
 		};
+	}
+
+	/** Ends the run now: the engine cuts or waits out the current step and puts the app back. */
+	async stopNow(): Promise<void> {
+		await this.send("stopNow", {});
 	}
 
 	/** Asks the engine to stop after the app now running; nothing waits on the answer. */

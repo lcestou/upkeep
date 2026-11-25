@@ -19,7 +19,7 @@ const file = (paths: Paths) => join(paths.state, "extras.json");
  * turning the list on again never brings installing back unseen. Cleanup is on only for exactly true, and developer
  * caches only while Cleanup is on, for the same reason. A key that is off is absent, never false.
  */
-function clamp(raw: unknown): ExtrasSettings {
+export function clampExtras(raw: unknown): ExtrasSettings {
 	// SAFETY: raw is a non-null object, so any key reads as a value or undefined; every key read is compared, not trusted.
 	const r = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
 	const out: ExtrasSettings = r.system === "show" ? { system: "show" } : { system: DEFAULT_EXTRAS.system };
@@ -34,7 +34,7 @@ function clamp(raw: unknown): ExtrasSettings {
 /** An absent or unreadable file is the defaults. */
 export function loadExtras(paths: Paths): ExtrasSettings {
 	try {
-		return clamp(JSON.parse(readFileSync(file(paths), "utf8")));
+		return clampExtras(JSON.parse(readFileSync(file(paths), "utf8")));
 	} catch {
 		return { ...DEFAULT_EXTRAS };
 	}
@@ -42,7 +42,7 @@ export function loadExtras(paths: Paths): ExtrasSettings {
 
 /** Merges patch into what is on disk, clamps it and writes it by rename. Returns what was written. */
 export function updateExtras(paths: Paths, patch: Partial<ExtrasSettings>): ExtrasSettings {
-	const next = clamp({ ...loadExtras(paths), ...patch });
+	const next = clampExtras({ ...loadExtras(paths), ...patch });
 	mkdirSync(paths.state, { recursive: true });
 	writeAtomic(file(paths), JSON.stringify(next, null, "\t"));
 	return next;

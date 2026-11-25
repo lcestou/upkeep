@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { say } from "../lib/engine-say";
+	import { isStopNote, say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
 	import {
 		CHIP,
@@ -20,6 +20,7 @@
 		restoredText,
 		settlesLine,
 		skipLabel,
+		quietLine,
 		statusText,
 		stopSkipLabel,
 	} from "../lib/copy";
@@ -27,6 +28,7 @@
 	import type { Model } from "../lib/model.svelte";
 	import { type Inline, parseNotes } from "../lib/notes";
 	import { CARE, glyphColor } from "../lib/state";
+	import { quietOf } from "../lib/quiet";
 	import Glyph from "./Glyph.svelte";
 	import Stem from "./Stem.svelte";
 	import Versions from "./Versions.svelte";
@@ -58,6 +60,16 @@
 		if (el && pinned) el.scrollTop = el.scrollHeight;
 	});
 	const care = $derived(CARE[app.status]);
+	// The quiet line with its step's limit, which the row has no room for. Its clock ticks only while the app works.
+	let now = $state(Date.now());
+	$effect(() => {
+		if (app.status !== "working") return;
+		now = Date.now();
+		const id = setInterval(() => (now = Date.now()), 15_000);
+		return () => clearInterval(id);
+	});
+	const lastLine = $derived(app.status === "working" ? model.log.findLast((l) => l.key === app.key)?.at : undefined);
+	const quiet = $derived(quietOf(app, lastLine, now));
 	const failed = $derived(app.status === "failed" || app.status === "rolled_back");
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
 	const chip = CHIP.running;
@@ -214,7 +226,7 @@
 		{#if app.status === "working" || app.status === "done"}
 			<div class="stem"><Stem {app} caption={false} /></div>
 		{/if}
-		{#if app.detail}<p class="sentence" data-testid="pane-detail">{say(app.detail)}</p>{/if}
+		{#if app.detail}<p class="sentence" class:note={isStopNote(app.detail)} data-testid="pane-detail">{say(app.detail)}</p>{/if}
 		{#if app.status === "held" && app.settles}
 			<p class="sentence" data-testid="settles-line">{settlesLine(app.latest ?? "", app.settles)}</p>
 			<div>
@@ -227,6 +239,8 @@
 				>
 			</div>
 		{/if}
+		{#if app.status === "working" && app.waiting}<p class="sentence note" data-testid="pane-wait">{say(app.waiting)}</p>
+		{:else if quiet}<p class="sentence note" data-testid="pane-quiet">{quietLine(quiet.m, quiet.n)}</p>{/if}
 		{#if app.restartToApply && app.canRestart}
 			<div class="restart-now">
 				{#if askingRestart}
@@ -706,6 +720,10 @@
 	.sentence {
 		margin: 0;
 		color: oklch(0.82 0.09 48);
+	}
+	/* Stop now's own sentences and the quiet line are plain notes, in the row's note colour: stopping is not a failure. */
+	.sentence.note {
+		color: var(--text-2);
 	}
 	.head > div:last-child:has(.btn) {
 		padding-left: 24px;

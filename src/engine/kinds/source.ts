@@ -18,6 +18,8 @@ import {
 	probeProblem,
 	readInstalled,
 	stageClock,
+	stopPressed,
+	stoppedOutcome,
 	type Target,
 } from "./context";
 import { checkRelease, destOf, probeInstalled } from "./release";
@@ -142,7 +144,10 @@ export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx)
 	const clone = await ctx.run(["git", "clone", "--branch", target.tag, "--depth", "1", url, dir], {
 		timeoutMs: 600_000,
 		onLine: log,
+		cuttable: true,
 	});
+	// Stop now before the build changes anything. Once it starts, every step is waited out: there is no restore point.
+	if (stopPressed(ctx)) return { ...stoppedOutcome(target.from), stages: clock.stop() };
 	if (clone.code !== 0) return failed(MESSAGES.couldNotClone(String(spec.repo), target.tag));
 
 	writeInflight(ctx.paths, { key: spec.key, dest: destOf(spec, ctx), backupVersion: null });

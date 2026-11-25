@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import { isRecord } from "../manifest";
 import { isNewer } from "../version";
-import { type Checked, type KindCtx, type Outcome, stageClock } from "./context";
+import { type Checked, type KindCtx, type Outcome, stageClock, stopPressed } from "./context";
 
 // The one place the code names Claude Code: this kind drives its plugin CLI, as package.ts drives dpkg and rpm.
 const REGISTRY = ".claude/plugins/installed_plugins.json";
@@ -161,6 +161,8 @@ export async function installClaudePlugins(ctx: KindCtx): Promise<Outcome> {
 	const failed: string[] = [];
 	let updated = 0;
 	for (const [i, e] of list.entries()) {
+		// Stop now waits out the plugin in progress (Claude Code's registry write is not known to be atomic) and skips the rest.
+		if (stopPressed(ctx)) break;
 		// oxlint-disable-next-line no-await-in-loop -- one plugin at a time, as Claude Code writes one registry
 		const r = await ctx.run([CLAUDE, "plugin", "update", e.id, "--scope", e.scope, "--json"], {
 			timeoutMs: STEP_MS,
@@ -181,6 +183,19 @@ export async function installClaudePlugins(ctx: KindCtx): Promise<Outcome> {
 		ctx.stage("install", Math.round(((i + 1) / list.length) * 100));
 	}
 	const stages = clock.stop();
+	if (stopPressed(ctx))
+		return {
+			result: "stopped",
+			installed: null,
+			detail:
+				failed.length > 0
+					? MESSAGES.couldNotUpdatePlugins(failed.join(", "))
+					: updated > 0
+						? MESSAGES.pluginsUpdated(updated)
+						: undefined,
+			restartToApply: false,
+			stages,
+		};
 	if (failed.length > 0)
 		return {
 			result: "failed",

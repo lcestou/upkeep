@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { asRoot, asRootArgv, sudoNeedsPassword } from "./run";
+import { asRoot, asRootArgv, runsAsRoot, stepName, sudoNeedsPassword } from "./run";
 import { realRun, script, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -142,4 +142,152 @@ test("the runner gives every argv that starts with sudo -n, in run and in start"
 	await Bun.sleep(300);
 	expect(started?.output()).toBe("stand-in -n sleep-ish\n");
 	await started?.stop();
+});
+
+/** True while any process is left in the group pgid leads. */
+function groupAlive(pgid: number): boolean {
+	try {
+		process.kill(-pgid, 0);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+test("every child leads a process group of its own, so the terminal's Ctrl-C never reaches it", async () => {
+	const r = await realRun(t.paths)(["bash", "-c", "echo $$; ps -o pgid= -p $$"]);
+	const [pid, pgid] = r.stdout
+		.trim()
+		.split("\n")
+		.map((s) => Number(s.trim()));
+	expect(pgid).toBe(pid);
+	expect(pgid).not.toBe(process.pid);
+});
+
+test("Stop now cuts a cuttable step: its whole group ends within 5 s and the result says stopped", async () => {
+	const stop = new AbortController();
+	let leader = 0;
+	const running = realRun(t.paths)(["bash", "-c", "sleep 30 & sleep 30; wait"], {
+		cuttable: true,
+		cancel: stop.signal,
+		onLine: () => {},
+		onStart: (pid) => {
+			leader = pid;
+		},
+	});
+	await Bun.sleep(200);
+	const at = Date.now();
+	stop.abort();
+	const r = await running;
+	expect(Date.now() - at).toBeLessThan(5000);
+	expect(r).toMatchObject({ code: 143, stopped: true, timedOut: false });
+	await Bun.sleep(200);
+	expect(groupAlive(leader)).toBe(false);
+});
+
+test("Stop now lets a step that is not cuttable run to its end", async () => {
+	const stop = new AbortController();
+	const running = realRun(t.paths)(["bash", "-c", "sleep 0.5; echo finished"], { cancel: stop.signal });
+	stop.abort();
+	const r = await running;
+	expect(r.code).toBe(0);
+	expect(r.stopped).toBeUndefined();
+	expect(r.stdout).toBe("finished\n");
+});
+
+test("a cuttable step asked to start after Stop now does not start", async () => {
+	const stop = new AbortController();
+	stop.abort();
+	const marker = join(t.dir, "ran");
+	const r = await realRun(t.paths)(["touch", marker], { cuttable: true, cancel: stop.signal });
+	expect(r.stopped).toBe(true);
+	expect(existsSync(marker)).toBe(false);
+});
+
+test("a cut step that ignores TERM is killed 5 s later", async () => {
+	const stop = new AbortController();
+	let leader = 0;
+	const s = script(join(t.dir, "deaf.sh"), "trap '' TERM\nwhile true; do sleep 0.1; done");
+	const running = realRun(t.paths)([s], {
+		cuttable: true,
+		cancel: stop.signal,
+		onStart: (pid) => {
+			leader = pid;
+		},
+	});
+	await Bun.sleep(200);
+	const at = Date.now();
+	stop.abort();
+	const r = await running;
+	expect(Date.now() - at).toBeGreaterThanOrEqual(4500);
+	expect(Date.now() - at).toBeLessThan(7000);
+	expect(r.stopped).toBe(true);
+	await Bun.sleep(200);
+	expect(groupAlive(leader)).toBe(false);
+}, 15_000);
+
+test("a cut returns only once every member of the step's group is gone, even when the leader exits first", async () => {
+	const stop = new AbortController();
+	const pidFile = join(t.dir, "member.pid");
+	// The member ignores TERM (and so do its sleeps); the leader dies of TERM at once.
+	const member = script(
+		join(t.dir, "member.sh"),
+		`trap '' TERM\necho $$ > "${pidFile}"\nwhile true; do sleep 0.1; done`,
+	);
+	const running = realRun(t.paths)(["bash", "-c", `"${member}" & wait`], { cuttable: true, cancel: stop.signal });
+	await until(() => existsSync(pidFile));
+	const at = Date.now();
+	stop.abort();
+	const r = await running;
+	expect(r.stopped).toBe(true);
+	expect(Date.now() - at).toBeGreaterThanOrEqual(4500);
+	expect(existsSync(`/proc/${Number(readFileSync(pidFile, "utf8"))}`)).toBe(false);
+}, 15_000);
+
+test("a step that runs as root is never cut, whatever its caller asked", async () => {
+	expect(runsAsRoot(["sudo", "-n", "dpkg", "-i", "x.deb"])).toBe(true);
+	expect(runsAsRoot(["bash", "-c", "make && sudo -n make install"])).toBe(true);
+	expect(runsAsRoot(["/bin/sh", "-c", "sudo true"])).toBe(true);
+	expect(runsAsRoot(["bash", "-c", "make all"])).toBe(false);
+	expect(runsAsRoot(["git", "fetch"])).toBe(false);
+	// A stand-in sudo in the temp home: the step still runs to its end after the press.
+	script(join(t.paths.home, ".local/bin/sudo"), 'shift; sleep 0.3; echo "ran $*"');
+	const stop = new AbortController();
+	stop.abort();
+	const r = await realRun(t.paths, "/usr/bin:/bin")(["sudo", "true"], { cuttable: true, cancel: stop.signal });
+	expect(r.stopped).toBeUndefined();
+	expect(r.stdout).toBe("ran true\n");
+});
+
+test("start's process leads a process group of its own too", async () => {
+	const started = realRun(t.paths).start?.(["bash", "-c", "echo $$ $(ps -o pgid= -p $$); sleep 5"]);
+	await until(() => (started?.output() ?? "").includes("\n"));
+	const [pid, pgid] = (started?.output() ?? "").trim().split(/\s+/).map(Number);
+	expect(pgid).toBe(pid);
+	await started?.stop();
+});
+
+/** Waits until cond holds, every 20 ms for up to 3 s. */
+async function until(cond: () => boolean, left = 150): Promise<void> {
+	if (cond() || left === 0) return;
+	await Bun.sleep(20);
+	return until(cond, left - 1);
+}
+
+test("root is seen through a full path to sudo and an env prefix", () => {
+	expect(runsAsRoot(["/usr/bin/sudo", "-n", "dpkg", "-i", "x.deb"])).toBe(true);
+	expect(runsAsRoot(["env", "DEBIAN_FRONTEND=noninteractive", "sudo", "apt-get", "install", "x"])).toBe(true);
+	expect(runsAsRoot(["/usr/bin/env", "-i", "PATH=/bin", "/usr/bin/sudo", "true"])).toBe(true);
+	expect(runsAsRoot(["/bin/bash", "-c", "make install && sudo make install"])).toBe(true);
+	expect(runsAsRoot(["env", "FOO=1", "make"])).toBe(false);
+});
+
+test("a step is named as the log names it: without env, sudo or a path, with its subcommand words", () => {
+	expect(stepName(["sudo", "-n", "dpkg", "-i", "/tmp/x.deb"])).toBe("dpkg");
+	expect(stepName(["/usr/bin/sudo", "-n", "rpm", "-U", "x.rpm"])).toBe("rpm");
+	expect(stepName(["env", "A=1", "sudo", "-n", "make", "install"])).toBe("make install");
+	expect(stepName(["claude", "plugin", "marketplace", "update"])).toBe("claude plugin marketplace");
+	expect(stepName(["bash", "-c", "sudo -n make install PREFIX=/usr"])).toBe("make install");
+	expect(stepName(["/home/me/.local/bin/claude-up"])).toBe("claude-up");
+	expect(stepName(["git", "-C", "/x", "fetch"])).toBe("git");
 });

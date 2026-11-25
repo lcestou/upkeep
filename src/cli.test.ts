@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { checkLine, main, pickSure, USAGE } from "./cli";
-import type { EngineDeps } from "./engine/engine";
+import { checkLine, main, pickSure, stopOnSignal, USAGE } from "./cli";
+import { createEngine, type EngineDeps } from "./engine/engine";
 import {
 	appendHistory,
 	claimLock,
@@ -342,6 +342,145 @@ test("export and import carry the list, settings, skips, holds and auto picks, a
 	expect(readdirSync(t.paths.state).filter((f) => f.startsWith("state.json.pre-import-"))).toHaveLength(1);
 });
 
+test("import of a list whose apps run commands prints them and needs --yes; new or changed apps come in with auto off", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	// borg is set to install automatically on this machine.
+	updateState(t.paths, (s) => {
+		s.auto = { borg: true };
+	});
+	const file = join(t.dir, "shared.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	// bat now comes from another repo, and fake is new: both release apps, neither runs a command.
+	doc.apps = doc.apps.replace('repo = "sharkdp/bat"', 'repo = "evil/bat"');
+	doc.apps +=
+		'\n[apps.glow]\nname = "Glow"\nkind = "command"\ncheck = ["glow", "--version"]\nlatest = "npm:glow"\nupdate = ["glow", "up"]\n' +
+		'\n[apps.fake]\nname = "git"\nkind = "file"\nrepo = "evil/git"\nasset = "git$"\ndest = "~/.local/bin/git"\nauto = true\ninstall_if_missing = true\n';
+	doc.auto = { glow: true, borg: true, bat: true };
+	writeFileSync(file, JSON.stringify(doc));
+	const before = readFileSync(join(t.paths.config, "apps.toml"), "utf8");
+	const ask = [
+		`${file} has apps that run these commands on this computer:`,
+		"  Glow (glow)",
+		"    source: npm:glow",
+		"    check: glow --version",
+		"    update: glow up",
+		"and 3 apps that only install their release files, without root.",
+	];
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
+	expect(said).toEqual([
+		...ask,
+		"Nothing was changed. Read the list, then run it again with --yes to import.",
+		"Automatic installs come in off for every app that is new here or differs from this computer's table.",
+	]);
+	const json: string[] = [];
+	expect(await main(["import", file, "--json"], d, (l) => json.push(l))).toBe(1);
+	expect(JSON.parse(json[0] ?? "{}")).toEqual({
+		ok: false,
+		ask: {
+			apps: [{ key: "glow", name: "Glow", commands: ["source: npm:glow", "check: glow --version", "update: glow up"] }],
+			plain: 3,
+			turnsOn: [],
+		},
+	});
+	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
+	// --yes prints the same list before the result, so a log records what came in.
+	const yes: string[] = [];
+	expect(await main(["import", "--yes", file], d, (l) => yes.push(l))).toBe(0);
+	expect(yes).toEqual([
+		...ask,
+		"Imported 4 apps. The files it replaced are kept beside them as .pre-import-<time>.",
+		"Automatic installs came in off for bat, glow, fake: new here or changed from this computer's table.",
+	]);
+	// borg matches this machine's table and keeps its pick; the changed and the new ones do not, whatever the file said.
+	expect(loadState(t.paths).auto).toEqual({ borg: true, bat: false, glow: false, fake: false });
+	// The same file a second time: every table now matches, and each keeps this machine's pick (off), not the file's.
+	const again: string[] = [];
+	expect(await main(["import", file, "--yes", "--yes", "--json"], d, (l) => again.push(l))).toBe(0);
+	// Nothing is new or changed now, so nothing "came in off": the picks here simply stay.
+	expect(JSON.parse(again[0] ?? "{}").autoOff).toEqual([]);
+	expect(loadState(t.paths).auto).toEqual({ borg: true, bat: false, glow: false, fake: false });
+	// A pick made here survives a re-import of a file that says otherwise.
+	updateState(t.paths, (s) => {
+		s.auto.glow = true;
+		s.auto.borg = false;
+	});
+	expect(await main(["import", file, "--yes"], d, () => {})).toBe(0);
+	expect(loadState(t.paths).auto).toEqual({ borg: false, bat: false, glow: true, fake: false });
+});
+
+test("import of a list of release apps only asks nothing and says which came in with auto off", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const file = join(t.dir, "plain.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.apps = doc.apps.replace(/\[apps\.bat\][\s\S]*$/, "");
+	doc.apps += '\n[apps.fd]\nname = "fd"\nkind = "file"\nrepo = "sharkdp/fd"\nasset = "fd$"\ndest = "~/.local/bin/fd"\n';
+	doc.auto = { fd: true };
+	writeFileSync(file, JSON.stringify(doc));
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(0);
+	expect(said).toEqual([
+		"Imported 2 apps. The files it replaced are kept beside them as .pre-import-<time>.",
+		"Automatic installs came in off for fd: new here or changed from this computer's table.",
+	]);
+	expect(loadState(t.paths).auto).toEqual({ borg: false, fd: false });
+	// One app that installs only its releases is said in the singular.
+	writeFileSync(
+		file,
+		JSON.stringify({
+			...doc,
+			apps:
+				'[apps.glow]\nname = "Glow"\nkind = "command"\ncheck = ["glow", "-V"]\nlatest = "npm:glow"\nupdate = ["glow", "up"]\n' +
+				doc.apps.replace(/\[apps\.fd\][\s\S]*$/, ""),
+		}),
+	);
+	const one: string[] = [];
+	expect(await main(["import", file], d, (l) => one.push(l))).toBe(1);
+	expect(one).toContain("and 1 app that only installs its release files, without root.");
+});
+
+test("import of a file that turns on a setting or extra that is off here asks first; turning things off does not", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const file = join(t.dir, "switches.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.settings.selfAuto = true;
+	doc.settings.upkeepCommand = true;
+	doc.settings.language = "de";
+	// systemInstall without the list shown is clamped away, so only the list counts.
+	doc.extras = { system: "show", systemInstall: true, cleanup: true, devCaches: true };
+	writeFileSync(file, JSON.stringify(doc));
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
+	expect(said).toEqual([
+		`${file} turns on these settings on this computer:`,
+		"  Update Upkeep automatically",
+		"  Add the upkeep command",
+		"  Show system updates",
+		"  Install system updates from Upkeep",
+		"  Show Cleanup",
+		"  Include developer caches",
+		"Nothing was changed. Read the list, then run it again with --yes to import.",
+		"Automatic installs come in off for every app that is new here or differs from this computer's table.",
+	]);
+	expect(loadState(t.paths).settings.selfAuto).toBe(false);
+	expect(await main(["import", file, "--yes"], d, () => {})).toBe(0);
+	expect(loadState(t.paths).settings).toMatchObject({ selfAuto: true, upkeepCommand: true, language: "de" });
+	// Now on here: the same file asks nothing, and a file turning them off asks nothing either.
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	doc.settings.selfAuto = false;
+	doc.settings.checkEvery = "daily";
+	doc.extras = { system: "off" };
+	writeFileSync(file, JSON.stringify(doc));
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	expect(loadState(t.paths).settings.selfAuto).toBe(false);
+});
+
 test("import refuses a file that is not an export, or whose list does not load, and changes nothing", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
@@ -492,17 +631,19 @@ test("an import that cannot finish puts every file back and removes the ones it 
 	rmSync(join(t.paths.state, "state.json"), { force: true });
 	mkdirSync(join(t.paths.state, `extras.json.${process.pid}.tmp`), { recursive: true });
 	const out: string[] = [];
-	expect(await main(["import", file], d, (l) => out.push(l))).toBe(1);
-	expect(out[0]).toStartWith("could not write: ");
-	expect(out[0]).toEndWith("Nothing was changed.");
+	expect(await main(["import", file, "--yes"], d, (l) => out.push(l))).toBe(1);
+	// --yes prints the list first (the extra this file turns on), then the reason.
+	expect(out.slice(0, 2)).toEqual([`${file} turns on these settings on this computer:`, "  Show system updates"]);
+	expect(out[2]).toStartWith("could not write: ");
+	expect(out[2]).toEndWith("Nothing was changed.");
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
 	expect(existsSync(join(t.paths.state, "state.json"))).toBe(false);
 	expect(existsSync(join(t.paths.state, "extras.json"))).toBe(false);
 	rmSync(join(t.paths.state, `extras.json.${process.pid}.tmp`), { recursive: true });
 	// Two imports at the same moment keep both starting points.
 	const same: EngineDeps = { ...d, now: () => new Date("2026-11-12T10:00:00Z") };
-	expect(await main(["import", file], same, () => {})).toBe(0);
-	expect(await main(["import", file], same, () => {})).toBe(0);
+	expect(await main(["import", file, "--yes"], same, () => {})).toBe(0);
+	expect(await main(["import", file, "--yes"], same, () => {})).toBe(0);
 	const copies = readdirSync(t.paths.config).filter((f) =>
 		f.startsWith("apps.toml.pre-import-2026-11-12T10-00-00-000Z"),
 	);
@@ -544,4 +685,164 @@ test("add refuses a catalogue app whose install path holds a script, as the wind
 	const listed: string[] = [];
 	await main(["list"], d, (l) => listed.push(l));
 	expect(listed.some((l) => l.startsWith("httpx "))).toBe(false);
+});
+
+/** Stands in for process: raise() delivers a signal to what install listens with, and exit is recorded, not taken. */
+function fakeSignals() {
+	const listeners = new Map<string, Set<() => void>>();
+	const exits: number[] = [];
+	return {
+		exits,
+		raise: (name: "SIGINT" | "SIGTERM" | "SIGHUP") => {
+			for (const fn of listeners.get(name) ?? []) fn();
+		},
+		listening: () => [...listeners.values()].reduce((n, s) => n + s.size, 0),
+		on(name: string, fn: () => void) {
+			listeners.set(name, (listeners.get(name) ?? new Set()).add(fn));
+		},
+		off(name: string, fn: () => void) {
+			listeners.get(name)?.delete(fn);
+		},
+		exit(code: number) {
+			exits.push(code);
+		},
+	};
+}
+
+/** deps() whose borg download sends a little and then stalls until it is aborted. */
+function stalledDeps(): EngineDeps {
+	const d = deps();
+	d.fetch = async (url, init) => {
+		if (url !== "https://dl.test/borg") return fakeFetch(url, init);
+		return new Response(
+			new ReadableStream<Uint8Array>({
+				start(c) {
+					c.enqueue(new Uint8Array([1]));
+					init?.signal?.addEventListener("abort", () => c.error(new Error("aborted")));
+				},
+			}),
+			{ headers: { "content-length": "100" } },
+		);
+	};
+	return d;
+}
+
+test("the first Ctrl-C during an install is Stop now: it says so, puts the app back and exits 1", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const code = await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) sig.raise("SIGINT");
+		},
+		sig,
+	);
+	expect(code).toBe(1);
+	expect(out).toContain(
+		"Stopping: putting BorgBackup back. Press Ctrl-C again to quit at once, which can leave BorgBackup half-installed.",
+	);
+	expect(out).toContain("[borg] stopped Stopped. 1.4.1 is back in place.");
+	expect(sig.exits).toEqual([]);
+	expect(sig.listening()).toBe(0);
+	expect((await realRun(t.paths)([join(t.paths.home, ".local/bin/borg")])).stdout).toBe("borg 1.4.1\n");
+});
+
+test("SIGTERM is Stop now too, and a second signal with no step left to end quits without claiming the put-back failed", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) {
+				sig.raise("SIGTERM");
+				sig.raise("SIGINT");
+			}
+		},
+		sig,
+	);
+	expect(out.filter((l) => l.startsWith("Stopping: putting BorgBackup back."))).toHaveLength(1);
+	expect(out).toContain(
+		"Quit while BorgBackup was being stopped. Run upkeep recover to make sure it is back in place.",
+	);
+	expect(sig.exits).toEqual([130]);
+});
+
+test("Ctrl-C during the check before an install quits at once: nothing is being changed yet", async () => {
+	const sig = fakeSignals();
+	const d = deps();
+	d.fetch = async (url, init) => {
+		if (url.endsWith("borgbackup/borg/releases/latest")) sig.raise("SIGINT");
+		return fakeFetch(url, init);
+	};
+	await main(["install", "borg"], d, () => {}, sig);
+	expect(sig.exits[0]).toBe(130);
+});
+
+test("a second Ctrl-C during a root step quits and says the step runs on as root", async () => {
+	const d = deps();
+	const seed = join(t.dir, "seed.toml");
+	writeFileSync(
+		seed,
+		readFileSync(seed, "utf8").replace('dest = "~/.local/bin/borg"', 'dest = "~/.local/bin/borg"\nsudo = true'),
+	);
+	const marker = join(t.dir, "sudo-started");
+	// A stand-in sudo in the temp home: it says it started, waits a moment, then runs the command as the person.
+	script(join(t.paths.home, ".local/bin/sudo"), `touch "${marker}"; sleep 1; [ "$1" = -n ] && shift; exec "$@"`);
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const poll = setInterval(() => {
+		if (!existsSync(marker)) return;
+		clearInterval(poll);
+		sig.raise("SIGINT");
+		sig.raise("SIGINT");
+	}, 20);
+	await main(["install", "borg"], d, (l) => out.push(l), sig);
+	clearInterval(poll);
+	expect(out).toContain(
+		"Quit before BorgBackup was put back. install runs as root and is still running; run upkeep recover once it ends.",
+	);
+	expect(sig.exits).toEqual([130]);
+});
+
+test("closing the terminal (SIGHUP) during an install is Stop now too", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const code = await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) sig.raise("SIGHUP");
+		},
+		sig,
+	);
+	expect(code).toBe(1);
+	expect(out).toContain("[borg] stopped Stopped. 1.4.1 is back in place.");
+	expect(sig.exits).toEqual([]);
+	expect(sig.listening()).toBe(0);
+});
+
+test("Ctrl-C while the install starts waits for the recovery of an earlier update; a second one quits", () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const engine = {
+		snapshot: () => createEngine(deps()).snapshot(),
+		stopNow: () => out.push("stopNow"),
+		endStep: async () => null,
+	};
+	const gate = { starting: true, pending: false };
+	const unlisten = stopOnSignal(engine, sig, (l) => out.push(l), gate);
+	sig.raise("SIGINT");
+	expect(gate.pending).toBe(true);
+	expect(sig.exits).toEqual([]);
+	expect(out).toEqual(["Stopping: no app will be installed. Press Ctrl-C again to quit at once."]);
+	sig.raise("SIGINT");
+	expect(out.at(-1)).toBe("Quit while an earlier interrupted update was being finished or undone. Run upkeep recover.");
+	expect(sig.exits).toEqual([130]);
+	unlisten();
+	expect(sig.listening()).toBe(0);
 });

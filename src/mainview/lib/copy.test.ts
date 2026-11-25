@@ -1,6 +1,9 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
 import {
+	IMPORT,
+	importAutoOffNote,
+	importPlain,
 	CLEAN,
 	copiesLine,
 	deleteLabel,
@@ -351,4 +354,15 @@ test("the System subline names every source it read; Update Manager already cove
 	expect(
 		systemProblem({ code: "failed", command: "cinnamon-spice-updater --list-json applet", detail: "offline" }),
 	).toBe("Could not read the Cinnamon list: offline");
+});
+
+test("the import ask names its parts and counts plain apps and apps that came in off, one and many", () => {
+	expect(IMPORT.ask).toStartWith("This file has apps that run these commands");
+	expect(IMPORT.autoOff).toContain("new to this computer or differs");
+	expect(IMPORT.turnsOn).toBe("It turns on these settings, which are off on this computer:");
+	expect([IMPORT.yes, IMPORT.no]).toEqual(["Import", "Cancel"]);
+	expect(importPlain(1)).toBe("It also has 1 app that only installs its release files, without root.");
+	expect(importPlain(3)).toBe("It also has 3 apps that only install their release files, without root.");
+	expect(importAutoOffNote(1)).toBe("Automatic installs came in off for 1 app that is new here or changed.");
+	expect(importAutoOffNote(2)).toBe("Automatic installs came in off for 2 apps that are new here or changed.");
 });

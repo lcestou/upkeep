@@ -169,6 +169,9 @@ export const TEXT = {
 	get stop() {
 		return "Stop after this one";
 	},
+	get stopNow() {
+		return "Stop now";
+	},
 	get done() {
 		return "Done";
 	},
@@ -282,6 +285,9 @@ export const TEXT = {
 	get rolledBack() {
 		return "Rolled back";
 	},
+	get stoppedByYou() {
+		return "Stopped by you";
+	},
 	get restored() {
 		return "Restored";
 	},
@@ -362,6 +368,36 @@ export const TEXT = {
 	},
 } as const;
 
+/** The question before an import whose list has apps that run commands: what they run, read before anything is written. */
+export const IMPORT = {
+	get ask() {
+		return "This file has apps that run these commands on this computer. Import it only if you trust where it came from.";
+	},
+	get autoOff() {
+		return "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app.";
+	},
+	get turnsOn() {
+		return "It turns on these settings, which are off on this computer:";
+	},
+	get yes() {
+		return "Import";
+	},
+	get no() {
+		return "Cancel";
+	},
+} as const;
+/** Under the commands: the apps in the file that only install their release files, with no command and no root. */
+export const importPlain = (n: number) =>
+	plural(n, [
+		"It also has # app that only installs its release files, without root.",
+		"It also has # apps that only install their release files, without root.",
+	]);
+/** After Import, beside importedNote: apps the file wanted installed automatically that came in off, being new or changed. */
+export const importAutoOffNote = (n: number) =>
+	plural(n, [
+		"Automatic installs came in off for # app that is new here or changed.",
+		"Automatic installs came in off for # apps that are new here or changed.",
+	]);
 /** After Export: the file it wrote. */
 export const exportedNote = (file: string) => `Saved ${file}.`;
 /** After Import: how many apps the new list holds. */
@@ -390,6 +426,8 @@ export const checkedTitle = (relative: string) => `Checked ${relative}`;
 export const restoredText = (v: string) => `Restored ${v}.`;
 /** Shown on the Stop button once pressed, while the running app finishes. */
 export const stoppingLabel = (name: string) => `Stopping after ${name}`;
+/** Shown on Stop now once pressed, while the running app is cut or waited out and put back. */
+export const stoppingNowLabel = (name: string) => `Stopping ${name}…`;
 /** The Retry button when n apps failed; always reads "failed", even for a rolled-back app. */
 export const retryLabel = (n: number) => plural(n, ["Retry # failed", "Retry # failed"]);
 /** The rate-limit line in Settings. Counts requests, not apps. */
@@ -486,6 +524,13 @@ export const emptyLine = () =>
 /** The empty-filter message; the text is quoted exactly as typed after trimming by the caller. */
 export const noMatch = (text: string) => `No app matches "${text}".`;
 
+/**
+ * The quiet line on a working row: how long it has printed nothing, and when its step's own limit ends it. It states
+ * the two facts and never says stuck: many steps (tar, git, a health poll) are silent by design.
+ */
+export const quietLine = (m: number, n: number | null) =>
+	n === null ? `No output for ${m} min.` : `No output for ${m} min. It stops on its own in ${n} min.`;
+
 /** The text in a row's status cell. While working, the stem shows it beside the stem. */
 export function statusText(app: AppState): string {
 	switch (app.status) {
@@ -513,6 +558,8 @@ export function statusText(app: AppState): string {
 			return "Failed";
 		case "rolled_back":
 			return `Rolled back to ${app.installed ?? ""}`;
+		case "stopped":
+			return "Stopped";
 	}
 }
 

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { say } from "../lib/engine-say";
-	import type { Settings } from "../../shared/types";
+	import type { ImportAsk, ImportSwitch, Settings } from "../../shared/types";
 	import {
 		CHECK_EVERY,
 		CLEAN,
+		IMPORT,
 		SELF,
 		SYS,
 		TEXT,
@@ -11,6 +12,8 @@
 		WAIT_DAYS,
 		WIN,
 		exportedNote,
+		importAutoOffNote,
+		importPlain,
 		importedNote,
 		rateText,
 		setupFailed,
@@ -22,6 +25,7 @@
 	import type { Model } from "../lib/model.svelte";
 	import LanguagePicker from "./LanguagePicker.svelte";
 	import { tick } from "svelte";
+	import type { Attachment } from "svelte/attachments";
 
 	let { model }: { model: Model } = $props();
 	let askingUninstall = $state(false);
@@ -102,11 +106,27 @@
 		else if (r?.problem) note = setupFailed(say(r.problem));
 	}
 
-	/** Asks for an export and replaces the settings and list from it; the window follows through its events. */
-	async function importSetup() {
-		const r = await model.send("importSetup", {});
-		if (r?.ok) note = importedNote(r.apps ?? 0);
-		else if (r?.problems?.length) note = setupFailed(r.problems.map((p) => say(p)).join(" "));
+	/** What the picked file's apps would run, while Import waits on the person; null when nothing is asked. */
+	let importAsk = $state<ImportAsk | null>(null);
+
+	/**
+	 * Asks for an export and replaces the settings and list from it; the window follows through its events. sure is the
+	 * press on the ask's Import: the main process then writes the file it asked about, not a newly picked one.
+	 */
+	async function importSetup(sure = false) {
+		const shown = importAsk;
+		importAsk = null;
+		const r = await model.send("importSetup", sure ? { sure } : {});
+		if (r?.ask) importAsk = r.ask;
+		else if (r?.ok) {
+			const off = r.autoOff ?? 0;
+			note = off > 0 ? `${importedNote(r.apps ?? 0)} ${importAutoOffNote(off)}` : importedNote(r.apps ?? 0);
+		}
+		else if (r?.problems?.length) {
+			note = setupFailed(r.problems.map((p) => say(p)).join(" "));
+			// A refused Import (a run started) keeps the ask open, so the press can be made again once the run ends.
+			if (sure) importAsk = shown;
+		}
 	}
 
 	/** The last four characters of the kept GitHub token, or null; the token itself never reaches the window. */
@@ -133,6 +153,26 @@
 		tokenFallback = r.refused;
 		if (r.ok) tokenDraft = "";
 	}
+
+	/** The Settings label of what an import would turn on, the same words the person finds the switch under. */
+	function switchName(k: ImportSwitch): string {
+		const names = {
+			notify: TEXT.notify,
+			checkAtLogin: TEXT.startAtLogin,
+			selfAuto: SELF.auto,
+			upkeepCommand: TEXT.upkeepCommand,
+			system: SYS.setting,
+			systemInstall: SYS.installSetting,
+			cleanup: CLEAN.setting,
+			devCaches: CLEAN.devSetting,
+		} satisfies Record<ImportSwitch, string>;
+		return names[k];
+	}
+
+	/** Focus lands on Cancel when the ask opens, so a stray Enter writes nothing. */
+	const focusFirst: Attachment<HTMLButtonElement> = (node) => {
+		node.focus();
+	};
 
 	/** Sends a settings change and shows what the main process saved; a request that fails leaves the old values on screen. */
 	async function set(patch: Partial<Settings>) {
@@ -279,9 +319,46 @@
 					>{TEXT.openManifest}</button
 				>
 				<button type="button" class="btn small" data-testid="export-setup" onclick={exportSetup}>{TEXT.exportSetup}</button>
-				<button type="button" class="btn small" data-testid="import-setup" onclick={importSetup}>{TEXT.importSetup}</button>
+				<button type="button" class="btn small" data-testid="import-setup" onclick={() => importSetup()}
+					>{TEXT.importSetup}</button
+				>
 			</span>
 			<p class="help" data-testid="setup-note" aria-live="polite">{note ?? TEXT.setupHelp}</p>
+			{#if importAsk}
+				<div class="confirm import-ask" role="group" aria-labelledby="import-ask">
+					{#if importAsk.apps.length > 0}
+						<p id="import-ask" data-testid="import-ask">{IMPORT.ask}</p>
+						<ul class="cmds">
+							{#each importAsk.apps as a (a.key)}
+								<li data-testid="import-app">
+									<span class="app-name" data-testid="import-app-name">{a.name}</span>
+									{#each a.commands as c, i (i)}<code class="mono" data-testid="import-command">{c}</code>{/each}
+								</li>
+							{/each}
+						</ul>
+						{#if importAsk.plain > 0}<p data-testid="import-plain">{importPlain(importAsk.plain)}</p>{/if}
+					{/if}
+					{#if importAsk.turnsOn.length > 0}
+						<p id={importAsk.apps.length > 0 ? undefined : "import-ask"} data-testid="import-turns-on">{IMPORT.turnsOn}</p>
+						<ul class="switches">
+							{#each importAsk.turnsOn as k (k)}<li data-testid="import-switch">{switchName(k)}</li>{/each}
+						</ul>
+					{/if}
+					<p data-testid="import-auto-off">{IMPORT.autoOff}</p>
+					<div class="confirm-buttons">
+						<button type="button" class="btn small primary" data-testid="import-confirm" onclick={() => importSetup(true)}
+							>{IMPORT.yes}</button
+						>
+						<button
+							type="button"
+							class="btn small"
+							data-testid="import-cancel"
+							{@attach focusFirst}
+							onclick={() => (importAsk = null)}>{IMPORT.no}</button
+						>
+					</div>
+				</div>
+			{/if}
 		</div>
 	</div>
 	<h2 class="group">{WIN.group}</h2>
@@ -659,6 +736,37 @@
 	.confirm-buttons {
 		display: flex;
 		gap: var(--s2);
+	}
+	.import-ask {
+		flex-basis: 100%;
+		font-size: var(--fs-13);
+	}
+	.cmds {
+		display: grid;
+		gap: var(--s2);
+		max-height: 40vh;
+		overflow-y: auto;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.cmds li {
+		display: grid;
+		gap: 2px;
+	}
+	.switches {
+		margin: 0;
+		padding-left: var(--s4);
+	}
+	.app-name {
+		font-weight: 560;
+		color: var(--text);
+	}
+	.cmds code {
+		display: block;
+		overflow-wrap: anywhere;
+		font-size: var(--fs-12);
+		color: var(--text);
 	}
 	.danger {
 		border-color: var(--fail);
