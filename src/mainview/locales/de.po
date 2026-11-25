@@ -2768,3 +2768,12 @@ msgstr "Seit {0} Min. keine Ausgabe."
 #: src/mainview/lib/copy.ts
 msgid "No output for {0} min. It stops on its own in {1} min."
 msgstr "Seit {0} Min. keine Ausgabe. Es endet von selbst in {1} Min."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Jetzt stoppen"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Stoppe {0} …"

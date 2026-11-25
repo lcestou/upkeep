@@ -169,6 +169,9 @@ export const TEXT = {
 	get stop() {
 		return "Stop after this one";
 	},
+	get stopNow() {
+		return "Stop now";
+	},
 	get done() {
 		return "Done";
 	},
@@ -353,6 +356,8 @@ export const checkedTitle = (relative: string) => `Checked ${relative}`;
 export const restoredText = (v: string) => `Restored ${v}.`;
 /** Shown on the Stop button once pressed, while the running app finishes. */
 export const stoppingLabel = (name: string) => `Stopping after ${name}`;
+/** Shown on Stop now once pressed, while the running app is cut or waited out and put back. */
+export const stoppingNowLabel = (name: string) => `Stopping ${name}…`;
 /** The Retry button when n apps failed; always reads "failed", even for a rolled-back app. */
 export const retryLabel = (n: number) => plural(n, ["Retry # failed", "Retry # failed"]);
 /** The rate-limit line in Settings. Counts requests, not apps. */

@@ -2747,3 +2747,12 @@ msgstr "{0} 分間出力がありません。"
 #: src/mainview/lib/copy.ts
 msgid "No output for {0} min. It stops on its own in {1} min."
 msgstr "{0} 分間出力がありません。{1} 分後に自動で止まります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "今すぐ停止"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "{0} を停止中…"

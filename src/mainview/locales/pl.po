@@ -2810,3 +2810,12 @@ msgstr "Brak wyjścia od {0} min."
 #: src/mainview/lib/copy.ts
 msgid "No output for {0} min. It stops on its own in {1} min."
 msgstr "Brak wyjścia od {0} min. Zatrzyma się samo za {1} min."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Zatrzymaj teraz"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Zatrzymywanie {0}…"

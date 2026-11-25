@@ -7,3 +7,45 @@ test("a working row that has printed nothing for 3 minutes says so, with its ste
 	// Only the quiet row carries the line; the rows waiting behind it do not.
 	await expect(page.getByTestId("quiet-fd")).toHaveCount(0);
 });
+
+test("Stop after this one escalates to Stop now, which puts the current app back and leaves the rest ready", async ({
+	page,
+}) => {
+	await load(page, "fixture&speed=0.5");
+	await page.getByTestId("install").click();
+	await expect(page.getByTestId("stop-now")).toHaveCount(0);
+	await page.getByTestId("stop").click();
+	await expect(page.getByTestId("stop")).toHaveText("Stopping after Zen Browser");
+	await expect(page.getByTestId("stop-now")).toHaveText("Stop now");
+	await page.getByTestId("stop-now").click();
+	await expect(page.getByTestId("done")).toBeVisible({ timeout: 10_000 });
+	await expect(page.getByTestId("status-zen")).toHaveText("Stopped");
+	await expect(page.getByTestId("sentence-zen")).toHaveText("Stopped. 1.24b is back in place.");
+	for (const key of ["fd", "wrangler", "cursor"]) await expect(page.getByTestId(`status-${key}`)).toHaveText("Ready");
+	await page.getByTestId("tab-history").click();
+	await expect(page.getByTestId("history")).toContainText("Stopped by you");
+});
+
+test("once pressed, Stop now says what it is stopping and takes no second press", async ({ page }) => {
+	await load(page, "fixture&speed=1&quiet=root");
+	await page.getByTestId("install").click();
+	await page.getByTestId("stop").click();
+	await page.getByTestId("stop-now").click();
+	await expect(page.getByTestId("stop-now")).toHaveText("Stopping Zen Browser…");
+	await expect(page.getByTestId("stop-now")).toHaveAttribute("aria-disabled", "true");
+	await expect(page.getByTestId("stop")).toHaveCount(0);
+	// A step Stop now never cuts is waited out, and the row says so.
+	await expect(page.getByTestId("wait-zen")).toHaveText("Waiting for dpkg to finish, then putting 1.24b back.");
+	await expect(page.getByTestId("status-zen")).toHaveText("Stopped", { timeout: 10_000 });
+});
+
+test("a quiet row carries its own Stop now", async ({ page }) => {
+	await load(page, "fixture&speed=2&quiet=cut");
+	await page.getByTestId("install").click();
+	await expect(page.getByTestId("stop-now-zen")).toHaveText("Stop now");
+	await expect(page.getByTestId("stop-now-fd")).toHaveCount(0);
+	await page.getByTestId("stop-now-zen").click();
+	await expect(page.getByTestId("status-zen")).toHaveText("Stopped", { timeout: 10_000 });
+	await expect(page.getByTestId("stop-now-zen")).toHaveCount(0);
+	await expect(page.getByTestId("status-fd")).toHaveText("Ready");
+});

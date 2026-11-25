@@ -2747,3 +2747,12 @@ msgstr "已 {0} 分钟没有输出。"
 #: src/mainview/lib/copy.ts
 msgid "No output for {0} min. It stops on its own in {1} min."
 msgstr "已 {0} 分钟没有输出。将在 {1} 分钟后自行停止。"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "立即停止"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "正在停止 {0}…"

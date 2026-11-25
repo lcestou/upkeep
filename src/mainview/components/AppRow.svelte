@@ -57,6 +57,7 @@
 	class="row ledger-cols s-{app.status}"
 	class:fresh
 	class:said={sentence !== null || workLine !== null}
+	class:quiet={quiet !== null && !app.detail && !model.run.stoppingNow}
 	class:wide={sentence !== null && noVersions}
 	class:open
 	class:back
@@ -156,6 +157,17 @@
 		<!-- Always present and absolutely placed, so opening a row never changes the button's set of grid items. -->
 		<svg class="marker" class:shown={open} viewBox="0 0 8 14" aria-hidden="true"><path d="M8 0v14L1 7Z" /></svg>
 	</button>
+	{#if quiet !== null && !app.detail && !model.run.stoppingNow}
+		<!-- Outside the row's own button: a quiet row carries its Stop now where the reason is read. The list stays one
+			tab stop; from the keyboard the footer's Stop after this one escalates to Stop now. -->
+		<button
+			type="button"
+			class="btn small row-stop"
+			data-testid="stop-now-{app.key}"
+			tabindex="-1"
+			onclick={() => model.stopNow()}>{TEXT.stopNow}</button
+		>
+	{/if}
 </div>
 
 <style>
@@ -200,6 +212,19 @@
 	.s-rolled_back .sentence {
 		-webkit-line-clamp: 1;
 		line-clamp: 1;
+	}
+	/* A quiet row reads its line and keeps its Stop now under the status, so its cells sit at the top. */
+	.row.quiet {
+		height: 76px;
+	}
+	.row.quiet .hit {
+		align-items: start;
+		padding-top: 10px;
+	}
+	.row-stop {
+		position: absolute;
+		right: var(--pad-r);
+		bottom: 8px;
 	}
 	.row.fresh {
 		height: 36px;
