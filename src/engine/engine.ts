@@ -113,6 +113,8 @@ export type EngineDeps = {
 	/** Test overrides for waits inside kinds. */
 	stallMs?: number;
 	retryMs?: number;
+	/** How long a pasted token's check at GitHub may take before it counts as no answer. Default 10 s. */
+	tokenWaitMs?: number;
 	/** How often Restart now looks whether the app has quit. Default 200 ms. */
 	pollMs?: number;
 	/** Bytes free on a folder's disk, which early downloads keep room on. Default statfs; tests pass a number. */
@@ -518,9 +520,11 @@ export function createEngine(deps: EngineDeps): Engine {
 		if (c.status !== "ready") return { status: c.status, held, settles: undefined };
 		if (held) return { status: "held", held, skipped: skip, settles: undefined };
 		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip, settles: undefined };
+		// A manual app is run by the person, so it never waits: Install now anyway could not run it.
+		if (spec.kind === "manual") return { status: "manual", held, settles: undefined };
 		const settles = settlesAt(c.publishedAt, state.settings.waitDays, deps.now());
 		if (settles) return { status: "held", held, settles };
-		return { status: spec.kind === "manual" ? "manual" : "ready", held, settles: undefined };
+		return { status: "ready", held, settles: undefined };
 	}
 
 	// What else keeps each app up to date, worked out once per check from the system's Flatpak and Snap lists.
@@ -1481,18 +1485,31 @@ export function createEngine(deps: EngineDeps): Engine {
 	let tokenFallback: TokenState["refused"] = null;
 
 	/**
-	 * GitHub's answer status for a token at /rate_limit, which costs none of the hour's budget; null on a network fault.
-	 * Asked only of the real GitHub API: the token never goes to a test server or another host.
+	 * GitHub's answer status for a token at /rate_limit, which costs none of the hour's budget; null on a network fault
+	 * or no answer within tokenWaitMs (10 s), so Save answers and a check never sits in checking. Asked only of the real
+	 * GitHub API: the token never goes to a test server or another host.
 	 */
 	async function tokenStatus(t: string): Promise<number | null> {
 		if ((deps.api ?? GITHUB_API) !== GITHUB_API) return null;
+		const ms = deps.tokenWaitMs ?? 10_000;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		// The race ends the wait even for a fetch that ignores its signal.
+		const late = new Promise<null>((done) => {
+			timer = setTimeout(() => done(null), ms);
+		});
 		try {
-			const res = await deps.fetch(`${GITHUB_API}/rate_limit`, {
-				headers: { Authorization: `Bearer ${t}`, Accept: "application/vnd.github+json" },
-			});
-			return res.status;
+			const res = await Promise.race([
+				deps.fetch(`${GITHUB_API}/rate_limit`, {
+					headers: { Authorization: `Bearer ${t}`, Accept: "application/vnd.github+json" },
+					signal: AbortSignal.timeout(ms),
+				}),
+				late,
+			]);
+			return res?.status ?? null;
 		} catch {
 			return null;
+		} finally {
+			clearTimeout(timer);
 		}
 	}
 
@@ -1519,13 +1536,16 @@ export function createEngine(deps: EngineDeps): Engine {
 	function armSettle(): void {
 		if (settleTimer) clearTimeout(settleTimer);
 		settleTimer = null;
-		const next = Math.min(...[...apps.values()].map((a) => (a.settles ? Date.parse(a.settles) : Infinity)));
+		// Only resting waiting rows: refresh leaves a checking or problem row alone, so its old date would fire forever.
+		const next = Math.min(
+			...[...apps.values()].map((a) => (a.status === "held" && a.settles ? Date.parse(a.settles) : Infinity)),
+		);
 		if (!Number.isFinite(next)) return;
 		// setTimeout holds at most 2^31-1 ms (about 24 days); a later moment is reached by setting it again.
 		const ms = Math.min(Math.max(0, next - deps.now().getTime()) + 50, 2 ** 31 - 1);
 		settleTimer = setTimeout(() => {
 			settleTimer = null;
-			for (const a of apps.values()) if (a.settles) refresh(a.key);
+			for (const a of apps.values()) if (a.status === "held" && a.settles) refresh(a.key);
 			armSettle();
 		}, ms);
 		settleTimer.unref();

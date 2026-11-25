@@ -1494,3 +1494,61 @@ test("Stop now cuts an Install now anyway like any install, and Retry takes the 
 	await engine.idle();
 	expect(statuses(engine).fd).toBe("done");
 }, 15_000);
+
+test("a manual app never waits: its young release is offered by hand at once", async () => {
+	const engine = createEngine({ ...(await deps()), now: () => new Date("2026-11-10T00:00:00Z") });
+	await engine.check();
+	engine.setSettings({ waitDays: 3 });
+	expect(engine.snapshot().apps.find((a) => a.key === "strata")).toMatchObject({
+		status: "manual",
+		settles: undefined,
+	});
+	expect(statuses(engine).fd).toBe("held");
+});
+
+test("a waiting row mid-check whose moment passes does not keep setting the wait timer", async () => {
+	const d = await deps();
+	// fd's one-day wait ends 100 ms from now; its next check answers only after that.
+	const offset = Date.parse("2026-11-10T00:00:00Z") - 100 - Date.now();
+	let slow = false;
+	const engine = createEngine({
+		...d,
+		now: () => new Date(Date.now() + offset),
+		fetch: async (url, init) => {
+			if (slow && url.includes("sharkdp/fd/releases")) await Bun.sleep(600);
+			return d.fetch(url, init);
+		},
+	});
+	await engine.check(["fd"]);
+	engine.setSettings({ waitDays: 1 });
+	slow = true;
+	const real = globalThis.setTimeout;
+	let rearms = 0;
+	const spy = ((fn: () => void, ms?: number) => {
+		if (ms !== undefined && ms <= 50) rearms++;
+		return real(fn, ms);
+	}) as typeof setTimeout;
+	globalThis.setTimeout = Object.assign(spy, real);
+	try {
+		await engine.check(["fd"]);
+	} finally {
+		globalThis.setTimeout = real;
+	}
+	expect(rearms).toBeLessThan(3);
+	expect(statuses(engine).fd).toBe("ready");
+});
+
+test("a token check GitHub never answers gives up after its wait: Save keeps the token and a check finishes", async () => {
+	const d = await deps();
+	const engine = createEngine({
+		...d,
+		tokenWaitMs: 50,
+		fetch: (url, init) => (url.endsWith("/rate_limit") ? new Promise<Response>(() => {}) : d.fetch(url, init)),
+	});
+	const token = `ghp_${"n".repeat(36)}`;
+	expect(await engine.setToken(token)).toBe("ok");
+	expect(engine.tokenState()).toEqual({ hint: "nnnn", refused: null });
+	await engine.check(["fd"]);
+	expect(engine.snapshot().run.phase).toBe("idle");
+	expect(statuses(engine).fd).toBe("ready");
+});
