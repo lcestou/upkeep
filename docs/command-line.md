@@ -16,6 +16,7 @@ upkeep recover               # finish or undo an update that was interrupted
 upkeep list                  # the apps in apps.toml, without a check
 upkeep add sharkdp/fd        # add an app: a catalogue name, a repo, a GitHub, GitLab or Codeberg link, or a file
 upkeep remove fd             # take it off the list; the app itself stays installed
+upkeep hold fd on            # hold its updates; "off" releases a hold, also one Upkeep put on a changed release
 upkeep export upkeep.json    # settings and app list as one file (to stdout without a name)
 upkeep import upkeep.json    # replace them from such a file; add --yes when its apps run commands
 ```
@@ -28,7 +29,7 @@ During `upkeep install`, the first Ctrl-C (or SIGTERM, or closing the terminal, 
 
 ## For scripts and agents
 
-Every command takes `--json` and then prints one JSON value per line instead of text: `check` and `list` an app each, `install` each engine event, `history` each run, `export` the document itself on one line (or, writing a file, `{"ok", "file"}`), and `add`, `remove`, `restore`, `recover` and `import` one answer object. An agent can manage Upkeep with these alone and never has to edit a file:
+Every command takes `--json` and then prints one JSON value per line instead of text: `check` and `list` an app each, `install` each engine event, `history` each run, `export` the document itself on one line (or, writing a file, `{"ok", "file"}`), and `add`, `remove`, `hold`, `restore`, `recover` and `import` one answer object. A `HELD` line from `check` ends with the reason when Upkeep held the app itself, and each `history` line of an update ends with how its download was checked. An agent can manage Upkeep with these alone and never has to edit a file:
 
 - `add` writes only a sure match: a catalogue app by its name, a repo, a link, or a file that names its source. A file whose repo could only be guessed from its name is named in the answer (`candidate`) and not added; add that repo by name instead.
 - `export` writes one file: `{"upkeep": 1, "exportedAt", "apps", "settings", "skip", "hold", "auto", "extras"}`, where `apps` is `apps.toml` as written, comments included, and `upkeep` is the format's version. Restore points, history and run state stay on the machine.

@@ -2784,6 +2784,76 @@ msgstr "Stopping {0}…"
 msgid "New versions in their marketplaces: {0}."
 msgstr "New versions in their marketplaces: {0}."
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read a menu entry from {0}."
+msgstr "Could not read a menu entry from {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "Already in the app menu through {0}, so Upkeep adds no second entry."
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "Show in the app menu"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Download checked: SHA-256 matches the forge's record."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Download checked: matches the release's checksum file."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Download checked: size only."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Download not checked: the release lists no size or checksum."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "The download was sent on to an address that is not https, so it was refused."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 matches the forge"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Matches the checksum file"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Size checked only"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Download not checked"
+
 #: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Restoring puts its saved settings back too. The settings it replaces are kept aside."
@@ -2860,3 +2930,18 @@ msgstr "Automatic app updates hold off on a metered connection or on battery. Ch
 #: src/mainview/lib/copy.ts
 msgid "It turns off these settings, which are on on this computer:"
 msgstr "It turns off these settings, which are on on this computer:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}: {1} may not contain a line break or other control character"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "Could not write the menu entry: {0}"

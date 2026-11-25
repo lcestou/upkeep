@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
 import {
+	CHECKED,
+	CHECKED_SHORT,
 	IMPORT,
 	importAutoOffNote,
 	importPlain,
@@ -349,4 +351,20 @@ test("the import ask names its parts and counts plain apps and apps that came in
 	expect(importPlain(3)).toBe("It also has 3 apps that only install their release files, without root.");
 	expect(importAutoOffNote(1)).toBe("Automatic installs came in off for 1 app that is new here or changed.");
 	expect(importAutoOffNote(2)).toBe("Automatic installs came in off for 2 apps that are new here or changed.");
+});
+
+test("each way a download was checked has a pane sentence and a History line", () => {
+	const ways = ["digest", "sums", "size", "none"] as const;
+	expect(ways.map((w) => CHECKED[w])).toEqual([
+		"Download checked: SHA-256 matches the forge's record.",
+		"Download checked: matches the release's checksum file.",
+		"Download checked: size only.",
+		"Download not checked: the release lists no size or checksum.",
+	]);
+	expect(ways.map((w) => CHECKED_SHORT[w])).toEqual([
+		"SHA-256 matches the forge",
+		"Matches the checksum file",
+		"Size checked only",
+		"Download not checked",
+	]);
 });

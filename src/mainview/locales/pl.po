@@ -2826,6 +2826,76 @@ msgstr "Zatrzymywanie {0}…"
 msgid "New versions in their marketplaces: {0}."
 msgstr "Nowe wersje w ich marketplace'ach: {0}."
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read a menu entry from {0}."
+msgstr "Nie udało się odczytać wpisu menu z {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "Już jest w menu aplikacji przez {0}, więc Upkeep nie dodaje drugiego wpisu."
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "Pokaż w menu aplikacji"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "Pod {0} nic jeszcze nie jest zainstalowane, więc nie ma wpisu menu do odczytania. Najpierw je zainstaluj."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "AppImage pod {0} prosi, by nie pokazywać go w menu aplikacji, więc Upkeep nie dodaje wpisu."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Pobieranie sprawdzone: SHA-256 zgadza się z zapisem platformy."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Pobieranie sprawdzone: zgadza się z plikiem sum kontrolnych wydania."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Pobieranie sprawdzone: tylko rozmiar."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Pobieranie niesprawdzone: wydanie nie podaje rozmiaru ani sumy kontrolnej."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "Pobieranie przekierowano na adres bez https, więc zostało odrzucone."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "Suma kontrolna nie zgadza się z {0} w wydaniu, więc nic nie zainstalowano. Możesz pominąć tę wersję."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "Plik za {0} zmienił się, odkąd Upkeep zobaczył go pierwszy raz. Sprawdź stronę wydania, zanim wznowisz aktualizacje."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 zgadza się z platformą"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Zgadza się z plikiem sum kontrolnych"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Sprawdzono tylko rozmiar"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Pobieranie niesprawdzone"
+
 #: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Przywracanie przywraca też zapisane ustawienia. Zastąpione ustawienia są odkładane na bok."
@@ -2906,3 +2976,18 @@ msgstr "Automatyczne aktualizacje aplikacji czekają przy połączeniu taryfowym
 #: src/mainview/lib/copy.ts
 msgid "It turns off these settings, which are on on this computer:"
 msgstr "Wyłącza te ustawienia, które są włączone na tym komputerze:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} nie może być kluczem aplikacji: użyj liter, cyfr, kropek, myślników i podkreśleń, zaczynając od litery lub cyfry."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}: {1} nie może zawierać podziału wiersza ani innego znaku sterującego"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "Nie udało się zapisać wpisu menu: {0}"

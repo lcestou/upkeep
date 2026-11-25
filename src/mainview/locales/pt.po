@@ -2805,6 +2805,76 @@ msgstr "Parando {0}…"
 msgid "New versions in their marketplaces: {0}."
 msgstr "Novas versões nos seus marketplaces: {0}."
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read a menu entry from {0}."
+msgstr "Não foi possível ler uma entrada de menu de {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "Já está no menu de aplicativos através de {0}, então o Upkeep não adiciona uma segunda entrada."
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "Mostrar no menu de aplicativos"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "Ainda não há nada instalado em {0}, então não há entrada de menu para ler. Instale-o primeiro."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "O AppImage em {0} pede para ficar fora do menu de aplicativos, então o Upkeep não adiciona nenhuma entrada."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Download verificado: o SHA-256 confere com o registro da plataforma."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Download verificado: confere com o arquivo de checksums da versão."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Download verificado: só o tamanho."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Download não verificado: a versão não informa tamanho nem checksum."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "O download foi redirecionado para um endereço sem https, então foi recusado."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "O checksum não confere com {0} na versão, então nada foi instalado. Você pode pular esta versão."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "O arquivo por trás de {0} mudou depois que o Upkeep o viu pela primeira vez. Confira a página da versão antes de retomar as atualizações."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "O SHA-256 confere com a plataforma"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Confere com o arquivo de checksums"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Só o tamanho verificado"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Download não verificado"
+
 #: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Restaurar também devolve as configurações salvas. As configurações substituídas ficam guardadas à parte."
@@ -2883,3 +2953,18 @@ msgstr "As atualizações automáticas das apps esperam numa ligação limitada 
 #: src/mainview/lib/copy.ts
 msgid "It turns off these settings, which are on on this computer:"
 msgstr "Ele desliga estas configurações, que estão ligadas neste computador:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} não pode ser uma chave de aplicativo: use letras, dígitos, pontos, hífens e sublinhados, começando com uma letra ou um dígito."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}: {1} não pode conter quebra de linha nem outro caractere de controle"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "Não foi possível gravar a entrada de menu: {0}"

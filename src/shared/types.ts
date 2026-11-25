@@ -227,6 +227,8 @@ export type AppState = {
 	status: AppStatus;
 	/** A sentence for problem, failed and rolled_back, and for a passed row that needs a note. */
 	detail?: string;
+	/** After an install this session: how its downloaded file was checked. */
+	checked?: DownloadCheck;
 	/** What else keeps this app up to date (a Flatpak, a Snap, another table on its dest or repo), as of the last check: engine sentences. */
 	also?: string[];
 	/** Bytes of the release asset, when known. */
@@ -252,6 +254,13 @@ export type AppState = {
 	/** relaunch: Restart now closes the app's windows, so it asks first. */
 	closes?: boolean;
 	auto: boolean;
+	/**
+	 * AppImage rows only: whether Upkeep keeps a menu entry for it ("on"), could ("off"), or another tool already has
+	 * one for the same file ("elsewhere", with menuDetail saying which).
+	 */
+	menu?: "on" | "off" | "elsewhere";
+	/** The engine sentence for menu: "elsewhere". */
+	menuDetail?: string;
 	sudo: boolean;
 	versionless: boolean;
 	/** manual: the command to run. */
@@ -287,6 +296,12 @@ export type AppState = {
 
 export type RunPhase = "idle" | "checking" | "installing" | "summary";
 
+/**
+ * How a downloaded file was checked: "digest" against the forge's SHA-256, "sums" against the release's checksum
+ * file, "size" against the listed size alone, "none" when the release listed neither.
+ */
+export type DownloadCheck = "digest" | "sums" | "size" | "none";
+
 export type RunResult = {
 	key: string;
 	name: string;
@@ -299,6 +314,8 @@ export type RunResult = {
 	result: "updated" | "failed" | "rolled_back" | "stopped" | "restored" | "cleaned" | "skipped";
 	detail?: string;
 	ms: number;
+	/** How the downloaded file was checked; absent for an app that downloads no release file. */
+	checked?: DownloadCheck;
 };
 
 export type RunState = {
@@ -563,6 +580,7 @@ export type Requests = {
 	setSkip: { params: { key: string; version: string | null }; response: { ok: boolean } };
 	setHold: { params: { key: string; held: boolean }; response: { ok: boolean } };
 	setAuto: { params: { key: string; auto: boolean }; response: { ok: boolean } };
+	setMenu: { params: { key: string; menu: boolean }; response: { ok: boolean; detail?: string } };
 	setSettings: { params: Partial<Settings>; response: Settings };
 	history: { params: { limit: number }; response: HistoryRow[] };
 	runLog: { params: { runId: string }; response: LogLine[] };

@@ -1,5 +1,5 @@
 import { MESSAGES } from "../../shared/messages";
-import type { AppSpec, Settings, Stage } from "../../shared/types";
+import type { AppSpec, DownloadCheck, Settings, Stage } from "../../shared/types";
 import type { Early } from "../ahead";
 import type { Asset, FetchLike, Rate, Release } from "../github";
 import type { Arch } from "../arch";
@@ -67,7 +67,8 @@ export type Checked = {
 	offline?: boolean;
 };
 
-export type Target = { from: string | null; version: string; tag: string; asset?: Asset };
+/** locked: the forge says the release's files cannot change, so a changed file is never looked for. */
+export type Target = { from: string | null; version: string; tag: string; asset?: Asset; locked?: boolean };
 
 export type Outcome = {
 	result: "done" | "failed" | "rolled_back" | "stopped";
@@ -76,6 +77,8 @@ export type Outcome = {
 	restartToApply: boolean;
 	/** Milliseconds spent in each stage. */
 	stages: Partial<Record<Stage, number>>;
+	/** How the downloaded release file was checked, once it was. */
+	checked?: DownloadCheck;
 };
 
 /** Lifts the notes, release page and publish date off a release; each stays undefined when the release has none. */
