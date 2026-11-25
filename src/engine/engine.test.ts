@@ -1231,7 +1231,7 @@ test("quitting at once ends the step in progress when it is not root, and leaves
 	expect(await engine.endStep()).toBeNull();
 }, 20_000);
 
-test("a row that was ready with a note starts working without it: the note never reads as a waiting line", async () => {
+test("a row that was ready with a note drops it as it joins the run: never a waiting line, never kept if it does not start", async () => {
 	const d = await deps();
 	script(join(bin, "claude-up"), "sleep 30");
 	const engine = createEngine(d);
@@ -1239,7 +1239,7 @@ test("a row that was ready with a note starts working without it: the note never
 	let presses = 0;
 	const working: { detail?: string; waiting?: string }[] = [];
 	engine.subscribe((e) => {
-		if (e.type === "app" && e.app.key === "claude" && e.app.status === "working")
+		if (e.type === "app" && e.app.key === "claude" && (e.app.status === "working" || e.app.status === "queued"))
 			working.push({ detail: e.app.detail, waiting: e.app.waiting });
 		if (e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) {
 			presses += 1;

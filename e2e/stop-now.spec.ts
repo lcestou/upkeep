@@ -111,7 +111,7 @@ test("a row that carried a note when it started keeps its quiet line and its own
 	await page.getByTestId("install").click();
 	await page.getByTestId("stop-now-zen").click();
 	await page.getByTestId("done").click();
-	// Zen is ready again with the note from its last try; the next run starts with it.
+	// Zen is ready again with the note from its last try; it starts the next run having had one.
 	await expect(page.getByTestId("sentence-zen")).toHaveText("Stopped. 1.24b is back in place.");
 	// The summary's Install fades out as the list's own comes in; press the list's.
 	await page.getByTestId("install").filter({ hasText: "Install 4 updates" }).click();

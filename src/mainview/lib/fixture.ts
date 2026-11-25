@@ -1003,8 +1003,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const fromSummary = run.phase === "summary";
 		for (const key of order) {
 			const app = get(key);
-			// As the engine does: a queued row keeps its note until it starts working.
-			if (app) put({ ...app, status: "queued" });
+			// As the engine does: a row that joins the run drops its note, so one that never starts does not keep it.
+			if (app) put({ ...app, status: "queued", detail: undefined });
 		}
 		setRun({
 			id: runId,

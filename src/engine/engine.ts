@@ -693,6 +693,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			const a = apps.get(s.key);
 			if (a) {
 				a.status = "queued";
+				// A note from the check or a last try is about the row at rest; an app that never starts must not keep it.
+				a.detail = undefined;
 				a.restartToApply = false;
 				emitApp(a);
 			}
@@ -744,6 +746,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				const a = apps.get(s.key);
 				if (a) {
 					a.status = "queued";
+					// A note from the check or a last try is about the row at rest; an app that never starts must not keep it.
+					a.detail = undefined;
 					a.restartToApply = false;
 					emitApp(a);
 				}
@@ -841,8 +845,6 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!app) continue;
 			const from = app.installed;
 			app.status = "working";
-			// A note from the check (or a last try) is about the row at rest, not the install now under way.
-			app.detail = undefined;
 			app.stage = app.stages[0]?.id;
 			app.stagePct = 0;
 			app.activeAt = deps.now().toISOString();
