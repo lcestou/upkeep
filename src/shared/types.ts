@@ -522,7 +522,7 @@ export type Requests = {
 	setPrerelease: { params: { key: string; prerelease: boolean }; response: { ok: boolean } };
 	/** The newest releases of a listable app, asked only when the person opens the list. */
 	versions: { params: { key: string }; response: { versions: VersionChoice[]; problem?: string } };
-	/** Installs the release of tag through the usual run; an older one than the latest holds the app there once it is in. */
+	/** Installs the release of tag through the usual run; an older one than the latest skips the latest once it is in. */
 	installVersion: { params: { key: string; tag: string }; response: { started: boolean; reason?: string } };
 	setSettings: { params: Partial<Settings>; response: Settings };
 	history: { params: { limit: number }; response: HistoryRow[] };

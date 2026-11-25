@@ -307,7 +307,8 @@ export async function fetchRelease(repo: string, opts: ReleaseOpts): Promise<Rel
  * cached etag as fetchRelease is. An empty list is an answer, not a failure.
  */
 export async function fetchReleases(repo: string, opts: ReleaseOpts): Promise<Release[] | Failure> {
-	return cachedGithub(`/repos/${repo}/releases?per_page=${RELEASE_LIST}`, "@list", repo, opts, (body) =>
+	// "#" never starts an encoded tag, so the list never shares a cache file with a release by its tag.
+	return cachedGithub(`/repos/${repo}/releases?per_page=${RELEASE_LIST}`, "#list", repo, opts, (body) =>
 		Array.isArray(body) ? parseReleases(body) : { failure: "http", detail: MESSAGES.githubReleaseNotJson(repo) },
 	);
 }

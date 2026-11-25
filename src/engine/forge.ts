@@ -196,7 +196,8 @@ export async function forgeReleases(
 	const f = forgeOf(repo, forge);
 	if (!f || f.kind === "github") return fetchReleases(f?.path ?? repo, opts);
 	const query = f.kind === "gitlab" ? `?per_page=${RELEASE_LIST}` : `?limit=${RELEASE_LIST}`;
-	return forgeGet(f, query, "@list", opts, (text) => readList(text, f));
+	// "#" never starts an encoded tag, so the list never shares a cache file with a release by its tag.
+	return forgeGet(f, query, "#list", opts, (text) => readList(text, f));
 }
 
 /**

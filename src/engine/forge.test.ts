@@ -439,7 +439,7 @@ test("release lists: an answer that is not a list is a failure, and a cached one
 		h.has("If-None-Match") ? new Response(null, { status: 304 }) : Response.json([], { headers: { etag: '"e"' } }),
 	);
 	expect(list(await forgeReleases("gitlab.com/g/p", undefined, opts(fetch)))).toEqual([]);
-	const file = join(t.paths.cache, "github", "gitlab.com__g__p@list.json");
+	const file = join(t.paths.cache, "github", "gitlab.com__g__p#list.json");
 	await Bun.write(file, JSON.stringify({ etag: '"e"', body: "{}" }));
 	expect(isFailure(await forgeReleases("gitlab.com/g/p", undefined, opts(fetch)))).toBe(true);
 	expect(await Bun.file(file).exists()).toBe(false);

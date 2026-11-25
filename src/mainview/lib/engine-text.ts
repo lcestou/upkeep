@@ -204,6 +204,8 @@ export const ENGINE_COPY = {
 	liftZsyncAppimage: (v0: string) => `${v0}: a zsync: latest is only for kind appimage, with an https address`,
 	liftRelaunchNeedsDest: (v0: string) => `${v0}: relaunch needs dest`,
 	liftRelaunchNeedsProcess: (v0: string) => `${v0}: relaunch needs process`,
+	liftPrereleaseNeedsList: (v0: string) =>
+		`${v0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo`,
 	liftRelaunchShared: (v0: string, v1: string) =>
 		`${v0}: relaunch would close every ${v1} process; give process the app's own name`,
 	liftInsideDir: (v0: string, v1: string) => `${v0}: ${v1} must stay inside dir`,

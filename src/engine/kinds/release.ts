@@ -117,9 +117,20 @@ export function newestOf(list: Release[]): Release | null {
 	return best;
 }
 
-/** The release list of a listable app on its forge, newest first, as a person picks a version from it. */
-export function listReleases(spec: AppSpec, ctx: KindCtx): Promise<Release[] | Failure> {
-	return forgeReleases(spec.repo ?? "", spec.forge, releaseOpts(ctx));
+/**
+ * The release list of a listable app on its forge, newest first, as a person picks a version from it. Only releases
+ * with a file the table's pattern for this machine matches are kept: a file renamed years ago, or another product of
+ * a monorepo, is never offered. A table with no pattern for this machine keeps none.
+ */
+export async function listReleases(spec: AppSpec, ctx: KindCtx): Promise<Release[] | Failure> {
+	const list = await forgeReleases(spec.repo ?? "", spec.forge, releaseOpts(ctx));
+	return isFailure(list) ? list : fitting(list, spec, ctx);
+}
+
+/** The releases of list that hold a file matching the table's pattern for this machine. */
+function fitting(list: Release[], spec: AppSpec, ctx: KindCtx): Release[] {
+	const pattern = assetFor(spec, ctx.arch);
+	return pattern === undefined ? [] : list.filter((r) => pickAsset(r, pattern) !== null);
 }
 
 /** The options every release lookup of this app passes: its cache, token, fetch and budget callback. */
@@ -142,9 +153,14 @@ function releaseOpts(ctx: KindCtx, tag?: string) {
 export async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Release | Failure> {
 	const opts = releaseOpts(ctx, tag);
 	if (spec.prerelease && tag === undefined && canList(spec)) {
-		const list = await listReleases(spec, ctx);
+		const list = await forgeReleases(spec.repo ?? "", spec.forge, opts);
 		if (isFailure(list)) return list;
-		return newestOf(list) ?? list[0] ?? { failure: "http", detail: MESSAGES.noPublishedRelease(spec.repo ?? "") };
+		// Ranked by version among the releases this table can install; with none, the newest says why it cannot.
+		return (
+			newestOf(fitting(list, spec, ctx)) ??
+			newestOf(list) ??
+			list[0] ?? { failure: "http", detail: MESSAGES.noPublishedRelease(spec.repo ?? "") }
+		);
 	}
 	if (spec.repo || !spec.latest) return forgeRelease(spec.repo ?? "", spec.forge, opts);
 	if (spec.latest.startsWith("links:")) return linksRelease(spec.latest.slice(6), assetFor(spec, ctx.arch) ?? "", opts);

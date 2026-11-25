@@ -551,3 +551,39 @@ test("probe = false only on an app installed from a release file, which is what 
 		"x: probe = false is only for an app installed from a release file",
 	);
 });
+
+test("prerelease is refused on a table whose releases cannot be listed", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(
+		file,
+		[
+			"[apps.src]",
+			'name = "Src"',
+			'kind = "source"',
+			'repo = "a/b"',
+			'build = ["make"]',
+			"prerelease = true",
+			"[apps.page]",
+			'name = "Page"',
+			'kind = "archive"',
+			'latest = "links:https://example.org/dl/"',
+			'asset = "x"',
+			'dest = "~/x"',
+			'bins = ["x"]',
+			"prerelease = true",
+			"[apps.ok]",
+			'name = "Ok"',
+			'kind = "file"',
+			'repo = "a/b"',
+			'asset = "x"',
+			'dest = "~/ok"',
+			"prerelease = true",
+		].join("\n"),
+	);
+	const { apps, errors } = loadManifest(file);
+	expect(errors).toEqual([
+		"src: prerelease is only for an appimage, archive, file, deb or rpm table with a repo",
+		"page: prerelease is only for an appimage, archive, file, deb or rpm table with a repo",
+	]);
+	expect(apps.map((a) => [a.key, a.prerelease])).toEqual([["ok", true]]);
+});

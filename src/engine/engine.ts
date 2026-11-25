@@ -128,7 +128,7 @@ export type Engine = {
 	setPrerelease(key: string, prerelease: boolean): boolean;
 	/** The newest releases of an app whose releases can be listed, asked of its forge only now. */
 	versions(key: string): Promise<Requests["versions"]["response"]>;
-	/** Installs one release by its tag through the usual run; one older than the latest holds the app there once it is in. */
+	/** Installs one release by its tag through the usual run; one older than the latest skips the latest once it is in. */
 	installVersion(key: string, tag: string): Promise<{ started: boolean; reason?: string }>;
 	setSettings(patch: Partial<Settings>): Settings;
 	history(limit: number): HistoryRow[];
@@ -190,6 +190,12 @@ const pad = (n: number) => String(n).padStart(2, "0");
 export function stamp(d: Date): string {
 	const rand = Math.random().toString(36).slice(2, 6);
 	return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${rand}`;
+}
+
+/** The table as a check reads it: the person's pre-release switch (switches, read once per check) over the table's own field. */
+function effective(spec: AppSpec, switches: Record<string, boolean>): AppSpec {
+	const pre = switches[spec.key];
+	return pre === undefined ? spec : { ...spec, prerelease: pre };
 }
 
 /** Every kind not named here is checked against a GitHub release. Null when the app is not installed, which the kind has already logged as skipped. */
@@ -333,13 +339,18 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	const specOf = (key: string) => specs.find((s) => s.key === key);
-	/** The table as a check reads it: the person's pre-release switch over the table's own field. */
-	const effective = (spec: AppSpec): AppSpec => {
-		const pre = loadState(paths).prerelease[spec.key];
-		return pre === undefined ? spec : { ...spec, prerelease: pre };
-	};
 	// Apps whose target is a version the person picked, until that install is in or the summary is dismissed.
 	const chosen = new Set<string>();
+	// Apps whose pre-release switch changed while a check or run was under way: checked again once it is over.
+	const stale = new Set<string>();
+
+	/** Checks the apps whose switch changed during a check or run, once nothing is under way; a later change waits again. */
+	function checkStale(): void {
+		if (stale.size === 0 || run.phase !== "idle" || starting) return;
+		const keys = [...stale];
+		stale.clear();
+		void engine.check(keys);
+	}
 
 	function kindCtx(key: string, overrides: Partial<KindCtx> = {}): KindCtx {
 		return {
@@ -548,11 +559,12 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.index += 1;
 			emitRun();
 		};
+		const switches = loadState(paths).prerelease;
 		await Promise.all(
 			list.map(async (spec) => {
 				let c: Checked | null;
 				try {
-					c = await checkOne(effective(spec), kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
+					c = await checkOne(effective(spec, switches), kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
 				} catch (err) {
 					c = {
 						installed: null,
@@ -814,7 +826,7 @@ export function createEngine(deps: EngineDeps): Engine {
 					detail: outcome.detail ?? (WATCHED.has(spec.kind) ? MESSAGES.oldCopyRuns(spec.name) : undefined),
 				};
 			finishApp(app, outcome);
-			if (outcome.result === "done" && chosen.delete(spec.key)) holdIfBehind(spec, app);
+			if (outcome.result === "done" && chosen.delete(spec.key)) skipIfBehind(spec, app);
 			if (outcome.result === "done" && outcome.restartToApply && WATCHED.has(spec.kind)) {
 				const at = deps.now().toISOString();
 				updateState(paths, (s) => {
@@ -878,11 +890,13 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		check(keys) {
 			if (run.phase === "installing" || run.phase === "checking" || starting) return busy;
-			const p = doCheck(keys).catch((err: Error) => {
-				say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
-				run = { ...run, phase: "idle", currentKey: null };
-				emitRun();
-			});
+			const p = doCheck(keys)
+				.catch((err: Error) => {
+					say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
+					run = { ...run, phase: "idle", currentKey: null };
+					emitRun();
+				})
+				.then(checkStale);
 			busy = p;
 			return p;
 		},
@@ -944,6 +958,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				retry: false,
 			};
 			emitRun();
+			checkStale();
 		},
 		async restore(key, version) {
 			if (run.phase === "installing" || run.phase === "checking") return { ok: false, detail: REASON_BUSY };
@@ -1093,8 +1108,9 @@ export function createEngine(deps: EngineDeps): Engine {
 				a.prerelease = prerelease;
 				emitApp(a);
 			}
-			// What counts as the latest changed: the row asks its forge again, unless a check or run is under way.
-			if (run.phase === "idle" && !starting) void engine.check([key]);
+			// What counts as the latest changed: the row asks its forge again, now or once the check or run is over.
+			stale.add(key);
+			checkStale();
 			return true;
 		},
 		async versions(key) {
@@ -1339,25 +1355,22 @@ export function createEngine(deps: EngineDeps): Engine {
 		return { ok: true };
 	}
 
-	/** Re-derives a resting row after a skip or hold change. */
-	/** Rows a run could not update go back to where the last check left them. */
 	/**
-	 * A picked version older than the latest went in: the app is held there, so the next check does not offer the
-	 * latest straight back. Release hold undoes it as it undoes any hold.
+	 * A picked version older than the latest went in: the latest is skipped, as a restore point's going back skips it,
+	 * so the next check does not offer it straight back and a newer release is offered when it comes out.
 	 */
-	function holdIfBehind(spec: AppSpec, app: AppState): void {
+	function skipIfBehind(spec: AppSpec, app: AppState): void {
 		const latest = checked.get(spec.key)?.latest ?? null;
-		if (!isNewer(app.installed, latest)) return;
+		if (latest === null || !isNewer(app.installed, latest)) return;
 		updateState(paths, (s) => {
-			s.hold[spec.key] = true;
+			s.skip[spec.key] = latest;
 		});
-		app.held = true;
-		say(spec.key, `Holding ${spec.name} at ${app.installed ?? ""}`);
+		say(spec.key, `Skipping ${latest} for ${spec.name}`);
 	}
 
 	/**
 	 * Settles a done row that is behind the latest (a picked older version) when the summary is dismissed: it rests as
-	 * held with the latest as its target again, so releasing the hold offers it. False for any other row.
+	 * skipping the latest, with the latest as its target again, so Stop skipping offers it. False for any other row.
 	 */
 	function behindLatest(a: AppState): boolean {
 		const spec = specOf(a.key);
@@ -1371,6 +1384,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		return true;
 	}
 
+	/** Rows a run could not update go back to where the last check left them. */
 	function resetFailed(): void {
 		for (const a of apps.values()) {
 			if (a.status !== "failed" && a.status !== "rolled_back") continue;
@@ -1385,6 +1399,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 	}
 
+	/** Re-derives a resting row after a skip or hold change. */
 	function refresh(key: string): void {
 		const spec = specOf(key);
 		const a = apps.get(key);
