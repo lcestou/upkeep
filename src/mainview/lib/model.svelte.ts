@@ -633,13 +633,12 @@ export class Model {
 		};
 	}
 
-	/** Asks the engine to stop after the app now running; nothing waits on the answer. */
 	/** Ends the run now: the engine cuts or waits out the current step and puts the app back. */
 	async stopNow(): Promise<void> {
 		await this.send("stopNow", {});
 	}
 
-	/** Lets the current app run to its end, then ends the run; the apps behind it stay ready. */
+	/** Asks the engine to stop after the app now running; nothing waits on the answer. */
 	async stopAfterCurrent(): Promise<void> {
 		await this.send("stopAfterCurrent", {});
 	}

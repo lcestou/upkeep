@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { asRoot, asRootArgv, sudoNeedsPassword } from "./run";
+import { asRoot, asRootArgv, runsAsRoot, sudoNeedsPassword } from "./run";
 import { realRun, script, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
@@ -225,3 +225,51 @@ test("a cut step that ignores TERM is killed 5 s later", async () => {
 	await Bun.sleep(200);
 	expect(groupAlive(leader)).toBe(false);
 }, 15_000);
+
+test("a cut returns only once every member of the step's group is gone, even when the leader exits first", async () => {
+	const stop = new AbortController();
+	const pidFile = join(t.dir, "member.pid");
+	// The member ignores TERM (and so do its sleeps); the leader dies of TERM at once.
+	const member = script(
+		join(t.dir, "member.sh"),
+		`trap '' TERM\necho $$ > "${pidFile}"\nwhile true; do sleep 0.1; done`,
+	);
+	const running = realRun(t.paths)(["bash", "-c", `"${member}" & wait`], { cuttable: true, cancel: stop.signal });
+	await until(() => existsSync(pidFile));
+	const at = Date.now();
+	stop.abort();
+	const r = await running;
+	expect(r.stopped).toBe(true);
+	expect(Date.now() - at).toBeGreaterThanOrEqual(4500);
+	expect(existsSync(`/proc/${Number(readFileSync(pidFile, "utf8"))}`)).toBe(false);
+}, 15_000);
+
+test("a step that runs as root is never cut, whatever its caller asked", async () => {
+	expect(runsAsRoot(["sudo", "-n", "dpkg", "-i", "x.deb"])).toBe(true);
+	expect(runsAsRoot(["bash", "-c", "make && sudo -n make install"])).toBe(true);
+	expect(runsAsRoot(["/bin/sh", "-c", "sudo true"])).toBe(true);
+	expect(runsAsRoot(["bash", "-c", "make all"])).toBe(false);
+	expect(runsAsRoot(["git", "fetch"])).toBe(false);
+	// A stand-in sudo in the temp home: the step still runs to its end after the press.
+	script(join(t.paths.home, ".local/bin/sudo"), 'shift; sleep 0.3; echo "ran $*"');
+	const stop = new AbortController();
+	stop.abort();
+	const r = await realRun(t.paths, "/usr/bin:/bin")(["sudo", "true"], { cuttable: true, cancel: stop.signal });
+	expect(r.stopped).toBeUndefined();
+	expect(r.stdout).toBe("ran true\n");
+});
+
+test("start's process leads a process group of its own too", async () => {
+	const started = realRun(t.paths).start?.(["bash", "-c", "echo $$ $(ps -o pgid= -p $$); sleep 5"]);
+	await until(() => (started?.output() ?? "").includes("\n"));
+	const [pid, pgid] = (started?.output() ?? "").trim().split(/\s+/).map(Number);
+	expect(pgid).toBe(pid);
+	await started?.stop();
+});
+
+/** Waits until cond holds, every 20 ms for up to 3 s. */
+async function until(cond: () => boolean, left = 150): Promise<void> {
+	if (cond() || left === 0) return;
+	await Bun.sleep(20);
+	return until(cond, left - 1);
+}

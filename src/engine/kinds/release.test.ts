@@ -1081,3 +1081,104 @@ test("Stop now may cut only the unpack and the version probe of an archive; inst
 	expect(cut).toEqual(["tar", join(bin, "uv")]);
 	expect(calls.some((x) => x.argv[0] === "install" && x.opts.cuttable)).toBe(false);
 });
+
+test("Stop now pressed as an archive unpacks ends the install there, with the installed bins untouched", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	script(join(bin, "uv"), 'echo "uv 0.9.1"');
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": await tarball({ "uv/uv": 'echo "uv 0.9.2"' }) });
+	const spec = uv(["uv/uv"]);
+	const stop = new AbortController();
+	// The press lands as tar is about to run; the real runner then cuts it before it starts.
+	const { run, calls } = recordingRun(t.paths, (argv) => {
+		if (argv[0] === "tar") stop.abort();
+		return undefined;
+	});
+	const target = await checkAndTarget(spec, ctx());
+	const outcome = await installRelease(spec, target, { ...ctx(withCancel(run, stop.signal)), cancel: stop.signal });
+	expect(outcome).toMatchObject({ result: "stopped", installed: "0.9.1", detail: "Stopped. 0.9.1 is back in place." });
+	expect(calls.find((c) => c.argv[0] === "tar")?.opts.cuttable).toBe(true);
+	expect(readFileSync(join(bin, "uv"), "utf8")).toContain("uv 0.9.1");
+	expect(existsSync(join(t.paths.cache, "dl", "uv-x"))).toBe(false);
+	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("Stop now during the version probe puts the point back; a put-back that fails says what the restore said", async () => {
+	const dest = installZen("1.0.0");
+	publish("1.1.0", { "zen-x86_64.AppImage": bash('echo "zen 1.1.0"') });
+	const stop = new AbortController();
+	const { run } = recordingRun(t.paths, (argv) => {
+		if (argv[0] === dest && !stop.signal.aborted) {
+			stop.abort();
+			return ok("zen 1.1.0\n");
+		}
+		// The restore copies the point back through install; here the disk refuses it.
+		if (argv[0] === "install" && stop.signal.aborted)
+			return { code: 1, stdout: "", stderr: "No space left on device", timedOut: false };
+		return undefined;
+	});
+	const target = await checkAndTarget(zen(), ctx());
+	const outcome = await installRelease(zen(), target, { ...ctx(withCancel(run, stop.signal)), cancel: stop.signal });
+	expect(outcome.result).toBe("failed");
+	expect(outcome.detail).toStartWith("Could not restore ");
+	expect(lines.some((l) => l.startsWith("Restore failed: "))).toBe(true);
+});
+
+test("Stop now after a first install has no point to put back: the new copy stays, and the row says what it reports", async () => {
+	installZen("1.0.0");
+	publish("1.1.0", { "zen-x86_64.AppImage": bash('echo "zen 1.1.0"') });
+	const target = { ...(await checkAndTarget(zen(), ctx())), from: null };
+	const dest = join(t.paths.home, ".local/bin/zen-browser.AppImage");
+	rmSync(dest);
+	const stop = new AbortController();
+	const { run } = recordingRun(t.paths, (argv) => {
+		if (argv[0] === dest && !stop.signal.aborted) stop.abort();
+		return undefined;
+	});
+	const outcome = await installRelease(zen(), target, { ...ctx(withCancel(run, stop.signal)), cancel: stop.signal });
+	expect(outcome).toMatchObject({
+		result: "stopped",
+		installed: "1.1.0",
+		detail: "Stopped. Zen Browser still reports 1.1.0.",
+	});
+	expect(listBackups(t.paths, "zen")).toEqual([]);
+});
+
+test("Stop now pressed before the installed version's package is fetched says so, not that the download failed", async () => {
+	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
+	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.deb": new Uint8Array([9, 9, 9]) } };
+	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });
+	const stop = new AbortController();
+	const { run, calls } = recordingRun(t.paths, () => undefined);
+	const target = await checkAndTarget(rustdesk(dest), ctx());
+	const c = { ...ctx(withCancel(run, stop.signal)), cancel: stop.signal };
+	// The press lands as the old package's release is looked up.
+	const fetch: FetchLike = async (url, init) => {
+		if (url.includes("/releases/tags/")) stop.abort();
+		return fakeFetch(url, init);
+	};
+	const outcome = await installRelease(rustdesk(dest), target, { ...c, fetch });
+	expect(outcome).toMatchObject({ result: "stopped", installed: "1.4.2" });
+	expect(lines).toContain("Stopped before the restore point was taken.");
+	expect(calls.some((x) => x.argv[2] === "dpkg")).toBe(false);
+	oldRelease = null;
+});
+
+test("a dpkg that fails while Stop now waits on it puts the old package back, and the row says stopped", async () => {
+	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
+	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.deb": new Uint8Array([9, 9, 9]) } };
+	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });
+	const stop = new AbortController();
+	const { run } = recordingRun(t.paths, (argv) => {
+		if (argv[2] !== "dpkg") return undefined;
+		if ((argv[4] ?? "").includes("1.4.2")) return ok();
+		stop.abort();
+		return { code: 1, stdout: "", stderr: "dpkg: error processing", timedOut: false };
+	});
+	const target = await checkAndTarget(rustdesk(dest), ctx());
+	const outcome = await installRelease(rustdesk(dest), target, {
+		...ctx(withCancel(run, stop.signal)),
+		cancel: stop.signal,
+	});
+	expect(outcome).toMatchObject({ result: "stopped", installed: "1.4.2", detail: "Stopped. 1.4.2 is back in place." });
+	oldRelease = null;
+});

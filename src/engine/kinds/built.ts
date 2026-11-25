@@ -6,7 +6,7 @@ import { listBackups, packOlder, prune, readMeta, unpackPoint } from "../backup"
 import { isRecord } from "../manifest";
 import { dropTree } from "../drop";
 import { stripEscapes } from "../probe";
-import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
+import { asRootArgv, installAside, type Run, type RunOpts, runsAsRoot } from "../run";
 import { argsRunning } from "../running";
 import { clearInflight, type Inflight, readInflight, startTime, writeInflight } from "../store";
 import {
@@ -111,6 +111,14 @@ export function markerOf(spec: AppSpec, ctx: KindCtx, dest: string) {
 	};
 }
 export type Marker = ReturnType<typeof markerOf>;
+
+/**
+ * Whether Stop now may cut this step of a built app: never when the table says its steps run as root (sudo) or the
+ * step itself goes through sudo, since sudo cannot hand the kill on and a cut would only orphan the root command.
+ */
+function mayCut(spec: Pick<AppSpec, "sudo">, argv: string[]): boolean {
+	return spec.sudo !== true && !runsAsRoot(argv);
+}
 
 /** Runs argv with the step's pid going to the marker, and clears it after. */
 async function tracked(run: Run, marker: Marker, argv: string[], opts: RunOpts) {
@@ -440,13 +448,14 @@ export async function prepareBuilt(
 	// Steps run in dir; a stage-only table runs them in the home directory, since the stage is theirs to create.
 	const cwd = dir ?? ctx.paths.home;
 	for (const step of spec.build ?? []) {
+		const argv = ["bash", "-c", nonInteractive(fill(step, vars))];
 		// oxlint-disable-next-line no-await-in-loop -- build steps run in order
-		const r = await tracked(ctx.run, marker, ["bash", "-c", nonInteractive(fill(step, vars))], {
+		const r = await tracked(ctx.run, marker, argv, {
 			cwd,
 			timeoutMs: LONG,
 			killTree: true,
 			onLine: (l) => ctx.log(l),
-			cuttable: true,
+			cuttable: mayCut(spec, argv),
 		});
 		if (r.code !== 0 || stopPressed(ctx)) return fail({ failed: MESSAGES.buildStepFailed(step), cleanup: "revert" });
 	}
@@ -458,8 +467,9 @@ export async function prepareBuilt(
 	}
 	for (const step of spec.check_built ?? []) {
 		let last = "";
+		const argv = ["bash", "-c", nonInteractive(fill(step, vars))];
 		// oxlint-disable-next-line no-await-in-loop -- checks run in order
-		const r = await tracked(ctx.run, marker, ["bash", "-c", nonInteractive(fill(step, vars))], {
+		const r = await tracked(ctx.run, marker, argv, {
 			cwd,
 			timeoutMs: LONG,
 			killTree: true,
@@ -467,7 +477,7 @@ export async function prepareBuilt(
 				ctx.log(l);
 				if (l.trim()) last = l;
 			},
-			cuttable: true,
+			cuttable: mayCut(spec, argv),
 		});
 		if (r.code !== 0 || stopPressed(ctx))
 			return fail({ failed: MESSAGES.checkFailedStep(checkReason(r.timedOut ? "" : last, step)), cleanup: "revert" });
@@ -529,22 +539,18 @@ async function healthy(svc: Serve, ctx: KindCtx, stop?: AbortSignal): Promise<bo
 }
 
 /** One test: a command (exit 0, expect matched, fail_on not) or a POST (2xx, expect matched, fail_on not). */
-async function passes(test: Test, ctx: KindCtx, built: Built): Promise<boolean> {
+async function passes(test: Test, ctx: KindCtx, built: Built, spec: Pick<AppSpec, "sudo">): Promise<boolean> {
 	const timeoutMs = (test.timeout_s ?? 600) * 1000;
 	let text = "";
 	if (test.run) {
-		const r = await tracked(
-			ctx.run,
-			built.marker,
-			test.run.map((a) => fill(a, built.vars)),
-			{
-				cwd: built.dir ?? ctx.paths.home,
-				timeoutMs,
-				killTree: true,
-				merge: true,
-				cuttable: true,
-			},
-		);
+		const argv = test.run.map((a) => fill(a, built.vars));
+		const r = await tracked(ctx.run, built.marker, argv, {
+			cwd: built.dir ?? ctx.paths.home,
+			timeoutMs,
+			killTree: true,
+			merge: true,
+			cuttable: mayCut(spec, argv),
+		});
 		if (r.code !== 0) return false;
 		text = r.stdout;
 	} else if (test.url) {
@@ -782,7 +788,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		if (!(await healthy(s.svc, ctx, ctx.cancel))) return rollBack(MESSAGES.wouldNotStartRestored(from));
 		for (const test of s.svc.test ?? []) {
 			// oxlint-disable-next-line no-await-in-loop -- tests run in order
-			if (await passes(test, ctx, built)) continue;
+			if (await passes(test, ctx, built, spec)) continue;
 			if (test.required === false) ctx.log(`Test did not pass (not required): ${testName(test)}`);
 			else return rollBack(MESSAGES.failedTest(testName(test), from));
 		}
@@ -791,18 +797,17 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		// URL tests need a running service; with nothing in serve running they are skipped.
 		if (test.url && stopped.length === 0) continue;
 		// oxlint-disable-next-line no-await-in-loop -- tests run in order
-		if (await passes(test, ctx, built)) continue;
+		if (await passes(test, ctx, built, spec)) continue;
 		if (test.required === false) ctx.log(`Test did not pass (not required): ${testName(test)}`);
 		else return rollBack(MESSAGES.failedTest(testName(test), from));
 	}
 	if (stopPressed(ctx)) return rollBack("");
 	// The version is read as checkBuilt reads it and compared as written: a commit hash is not a version to reshape.
 	const after = await readInstalled(spec, { ...ctx, run: cuttableRun(ctx) });
-	// After verify passed, the finish below is waited out: Stop now ends the run there with the update done.
-	if (stopPressed(ctx)) return rollBack("");
 	const installed = after?.installed ?? null;
 	if (installed === null || (installed === target.from && target.from !== target.version))
 		return rollBack(MESSAGES.failedTest(VERSION_CHECK, from));
+	// Verify passed: the update stays. A Stop now from here waits out the finish below and only ends the run.
 	prune(ctx.paths, spec.key, ctx.settings.keepBackups);
 	await packOlder(ctx.paths, spec.key, ctx.run, ctx.log);
 	await pruneBuilds(spec, ctx, built);

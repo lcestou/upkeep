@@ -1074,6 +1074,7 @@ const historyRows = (): { key: string; result: string }[] =>
 		? readFileSync(join(t.paths.data, "history.jsonl"), "utf8")
 				.trim()
 				.split("\n")
+				// SAFETY: appendHistory writes one HistoryRow per line, and each has a key and a result.
 				.map((l) => JSON.parse(l) as { key: string; result: string })
 		: [];
 
@@ -1190,3 +1191,37 @@ test("after Done a stopped app is ready again and keeps its own sentence, not La
 	expect(row).toMatchObject({ status: "ready", detail: "Stopped. Claude Code still reports 2.1.322." });
 	expect(engine.readyKeys(false)).toContain("claude");
 }, 15_000);
+
+test("quitting at once ends the step in progress when it is not root, and leaves a root step running", async () => {
+	const d = await deps();
+	const seed = join(t.dir, "seed.toml");
+	const pidFile = join(t.dir, "up.pid");
+	script(join(bin, "claude-up"), `echo $$ > "${pidFile}"; sleep 30`);
+	// The table says sudo, so Stop now never cuts the update; quitting at once still ends it, as it runs as the person.
+	writeFileSync(
+		seed,
+		readFileSync(seed, "utf8").replace(
+			'update = ["~/.local/bin/claude-up"]',
+			'update = ["~/.local/bin/claude-up"]\nsudo = true',
+		),
+	);
+	const engine = createEngine(d);
+	await engine.check();
+	// A holder, since the subscriber below fills it after the type checker has narrowed a plain let to null.
+	const quit: { ended: Promise<{ step: string; root: boolean } | null> | null } = { ended: null };
+	engine.subscribe((e) => {
+		if (!quit.ended && e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) {
+			engine.stopNow();
+			quit.ended = (async () => {
+				// oxlint-disable-next-line no-await-in-loop -- polling until the step has written its pid
+				while (!existsSync(pidFile)) await Bun.sleep(20);
+				return engine.endStep();
+			})();
+		}
+	});
+	await engine.install(["claude"]);
+	await engine.idle();
+	expect(await quit.ended).toEqual({ step: "claude-up", root: false });
+	expect(existsSync(`/proc/${Number(readFileSync(pidFile, "utf8"))}`)).toBe(false);
+	expect(await engine.endStep()).toBeNull();
+}, 20_000);

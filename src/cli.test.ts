@@ -611,3 +611,29 @@ test("Ctrl-C during the check before an install quits at once: nothing is being 
 	await main(["install", "borg"], d, () => {}, sig);
 	expect(sig.exits[0]).toBe(130);
 });
+
+test("a second Ctrl-C during a root step quits and says the step runs on as root", async () => {
+	const d = deps();
+	const seed = join(t.dir, "seed.toml");
+	writeFileSync(
+		seed,
+		readFileSync(seed, "utf8").replace('dest = "~/.local/bin/borg"', 'dest = "~/.local/bin/borg"\nsudo = true'),
+	);
+	const marker = join(t.dir, "sudo-started");
+	// A stand-in sudo in the temp home: it says it started, waits a moment, then runs the command as the person.
+	script(join(t.paths.home, ".local/bin/sudo"), `touch "${marker}"; sleep 1; [ "$1" = -n ] && shift; exec "$@"`);
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const poll = setInterval(() => {
+		if (!existsSync(marker)) return;
+		clearInterval(poll);
+		sig.raise("SIGINT");
+		sig.raise("SIGINT");
+	}, 20);
+	await main(["install", "borg"], d, (l) => out.push(l), sig);
+	clearInterval(poll);
+	expect(out).toContain(
+		"Quit before BorgBackup was put back. install runs as root and is still running; run upkeep recover once it ends.",
+	);
+	expect(sig.exits).toEqual([130]);
+});

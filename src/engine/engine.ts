@@ -48,7 +48,7 @@ import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
 import { expandHome, type Paths } from "./paths";
-import { killTree, type Run, type RunOpts } from "./run";
+import { endGroup, killTree, type Run, type RunOpts, runsAsRoot } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
 	appendHistory,
@@ -116,6 +116,12 @@ export type Engine = {
 	 * root package install, an undo) is waited out first, and the row says what it waits for. The rest stay ready.
 	 */
 	stopNow(): void;
+	/**
+	 * For quitting at once (a second Ctrl-C): ends the step in progress, TERM to its process group and KILL after 5 s,
+	 * and resolves once it is gone. A step that runs as root cannot be ended from here and is left running; the answer
+	 * names it then. Null when no step runs.
+	 */
+	endStep(): Promise<{ step: string; root: boolean } | null>;
 	dismissSummary(): void;
 	restore(key: string, version: string): Promise<{ ok: boolean; detail?: string }>;
 	/** Restarts an app whose table says how, and drops its waiting restart once that worked. Refused during a run. */
@@ -232,6 +238,9 @@ const POINT_WEIGHTS = {
 	],
 } satisfies Record<"deb" | "rpm" | "command", [Stage, number][]>;
 
+/** A step a kind runs now: its argv, whether Stop now may cut it, and its pid once it started. */
+type InStep = { argv: string[]; cuttable: boolean; pid?: number };
+
 /** The step as the log names it: the program without sudo or its path, its subcommand words, a shell step's own. */
 function stepName(argv: string[]): string {
 	const words = argv[0] === "sudo" ? argv.slice(argv[1] === "-n" ? 2 : 1) : argv;
@@ -265,7 +274,7 @@ export function createEngine(deps: EngineDeps): Engine {
 	/** The run's Stop now; a fresh one for each run, since an aborted signal stays aborted. */
 	let stopNow = new AbortController();
 	/** The step a kind waits on now, so Stop now can say what it waits for when the step is one it never cuts. */
-	let inStep: { argv: string[]; cuttable: boolean } | null = null;
+	let inStep: InStep | null = null;
 	let log: RunLog | null = null;
 	let run: RunState = {
 		id: null,
@@ -355,7 +364,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const cancel = stopNow.signal;
 		const start = deps.run.start;
 		const cancellable: Run = async (argv, opts) => {
-			const mine = { argv, cuttable: opts?.cuttable === true };
+			const mine: InStep = { argv, cuttable: opts?.cuttable === true };
 			inStep = mine;
 			const a = apps.get(key);
 			const working = a?.status === "working" ? a : undefined;
@@ -364,7 +373,14 @@ export function createEngine(deps: EngineDeps): Engine {
 				emitApp(working);
 			}
 			try {
-				return await deps.run(argv, { cancel, ...opts });
+				return await deps.run(argv, {
+					cancel,
+					...opts,
+					onStart: (pid) => {
+						mine.pid = pid;
+						opts?.onStart?.(pid);
+					},
+				});
 			} finally {
 				if (inStep === mine) inStep = null;
 				if (working?.status === "working" && working.step) {
@@ -953,6 +969,13 @@ export function createEngine(deps: EngineDeps): Engine {
 					emitApp(a);
 				}
 			emitRun();
+		},
+		async endStep() {
+			const step = inStep;
+			if (!step) return null;
+			const root = runsAsRoot(step.argv);
+			if (!root && step.pid) await endGroup(step.pid);
+			return { step: stepName(step.argv), root };
 		},
 		stopNow() {
 			if (run.phase !== "installing" || run.stoppingNow) return;

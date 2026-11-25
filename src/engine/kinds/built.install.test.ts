@@ -709,3 +709,40 @@ test("a unit's stop or start is cuttable on the way forward only when it does no
 		["systemctl --user stop u", false],
 	]);
 });
+
+test("Stop now never cuts a built app's step that runs as root: a sudo table, or sudo in the step's own text", async () => {
+	const box = fakeBox();
+	const run: Run = (argv, opts) =>
+		argv[0] === "bash" && argv[2]?.includes("sudo") ? box.run(["bash", "-c", "make all"], opts) : box.run(argv, opts);
+	const seen: [string, boolean][] = [];
+	const watched: Run = (argv, opts = {}) => {
+		if (argv[0] === "bash") seen.push([argv[2] ?? "", opts.cuttable === true]);
+		return run(argv, opts);
+	};
+	expect(await installBuilt(spec({ build: ["sudo make all"] }), target, { ...ctx(box), run: watched })).toMatchObject({
+		result: "done",
+	});
+	expect(seen).toEqual([["sudo -n make all", false]]);
+	const box2 = fakeBox();
+	expect(await installBuilt(spec({ sudo: true }), target, ctx(box2))).toMatchObject({ result: "done" });
+	expect(box2.calls.find((c) => c.argv.join(" ") === "bash -c make all")?.opts.cuttable).toBe(false);
+});
+
+test("Stop now pressed after verify passed keeps the update: the run just ends", async () => {
+	const stop = new AbortController();
+	const box = fakeBox();
+	// The last version read, after the new unit answered, is where the press lands; that read still passes.
+	const run: Run = (argv, opts) => {
+		if (argv[0] === "print-version" && box.svc.servedVersion === "a1b2c3d4e") stop.abort();
+		return box.run(argv, opts);
+	};
+	const o = await installBuilt(spec(), target, {
+		...ctx(box),
+		run: withCancel(run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(stop.signal.aborted).toBe(true);
+	expect(o).toMatchObject({ result: "done", installed: "a1b2c3d4e" });
+	expect(box.svc).toMatchObject({ running: true, servedVersion: "a1b2c3d4e" });
+	expect(readInflight(t.paths)).toBeNull();
+});

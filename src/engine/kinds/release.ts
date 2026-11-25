@@ -340,7 +340,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		if (restorable && isPackage(spec.kind) && target.from) {
 			clock.start("backup");
 			const old = await oldPackage(spec, target, ctx);
-			if ("problem" in old) ctx.log(`No restore point: ${old.problem}`);
+			if ("problem" in old)
+				ctx.log(stopPressed(ctx) ? "Stopped before the restore point was taken." : `No restore point: ${old.problem}`);
 			else {
 				takePoint(
 					ctx.paths,

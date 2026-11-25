@@ -3,6 +3,7 @@ import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { isFailure, latestFromSource } from "../github";
 import { probeCommand } from "../probe";
+import { runsAsRoot } from "../run";
 import { isNewer } from "../version";
 import { fill } from "./tree";
 import { prune, restoreBackup, takePoint } from "../backup";
@@ -89,7 +90,8 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 		timeoutMs: 600_000,
 		onLine: (l) => ctx.log(l),
 		cwd: ctx.paths.home,
-		cuttable: true,
+		// Never a root update: sudo cannot hand the kill on, so a cut would only orphan it.
+		cuttable: spec.sudo !== true && !runsAsRoot(update),
 	});
 	ctx.log(
 		r.stopped

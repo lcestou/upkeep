@@ -86,17 +86,29 @@ export type Signals = {
 
 /**
  * The first Ctrl-C or SIGTERM during an install is Stop now: the current app is put back and the rest do not start.
- * A second one quits at once, which can leave that app half-installed. Outside the install itself (the check before
+ * A second one ends the step in progress (TERM, then KILL after 5 s) and quits, which can leave that app
+ * half-installed; a step that runs as root cannot be ended from here, so it keeps running and the line says so. Outside the install itself (the check before
  * it) nothing is being changed, so the first one quits at once. Returns the function that stops listening.
  */
 function stopOnSignal(engine: Engine, signals: Signals, out: Out): () => void {
+	let quitting = false;
 	const onSignal = () => {
 		const run = engine.snapshot().run;
 		const name = engine.snapshot().apps.find((a) => a.key === run.currentKey)?.name ?? "the current app";
 		if (run.phase !== "installing") return signals.exit(130);
 		if (run.stoppingNow) {
-			out(`Quit before ${name} was put back. Run upkeep recover.`);
-			return signals.exit(130);
+			// Children run in their own process groups, so the terminal's Ctrl-C never reached the step: end it here.
+			if (quitting) return;
+			quitting = true;
+			void engine.endStep().then((left) => {
+				out(
+					left?.root
+						? `Quit before ${name} was put back. ${left.step} runs as root and is still running; run upkeep recover once it ends.`
+						: `Quit before ${name} was put back. Run upkeep recover.`,
+				);
+				signals.exit(130);
+			});
+			return;
 		}
 		out(`Stopping: putting ${name} back. Press Ctrl-C again to quit at once, which can leave ${name} half-installed.`);
 		engine.stopNow();

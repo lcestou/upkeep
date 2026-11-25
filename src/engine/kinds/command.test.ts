@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
 import { listBackups } from "../backup";
-import { realRun, recordingRun, script, tempHome, withCancel } from "../testkit";
+import { ok, realRun, recordingRun, script, tempHome, withCancel } from "../testkit";
 import type { KindCtx } from "./context";
 import { checkCommand, installCommand, tagOf } from "./command";
 
@@ -282,3 +282,26 @@ test("Stop now may cut a command app's update and its version probe after, nothi
 		["claude", true],
 	]);
 });
+
+test("Stop now never cuts a command app's update that runs as root", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf 2.1.400 > ${state}`);
+	const target = { from: "2.1.322", version: "2.1.400", tag: "2.1.400" };
+	const { run, calls } = recordingRun(t.paths, (argv) => (argv[0] === "sudo" ? ok() : undefined));
+	await installCommand({ ...claude(["~/.local/bin/claude-up"]), sudo: true }, target, { ...ctx(), run });
+	await installCommand(claude(["sudo", "npm", "i", "-g", "x"]), target, { ...ctx(), run });
+	const updates = calls.filter((c) => c.argv[0] === "~/.local/bin/claude-up" || c.argv[0] === "sudo");
+	expect(updates.map((c) => c.opts.cuttable)).toEqual([false, false]);
+});
+
+test("Stop now's put-back that fails says what the restore said, and keeps the row failed", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf half > ${state}; sleep 30`);
+	script(join(t.paths.home, ".local/bin/claude-back"), "echo nope >&2; exit 4");
+	const stop = new AbortController();
+	setTimeout(() => stop.abort(), 300);
+	const spec = { ...claude(["~/.local/bin/claude-up"]), restore: ["~/.local/bin/claude-back", "{version}"] };
+	const outcome = await installCommand(spec, { from: "2.1.322", version: "2.1.400", tag: "2.1.400" }, stoppable(stop));
+	expect(outcome.result).toBe("failed");
+	expect(outcome.detail).toBe("~/.local/bin/claude-back 2.1.322 exited 4.");
+}, 15_000);

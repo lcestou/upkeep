@@ -117,6 +117,54 @@ export function killGroup(pid: number, graceMs = 5000): void {
 	setTimeout(() => send("SIGKILL"), graceMs).unref();
 }
 
+/** True while any process is left in the group pid leads. A group of processes this user may not signal counts too. */
+function groupAlive(pid: number): boolean {
+	try {
+		process.kill(-pid, 0);
+		return true;
+	} catch (err) {
+		return err instanceof Error && "code" in err && err.code === "EPERM";
+	}
+}
+
+/**
+ * Ends the process group pid leads and resolves only once it is gone: TERM, then KILL after graceMs, then up to
+ * another graceMs for the kernel to reap it (a process stuck in D state may outlast even that; the wait still ends).
+ * A cut uses it so a caller never restores files while a member of the cut step can still write them.
+ */
+export async function endGroup(pid: number, graceMs = 5000): Promise<void> {
+	const send = (signal: NodeJS.Signals) => {
+		try {
+			process.kill(-pid, signal);
+		} catch {
+			// the group is gone, or holds only processes this user may not signal
+		}
+	};
+	const goneWithin = async (ms: number) => {
+		const until = Date.now() + ms;
+		while (groupAlive(pid)) {
+			if (Date.now() >= until) return false;
+			// oxlint-disable-next-line no-await-in-loop -- polling until the group is gone
+			await Bun.sleep(50);
+		}
+		return true;
+	};
+	send("SIGTERM");
+	if (await goneWithin(graceMs)) return;
+	send("SIGKILL");
+	await goneWithin(graceMs);
+}
+
+/**
+ * True for a step that runs as root: an argv that starts with sudo, or a shell step whose script calls sudo. Stop now
+ * never cuts one: sudo cannot hand a KILL on to the root command, so a cut would only orphan it.
+ */
+export function runsAsRoot(argv: string[]): boolean {
+	if (argv[0] === "sudo") return true;
+	const [prog = "", flag, script] = argv;
+	return /(^|\/)(ba)?sh$/.test(prog) && flag === "-c" && /\bsudo\b/.test(script ?? "");
+}
+
 /**
  * The real runner. Stdin is ignored, ~/ is expanded in every argv element, the owner's bin directories lead PATH,
  * and an argv that starts with sudo gets -n: a child keeps the terminal, so a sudo without it would prompt there
@@ -166,7 +214,8 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		};
 	};
 	const run = async (argv: string[], opts: RunOpts = {}): Promise<ProcessResult> => {
-		const cut = opts.cuttable === true ? opts.cancel : undefined;
+		// A root step is never cut, whatever its caller asked.
+		const cut = opts.cuttable === true && !runsAsRoot(argv) ? opts.cancel : undefined;
 		if (cut?.aborted) return { code: 143, stdout: "", stderr: "", timedOut: false, stopped: true };
 		const cmd = asRootArgv(argv).map((a) => expandHome(a, home));
 		const env = envFor(opts.env);
@@ -216,9 +265,10 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 						else proc.kill("SIGKILL");
 					}, opts.timeoutMs);
 		let stopped = false;
+		let ending: Promise<void> | null = null;
 		const onCancel = () => {
 			stopped = true;
-			killGroup(proc.pid);
+			ending = endGroup(proc.pid);
 		};
 		cut?.addEventListener("abort", onCancel, { once: true });
 		const sinks = [{ text: "" }, { text: "" }];
@@ -249,7 +299,11 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			stdout = await readAndRemove(outFile);
 			stderr = errFile ? await readAndRemove(errFile) : "";
 		}
-		if (stopped) return { code: 143, stdout, stderr, timedOut, stopped };
+		// The leader may exit while a member that ignored TERM still writes: return only once the whole group is gone.
+		if (stopped) {
+			await ending;
+			return { code: 143, stdout, stderr, timedOut, stopped };
+		}
 		return { code: timedOut ? 137 : code, stdout, stderr, timedOut };
 	};
 	return Object.assign(run, { start });
