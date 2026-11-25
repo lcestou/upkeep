@@ -45,6 +45,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			selfAuto: false,
 			upkeepCommand: false,
 			waitDays: 0,
+			waitUnmetered: false,
 		},
 		rate: null,
 		checkedAt: null,
@@ -106,6 +107,12 @@ test("titles and notices read as sentences", () => {
 	expect(trayTitle(snap(1))).toBe("Upkeep, 1 update ready");
 	expect(trayTitle(snap(7))).toBe("Upkeep, 7 updates ready");
 	expect(readyNotice(["fd"])).toBe("1 update ready: fd");
+	expect(readyNotice(["fd"], "en", "metered")).toBe(
+		"1 update ready: fd\nAutomatic updates wait for an unmetered connection.",
+	);
+	expect(readyNotice(["fd"], "de", "battery")).toBe(
+		"1 Aktualisierung bereit: fd\nAutomatische Aktualisierungen warten auf Netzstrom.",
+	);
 	expect(readyNotice(["fd", "Zen Browser", "Cursor", "wrangler"])).toBe(
 		"4 updates ready: fd, Zen Browser, Cursor, wrangler",
 	);
@@ -119,6 +126,9 @@ test("the fingerprint changes when the ready set or a version changes, and only 
 	const b = snap(2);
 	expect(readyFingerprint(a)).toBe(readyFingerprint(b));
 	expect(readyFingerprint(a)).toBe("app0@1.0,app1@1.1");
+	// The same set held back for a reason is a new notice; nothing ready stays nothing, whatever the wait.
+	expect(readyFingerprint(a, "metered")).toBe("app0@1.0,app1@1.1;wait=metered");
+	expect(readyFingerprint(snap(0), "battery")).toBe("");
 	b.apps[1]!.latest = "9.9";
 	expect(readyFingerprint(a)).not.toBe(readyFingerprint(b));
 	expect(readyFingerprint(snap(0))).toBe("");

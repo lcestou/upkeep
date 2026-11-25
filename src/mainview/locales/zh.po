@@ -2759,6 +2759,76 @@ msgstr "正在停止 {0}…"
 msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read a menu entry from {0}."
+msgstr "无法从 {0} 读取菜单项。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "已通过 {0} 出现在应用菜单中，因此 Upkeep 不会再添加一个。"
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "在应用菜单中显示"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "{0} 处尚未安装任何内容，因此没有可读取的菜单项。请先安装。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "{0} 处的 AppImage 要求不显示在应用菜单中，因此 Upkeep 不添加菜单项。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "下载已校验：SHA-256 与发布平台的记录一致。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "下载已校验：与发布中的校验和文件一致。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "下载已校验：仅大小。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "下载未校验：发布未列出大小或校验和。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "下载被转到了非 https 地址，因此已拒绝。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "校验和与发布中的 {0} 不符，因此未安装任何内容。你可以跳过此版本。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "{0} 背后的文件在 Upkeep 首次看到后发生了变化。取消暂缓前请先查看发布页面。"
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 与发布平台一致"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "与校验和文件一致"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "仅校验了大小"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "下载未校验"
+
 #: src/mainview/lib/copy.ts
 msgid "Wait before offering a new release"
 msgstr "提供新版本前等待"
@@ -2914,3 +2984,30 @@ msgstr "没有等待导入的文件。请按“导入”并重新选择。"
 #: src/mainview/lib/copy.ts
 msgid "It shortens the wait before a new release is offered:"
 msgstr "它会缩短提供新版本前的等待期："
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "应用自动更新等待非计量连接和交流电源"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "在计量连接或电池供电时，应用的自动更新会等待。检查照常进行，“安装”始终可用。Upkeep 自身的更新不会等待。"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "它会关闭以下在这台电脑上打开的设置："
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} 不能作为应用键名：请使用字母、数字、点、连字符和下划线，并以字母或数字开头。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}：{1} 不能包含换行符或其他控制字符"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "无法写入菜单项：{0}"

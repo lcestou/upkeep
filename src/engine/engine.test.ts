@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING, settlesAt } from "./engine";
 import type { FetchLike } from "./github";
+import { SUM_KEEP_MS } from "./checksums";
 import { readMeta, takePoint } from "./backup";
 import { loadManifest } from "./manifest";
 import { claimLock, loadState, readInflight, updateState, writeInflight } from "./store";
@@ -12,6 +13,10 @@ import { realRun, recordingRun, script, tempHome } from "./testkit";
 let t: ReturnType<typeof tempHome>;
 let releases: Record<string, { tag: string; assets: Record<string, Uint8Array<ArrayBuffer>> }> = {};
 let proc = "";
+/** Digests the fake GitHub lists, by asset name; an asset not named here has none. */
+let digests: Record<string, string> = {};
+/** Whether the fake GitHub marks every release immutable. */
+let immutable = false;
 let bin = "";
 
 const MANIFEST = `
@@ -92,11 +97,12 @@ const fakeFetch: FetchLike = async (url) => {
 			html_url: `https://github.com/${m[1]}/releases/tag/${r.tag}`,
 			published_at: "2026-11-09T00:00:00Z",
 			body: "Notes.",
+			immutable,
 			assets: Object.entries(r.assets).map(([name, b]) => ({
 				name,
 				browser_download_url: `https://dl.test/${m[1]}/${name}`,
 				size: b.length,
-				digest: null,
+				digest: digests[name] ?? null,
 			})),
 		});
 	}
@@ -161,6 +167,8 @@ async function deps(): Promise<EngineDeps> {
 
 beforeEach(() => {
 	t = tempHome("engine");
+	digests = {};
+	immutable = false;
 	proc = join(t.dir, "proc");
 	mkdirSync(proc);
 });
@@ -307,6 +315,10 @@ test("retry from the summary runs only the failed app again", async () => {
 		["fd", "updated"],
 		["boom", "failed"],
 	]);
+	// fd's release lists a size and no checksum: the summary, the history and the row say so.
+	expect(snap.run.results.find((x) => x.key === "fd")?.checked).toBe("size");
+	expect(engine.history(10).find((h) => h.key === "fd")?.checked).toBe("size");
+	expect(snap.apps.find((a) => a.key === "fd")?.checked).toBe("size");
 	// The app that succeeded in the first pass is not installed again and still shows as done.
 	expect(statuses(engine)).toMatchObject({ boom: "failed", fd: "done" });
 	expect(engine.history(10).filter((h) => h.key === "fd")).toHaveLength(1);
@@ -363,6 +375,120 @@ test("skip and hold move a ready app to held; a newer version clears the skip", 
 	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).skip).toEqual({});
 });
 
+test("a release whose file changed under the same tag is held with its reason until the hold is released", async () => {
+	const fdAsset = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	const engine = createEngine(await deps());
+	const fdRow = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	// No digest at first, then one: a hash Upkeep had never seen does not fire.
+	await engine.check();
+	digests = { [fdAsset]: `sha256:${"1".repeat(64)}` };
+	await engine.check(["fd"]);
+	expect(fdRow()).toMatchObject({ status: "ready", held: false });
+	// Same tag, same file name, another digest.
+	digests = { [fdAsset]: `sha256:${"2".repeat(64)}` };
+	await engine.check(["fd"]);
+	expect(fdRow()).toMatchObject({
+		status: "held",
+		held: true,
+		detail:
+			"The file behind v10.5.2 changed after Upkeep first saw it. Check the release page before you release the hold.",
+	});
+	expect(engine.readyKeys(false)).not.toContain("fd");
+	// Checked again with the same new file: still held, nothing new learned.
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("held");
+	engine.setHold("fd", false);
+	expect(fdRow()).toMatchObject({ status: "ready", held: false });
+	expect(fdRow()?.detail).toBeUndefined();
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	const state = JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8"));
+	expect(state.changed).toEqual({});
+	expect(state.seen.fd).toEqual({ tag: "v10.5.2", file: fdAsset, hash: `sha256:${"2".repeat(64)}` });
+	expect(await engine.removeApp("fd")).toEqual({ ok: true });
+	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).seen).toEqual({});
+});
+
+test("a changed hash is not held for an immutable release, a switch of hash kind, a renamed file or a new tag", async () => {
+	const fdAsset = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	const engine = createEngine(await deps());
+	const fdTar = releases["sharkdp/fd"]?.assets[fdAsset] ?? bytes("");
+	const fdRow = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	const file = join(t.paths.state, "state.json");
+	const state = () => (existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : { seen: {}, changed: {} });
+	const sha = (c: string) => `sha256:${c.repeat(64)}`;
+	// Immutable: nothing is remembered, so a later change cannot fire.
+	immutable = true;
+	digests = { [fdAsset]: sha("1") };
+	await engine.check();
+	digests = { [fdAsset]: sha("2") };
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	expect(state().seen.fd).toBeUndefined();
+	immutable = false;
+	// A sha256 seen, then only electron-builder's sha512: another kind of hash, not a changed file.
+	await engine.check(["fd"]);
+	digests = {};
+	const yml = `files:\n  - url: ${fdAsset}\n    sha512: ${Buffer.from("e".repeat(128), "hex").toString("base64")}\n`;
+	releases["sharkdp/fd"] = { tag: "v10.5.2", assets: { [fdAsset]: fdTar, "latest-linux.yml": bytes(yml) } };
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	expect(state().seen.fd.hash).toBe(`sha512:${"e".repeat(128)}`);
+	// The same tag with the file under another name and another hash.
+	const renamed = "fd-10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	releases["sharkdp/fd"] = { tag: "v10.5.2", assets: { [renamed]: fdTar } };
+	digests = { [renamed]: sha("3") };
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	// A real change marks it; a new tag then clears the mark.
+	digests = { [renamed]: sha("4") };
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("held");
+	releases["sharkdp/fd"] = { tag: "v10.5.3", assets: { [renamed]: fdTar } };
+	await engine.check(["fd"]);
+	expect(fdRow()).toMatchObject({ status: "ready", held: false });
+	expect(state().changed).toEqual({});
+});
+
+test("a checksum file line that changes under the same tag is seen after six hours and holds the row", async () => {
+	let clock = Date.parse("2026-11-25T00:00:00Z");
+	const engine = createEngine({ ...(await deps()), now: () => new Date(clock) });
+	const fdAsset = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	const fdTar = releases["sharkdp/fd"]?.assets[fdAsset] ?? bytes("");
+	const sums = (c: string) => bytes(`${c.repeat(64)}  ${fdAsset}\n`);
+	releases["sharkdp/fd"] = { tag: "v10.5.2", assets: { [fdAsset]: fdTar, SHA256SUMS: sums("1") } };
+	const fdRow = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	await engine.check();
+	expect(fdRow()?.status).toBe("ready");
+	releases["sharkdp/fd"] = { tag: "v10.5.2", assets: { [fdAsset]: fdTar, SHA256SUMS: sums("2") } };
+	// Within six hours the kept hash stands.
+	clock += SUM_KEEP_MS - 1;
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	clock += 1;
+	await engine.check(["fd"]);
+	expect(fdRow()).toMatchObject({ status: "held", held: true });
+});
+
+test("a release's checksum file that disagrees with the download fails the row with the reason and the way out", async () => {
+	const engine = createEngine(await deps());
+	const fdAsset = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	const fdTar = releases["sharkdp/fd"]?.assets[fdAsset] ?? bytes("");
+	releases["sharkdp/fd"] = {
+		tag: "v10.5.2",
+		assets: { [fdAsset]: fdTar, "checksums.txt": bytes(`${"0".repeat(64)}  ${fdAsset}\n`) },
+	};
+	await engine.check();
+	expect(await engine.install(["fd"])).toEqual({ started: true });
+	await engine.idle();
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({
+		status: "failed",
+		detail:
+			"Checksum does not match checksums.txt in the release, so nothing was installed. You can skip this version.",
+	});
+	expect(readFileSync(join(bin, "fd"), "utf8")).toContain("fd 10.5.1");
+});
+
 test("settings and auto are kept in state", async () => {
 	const engine = createEngine(await deps());
 	await engine.check();
@@ -378,6 +504,7 @@ test("settings and auto are kept in state", async () => {
 		selfAuto: false,
 		upkeepCommand: false,
 		waitDays: 0,
+		waitUnmetered: false,
 	});
 	engine.setAuto("bat", true);
 	expect(engine.snapshot().apps.find((a) => a.key === "bat")?.auto).toBe(true);

@@ -39,6 +39,7 @@ function ctx(): KindCtx {
 			selfAuto: false,
 			upkeepCommand: false,
 			waitDays: 0,
+			waitUnmetered: false,
 		},
 		log: (l) => lines.push(l),
 		stage: () => {},

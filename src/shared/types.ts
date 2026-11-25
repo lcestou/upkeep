@@ -156,9 +156,14 @@ export type ImportAsk = {
 	apps: { key: string; name: string; commands: string[] }[];
 	plain: number;
 	turnsOn: ImportSwitch[];
+	/** Each protection the file turns off that is on on this machine: off, it would let automatic updates run. */
+	turnsOff: ImportProtection[];
 	/** Set when the file shortens the wait before a new release is offered (a protection); lengthening it is not asked. */
 	waitDays?: { from: Settings["waitDays"]; to: Settings["waitDays"] };
 };
+
+/** A setting that holds something back, which an import asks before turning off. */
+export type ImportProtection = "waitUnmetered";
 
 /** A setting or extra an import would turn on that is off here: each one acts (writes a file, installs, shows a group). */
 export type ImportSwitch =
@@ -224,6 +229,8 @@ export type AppState = {
 	status: AppStatus;
 	/** A sentence for problem, failed and rolled_back, and for a passed row that needs a note. */
 	detail?: string;
+	/** After an install this session: how its downloaded file was checked. */
+	checked?: DownloadCheck;
 	/** What else keeps this app up to date (a Flatpak, a Snap, another table on its dest or repo), as of the last check: engine sentences. */
 	also?: string[];
 	/** Bytes of the release asset, when known. */
@@ -249,6 +256,13 @@ export type AppState = {
 	/** relaunch: Restart now closes the app's windows, so it asks first. */
 	closes?: boolean;
 	auto: boolean;
+	/**
+	 * AppImage rows only: whether Upkeep keeps a menu entry for it ("on"), could ("off"), or another tool already has
+	 * one for the same file ("elsewhere", with menuDetail saying which).
+	 */
+	menu?: "on" | "off" | "elsewhere";
+	/** The engine sentence for menu: "elsewhere". */
+	menuDetail?: string;
 	sudo: boolean;
 	versionless: boolean;
 	/** manual: the command to run. */
@@ -286,6 +300,12 @@ export type AppState = {
 
 export type RunPhase = "idle" | "checking" | "installing" | "summary";
 
+/**
+ * How a downloaded file was checked: "digest" against the forge's SHA-256, "sums" against the release's checksum
+ * file, "size" against the listed size alone, "none" when the release listed neither.
+ */
+export type DownloadCheck = "digest" | "sums" | "size" | "none";
+
 export type RunResult = {
 	key: string;
 	name: string;
@@ -298,6 +318,8 @@ export type RunResult = {
 	result: "updated" | "failed" | "rolled_back" | "stopped" | "restored" | "cleaned" | "skipped";
 	detail?: string;
 	ms: number;
+	/** How the downloaded file was checked; absent for an app that downloads no release file. */
+	checked?: DownloadCheck;
 };
 
 export type RunState = {
@@ -343,6 +365,8 @@ export type Settings = {
 	upkeepCommand: boolean;
 	/** Days a new release waits before it is offered, counted from when it was published. 0 offers it at once. */
 	waitDays: 0 | 1 | 3 | 7;
+	/** Automatic installs and early downloads wait while the connection is metered or the machine is on battery. A pressed Install never waits. */
+	waitUnmetered: boolean;
 };
 
 /**
@@ -569,6 +593,7 @@ export type Requests = {
 	setSkip: { params: { key: string; version: string | null }; response: { ok: boolean } };
 	setHold: { params: { key: string; held: boolean }; response: { ok: boolean } };
 	setAuto: { params: { key: string; auto: boolean }; response: { ok: boolean } };
+	setMenu: { params: { key: string; menu: boolean }; response: { ok: boolean; detail?: string } };
 	setSettings: { params: Partial<Settings>; response: Settings };
 	/** The pasted GitHub token's last four characters and whether the last check found it refused. The token never comes back. */
 	token: { params: Record<string, never>; response: TokenState };

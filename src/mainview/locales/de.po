@@ -2780,6 +2780,76 @@ msgstr "Stoppe {0} …"
 msgid "New versions in their marketplaces: {0}."
 msgstr "Neue Versionen in ihren Marktplätzen: {0}."
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read a menu entry from {0}."
+msgstr "Konnte keinen Menüeintrag aus {0} lesen."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "Schon über {0} im Anwendungsmenü, daher fügt Upkeep keinen zweiten Eintrag hinzu."
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "Im Anwendungsmenü zeigen"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "Unter {0} ist noch nichts installiert, also gibt es keinen Menüeintrag zu lesen. Installiere es zuerst."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "Das AppImage unter {0} möchte nicht im Anwendungsmenü erscheinen, daher fügt Upkeep keinen Eintrag hinzu."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Download geprüft: SHA-256 passt zum Eintrag der Plattform."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Download geprüft: passt zur Prüfsummendatei des Release."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Download geprüft: nur die Größe."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Download nicht geprüft: Das Release nennt weder Größe noch Prüfsumme."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "Der Download wurde an eine Adresse ohne https weitergeleitet und daher abgelehnt."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "Die Prüfsumme passt nicht zu {0} im Release, daher wurde nichts installiert. Du kannst diese Version überspringen."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "Die Datei hinter {0} hat sich geändert, nachdem Upkeep sie zuerst gesehen hat. Prüfe die Release-Seite, bevor du „Nicht mehr zurückstellen“ wählst."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 passt zur Plattform"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Passt zur Prüfsummendatei"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Nur Größe geprüft"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Download nicht geprüft"
+
 #: src/mainview/lib/copy.ts
 msgid "Wait before offering a new release"
 msgstr "Vor dem Anbieten einer neuen Version warten"
@@ -2937,3 +3007,30 @@ msgstr "Es wartet keine Datei auf den Import. Klicke auf Importieren und wähle 
 #: src/mainview/lib/copy.ts
 msgid "It shortens the wait before a new release is offered:"
 msgstr "Es verkürzt die Wartezeit, bevor eine neue Version angeboten wird:"
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "Für automatische App-Aktualisierungen auf eine nicht getaktete Verbindung und Netzstrom warten"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "Automatische App-Aktualisierungen warten bei einer getakteten Verbindung oder im Akkubetrieb. Prüfungen laufen weiter, und Installieren funktioniert immer. Die Aktualisierung von Upkeep selbst wartet nicht."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "Sie schaltet diese Einstellungen aus, die auf diesem Rechner an sind:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} kann kein App-Schlüssel sein: Verwende Buchstaben, Ziffern, Punkte, Bindestriche und Unterstriche, beginnend mit einem Buchstaben oder einer Ziffer."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}: {1} darf keinen Zeilenumbruch oder ein anderes Steuerzeichen enthalten"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "Der Menüeintrag ließ sich nicht schreiben: {0}"

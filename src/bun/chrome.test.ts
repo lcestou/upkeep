@@ -14,6 +14,7 @@ const settings: Settings = {
 	selfAuto: false,
 	upkeepCommand: false,
 	waitDays: 0,
+	waitUnmetered: false,
 };
 
 test("button layouts as the desktop writes them", () => {

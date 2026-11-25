@@ -17,6 +17,7 @@ import { createRaiser, openX11 } from "./raise";
 import { type LanguageCode, resolveLanguage, systemLanguages } from "../shared/languages";
 import { isDevBuild, playDevScript } from "./dev-script";
 import { startSchedule } from "./schedule";
+import { checkAndRetry, checkAtStart } from "./start-check";
 import { claimInstance, releaseInstance } from "./instance";
 import { countApps, selfPorts } from "./self-electrobun";
 import { entryArgv, SELF_FILES } from "./self-shim";
@@ -453,21 +454,40 @@ function notify(body: string): void {
 	if (engine.snapshot().settings.notify) Utils.showNotification({ title: "Upkeep", body });
 }
 
-let firstBackgroundCheck = background;
-/** One notice per ready set: the same pending list is announced once, not after every check. */
-function announceReady(): void {
-	const all = engine.snapshot();
-	// At a login start the automatic apps are about to install and get their own "Updated" notice.
-	const auto = firstBackgroundCheck ? new Set(engine.readyKeys(true)) : new Set<string>();
-	firstBackgroundCheck = false;
-	const snapshot = { ...all, apps: all.apps.filter((a) => !auto.has(a.key)) };
-	const fingerprint = readyFingerprint(snapshot);
+// While a login start, or a scheduled check that retries waiting automatic apps, checks and starts its automatic
+// installs, its checks say nothing: the one notice comes after, once the automatic apps are either queued (and get
+// their own "Updated" notice) or waiting (and are named with what they wait for).
+let noticeHeld = false;
+// What the automatic apps wait for since a check held them back; each scheduled check tries them again.
+let heldBack: "metered" | "battery" | undefined;
+
+/** The schedule's check. While automatic apps wait, it tries them again after the check and sends one notice after. */
+async function scheduledCheck(): Promise<void> {
+	if (!heldBack) return engine.check();
+	noticeHeld = true;
+	try {
+		heldBack = await checkAndRetry(engine, heldBack);
+	} finally {
+		noticeHeld = false;
+	}
+	announceReady(heldBack);
+}
+
+/**
+ * One notice per ready set: the same pending list is announced once, not after every check. wait names what the
+ * automatic apps wait for, on the notice that follows a login start that held them back.
+ */
+function announceReady(wait?: "metered" | "battery"): void {
+	// A check that found no network learned nothing new; the next one speaks.
+	if (noticeHeld || engine.offline()) return;
+	const snapshot = engine.snapshot();
+	const fingerprint = readyFingerprint(snapshot, wait);
 	if (fingerprint === loadState(deps.paths).notified) return;
 	updateState(deps.paths, (s) => {
 		s.notified = fingerprint;
 	});
 	// A visible window already shows the list.
-	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot), trayLanguage()));
+	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot), trayLanguage(), wait));
 }
 
 /** Says the outcome of an install with no window to read it: one notice for the updated apps, one per failure. */
@@ -484,7 +504,7 @@ let phase: RunPhase = "idle";
 const schedule = startSchedule({
 	every: () => engine.snapshot().settings.checkEvery,
 	idle: () => phase === "idle",
-	check: () => void engine.check(),
+	check: () => void scheduledCheck(),
 });
 
 // Through the same coalescer as the engine's events: a non-row event flushes pending rows first, so order holds.
@@ -515,9 +535,9 @@ async function selfLook(): Promise<void> {
 const settled = createSettleWatch();
 engine.subscribe((event) => {
 	toView.push(event);
-	// A release whose wait ran out turned Ready without a check: say so as a check would. Before the first background
-	// check that check will say it, and during one it does.
-	if (event.type === "app" && settled(event.app) && phase === "idle" && !firstBackgroundCheck) announceReady();
+	// A release whose wait ran out turned Ready without a check: say so as a check would. While a login or scheduled
+	// check holds its notice, that check says it.
+	if (event.type === "app" && settled(event.app) && phase === "idle" && !noticeHeld) announceReady(heldBack);
 	if (event.type !== "run") {
 		// A meta event carries the settings, which may switch the language the tray speaks.
 		if (event.type === "app" || event.type === "meta") refreshTray();
@@ -529,7 +549,7 @@ engine.subscribe((event) => {
 	// A finished check or a dismissed run both just looked at every app: the schedule's wait starts again.
 	if (phase === "idle" && (before === "checking" || before === "summary")) schedule.checked();
 	if (before === "checking" && phase === "idle") {
-		announceReady();
+		announceReady(heldBack);
 		void selfLook();
 	}
 	if (before === "installing" && phase === "summary") {
@@ -562,9 +582,16 @@ try {
 const startHidden = wasOpen === null ? background : !wasOpen;
 
 if (startHidden && tray.visible) {
-	await engine.check();
-	const auto = engine.readyKeys(true);
-	if (auto.length > 0) await engine.install(auto);
+	noticeHeld = true;
+	let wait: "metered" | "battery" | undefined;
+	try {
+		await checkAtStart(engine);
+		wait = (await engine.installAuto()).wait;
+		heldBack = wait;
+	} finally {
+		noticeHeld = false;
+	}
+	announceReady(wait);
 } else {
 	openWindow();
 	const checked = engine.check();

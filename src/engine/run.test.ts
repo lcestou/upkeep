@@ -259,12 +259,32 @@ test("a step that runs as root is never cut, whatever its caller asked", async (
 	expect(r.stdout).toBe("ran true\n");
 });
 
+test("start says when its process could not start at all, and one that runs is not failed", async () => {
+	const none = realRun(t.paths).start?.(["/nonexistent/upkeep-no-such-program"]);
+	expect(none?.failed).toBe(true);
+	expect(none?.output()).toBe("");
+	await none?.stop();
+	const some = realRun(t.paths).start?.(["sleep", "5"]);
+	expect(some?.failed).toBe(false);
+	await some?.stop();
+});
+
 test("start's process leads a process group of its own too", async () => {
 	const started = realRun(t.paths).start?.(["bash", "-c", "echo $$ $(ps -o pgid= -p $$); sleep 5"]);
 	await until(() => (started?.output() ?? "").includes("\n"));
 	const [pid, pgid] = (started?.output() ?? "").trim().split(/\s+/).map(Number);
 	expect(pgid).toBe(pid);
 	await started?.stop();
+});
+
+test("stopping a started process ends the child it started too, as systemd-inhibit's command", async () => {
+	// The leader stands in for systemd-inhibit: it starts a child and waits on it, ignoring nothing.
+	const started = realRun(t.paths).start?.(["bash", "-c", "sleep 30 & echo $!; wait"], { stopMs: 500 });
+	await until(() => (started?.output() ?? "").includes("\n"));
+	const child = Number((started?.output() ?? "").trim());
+	expect(() => process.kill(child, 0)).not.toThrow();
+	await started?.stop();
+	expect(() => process.kill(child, 0)).toThrow();
 });
 
 /** Waits until cond holds, every 20 ms for up to 3 s. */

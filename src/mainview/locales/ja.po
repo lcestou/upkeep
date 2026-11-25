@@ -2759,6 +2759,76 @@ msgstr "{0} を停止中…"
 msgid "New versions in their marketplaces: {0}."
 msgstr "マーケットプレイスに新しいバージョンがあります：{0}。"
 
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not read a menu entry from {0}."
+msgstr "{0} からメニュー項目を読み取れませんでした。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Already in the app menu through {0}, so Upkeep adds no second entry."
+msgstr "{0} によってすでにアプリメニューにあるため、Upkeep は2つ目の項目を追加しません。"
+
+#: src/mainview/lib/copy.ts
+msgid "Show in the app menu"
+msgstr "アプリメニューに表示"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Nothing is installed at {0} yet, so there is no menu entry to read. Install it first."
+msgstr "{0} にはまだ何もインストールされていないため、読み取るメニュー項目がありません。先にインストールしてください。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no entry."
+msgstr "{0} の AppImage はアプリメニューに表示しないよう指定しているため、Upkeep は項目を追加しません。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "ダウンロード確認済み: SHA-256 が配布元の記録と一致します。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "ダウンロード確認済み: リリースのチェックサムファイルと一致します。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "ダウンロード確認済み: サイズのみ。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "ダウンロード未確認: リリースにサイズもチェックサムもありません。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "ダウンロードが https ではないアドレスに転送されたため、拒否しました。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "チェックサムがリリースの {0} と一致しないため、何もインストールしませんでした。このバージョンはスキップできます。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "{0} のファイルは、Upkeep が最初に確認した後に変わりました。保留を解除する前にリリースページを確認してください。"
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 が配布元と一致"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "チェックサムファイルと一致"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "サイズのみ確認"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "ダウンロード未確認"
+
 #: src/mainview/lib/copy.ts
 msgid "Wait before offering a new release"
 msgstr "新しいリリースを案内するまで待つ"
@@ -2914,3 +2984,30 @@ msgstr "読み込みを待っているファイルはありません。読み込
 #: src/mainview/lib/copy.ts
 msgid "It shortens the wait before a new release is offered:"
 msgstr "新しいリリースを案内するまでの待機期間を短くします:"
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "アプリの自動更新は従量制でない接続と AC 電源を待つ"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "従量制の接続やバッテリー駆動のときは、アプリの自動更新を待たせます。確認は続き、インストールはいつでも使えます。Upkeep 自体の更新は待ちません。"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "このコンピューターでオンになっている次の設定をオフにします:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} はアプリのキーにできません。英字、数字、ドット、ハイフン、アンダースコアを使い、英字か数字で始めてください。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}: {1} に改行やその他の制御文字は使えません"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "メニュー項目を書き込めませんでした: {0}"

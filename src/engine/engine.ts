@@ -58,7 +58,9 @@ import { recoverTree, restoreBuilt } from "./kinds/built";
 import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
+import { entryOwners, foreignEntry, removeMenu, writeMenu } from "./menu";
 import { expandHome, type Paths } from "./paths";
+import { canHoldSleep, holdSleep, LOCK_LINES, waitReason } from "./power";
 import { endGroup, killTree, type Run, type RunOpts, runsAsRoot, stepName } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
@@ -102,6 +104,13 @@ export type EngineDeps = {
 	catalogueUrl?: string;
 	fetch: FetchLike;
 	run: Run;
+	/**
+	 * Runs the sleep lock during an install and the metered and battery questions. Without it no lock is taken and
+	 * nothing waits; realDeps passes the real runner, and tests a fake so no real lock is ever held.
+	 */
+	power?: Run;
+	/** How long a started sleep lock must stay up before it counts as held. Default 300 ms; tests pass less. */
+	lockConfirmMs?: number;
 	now: () => Date;
 	/** The app's version, shown in Settings. */
 	version?: string;
@@ -124,7 +133,10 @@ export type EngineDeps = {
 export type Engine = {
 	snapshot(): Snapshot;
 	subscribe(listener: (e: EngineEvent) => void): () => void;
-	check(keys?: string[]): Promise<void>;
+	/** quietOffline: an app whose check found no network keeps the row it had, so a start before the network is up shows nothing failed. */
+	check(keys?: string[], opts?: { quietOffline?: boolean }): Promise<void>;
+	/** Whether the last check found the network down: some app could not reach its forge and none that asks one got an answer. */
+	offline(): boolean;
 	/** now: a row held only because its release is still settling goes too, as Install now anyway asks. */
 	install(keys: string[], now?: boolean): Promise<{ started: boolean; reason?: string }>;
 	stopAfterCurrent(): void;
@@ -149,6 +161,11 @@ export type Engine = {
 	setHold(key: string, held: boolean): boolean;
 	/** False, and nothing written, for a key not in the list. */
 	setAuto(key: string, auto: boolean): boolean;
+	/**
+	 * Writes or deletes an AppImage's menu entry. Refused for another kind, during a run, and when another tool already
+	 * has an entry for the same file; detail says why when there is a sentence for it.
+	 */
+	setMenu(key: string, menu: boolean): Promise<{ ok: boolean; detail?: string }>;
 	setSettings(patch: Partial<Settings>): Settings;
 	/** The pasted token's last four characters, and what the last check did when GitHub refused it (see TokenState). */
 	tokenState(): TokenState;
@@ -160,6 +177,11 @@ export type Engine = {
 	history(limit: number): HistoryRow[];
 	runLog(runId: string): LogLine[];
 	readyKeys(autoOnly: boolean): string[];
+	/**
+	 * Installs the ready apps marked automatic. With "wait for an unmetered connection" on, nothing starts while the
+	 * connection is metered or the machine is on battery, and wait says which; a pressed Install never comes here.
+	 */
+	installAuto(): Promise<{ started: boolean; reason?: string; wait?: "metered" | "battery" }>;
 	/** Resolves when no check or run is in progress. */
 	idle(): Promise<void>;
 	suggest(input: string, asset?: string): Promise<{ suggestions: Suggestion[]; problem?: string }>;
@@ -191,6 +213,22 @@ function restartWanted(spec: AppSpec): boolean {
 		(spec.restart?.length ?? 0) > 0 ||
 		spec.relaunch === true
 	);
+}
+
+/** The kinds whose check answers from the disk alone, so a good answer says nothing about the network. */
+const LOCAL_CHECKS = new Set(["claude-plugins"]);
+
+/**
+ * Whether a check's results say the network is down: some app failed before its source answered, and no app whose
+ * check fetches got an answer. Command and manual apps fetch their latest version too, so their answer counts. A
+ * partial outage (one host down, another up) is not offline.
+ */
+function offlineIn(list: AppSpec[], found: Map<string, Checked | null>): boolean {
+	const rows = list.flatMap((s) => {
+		const c = found.get(s.key);
+		return c ? [{ c, local: LOCAL_CHECKS.has(s.kind) }] : [];
+	});
+	return rows.some((r) => r.c.offline) && !rows.some((r) => !r.local && r.c.status !== "problem");
 }
 
 /** Runs fn with at most n in flight at once. */
@@ -510,25 +548,54 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/**
-	 * The row's resting status from its check result, the owner's skip and hold, and the wait in Settings. A hold or a
-	 * skip wins over the wait. settles is always present, undefined when not settling, so Object.assign clears it.
+	 * The row's resting status and detail from its check result, the owner's skip and hold, and the wait in Settings. An
+	 * offered release whose file changed since it was first seen is held too, with the reason as its detail, and releasing
+	 * the hold lets it through. A hold or a skip wins over the wait; a manual app never waits. settles is always present,
+	 * undefined when not settling, so Object.assign clears it.
 	 */
-	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped" | "settles"> {
+	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped" | "detail" | "settles"> {
 		const state = loadState(paths);
-		const held = state.hold[spec.key] === true;
+		const tag = c.target?.tag;
+		const changed = tag !== undefined && state.changed[spec.key] === tag;
+		const held = state.hold[spec.key] === true || (c.status === "ready" && changed);
 		const skip = state.skip[spec.key];
-		if (c.status !== "ready") return { status: c.status, held, settles: undefined };
-		if (held) return { status: "held", held, skipped: skip, settles: undefined };
-		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip, settles: undefined };
+		const detail = c.status === "ready" && changed ? MESSAGES.releaseChanged(tag) : c.detail;
+		if (c.status !== "ready") return { status: c.status, held, detail, settles: undefined };
+		if (held) return { status: "held", held, skipped: skip, detail, settles: undefined };
+		if (skip !== undefined && skip === c.latest)
+			return { status: "held", held, skipped: skip, detail, settles: undefined };
 		// A manual app is run by the person, so it never waits: Install now anyway could not run it.
-		if (spec.kind === "manual") return { status: "manual", held, settles: undefined };
+		if (spec.kind === "manual") return { status: "manual", held, detail, settles: undefined };
 		const settles = settlesAt(c.publishedAt, state.settings.waitDays, deps.now());
-		if (settles) return { status: "held", held, settles };
-		return { status: "ready", held, settles: undefined };
+		if (settles) return { status: "held", held, detail, settles };
+		return { status: "ready", held, detail, settles: undefined };
+	}
+
+	/**
+	 * Remembers the release file a check offered and marks the app changed when the same tag and file name now carry
+	 * another hash of the same kind. A file added to the release later, a tag that moved on, a hash read another way
+	 * (a digest after a sha512 sum) or a release the forge locks never fires. Only a row on offer is marked: an
+	 * installed release has nothing left to hold.
+	 */
+	function noteRelease(key: string, c: Checked): void {
+		const t = c.target;
+		const a = t?.asset;
+		const hash = a?.digest ?? (a?.sum ? `${a.sum.algo}:${a.sum.hex}` : null);
+		if (!t || !a || !hash || t.locked) return;
+		const was = loadState(paths).seen[key];
+		if (was?.tag === t.tag && was.file === a.name && was.hash === hash) return;
+		const sameKind = was?.hash.split(":")[0] === hash.split(":")[0];
+		updateState(paths, (s) => {
+			if (s.changed[key] !== undefined && s.changed[key] !== t.tag) delete s.changed[key];
+			if (c.status === "ready" && was?.tag === t.tag && was.file === a.name && sameKind) s.changed[key] = t.tag;
+			s.seen[key] = { tag: t.tag, file: a.name, hash };
+		});
 	}
 
 	// What else keeps each app up to date, worked out once per check from the system's Flatpak and Snap lists.
 	let alsoNotes = new Map<string, string[]>();
+	// Other tools' menu entries by the program they start, read once per check rather than once per row.
+	let owners = new Map<string, string>();
 
 	function buildApp(spec: AppSpec, c: Checked, history: HistoryRow[]): AppState {
 		const state = loadState(paths);
@@ -541,7 +608,6 @@ export function createEngine(deps: EngineDeps): Engine {
 			installed: c.installed,
 			latest: c.latest,
 			...resting(spec, c),
-			detail: c.detail,
 			size: c.size,
 			notes: c.notes,
 			releaseUrl: c.releaseUrl,
@@ -555,6 +621,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			canRestart: Boolean(spec.restart?.length || spec.relaunch),
 			closes: !spec.restart?.length && spec.relaunch === true,
 			auto: state.auto[spec.key] ?? spec.auto ?? false,
+			...menuOf(spec, state.menu),
 			sudo: spec.sudo === true,
 			versionless: spec.versionless === true,
 			run: spec.run,
@@ -581,6 +648,48 @@ export function createEngine(deps: EngineDeps): Engine {
 		return app;
 	}
 
+	/** An AppImage row's menu switch; nothing for another kind. Reads the applications folder on every call. */
+	function menuOf(spec: AppSpec, menu: Record<string, string[]>): Pick<AppState, "menu" | "menuDetail"> {
+		if (spec.kind !== "appimage") return {};
+		if (menu[spec.key]) return { menu: "on" };
+		const other = foreignEntry(owners, destOf(spec, { paths }));
+		return other ? { menu: "elsewhere", menuDetail: MESSAGES.menuElsewhere(other) } : { menu: "off" };
+	}
+
+	/**
+	 * Writes the app's entry again from the AppImage now at dest, after an update or a restore, since a new version may
+	 * change its name or icon. Files the new write did not produce again (an icon of another size) are deleted. A failed
+	 * write keeps the old entry and only logs: the update itself went through. An AppImage no longer at dest has its
+	 * entry removed, since it would start nothing.
+	 */
+	async function refreshMenu(spec: AppSpec): Promise<void> {
+		const had = loadState(paths).menu[spec.key];
+		if (!had || spec.kind !== "appimage") return;
+		const ctx = { paths, run: deps.run };
+		const dest = destOf(spec, { paths });
+		// An entry that would start a file no longer there is worse than none.
+		if (!existsSync(dest)) {
+			await removeMenu(had, ctx);
+			updateState(paths, (s) => {
+				delete s.menu[spec.key];
+			});
+			say(spec.key, `Removed the menu entry: ${dest} is not there any more.`);
+			return;
+		}
+		const r = await writeMenu(spec.key, dest, ctx);
+		if ("problem" in r) {
+			say(spec.key, r.problem);
+			return;
+		}
+		await removeMenu(
+			had.filter((f) => !r.files.includes(f)),
+			ctx,
+		);
+		updateState(paths, (s) => {
+			s.menu[spec.key] = r.files;
+		});
+	}
+
 	function accept(spec: AppSpec, c: Checked | null, history: HistoryRow[]): void {
 		if (!c) {
 			apps.delete(spec.key);
@@ -594,6 +703,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			updateState(paths, (s) => {
 				delete s.skip[spec.key];
 			});
+		noteRelease(spec.key, c);
 		checked.set(spec.key, c);
 		if (c.target) targets.set(spec.key, c.target);
 		else targets.delete(spec.key);
@@ -603,7 +713,11 @@ export function createEngine(deps: EngineDeps): Engine {
 		armSettle();
 	}
 
-	async function doCheck(keys?: string[]): Promise<void> {
+	/** Whether the last check found the network down; see offline(). */
+	let lastOffline = false;
+
+	/** quietOffline keeps a row that found no network as it was before, and leaves it and the check time unsaved. */
+	async function doCheck(keys?: string[], quietOffline = false): Promise<void> {
 		const list = loadSpecs().filter((s) => !keys || keys.includes(s.key));
 		run = {
 			...run,
@@ -628,6 +742,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const all = loadSpecs();
 		// The notes are a nicety: a list that cannot be read leaves them out and never stops the check.
 		const copies = await readCopies({ run: deps.run }).catch(() => ({ flatpaks: [], snaps: [] }));
+		owners = entryOwners(paths);
 		alsoNotes = new Map(
 			all.map((s) => [s.key, alsoOf(s, all, copies, paths.home)] as const).filter(([, a]) => a.length > 0),
 		);
@@ -641,8 +756,11 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.index += 1;
 			emitRun();
 		};
+		const found = new Map<string, Checked | null>();
+		const kept = new Set<string>();
 		await Promise.all(
 			list.map(async (spec) => {
+				const before = checked.get(spec.key);
 				let c: Checked | null;
 				try {
 					c = await checkOne(spec, kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
@@ -654,12 +772,23 @@ export function createEngine(deps: EngineDeps): Engine {
 						detail: err instanceof Error ? err.message : String(err),
 					};
 				}
-				accept(spec, c, history);
+				found.set(spec.key, c);
+				// A row with nothing before it (a first start, an app just added) stays out of the list until a check gets through.
+				if (quietOffline && c?.offline) {
+					kept.add(spec.key);
+					if (before) accept(spec, before, history);
+				} else accept(spec, c, history);
 				done();
 			}),
 		);
-		checkedAt = deps.now().toISOString();
-		rememberRows(list, checkedAt);
+		lastOffline = offlineIn(list, found);
+		if (quietOffline && lastOffline) say(null, "No network yet: the rows keep what the last check found");
+		else checkedAt = deps.now().toISOString();
+		// A row that answered is stamped now even when the check found no network; a kept row keeps its own stamp.
+		rememberRows(
+			list.filter((s) => !kept.has(s.key)),
+			deps.now().toISOString(),
+		);
 		log?.close();
 		log = null;
 		run = { ...run, id: null, phase: "idle", index: run.total, currentKey: null };
@@ -671,6 +800,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		app.status = o.result;
 		app.installed = o.installed;
 		app.detail = o.detail;
+		app.checked = o.checked;
 		app.restartToApply = o.result === "done" && o.restartToApply;
 		app.stage = undefined;
 		app.stagePct = undefined;
@@ -846,7 +976,15 @@ export function createEngine(deps: EngineDeps): Engine {
 			log: say,
 		});
 		ahead = early;
-		const p = doRun(queue)
+		// The lock is taken inside the run, so busy covers it, and let go however the run ends: done, stopped or thrown.
+		const p = (async () => {
+			const release = await sleepHeld();
+			try {
+				await doRun(queue);
+			} finally {
+				await release?.().catch(() => undefined);
+			}
+		})()
 			.catch((err: Error) => {
 				const reason = err instanceof Error ? err.message : String(err);
 				say(null, `Run failed: ${reason}`);
@@ -881,6 +1019,34 @@ export function createEngine(deps: EngineDeps): Engine {
 			});
 		busy = p;
 		return { started: true };
+	}
+
+	/** Whether the lock tool answered, asked once per engine; null until the first run asks. */
+	let lockable: Promise<boolean> | null = null;
+	/** Said once per engine: a machine without the lock tool runs every install without the lock. */
+	let noLockSaid = false;
+
+	/**
+	 * Takes the sleep lock for a run; null, and one log line the first time, where there is none to take. A lock that
+	 * cannot be started (its output file cannot be written) is skipped with a line: the run goes on without it.
+	 */
+	async function sleepHeld(): Promise<(() => Promise<void>) | null> {
+		const power = deps.power;
+		if (!power) return null;
+		lockable ??= canHoldSleep(power).catch(() => false);
+		if (!(await lockable)) {
+			if (!noLockSaid) say(null, LOCK_LINES.missing);
+			noLockSaid = true;
+			return null;
+		}
+		try {
+			const release = await holdSleep(power, process.pid, "Installing updates", deps.lockConfirmMs);
+			if (release) say(null, LOCK_LINES.held);
+			return release;
+		} catch (err) {
+			say(null, LOCK_LINES.failed(err instanceof Error ? err.message : String(err)));
+			return null;
+		}
 	}
 
 	/**
@@ -948,6 +1114,9 @@ export function createEngine(deps: EngineDeps): Engine {
 					detail: outcome.detail ?? (WATCHED.has(spec.kind) ? MESSAGES.oldCopyRuns(spec.name) : undefined),
 				};
 			finishApp(app, outcome);
+			// After Stop now nothing more is started, the entry's refresh included: the old entry still starts dest.
+			// oxlint-disable-next-line no-await-in-loop -- the entry follows its own app's install, before the next starts
+			if (outcome.result === "done" && !run.stoppingNow) await refreshMenu(spec);
 			if (outcome.result === "done" && outcome.restartToApply && WATCHED.has(spec.kind)) {
 				const at = deps.now().toISOString();
 				updateState(paths, (s) => {
@@ -963,6 +1132,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				result: resultOf(outcome.result),
 				detail: outcome.detail,
 				ms: Date.now() - started,
+				checked: outcome.checked,
 			};
 			run.results.push(result);
 			history.push({ ...result, runId: run.id ?? "", at: deps.now().toISOString(), stages: outcome.stages });
@@ -1002,9 +1172,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			listeners.add(listener);
 			return () => listeners.delete(listener);
 		},
-		check(keys) {
+		check(keys, opts) {
 			if (run.phase === "installing" || run.phase === "checking" || starting) return busy;
-			const p = doCheck(keys).catch((err: Error) => {
+			const p = doCheck(keys, opts?.quietOffline).catch((err: Error) => {
 				say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
 				run = { ...run, phase: "idle", currentKey: null };
 				emitRun();
@@ -1038,6 +1208,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			emitRun();
 		},
+		offline: () => lastOffline,
 		async endStep() {
 			const step = inStep;
 			if (!step) return null;
@@ -1127,6 +1298,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				const r = await restoreBackup(paths, spec, version, deps.run, spec.keep_with_restore);
 				if (!r.ok) return r;
 				prune(paths, key, loadState(paths).settings.keepBackups);
+				await refreshMenu(spec);
 				await packOlder(paths, key, deps.run, kindCtx(key).log);
 				const probe = await probeInstalled(spec, kindCtx(key));
 				const installed = "version" in probe ? probe.version : null;
@@ -1214,7 +1386,11 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!specOf(key)) return false;
 			updateState(paths, (s) => {
 				if (held) s.hold[key] = true;
-				else delete s.hold[key];
+				else {
+					delete s.hold[key];
+					// Releasing a hold Upkeep put on a changed release lets that release through.
+					delete s.changed[key];
+				}
 			});
 			refresh(key);
 			return true;
@@ -1230,6 +1406,37 @@ export function createEngine(deps: EngineDeps): Engine {
 				emitApp(a);
 			}
 			return true;
+		},
+		async setMenu(key, menu) {
+			const spec = specOf(key);
+			if (spec?.kind !== "appimage") return { ok: false };
+			if (run.phase === "installing") return { ok: false, detail: REASON_BUSY };
+			const ctx = { paths, run: deps.run };
+			const had = loadState(paths).menu[key] ?? [];
+			let files: string[] | null = null;
+			if (menu) {
+				const dest = destOf(spec, { paths });
+				owners = entryOwners(paths);
+				const other = foreignEntry(owners, dest);
+				if (other) return { ok: false, detail: MESSAGES.menuElsewhere(other) };
+				const r = await writeMenu(key, dest, ctx);
+				if ("problem" in r) return { ok: false, detail: r.problem };
+				files = r.files;
+			}
+			await removeMenu(
+				had.filter((f) => !files?.includes(f)),
+				ctx,
+			);
+			updateState(paths, (s) => {
+				if (files) s.menu[key] = files;
+				else delete s.menu[key];
+			});
+			const a = apps.get(key);
+			if (a) {
+				Object.assign(a, { menuDetail: undefined }, menuOf(spec, loadState(paths).menu));
+				emitApp(a);
+			}
+			return { ok: true };
 		},
 		setSettings(patch) {
 			const s = updateState(paths, (st) => {
@@ -1259,6 +1466,14 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		runLog(runId) {
 			return readRunLog(paths, runId);
+		},
+		async installAuto() {
+			const keys = engine.readyKeys(true);
+			if (keys.length === 0) return { started: false, reason: REASON_NOTHING };
+			const wait = deps.power && loadState(paths).settings.waitUnmetered ? await waitReason(deps.power) : null;
+			if (!wait) return engine.install(keys);
+			say(null, `Automatic updates wait: ${wait === "metered" ? "metered connection" : "on battery"}`);
+			return { started: false, wait };
 		},
 		readyKeys(autoOnly) {
 			const keys: string[] = [];
@@ -1305,6 +1520,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			const cut = cutTable(text, key);
 			if (cut === null) return { ok: false, detail: MESSAGES.noAppInList(key) };
 			replaceManifest(file, cut);
+			// The menu entry Upkeep wrote goes with the app; the AppImage itself stays, as removing from the list always left it.
+			const menu = loadState(paths).menu[key];
+			if (menu) await removeMenu(menu, { paths, run: deps.run });
 			loadSpecs();
 			apps.delete(key);
 			checked.delete(key);
@@ -1315,6 +1533,9 @@ export function createEngine(deps: EngineDeps): Engine {
 				delete s.hold[key];
 				delete s.auto[key];
 				delete s.restart[key];
+				delete s.menu[key];
+				delete s.seen[key];
+				delete s.changed[key];
 			});
 			emit({ type: "removed", key });
 			return { ok: true };

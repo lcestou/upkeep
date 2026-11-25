@@ -161,12 +161,16 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			selfAuto: false,
 			upkeepCommand: false,
 			waitDays: 0,
+			waitUnmetered: false,
 		},
 		notified: "",
 		restart: {},
 		selfFailed: "",
 		selfNotified: "",
 		installed: {},
+		menu: {},
+		seen: {},
+		changed: {},
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";
@@ -328,4 +332,18 @@ test("a cached row's size of 0 is read as no size", () => {
 	const rows = loadRows(t.paths);
 	expect(rows.a?.size).toBeUndefined();
 	expect(rows.b?.size).toBe(5);
+});
+
+test("a seen release file keeps three strings, and a hand-edited entry missing one is dropped", () => {
+	mkdirSync(t.paths.state, { recursive: true });
+	writeFileSync(
+		join(t.paths.state, "state.json"),
+		JSON.stringify({
+			seen: { fd: { tag: "v1", file: "fd.tar.gz", hash: "sha256:ab" }, bad: { tag: "v1", file: 3 } },
+			changed: { fd: "v1" },
+		}),
+	);
+	const s = loadState(t.paths);
+	expect(s.seen).toEqual({ fd: { tag: "v1", file: "fd.tar.gz", hash: "sha256:ab" } });
+	expect(s.changed).toEqual({ fd: "v1" });
 });

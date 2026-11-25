@@ -16,13 +16,15 @@ export function realDeps(
 	catalogueUrl?: string,
 ): EngineDeps {
 	const p = paths(env);
+	const run = createRunner(p.home, join(p.cache, "tmp"), env.PATH ?? "/usr/local/bin:/usr/bin:/bin");
 	return {
 		paths: p,
 		seedManifest,
 		catalogueDir,
 		catalogueUrl,
 		fetch: (url, init) => fetch(url, init),
-		run: createRunner(p.home, join(p.cache, "tmp"), env.PATH ?? "/usr/local/bin:/usr/bin:/bin"),
+		run,
+		power: run,
 		now: () => new Date(),
 		arch: machineArch(process.arch),
 	};

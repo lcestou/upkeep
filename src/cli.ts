@@ -1,7 +1,15 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "./shared/messages";
-import type { AppState, EngineEvent, ImportAsk, ImportSwitch, Suggestion } from "./shared/types";
+import type {
+	AppState,
+	DownloadCheck,
+	EngineEvent,
+	ImportAsk,
+	ImportProtection,
+	ImportSwitch,
+	Suggestion,
+} from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
@@ -20,6 +28,7 @@ export const USAGE = [
 	"  list                   the apps in apps.toml",
 	"  add <name|owner/repo|link|file>",
 	"  remove <key>           take an app off the list; the app stays installed",
+	"  hold <key> on|off      hold an app's updates, or release a hold (also one Upkeep put on a changed release)",
 	"  export [file]          settings and app list as one JSON file (stdout without a file)",
 	"  import <file> [--yes]  replace settings and app list from an export; --yes when its apps run commands",
 	"--json prints one JSON value per line instead of text.",
@@ -43,7 +52,8 @@ export function checkLine(a: AppState): string {
 			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
 		// install --all passes these by, so they are not offered as updates.
 		case "held":
-			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${localDay(a.settles)})` : ""}`;
+			// The detail says why when Upkeep held it itself (a release whose file changed).
+			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${localDay(a.settles)})` : ""}${a.detail ? ` ${a.detail}` : ""}`;
 		default: {
 			const detail = a.detail ?? "";
 			const broken = `${a.name} will not start`;
@@ -170,12 +180,10 @@ async function install(engine: Engine, args: string[], json: boolean, out: Out, 
 async function installRun(engine: Engine, args: string[], json: boolean, out: Out, gate: Starting): Promise<number> {
 	await engine.check();
 	await engine.idle();
-	const named = !args.includes("--all") && !args.includes("--auto");
-	const keys = args.includes("--all")
-		? engine.readyKeys(false)
-		: args.includes("--auto")
-			? engine.readyKeys(true)
-			: args;
+	const auto = args.includes("--auto");
+	// An app named by key skips the release wait; --all and --auto keep it.
+	const named = !args.includes("--all") && !auto;
+	const keys = args.includes("--all") ? engine.readyKeys(false) : args;
 	const off = engine.subscribe((e) => {
 		if (json) out(JSON.stringify(e));
 		else {
@@ -184,8 +192,17 @@ async function installRun(engine: Engine, args: string[], json: boolean, out: Ou
 		}
 	});
 	gate.starting = true;
-	const r = await engine.install(keys, named);
+	const r: Awaited<ReturnType<Engine["installAuto"]>> = auto
+		? await engine.installAuto()
+		: await engine.install(keys, named);
 	gate.starting = false;
+	// Waiting for an unmetered connection or mains power is the setting working, not a failure.
+	if (r.wait) {
+		off();
+		const reason = `Automatic updates wait: ${r.wait === "metered" ? "the connection is metered" : "on battery"}.`;
+		out(json ? JSON.stringify({ started: false, wait: r.wait, reason }) : reason);
+		return 0;
+	}
 	// Pressed during the recovery or setup: the run stops before its first app.
 	if (r.started && gate.pending) engine.stopNow();
 	if (!r.started) {
@@ -269,7 +286,8 @@ function history(engine: Engine, json: boolean, out: Out): number {
 		// (apt does not say what autoremove freed).
 		const what =
 			r.freed === undefined ? ` ${r.from ?? "?"} to ${r.to ?? "?"}` : r.freed > 0 ? ` freed ${r.freed} bytes` : "";
-		out(`${r.at} ${r.name}${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}`);
+		const checked = r.checked ? ` (${CHECKED_TEXT[r.checked]})` : "";
+		out(`${r.at} ${r.name}${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}${checked}`);
 	}
 	return 0;
 }
@@ -329,6 +347,22 @@ async function add(engine: Engine, input: string, json: boolean, out: Out): Prom
 	return r.added.length > 0 ? 0 : 1;
 }
 
+/** How history's text line says a download was checked. */
+const CHECKED_TEXT = {
+	digest: "SHA-256 matches the forge",
+	sums: "matches the checksum file",
+	size: "size checked only",
+	none: "download not checked",
+} satisfies Record<DownloadCheck, string>;
+
+/** Holds an app's updates or releases its hold, as the window's button does; on or off is required, and an unknown key fails. */
+function hold(engine: Engine, key: string, to: string, json: boolean, out: Out): number {
+	const ok = engine.setHold(key, to === "on");
+	if (json) out(JSON.stringify({ key, held: to === "on", ok }));
+	else out(ok ? (to === "on" ? `Holding ${key}.` : `Released the hold on ${key}.`) : MESSAGES.noAppInList(key));
+	return ok ? 0 : 1;
+}
+
 /** Takes an app off the list. The app itself, its files and its restore points stay. */
 async function remove(engine: Engine, key: string, json: boolean, out: Out): Promise<number> {
 	const r = await engine.removeApp(key);
@@ -376,6 +410,10 @@ const SWITCH_NAME = {
 	devCaches: "Include developer caches",
 } satisfies Record<ImportSwitch, string>;
 
+const PROTECTION_NAME = {
+	waitUnmetered: "Wait for an unmetered connection and mains power for automatic app updates",
+} satisfies Record<ImportProtection, string>;
+
 /**
  * The ask as text: each app that runs commands with every command it runs, how many plain apps come with it, then
  * each setting the file turns on that is off here, and a release wait it shortens. A file that only turns settings on prints no app header.
@@ -394,10 +432,11 @@ function printAsk(file: string, ask: ImportAsk, out: Out): void {
 		);
 	if (ask.turnsOn.length > 0) out(`${file} turns on these settings on this computer:`);
 	for (const k of ask.turnsOn) out(`  ${SWITCH_NAME[k]}`);
+	if (ask.turnsOff.length > 0) out(`${file} turns off these settings on this computer:`);
+	for (const k of ask.turnsOff) out(`  ${PROTECTION_NAME[k]}`);
+	if (ask.waitDays) out(`${file} shortens this setting on this computer:`);
 	if (ask.waitDays)
-		out(
-			`${file} shortens the wait before a new release is offered: ${waitWords(ask.waitDays.from)} -> ${waitWords(ask.waitDays.to)}`,
-		);
+		out(`  Wait before offering a new release: ${waitWords(ask.waitDays.from)} -> ${waitWords(ask.waitDays.to)}`);
 }
 
 /** A release wait as Settings words it, in English: "Off", "1 day", "3 days". */
@@ -467,6 +506,8 @@ export async function main(
 	if (cmd === "list" && args.length === 0) return list(deps, json, out);
 	if (cmd === "add" && args.length === 1 && args[0]) return add(createEngine(deps), args[0], json, out);
 	if (cmd === "remove" && args.length === 1 && args[0]) return remove(createEngine(deps), args[0], json, out);
+	if (cmd === "hold" && args.length === 2 && args[0] && (args[1] === "on" || args[1] === "off"))
+		return hold(createEngine(deps), args[0], args[1], json, out);
 	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], json, out);
 	if (cmd === "import") {
 		const files = args.filter((a) => a !== "--yes");

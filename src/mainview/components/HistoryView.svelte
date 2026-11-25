@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isStopNote, say } from "../lib/engine-say";
 	import type { CleanupId, HistoryRow } from "../../shared/types";
-	import { CLEAN, RUN_TEXT, TEXT, freedShort, installedText, runSentence } from "../lib/copy";
+	import { CHECKED_SHORT, CLEAN, RUN_TEXT, TEXT, freedShort, installedText, runSentence } from "../lib/copy";
 	import { formatBytes, formatDuration, formatRunTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { CARE, glyphColor } from "../lib/state";
@@ -86,6 +86,7 @@
 										>{/if}
 								</span>
 								{#if row.detail}<span class="detail" class:note={isStopNote(row.detail)}>{say(row.detail)}</span>{/if}
+								{#if row.checked}<span class="checked" data-testid="history-checked">{CHECKED_SHORT[row.checked]}</span>{/if}
 								{#if row.result === "updated" && pending.has(`${row.runId}:${row.key}`)}<span class="pending" data-testid="restart-pending"
 										>{RUN_TEXT.restartPending}</span
 									>{/if}
@@ -129,6 +130,10 @@
 	.pending {
 		font-size: var(--fs-12);
 		color: var(--sun);
+	}
+	.checked {
+		font-size: var(--fs-12);
+		color: var(--text-3);
 	}
 	.counts {
 		margin-left: var(--s2);

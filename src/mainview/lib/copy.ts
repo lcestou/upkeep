@@ -223,6 +223,9 @@ export const TEXT = {
 	get installAuto() {
 		return "Install automatically";
 	},
+	get showInMenu() {
+		return "Show in the app menu";
+	},
 	get runItYourself() {
 		return "Run it yourself:";
 	},
@@ -313,6 +316,12 @@ export const TEXT = {
 	get upkeepCommandHint() {
 		return "Puts upkeep in ~/.local/bin for the terminal and scripts. A file already there that Upkeep did not write is left alone.";
 	},
+	get waitUnmetered() {
+		return "Wait for an unmetered connection and mains power for automatic app updates";
+	},
+	get waitUnmeteredHint() {
+		return "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held.";
+	},
 	get keepBackups() {
 		return "Restore points to keep";
 	},
@@ -388,6 +397,9 @@ export const IMPORT = {
 	},
 	get waitShorter() {
 		return "It shortens the wait before a new release is offered:";
+	},
+	get turnsOff() {
+		return "It turns off these settings, which are on on this computer:";
 	},
 	get yes() {
 		return "Import";
@@ -475,6 +487,38 @@ export function selectionText(n: number, bytes: number | null, partial = false, 
 	const tail = hidden > 0 ? ` · ${plural(hidden, ["# hidden", "# hidden"])}` : "";
 	return `${plural(n, ["# selected", "# selected"])}${size}${tail}`;
 }
+
+/** How an install's download was checked, said in the pane after it. */
+export const CHECKED = {
+	get digest() {
+		return "Download checked: SHA-256 matches the forge's record.";
+	},
+	get sums() {
+		return "Download checked: matches the release's checksum file.";
+	},
+	get size() {
+		return "Download checked: size only.";
+	},
+	get none() {
+		return "Download not checked: the release lists no size or checksum.";
+	},
+};
+
+/** How a download was checked, as the short line under a History row. */
+export const CHECKED_SHORT = {
+	get digest() {
+		return "SHA-256 matches the forge";
+	},
+	get sums() {
+		return "Matches the checksum file";
+	},
+	get size() {
+		return "Size checked only";
+	},
+	get none() {
+		return "Download not checked";
+	},
+};
 
 /** Why a kind keeps no restore point, said in the pane only. */
 export const NO_RESTORE = {

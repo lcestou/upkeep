@@ -106,6 +106,7 @@ describe("events", () => {
 				selfAuto: false,
 				upkeepCommand: false,
 				waitDays: 0,
+				waitUnmetered: false,
 			},
 			rate: null,
 			checkedAt: null,

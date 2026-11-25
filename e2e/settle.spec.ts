@@ -8,11 +8,11 @@ test("Wait before offering a new release holds a young release back, says when, 
 }) => {
 	await load(page);
 	await page.getByTestId("tab-settings").click();
-	await expect(page.getByTestId("setting-wait-label")).toHaveText("Wait before offering a new release");
-	await expect(page.getByTestId("setting-wait-hint")).toHaveText(
+	await expect(page.getByTestId("setting-wait-days-label")).toHaveText("Wait before offering a new release");
+	await expect(page.getByTestId("setting-wait-days-hint")).toHaveText(
 		"A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait.",
 	);
-	const wait = page.getByTestId("setting-wait");
+	const wait = page.getByTestId("setting-wait-days");
 	await expect(wait).toHaveValue("0");
 	await expect(wait.locator("option")).toHaveText(["Off", "1 day", "3 days", "7 days"]);
 	await wait.selectOption("3");
@@ -37,11 +37,11 @@ test("Wait before offering a new release holds a young release back, says when, 
 test("turning the wait off offers a settling release again", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("tab-settings").click();
-	await page.getByTestId("setting-wait").selectOption("7");
+	await page.getByTestId("setting-wait-days").selectOption("7");
 	await page.getByTestId("tab-updates").click();
 	await expect(page.getByTestId("status-fd")).toHaveText(/^Offered from /);
 	await page.getByTestId("tab-settings").click();
-	await page.getByTestId("setting-wait").selectOption("0");
+	await page.getByTestId("setting-wait-days").selectOption("0");
 	await page.getByTestId("tab-updates").click();
 	await expect(page.getByTestId("status-fd")).toHaveText("Ready");
 	await expect(page.getByTestId("status-zen")).toHaveText("Ready");
@@ -97,11 +97,11 @@ test("a saved token GitHub refused at the last check says gh's sign-in stands in
 test("an import that takes the release wait off asks first, and names the change", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("tab-settings").click();
-	await page.getByTestId("setting-wait").selectOption("7");
+	await page.getByTestId("setting-wait-days").selectOption("7");
 	await page.getByTestId("import-setup").click();
 	await expect(page.getByTestId("import-wait")).toHaveText("It shortens the wait before a new release is offered:");
 	await expect(page.getByTestId("import-wait-change")).toHaveText("7 days → Off");
-	await expect(page.getByTestId("setting-wait")).toHaveValue("7");
+	await expect(page.getByTestId("setting-wait-days")).toHaveValue("7");
 	await page.getByTestId("import-confirm").click();
 	await expect(page.getByTestId("import-wait")).toHaveCount(0);
 });

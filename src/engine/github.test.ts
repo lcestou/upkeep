@@ -177,6 +177,12 @@ test("pickAsset skips checksum and signature files and counts matches", () => {
 	});
 	expect(pickAsset(release, "linux")?.count).toBe(2);
 	expect(pickAsset(release, "\\.zsync$")).toBeNull();
+	const side = (name: string) => ({ name, url: name, size: 1, digest: null });
+	const signed = {
+		...release,
+		assets: ["app.AppImage", "app.AppImage.minisig", "app.AppImage.sha512", "app.AppImage.SHA256SUM"].map(side),
+	};
+	expect(pickAsset(signed, "app\\.AppImage")).toMatchObject({ count: 1, names: ["app.AppImage"] });
 });
 
 test("githubToken trims gh's answer and is null when gh fails", async () => {

@@ -221,7 +221,10 @@ test("an import that shortens the release wait asks first; one that lengthens it
 		const out = exportSetup(t.paths, seed, new Date());
 		const off = JSON.stringify({ ...out, settings: { ...out.settings, waitDays: 0 } });
 		const r = importSetup(t.paths, seed, off, new Date());
-		expect(r).toEqual({ ok: false, ask: { apps: [], plain: 0, turnsOn: [], waitDays: { from: 7, to: 0 } } });
+		expect(r).toEqual({
+			ok: false,
+			ask: { apps: [], plain: 0, turnsOn: [], turnsOff: [], waitDays: { from: 7, to: 0 } },
+		});
 		expect(loadState(t.paths).settings.waitDays).toBe(7);
 		expect(importSetup(t.paths, seed, off, new Date(), true).ok).toBe(true);
 		expect(loadState(t.paths).settings.waitDays).toBe(0);

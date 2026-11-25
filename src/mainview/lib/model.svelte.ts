@@ -107,6 +107,7 @@ export class Model {
 		selfAuto: false,
 		upkeepCommand: false,
 		waitDays: 0,
+		waitUnmetered: false,
 	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
 	chrome = $state<WindowChrome | null>(null);

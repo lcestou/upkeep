@@ -1,10 +1,20 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
-import type { AppSpec, ExtrasSettings, ImportAsk, ImportSwitch, Service, Settings, Test } from "../shared/types";
+import type {
+	AppSpec,
+	ExtrasSettings,
+	ImportAsk,
+	ImportProtection,
+	ImportSwitch,
+	Service,
+	Settings,
+	Test,
+} from "../shared/types";
 import { clampExtras, loadExtras, updateExtras } from "./extras/state";
 import { packageInstall } from "./kinds/package";
 import { ensureManifest, isRecord, loadManifest, parseManifest } from "./manifest";
+import { removeMenuFiles } from "./menu";
 import type { Paths } from "./paths";
 import { clampSettings, loadState, updateState, withStateLock, writeAtomic } from "./store";
 
@@ -149,6 +159,15 @@ function sameness(spec: AppSpec): string {
 }
 
 const SETTING_SWITCHES = ["notify", "checkAtLogin", "selfAuto", "upkeepCommand"] as const;
+const PROTECTIONS = ["waitUnmetered"] as const satisfies readonly ImportProtection[];
+
+/** Each protection the import would turn off that is on here, judged on the values as they would land. */
+function protectionsOff(paths: Paths, settings: Record<string, unknown>): ImportProtection[] {
+	const now = loadState(paths).settings;
+	// SAFETY: clampSettings reads every field by its own checks; a wrong value takes its default.
+	const next = clampSettings({ ...now, ...(settings as Partial<Settings>) });
+	return PROTECTIONS.filter((k) => now[k] && !next[k]);
+}
 const EXTRA_SWITCHES = ["system", "systemInstall", "cleanup", "devCaches"] as const;
 
 /**
@@ -198,7 +217,9 @@ function waitLowered(paths: Paths, settings: Record<string, unknown>): ImportAsk
  * the same shared file twice leaves its apps off, and re-importing one's own list here changes nothing. autoOff
  * names the new or changed apps the file wanted on, which came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
- * any the import created. Skips and holds are kept only for apps the new list has;
+ * any the import created. Skips and holds are kept only for apps the new list has. The file never carries a menu
+ * entry: an app it drops or changes has its entry switched off and its files deleted, so no entry points at a dest
+ * the new table no longer names;
  * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
  * default.
  */
@@ -231,9 +252,10 @@ export function importSetup(
 	});
 	const settings = isRecord(doc.settings) ? doc.settings : {};
 	const turnsOn = switchesOn(paths, settings, isRecord(doc.extras) ? doc.extras : null);
+	const turnsOff = protectionsOff(paths, settings);
 	const waitDays = waitLowered(paths, settings);
-	if ((running.length > 0 || turnsOn.length > 0 || waitDays) && !sure) {
-		const ask: ImportAsk = { apps: running, plain: list.apps.length - running.length, turnsOn };
+	if ((running.length > 0 || turnsOn.length > 0 || turnsOff.length > 0 || waitDays) && !sure) {
+		const ask: ImportAsk = { apps: running, plain: list.apps.length - running.length, turnsOn, turnsOff };
 		if (waitDays) ask.waitDays = waitDays;
 		return { ok: false, ask };
 	}
@@ -252,6 +274,7 @@ export function importSetup(
 			changed.add(a.key);
 		}
 	}
+	const stays = (key: string) => keys.has(key) && !changed.has(key);
 	const wanted = only(doc.auto, (x): x is boolean => typeof x === "boolean");
 	// Only new or changed apps "came in off"; a matching app whose pick here is off simply kept it.
 	const autoOff = list.apps.filter((a) => changed.has(a.key) && (wanted[a.key] ?? a.auto ?? false)).map((a) => a.key);
@@ -262,6 +285,8 @@ export function importSetup(
 	// does not exist yet is noted, so a rollback removes what the import created.
 	const kept: [string, string][] = [];
 	const absent: string[] = [];
+	// The menu entries of apps the import drops or changes: their switch goes off, and their files go once it is in.
+	let staleMenu: string[] = [];
 	try {
 		mkdirSync(paths.state, { recursive: true });
 		for (const f of files) {
@@ -282,6 +307,12 @@ export function importSetup(
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
 			// Every app gets an entry, so an auto = true written in an imported table never decides.
 			s.auto = picks;
+			staleMenu = Object.entries(s.menu).flatMap(([k, f]) => (stays(k) ? [] : f));
+			s.menu = Object.fromEntries(Object.entries(s.menu).filter(([k]) => stays(k)));
+			// What a check remembered of a release goes with an app the import drops or changes, so a changed-release hold
+			// never outlives the table it was about.
+			s.seen = Object.fromEntries(Object.entries(s.seen).filter(([k]) => stays(k)));
+			s.changed = Object.fromEntries(Object.entries(s.changed).filter(([k]) => stays(k)));
 		});
 		if (isRecord(doc.extras)) {
 			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.
@@ -296,6 +327,7 @@ export function importSetup(
 				stuck.length === 0 ? [MESSAGES.busySayNothingChanged(why)] : [MESSAGES.importSomeNotPutBack(why), ...stuck],
 		};
 	}
+	removeMenuFiles(staleMenu, paths);
 	return { ok: true, apps: list.apps.length, kept: kept.map(([, copy]) => copy), autoOff };
 }
 
