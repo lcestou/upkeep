@@ -2764,14 +2764,6 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "其市场中有新版本：{0}。"
 
 #: src/mainview/lib/copy.ts
-msgid "Wait for an unmetered connection and mains power for automatic updates"
-msgstr "自动更新等待非计量连接和交流电源"
-
-#: src/mainview/lib/copy.ts
-msgid "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works."
-msgstr "在计量连接或电池供电时，自动更新会等待。检查照常进行，“安装”始终可用。"
-
-#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "恢复时也会放回保存的设置。被替换的设置会另行保留。"
 
@@ -2833,3 +2825,15 @@ msgstr "{0}：config 文件不能包含 .. 部分"
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "没有等待导入的文件。请按“导入”并重新选择。"
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "应用自动更新等待非计量连接和交流电源"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "在计量连接或电池供电时，应用的自动更新会等待。检查照常进行，“安装”始终可用。Upkeep 自身的更新不会等待。"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "它会关闭以下在这台电脑上打开的设置："

@@ -271,6 +271,17 @@
 							{#each importAsk.turnsOn as k (k)}<li data-testid="import-switch">{switchName(k)}</li>{/each}
 						</ul>
 					{/if}
+					{#if importAsk.turnsOff.length > 0}
+						<p
+							id={importAsk.apps.length > 0 || importAsk.turnsOn.length > 0 ? undefined : "import-ask"}
+							data-testid="import-turns-off"
+						>
+							{IMPORT.turnsOff}
+						</p>
+						<ul class="switches">
+							{#each importAsk.turnsOff as k (k)}<li data-testid="import-switch-off">{TEXT.waitUnmetered}</li>{/each}
+						</ul>
+					{/if}
 					<p data-testid="import-auto-off">{IMPORT.autoOff}</p>
 					<div class="confirm-buttons">
 						<button type="button" class="btn small primary" data-testid="import-confirm" onclick={() => importSetup(true)}

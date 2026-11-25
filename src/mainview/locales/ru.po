@@ -2827,14 +2827,6 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "Новые версии в их маркетплейсах: {0}."
 
 #: src/mainview/lib/copy.ts
-msgid "Wait for an unmetered connection and mains power for automatic updates"
-msgstr "Ждать безлимитного подключения и питания от сети для автоматических обновлений"
-
-#: src/mainview/lib/copy.ts
-msgid "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works."
-msgstr "Автоматические обновления ждут при лимитном подключении или работе от батареи. Проверки идут, а «Установка» работает всегда."
-
-#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Восстановление возвращает и сохранённые настройки. Заменяемые настройки откладываются в сторону."
 
@@ -2902,3 +2894,15 @@ msgstr "{0}: файл config не может содержать часть .."
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "Нет файла, ожидающего импорта. Нажмите «Импорт» и выберите его снова."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "Ждать безлимитного подключения и питания от сети для автоматических обновлений приложений"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "Автоматические обновления приложений ждут при лимитном подключении или работе от батареи. Проверки идут, а «Установка» работает всегда. Обновление самого Upkeep не ждёт."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "Он выключает эти настройки, включённые на этом компьютере:"

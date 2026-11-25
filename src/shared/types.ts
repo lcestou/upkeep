@@ -156,7 +156,12 @@ export type ImportAsk = {
 	apps: { key: string; name: string; commands: string[] }[];
 	plain: number;
 	turnsOn: ImportSwitch[];
+	/** Each protection the file turns off that is on on this machine: off, it would let automatic updates run. */
+	turnsOff: ImportProtection[];
 };
+
+/** A setting that holds something back, which an import asks before turning off. */
+export type ImportProtection = "waitUnmetered";
 
 /** A setting or extra an import would turn on that is off here: each one acts (writes a file, installs, shows a group). */
 export type ImportSwitch =

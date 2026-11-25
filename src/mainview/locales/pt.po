@@ -2806,14 +2806,6 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "Novas versões nos seus marketplaces: {0}."
 
 #: src/mainview/lib/copy.ts
-msgid "Wait for an unmetered connection and mains power for automatic updates"
-msgstr "Esperar por uma ligação sem limite de dados e pela corrente para as atualizações automáticas"
-
-#: src/mainview/lib/copy.ts
-msgid "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works."
-msgstr "As atualizações automáticas esperam numa ligação limitada ou com bateria. As verificações continuam e Instalar funciona sempre."
-
-#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Restaurar também devolve as configurações salvas. As configurações substituídas ficam guardadas à parte."
 
@@ -2879,3 +2871,15 @@ msgstr "{0}: um arquivo de config não pode conter uma parte .."
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "Não há nenhum arquivo esperando para importar. Clique em Importar e escolha-o de novo."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "Esperar por uma ligação sem limite de dados e pela corrente para as atualizações automáticas das apps"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "As atualizações automáticas das apps esperam numa ligação limitada ou com bateria. As verificações continuam e Instalar funciona sempre. A atualização do próprio Upkeep não espera."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "Ele desliga estas configurações, que estão ligadas neste computador:"

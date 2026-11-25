@@ -1,7 +1,16 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
-import type { AppSpec, ExtrasSettings, ImportAsk, ImportSwitch, Service, Settings, Test } from "../shared/types";
+import type {
+	AppSpec,
+	ExtrasSettings,
+	ImportAsk,
+	ImportProtection,
+	ImportSwitch,
+	Service,
+	Settings,
+	Test,
+} from "../shared/types";
 import { clampExtras, loadExtras, updateExtras } from "./extras/state";
 import { packageInstall } from "./kinds/package";
 import { ensureManifest, isRecord, loadManifest, parseManifest } from "./manifest";
@@ -149,6 +158,15 @@ function sameness(spec: AppSpec): string {
 }
 
 const SETTING_SWITCHES = ["notify", "checkAtLogin", "selfAuto", "upkeepCommand"] as const;
+const PROTECTIONS = ["waitUnmetered"] as const satisfies readonly ImportProtection[];
+
+/** Each protection the import would turn off that is on here, judged on the values as they would land. */
+function protectionsOff(paths: Paths, settings: Record<string, unknown>): ImportProtection[] {
+	const now = loadState(paths).settings;
+	// SAFETY: clampSettings reads every field by its own checks; a wrong value takes its default.
+	const next = clampSettings({ ...now, ...(settings as Partial<Settings>) });
+	return PROTECTIONS.filter((k) => now[k] && !next[k]);
+}
 const EXTRA_SWITCHES = ["system", "systemInstall", "cleanup", "devCaches"] as const;
 
 /**
@@ -220,8 +238,9 @@ export function importSetup(
 	});
 	const settings = isRecord(doc.settings) ? doc.settings : {};
 	const turnsOn = switchesOn(paths, settings, isRecord(doc.extras) ? doc.extras : null);
-	if ((running.length > 0 || turnsOn.length > 0) && !sure)
-		return { ok: false, ask: { apps: running, plain: list.apps.length - running.length, turnsOn } };
+	const turnsOff = protectionsOff(paths, settings);
+	if ((running.length > 0 || turnsOn.length > 0 || turnsOff.length > 0) && !sure)
+		return { ok: false, ask: { apps: running, plain: list.apps.length - running.length, turnsOn, turnsOff } };
 
 	const here = join(paths.config, "apps.toml");
 	const local = new Map((existsSync(here) ? loadManifest(here).apps : []).map((a) => [a.key, a] as const));

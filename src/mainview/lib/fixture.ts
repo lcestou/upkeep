@@ -1471,6 +1471,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 						],
 						plain: apps.length - 1,
 						turnsOn: ["selfAuto"],
+						turnsOff: ["waitUnmetered"],
 					},
 				};
 			}

@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "./shared/messages";
-import type { AppState, EngineEvent, ImportAsk, ImportSwitch, Suggestion } from "./shared/types";
+import type { AppState, EngineEvent, ImportAsk, ImportProtection, ImportSwitch, Suggestion } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
@@ -372,6 +372,10 @@ const SWITCH_NAME = {
 	devCaches: "Include developer caches",
 } satisfies Record<ImportSwitch, string>;
 
+const PROTECTION_NAME = {
+	waitUnmetered: "Wait for an unmetered connection and mains power for automatic app updates",
+} satisfies Record<ImportProtection, string>;
+
 /**
  * The ask as text: each app that runs commands with every command it runs, how many plain apps come with it, then
  * each setting the file turns on that is off here. A file that only turns settings on prints no app header.
@@ -390,6 +394,8 @@ function printAsk(file: string, ask: ImportAsk, out: Out): void {
 		);
 	if (ask.turnsOn.length > 0) out(`${file} turns on these settings on this computer:`);
 	for (const k of ask.turnsOn) out(`  ${SWITCH_NAME[k]}`);
+	if (ask.turnsOff.length > 0) out(`${file} turns off these settings on this computer:`);
+	for (const k of ask.turnsOff) out(`  ${PROTECTION_NAME[k]}`);
 }
 
 /**

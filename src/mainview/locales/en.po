@@ -2785,14 +2785,6 @@ msgid "New versions in their marketplaces: {0}."
 msgstr "New versions in their marketplaces: {0}."
 
 #: src/mainview/lib/copy.ts
-msgid "Wait for an unmetered connection and mains power for automatic updates"
-msgstr "Wait for an unmetered connection and mains power for automatic updates"
-
-#: src/mainview/lib/copy.ts
-msgid "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works."
-msgstr "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works."
-
-#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 
@@ -2856,3 +2848,15 @@ msgstr "{0}: a config file may not contain a .. part"
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "There is no file waiting to import. Press Import and pick it again."
+
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "Wait for an unmetered connection and mains power for automatic app updates"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "It turns off these settings, which are on on this computer:"

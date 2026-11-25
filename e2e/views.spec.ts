@@ -52,10 +52,10 @@ test("the wait-for-unmetered switch starts off, says what waits, and keeps its s
 	await load(page);
 	await page.getByTestId("tab-settings").click();
 	await expect(page.getByTestId("setting-wait-label")).toHaveText(
-		"Wait for an unmetered connection and mains power for automatic updates",
+		"Wait for an unmetered connection and mains power for automatic app updates",
 	);
 	await expect(page.getByTestId("setting-wait-hint")).toHaveText(
-		"Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works.",
+		"Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held.",
 	);
 	const box = page.getByTestId("setting-wait");
 	await expect(box).not.toBeChecked();

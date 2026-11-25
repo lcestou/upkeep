@@ -314,10 +314,10 @@ export const TEXT = {
 		return "Puts upkeep in ~/.local/bin for the terminal and scripts. A file already there that Upkeep did not write is left alone.";
 	},
 	get waitUnmetered() {
-		return "Wait for an unmetered connection and mains power for automatic updates";
+		return "Wait for an unmetered connection and mains power for automatic app updates";
 	},
 	get waitUnmeteredHint() {
-		return "Automatic updates hold off on a metered connection or on battery. Checks still run, and Install always works.";
+		return "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held.";
 	},
 	get keepBackups() {
 		return "Restore points to keep";
@@ -358,6 +358,9 @@ export const IMPORT = {
 	},
 	get turnsOn() {
 		return "It turns on these settings, which are off on this computer:";
+	},
+	get turnsOff() {
+		return "It turns off these settings, which are on on this computer:";
 	},
 	get yes() {
 		return "Import";
