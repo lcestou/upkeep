@@ -162,6 +162,20 @@ test("a run stopped after the current app lets the lock go too", async () => {
 	expect(power.locks.map((l) => l.stopped)).toEqual([1]);
 });
 
+test("Stop now and ending the step let the lock go, and never end the lock itself early", async () => {
+	const power = fakePower({ inhibit: true });
+	const { engine } = await setup(power.run);
+	await engine.install(["slow", "fd"]);
+	await until(() => engine.snapshot().run.currentKey === "slow");
+	engine.stopNow();
+	// The lock is not the step: ending the step leaves it held until the run is over.
+	await engine.endStep();
+	expect(power.locks.map((l) => l.stopped)).toEqual([0]);
+	await engine.idle();
+	expect(engine.snapshot().run.phase).toBe("summary");
+	expect(power.locks.map((l) => l.stopped)).toEqual([1]);
+});
+
 test("without systemd-inhibit every run goes on as before, and says so once", async () => {
 	const power = fakePower({ inhibit: false });
 	const { engine, logs } = await setup(power.run);
