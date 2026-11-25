@@ -32,7 +32,25 @@ export type State = {
 	installed: Record<string, Stamp>;
 	/** Apps whose menu entry is on, by key: the files Upkeep wrote for it, which are all it ever deletes. */
 	menu: Record<string, string[]>;
+	/** The release file each app's last check offered, by key, so a later check can tell when the same tag's file changed. */
+	seen: Record<string, Seen>;
+	/** Apps held because their offered release's file changed after it was first seen: key to that tag. */
+	changed: Record<string, string>;
 };
+
+/** A release file as a check saw it: its tag, its name and its hash as "<algo>:<hex>". */
+export type Seen = { tag: string; file: string; hash: string };
+
+/** The entries that hold three strings; anything else a hand edit left is dropped. */
+function seenOf(v: unknown): Record<string, Seen> {
+	const out: Record<string, Seen> = {};
+	for (const [key, s] of Object.entries(obj<unknown>(v))) {
+		const r = obj<unknown>(s);
+		if (typeof r.tag === "string" && typeof r.file === "string" && typeof r.hash === "string")
+			out[key] = { tag: r.tag, file: r.file, hash: r.hash };
+	}
+	return out;
+}
 
 /**
  * A version Upkeep installed, with the size, change time and inode its dest had right after: while all three still
@@ -143,6 +161,8 @@ export function loadState(paths: Paths): State {
 		selfNotified: typeof raw.selfNotified === "string" ? raw.selfNotified : "",
 		installed: stampsOf(raw.installed),
 		menu: filesOf(raw.menu),
+		seen: seenOf(raw.seen),
+		changed: obj<string>(raw.changed),
 	};
 }
 

@@ -15,7 +15,7 @@ afterEach(() => t.cleanup());
 const table = (key: string, dest: string) =>
 	`[apps.${key}]\nname = "${key}"\nkind = "appimage"\nrepo = "o/${key}"\nasset = '${key}$'\ndest = "${dest}"\n`;
 
-test("import keeps the menu entry of an app it leaves as it was, and switches off and deletes the others'", () => {
+test("import keeps the menu entry and trust state of an app it leaves as it was, and clears the others'", () => {
 	mkdirSync(t.paths.config, { recursive: true });
 	writeFileSync(
 		join(t.paths.config, "apps.toml"),
@@ -29,6 +29,7 @@ test("import keeps the menu entry of an app it leaves as it was, and switches of
 	}
 	updateState(t.paths, (s) => {
 		s.menu = { a: files("a"), b: files("b"), c: files("c") };
+		s.changed = { a: "v1", b: "v1", c: "v1" };
 	});
 	// a is the same table, b moved its dest, c is not in the file.
 	const doc = JSON.stringify({ upkeep: 1, apps: [table("a", "~/a"), table("b", "~/elsewhere/b")].join("\n") });
@@ -36,5 +37,7 @@ test("import keeps the menu entry of an app it leaves as it was, and switches of
 	writeFileSync(seed, "");
 	expect(importSetup(t.paths, seed, doc, new Date(), true)).toMatchObject({ ok: true, apps: 2 });
 	expect(loadState(t.paths).menu).toEqual({ a: files("a") });
+	// Download trust's held tags go the same way, in the same write.
+	expect(loadState(t.paths).changed).toEqual({ a: "v1" });
 	expect(["a", "b", "c"].flatMap(files).map((f) => existsSync(f))).toEqual([true, true, false, false, false, false]);
 });

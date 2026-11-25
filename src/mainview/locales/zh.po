@@ -2788,6 +2788,52 @@ msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no e
 msgstr "{0} 处的 AppImage 要求不显示在应用菜单中，因此 Upkeep 不添加菜单项。"
 
 #: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "下载已校验：SHA-256 与发布平台的记录一致。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "下载已校验：与发布中的校验和文件一致。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "下载已校验：仅大小。"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "下载未校验：发布未列出大小或校验和。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "下载被转到了非 https 地址，因此已拒绝。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "校验和与发布中的 {0} 不符，因此未安装任何内容。你可以跳过此版本。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "{0} 背后的文件在 Upkeep 首次看到后发生了变化。取消暂缓前请先查看发布页面。"
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 与发布平台一致"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "与校验和文件一致"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "仅校验了大小"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "下载未校验"
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "恢复时也会放回保存的设置。被替换的设置会另行保留。"
 

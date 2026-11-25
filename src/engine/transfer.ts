@@ -240,6 +240,7 @@ export function importSetup(
 			changed.add(a.key);
 		}
 	}
+	const stays = (key: string) => keys.has(key) && !changed.has(key);
 	const wanted = only(doc.auto, (x): x is boolean => typeof x === "boolean");
 	// Only new or changed apps "came in off"; a matching app whose pick here is off simply kept it.
 	const autoOff = list.apps.filter((a) => changed.has(a.key) && (wanted[a.key] ?? a.auto ?? false)).map((a) => a.key);
@@ -252,7 +253,6 @@ export function importSetup(
 	const absent: string[] = [];
 	// The menu entries of apps the import drops or changes: their switch goes off, and their files go once it is in.
 	let staleMenu: string[] = [];
-	const keep = (k: string) => keys.has(k) && !changed.has(k);
 	try {
 		mkdirSync(paths.state, { recursive: true });
 		for (const f of files) {
@@ -273,8 +273,12 @@ export function importSetup(
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
 			// Every app gets an entry, so an auto = true written in an imported table never decides.
 			s.auto = picks;
-			staleMenu = Object.entries(s.menu).flatMap(([k, f]) => (keep(k) ? [] : f));
-			s.menu = Object.fromEntries(Object.entries(s.menu).filter(([k]) => keep(k)));
+			staleMenu = Object.entries(s.menu).flatMap(([k, f]) => (stays(k) ? [] : f));
+			s.menu = Object.fromEntries(Object.entries(s.menu).filter(([k]) => stays(k)));
+			// What a check remembered of a release goes with an app the import drops or changes, so a changed-release hold
+			// never outlives the table it was about.
+			s.seen = Object.fromEntries(Object.entries(s.seen).filter(([k]) => stays(k)));
+			s.changed = Object.fromEntries(Object.entries(s.changed).filter(([k]) => stays(k)));
 		});
 		if (isRecord(doc.extras)) {
 			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.

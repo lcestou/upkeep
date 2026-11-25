@@ -2809,6 +2809,52 @@ msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no e
 msgstr "Das AppImage unter {0} möchte nicht im Anwendungsmenü erscheinen, daher fügt Upkeep keinen Eintrag hinzu."
 
 #: src/mainview/lib/copy.ts
+msgid "Download checked: SHA-256 matches the forge's record."
+msgstr "Download geprüft: SHA-256 passt zum Eintrag der Plattform."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: matches the release's checksum file."
+msgstr "Download geprüft: passt zur Prüfsummendatei des Release."
+
+#: src/mainview/lib/copy.ts
+msgid "Download checked: size only."
+msgstr "Download geprüft: nur die Größe."
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked: the release lists no size or checksum."
+msgstr "Download nicht geprüft: Das Release nennt weder Größe noch Prüfsumme."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The download was sent on to an address that is not https, so it was refused."
+msgstr "Der Download wurde an eine Adresse ohne https weitergeleitet und daher abgelehnt."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "Die Prüfsumme passt nicht zu {0} im Release, daher wurde nichts installiert. Du kannst diese Version überspringen."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "Die Datei hinter {0} hat sich geändert, nachdem Upkeep sie zuerst gesehen hat. Prüfe die Release-Seite, bevor du „Nicht mehr zurückstellen“ wählst."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "SHA-256 passt zur Plattform"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Passt zur Prüfsummendatei"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Nur Größe geprüft"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Download nicht geprüft"
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "Beim Wiederherstellen kommen auch die gespeicherten Einstellungen zurück. Die ersetzten Einstellungen werden beiseitegelegt."
 

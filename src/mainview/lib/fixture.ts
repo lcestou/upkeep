@@ -8,6 +8,7 @@ import type {
 	CleanupOutcome,
 	CleanupPick,
 	CleanupState,
+	DownloadCheck,
 	EngineEvent,
 	ExtrasSettings,
 	ExtrasSnapshot,
@@ -77,6 +78,11 @@ export const ZEN_NOTES =
 	"# Zen Stable Release\n\n\n## Security\n- https://www.mozilla.org/en-US/security/advisories/mfsa2026-123/\n\n## New Features\n- Updated to Firefox 159.0.1\n- New grain options have been added to the theme picker. You can cycle through different grain effects by clicking on the circle inside the dial.\n\n## Fixes\n- Fixed a command prompt window briefly appearing on Windows when Zen restarts to apply an update.\n- Fixed passkey sign-in failing on websites that share passkeys across related sites, such as Facebook and Instagram.\n- Fixed crashes on Windows that could occur with some antivirus or other security software installed, in some cases also leaving WebGL disabled.\n- Fixed red and blue colors appearing swapped on some websites that use WebGL on Linux, including video call background effects.\n- More bug fixes and improvements.\n\n## Changes\n- On macOS, icons on the UI will now start using SF Symbols.\n- The 'About Zen' window has been redesigned.\n- 'My Review Request' option for Pull Requests live folder now searches for 'user-review-requested:@me' instead of 'review-requested:@me'";
 
 const NOTE_SESSIONS = "Open sessions keep the old version until restarted.";
+
+/** How the fixture says an app's download was checked after an update; an app not named downloads no release file. */
+function fixtureChecked(key: string): DownloadCheck | undefined {
+	return key === "zen" ? "digest" : key === "fd" ? "sums" : key === "cursor" ? "none" : undefined;
+}
 
 const SEEDS: Seed[] = [
 	{
@@ -616,6 +622,10 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 					detail: "Could not look: GitHub API rate limit exceeded. Try again after 10:12.",
 				};
 			if (a.key === "zen") return { ...a, status: "held", skipped: "1.24.1b" };
+			// Updated this session from a release that lists a size and no checksum.
+			if (a.key === "bat") return { ...a, checked: "size" };
+			// Held by Upkeep: the file behind fd's tag changed after the first check saw it.
+			if (a.key === "fd") return { ...a, status: "held", held: true, detail: MESSAGES.releaseChanged("v10.5.2") };
 			if (a.status === "ready" || a.status === "manual") return { ...a, status: "fresh", installed: a.latest };
 			return a;
 		});
@@ -1000,8 +1010,9 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			detail: undefined,
 			restartToApply: after.running,
 			restorePoints,
+			checked: fixtureChecked(key),
 		});
-		return { key, name: app.name, from, to, result: "updated", ms };
+		return { key, name: app.name, from, to, result: "updated", ms, checked: fixtureChecked(key) };
 	}
 
 	/** keep: results from the pass a retry continues; the engine keeps them in the summary. */
@@ -1255,7 +1266,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (!app) return { ok: false };
 			const pending = app.latest !== null && app.latest !== app.installed;
 			const status: AppStatus = held ? "held" : app.skipped ? "held" : pending ? "ready" : "fresh";
-			put({ ...app, held, status });
+			// As the engine does: releasing a hold Upkeep put on a changed release drops the reason with it.
+			put({ ...app, held, status, detail: held || app.status !== "held" ? app.detail : undefined });
 			return { ok: true };
 		},
 		setAuto: ({ key, auto }) => {
@@ -1568,7 +1580,7 @@ const row = (
 /** The canned runs the History view shows before the person does anything. */
 function pastHistory(): HistoryRow[] {
 	return [
-		row("run-3", 2, "bat", "bat", "0.26.0", "0.26.1", 2400),
+		{ ...row("run-3", 2, "bat", "bat", "0.26.0", "0.26.1", 2400), checked: "size" },
 		row("run-3", 2, "claude", "Claude Code", "2.4.10", "2.4.12", 21_800),
 		row("run-2", 6, "yazi", "Yazi", "25.5.31", "26.1.22", 5100),
 		row("run-2", 6, "uv", "uv", "0.10.2", "0.10.4", 3900),
