@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from "bun:te
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { download, signedIn, statedSize, verifyAsset } from "./download";
+import { download, needsSha512, signedIn, statedSize, verifyAsset } from "./download";
 import type { FetchLike } from "./github";
 
 const PAYLOAD = new Uint8Array(200_000).map((_, i) => i % 251);
@@ -58,7 +58,13 @@ test("download streams to the file, reports progress and hashes", async () => {
 	const file = join(dir, "dl/fd.tar.gz");
 	const seen: number[] = [];
 	const r = await download(`${base()}/asset`, file, { fetch, onProgress: (got, total) => seen.push(total ?? -1, got) });
-	expect(r).toEqual({ bytes: PAYLOAD.length, sha256: SHA, sha512: SHA512 });
+	// SHA-512 only when asked for.
+	expect(r).toEqual({ bytes: PAYLOAD.length, sha256: SHA });
+	expect(await download(`${base()}/asset`, join(dir, "512.bin"), { fetch, sha512: true })).toEqual({
+		bytes: PAYLOAD.length,
+		sha256: SHA,
+		sha512: SHA512,
+	});
 	expect(new Uint8Array(readFileSync(file))).toEqual(PAYLOAD);
 	expect(seen.at(-1)).toBe(PAYLOAD.length);
 	expect(seen[0]).toBe(PAYLOAD.length);
@@ -206,8 +212,15 @@ test("verifyAsset: the release's checksum file when there is no digest, and the 
 	expect(verifyAsset(r, { size: 10, digest: null, sum: sum("sha256", "ab") })).toBe("sums");
 	expect(verifyAsset({ ...r, bytes: 2 ** 20 }, { size: 0, digest: null, sum: sum("sha512", "ef") })).toBe("sums");
 	expect(() => verifyAsset(r, { size: 10, digest: null, sum: sum("sha256", "cd") })).toThrow(
-		"Checksum does not match SHA256SUMS in the release.",
+		"Checksum does not match SHA256SUMS in the release, so nothing was installed. You can skip this version.",
 	);
+	// A file its checksum file vouches for needs no 1 MiB floor; needsSha512 asks for the second hash only for a sha512 sum.
+	expect(verifyAsset({ bytes: 10, sha256: "ab" }, { size: 0, digest: null, sum: sum("sha256", "ab") })).toBe("sums");
+	expect([
+		needsSha512({ sum: sum("sha512", "ef") }),
+		needsSha512({ sum: sum("sha256", "ab") }),
+		needsSha512({}),
+	]).toEqual([true, false, false]);
 	// A result with no sha512 never passes a sha512 sum.
 	expect(() =>
 		verifyAsset({ bytes: 10, sha256: "ab" }, { size: 10, digest: null, sum: sum("sha512", "ef") }),

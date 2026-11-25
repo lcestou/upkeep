@@ -1,6 +1,6 @@
 import { mkdirSync, rmSync, statfsSync } from "node:fs";
 import type { AppSpec } from "../shared/types";
-import { download, type DownloadOpts, type DownloadResult, signedIn, verifyAsset } from "./download";
+import { download, type DownloadOpts, type DownloadResult, needsSha512, signedIn, verifyAsset } from "./download";
 import type { Asset, FetchLike } from "./github";
 
 /**
@@ -77,11 +77,11 @@ function freeBytesOf(dir: string): number {
 	const fs = statfsSync(dir);
 	return fs.bavail * fs.bsize;
 }
-
-/** The size, SHA-256 and SHA-512 of the file on disk now, read in one pass without holding it in memory. */
-async function onDisk(file: string): Promise<DownloadResult> {
+/** The size and SHA-256 of the file on disk now, with its SHA-512 when asked, read in one pass without holding it in memory. */
+/** The size and SHA-256 of the file, with its SHA-512 when asked, on disk now, read in one pass without holding it in memory. */
+async function onDisk(file: string, sha512: boolean): Promise<DownloadResult> {
 	const hasher = new Bun.CryptoHasher("sha256");
-	const hasher512 = new Bun.CryptoHasher("sha512");
+	const hasher512 = sha512 ? new Bun.CryptoHasher("sha512") : null;
 	let bytes = 0;
 	const reader = Bun.file(file).stream().getReader();
 	for (;;) {
@@ -89,10 +89,11 @@ async function onDisk(file: string): Promise<DownloadResult> {
 		const { done, value } = await reader.read();
 		if (done) break;
 		hasher.update(value);
-		hasher512.update(value);
+		hasher512?.update(value);
 		bytes += value.byteLength;
 	}
-	return { bytes, sha256: hasher.digest("hex"), sha512: hasher512.digest("hex") };
+	const sha256 = hasher.digest("hex");
+	return hasher512 ? { bytes, sha256, sha512: hasher512.digest("hex") } : { bytes, sha256 };
 }
 
 /**
@@ -149,6 +150,7 @@ export function createAhead(o: AheadOpts): Ahead {
 			stallMs: o.stallMs,
 			retryMs: o.retryMs,
 			signedIn: signedIn(item.asset, o.token),
+			sha512: needsSha512(item.asset),
 			onProgress: (received, total) => entry.report?.(received, total),
 		})
 			.then((got): Early => {
@@ -195,7 +197,7 @@ export function createAhead(o: AheadOpts): Ahead {
 			// The download is done: the bar shows it full while the file is read back.
 			onProgress(got.bytes, got.bytes);
 			try {
-				const now = await onDisk(entry.item.file);
+				const now = await onDisk(entry.item.file, needsSha512(entry.item.asset));
 				verifyAsset(now, entry.item.asset);
 				return { ...now, ms: got.ms };
 			} catch (err) {

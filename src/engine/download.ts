@@ -18,6 +18,8 @@ export type DownloadOpts = {
 	 * repo's file is 404 there without a browser's sign-in, and the API serves it to the token instead.
 	 */
 	signedIn?: { url: string; token: string };
+	/** Also hash with SHA-512, for an asset whose checksum file gives a sha512 (electron-builder's yml). */
+	sha512?: boolean;
 };
 
 /** sha512 is there for a download Upkeep hashed itself; a result read back from elsewhere may lack it. */
@@ -70,7 +72,8 @@ async function attempt(
 		const length = Number(res.headers.get("content-length"));
 		const total = length > 0 ? length : null;
 		const hasher = new Bun.CryptoHasher("sha256");
-		const hasher512 = new Bun.CryptoHasher("sha512");
+		// Only when asked: a second hash of every byte costs real time on a multi-GB file.
+		const hasher512 = opts.sha512 ? new Bun.CryptoHasher("sha512") : null;
 		let bytes = 0;
 		opts.onProgress?.(0, total);
 		const reader = res.body.getReader();
@@ -80,7 +83,7 @@ async function attempt(
 			if (done) break;
 			arm();
 			hasher.update(chunk);
-			hasher512.update(chunk);
+			hasher512?.update(chunk);
 			// Awaited: a full disk must fail the download, not leave a short file behind a good hash.
 			for (let off = 0; off < chunk.byteLength;) {
 				// oxlint-disable-next-line no-await-in-loop -- a short write is finished before the next chunk
@@ -90,7 +93,8 @@ async function attempt(
 			opts.onProgress?.(bytes, total);
 		}
 		await fh.sync();
-		return { bytes, sha256: hasher.digest("hex"), sha512: hasher512.digest("hex") };
+		const sha256 = hasher.digest("hex");
+		return hasher512 ? { bytes, sha256, sha512: hasher512.digest("hex") } : { bytes, sha256 };
 	} catch (err) {
 		if (stalled) throw new Stalled(MESSAGES.downloadStalled());
 		throw err;
@@ -159,16 +163,23 @@ export function signedIn(asset: Asset, token: string | null): DownloadOpts["sign
 /** Below this, a download whose size nobody listed is an error page or a cut, not a release. */
 export const MIN_UNLISTED_BYTES = 1024 * 1024;
 
+/** Whether a download of asset must also be hashed with SHA-512: only when its checksum file gives a sha512. */
+export function needsSha512(asset: Pick<Asset, "sum">): boolean {
+	return asset.sum?.algo === "sha512";
+}
+
 /**
  * Throws when the file is not the asset the release describes, and otherwise says how it was checked. The forge's
  * digest wins over the release's checksum file; an asset with neither is checked by size only, and one with no listed
  * size (size 0) only by the floor, which counts as not checked; a truncated download above the floor is caught by
- * the verify probe and its restore point. A sha512 sum with no sha512 in result fails, never passes unchecked.
+ * the verify probe and its restore point. A file its checksum file vouches for skips the floor, since its hash proves
+ * it whole. A sha512 sum with no sha512 in result fails, never passes unchecked.
  */
 export function verifyAsset(result: DownloadResult, asset: Pick<Asset, "size" | "digest" | "sum">): DownloadCheck {
 	if (asset.size > 0 && result.bytes !== asset.size)
 		throw new Error(MESSAGES.downloadSizeMismatch(result.bytes, asset.size));
-	if (asset.size === 0 && result.bytes < MIN_UNLISTED_BYTES) throw new Error(MESSAGES.downloadTooSmall(result.bytes));
+	if (asset.size === 0 && !asset.sum && result.bytes < MIN_UNLISTED_BYTES)
+		throw new Error(MESSAGES.downloadTooSmall(result.bytes));
 	if (asset.digest) {
 		const want = asset.digest.replace(/^sha256:/, "").toLowerCase();
 		if (want !== result.sha256) throw new Error(MESSAGES.checksumMismatch());

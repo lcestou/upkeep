@@ -117,12 +117,13 @@ export const MESSAGES = {
 	/** download.ts */
 	checksumMismatch: () => `Checksum does not match the release.`,
 	/** download.ts. {0} the checksum file's name in the release (SHA256SUMS, checksums.txt, latest-linux.yml) */
-	checksumFileMismatch: (v0: Value) => `Checksum does not match ${v0} in the release.`,
+	checksumFileMismatch: (v0: Value) =>
+		`Checksum does not match ${v0} in the release, so nothing was installed. You can skip this version.`,
 	/** download.ts */
 	downloadLeftHttps: () => `The download was sent on to an address that is not https, so it was refused.`,
 	/** engine.ts. {0} the release's tag */
 	releaseChanged: (v0: Value) =>
-		`The ${v0} download changed after Upkeep first saw it. Check the release page before you release the hold.`,
+		`The file behind ${v0} changed after Upkeep first saw it. Check the release page before you release the hold.`,
 	/** engine.ts */
 	reasonChecking: () => `A check is running.`,
 	/** engine.ts */

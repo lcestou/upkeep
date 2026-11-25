@@ -15,7 +15,7 @@ import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, DownloadCheck } from "../../shared/types";
 import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
-import { download, signedIn, statedSize, verifyAsset } from "../download";
+import { download, needsSha512, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { releaseSum } from "../checksums";
 import { forgeRelease, linksRelease, zsyncRelease } from "../forge";
@@ -190,7 +190,8 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				...base,
 			};
 		// Only for an update on offer: a release with no digest is read for its own checksum file, once per check.
-		const sum = status === "ready" && !pick.asset.digest ? await releaseSum(release, pick.asset, ctx.fetch) : null;
+		const sum =
+			status === "ready" && !pick.asset.digest ? await releaseSum(release, pick.asset, ctx.fetch, ctx.token) : null;
 		target = { ...target, asset: sum ? { ...pick.asset, sum } : pick.asset };
 		if (release.immutable) target.locked = true;
 		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
@@ -338,6 +339,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				stallMs: ctx.stallMs,
 				retryMs: ctx.retryMs,
 				signedIn: signedIn(asset, ctx.token),
+				sha512: needsSha512(asset),
 			}));
 		checked = verifyAsset(got, asset);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}, ${CHECK_LOG[checked](asset)}`);

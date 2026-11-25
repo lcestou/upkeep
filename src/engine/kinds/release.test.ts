@@ -273,7 +273,7 @@ test("install: a checksum file naming the file with another hash changes nothing
 	publish("1.18.0b", { "zen.linux-x86_64.AppImage": file, "checksums.txt": sums }, false);
 	const c = ctx();
 	await expect(installRelease(zen(), await checkAndTarget(zen(), c), c)).rejects.toThrow(
-		"Checksum does not match checksums.txt in the release.",
+		"Checksum does not match checksums.txt in the release, so nothing was installed. You can skip this version.",
 	);
 	expect(readFileSync(dest, "utf8")).toContain("zen 1.17.9b");
 	// With a digest the checksum file is never asked for, and the outcome says the forge's record matched.

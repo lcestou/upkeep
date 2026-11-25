@@ -2768,16 +2768,32 @@ msgstr "Download verificado: só o tamanho."
 msgid "Download not checked: the release lists no size or checksum."
 msgstr "Download não verificado: a versão não informa tamanho nem checksum."
 
-#. 0: v0
-#: src/mainview/lib/engine-text.ts
-msgid "Checksum does not match {0} in the release."
-msgstr "O checksum não confere com {0} na versão."
-
 #: src/mainview/lib/engine-text.ts
 msgid "The download was sent on to an address that is not https, so it was refused."
 msgstr "O download foi redirecionado para um endereço sem https, então foi recusado."
 
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
-msgid "The {0} download changed after Upkeep first saw it. Check the release page before you release the hold."
-msgstr "O download de {0} mudou depois que o Upkeep o viu pela primeira vez. Confira a página da versão antes de retomar as atualizações."
+msgid "Checksum does not match {0} in the release, so nothing was installed. You can skip this version."
+msgstr "O checksum não confere com {0} na versão, então nada foi instalado. Você pode pular esta versão."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file behind {0} changed after Upkeep first saw it. Check the release page before you release the hold."
+msgstr "O arquivo por trás de {0} mudou depois que o Upkeep o viu pela primeira vez. Confira a página da versão antes de retomar as atualizações."
+
+#: src/mainview/lib/copy.ts
+msgid "SHA-256 matches the forge"
+msgstr "O SHA-256 confere com a plataforma"
+
+#: src/mainview/lib/copy.ts
+msgid "Matches the checksum file"
+msgstr "Confere com o arquivo de checksums"
+
+#: src/mainview/lib/copy.ts
+msgid "Size checked only"
+msgstr "Só o tamanho verificado"
+
+#: src/mainview/lib/copy.ts
+msgid "Download not checked"
+msgstr "Download não verificado"
