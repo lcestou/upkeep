@@ -43,7 +43,7 @@ beforeEach(() => {
 afterEach(() => t.cleanup());
 
 /** A fake power runner: answers the lock probe and the bus questions, and records each lock started and stopped. */
-function fakePower(o: { inhibit?: boolean; metered?: boolean; startThrows?: boolean }) {
+function fakePower(o: { inhibit?: boolean; metered?: boolean; startThrows?: boolean; spawnFails?: boolean }) {
 	const asked: string[] = [];
 	const locks: { argv: string[]; stopped: number }[] = [];
 	const run: Run = Object.assign(
@@ -59,6 +59,7 @@ function fakePower(o: { inhibit?: boolean; metered?: boolean; startThrows?: bool
 				const lock = { argv, stopped: 0 };
 				locks.push(lock);
 				return {
+					failed: o.spawnFails === true,
 					output: () => "",
 					stop: async () => {
 						lock.stopped += 1;
@@ -188,6 +189,18 @@ test("a lock that cannot start is skipped with a line, and the run goes on", asy
 	expect(engine.snapshot().run.results.map((r) => r.result)).toEqual(["updated"]);
 	expect(logs).toContain(
 		"The sleep lock could not start (EACCES: permission denied, open 'start-1.out'): sleep is not held during this run",
+	);
+	expect(logs).not.toContain("Asked logind to hold sleep until the run ends");
+});
+
+test("a lock whose process never started is not called held", async () => {
+	const power = fakePower({ inhibit: true, spawnFails: true });
+	const { engine, logs } = await setup(power.run);
+	await engine.install(["slow"]);
+	await engine.idle();
+	expect(engine.snapshot().run.results.map((r) => r.result)).toEqual(["updated"]);
+	expect(logs).toContain(
+		"The sleep lock could not start (its process did not start): sleep is not held during this run",
 	);
 	expect(logs).not.toContain("Asked logind to hold sleep until the run ends");
 });

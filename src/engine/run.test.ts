@@ -259,6 +259,16 @@ test("a step that runs as root is never cut, whatever its caller asked", async (
 	expect(r.stdout).toBe("ran true\n");
 });
 
+test("start says when its process could not start at all, and one that runs is not failed", async () => {
+	const none = realRun(t.paths).start?.(["/nonexistent/upkeep-no-such-program"]);
+	expect(none?.failed).toBe(true);
+	expect(none?.output()).toBe("");
+	await none?.stop();
+	const some = realRun(t.paths).start?.(["sleep", "5"]);
+	expect(some?.failed).toBe(false);
+	await some?.stop();
+});
+
 test("start's process leads a process group of its own too", async () => {
 	const started = realRun(t.paths).start?.(["bash", "-c", "echo $$ $(ps -o pgid= -p $$); sleep 5"]);
 	await until(() => (started?.output() ?? "").includes("\n"));

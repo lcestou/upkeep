@@ -74,3 +74,10 @@ test("the wait names a metered connection first, then the battery, and a broken 
 		}),
 	).toBeNull();
 });
+
+test("a lock whose process never started throws instead of returning a release", () => {
+	const dead: Run = Object.assign(answering({}), {
+		start: () => ({ failed: true, output: () => "", stop: async () => undefined }),
+	});
+	expect(() => holdSleep(dead, 1, "x")).toThrow("its process did not start");
+});

@@ -54,12 +54,14 @@ export async function canHoldSleep(run: Run): Promise<boolean> {
 
 /**
  * Starts the sleep lock and returns its release; null when the runner cannot start a process. It does not wait to see
- * the lock take: a refused inhibit (no logind session) ends at once and holds nothing. A release called twice stops
- * the lock once.
+ * the lock take: a refused inhibit (no logind session) ends at once and holds nothing. Throws when the process could
+ * not start at all, so nothing claims a lock that never ran. A release called twice stops the lock once.
  */
 export function holdSleep(run: Run, pid: number, why: string): (() => Promise<void>) | null {
 	if (!run.start) return null;
 	const lock: Started = run.start(inhibitArgv(pid, why));
+	// A lock that never ran holds nothing; the caller says so instead of saying it is held.
+	if (lock.failed) throw new Error("its process did not start");
 	let released = false;
 	return async () => {
 		if (released) return;

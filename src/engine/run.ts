@@ -40,6 +40,8 @@ export type Started = {
 	output(): string;
 	/** SIGTERM, then SIGKILL after stopMs. Never waits without a limit. */
 	stop(): Promise<void>;
+	/** True when the process could not be started at all (no such program); output() then stays empty. */
+	failed?: boolean;
 };
 
 export type StartOpts = { stopMs?: number };
@@ -230,6 +232,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		}
 		const p = proc;
 		return {
+			failed: p === null,
 			output: () => {
 				try {
 					return readFileSync(outFile, "utf8");
