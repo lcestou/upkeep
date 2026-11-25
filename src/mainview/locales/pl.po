@@ -3127,3 +3127,23 @@ msgstr "{0}: {1} nie może zawierać podziału wiersza ani innego znaku sterują
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Nie udało się zapisać wpisu menu: {0}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"
+msgstr "{0} jest oznaczona jako zła wersja, więc Upkeep ją pomija: {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold."
+msgstr "{0} należy teraz do innego repozytorium niż to, które Upkeep zobaczył pierwszy raz. Sprawdź je, zanim wznowisz aktualizacje."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The tag {0} points at another commit than the one the check saw, so nothing was built. Check again before you install."
+msgstr "Tag {0} wskazuje na inny commit niż ten, który widziało sprawdzenie, więc nic nie zostało zbudowane. Sprawdź ponownie przed instalacją."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
+msgstr "{0}: bad_versions wymaga bad_reason, który mówi, dlaczego są na liście"

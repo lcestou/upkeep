@@ -3104,3 +3104,23 @@ msgstr "{0} : {1} ne peut pas contenir de saut de ligne ni d'autre caractère de
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Impossible d'écrire l'entrée de menu : {0}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"
+msgstr "{0} est marquée comme mauvaise version, donc Upkeep la passe : {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold."
+msgstr "{0} appartient désormais à un autre dépôt que celui qu'Upkeep a vu la première fois. Vérifiez-le avant de reprendre les mises à jour."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The tag {0} points at another commit than the one the check saw, so nothing was built. Check again before you install."
+msgstr "L'étiquette {0} pointe vers un autre commit que celui vu lors de la vérification, donc rien n'a été compilé. Vérifiez à nouveau avant d'installer."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
+msgstr "{0} : bad_versions demande un bad_reason qui dit pourquoi elles sont listées"

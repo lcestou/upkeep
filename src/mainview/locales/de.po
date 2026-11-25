@@ -3081,3 +3081,23 @@ msgstr "{0}: {1} darf keinen Zeilenumbruch oder ein anderes Steuerzeichen enthal
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Der Menüeintrag ließ sich nicht schreiben: {0}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"
+msgstr "{0} ist als fehlerhafte Version markiert, daher überspringt Upkeep sie: {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold."
+msgstr "{0} gehört jetzt zu einem anderen Repository als dem, das Upkeep zuerst gesehen hat. Prüfe es, bevor du „Nicht mehr zurückstellen“ wählst."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The tag {0} points at another commit than the one the check saw, so nothing was built. Check again before you install."
+msgstr "Das Tag {0} zeigt auf einen anderen Commit als den, den die Prüfung gesehen hat, daher wurde nichts gebaut. Prüfe erneut, bevor du installierst."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
+msgstr "{0}: bad_versions braucht ein bad_reason, das sagt, warum sie aufgeführt sind"

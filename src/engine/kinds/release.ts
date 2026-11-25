@@ -171,6 +171,37 @@ export async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Prom
 	return r.release ?? { failure: "http", detail: MESSAGES.sourceGivesNoDownload(spec.latest) };
 }
 
+/** A version or tag without the "v" in front. */
+const plain = (v: string) => v.replace(/^v/, "");
+
+/** Whether the table lists release as a bad version, by its version or its tag as written; a "v" in front never counts. */
+export function isBad(spec: Pick<AppSpec, "bad_versions">, release: Pick<Release, "tag" | "version">): boolean {
+	return (spec.bad_versions ?? []).some((b) => plain(b) === plain(release.tag) || plain(b) === release.version);
+}
+
+/**
+ * When the table lists release as bad: the newest release of its forge's list that is not listed, holds a version and
+ * (with needAsset) a file the table's pattern matches, and is a pre-release only when the table follows them; null
+ * when none is, or the list cannot be read. Undefined when release is not listed. The list holds the newest
+ * RELEASE_LIST releases, so a bad version far back in a busy repo has nothing older to fall back to.
+ */
+export async function passBad(
+	spec: AppSpec,
+	ctx: KindCtx,
+	release: Pick<Release, "tag" | "version">,
+	needAsset: boolean,
+): Promise<Release | null | undefined> {
+	if (!isBad(spec, release)) return undefined;
+	ctx.log(`${release.tag} is listed in bad_versions: ${spec.bad_reason ?? ""}`);
+	if (!spec.repo) return null;
+	const list = await forgeReleases(spec.repo, spec.forge, releaseOpts(ctx));
+	if (isFailure(list)) return null;
+	const good = (needAsset ? fitting(list, spec, ctx) : list).filter(
+		(r) => !isBad(spec, r) && (spec.prerelease === true || r.prerelease !== true),
+	);
+	return newestOf(good);
+}
+
 /**
  * Probes the installed copy and looks up the latest release. Source builds pass needAsset false. A table with no asset
  * pattern for this machine's architecture is a problem before any lookup, never another architecture's file.
@@ -196,15 +227,30 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 			status: "problem",
 			detail: MESSAGES.noAssetForArch(spec.name, ctx.arch ?? "x86_64"),
 		};
-	const release = await releaseOf(spec, ctx);
-	if (isFailure(release))
+	const first = await releaseOf(spec, ctx);
+	if (isFailure(first))
 		return {
 			installed,
 			latest: null,
 			status: "problem",
-			detail: release.detail,
-			offline: release.failure === "network",
+			detail: first.detail,
+			offline: first.failure === "network",
 		};
+	const passed = await passBad(spec, ctx, first, needAsset);
+	const avoided =
+		passed === undefined
+			? {}
+			: { detail: MESSAGES.badVersionPassed(first.version ?? first.tag, spec.bad_reason ?? "") };
+	// Nothing else to offer: the row rests where it is, saying why, and never installs the listed version.
+	if (passed === null)
+		return {
+			installed,
+			latest: installed,
+			status: installed === null ? "problem" : "fresh",
+			...avoided,
+			...fromRelease(first),
+		};
+	const release = passed ?? first;
 	const base = { ...fromRelease(release) };
 	if (!release.version)
 		return {
@@ -252,7 +298,7 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
 		size = pick.asset.size || (status === "ready" ? await statedSize(pick.asset.url, ctx.fetch) : undefined);
 	}
-	const detail = untracked ? { detail: MESSAGES.versionNotRecorded(spec.name) } : {};
+	const detail = untracked ? { detail: MESSAGES.versionNotRecorded(spec.name) } : avoided;
 	return { installed, latest, status, size, target, ...detail, ...base };
 }
 

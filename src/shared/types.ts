@@ -82,6 +82,10 @@ export type AppSpec = {
 	prerelease?: boolean;
 	/** One line shown in the row's details. */
 	note?: string;
+	/** Versions never offered: a check passes over them to the newest release that is not listed. Needs bad_reason. */
+	bad_versions?: string[];
+	/** Why bad_versions are listed, shown in the row's details whenever one is passed over. */
+	bad_reason?: string;
 	/** List the app as ready to install when nothing is at dest yet. Set when the owner adds an app that is not installed. */
 	install_if_missing?: boolean;
 	/**

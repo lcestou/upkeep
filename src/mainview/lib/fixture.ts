@@ -650,6 +650,17 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 			if (a.key === "bat") return { ...a, checked: "size" };
 			// Held by Upkeep: the file behind fd's tag changed after the first check saw it.
 			if (a.key === "fd") return { ...a, status: "held", held: true, detail: MESSAGES.releaseChanged("v10.5.2") };
+			// Held by Upkeep: cursor's repo name now answers with another repository than the first check saw.
+			if (a.key === "cursor")
+				return { ...a, status: "held", held: true, detail: MESSAGES.repoReplaced("github.com/cursor/cursor") };
+			// Resting where it is: the only newer release is listed in its table's bad_versions.
+			if (a.key === "llama")
+				return {
+					...a,
+					status: "fresh",
+					installed: a.latest,
+					detail: MESSAGES.badVersionPassed("0.9.1", "crashes on start under Wayland"),
+				};
 			if (a.status === "ready" || a.status === "manual") return { ...a, status: "fresh", installed: a.latest };
 			return a;
 		});

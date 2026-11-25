@@ -5,6 +5,7 @@ import { isFailure, latestFromSource } from "../github";
 import { probeCommand } from "../probe";
 import { runsAsRoot } from "../run";
 import { isNewer } from "../version";
+import { isBad } from "./release";
 import { fill } from "./tree";
 import { prune, restoreBackup, takePoint } from "../backup";
 import {
@@ -45,6 +46,15 @@ export async function checkCommand(spec: AppSpec, ctx: KindCtx): Promise<Checked
 			latest: latest.version,
 			status: "problem",
 			detail: probeProblem(spec.name, check[0] ?? "", probe),
+			...base,
+		};
+	// The tool's own updater takes whatever is latest, so a listed version is never offered: the row rests, saying why.
+	if (isBad(spec, { tag: latest.release?.tag ?? latest.version, version: latest.version }))
+		return {
+			installed,
+			latest: installed,
+			status: "fresh",
+			detail: MESSAGES.badVersionPassed(latest.version, spec.bad_reason ?? ""),
 			...base,
 		};
 	return {

@@ -67,8 +67,18 @@ export type Checked = {
 	offline?: boolean;
 };
 
-/** locked: the forge says the release's files cannot change, so a changed file is never looked for. */
-export type Target = { from: string | null; version: string; tag: string; asset?: Asset; locked?: boolean };
+/**
+ * locked: the forge says the release's files cannot change, so a changed file is never looked for. commit: the commit
+ * the tag pointed at when the check offered a source build, which the build must still find; absent when unread.
+ */
+export type Target = {
+	from: string | null;
+	version: string;
+	tag: string;
+	asset?: Asset;
+	locked?: boolean;
+	commit?: string;
+};
 
 export type Outcome = {
 	result: "done" | "failed" | "rolled_back" | "stopped";

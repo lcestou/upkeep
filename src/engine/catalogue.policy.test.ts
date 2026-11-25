@@ -33,6 +33,9 @@ const FIELDS = new Set<keyof AppSpec>([
 	"restore",
 	"restart",
 	"relaunch",
+	// bad_versions only takes an offer away, and runs nothing; bad_reason is the sentence the row shows for it.
+	"bad_versions",
+	"bad_reason",
 ]);
 // A catalogue app may restart only its own service, through systemctl, which asks for a password itself.
 const RESTART = /^systemctl (--user )?restart [\w@.-]+$/;
