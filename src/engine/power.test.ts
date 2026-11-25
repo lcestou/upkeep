@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
 import { canHoldSleep, holdSleep, inhibitArgv, metered, onBattery, waitReason } from "./power";
 import type { ProcessResult, Run } from "./run";
-import { ok } from "./testkit";
+import { join } from "node:path";
+import { ok, realRun, script, tempHome } from "./testkit";
 
 const fail: ProcessResult = { code: 1, stdout: "", stderr: "no such name", timedOut: false };
 
@@ -27,7 +28,7 @@ test("the lock blocks sleep only, names Upkeep and ends with the pid it watches"
 
 test("no lock without a way to start one or without systemd-inhibit, and a release stops the lock only once", async () => {
 	expect(await canHoldSleep(answering({ "--version": ok() }))).toBe(false);
-	expect(holdSleep(answering({ "--version": ok() }), 1, "x")).toBeNull();
+	expect(await holdSleep(answering({ "--version": ok() }), 1, "x", 0)).toBeNull();
 	let stops = 0;
 	const started: string[][] = [];
 	const start = (argv: string[]) => {
@@ -44,7 +45,7 @@ test("no lock without a way to start one or without systemd-inhibit, and a relea
 	const there: Run = Object.assign(answering({ "--version": ok("systemd 255") }), { start });
 	expect(await canHoldSleep(there)).toBe(true);
 	expect(started).toHaveLength(0);
-	const release = holdSleep(there, 7, "x");
+	const release = await holdSleep(there, 7, "x", 0);
 	expect(started[0]).toContain("--pid=7");
 	await release?.();
 	await release?.();
@@ -75,9 +76,37 @@ test("the wait names a metered connection first, then the battery, and a broken 
 	).toBeNull();
 });
 
-test("a lock whose process never started throws instead of returning a release", () => {
+test("a lock whose process never started throws instead of returning a release", async () => {
 	const dead: Run = Object.assign(answering({}), {
 		start: () => ({ failed: true, output: () => "", stop: async () => undefined }),
 	});
-	expect(() => holdSleep(dead, 1, "x")).toThrow("its process did not start");
+	await expect(holdSleep(dead, 1, "x", 0)).rejects.toThrow("its process did not start");
+});
+
+test("a lock that ends at once (logind refused it) throws; one that stays up holds until released", async () => {
+	const t = tempHome("power-lock");
+	try {
+		// A stand-in for systemd-inhibit, first on the runner's PATH, so no real lock is ever asked for.
+		const fake = join(t.paths.home, ".local/bin/systemd-inhibit");
+		script(fake, "exit 1");
+		const run = realRun(t.paths);
+		await expect(holdSleep(run, process.pid, "x", 200)).rejects.toThrow("it ended at once");
+		script(fake, 'echo "$$"; exec sleep 30');
+		const release = await holdSleep(run, process.pid, "x", 200);
+		expect(release).not.toBeNull();
+		await release?.();
+	} finally {
+		t.cleanup();
+	}
+});
+
+test("a metered query that throws reads as unmetered, and the battery is still asked", async () => {
+	const asked: string[] = [];
+	const run: Run = async (argv) => {
+		asked.push(argv.at(-1) ?? "");
+		if (argv.includes("Metered")) throw new Error("bus gone");
+		return ok("b true");
+	};
+	expect(await waitReason(run)).toBe("battery");
+	expect(asked).toEqual(["Metered", "OnBattery"]);
 });

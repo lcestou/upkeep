@@ -53,15 +53,25 @@ export async function canHoldSleep(run: Run): Promise<boolean> {
 }
 
 /**
- * Starts the sleep lock and returns its release; null when the runner cannot start a process. It does not wait to see
- * the lock take: a refused inhibit (no logind session) ends at once and holds nothing. Throws when the process could
- * not start at all, so nothing claims a lock that never ran. A release called twice stops the lock once.
+ * Starts the sleep lock and returns its release; null when the runner cannot start a process. Throws when the process
+ * could not start at all, or ended within confirmMs: logind refusing the inhibit (no session, a policy) makes
+ * systemd-inhibit exit at once, and such a lock holds nothing. A release called twice stops the lock once.
  */
-export function holdSleep(run: Run, pid: number, why: string): (() => Promise<void>) | null {
+export async function holdSleep(
+	run: Run,
+	pid: number,
+	why: string,
+	confirmMs = 300,
+): Promise<(() => Promise<void>) | null> {
 	if (!run.start) return null;
 	const lock: Started = run.start(inhibitArgv(pid, why));
 	// A lock that never ran holds nothing; the caller says so instead of saying it is held.
 	if (lock.failed) throw new Error("its process did not start");
+	await Bun.sleep(confirmMs);
+	if (lock.alive && !lock.alive()) {
+		await lock.stop();
+		throw new Error("it ended at once");
+	}
 	let released = false;
 	return async () => {
 		if (released) return;
@@ -83,15 +93,12 @@ export async function onBattery(run: Run): Promise<boolean> {
 }
 
 /**
- * Why automatic work waits now, or null when it may go: a metered connection is named before the battery. A runner
- * that throws counts as no answer, so a broken bus never holds updates back.
+ * Why automatic work waits now, or null when it may go: a metered connection is named before the battery. A query
+ * that throws counts as no answer for that source only, so a broken bus never holds updates back.
  */
 export async function waitReason(run: Run): Promise<"metered" | "battery" | null> {
-	try {
-		if (await metered(run)) return "metered";
-		if (await onBattery(run)) return "battery";
-	} catch {
-		// no answer is the same as no NetworkManager or UPower
-	}
+	// Each source on its own: a NetworkManager that throws must not skip the battery question.
+	if (await metered(run).catch(() => false)) return "metered";
+	if (await onBattery(run).catch(() => false)) return "battery";
 	return null;
 }
