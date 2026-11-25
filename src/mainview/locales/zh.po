@@ -2811,6 +2811,29 @@ msgid "Going back to an older release skips the latest, so the next check offers
 msgstr "回到较旧的版本会跳过最新版本，下次检查只会提供更新的版本。"
 
 #: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "恢复时也会放回保存的设置。被替换的设置会另行保留。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}：keep_with_restore 需要保留还原点的应用"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "含设置"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+msgstr "{0}：keep_with_restore 只接受主目录下该应用自己的路径，例如 ~/.config/<app>"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+msgstr "请先关闭 {0}：此次恢复会一并放回它的设置，而它退出时可能会覆盖这些设置。"
+
+#: src/mainview/lib/copy.ts
 msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 msgstr "此文件中的应用会在这台电脑上运行以下命令。只有在信任其来源时才导入。"
 

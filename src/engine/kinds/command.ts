@@ -76,7 +76,7 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 		clock.start("backup");
 		const tag = tagOf(target, target.from);
 		const command = spec.restore.map((a) => fill(a, { version: target.from ?? "", tag }));
-		takePoint(ctx.paths, spec, target.from, { command, tag }, (ctx.now?.() ?? new Date()).toISOString());
+		takePoint(ctx.paths, spec, target.from, { command, tag }, (ctx.now?.() ?? new Date()).toISOString(), ctx.log);
 		point = target.from;
 		ctx.log(`Restore point ${target.from} taken`);
 	}
@@ -100,13 +100,15 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 				? "The update command ran past 600 s and was stopped."
 				: `The update command exited ${r.code}.`,
 	);
-	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop());
+	// An update that ran to its end (not cut) may have run the tool's migrations: its settings go back too.
+	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop(), !r.stopped);
 	clock.start("verify");
 	const after = await probeCommand(spec.check ?? [], { run: cuttableRun(ctx) });
-	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop());
+	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop(), true);
 	const stages = clock.stop();
 	if (!("version" in after)) {
-		const back = point ? await restoreBackup(ctx.paths, spec, point, ctx.run) : null;
+		// The update and the check ran the new version, which may have rewritten its settings: they go back too.
+		const back = point ? await restoreBackup(ctx.paths, spec, point, ctx.run, spec.keep_with_restore) : null;
 		if (back?.ok)
 			return {
 				result: "rolled_back",
@@ -146,6 +148,8 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 /**
  * After Stop now cut the update: a restore point goes back; without one the tool's own updater was interrupted, so
  * Upkeep cannot promise the old state and says what a version probe finds instead. Never cut itself: it is the undo.
+ * ran: the update finished or the check ran the new version, either of which may have rewritten its settings, so
+ * they go back too.
  */
 async function stoppedAfterCut(
 	spec: AppSpec,
@@ -153,9 +157,10 @@ async function stoppedAfterCut(
 	ctx: KindCtx,
 	point: string | null,
 	stages: Outcome["stages"],
+	ran = false,
 ): Promise<Outcome> {
 	if (point) {
-		const back = await restoreBackup(ctx.paths, spec, point, ctx.run);
+		const back = await restoreBackup(ctx.paths, spec, point, ctx.run, ran ? spec.keep_with_restore : undefined);
 		if (back.ok) return { ...stoppedOutcome(point), stages };
 		// The restore's own sentence says what went wrong; the update itself was cut, so "would not start" would be wrong.
 		return { result: "failed", installed: target.from, detail: back.detail, restartToApply: false, stages };

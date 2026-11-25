@@ -12,7 +12,7 @@ import {
 	symlinkSync,
 	writeFileSync,
 } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { AppSpec, Stage } from "../../shared/types";
 import { listBackups, restoreBackup, takeBackup } from "../backup";
 import type { FetchLike } from "../github";
@@ -1200,4 +1200,27 @@ test("a dpkg that fails while Stop now waits on it puts the old package back, an
 	});
 	expect(outcome).toMatchObject({ result: "stopped", installed: "1.4.2", detail: "Stopped. 1.4.2 is back in place." });
 	oldRelease = null;
+});
+
+test("Stop now after the version probe ran the new copy puts its settings back with the point", async () => {
+	const dest = installZen("1.0.0");
+	const cfg = join(t.paths.home, ".zen/prefs.js");
+	mkdirSync(dirname(cfg), { recursive: true });
+	writeFileSync(cfg, "old");
+	publish("1.1.0", { "zen-x86_64.AppImage": bash('echo "zen 1.1.0"') });
+	const stop = new AbortController();
+	const { run } = recordingRun(t.paths, (argv) => {
+		if (argv[0] === dest && !stop.signal.aborted) {
+			// The new copy ran and migrated its settings; then Stop now is pressed.
+			writeFileSync(cfg, "migrated");
+			stop.abort();
+			return ok("zen 1.1.0\n");
+		}
+		return undefined;
+	});
+	const spec = { ...zen(), keep_with_restore: ["~/.zen/"] };
+	const target = await checkAndTarget(spec, ctx());
+	const outcome = await installRelease(spec, target, { ...ctx(withCancel(run, stop.signal)), cancel: stop.signal });
+	expect(outcome.result).toBe("stopped");
+	expect(readFileSync(cfg, "utf8")).toBe("old");
 });

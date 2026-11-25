@@ -617,3 +617,49 @@ test("prerelease is refused on a table whose releases cannot be listed", () => {
 	]);
 	expect(apps.map((a) => [a.key, a.prerelease])).toEqual([["ok", true]]);
 });
+
+test("keep_with_restore takes an app's own paths under home, on a kind that keeps restore points", () => {
+	const file = ['kind = "file"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/x"'];
+	const fine = ["~/.config/x", "~/.x", "~/.local/share/x/db/", "~/.cache/x", "~/Documents/x"];
+	// One written form from load on: a trailing slash is dropped, so the point and the restore name the same path.
+	expect(one(...file, `keep_with_restore = ${JSON.stringify(fine)}`)).toMatchObject({
+		keep_with_restore: ["~/.config/x", "~/.x", "~/.local/share/x/db", "~/.cache/x", "~/Documents/x"],
+	});
+	const path = "x: keep_with_restore takes paths of their own under home, such as ~/.config/<app>";
+	for (const bad of [
+		"/etc/x",
+		"~",
+		"~/",
+		"~/.config",
+		"~/.local/share/",
+		"~/../x",
+		"~/.config/../.ssh",
+		"~//.config",
+		"./x",
+		"x",
+		"~/Documents",
+		"~/.config/upkeep",
+		"~/.local/share/upkeep/backups",
+		"~/.local/state/upkeep",
+		"~/.cache/upkeep",
+		"~/.local/share/applications",
+		"~/.config/autostart/x.desktop",
+		"~/.config/systemd/user",
+		"~/.ssh",
+		"~/.gnupg",
+		"~/.local/share/keyrings",
+	])
+		expect(one(...file, `keep_with_restore = ["${bad}"]`)).toBe(path);
+	expect(one(...file, "keep_with_restore = [1]")).toBe("x: keep_with_restore must be a list of strings");
+	const kind = "x: keep_with_restore needs an app that keeps restore points";
+	const manual = ['kind = "manual"', 'check = ["v"]', 'latest = "npm:x"', 'run = "x"'];
+	expect(one(...manual, 'keep_with_restore = ["~/.x"]')).toBe(kind);
+	const command = ['kind = "command"', 'check = ["v"]', 'latest = "npm:x"', 'update = ["u"]'];
+	expect(one(...command, 'keep_with_restore = ["~/.x"]')).toBe(kind);
+	expect(one(...command, 'restore = ["r", "{version}"]', 'keep_with_restore = ["~/.x"]')).toMatchObject({
+		keep_with_restore: ["~/.x"],
+	});
+	const source = ['kind = "source"', 'repo = "o/r"', 'build = ["make"]', 'dest = "~/x"'];
+	expect(one(...source, 'keep_with_restore = ["~/.x"]')).toBe(kind);
+	expect(one(...source, 'dir = "~/src/x"', 'keep_with_restore = ["~/.x"]')).toMatchObject({ dir: "~/src/x" });
+});

@@ -2874,6 +2874,29 @@ msgid "Going back to an older release skips the latest, so the next check offers
 msgstr "Powrót do starszego wydania pomija najnowsze, więc następne sprawdzenie zaproponuje tylko nowsze."
 
 #: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "Przywracanie przywraca też zapisane ustawienia. Zastąpione ustawienia są odkładane na bok."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}: keep_with_restore wymaga aplikacji, która ma punkty przywracania"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "z ustawieniami"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+msgstr "{0}: keep_with_restore przyjmuje własne ścieżki w katalogu domowym, np. ~/.config/<app>"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+msgstr "Najpierw zamknij {0}: to przywrócenie cofa też jego ustawienia, a przy zamykaniu mógłby je nadpisać."
+
+#: src/mainview/lib/copy.ts
 msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 msgstr "Ten plik ma aplikacje, które uruchamiają te polecenia na tym komputerze. Importuj go tylko wtedy, gdy ufasz jego źródłu."
 

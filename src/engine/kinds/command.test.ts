@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
 import { listBackups } from "../backup";
@@ -305,3 +305,50 @@ test("Stop now's put-back that fails says what the restore said, and keeps the r
 	expect(outcome.result).toBe("failed");
 	expect(outcome.detail).toBe("~/.local/bin/claude-back 2.1.322 exited 4.");
 }, 15_000);
+
+test("Stop now during the check after the update puts the settings back with the old version", async () => {
+	const state = fakeClaude("2.1.322");
+	const cfg = join(t.paths.home, ".claude-test/settings.json");
+	mkdirSync(dirname(cfg), { recursive: true });
+	writeFileSync(cfg, "old");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf 2.1.400 > ${state}; printf migrated > ${cfg}`);
+	script(join(t.paths.home, ".local/bin/claude-back"), `printf "$1" > ${state}`);
+	const stop = new AbortController();
+	const c = stoppable(stop);
+	const run: KindCtx["run"] = (argv, opts) => {
+		if (argv[0] === "claude" && readFileSync(state, "utf8") === "2.1.400") stop.abort();
+		return c.run(argv, opts);
+	};
+	const spec = {
+		...claude(["~/.local/bin/claude-up"]),
+		restore: ["~/.local/bin/claude-back", "{version}"],
+		keep_with_restore: ["~/.claude-test"],
+	};
+	const outcome = await installCommand(spec, { from: "2.1.322", version: "2.1.400", tag: "2.1.400" }, { ...c, run });
+	expect(outcome).toMatchObject({ result: "stopped", installed: "2.1.322" });
+	expect(readFileSync(cfg, "utf8")).toBe("old");
+});
+
+test("Stop now after the update command finished, before its check, puts the settings back with the old version", async () => {
+	const state = fakeClaude("2.1.322");
+	const cfg = join(t.paths.home, ".claude-test/settings.json");
+	mkdirSync(dirname(cfg), { recursive: true });
+	writeFileSync(cfg, "old");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf 2.1.400 > ${state}; printf migrated > ${cfg}`);
+	script(join(t.paths.home, ".local/bin/claude-back"), `printf "$1" > ${state}`);
+	const stop = new AbortController();
+	const c = stoppable(stop);
+	const run: KindCtx["run"] = async (argv, opts) => {
+		const res = await c.run(argv, opts);
+		if (argv[0]?.endsWith("claude-up")) stop.abort();
+		return res;
+	};
+	const spec = {
+		...claude(["~/.local/bin/claude-up"]),
+		restore: ["~/.local/bin/claude-back", "{version}"],
+		keep_with_restore: ["~/.claude-test"],
+	};
+	const outcome = await installCommand(spec, { from: "2.1.322", version: "2.1.400", tag: "2.1.400" }, { ...c, run });
+	expect(outcome).toMatchObject({ result: "stopped", installed: "2.1.322" });
+	expect(readFileSync(cfg, "utf8")).toBe("old");
+});

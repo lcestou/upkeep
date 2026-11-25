@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
+import { backupDir } from "./backup";
 import { createEngine, REASON_NOTHING } from "./engine";
 import type { FetchLike } from "./github";
 import { claimLock, loadState, releaseLock } from "./store";
@@ -14,6 +15,7 @@ kind = "file"
 repo = "o/tool"
 asset = 'tool-linux$'
 dest = "~/.local/bin/tool"
+keep_with_restore = ["~/.config/tool"]
 
 [apps.cmd]
 name = "Cmd"
@@ -81,6 +83,8 @@ async function setup() {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
 	const bin = join(t.paths.home, ".local/bin");
 	script(join(bin, "tool"), 'echo "tool 1.1.0"');
+	mkdirSync(join(t.paths.home, ".config/tool"), { recursive: true });
+	writeFileSync(join(t.paths.home, ".config/tool/settings"), "as 1.1.0 left it");
 	script(join(bin, "cmd"), 'echo "cmd 1.0.0"');
 	const asked: { url: string; etag?: string }[] = [];
 	releases = [...START];
@@ -207,6 +211,10 @@ test("going back to an older version skips the latest, and a newer release is of
 	expect(engine.snapshot().run.results[0]).toMatchObject({ from: "1.1.0", to: "1.0.0", result: "updated" });
 	expect(loadState(t.paths)).toMatchObject({ skip: { tool: "1.1.0" }, hold: {} });
 	expect(row()?.restorePoints.map((p) => p.version)).toEqual(["1.1.0"]);
+	// The point keeps the app's settings, as an update's does.
+	expect(readFileSync(join(backupDir(t.paths, "tool"), "1.1.0", "upkeep-config", "0", "settings"), "utf8")).toBe(
+		"as 1.1.0 left it",
+	);
 
 	engine.dismissSummary();
 	expect(row()).toMatchObject({ installed: "1.0.0", latest: "1.1.0", status: "held", skipped: "1.1.0", held: false });
