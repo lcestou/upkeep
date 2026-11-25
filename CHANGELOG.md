@@ -3,7 +3,7 @@
 ## Unreleased
 
 - The Claude Code plugins row now says when an update is waiting. A check refreshes the plugin marketplaces, as Claude Code does at start, and compares each installed plugin's version with the one its marketplace now holds (for a plugin with no version, new commits in its own folder of the marketplace). The row turns to Update and names the plugins, so it shows in the count and the tray like any other update. A plugin whose marketplace entry points to another repo and names no version is still only updated by Run now or an automatic run.
-- An app's table can name its settings with `keep_with_restore = ["~/.config/<app>"]`. They are copied into each restore point before an update and put back with the old version, so an app that rewrote its config on first start of the new version can still read it after a rollback. Paths over 200 MB are left out with a log line. The settings a restore replaces are kept in `~/.local/share/upkeep/config-aside/<app>/`, and a point that holds settings says "with settings" in the row's details.
+- An app's table can name its settings with `keep_with_restore = ["~/.config/<app>"]`. They are copied into each restore point before an update and put back with the old version, so an app that rewrote its config on first start of the new version can still read it after a restore. A restore asks you to close the app first while it runs. The settings a restore replaces are kept in `~/.local/share/upkeep/config-aside/<app>/` (the last three), and a point that holds settings says "with settings" in the row's details. Paths over 200 MB, links and mount points are left out with a log line; Upkeep's own folders, keys, menu and login entries are refused.
 
 ## 0.1.8, 2026-11-21
 
