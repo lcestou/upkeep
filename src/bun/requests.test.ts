@@ -291,8 +291,8 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 	// The file changing after the ask does not change what lands.
 	writeFileSync(file, "{");
 	expect(await r.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 2, autoOff: 1 });
-	// tool's table matches this machine's, so it keeps the file's pick (none); glow is new, so it comes in off.
-	expect(loadState(t.paths).auto).toEqual({ glow: false });
+	// tool's table matches this machine's, so it keeps this machine's pick (off); glow is new, so it comes in off.
+	expect(loadState(t.paths).auto).toEqual({ tool: false, glow: false });
 	expect(await r.r.importSetup({ sure: true })).toEqual({ ok: false });
 	await r.engine.idle();
 });

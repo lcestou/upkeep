@@ -128,10 +128,11 @@ function sameness(spec: AppSpec): string {
  * otherwise run anything at the next check. Automatic installs come in off, whatever the file says, for every app
  * that is not on this machine's list with the same table (sameness), release kinds too: a release table's repo is
  * the file writer's choice, and with auto and install_if_missing it would install unseen. An app that matches the
- * local one keeps the file's pick, so moving one's own list back and forth loses nothing. autoOff names the apps
- * the file wanted on that came in off. apps.toml, state.json and extras.json are each
+ * local one keeps this machine's pick, never the file's, so no import can turn an automatic install on: importing
+ * the same shared file twice leaves its apps off, and re-importing one's own list here changes nothing. autoOff
+ * names the apps the file wanted on that came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
- * any the import created. Skips, holds and the other automatic installs are kept only for apps the new list has;
+ * any the import created. Skips and holds are kept only for apps the new list has;
  * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
  * default.
  */
@@ -166,10 +167,16 @@ export function importSetup(
 		return { ok: false, ask: { apps: running, plain: list.apps.length - running.length } };
 
 	const here = join(paths.config, "apps.toml");
-	const local = new Map((existsSync(here) ? loadManifest(here).apps : []).map((a) => [a.key, sameness(a)] as const));
-	const changed = list.apps.filter((a) => local.get(a.key) !== sameness(a));
+	const local = new Map((existsSync(here) ? loadManifest(here).apps : []).map((a) => [a.key, a] as const));
+	const ours = loadState(paths).auto;
+	// This machine's effective pick (its state over its table's auto = true) for a table that matches; off otherwise.
+	const picks: Record<string, boolean> = {};
+	for (const a of list.apps) {
+		const was = local.get(a.key);
+		picks[a.key] = was !== undefined && sameness(was) === sameness(a) ? (ours[a.key] ?? was.auto ?? false) : false;
+	}
 	const wanted = only(doc.auto, (x): x is boolean => typeof x === "boolean");
-	const autoOff = changed.filter((a) => wanted[a.key] ?? a.auto ?? false).map((a) => a.key);
+	const autoOff = list.apps.filter((a) => (wanted[a.key] ?? a.auto ?? false) && !picks[a.key]).map((a) => a.key);
 
 	const stamp = now.toISOString().replace(/[:.]/g, "-");
 	const files = [ensureManifest(paths, seedFile), join(paths.state, "state.json"), join(paths.state, "extras.json")];
@@ -196,9 +203,8 @@ export function importSetup(
 			s.settings = { ...s.settings, ...(settings as Partial<Settings>) };
 			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
-			s.auto = mine(wanted);
-			// false, not a missing entry: it also outweighs an auto = true written in the app's own table.
-			for (const a of changed) s.auto[a.key] = false;
+			// Every app gets an entry, so an auto = true written in an imported table never decides.
+			s.auto = picks;
 		});
 		if (isRecord(doc.extras)) {
 			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.

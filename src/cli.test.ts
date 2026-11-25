@@ -318,6 +318,10 @@ test("export and import carry the list, settings, skips, holds and auto picks, a
 test("import of a list whose apps run commands prints them and needs --yes; new or changed apps come in with auto off", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
+	// borg is set to install automatically on this machine.
+	updateState(t.paths, (s) => {
+		s.auto = { borg: true };
+	});
 	const file = join(t.dir, "shared.json");
 	expect(await main(["export", file], d, () => {})).toBe(0);
 	const doc = JSON.parse(readFileSync(file, "utf8"));
@@ -364,9 +368,18 @@ test("import of a list whose apps run commands prints them and needs --yes; new 
 	]);
 	// borg matches this machine's table and keeps its pick; the changed and the new ones do not, whatever the file said.
 	expect(loadState(t.paths).auto).toEqual({ borg: true, bat: false, glow: false, fake: false });
+	// The same file a second time: every table now matches, and each keeps this machine's pick (off), not the file's.
 	const again: string[] = [];
 	expect(await main(["import", file, "--yes", "--yes", "--json"], d, (l) => again.push(l))).toBe(0);
-	expect(JSON.parse(again[0] ?? "{}").autoOff).toEqual([]);
+	expect(JSON.parse(again[0] ?? "{}").autoOff).toEqual(["bat", "glow", "fake"]);
+	expect(loadState(t.paths).auto).toEqual({ borg: true, bat: false, glow: false, fake: false });
+	// A pick made here survives a re-import of a file that says otherwise.
+	updateState(t.paths, (s) => {
+		s.auto.glow = true;
+		s.auto.borg = false;
+	});
+	expect(await main(["import", file, "--yes"], d, () => {})).toBe(0);
+	expect(loadState(t.paths).auto).toEqual({ borg: false, bat: false, glow: true, fake: false });
 });
 
 test("import of a list of release apps only asks nothing and says which came in with auto off", async () => {
@@ -385,7 +398,7 @@ test("import of a list of release apps only asks nothing and says which came in 
 		"Imported 2 apps. The files it replaced are kept beside them as .pre-import-<time>.",
 		"Automatic installs came in off for fd: new here or changed from this computer's table.",
 	]);
-	expect(loadState(t.paths).auto).toEqual({ fd: false });
+	expect(loadState(t.paths).auto).toEqual({ borg: false, fd: false });
 	// One app that installs only its releases is said in the singular.
 	writeFileSync(
 		file,
