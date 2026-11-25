@@ -163,6 +163,24 @@ export function signedIn(asset: Asset, token: string | null): DownloadOpts["sign
 /** Below this, a download whose size nobody listed is an error page or a cut, not a release. */
 export const MIN_UNLISTED_BYTES = 1024 * 1024;
 
+/** The size and SHA-256 of the file on disk now, with its SHA-512 when asked, read in one pass without holding it in memory. */
+export async function hashFile(file: string, sha512: boolean): Promise<DownloadResult> {
+	const hasher = new Bun.CryptoHasher("sha256");
+	const hasher512 = sha512 ? new Bun.CryptoHasher("sha512") : null;
+	let bytes = 0;
+	const reader = Bun.file(file).stream().getReader();
+	for (;;) {
+		// oxlint-disable-next-line no-await-in-loop -- a stream is read one chunk at a time
+		const { done, value } = await reader.read();
+		if (done) break;
+		hasher.update(value);
+		hasher512?.update(value);
+		bytes += value.byteLength;
+	}
+	const sha256 = hasher.digest("hex");
+	return hasher512 ? { bytes, sha256, sha512: hasher512.digest("hex") } : { bytes, sha256 };
+}
+
 /** Whether a download of asset must also be hashed with SHA-512: only when its checksum file gives a sha512. */
 export function needsSha512(asset: Pick<Asset, "sum">): boolean {
 	return asset.sum?.algo === "sha512";

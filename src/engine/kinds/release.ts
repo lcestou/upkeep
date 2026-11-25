@@ -15,9 +15,9 @@ import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, DownloadCheck } from "../../shared/types";
 import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
-import { download, needsSha512, signedIn, statedSize, verifyAsset } from "../download";
+import { download, hashFile, needsSha512, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
-import { releaseSum } from "../checksums";
+import { cachedSum } from "../checksums";
 import { forgeRelease, linksRelease, zsyncRelease } from "../forge";
 import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
@@ -195,7 +195,14 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		// Only for an update on offer: a release with no digest is read for its own checksum file, once per check.
 		const sum =
 			status === "ready" && !pick.asset.digest
-				? await releaseSum(release, pick.asset, ctx.fetch, ctx.token, ctx.cancel)
+				? await cachedSum(
+						join(ctx.paths.cache, "sums", `${spec.key}.json`),
+						release,
+						pick.asset,
+						ctx.fetch,
+						ctx.token,
+						ctx.cancel,
+					)
 				: null;
 		target = { ...target, asset: sum ? { ...pick.asset, sum } : pick.asset };
 		if (release.immutable) target.locked = true;
@@ -340,17 +347,20 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			earlyMs = early.ms;
 			ctx.stage("download", 100);
 		} else ctx.log(`Downloading ${asset.name}`);
+		// A check during the run can give the asset a sha512 sum its early download was not hashed for.
 		const got =
-			early ??
-			(await download(asset.url, dl, {
-				fetch: ctx.fetch,
-				onProgress,
-				stallMs: ctx.stallMs,
-				retryMs: ctx.retryMs,
-				signedIn: signedIn(asset, ctx.token),
-				sha512: needsSha512(asset),
-				signal: ctx.cancel,
-			}));
+			early && needsSha512(asset) && !early.sha512
+				? await hashFile(dl, true)
+				: (early ??
+					(await download(asset.url, dl, {
+						fetch: ctx.fetch,
+						onProgress,
+						stallMs: ctx.stallMs,
+						retryMs: ctx.retryMs,
+						signedIn: signedIn(asset, ctx.token),
+						sha512: needsSha512(asset),
+						signal: ctx.cancel,
+					})));
 		checked = verifyAsset(got, asset);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}, ${CHECK_LOG[checked](asset)}`);
 

@@ -1,5 +1,6 @@
-import { basename } from "node:path";
-import { type Asset, type FetchLike, GITHUB_API, type Release, type Sum } from "./github";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, dirname } from "node:path";
+import { type Asset, type FetchLike, GITHUB_API, record, type Release, str, type Sum } from "./github";
 
 /** A checksum file bigger than this is not one: it is skipped unread. */
 export const MAX_SUM_BYTES = 1024 * 1024;
@@ -128,6 +129,33 @@ async function readSmall(
 	}
 }
 
+/** What the checksum files gave for one release file; whole is false when one could not be read, so a miss may not be final. */
+type Found = { sum: Sum | null; whole: boolean };
+
+/** Reads sumFiles in order until one names the asset; see releaseSum. */
+async function readSums(
+	release: Pick<Release, "assets">,
+	asset: Asset,
+	fetch: FetchLike,
+	token: string | null,
+	cancel: AbortSignal | undefined,
+): Promise<Found> {
+	let whole = true;
+	for (const side of sumFiles(release, asset.name)) {
+		// oxlint-disable-next-line no-await-in-loop -- the best file is read first, and the rest only when it names nothing
+		const text = await readSmall(side, fetch, token, cancel);
+		if (text === null) {
+			whole = false;
+			continue;
+		}
+		const sum = YML.test(side.name)
+			? sumInYml(text, asset.name)
+			: sumIn(text, asset.name, isOwn(side.name, asset.name));
+		if (sum) return { sum: { ...sum, file: side.name }, whole };
+	}
+	return { sum: null, whole };
+}
+
 /**
  * The hash the release's own checksum file lists for asset, read from the first of sumFiles that names it. Null when
  * the release has none, none names the asset or none can be read: the download is then checked as before. Same origin
@@ -140,14 +168,44 @@ export async function releaseSum(
 	token: string | null = null,
 	cancel?: AbortSignal,
 ): Promise<Sum | null> {
-	for (const side of sumFiles(release, asset.name)) {
-		// oxlint-disable-next-line no-await-in-loop -- the best file is read first, and the rest only when it names nothing
-		const text = await readSmall(side, fetch, token, cancel);
-		if (text === null) continue;
-		const sum = YML.test(side.name)
-			? sumInYml(text, asset.name)
-			: sumIn(text, asset.name, isOwn(side.name, asset.name));
-		if (sum) return { ...sum, file: side.name };
+	return (await readSums(release, asset, fetch, token, cancel)).sum;
+}
+
+/**
+ * releaseSum, read once per release file: the answer for this tag and file address is kept in cacheFile, so a row that
+ * waits for its update does not fetch the checksum files (or ask GitHub's API for a private one) at every check. A miss
+ * is kept only when every file was read. A sum file changed under the same tag is not seen here; the download then
+ * fails against the kept hash, which is the safe side.
+ */
+export async function cachedSum(
+	cacheFile: string,
+	release: Pick<Release, "assets" | "tag">,
+	asset: Asset,
+	fetch: FetchLike,
+	token: string | null,
+	cancel?: AbortSignal,
+): Promise<Sum | null> {
+	const key = `${release.tag}\n${asset.url}`;
+	try {
+		const c = record(JSON.parse(readFileSync(cacheFile, "utf8")));
+		// A kept miss, or a hash as cachedSum wrote it; anything else a hand edit or a crash left is read past.
+		if (c.key === key && c.sum === null) return null;
+		const r = record(c.sum);
+		const hex = str(r.hex);
+		const algo = algoOf(hex);
+		if (c.key === key && algo && algo === r.algo && str(r.file))
+			return { algo, hex: hex.toLowerCase(), file: str(r.file) };
+	} catch {
+		// no cache yet, or an unreadable one: read the files again
 	}
-	return null;
+	const found = await readSums(release, asset, fetch, token, cancel);
+	if (found.sum || found.whole) {
+		try {
+			mkdirSync(dirname(cacheFile), { recursive: true });
+			writeFileSync(cacheFile, JSON.stringify({ key, sum: found.sum }));
+		} catch {
+			// a cache that cannot be written costs one more read next check
+		}
+	}
+	return found.sum;
 }

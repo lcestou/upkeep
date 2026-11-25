@@ -1046,6 +1046,29 @@ test("install: a file fetched ahead of its turn installs without a download, and
 	expect(stages.find(([s, p]) => s === "download" && p === 100)).toBeDefined();
 });
 
+test("install: a file fetched ahead before a sha512 sum appeared is hashed again for it, never failed", async () => {
+	installZen("1.17.9b");
+	const body = bash('echo "zen 1.18.0b"');
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": body }, false);
+	const c = ctx();
+	const target = await checkAndTarget(zen(), c);
+	const sha512 = new Bun.CryptoHasher("sha512").update(body).digest("hex");
+	// A later check read latest-linux.yml: the target now carries a sha512 the early file was not hashed with.
+	const asset = { ...target.asset, name: "zen.linux-x86_64.AppImage", url: "", size: body.length, digest: null };
+	const withSum = {
+		...target,
+		asset: { ...asset, sum: { algo: "sha512" as const, hex: sha512, file: "latest-linux.yml" } },
+	};
+	mkdirSync(join(t.paths.cache, "dl"), { recursive: true });
+	writeFileSync(dlPath(t.paths, "zen", "zen.linux-x86_64.AppImage"), body);
+	const sha256 = new Bun.CryptoHasher("sha256").update(body).digest("hex");
+	const outcome = await installRelease(zen(), withSum, {
+		...c,
+		early: async () => ({ bytes: body.length, sha256, ms: 5 }),
+	});
+	expect(outcome).toMatchObject({ result: "done", installed: "1.18.0b", checked: "sums" });
+});
+
 test("Stop now during sudo -n dpkg waits it out, then puts the installed version's package back", async () => {
 	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
 	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.deb": new Uint8Array([9, 9, 9]) } };
