@@ -87,8 +87,11 @@ function body(r: Rel) {
 	};
 }
 
-/** The engine over a temp home with tool 1.1.0 installed. asked lists the GitHub addresses fetched, with their etag. */
-async function setup() {
+/**
+ * The engine over a temp home with tool 1.1.0 installed. asked lists the GitHub addresses fetched, with their etag.
+ * now is the engine's clock; every release here came out 2026-11-09.
+ */
+async function setup(now = () => new Date()) {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
 	const bin = join(t.paths.home, ".local/bin");
 	script(join(bin, "tool"), 'echo "tool 1.1.0"');
@@ -151,7 +154,7 @@ async function setup() {
 		seedManifest: join(t.dir, "seed.toml"),
 		fetch,
 		run,
-		now: () => new Date(),
+		now,
 		procRoot: join(t.dir, "proc"),
 		retryMs: 1,
 		pollMs: 10,
@@ -428,4 +431,16 @@ test("a pick pressed while a check runs waits for it, then installs", async () =
 	await p;
 	await engine.idle();
 	expect(row()).toMatchObject({ installed: "1.0.0", status: "done" });
+});
+
+test("a pre-release followed by the switch waits like any release, and a version the person picks never waits", async () => {
+	const { engine, row } = await setup(() => new Date("2026-11-10T00:00:00Z"));
+	engine.setSettings({ waitDays: 3 });
+	expect(engine.setPrerelease("tool", true)).toBe(true);
+	await engine.idle();
+	expect(row()).toMatchObject({ latest: "1.2.0-rc.1", status: "held", settles: "2026-11-12T00:00:00.000Z" });
+	// Picking it from Other versions is the person's own choice: it installs at once.
+	expect(await engine.installVersion("tool", "v1.2.0-rc.1")).toEqual({ started: true });
+	await engine.idle();
+	expect(row()).toMatchObject({ installed: "1.2.0-rc.1", status: "done", settles: undefined });
 });

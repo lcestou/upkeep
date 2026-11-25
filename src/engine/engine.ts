@@ -1478,7 +1478,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		async versions(key) {
 			const spec = specOf(key);
 			if (!spec || !canList(spec)) return { versions: [], problem: MESSAGES.noApp(key) };
-			if (!token) token = await githubToken(deps.run);
+			if (!token) token = await freshToken();
 			const list = await listReleases(spec, kindCtx(key));
 			if (isFailure(list)) return { versions: [], problem: list.detail };
 			return {
@@ -1498,7 +1498,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			const first = apps.get(key);
 			if (!spec || !first || !checked.has(key) || !canList(spec))
 				return { started: false, reason: MESSAGES.noApp(key) };
-			if (!token) token = await githubToken(deps.run);
+			if (!token) token = await freshToken();
 			const t = await versionTarget(spec, kindCtx(key), tag, first.installed);
 			if (isFailure(t)) return { started: false, reason: t.detail };
 			if (t.version === first.installed) return { started: false, reason: REASON_NOTHING };
