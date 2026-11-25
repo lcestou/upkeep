@@ -14,6 +14,8 @@ let releases: Record<string, { tag: string; assets: Record<string, Uint8Array<Ar
 let proc = "";
 /** Digests the fake GitHub lists, by asset name; an asset not named here has none. */
 let digests: Record<string, string> = {};
+/** Whether the fake GitHub marks every release immutable. */
+let immutable = false;
 let bin = "";
 
 const MANIFEST = `
@@ -93,6 +95,7 @@ const fakeFetch: FetchLike = async (url) => {
 			html_url: `https://github.com/${m[1]}/releases/tag/${r.tag}`,
 			published_at: "2026-11-09T00:00:00Z",
 			body: "Notes.",
+			immutable,
 			assets: Object.entries(r.assets).map(([name, b]) => ({
 				name,
 				browser_download_url: `https://dl.test/${m[1]}/${name}`,
@@ -163,6 +166,7 @@ async function deps(): Promise<EngineDeps> {
 beforeEach(() => {
 	t = tempHome("engine");
 	digests = {};
+	immutable = false;
 	proc = join(t.dir, "proc");
 	mkdirSync(proc);
 });
@@ -385,7 +389,7 @@ test("a release whose file changed under the same tag is held with its reason un
 		status: "held",
 		held: true,
 		detail:
-			"The v10.5.2 download changed after Upkeep first saw it. Check the release page before you release the hold.",
+			"The file behind v10.5.2 changed after Upkeep first saw it. Check the release page before you release the hold.",
 	});
 	expect(engine.readyKeys(false)).not.toContain("fd");
 	// Checked again with the same new file: still held, nothing new learned.
@@ -401,6 +405,47 @@ test("a release whose file changed under the same tag is held with its reason un
 	expect(state.seen.fd).toEqual({ tag: "v10.5.2", file: fdAsset, hash: `sha256:${"2".repeat(64)}` });
 	expect(await engine.removeApp("fd")).toEqual({ ok: true });
 	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).seen).toEqual({});
+});
+
+test("a changed hash is not held for an immutable release, a switch of hash kind, a renamed file or a new tag", async () => {
+	const fdAsset = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	const engine = createEngine(await deps());
+	const fdTar = releases["sharkdp/fd"]?.assets[fdAsset] ?? bytes("");
+	const fdRow = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	const file = join(t.paths.state, "state.json");
+	const state = () => (existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : { seen: {}, changed: {} });
+	const sha = (c: string) => `sha256:${c.repeat(64)}`;
+	// Immutable: nothing is remembered, so a later change cannot fire.
+	immutable = true;
+	digests = { [fdAsset]: sha("1") };
+	await engine.check();
+	digests = { [fdAsset]: sha("2") };
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	expect(state().seen.fd).toBeUndefined();
+	immutable = false;
+	// A sha256 seen, then only electron-builder's sha512: another kind of hash, not a changed file.
+	await engine.check(["fd"]);
+	digests = {};
+	const yml = `files:\n  - url: ${fdAsset}\n    sha512: ${Buffer.from("e".repeat(128), "hex").toString("base64")}\n`;
+	releases["sharkdp/fd"] = { tag: "v10.5.2", assets: { [fdAsset]: fdTar, "latest-linux.yml": bytes(yml) } };
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	expect(state().seen.fd.hash).toBe(`sha512:${"e".repeat(128)}`);
+	// The same tag with the file under another name and another hash.
+	const renamed = "fd-10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	releases["sharkdp/fd"] = { tag: "v10.5.2", assets: { [renamed]: fdTar } };
+	digests = { [renamed]: sha("3") };
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	// A real change marks it; a new tag then clears the mark.
+	digests = { [renamed]: sha("4") };
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("held");
+	releases["sharkdp/fd"] = { tag: "v10.5.3", assets: { [renamed]: fdTar } };
+	await engine.check(["fd"]);
+	expect(fdRow()).toMatchObject({ status: "ready", held: false });
+	expect(state().changed).toEqual({});
 });
 
 test("settings and auto are kept in state", async () => {

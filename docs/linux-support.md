@@ -2,17 +2,17 @@
 
 Upkeep is developed and used daily on Linux Mint 22 (Cinnamon, X11). Nothing in the engine names that system, and this is what each part needs:
 
-| Part                                                                | Needs                                                                                   |
-| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| AppImage, archive, single-file and source apps, self-updating tools | any x86_64 or aarch64 (arm64) Linux; `gh` for a GitHub token is optional, and needed for a private repo |
-| `.deb` apps                                                         | dpkg, so Debian, Ubuntu, Mint and their relatives                                       |
-| `.rpm` apps                                                         | rpm on a system without dpkg, so Fedora, openSUSE, AlmaLinux and their relatives        |
-| The window                                                          | WebKitGTK 4.1                                                                           |
-| The tray                                                            | a StatusNotifierItem host; Upkeep carries its own libayatana-appindicator (`vendor/tray-libs`) |
+| Part                                                                | Needs                                                                                                              |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| AppImage, archive, single-file and source apps, self-updating tools | any x86_64 or aarch64 (arm64) Linux; `gh` for a GitHub token is optional, and needed for a private repo            |
+| `.deb` apps                                                         | dpkg, so Debian, Ubuntu, Mint and their relatives                                                                  |
+| `.rpm` apps                                                         | rpm on a system without dpkg, so Fedora, openSUSE, AlmaLinux and their relatives                                   |
+| The window                                                          | WebKitGTK 4.1                                                                                                      |
+| The tray                                                            | a StatusNotifierItem host; Upkeep carries its own libayatana-appindicator (`vendor/tray-libs`)                     |
 | Window buttons on the desktop's side                                | Cinnamon's, GNOME's or KDE Plasma's (KWin's) settings; elsewhere they sit on the right, and Settings can move them |
-| Rounded corners                                                     | a compositing window manager                                                            |
-| System group, Flatpak rows                                          | Flatpak                                                                                 |
-| System group, package rows                                          | Linux Mint's Update Manager, apt, dnf, pacman or zypper                                 |
+| Rounded corners                                                     | a compositing window manager                                                                                       |
+| System group, Flatpak rows                                          | Flatpak                                                                                                            |
+| System group, package rows                                          | Linux Mint's Update Manager, apt, dnf, pacman or zypper                                                            |
 
 ## Supported
 

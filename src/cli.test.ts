@@ -101,7 +101,8 @@ test("install updates, exits 0, then restore and history work", async () => {
 	const h: string[] = [];
 	expect(await main(["history"], d, (l) => h.push(l))).toBe(0);
 	expect(h[0]).toMatch(/ BorgBackup 1\.4\.2 to 1\.4\.1 Restored$/);
-	expect(h[1]).toMatch(/ BorgBackup 1\.4\.1 to 1\.4\.2 Updated$/);
+	// The update says how its download was checked.
+	expect(h[1]).toMatch(/ BorgBackup 1\.4\.1 to 1\.4\.2 Updated \(size checked only\)$/);
 	// A Cleanup row has no versions: it says what it freed.
 	appendHistory(t.paths, [
 		{
@@ -177,6 +178,26 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", skipped: "10.5.2" })).toBe(
 		"  HELD:   tmux 9.0.0 -> 10.5.2 (skipping 10.5.2)",
 	);
+	// A hold Upkeep put on a changed release says why.
+	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", detail: "Why." })).toBe(
+		"  HELD:   tmux 9.0.0 -> 10.5.2 Why.",
+	);
+});
+
+test("hold on and off set and release an app's hold; an unknown key or a missing on/off is refused", async () => {
+	const d = deps();
+	const out: string[] = [];
+	expect(await main(["hold", "bat", "on"], d, (l) => out.push(l))).toBe(0);
+	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).hold).toEqual({ bat: true });
+	expect(await main(["hold", "bat", "off"], d, (l) => out.push(l))).toBe(0);
+	expect(JSON.parse(readFileSync(join(t.paths.state, "state.json"), "utf8")).hold).toEqual({});
+	expect(out).toEqual(["Holding bat.", "Released the hold on bat."]);
+	const json: string[] = [];
+	expect(await main(["hold", "nope", "off", "--json"], d, (l) => json.push(l))).toBe(1);
+	expect(JSON.parse(json[0] ?? "{}")).toEqual({ key: "nope", held: false, ok: false });
+	expect(await main(["hold", "nope", "off"], d, (l) => json.push(l))).toBe(1);
+	expect(json[1]).toBe("No app nope in the list.");
+	expect(await main(["hold", "bat"], d, () => undefined)).toBe(2);
 });
 
 test("recover with another Upkeep's run holding the lock says so and exits 1, leaving the marker", async () => {

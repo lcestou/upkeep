@@ -596,6 +596,8 @@ function seedsFor(variant: FixtureVariant): AppState[] {
 					detail: "Could not look: GitHub API rate limit exceeded. Try again after 10:12.",
 				};
 			if (a.key === "zen") return { ...a, status: "held", skipped: "1.24.1b" };
+			// Updated this session from a release that lists a size and no checksum.
+			if (a.key === "bat") return { ...a, checked: "size" };
 			// Held by Upkeep: the file behind fd's tag changed after the first check saw it.
 			if (a.key === "fd") return { ...a, status: "held", held: true, detail: MESSAGES.releaseChanged("v10.5.2") };
 			if (a.status === "ready" || a.status === "manual") return { ...a, status: "fresh", installed: a.latest };
@@ -1459,7 +1461,7 @@ const row = (
 /** The canned runs the History view shows before the person does anything. */
 function pastHistory(): HistoryRow[] {
 	return [
-		row("run-3", 2, "bat", "bat", "0.26.0", "0.26.1", 2400),
+		{ ...row("run-3", 2, "bat", "bat", "0.26.0", "0.26.1", 2400), checked: "size" },
 		row("run-3", 2, "claude", "Claude Code", "2.4.10", "2.4.12", 21_800),
 		row("run-2", 6, "yazi", "Yazi", "25.5.31", "26.1.22", 5100),
 		row("run-2", 6, "uv", "uv", "0.10.2", "0.10.4", 3900),

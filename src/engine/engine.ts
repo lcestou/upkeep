@@ -406,7 +406,6 @@ export function createEngine(deps: EngineDeps): Engine {
 		return isRunning({ kind: spec.kind, dest, process: spec.process }, deps.procRoot);
 	}
 
-	/** The row's resting status from its check result and the owner's skip and hold. */
 	/**
 	 * The row's resting status and detail from its check result and the owner's skip and hold. An offered release whose
 	 * file changed since it was first seen is held too, with the reason as its detail, and releasing the hold lets it through.

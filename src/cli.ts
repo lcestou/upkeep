@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "./shared/messages";
-import type { AppState, EngineEvent, Suggestion } from "./shared/types";
+import type { AppState, DownloadCheck, EngineEvent, Suggestion } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
@@ -20,6 +20,7 @@ export const USAGE = [
 	"  list                   the apps in apps.toml",
 	"  add <name|owner/repo|link|file>",
 	"  remove <key>           take an app off the list; the app stays installed",
+	"  hold <key> on|off      hold an app's updates, or release a hold (also one Upkeep put on a changed release)",
 	"  export [file]          settings and app list as one JSON file (stdout without a file)",
 	"  import <file>          replace settings and app list from an export; the old files are kept as .bak",
 	"--json prints one JSON value per line instead of text.",
@@ -40,7 +41,8 @@ export function checkLine(a: AppState): string {
 			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
 		// install --all passes these by, so they are not offered as updates.
 		case "held":
-			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : ""}`;
+			// The detail says why when Upkeep held it itself (a release whose file changed).
+			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : ""}${a.detail ? ` ${a.detail}` : ""}`;
 		default: {
 			const detail = a.detail ?? "";
 			const broken = `${a.name} will not start`;
@@ -174,7 +176,8 @@ function history(engine: Engine, json: boolean, out: Out): number {
 		// (apt does not say what autoremove freed).
 		const what =
 			r.freed === undefined ? ` ${r.from ?? "?"} to ${r.to ?? "?"}` : r.freed > 0 ? ` freed ${r.freed} bytes` : "";
-		out(`${r.at} ${r.name}${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}`);
+		const checked = r.checked ? ` (${CHECKED_TEXT[r.checked]})` : "";
+		out(`${r.at} ${r.name}${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}${checked}`);
 	}
 	return 0;
 }
@@ -232,6 +235,22 @@ async function add(engine: Engine, input: string, json: boolean, out: Out): Prom
 		for (const p of r.problems) out(`${p.key}: ${p.detail}`);
 	}
 	return r.added.length > 0 ? 0 : 1;
+}
+
+/** How history's text line says a download was checked. */
+const CHECKED_TEXT = {
+	digest: "SHA-256 matches the forge",
+	sums: "matches the checksum file",
+	size: "size checked only",
+	none: "download not checked",
+} satisfies Record<DownloadCheck, string>;
+
+/** Holds an app's updates or releases its hold, as the window's button does; on or off is required, and an unknown key fails. */
+function hold(engine: Engine, key: string, to: string, json: boolean, out: Out): number {
+	const ok = engine.setHold(key, to === "on");
+	if (json) out(JSON.stringify({ key, held: to === "on", ok }));
+	else out(ok ? (to === "on" ? `Holding ${key}.` : `Released the hold on ${key}.`) : MESSAGES.noAppInList(key));
+	return ok ? 0 : 1;
 }
 
 /** Takes an app off the list. The app itself, its files and its restore points stay. */
@@ -309,6 +328,8 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 	if (cmd === "list" && args.length === 0) return list(deps, json, out);
 	if (cmd === "add" && args.length === 1 && args[0]) return add(createEngine(deps), args[0], json, out);
 	if (cmd === "remove" && args.length === 1 && args[0]) return remove(createEngine(deps), args[0], json, out);
+	if (cmd === "hold" && args.length === 2 && args[0] && (args[1] === "on" || args[1] === "off"))
+		return hold(createEngine(deps), args[0], args[1], json, out);
 	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], json, out);
 	if (cmd === "import" && args.length === 1 && args[0]) return importFrom(deps, args[0], json, out);
 	out(USAGE);

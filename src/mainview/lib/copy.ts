@@ -404,6 +404,22 @@ export const CHECKED = {
 	},
 };
 
+/** How a download was checked, as the short line under a History row. */
+export const CHECKED_SHORT = {
+	get digest() {
+		return "SHA-256 matches the forge";
+	},
+	get sums() {
+		return "Matches the checksum file";
+	},
+	get size() {
+		return "Size checked only";
+	},
+	get none() {
+		return "Download not checked";
+	},
+};
+
 /** Why a kind keeps no restore point, said in the pane only. */
 export const NO_RESTORE = {
 	appimage: undefined,
