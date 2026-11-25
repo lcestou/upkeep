@@ -26,6 +26,9 @@ import type { Run } from "./run";
 /** Where menu entries live for this person: $XDG_DATA_HOME/applications. paths.data is $XDG_DATA_HOME/upkeep. */
 export const appsDir = (paths: Paths) => join(dirname(paths.data), "applications");
 
+/** Where Upkeep puts an entry's icon, named by full path: $XDG_DATA_HOME/icons. */
+const iconsDir = (paths: Paths) => join(dirname(paths.data), "icons");
+
 /** The file name Upkeep gives an app's entry, so it never takes the name of an entry another tool wrote. */
 const entryName = (key: string) => `upkeep-${key}.desktop`;
 
@@ -40,8 +43,12 @@ function unescapeValue(v: string): string {
 	return v.replace(/\\(.)/g, (_, c: string) => ({ s: " ", n: "\n", t: "\t", r: "\r" })[c] ?? c);
 }
 
-/** The string layer for a value written back: only the backslash needs it in an Exec line. */
-const escapeValue = (v: string) => v.replaceAll("\\", "\\\\");
+/**
+ * The string layer for a value written back: the backslash, and the line break, tab and carriage return an \\n, \\t or
+ * \\r in the image's own Exec turned into, which written raw would end the line.
+ */
+const escapeValue = (v: string) =>
+	v.replace(/[\\\n\t\r]/g, (c) => ({ "\n": "\\n", "\t": "\\t", "\r": "\\r" })[c] ?? "\\\\");
 
 type Word = { text: string; start: number; end: number };
 
@@ -75,15 +82,23 @@ function words(exec: string): Word[] {
 }
 
 /**
- * Which word starts the program: the first, or after `env` the first that is neither a VAR=value nor a flag. Wrong for
- * an env flag that takes its own argument (-u NAME), which reads NAME as the program.
+ * Which word starts the program: the first, or after `env` the first that is neither a VAR=value nor a flag, skipping
+ * the value of a flag that takes one as the next word (-u NAME, -C DIR, -S STRING and their long forms). Wrong for -S,
+ * whose string may itself hold the program.
  */
 function programAt(ws: Word[]): number {
 	if (ws[0]?.text !== "env" && !ws[0]?.text.endsWith("/env")) return 0;
 	let i = 1;
-	while (ws[i] && (/^[A-Za-z_][A-Za-z0-9_]*=/.test(ws[i]?.text ?? "") || ws[i]?.text.startsWith("-"))) i++;
+	for (let t = ws[i]?.text; t !== undefined; t = ws[i]?.text) {
+		if (ENV_VALUE_FLAGS.has(t)) i += 2;
+		else if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(t) || t.startsWith("-")) i++;
+		else break;
+	}
 	return i;
 }
+
+/** env's flags whose value is the next word. */
+const ENV_VALUE_FLAGS = new Set(["-u", "-C", "-S", "--unset", "--chdir", "--split-string"]);
 
 /** The program an Exec= value starts, past an env prefix, with both escape layers undone. */
 export function execProgram(exec: string): string {
@@ -276,17 +291,25 @@ async function writeMenuFiles(
 		const files: string[] = [];
 		const ext = icon ? iconExt(icon) : null;
 		// Icon= names the file by its full path, so it shows whatever its size, with no icon theme cache to update.
-		const icons = join(dirname(ctx.paths.data), "icons");
+		const icons = iconsDir(ctx.paths);
 		const iconDest = ext ? directlyIn(icons, join(icons, `${OWN}${key}${ext}`)) : null;
-		if (icon && iconDest) {
-			mkdirSync(dirname(iconDest), { recursive: true });
-			writeFileSync(iconDest, readFileSync(icon));
-			files.push(iconDest);
-		}
 		const entry = directlyIn(appsDir(ctx.paths), join(appsDir(ctx.paths), entryName(key)));
-		mkdirSync(dirname(entry), { recursive: true });
-		writeFileSync(entry, rewriteEntry(text, dest, iconDest));
-		files.push(entry);
+		// A file this write created goes again when a later one fails, so nothing is left that state.json does not name.
+		const created: string[] = [];
+		const put = (file: string, data: string | Buffer) => {
+			const fresh = !existsSync(file);
+			mkdirSync(dirname(file), { recursive: true });
+			writeFileSync(file, data);
+			if (fresh) created.push(file);
+			files.push(file);
+		};
+		try {
+			if (icon && iconDest) put(iconDest, readFileSync(icon));
+			put(entry, rewriteEntry(text, dest, iconDest));
+		} catch (err) {
+			for (const f of created) rmSync(f, { force: true });
+			throw err;
+		}
 		await refreshDatabase(ctx);
 		return { files };
 	} finally {
@@ -295,15 +318,16 @@ async function writeMenuFiles(
 }
 
 /**
- * Deletes the files given, each only when it is a regular file named upkeep-* under $XDG_DATA_HOME, so a hand edit of
- * state.json cannot point it anywhere else. Synchronous and quiet, for Uninstall Upkeep too.
+ * Deletes the files given, each only when it is a regular file named upkeep-* directly in the applications or icons
+ * folder Upkeep writes, so a hand edit of state.json cannot point it anywhere else. Synchronous and quiet, for
+ * Uninstall Upkeep too.
  */
 export function removeMenuFiles(files: string[], paths: Paths): void {
-	const share = `${resolve(dirname(paths.data))}/`;
+	const ours = new Set([resolve(appsDir(paths)), resolve(iconsDir(paths))]);
 	for (const f of files)
 		try {
 			if (
-				resolve(f).startsWith(share) &&
+				ours.has(dirname(resolve(f))) &&
 				basename(f).startsWith(OWN) &&
 				lstatSync(f, { throwIfNoEntry: false })?.isFile()
 			)

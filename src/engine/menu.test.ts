@@ -260,3 +260,34 @@ test("removeMenuFiles goes on past a file it may not delete", () => {
 	}
 	expect([existsSync(stuck), existsSync(icon)]).toEqual([true, false]);
 });
+
+test("round 2: escapes stay escapes, env's value flags are skipped, a failed write leaves no new file, deletes stay in two folders", async () => {
+	// An \n inside the image's own Exec stays an escape, never a second line.
+	const out = rewriteEntry("[Desktop Entry]\nExec=AppRun --title a\\nb\\tc %U\n", "/n", null);
+	expect(out).toBe('[Desktop Entry]\nExec="/n" --title a\\nb\\tc %U\n');
+	expect(out.split("\n")).toHaveLength(3);
+	expect(execProgram("env -u FOO --chdir /tmp A=1 /x/y %U")).toBe("/x/y");
+	expect(rewriteEntry("Exec=env -C /tmp AppRun %U", "/n", null)).toBe('Exec=env -C /tmp "/n" %U\n');
+	// The entry cannot be written: the icon this write made goes too, and one that was there before stays.
+	const dest = fakeImage(join(t.paths.home, "w.AppImage"), {
+		"w.desktop": "[Desktop Entry]\nExec=w\nIcon=w\n",
+		"w.svg": "<svg/>",
+	});
+	mkdirSync(dirname(appsDir(t.paths)), { recursive: true });
+	writeFileSync(appsDir(t.paths), "");
+	const icon = join(share(), "icons/upkeep-w.svg");
+	expect("problem" in (await writeMenu("w", dest, ctx().ctx))).toBe(true);
+	expect(existsSync(icon)).toBe(false);
+	writeFileSync(icon, "old");
+	expect("problem" in (await writeMenu("w", dest, ctx().ctx))).toBe(true);
+	expect(existsSync(icon)).toBe(true);
+	// Only directly in applications or icons.
+	const shallow = join(share(), "upkeep-x.desktop");
+	const deep = join(share(), "icons/hicolor/upkeep-x.png");
+	for (const f of [shallow, deep]) {
+		mkdirSync(dirname(f), { recursive: true });
+		writeFileSync(f, "x");
+	}
+	removeMenuFiles([shallow, deep, icon], t.paths);
+	expect([existsSync(shallow), existsSync(deep), existsSync(icon)]).toEqual([true, true, false]);
+});
