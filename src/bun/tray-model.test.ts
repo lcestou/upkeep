@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunState, Snapshot } from "../shared/types";
 import {
+	createSettleWatch,
 	failedNotice,
 	readyFingerprint,
 	readyNotice,
@@ -139,4 +140,18 @@ test("after a run, notices say what updated and each failure, and nothing for an
 		]),
 	).toEqual([updatedNotice(["A"]), failedNotice("B")]);
 	expect(runNotices([{ name: "C", result: "stopped" }])).toEqual([]);
+});
+
+test("the settle watch fires once, when a waiting row turns Ready, and not for rows that never waited", () => {
+	const watch = createSettleWatch();
+	// SAFETY: the watch reads only key, status and settles.
+	const row = (over: Partial<AppState>) => ({ key: "zen", status: "held", ...over }) as AppState;
+	expect(watch(row({ status: "ready" }))).toBe(false);
+	expect(watch(row({ settles: "2026-11-27T00:00:00.000Z" }))).toBe(false);
+	expect(watch(row({ status: "ready" }))).toBe(true);
+	expect(watch(row({ status: "ready" }))).toBe(false);
+	// A waiting row that went to a check, not Ready, is forgotten.
+	expect(watch(row({ settles: "2026-11-27T00:00:00.000Z" }))).toBe(false);
+	expect(watch(row({ status: "checking" }))).toBe(false);
+	expect(watch(row({ status: "ready" }))).toBe(false);
 });

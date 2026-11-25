@@ -27,6 +27,7 @@ import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
 import {
+	createSettleWatch,
 	readyFingerprint,
 	readyNames,
 	readyNotice,
@@ -511,8 +512,12 @@ async function selfLook(): Promise<void> {
 	}
 }
 
+const settled = createSettleWatch();
 engine.subscribe((event) => {
 	toView.push(event);
+	// A release whose wait ran out turned Ready without a check: say so as a check would. Before the first background
+	// check that check will say it, and during one it does.
+	if (event.type === "app" && settled(event.app) && phase === "idle" && !firstBackgroundCheck) announceReady();
 	if (event.type !== "run") {
 		// A meta event carries the settings, which may switch the language the tray speaks.
 		if (event.type === "app" || event.type === "meta") refreshTray();
