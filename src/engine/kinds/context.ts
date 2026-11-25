@@ -63,6 +63,8 @@ export type Checked = {
 	ahead?: number;
 	/** What an install of this app would put in place. */
 	target?: Target;
+	/** The check failed before the forge answered at all: the network, not the app. */
+	offline?: boolean;
 };
 
 /** locked: the forge says the release's files cannot change, so a changed file is never looked for. */

@@ -86,6 +86,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	language: "system",
 	selfAuto: false,
 	upkeepCommand: false,
+	waitUnmetered: false,
 };
 
 /** Any missing or out-of-range field takes its default; keepBackups is rounded into 1 to 5. */
@@ -106,6 +107,7 @@ export function clampSettings(s: Partial<Settings>): Settings {
 		language: s.language === "system" || isLanguage(s.language) ? s.language : DEFAULT_SETTINGS.language,
 		selfAuto: typeof s.selfAuto === "boolean" ? s.selfAuto : DEFAULT_SETTINGS.selfAuto,
 		upkeepCommand: typeof s.upkeepCommand === "boolean" ? s.upkeepCommand : DEFAULT_SETTINGS.upkeepCommand,
+		waitUnmetered: typeof s.waitUnmetered === "boolean" ? s.waitUnmetered : DEFAULT_SETTINGS.waitUnmetered,
 	};
 }
 

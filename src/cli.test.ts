@@ -200,6 +200,27 @@ test("hold on and off set and release an app's hold; an unknown key or a missing
 	expect(await main(["hold", "bat"], d, () => undefined)).toBe(2);
 });
 
+test("install --auto with the wait on and a metered connection installs nothing, says why and exits 0", async () => {
+	const d = deps();
+	const power: EngineDeps["run"] = async (argv) => ({
+		code: 0,
+		stdout: argv.includes("Metered") ? "u 1" : "b false",
+		stderr: "",
+		timedOut: false,
+	});
+	mkdirSync(t.paths.state, { recursive: true });
+	writeFileSync(
+		join(t.paths.state, "state.json"),
+		JSON.stringify({ settings: { waitUnmetered: true }, auto: { borg: true } }),
+	);
+	const out: string[] = [];
+	expect(await main(["install", "--auto"], { ...d, power }, (l) => out.push(l))).toBe(0);
+	expect(out.at(-1)).toBe("Automatic updates wait: the connection is metered.");
+	const json: string[] = [];
+	expect(await main(["install", "--auto", "--json"], { ...d, power }, (l) => json.push(l))).toBe(0);
+	expect(JSON.parse(json.at(-1) ?? "{}")).toMatchObject({ started: false, wait: "metered" });
+});
+
 test("recover with another Upkeep's run holding the lock says so and exits 1, leaving the marker", async () => {
 	const d = deps();
 	const marker = {
@@ -362,6 +383,23 @@ test("export and import carry the list, settings, skips, holds and auto picks, a
 	expect(readdirSync(t.paths.state).filter((f) => f.startsWith("state.json.pre-import-"))).toHaveLength(1);
 });
 
+test("import that would turn the wait for an unmetered connection off says so and needs --yes", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const file = join(t.dir, "nowait.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	updateState(t.paths, (s) => {
+		s.settings.waitUnmetered = true;
+	});
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
+	expect(said.slice(0, 2)).toEqual([
+		`${file} turns off these settings on this computer:`,
+		"  Wait for an unmetered connection and mains power for automatic app updates",
+	]);
+	expect(loadState(t.paths).settings.waitUnmetered).toBe(true);
+});
+
 test("import of a list whose apps run commands prints them and needs --yes; new or changed apps come in with auto off", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
@@ -403,6 +441,7 @@ test("import of a list whose apps run commands prints them and needs --yes; new 
 			apps: [{ key: "glow", name: "Glow", commands: ["source: npm:glow", "check: glow --version", "update: glow up"] }],
 			plain: 3,
 			turnsOn: [],
+			turnsOff: [],
 		},
 	});
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);

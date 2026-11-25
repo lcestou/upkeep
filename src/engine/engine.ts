@@ -59,6 +59,7 @@ import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceM
 import { dropTree, sweepTrash } from "./drop";
 import { entryOwners, foreignEntry, removeMenu, writeMenu } from "./menu";
 import { expandHome, type Paths } from "./paths";
+import { canHoldSleep, holdSleep, LOCK_LINES, waitReason } from "./power";
 import { endGroup, killTree, type Run, type RunOpts, runsAsRoot, stepName } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
@@ -99,6 +100,13 @@ export type EngineDeps = {
 	catalogueUrl?: string;
 	fetch: FetchLike;
 	run: Run;
+	/**
+	 * Runs the sleep lock during an install and the metered and battery questions. Without it no lock is taken and
+	 * nothing waits; realDeps passes the real runner, and tests a fake so no real lock is ever held.
+	 */
+	power?: Run;
+	/** How long a started sleep lock must stay up before it counts as held. Default 300 ms; tests pass less. */
+	lockConfirmMs?: number;
 	now: () => Date;
 	/** The app's version, shown in Settings. */
 	version?: string;
@@ -119,7 +127,10 @@ export type EngineDeps = {
 export type Engine = {
 	snapshot(): Snapshot;
 	subscribe(listener: (e: EngineEvent) => void): () => void;
-	check(keys?: string[]): Promise<void>;
+	/** quietOffline: an app whose check found no network keeps the row it had, so a start before the network is up shows nothing failed. */
+	check(keys?: string[], opts?: { quietOffline?: boolean }): Promise<void>;
+	/** Whether the last check found the network down: some app could not reach its forge and none that asks one got an answer. */
+	offline(): boolean;
 	install(keys: string[]): Promise<{ started: boolean; reason?: string }>;
 	stopAfterCurrent(): void;
 	/**
@@ -152,6 +163,11 @@ export type Engine = {
 	history(limit: number): HistoryRow[];
 	runLog(runId: string): LogLine[];
 	readyKeys(autoOnly: boolean): string[];
+	/**
+	 * Installs the ready apps marked automatic. With "wait for an unmetered connection" on, nothing starts while the
+	 * connection is metered or the machine is on battery, and wait says which; a pressed Install never comes here.
+	 */
+	installAuto(): Promise<{ started: boolean; reason?: string; wait?: "metered" | "battery" }>;
 	/** Resolves when no check or run is in progress. */
 	idle(): Promise<void>;
 	suggest(input: string, asset?: string): Promise<{ suggestions: Suggestion[]; problem?: string }>;
@@ -183,6 +199,22 @@ function restartWanted(spec: AppSpec): boolean {
 		(spec.restart?.length ?? 0) > 0 ||
 		spec.relaunch === true
 	);
+}
+
+/** The kinds whose check answers from the disk alone, so a good answer says nothing about the network. */
+const LOCAL_CHECKS = new Set(["claude-plugins"]);
+
+/**
+ * Whether a check's results say the network is down: some app failed before its source answered, and no app whose
+ * check fetches got an answer. Command and manual apps fetch their latest version too, so their answer counts. A
+ * partial outage (one host down, another up) is not offline.
+ */
+function offlineIn(list: AppSpec[], found: Map<string, Checked | null>): boolean {
+	const rows = list.flatMap((s) => {
+		const c = found.get(s.key);
+		return c ? [{ c, local: LOCAL_CHECKS.has(s.kind) }] : [];
+	});
+	return rows.some((r) => r.c.offline) && !rows.some((r) => !r.local && r.c.status !== "problem");
 }
 
 /** Runs fn with at most n in flight at once. */
@@ -640,7 +672,11 @@ export function createEngine(deps: EngineDeps): Engine {
 		emitApp(app);
 	}
 
-	async function doCheck(keys?: string[]): Promise<void> {
+	/** Whether the last check found the network down; see offline(). */
+	let lastOffline = false;
+
+	/** quietOffline keeps a row that found no network as it was before, and leaves it and the check time unsaved. */
+	async function doCheck(keys?: string[], quietOffline = false): Promise<void> {
 		const list = loadSpecs().filter((s) => !keys || keys.includes(s.key));
 		run = {
 			...run,
@@ -679,8 +715,11 @@ export function createEngine(deps: EngineDeps): Engine {
 			run.index += 1;
 			emitRun();
 		};
+		const found = new Map<string, Checked | null>();
+		const kept = new Set<string>();
 		await Promise.all(
 			list.map(async (spec) => {
+				const before = checked.get(spec.key);
 				let c: Checked | null;
 				try {
 					c = await checkOne(spec, kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
@@ -692,12 +731,23 @@ export function createEngine(deps: EngineDeps): Engine {
 						detail: err instanceof Error ? err.message : String(err),
 					};
 				}
-				accept(spec, c, history);
+				found.set(spec.key, c);
+				// A row with nothing before it (a first start, an app just added) stays out of the list until a check gets through.
+				if (quietOffline && c?.offline) {
+					kept.add(spec.key);
+					if (before) accept(spec, before, history);
+				} else accept(spec, c, history);
 				done();
 			}),
 		);
-		checkedAt = deps.now().toISOString();
-		rememberRows(list, checkedAt);
+		lastOffline = offlineIn(list, found);
+		if (quietOffline && lastOffline) say(null, "No network yet: the rows keep what the last check found");
+		else checkedAt = deps.now().toISOString();
+		// A row that answered is stamped now even when the check found no network; a kept row keeps its own stamp.
+		rememberRows(
+			list.filter((s) => !kept.has(s.key)),
+			deps.now().toISOString(),
+		);
 		log?.close();
 		log = null;
 		run = { ...run, id: null, phase: "idle", index: run.total, currentKey: null };
@@ -873,7 +923,15 @@ export function createEngine(deps: EngineDeps): Engine {
 			log: say,
 		});
 		ahead = early;
-		const p = doRun(queue)
+		// The lock is taken inside the run, so busy covers it, and let go however the run ends: done, stopped or thrown.
+		const p = (async () => {
+			const release = await sleepHeld();
+			try {
+				await doRun(queue);
+			} finally {
+				await release?.().catch(() => undefined);
+			}
+		})()
 			.catch((err: Error) => {
 				const reason = err instanceof Error ? err.message : String(err);
 				say(null, `Run failed: ${reason}`);
@@ -908,6 +966,34 @@ export function createEngine(deps: EngineDeps): Engine {
 			});
 		busy = p;
 		return { started: true };
+	}
+
+	/** Whether the lock tool answered, asked once per engine; null until the first run asks. */
+	let lockable: Promise<boolean> | null = null;
+	/** Said once per engine: a machine without the lock tool runs every install without the lock. */
+	let noLockSaid = false;
+
+	/**
+	 * Takes the sleep lock for a run; null, and one log line the first time, where there is none to take. A lock that
+	 * cannot be started (its output file cannot be written) is skipped with a line: the run goes on without it.
+	 */
+	async function sleepHeld(): Promise<(() => Promise<void>) | null> {
+		const power = deps.power;
+		if (!power) return null;
+		lockable ??= canHoldSleep(power).catch(() => false);
+		if (!(await lockable)) {
+			if (!noLockSaid) say(null, LOCK_LINES.missing);
+			noLockSaid = true;
+			return null;
+		}
+		try {
+			const release = await holdSleep(power, process.pid, "Installing updates", deps.lockConfirmMs);
+			if (release) say(null, LOCK_LINES.held);
+			return release;
+		} catch (err) {
+			say(null, LOCK_LINES.failed(err instanceof Error ? err.message : String(err)));
+			return null;
+		}
 	}
 
 	/**
@@ -1033,9 +1119,9 @@ export function createEngine(deps: EngineDeps): Engine {
 			listeners.add(listener);
 			return () => listeners.delete(listener);
 		},
-		check(keys) {
+		check(keys, opts) {
 			if (run.phase === "installing" || run.phase === "checking" || starting) return busy;
-			const p = doCheck(keys).catch((err: Error) => {
+			const p = doCheck(keys, opts?.quietOffline).catch((err: Error) => {
 				say(null, `Check failed: ${err instanceof Error ? err.message : String(err)}`);
 				run = { ...run, phase: "idle", currentKey: null };
 				emitRun();
@@ -1069,6 +1155,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 			emitRun();
 		},
+		offline: () => lastOffline,
 		async endStep() {
 			const step = inStep;
 			if (!step) return null;
@@ -1310,6 +1397,14 @@ export function createEngine(deps: EngineDeps): Engine {
 		},
 		runLog(runId) {
 			return readRunLog(paths, runId);
+		},
+		async installAuto() {
+			const keys = engine.readyKeys(true);
+			if (keys.length === 0) return { started: false, reason: REASON_NOTHING };
+			const wait = deps.power && loadState(paths).settings.waitUnmetered ? await waitReason(deps.power) : null;
+			if (!wait) return engine.install(keys);
+			say(null, `Automatic updates wait: ${wait === "metered" ? "metered connection" : "on battery"}`);
+			return { started: false, wait };
 		},
 		readyKeys(autoOnly) {
 			const keys: string[] = [];

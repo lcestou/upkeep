@@ -64,11 +64,15 @@ export function nameList(names: string[], code: LanguageCode = "en"): string {
 	return `${names.slice(0, 4).join(", ")} ${count(names.length - 4, TRAY_TEXT[code].more, code)}`;
 }
 
-/** The notification text for a ready set; the count takes the language's plural form ("1 update", "3 updates"). */
-export function readyNotice(names: string[], code: LanguageCode = "en"): string {
+/**
+ * The notification text for a ready set; the count takes the language's plural form ("1 update", "3 updates"). When
+ * the automatic apps wait, a second line says what for, so a ready notice for them does not read as a failure.
+ */
+export function readyNotice(names: string[], code: LanguageCode = "en", wait?: "metered" | "battery"): string {
 	const t = TRAY_TEXT[code];
 	const head = [count(names.length, t.readyCount, code), t.ready].filter(Boolean).join(" ");
-	return `${head}: ${nameList(names, code)}`;
+	const why = wait === "metered" ? t.waitsMetered : wait === "battery" ? t.waitsBattery : "";
+	return [`${head}: ${nameList(names, code)}`, why].filter(Boolean).join("\n");
 }
 
 /** The notification text after an install, naming at most four apps. */
@@ -102,10 +106,12 @@ export function runNotices(results: Pick<RunResult, "name" | "result">[], code: 
 }
 
 /** Identifies a ready set, so the same set is announced once and not after every check. */
-export function readyFingerprint(snapshot: Snapshot): string {
-	return snapshot.apps
+export function readyFingerprint(snapshot: Snapshot, wait?: "metered" | "battery"): string {
+	const ready = snapshot.apps
 		.filter((app) => app.status === "ready")
 		.map((app) => `${app.key}@${app.latest ?? ""}`)
 		.toSorted()
 		.join(",");
+	// The same set waiting for a reason is a new notice, so a second metered login still says why.
+	return ready && wait ? `${ready};wait=${wait}` : ready;
 }

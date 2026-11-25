@@ -192,6 +192,18 @@
 			/>
 		</label>
 		<label class="row">
+			<span class="text">
+				<span data-testid="setting-wait-label">{TEXT.waitUnmetered}</span>
+				<span class="hint" data-testid="setting-wait-hint">{TEXT.waitUnmeteredHint}</span>
+			</span>
+			<input
+				type="checkbox"
+				checked={model.settings.waitUnmetered}
+				data-testid="setting-wait"
+				onchange={(e) => set({ waitUnmetered: e.currentTarget.checked })}
+			/>
+		</label>
+		<label class="row">
 			<span class="text" data-testid="setting-check-every-label">{TEXT.checkEvery}</span>
 			<select
 				value={model.settings.checkEvery}
@@ -257,6 +269,17 @@
 						<p id={importAsk.apps.length > 0 ? undefined : "import-ask"} data-testid="import-turns-on">{IMPORT.turnsOn}</p>
 						<ul class="switches">
 							{#each importAsk.turnsOn as k (k)}<li data-testid="import-switch">{switchName(k)}</li>{/each}
+						</ul>
+					{/if}
+					{#if importAsk.turnsOff.length > 0}
+						<p
+							id={importAsk.apps.length > 0 || importAsk.turnsOn.length > 0 ? undefined : "import-ask"}
+							data-testid="import-turns-off"
+						>
+							{IMPORT.turnsOff}
+						</p>
+						<ul class="switches">
+							{#each importAsk.turnsOff as k (k)}<li data-testid="import-switch-off">{TEXT.waitUnmetered}</li>{/each}
 						</ul>
 					{/if}
 					<p data-testid="import-auto-off">{IMPORT.autoOff}</p>

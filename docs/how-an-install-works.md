@@ -5,6 +5,8 @@
 3. **Install.** The new file is written beside the old one and renamed into place, so a running copy keeps working and a full disk leaves the old file whole. A running app is not closed. Its row says "Restart to apply". When its table has `restart` or `relaunch`, its pane offers Restart now and the "Restart to finish" group a button that restarts every such app; one that would close a window asks first, since unsaved work in it is lost.
 4. **Verify.** The version probe runs again. If the new copy will not start, the restore point goes back and the row says so.
 
+While a run installs, from its start to its end, Upkeep asks logind to hold sleep (`systemd-inhibit --what=sleep --mode=block`), so an idle timer or the menu's Suspend does not land between the restore point and the verify. Shutdown is never held, and closing the lid still suspends under logind's default `LidSwitchIgnoreInhibited=yes`. The lock is a child process tied to Upkeep's own (`tail --pid`), so it goes when the run ends or stops, and within a second if Upkeep crashes. A system without `systemd-inhibit` installs without it, and the run log says so once.
+
 Root steps use `sudo -n`. If sudo wants a password the app fails with a message and nothing is changed.
 
 ## Stop now

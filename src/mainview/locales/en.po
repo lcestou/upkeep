@@ -2919,6 +2919,18 @@ msgstr "{0}: a config file may not contain a .. part"
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "There is no file waiting to import. Press Import and pick it again."
 
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "Wait for an unmetered connection and mains power for automatic app updates"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "It turns off these settings, which are on on this computer:"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."

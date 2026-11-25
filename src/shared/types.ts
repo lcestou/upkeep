@@ -156,7 +156,12 @@ export type ImportAsk = {
 	apps: { key: string; name: string; commands: string[] }[];
 	plain: number;
 	turnsOn: ImportSwitch[];
+	/** Each protection the file turns off that is on on this machine: off, it would let automatic updates run. */
+	turnsOff: ImportProtection[];
 };
+
+/** A setting that holds something back, which an import asks before turning off. */
+export type ImportProtection = "waitUnmetered";
 
 /** A setting or extra an import would turn on that is off here: each one acts (writes a file, installs, shows a group). */
 export type ImportSwitch =
@@ -348,6 +353,8 @@ export type Settings = {
 	selfAuto: boolean;
 	/** An `upkeep` command in ~/.local/bin that runs this install's command line. Off: no such file from Upkeep. */
 	upkeepCommand: boolean;
+	/** Automatic installs and early downloads wait while the connection is metered or the machine is on battery. A pressed Install never waits. */
+	waitUnmetered: boolean;
 };
 
 /**

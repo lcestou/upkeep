@@ -2942,6 +2942,18 @@ msgstr "{0}: un archivo de config no puede contener una parte .."
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "No hay ningún archivo esperando para importar. Pulsa Importar y elígelo de nuevo."
 
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "Esperar a una conexión sin límite de datos y a la corriente para las actualizaciones automáticas de apps"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "Las actualizaciones automáticas de apps esperan con una conexión de uso medido o con batería. Las comprobaciones siguen y Instalar siempre funciona. La actualización del propio Upkeep no espera."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "Desactiva estos ajustes, que están activados en este equipo:"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."

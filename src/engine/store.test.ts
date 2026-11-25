@@ -121,6 +121,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			language: "system",
 			selfAuto: false,
 			upkeepCommand: false,
+			waitUnmetered: false,
 		},
 		notified: "",
 		restart: {},

@@ -36,7 +36,8 @@ export async function checkCommand(spec: AppSpec, ctx: KindCtx): Promise<Checked
 		onRate: ctx.onRate,
 		api: ctx.api,
 	});
-	if (isFailure(latest)) return { installed, latest: null, status: "problem", detail: latest.detail };
+	if (isFailure(latest))
+		return { installed, latest: null, status: "problem", detail: latest.detail, offline: latest.failure === "network" };
 	const base = latest.release ? fromRelease(latest.release) : {};
 	if (!("version" in probe))
 		return {

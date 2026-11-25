@@ -2896,6 +2896,18 @@ msgstr "{0}：config ファイルに .. を含めることはできません"
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "読み込みを待っているファイルはありません。読み込みを押して、もう一度選んでください。"
 
+#: src/mainview/lib/copy.ts
+msgid "Wait for an unmetered connection and mains power for automatic app updates"
+msgstr "アプリの自動更新は従量制でない接続と AC 電源を待つ"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic app updates hold off on a metered connection or on battery. Checks still run, and Install always works. Upkeep's own update is not held."
+msgstr "従量制の接続やバッテリー駆動のときは、アプリの自動更新を待たせます。確認は続き、インストールはいつでも使えます。Upkeep 自体の更新は待ちません。"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns off these settings, which are on on this computer:"
+msgstr "このコンピューターでオンになっている次の設定をオフにします:"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."

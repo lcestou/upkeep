@@ -291,6 +291,7 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 			],
 			plain: 0,
 			turnsOn: [],
+			turnsOff: [],
 		},
 	});
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
@@ -311,6 +312,25 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 		problems: ["There is no file waiting to import. Press Import and pick it again."],
 	});
 	await r.engine.idle();
+});
+
+test("Import asks before turning off the wait for an unmetered connection, and not when it is off here", async () => {
+	const folder = join(t.dir, "out4");
+	mkdirSync(folder, { recursive: true });
+	const here = setup({ pickFolder: async () => [folder] });
+	const file = (await here.r.exportSetup({})).file ?? "";
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.settings.waitUnmetered = false;
+	writeFileSync(file, JSON.stringify(doc));
+	here.engine.setSettings({ waitUnmetered: true });
+	const on = setup({ pickFile: async () => [file] });
+	expect((await on.r.importSetup({})).ask?.turnsOff).toEqual(["waitUnmetered"]);
+	await on.engine.idle();
+	on.engine.setSettings({ waitUnmetered: false });
+	const off = setup({ pickFile: async () => [file] });
+	expect((await off.r.importSetup({})).ask?.turnsOff).toEqual([]);
+	await off.engine.idle();
+	await here.engine.idle();
 });
 
 test("Import waits for no run: with the run lock held elsewhere it refuses", async () => {

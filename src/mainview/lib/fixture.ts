@@ -703,6 +703,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		language: "system",
 		selfAuto: false,
 		upkeepCommand: false,
+		waitUnmetered: false,
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",
@@ -1499,6 +1500,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 						],
 						plain: apps.length - 1,
 						turnsOn: ["selfAuto"],
+						turnsOff: ["waitUnmetered"],
 					},
 				};
 			}
