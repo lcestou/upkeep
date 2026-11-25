@@ -54,7 +54,7 @@ export function checkLine(a: AppState): string {
 /** The line `install` prints for an event, or null for events a person has no use for (a working app, for instance). */
 function eventLine(e: EngineEvent): string | null {
 	if (e.type === "log") return formatLogLine(e.line);
-	if (e.type === "app" && ["queued", "working", "done", "failed", "rolled_back"].includes(e.app.status)) {
+	if (e.type === "app" && ["queued", "working", "done", "failed", "rolled_back", "stopped"].includes(e.app.status)) {
 		// A waiting app whose file came early already has its log line ("Downloaded ahead of its turn").
 		if (e.app.status === "working" || (e.app.status === "queued" && e.app.downloaded)) return null;
 		const to = e.app.status === "done" ? ` ${e.app.installed ?? ""}` : "";
@@ -77,8 +77,90 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	return 0;
 }
 
+/** The signals install turns into Stop now: Ctrl-C, a kill or systemd's stop, and the terminal closing. */
+type StopSignal = "SIGINT" | "SIGTERM" | "SIGHUP";
+
+/** Where install hears Ctrl-C, SIGTERM and SIGHUP, and how it quits at once; tests pass a fake that raises them. */
+export type Signals = {
+	on(name: StopSignal, fn: () => void): void;
+	off(name: StopSignal, fn: () => void): void;
+	exit(code: number): void;
+};
+
+/**
+ * Between the check and the run's first app: starting is set while engine.install() recovers an earlier interrupted
+ * update and claims the lock; pending records a press that came then, to be turned into Stop now once the run starts.
+ */
+export type Starting = { starting: boolean; pending: boolean };
+
+/**
+ * The first Ctrl-C, SIGTERM or SIGHUP during an install is Stop now: the current app is put back and the rest do not
+ * start. A second one ends the step in progress (TERM, then KILL after 5 s) and quits, which can leave that app
+ * half-installed; a step that runs as root cannot be ended from here, so it keeps running and the line says so. During
+ * the check before the install nothing is being changed, so the first one quits at once. While the install starts (it
+ * may be finishing an earlier interrupted update) the first one waits for that, then stops before any app; a second
+ * one quits mid-recovery. Returns the function that stops listening.
+ */
+export function stopOnSignal(
+	engine: Pick<Engine, "snapshot" | "stopNow" | "endStep">,
+	signals: Signals,
+	out: Out,
+	gate: Starting,
+): () => void {
+	let quitting = false;
+	const onSignal = () => {
+		const run = engine.snapshot().run;
+		const name = engine.snapshot().apps.find((a) => a.key === run.currentKey)?.name ?? "the current app";
+		if (gate.starting && run.phase !== "installing") {
+			if (gate.pending) {
+				out("Quit while an earlier interrupted update was being finished or undone. Run upkeep recover.");
+				return signals.exit(130);
+			}
+			gate.pending = true;
+			out("Stopping: no app will be installed. Press Ctrl-C again to quit at once.");
+			return;
+		}
+		if (run.phase !== "installing") return signals.exit(130);
+		if (run.stoppingNow) {
+			// Children run in their own process groups, so the terminal's Ctrl-C never reached the step: end it here.
+			if (quitting) return;
+			quitting = true;
+			void engine.endStep().then((left) => {
+				// With no step left to end, the put-back may already have finished: say so rather than assume it did not.
+				out(
+					left === null
+						? `Quit while ${name} was being stopped. Run upkeep recover to make sure it is back in place.`
+						: left.root
+							? `Quit before ${name} was put back. ${left.step} runs as root and is still running; run upkeep recover once it ends.`
+							: `Quit before ${name} was put back. Run upkeep recover.`,
+				);
+				signals.exit(130);
+			});
+			return;
+		}
+		out(`Stopping: putting ${name} back. Press Ctrl-C again to quit at once, which can leave ${name} half-installed.`);
+		engine.stopNow();
+	};
+	const names: StopSignal[] = ["SIGINT", "SIGTERM", "SIGHUP"];
+	for (const n of names) signals.on(n, onSignal);
+	return () => {
+		for (const n of names) signals.off(n, onSignal);
+	};
+}
+
 /** Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. Exits 0 only when every result is "updated". */
-async function install(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
+async function install(engine: Engine, args: string[], json: boolean, out: Out, signals: Signals): Promise<number> {
+	const gate: Starting = { starting: false, pending: false };
+	const unlisten = stopOnSignal(engine, signals, out, gate);
+	try {
+		return await installRun(engine, args, json, out, gate);
+	} finally {
+		unlisten();
+	}
+}
+
+/** install's body, with Ctrl-C already turned into Stop now; a press while the install starts stops it once started. */
+async function installRun(engine: Engine, args: string[], json: boolean, out: Out, gate: Starting): Promise<number> {
 	await engine.check();
 	await engine.idle();
 	const keys = args.includes("--all")
@@ -93,7 +175,11 @@ async function install(engine: Engine, args: string[], json: boolean, out: Out):
 			if (line) out(line);
 		}
 	});
+	gate.starting = true;
 	const r = await engine.install(keys);
+	gate.starting = false;
+	// Pressed during the recovery or setup: the run stops before its first app.
+	if (r.started && gate.pending) engine.stopNow();
 	if (!r.started) {
 		off();
 		const reason = r.reason ?? "Nothing to install.";
@@ -134,6 +220,7 @@ const RESULT_TEXT = {
 	updated: "Updated",
 	failed: "Failed",
 	rolled_back: "Rolled back",
+	stopped: "Stopped",
 	restored: "Restored",
 	cleaned: "Cleaned",
 	skipped: "Skipped",
@@ -347,12 +434,17 @@ function importFrom(deps: EngineDeps, file: string, sure: boolean, json: boolean
 }
 
 /** Runs one command line. Returns the exit code. */
-export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => console.log(l)): Promise<number> {
+export async function main(
+	argv: string[],
+	deps: EngineDeps,
+	out: Out = (l) => console.log(l),
+	signals: Signals = process,
+): Promise<number> {
 	const [cmd, ...rest] = argv;
 	const json = rest.includes("--json");
 	const args = rest.filter((a) => a !== "--json");
 	if (cmd === "check" && args.length === 0) return check(createEngine(deps), json, out);
-	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out);
+	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out, signals);
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
 		return restore(createEngine(deps), deps, args[0], args[1], json, out);
 	if (cmd === "history" && args.length === 0) return history(createEngine(deps), json, out);

@@ -2727,6 +2727,58 @@ msgstr "Could not unpack the {0} restore point: {1}"
 msgid "Downloaded, waits its turn"
 msgstr "Downloaded, waits its turn"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "Stopped by you"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "Stopped"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "Stopped. {0} is back in place."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "Stopped. {0} still reports {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "Stopped. {0} does not start now: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "Waiting for {0} to finish, then putting {1} back."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "Waiting for {0} to finish."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "No output for {0} min."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "No output for {0} min. It stops on its own in {1} min."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Stop now"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Stopping {0}…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."

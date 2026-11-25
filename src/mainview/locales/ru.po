@@ -2769,6 +2769,58 @@ msgstr "Не удалось распаковать точку восстанов
 msgid "Downloaded, waits its turn"
 msgstr "Скачано, ждёт своей очереди"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "Остановлено вами"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "Остановлено"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "Остановлено. {0} снова на месте."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "Остановлено. {0} по-прежнему сообщает {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "Остановлено. {0} сейчас не запускается: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "Ждём завершения {0}, затем возвращаем {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "Ждём завершения {0}."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Нет вывода {0} мин."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Нет вывода {0} мин. Остановится сам через {1} мин."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Остановить сейчас"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Остановка {0}…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."

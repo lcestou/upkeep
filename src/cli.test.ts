@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { checkLine, main, pickSure, USAGE } from "./cli";
-import type { EngineDeps } from "./engine/engine";
+import { checkLine, main, pickSure, stopOnSignal, USAGE } from "./cli";
+import { createEngine, type EngineDeps } from "./engine/engine";
 import {
 	appendHistory,
 	claimLock,
@@ -658,4 +658,164 @@ test("add refuses a catalogue app whose install path holds a script, as the wind
 	const listed: string[] = [];
 	await main(["list"], d, (l) => listed.push(l));
 	expect(listed.some((l) => l.startsWith("httpx "))).toBe(false);
+});
+
+/** Stands in for process: raise() delivers a signal to what install listens with, and exit is recorded, not taken. */
+function fakeSignals() {
+	const listeners = new Map<string, Set<() => void>>();
+	const exits: number[] = [];
+	return {
+		exits,
+		raise: (name: "SIGINT" | "SIGTERM" | "SIGHUP") => {
+			for (const fn of listeners.get(name) ?? []) fn();
+		},
+		listening: () => [...listeners.values()].reduce((n, s) => n + s.size, 0),
+		on(name: string, fn: () => void) {
+			listeners.set(name, (listeners.get(name) ?? new Set()).add(fn));
+		},
+		off(name: string, fn: () => void) {
+			listeners.get(name)?.delete(fn);
+		},
+		exit(code: number) {
+			exits.push(code);
+		},
+	};
+}
+
+/** deps() whose borg download sends a little and then stalls until it is aborted. */
+function stalledDeps(): EngineDeps {
+	const d = deps();
+	d.fetch = async (url, init) => {
+		if (url !== "https://dl.test/borg") return fakeFetch(url, init);
+		return new Response(
+			new ReadableStream<Uint8Array>({
+				start(c) {
+					c.enqueue(new Uint8Array([1]));
+					init?.signal?.addEventListener("abort", () => c.error(new Error("aborted")));
+				},
+			}),
+			{ headers: { "content-length": "100" } },
+		);
+	};
+	return d;
+}
+
+test("the first Ctrl-C during an install is Stop now: it says so, puts the app back and exits 1", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const code = await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) sig.raise("SIGINT");
+		},
+		sig,
+	);
+	expect(code).toBe(1);
+	expect(out).toContain(
+		"Stopping: putting BorgBackup back. Press Ctrl-C again to quit at once, which can leave BorgBackup half-installed.",
+	);
+	expect(out).toContain("[borg] stopped Stopped. 1.4.1 is back in place.");
+	expect(sig.exits).toEqual([]);
+	expect(sig.listening()).toBe(0);
+	expect((await realRun(t.paths)([join(t.paths.home, ".local/bin/borg")])).stdout).toBe("borg 1.4.1\n");
+});
+
+test("SIGTERM is Stop now too, and a second signal with no step left to end quits without claiming the put-back failed", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) {
+				sig.raise("SIGTERM");
+				sig.raise("SIGINT");
+			}
+		},
+		sig,
+	);
+	expect(out.filter((l) => l.startsWith("Stopping: putting BorgBackup back."))).toHaveLength(1);
+	expect(out).toContain(
+		"Quit while BorgBackup was being stopped. Run upkeep recover to make sure it is back in place.",
+	);
+	expect(sig.exits).toEqual([130]);
+});
+
+test("Ctrl-C during the check before an install quits at once: nothing is being changed yet", async () => {
+	const sig = fakeSignals();
+	const d = deps();
+	d.fetch = async (url, init) => {
+		if (url.endsWith("borgbackup/borg/releases/latest")) sig.raise("SIGINT");
+		return fakeFetch(url, init);
+	};
+	await main(["install", "borg"], d, () => {}, sig);
+	expect(sig.exits[0]).toBe(130);
+});
+
+test("a second Ctrl-C during a root step quits and says the step runs on as root", async () => {
+	const d = deps();
+	const seed = join(t.dir, "seed.toml");
+	writeFileSync(
+		seed,
+		readFileSync(seed, "utf8").replace('dest = "~/.local/bin/borg"', 'dest = "~/.local/bin/borg"\nsudo = true'),
+	);
+	const marker = join(t.dir, "sudo-started");
+	// A stand-in sudo in the temp home: it says it started, waits a moment, then runs the command as the person.
+	script(join(t.paths.home, ".local/bin/sudo"), `touch "${marker}"; sleep 1; [ "$1" = -n ] && shift; exec "$@"`);
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const poll = setInterval(() => {
+		if (!existsSync(marker)) return;
+		clearInterval(poll);
+		sig.raise("SIGINT");
+		sig.raise("SIGINT");
+	}, 20);
+	await main(["install", "borg"], d, (l) => out.push(l), sig);
+	clearInterval(poll);
+	expect(out).toContain(
+		"Quit before BorgBackup was put back. install runs as root and is still running; run upkeep recover once it ends.",
+	);
+	expect(sig.exits).toEqual([130]);
+});
+
+test("closing the terminal (SIGHUP) during an install is Stop now too", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const code = await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) sig.raise("SIGHUP");
+		},
+		sig,
+	);
+	expect(code).toBe(1);
+	expect(out).toContain("[borg] stopped Stopped. 1.4.1 is back in place.");
+	expect(sig.exits).toEqual([]);
+	expect(sig.listening()).toBe(0);
+});
+
+test("Ctrl-C while the install starts waits for the recovery of an earlier update; a second one quits", () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const engine = {
+		snapshot: () => createEngine(deps()).snapshot(),
+		stopNow: () => out.push("stopNow"),
+		endStep: async () => null,
+	};
+	const gate = { starting: true, pending: false };
+	const unlisten = stopOnSignal(engine, sig, (l) => out.push(l), gate);
+	sig.raise("SIGINT");
+	expect(gate.pending).toBe(true);
+	expect(sig.exits).toEqual([]);
+	expect(out).toEqual(["Stopping: no app will be installed. Press Ctrl-C again to quit at once."]);
+	sig.raise("SIGINT");
+	expect(out.at(-1)).toBe("Quit while an earlier interrupted update was being finished or undone. Run upkeep recover.");
+	expect(sig.exits).toEqual([130]);
+	unlisten();
+	expect(sig.listening()).toBe(0);
 });

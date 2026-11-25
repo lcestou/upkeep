@@ -20,6 +20,8 @@ upkeep export upkeep.json    # settings and app list as one file (to stdout with
 upkeep import upkeep.json    # replace them from such a file; add --yes when its apps run commands
 ```
 
+During `upkeep install`, the first Ctrl-C (or SIGTERM, or closing the terminal, which sends SIGHUP) is Stop now: Upkeep prints "Stopping: putting fd back. Press Ctrl-C again to quit at once, which can leave fd half-installed.", puts the app back as the window's Stop now does, and the apps behind it do not start. A step it must wait out prints what it waits for. A second Ctrl-C quits without putting the app back: it ends the step in progress (TERM, then KILL five seconds later) and exits. A step that runs as root (`sudo dpkg -i`, `sudo make install`) cannot be ended from there, so it keeps running, and Upkeep says so; run `upkeep recover` once it has finished. Ctrl-C during the check before an install quits at once, since nothing has changed yet. If the install starts by finishing or undoing an earlier interrupted update, a Ctrl-C then waits for that to end and installs nothing; a second one quits in the middle of it, and `upkeep recover` takes it up again.
+
 `check` exits 0; an app it could not check is a SKIP line, not a failure. `install` exits 0 when every app it ran ended updated. Every other command exits 0 when it did what was asked and 1 when it did not, and prints why.
 
 ## For scripts and agents

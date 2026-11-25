@@ -2706,6 +2706,58 @@ msgstr "復元ポイント {0} を展開できませんでした：{1}"
 msgid "Downloaded, waits its turn"
 msgstr "ダウンロード済み、順番待ち"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "あなたが停止"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "停止済み"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "停止しました。{0} が元に戻っています。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "停止しました。{0} は引き続き {1} と報告しています。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "停止しました。{0} は現在起動しません: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "{0} の完了を待ってから、{1} を元に戻します。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "{0} の完了を待っています。"
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "{0} 分間出力がありません。"
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "{0} 分間出力がありません。{1} 分後に自動で止まります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "今すぐ停止"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "{0} を停止中…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."

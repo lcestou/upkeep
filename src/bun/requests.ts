@@ -97,6 +97,10 @@ export function upkeepRequests(
 			return { started: phase !== "installing" && phase !== "checking" };
 		},
 		install: ({ keys }) => engine.install(keys),
+		stopNow: () => {
+			engine.stopNow();
+			return { stopping: engine.snapshot().run.stopping };
+		},
 		stopAfterCurrent: () => {
 			engine.stopAfterCurrent();
 			// Only a run in progress can be stopped; outside one the engine does nothing.

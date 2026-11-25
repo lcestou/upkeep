@@ -8,6 +8,10 @@ Upkeep draws its own title bar: the header is the drag area, a double click on i
 
 Changing the frame or the corners rebuilds the window, which takes a moment.
 
+## Stopping a run
+
+While a run installs, the footer shows **Stop after this one**: the app being installed runs to its end and the rest go back to ready. Once pressed, **Stop now** appears beside it. Stop now puts the app being installed back the way it was and ends the run there; the button reads "Stopping Zen Browser…" until it is done. A row whose step has printed nothing for two minutes says so ("No output for 3 min. It stops on its own in 7 min.") and carries its own Stop now. A stopped app reads Stopped, with what was put back, and History shows it as Stopped by you. What Stop now cuts and what it waits for is in [What an install does](how-an-install-works.md#stop-now).
+
 ## About
 
 **About** in Settings shows the version and three links: **What's new** opens the changelog, **Report a bug** opens a new issue with the version, the distribution and the desktop already filled in, and **Upkeep on GitHub** opens the repo. Upkeep itself sends nothing: each opens a page in your browser, and the bug report's page carries the version and that one line about the system in its address.
