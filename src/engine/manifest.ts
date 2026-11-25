@@ -156,6 +156,8 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	}
 	if (RELEASE_KINDS.has(spec.kind) && spec.kind !== "appimage" && !spec.repo && !spec.latest?.startsWith("links:"))
 		return MESSAGES.liftRepoOrLinks(key, spec.kind);
+	// A .. part lets a dest that reads as under home resolve anywhere; no real table needs one.
+	if (spec.dest?.split("/").includes("..")) return MESSAGES.liftDestDotDot(key);
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.
 	if (spec.relaunch && !spec.dest) return MESSAGES.liftRelaunchNeedsDest(key);
 	if (spec.relaunch && !spec.process) return MESSAGES.liftRelaunchNeedsProcess(key);

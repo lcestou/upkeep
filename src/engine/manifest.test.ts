@@ -117,6 +117,19 @@ test("an invalid table is left out and reported, the rest load", () => {
 	]);
 });
 
+test("a dest with a .. part is refused: it could read as under home and resolve anywhere", () => {
+	const file = join(dir, "apps.toml");
+	const table = (key: string, dest: string) =>
+		[`[apps.${key}]`, 'name = "X"', 'kind = "file"', 'repo = "a/b"', 'asset = "x"', `dest = "${dest}"`].join("\n");
+	writeFileSync(
+		file,
+		[table("up", "~/../../../usr/bin/x"), table("mid", "~/bin/../x"), table("dots", "~/bin/x..y")].join("\n"),
+	);
+	const { apps, errors } = loadManifest(file);
+	expect(errors).toEqual(["up: dest may not contain a .. part", "mid: dest may not contain a .. part"]);
+	expect(apps.map((a) => a.key)).toEqual(["dots"]);
+});
+
 test("relaunch needs dest, and an AppImage's needs process too; restart is a list", () => {
 	const file = join(dir, "apps.toml");
 	writeFileSync(

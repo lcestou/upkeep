@@ -385,6 +385,8 @@ export const MESSAGES = {
 	/** manifest.ts. {0} app key */
 	liftRelaunchNeedsDest: (v0: Value) => `${v0}: relaunch needs dest`,
 	/** manifest.ts. {0} app key */
+	liftDestDotDot: (v0: Value) => `${v0}: dest may not contain a .. part`,
+	/** manifest.ts. {0} app key */
 	liftRelaunchNeedsProcess: (v0: Value) => `${v0}: relaunch needs process`,
 	/** manifest.ts. {0} app key; {1} process name */
 	liftRelaunchShared: (v0: Value, v1: Value) =>
