@@ -1,5 +1,5 @@
 import { basename } from "node:path";
-import type { Asset, FetchLike, Release, Sum } from "./github";
+import { type Asset, type FetchLike, GITHUB_API, type Release, type Sum } from "./github";
 
 /** A checksum file bigger than this is not one: it is skipped unread. */
 export const MAX_SUM_BYTES = 1024 * 1024;
@@ -10,8 +10,13 @@ const LIST = /^(?:.*[._-])?(?:sha(?:256|512)sums?|checksums?)(?:\.txt)?$/i;
 /** electron-builder's update file for Linux, which lists each file's sha512 in base64. */
 const YML = /^latest-linux(?:-[a-z0-9]+)?\.ya?ml$/i;
 
-/** The extensions of a checksum file kept beside one asset, holding that asset's hash. */
-const OWN = [".sha256", ".sha256sum", ".sha512"];
+/** The extensions of a checksum file kept beside one asset, holding that asset's hash, matched in any case. */
+const OWN = [".sha256", ".sha256sum", ".sha512", ".sha512sum"];
+
+/** Whether file is asset's own checksum file: asset's name with one of OWN after it, in any case. */
+function isOwn(file: string, asset: string): boolean {
+	return OWN.some((e) => file.toLowerCase() === `${asset}${e}`.toLowerCase());
+}
 
 /** The algorithm a hex digest's length names, or null for any other length or a non-hex string. */
 function algoOf(hex: string): Sum["algo"] | null {
@@ -21,32 +26,42 @@ function algoOf(hex: string): Sum["algo"] | null {
 
 /**
  * The release's files that may hold a hash for the asset named name, best first: its own .sha256 beside it, then a
- * list for the whole release, then electron-builder's yml. A file listed with a size over MAX_SUM_BYTES is left out.
+ * list for the whole release, then electron-builder's yml. Another asset's own file (other.AppImage.sha256sum) is
+ * left out, since it cannot name this one, and so is a file listed with a size over MAX_SUM_BYTES.
  */
 export function sumFiles(release: Pick<Release, "assets">, name: string): Asset[] {
-	const rank = (n: string) => (OWN.some((e) => n === `${name}${e}`) ? 0 : LIST.test(n) ? 1 : YML.test(n) ? 2 : -1);
+	const others = release.assets.map((a) => a.name).filter((n) => n !== name);
+	const rank = (n: string) =>
+		isOwn(n, name) ? 0 : others.some((o) => isOwn(n, o)) ? -1 : LIST.test(n) ? 1 : YML.test(n) ? 2 : -1;
 	return release.assets
 		.filter((a) => a.name !== name && rank(a.name) >= 0 && a.size <= MAX_SUM_BYTES)
 		.toSorted((a, b) => rank(a.name) - rank(b.name));
 }
 
 /**
- * The hash a sha256sum-style text gives for name: "hash  name", "hash *name" (a path's base name counts, "./name"
- * too) or BSD's "SHA256 (name) = hash". A line with a hash alone counts only when own says the file is the asset's
- * own. Null when no line names it. A line for name with a hash of an unknown length is passed over, not trusted.
+ * The hash a sha256sum-style text gives for name: "hash  name", "hash *name" or BSD's "SHA256 (name) = hash". A line
+ * naming name exactly wins; otherwise a path whose base name is name counts ("./name", "dist/name"), but only when
+ * every such line gives the same hash: x86_64/app.tar.gz and aarch64/app.tar.gz cannot be told apart, so neither is
+ * trusted. The asset's own file (own) with a single hash line gives that hash whatever path it names. A line with a
+ * hash of an unknown length is passed over. Null when nothing names it.
  */
 export function sumIn(text: string, name: string, own: boolean): Omit<Sum, "file"> | null {
+	const lines: { algo: Sum["algo"]; hex: string; file: string | undefined }[] = [];
 	for (const raw of text.split(/\r?\n/)) {
 		const line = raw.trim();
 		const bsd = /^SHA(?:256|512) ?\((.+)\) ?= ?(\S+)$/i.exec(line);
 		const gnu = /^(\S+)(?:\s+\*?(.+))?$/.exec(line);
 		const hex = bsd?.[2] ?? gnu?.[1] ?? "";
-		const file = bsd ? bsd[1] : gnu?.[2];
 		const algo = algoOf(hex);
-		if (!algo) continue;
-		if (file === undefined ? own : basename(file.trim()) === name) return { algo, hex: hex.toLowerCase() };
+		if (algo) lines.push({ algo, hex: hex.toLowerCase(), file: (bsd ? bsd[1] : gnu?.[2])?.trim() });
 	}
-	return null;
+	const only = lines.length === 1 ? lines[0] : undefined;
+	if (own && only) return { algo: only.algo, hex: only.hex };
+	const exact = lines.find((l) => l.file === name || l.file === `./${name}`);
+	if (exact) return { algo: exact.algo, hex: exact.hex };
+	const byBase = lines.filter((l) => l.file !== undefined && basename(l.file) === name);
+	const first = byBase[0];
+	return first && byBase.every((l) => l.hex === first.hex) ? { algo: first.algo, hex: first.hex } : null;
 }
 
 /**
@@ -71,11 +86,19 @@ export function sumInYml(text: string, name: string): Omit<Sum, "file"> | null {
 /**
  * The text at url, or null when it is not https, the answer is an error, a redirect leaves https, it takes over 15 s
  * or it grows past MAX_SUM_BYTES. Never throws: a checksum file that cannot be read leaves the download as it was.
+ * A 404 for a file with a GitHub API address is asked again there with the person's token, as a private repo's asset
+ * is; the token goes only to api.github.com.
  */
-async function readSmall(url: string, fetch: FetchLike): Promise<string | null> {
-	if (!url.startsWith("https://")) return null;
+async function readSmall(side: Asset, fetch: FetchLike, token: string | null): Promise<string | null> {
+	if (!side.url.startsWith("https://")) return null;
 	try {
-		const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(15_000) });
+		let res = await fetch(side.url, { redirect: "follow", signal: AbortSignal.timeout(15_000) });
+		if (res.status === 404 && token && side.api?.startsWith(`${GITHUB_API}/`))
+			res = await fetch(side.api, {
+				redirect: "follow",
+				signal: AbortSignal.timeout(15_000),
+				headers: { Accept: "application/octet-stream", Authorization: `Bearer ${token}` },
+			});
 		if (!res.ok || !res.body || (res.redirected && !res.url.startsWith("https://"))) return null;
 		const reader = res.body.getReader();
 		const parts: Uint8Array[] = [];
@@ -107,13 +130,15 @@ export async function releaseSum(
 	release: Pick<Release, "assets">,
 	asset: Asset,
 	fetch: FetchLike,
+	token: string | null = null,
 ): Promise<Sum | null> {
 	for (const side of sumFiles(release, asset.name)) {
 		// oxlint-disable-next-line no-await-in-loop -- the best file is read first, and the rest only when it names nothing
-		const text = await readSmall(side.url, fetch);
+		const text = await readSmall(side, fetch, token);
 		if (text === null) continue;
-		const own = OWN.some((e) => side.name === `${asset.name}${e}`);
-		const sum = YML.test(side.name) ? sumInYml(text, asset.name) : sumIn(text, asset.name, own);
+		const sum = YML.test(side.name)
+			? sumInYml(text, asset.name)
+			: sumIn(text, asset.name, isOwn(side.name, asset.name));
 		if (sum) return { ...sum, file: side.name };
 	}
 	return null;

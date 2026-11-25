@@ -114,3 +114,63 @@ test("releaseSum reads electron-builder's yml for a sha512", async () => {
 		file: "latest-linux.yml",
 	});
 });
+
+test("sumIn: an exact name wins, and two paths sharing the base name with different hashes are trusted for neither", () => {
+	const b = "b".repeat(64);
+	const nested = `${H256}  x86_64/app.tar.gz\n${b}  aarch64/app.tar.gz\n`;
+	expect(sumIn(nested, "app.tar.gz", false)).toBeNull();
+	expect(sumIn(`${nested}${"c".repeat(64)}  app.tar.gz\n`, "app.tar.gz", false)).toEqual({
+		algo: "sha256",
+		hex: "c".repeat(64),
+	});
+	expect(sumIn(`${H256}  x86_64/app.tar.gz\n${H256}  mirror/app.tar.gz\n`, "app.tar.gz", false)).toEqual({
+		algo: "sha256",
+		hex: H256,
+	});
+	// The asset's own file with one line: its hash, whatever build path the line names.
+	expect(sumIn(`${H256}  build/app.AppImage\n`, "app-1.2-x86_64.AppImage", true)).toEqual({
+		algo: "sha256",
+		hex: H256,
+	});
+	expect(sumIn(`${H256}  build/app.AppImage\n`, "app-1.2-x86_64.AppImage", false)).toBeNull();
+});
+
+test("sumFiles: own files match in any case, .sha512sum counts, and another asset's own file is never read", () => {
+	const names = sumFiles(
+		{
+			assets: [
+				asset("app.AppImage"),
+				asset("other.AppImage"),
+				asset("other.AppImage.sha256sum"),
+				asset("SHA256SUMS"),
+				asset("app.AppImage.SHA512SUM"),
+			],
+		},
+		"app.AppImage",
+	).map((a) => a.name);
+	expect(names).toEqual(["app.AppImage.SHA512SUM", "SHA256SUMS"]);
+});
+
+test("releaseSum: a private repo's checksum file is asked again at GitHub's API with the token", async () => {
+	const tool = asset("tool.tar.gz");
+	const api = "https://api.github.com/repos/me/tool/releases/assets/9";
+	const sums = { ...asset("SHA256SUMS"), api };
+	const asked: { url: string; auth: string | null }[] = [];
+	const fetch: FetchLike = async (url, init) => {
+		asked.push({ url, auth: new Headers(init?.headers).get("authorization") });
+		return url === api ? new Response(`${H256}  tool.tar.gz\n`) : new Response("no", { status: 404 });
+	};
+	expect(await releaseSum({ assets: [tool, sums] }, tool, fetch, "tok")).toEqual({
+		algo: "sha256",
+		hex: H256,
+		file: "SHA256SUMS",
+	});
+	expect(asked).toEqual([
+		{ url: "https://dl.example/SHA256SUMS", auth: null },
+		{ url: api, auth: "Bearer tok" },
+	]);
+	// Without a token the API is never asked.
+	asked.length = 0;
+	expect(await releaseSum({ assets: [tool, sums] }, tool, fetch)).toBeNull();
+	expect(asked.map((a) => a.url)).toEqual(["https://dl.example/SHA256SUMS"]);
+});

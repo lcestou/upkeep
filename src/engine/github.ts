@@ -344,7 +344,8 @@ export function parseRepoSearch(body: unknown): RepoHit[] {
 	return hits;
 }
 
-const SIDE_FILES = /\.(sha256|sig|asc|zsync)$/;
+/** Checksum and signature files beside a release file: never the file to install, whatever the pattern matches. */
+const SIDE_FILES = /\.(sha256|sha256sum|sha512|sha512sum|sig|asc|minisig|zsync)$/i;
 
 /**
  * The first asset matching pattern, skipping checksum and signature files and source rpms (which install only sources),
