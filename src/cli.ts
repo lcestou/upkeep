@@ -52,7 +52,7 @@ export function checkLine(a: AppState): string {
 /** The line `install` prints for an event, or null for events a person has no use for (a working app, for instance). */
 function eventLine(e: EngineEvent): string | null {
 	if (e.type === "log") return formatLogLine(e.line);
-	if (e.type === "app" && ["queued", "working", "done", "failed", "rolled_back"].includes(e.app.status)) {
+	if (e.type === "app" && ["queued", "working", "done", "failed", "rolled_back", "stopped"].includes(e.app.status)) {
 		// A waiting app whose file came early already has its log line ("Downloaded ahead of its turn").
 		if (e.app.status === "working" || (e.app.status === "queued" && e.app.downloaded)) return null;
 		const to = e.app.status === "done" ? ` ${e.app.installed ?? ""}` : "";
@@ -75,8 +75,50 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	return 0;
 }
 
+/** Where install hears Ctrl-C and SIGTERM, and how it quits at once; tests pass a fake that raises them. */
+export type Signals = {
+	on(name: "SIGINT" | "SIGTERM", fn: () => void): void;
+	off(name: "SIGINT" | "SIGTERM", fn: () => void): void;
+	exit(code: number): void;
+};
+
+/**
+ * The first Ctrl-C or SIGTERM during an install is Stop now: the current app is put back and the rest do not start.
+ * A second one quits at once, which can leave that app half-installed. Outside the install itself (the check before
+ * it) nothing is being changed, so the first one quits at once. Returns the function that stops listening.
+ */
+function stopOnSignal(engine: Engine, signals: Signals, out: Out): () => void {
+	const onSignal = () => {
+		const run = engine.snapshot().run;
+		const name = engine.snapshot().apps.find((a) => a.key === run.currentKey)?.name ?? "the current app";
+		if (run.phase !== "installing") return signals.exit(130);
+		if (run.stoppingNow) {
+			out(`Quit before ${name} was put back. Run upkeep recover.`);
+			return signals.exit(130);
+		}
+		out(`Stopping: putting ${name} back. Press Ctrl-C again to quit at once, which can leave ${name} half-installed.`);
+		engine.stopNow();
+	};
+	signals.on("SIGINT", onSignal);
+	signals.on("SIGTERM", onSignal);
+	return () => {
+		signals.off("SIGINT", onSignal);
+		signals.off("SIGTERM", onSignal);
+	};
+}
+
 /** Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. Exits 0 only when every result is "updated". */
-async function install(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
+async function install(engine: Engine, args: string[], json: boolean, out: Out, signals: Signals): Promise<number> {
+	const unlisten = stopOnSignal(engine, signals, out);
+	try {
+		return await installRun(engine, args, json, out);
+	} finally {
+		unlisten();
+	}
+}
+
+/** install's body, with Ctrl-C already turned into Stop now. */
+async function installRun(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
 	await engine.check();
 	await engine.idle();
 	const keys = args.includes("--all")
@@ -295,12 +337,17 @@ function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): nu
 }
 
 /** Runs one command line. Returns the exit code. */
-export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => console.log(l)): Promise<number> {
+export async function main(
+	argv: string[],
+	deps: EngineDeps,
+	out: Out = (l) => console.log(l),
+	signals: Signals = process,
+): Promise<number> {
 	const [cmd, ...rest] = argv;
 	const json = rest.includes("--json");
 	const args = rest.filter((a) => a !== "--json");
 	if (cmd === "check" && args.length === 0) return check(createEngine(deps), json, out);
-	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out);
+	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out, signals);
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
 		return restore(createEngine(deps), deps, args[0], args[1], json, out);
 	if (cmd === "history" && args.length === 0) return history(createEngine(deps), json, out);

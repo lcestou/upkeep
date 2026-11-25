@@ -514,3 +514,96 @@ test("add refuses a catalogue app whose install path holds a script, as the wind
 	await main(["list"], d, (l) => listed.push(l));
 	expect(listed.some((l) => l.startsWith("httpx "))).toBe(false);
 });
+
+/** Stands in for process: raise() delivers a signal to what install listens with, and exit is recorded, not taken. */
+function fakeSignals() {
+	const listeners = new Map<string, Set<() => void>>();
+	const exits: number[] = [];
+	return {
+		exits,
+		raise: (name: "SIGINT" | "SIGTERM") => {
+			for (const fn of listeners.get(name) ?? []) fn();
+		},
+		listening: () => [...listeners.values()].reduce((n, s) => n + s.size, 0),
+		on(name: string, fn: () => void) {
+			listeners.set(name, (listeners.get(name) ?? new Set()).add(fn));
+		},
+		off(name: string, fn: () => void) {
+			listeners.get(name)?.delete(fn);
+		},
+		exit(code: number) {
+			exits.push(code);
+		},
+	};
+}
+
+/** deps() whose borg download sends a little and then stalls until it is aborted. */
+function stalledDeps(): EngineDeps {
+	const d = deps();
+	d.fetch = async (url, init) => {
+		if (url !== "https://dl.test/borg") return fakeFetch(url, init);
+		return new Response(
+			new ReadableStream<Uint8Array>({
+				start(c) {
+					c.enqueue(new Uint8Array([1]));
+					init?.signal?.addEventListener("abort", () => c.error(new Error("aborted")));
+				},
+			}),
+			{ headers: { "content-length": "100" } },
+		);
+	};
+	return d;
+}
+
+test("the first Ctrl-C during an install is Stop now: it says so, puts the app back and exits 1", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	const code = await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) sig.raise("SIGINT");
+		},
+		sig,
+	);
+	expect(code).toBe(1);
+	expect(out).toContain(
+		"Stopping: putting BorgBackup back. Press Ctrl-C again to quit at once, which can leave BorgBackup half-installed.",
+	);
+	expect(out).toContain("[borg] stopped Stopped. 1.4.1 is back in place.");
+	expect(sig.exits).toEqual([]);
+	expect(sig.listening()).toBe(0);
+	expect((await realRun(t.paths)([join(t.paths.home, ".local/bin/borg")])).stdout).toBe("borg 1.4.1\n");
+});
+
+test("SIGTERM is Stop now too, and a second signal quits at once with a warning", async () => {
+	const sig = fakeSignals();
+	const out: string[] = [];
+	await main(
+		["install", "borg"],
+		stalledDeps(),
+		(l) => {
+			out.push(l);
+			if (l.includes("Downloading borg-linux")) {
+				sig.raise("SIGTERM");
+				sig.raise("SIGINT");
+			}
+		},
+		sig,
+	);
+	expect(out.filter((l) => l.startsWith("Stopping: putting BorgBackup back."))).toHaveLength(1);
+	expect(out).toContain("Quit before BorgBackup was put back. Run upkeep recover.");
+	expect(sig.exits).toEqual([130]);
+});
+
+test("Ctrl-C during the check before an install quits at once: nothing is being changed yet", async () => {
+	const sig = fakeSignals();
+	const d = deps();
+	d.fetch = async (url, init) => {
+		if (url.endsWith("borgbackup/borg/releases/latest")) sig.raise("SIGINT");
+		return fakeFetch(url, init);
+	};
+	await main(["install", "borg"], d, () => {}, sig);
+	expect(sig.exits[0]).toBe(130);
+});
