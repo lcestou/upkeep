@@ -236,6 +236,8 @@ function liftKeepWithRestore(key: string, spec: AppSpec): string | null {
 		if (!p.startsWith("~/") || odd || refused || SHARED_HOME_FOLDERS.has(p))
 			return MESSAGES.liftKeepWithRestorePath(key);
 	}
+	// One written form from here on (no trailing slash), so the point, the restore and the guard compare alike.
+	spec.keep_with_restore = list.map(tidy);
 	return null;
 }
 

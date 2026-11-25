@@ -16,7 +16,17 @@ import type {
 } from "../shared/types";
 import { MESSAGES } from "../shared/messages";
 import type { Arch } from "./arch";
-import { backupDir, listBackups, packOlder, prune, readMeta, restoreBackup, takeBackup, takePoint } from "./backup";
+import {
+	backupDir,
+	configPath,
+	listBackups,
+	packOlder,
+	prune,
+	readMeta,
+	restoreBackup,
+	takeBackup,
+	takePoint,
+} from "./backup";
 import { alsoOf, scan as scanFor, suggest as suggestFor, type DiscoverCtx } from "./discover";
 import { readCopies } from "./extras/system";
 import { managedSpecs } from "./managers";
@@ -455,7 +465,7 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	/** Whether restoring this point would put settings back: it saved some that the table still names. */
 	function pointPutsSettingsBack(spec: AppSpec, version: string): boolean {
-		const named = new Set((spec.keep_with_restore ?? []).map((c) => expandHome(c, paths.home).replace(/\/+$/, "")));
+		const named = new Set((spec.keep_with_restore ?? []).map((c) => configPath(c, paths.home)));
 		return (readMeta(join(backupDir(paths, spec.key), version))?.config ?? []).some((c) => named.has(c.path));
 	}
 

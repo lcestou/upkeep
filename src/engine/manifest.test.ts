@@ -585,8 +585,9 @@ test("probe = false only on an app installed from a release file, which is what 
 test("keep_with_restore takes an app's own paths under home, on a kind that keeps restore points", () => {
 	const file = ['kind = "file"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/x"'];
 	const fine = ["~/.config/x", "~/.x", "~/.local/share/x/db/", "~/.cache/x", "~/Documents/x"];
+	// One written form from load on: a trailing slash is dropped, so the point and the restore name the same path.
 	expect(one(...file, `keep_with_restore = ${JSON.stringify(fine)}`)).toMatchObject({
-		keep_with_restore: fine,
+		keep_with_restore: ["~/.config/x", "~/.x", "~/.local/share/x/db", "~/.cache/x", "~/Documents/x"],
 	});
 	const path = "x: keep_with_restore takes paths of their own under home, such as ~/.config/<app>";
 	for (const bad of [

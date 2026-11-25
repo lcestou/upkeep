@@ -294,6 +294,11 @@ function there(p: string): boolean {
 	}
 }
 
+/** A keep_with_restore entry as the absolute path it names: ~ expanded, no trailing slash, so every comparison agrees. */
+export function configPath(raw: string, home: string): string {
+	return expandHome(raw, home).replace(/\/+$/, "");
+}
+
 /** Whether p is at or under root, compared as resolved absolute paths. */
 const atOrUnder = (p: string, root: string) => p === root || p.startsWith(`${root}/`);
 
@@ -345,7 +350,7 @@ export function saveConfig(
 	const saved: SavedConfig[] = [];
 	const leftOut = (raw: string, why: string) => log(`Left ${raw} out of the restore point of ${spec.key}: ${why}.`);
 	for (const [i, raw] of (spec.keep_with_restore ?? []).entries()) {
-		const path = expandHome(raw, paths.home);
+		const path = configPath(raw, paths.home);
 		if (!there(path)) continue;
 		const problem = configPathProblem(path, paths);
 		if (problem) {
@@ -373,8 +378,10 @@ export function saveConfig(
 /**
  * Puts a point's saved settings back, each copied in beside the live path and then renamed over it. Only paths the
  * current table still names go back (config, as written in the table), never one only the point recorded. What was
- * live is moved first to <data>/config-aside/<key>/<at>/<i>, a folder of this restore's own, so a retry or a second
- * restore never deletes it; the oldest are pruned to ASIDE_KEEP only after a whole put-back. A live path that is
+ * live is moved first to <data>/config-aside/<key>/<n>-<at>/<i>, a numbered folder of this restore's own, so a retry or
+ * a second restore never deletes it; the lowest numbers are pruned to ASIDE_KEEP only after a whole put-back. A crash
+ * between the two renames leaves the live path missing, with the replaced copy whole in the aside and the point's copy
+ * at <path>.upkeep-new; pressing Restore again finishes it. A live path that is
  * already the point's copy is skipped, so a rerun after a cut changes nothing. When the copy cannot be renamed in, the
  * live path is moved back from the aside. A path missing from the point is left as it is. Throws on the first path
  * that cannot go back, or that is now a link or a mount point, before touching it.
@@ -386,13 +393,14 @@ export function putConfigBack(
 	key: string,
 	config: string[],
 	at = new Date().toISOString(),
+	rename: (from: string, to: string) => void = renameSync,
 ): void {
-	const named = new Set(config.map((c) => expandHome(c, paths.home).replace(/\/+$/, "")));
+	const named = new Set(config.map((c) => configPath(c, paths.home)));
 	const todo = saved.filter((c) => named.has(c.path) && there(join(point, c.name)));
 	if (todo.length === 0) return;
 	const root = join(paths.data, "config-aside", key);
-	let aside = join(root, at.replace(/[:.]/g, "-"));
-	for (let n = 2; there(aside); n++) aside = join(root, `${at.replace(/[:.]/g, "-")}-${n}`);
+	// Numbered, not dated: a clock set back must never make the newest aside look oldest and be pruned.
+	const aside = join(root, `${String((asideSeqs(root)[0] ?? 0) + 1).padStart(6, "0")}-${at.replace(/[:.]/g, "-")}`);
 	let used = false;
 	for (const [i, c] of todo.entries()) {
 		const src = join(point, c.name);
@@ -411,16 +419,18 @@ export function putConfigBack(
 				mkdirSync(aside, { recursive: true });
 				used = true;
 				try {
-					renameSync(c.path, to);
+					rename(c.path, to);
+					moved = true;
 				} catch {
 					// Data on another file system: a whole copy in the aside first, then the live path goes by a rename beside it.
 					cpSync(c.path, to, { recursive: true, verbatimSymlinks: true, preserveTimestamps: true });
-					renameSync(c.path, `${c.path}.upkeep-old`);
+					// From here the aside holds all of it, so a failure below puts the live path back from there.
+					moved = true;
+					rename(c.path, `${c.path}.upkeep-old`);
 					dropTree(`${c.path}.upkeep-old`, paths);
 				}
-				moved = true;
 			}
-			renameSync(next, c.path);
+			rename(next, c.path);
 		} catch (err) {
 			try {
 				rmSync(next, { recursive: true, force: true });
@@ -433,8 +443,19 @@ export function putConfigBack(
 			throw fail(err instanceof Error ? err.message : String(err), err);
 		}
 	}
-	if (used)
-		for (const old of readdirSync(root).toSorted().toReversed().slice(ASIDE_KEEP)) dropTree(join(root, old), paths);
+	if (used) {
+		const keep = new Set(asideSeqs(root).slice(0, ASIDE_KEEP));
+		for (const name of readdirSync(root)) if (!keep.has(seqOf(name))) dropTree(join(root, name), paths);
+	}
+}
+
+/** The number an aside's name starts with; 0 for a name without one, which is then the oldest. */
+const seqOf = (name: string) => Number.parseInt(/^\d+/.exec(name)?.[0] ?? "0", 10);
+
+/** The numbers of the asides under root, newest first, with 0 last so an empty root starts at 1. */
+function asideSeqs(root: string): number[] {
+	const seqs = there(root) ? readdirSync(root).map(seqOf) : [];
+	return [...seqs, 0].toSorted((a, b) => b - a);
 }
 
 /** Points link at target, by a new link renamed over it, so the name is never missing. One already pointing there is left alone. */

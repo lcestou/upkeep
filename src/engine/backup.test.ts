@@ -6,6 +6,7 @@ import {
 	readdirSync,
 	readFileSync,
 	readlinkSync,
+	renameSync,
 	rmSync,
 	statSync,
 	symlinkSync,
@@ -519,4 +520,54 @@ test("putConfigBack skips a path outside home that meta.json was edited to name,
 	expect(() =>
 		putConfigBack(point, [{ path: under, name: "upkeep-config/0" }], t.paths, "tool", ["~/plainfile/x"]),
 	).toThrow(`Could not restore ${under}: `);
+});
+
+test("a path written with a trailing slash is saved, listed and put back as the same path", async () => {
+	settings("v1");
+	const bin = join(t.dir, "tool");
+	writeFileSync(bin, "bin 1");
+	takeBackup(t.paths, { key: "tool", keep_with_restore: ["~/.config/tool/"] }, "1.0", [bin], "x");
+	const meta = JSON.parse(readFileSync(join(t.paths.data, "backups/tool/1.0/meta.json"), "utf8"));
+	expect(meta.config).toEqual([{ path: join(t.paths.home, ".config/tool"), name: "upkeep-config/0" }]);
+	settings("v2");
+	expect(await restoreBackup(t.paths, { key: "tool" }, "1.0", realRun(t.paths), ["~/.config/tool/"])).toEqual({
+		ok: true,
+	});
+	expect(readFileSync(join(t.paths.home, ".config/tool/settings.json"), "utf8")).toBe("v1");
+});
+
+test("on another file system, a failure after the live folder went puts it back from the aside's whole copy", () => {
+	settings("v1");
+	takePoint(t.paths, WITH_CONFIG, "1.0", { command: ["true"] }, "x");
+	const point = join(t.paths.data, "backups/tool/1.0");
+	const saved = JSON.parse(readFileSync(join(point, "meta.json"), "utf8")).config;
+	settings("v2");
+	const live = join(t.paths.home, ".config/tool");
+	// The move into the aside crosses file systems; then the copy cannot be renamed in.
+	const rename = (from: string, to: string) => {
+		if (from === live && !to.endsWith(".upkeep-old")) throw new Error("EXDEV: cross-device link not permitted");
+		if (to === live) throw new Error("EIO: i/o error");
+		renameSync(from, to);
+	};
+	expect(() => putConfigBack(point, saved, t.paths, "tool", NAMED, "2026-11-01T00:00:00.000Z", rename)).toThrow(
+		`Could not restore ${live}: EIO: i/o error`,
+	);
+	expect(readFileSync(join(live, "settings.json"), "utf8")).toBe("v2");
+	expect(readlinkSync(join(live, "current"))).toBe("settings.json");
+	expect(existsSync(`${live}.upkeep-new`)).toBe(false);
+});
+
+test("asides are kept by the order they were made, not by the clock: a clock set back never prunes the newest", () => {
+	settings("v1");
+	takePoint(t.paths, WITH_CONFIG, "1.0", { command: ["true"] }, "x");
+	const point = join(t.paths.data, "backups/tool/1.0");
+	const saved = JSON.parse(readFileSync(join(point, "meta.json"), "utf8")).config;
+	for (const [n, at] of ["2026-11-05", "2026-11-04", "2026-11-03", "2026-11-02"].entries()) {
+		settings(`w${n}`);
+		putConfigBack(point, saved, t.paths, "tool", NAMED, `${at}T00:00:00.000Z`);
+	}
+	expect(asides("tool")).toHaveLength(3);
+	// The last one made, dated earliest, is kept; the first one made is gone.
+	expect(readFileSync(join(asideOf("tool", 2), "0/settings.json"), "utf8")).toBe("w3");
+	expect(readFileSync(join(asideOf("tool", 0), "0/settings.json"), "utf8")).toBe("w1");
 });
