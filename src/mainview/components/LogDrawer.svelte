@@ -12,15 +12,35 @@
 	// Following the newest line is on when the drawer opens, even with lines already in it; scrolling up to read an
 	// older line pauses it, and so does the Pause button.
 	let following = $state(true);
+	// Set when Upkeep itself moved the list, so the scroll event that follows a frame later is not read as the reader's.
+	let ours = false;
+
+	/**
+	 * Moves the list to its newest line and marks the scroll event that move will fire as Upkeep's own. A move that
+	 * changes nothing fires no event, so it marks none, and the reader's next scroll still counts.
+	 */
+	function toBottom(el: HTMLElement): void {
+		const was = el.scrollTop;
+		el.scrollTop = el.scrollHeight;
+		if (el.scrollTop !== was) ours = true;
+	}
 
 	$effect(() => {
 		void model.log.length;
 		const el = scroller;
-		if (el && following) el.scrollTop = el.scrollHeight;
+		if (el && following) toBottom(el);
 	});
 
-	/** A scroll the reader made: up away from the bottom pauses following, back down to the bottom follows again. */
+	/**
+	 * A scroll the reader made: up away from the bottom pauses following, back down to the bottom follows again. The
+	 * event of Upkeep's own move is skipped: arriving after Pause, it would read as the reader at the bottom and follow
+	 * again, which a busy machine made happen often.
+	 */
 	function scrolled(): void {
+		if (ours) {
+			ours = false;
+			return;
+		}
 		const el = scroller;
 		if (el) following = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
 	}
@@ -29,7 +49,7 @@
 	function toggleFollow(): void {
 		following = !following;
 		const el = scroller;
-		if (following && el) el.scrollTop = el.scrollHeight;
+		if (following && el) toBottom(el);
 	}
 </script>
 

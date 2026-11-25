@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Pause in the Log stays paused while lines pour in. Before, the Log's own scroll to the newest line could undo a Pause pressed at the same moment, which happened often on a busy machine.
+- History can be scrolled from the keyboard: its list is one Tab stop when its runs do not fit the window.
 - An app's pane has "Pause for…" beside Hold updates: 1 week, 2 weeks or 1 month. A paused app sits under Held back, its row says "Paused until Dec 9", and on that day it is offered again by itself, with no check needed. Resume now, or a hold set or released, ends the pause early. On the command line, `upkeep pause <app> <days>` and `upkeep pause <app> off` do the same, and `check` shows the day. An export carries pauses, and an import takes them without asking.
 - A run can now be stopped at once. After Stop after this one, the footer offers Stop now: the app being installed goes back to how it was and the apps behind it stay ready. Downloads, builds and a self-updating tool's own update command are cut; a step that runs as root (`dpkg -i`, `rpm -U`, `sudo make install`) or an undo is waited out first, and the row says what it waits for. A tool with no `restore` command is cut too, and its row says what version it reports afterwards. History shows the app as Stopped by you, and a run that ends early still records the apps it finished.
 - A row whose step has printed nothing for two minutes says so, with the time left before the step's own limit ends it ("No output for 3 min. It stops on its own in 7 min."), and offers Stop now.
