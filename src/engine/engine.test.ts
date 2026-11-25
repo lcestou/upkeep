@@ -448,6 +448,25 @@ test("a changed hash is not held for an immutable release, a switch of hash kind
 	expect(state().changed).toEqual({});
 });
 
+test("a release's checksum file that disagrees with the download fails the row with the reason and the way out", async () => {
+	const engine = createEngine(await deps());
+	const fdAsset = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	const fdTar = releases["sharkdp/fd"]?.assets[fdAsset] ?? bytes("");
+	releases["sharkdp/fd"] = {
+		tag: "v10.5.2",
+		assets: { [fdAsset]: fdTar, "checksums.txt": bytes(`${"0".repeat(64)}  ${fdAsset}\n`) },
+	};
+	await engine.check();
+	expect(await engine.install(["fd"])).toEqual({ started: true });
+	await engine.idle();
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({
+		status: "failed",
+		detail:
+			"Checksum does not match checksums.txt in the release, so nothing was installed. You can skip this version.",
+	});
+	expect(readFileSync(join(bin, "fd"), "utf8")).toContain("fd 10.5.1");
+});
+
 test("settings and auto are kept in state", async () => {
 	const engine = createEngine(await deps());
 	await engine.check();
