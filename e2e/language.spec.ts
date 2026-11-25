@@ -129,6 +129,10 @@ test("Import of a file whose apps run commands shows them first; Cancel writes n
 	await expect(page.getByTestId("import-auto-off")).toHaveText(
 		"Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app.",
 	);
+	await expect(page.getByTestId("import-turns-on")).toHaveText(
+		"It turns on these settings, which are off on this computer:",
+	);
+	await expect(page.getByTestId("import-switch")).toHaveText(["Update Upkeep automatically"]);
 	// Focus starts on Cancel, so a stray Enter writes nothing.
 	await expect(page.getByTestId("import-cancel")).toBeFocused();
 	await expect(page.getByTestId("import-cancel")).toHaveText("Cancel");

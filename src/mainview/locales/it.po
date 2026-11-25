@@ -2783,3 +2783,16 @@ msgstr[2] "Contiene anche # app che installano solo i file delle loro release, s
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: dest may not contain a .. part"
 msgstr "{0}: dest non può contenere una parte .."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "Accende queste impostazioni, che su questo computer sono spente:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: un file di config non può contenere una parte .."
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "Nessun file è in attesa di importazione. Premi Importa e sceglilo di nuovo."

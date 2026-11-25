@@ -2806,3 +2806,16 @@ msgstr[3] "В нём также # приложения, которые толь�
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: dest may not contain a .. part"
 msgstr "{0}: dest не может содержать часть .."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "Он включает эти настройки, выключенные на этом компьютере:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: файл config не может содержать часть .."
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "Нет файла, ожидающего импорта. Нажмите «Импорт» и выберите его снова."

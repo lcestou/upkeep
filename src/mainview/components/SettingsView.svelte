@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { say } from "../lib/engine-say";
-	import type { ImportAsk, Settings } from "../../shared/types";
+	import type { ImportAsk, ImportSwitch, Settings } from "../../shared/types";
 	import {
 		CHECK_EVERY,
 		CLEAN,
@@ -127,6 +127,21 @@
 		}
 	}
 
+	/** The Settings label of what an import would turn on, the same words the person finds the switch under. */
+	function switchName(k: ImportSwitch): string {
+		const names = {
+			notify: TEXT.notify,
+			checkAtLogin: TEXT.startAtLogin,
+			selfAuto: SELF.auto,
+			upkeepCommand: TEXT.upkeepCommand,
+			system: SYS.setting,
+			systemInstall: SYS.installSetting,
+			cleanup: CLEAN.setting,
+			devCaches: CLEAN.devSetting,
+		} satisfies Record<ImportSwitch, string>;
+		return names[k];
+	}
+
 	/** Focus lands on Cancel when the ask opens, so a stray Enter writes nothing. */
 	const focusFirst: Attachment<HTMLButtonElement> = (node) => {
 		node.focus();
@@ -226,16 +241,24 @@
 			<p class="help" data-testid="setup-note" aria-live="polite">{note ?? TEXT.setupHelp}</p>
 			{#if importAsk}
 				<div class="confirm import-ask" role="group" aria-labelledby="import-ask">
-					<p id="import-ask" data-testid="import-ask">{IMPORT.ask}</p>
-					<ul class="cmds">
-						{#each importAsk.apps as a (a.key)}
-							<li data-testid="import-app">
-								<span class="app-name" data-testid="import-app-name">{a.name}</span>
-								{#each a.commands as c, i (i)}<code class="mono" data-testid="import-command">{c}</code>{/each}
-							</li>
-						{/each}
-					</ul>
-					{#if importAsk.plain > 0}<p data-testid="import-plain">{importPlain(importAsk.plain)}</p>{/if}
+					{#if importAsk.apps.length > 0}
+						<p id="import-ask" data-testid="import-ask">{IMPORT.ask}</p>
+						<ul class="cmds">
+							{#each importAsk.apps as a (a.key)}
+								<li data-testid="import-app">
+									<span class="app-name" data-testid="import-app-name">{a.name}</span>
+									{#each a.commands as c, i (i)}<code class="mono" data-testid="import-command">{c}</code>{/each}
+								</li>
+							{/each}
+						</ul>
+						{#if importAsk.plain > 0}<p data-testid="import-plain">{importPlain(importAsk.plain)}</p>{/if}
+					{/if}
+					{#if importAsk.turnsOn.length > 0}
+						<p id={importAsk.apps.length > 0 ? undefined : "import-ask"} data-testid="import-turns-on">{IMPORT.turnsOn}</p>
+						<ul class="switches">
+							{#each importAsk.turnsOn as k (k)}<li data-testid="import-switch">{switchName(k)}</li>{/each}
+						</ul>
+					{/if}
 					<p data-testid="import-auto-off">{IMPORT.autoOff}</p>
 					<div class="confirm-buttons">
 						<button type="button" class="btn small primary" data-testid="import-confirm" onclick={() => importSetup(true)}
@@ -628,6 +651,10 @@
 	.cmds li {
 		display: grid;
 		gap: 2px;
+	}
+	.switches {
+		margin: 0;
+		padding-left: var(--s4);
 	}
 	.app-name {
 		font-weight: 560;

@@ -1,12 +1,12 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
-import type { AppSpec, ExtrasSettings, ImportAsk, Service, Settings, Test } from "../shared/types";
-import { loadExtras, updateExtras } from "./extras/state";
+import type { AppSpec, ExtrasSettings, ImportAsk, ImportSwitch, Service, Settings, Test } from "../shared/types";
+import { clampExtras, loadExtras, updateExtras } from "./extras/state";
 import { packageInstall } from "./kinds/package";
 import { ensureManifest, isRecord, loadManifest, parseManifest } from "./manifest";
 import type { Paths } from "./paths";
-import { loadState, updateState, withStateLock, writeAtomic } from "./store";
+import { clampSettings, loadState, updateState, withStateLock, writeAtomic } from "./store";
 
 /**
  * Everything a person set up, in one file to carry to another machine or hand to an agent: the app list as written
@@ -85,7 +85,11 @@ export function commandsOf(spec: AppSpec): string[] {
 	const tests = (field: string, v: Test[] | undefined) => {
 		for (const t of v ?? []) {
 			argv(field, t.run);
-			if (t.url) out.push(`${field}: POST ${t.url}`);
+			if (t.url) {
+				const body =
+					t.body === undefined ? "" : ` ${shellWord(t.body.length > 200 ? `${t.body.slice(0, 200)}…` : t.body)}`;
+				out.push(`${field}: POST ${t.url}${body}`);
+			}
 		}
 	};
 	const services = (field: string, v: Service[] | undefined) => {
@@ -141,12 +145,39 @@ function sameness(spec: AppSpec): string {
 	return JSON.stringify(Object.entries(rest).toSorted(([a], [b]) => a.localeCompare(b)));
 }
 
+const SETTING_SWITCHES = ["notify", "checkAtLogin", "selfAuto", "upkeepCommand"] as const;
+const EXTRA_SWITCHES = ["system", "systemInstall", "cleanup", "devCaches"] as const;
+
+/**
+ * Each setting and extra the import would turn on that is off on this machine, judged on the values as they would
+ * land (through the same clamps), so a value the clamp throws away never counts. Turning something off, or changing
+ * a neutral choice (language, frame, check interval, restore points to keep), is not listed: it starts nothing.
+ */
+function switchesOn(
+	paths: Paths,
+	settings: Record<string, unknown>,
+	extras: Record<string, unknown> | null,
+): ImportSwitch[] {
+	const now = loadState(paths).settings;
+	// SAFETY: clampSettings reads every field by its own checks; a wrong value takes its default.
+	const next = clampSettings({ ...now, ...(settings as Partial<Settings>) });
+	const on: ImportSwitch[] = SETTING_SWITCHES.filter((k) => next[k] && !now[k]);
+	if (extras === null) return on;
+	const was = loadExtras(paths);
+	const will = clampExtras({ ...was, ...extras });
+	const flag = (x: ExtrasSettings, k: (typeof EXTRA_SWITCHES)[number]) =>
+		k === "system" ? x.system === "show" : x[k] === true;
+	return [...on, ...EXTRA_SWITCHES.filter((k) => flag(will, k) && !flag(was, k))];
+}
+
 /**
  * Replaces the setup with the one in an exported file's text, or changes nothing and names every problem. The file
  * is read whole before anything is written: it must be this format's version, and its app list must load with no
  * error, so a broken file never replaces a working list. A list with any app whose table runs commands (commandsOf)
  * is not written until the caller passes sure, after showing the person the ask; a file from someone else could
- * otherwise run anything at the next check. Automatic installs come in off, whatever the file says, for every app
+ * otherwise run anything at the next check. A setting or extra the file turns on that is off here (switchesOn) asks
+ * the same way, so a file cannot quietly turn on Upkeep's own automatic update, the upkeep command, a login entry or
+ * an extra. Automatic installs come in off, whatever the file says, for every app
  * that is not on this machine's list with the same table (sameness), release kinds too: a release table's repo is
  * the file writer's choice, and with auto and install_if_missing it would install unseen. An app that matches the
  * local one keeps this machine's pick, never the file's, so no import can turn an automatic install on: importing
@@ -184,8 +215,10 @@ export function importSetup(
 		const commands = commandsOf(a);
 		return commands.length > 0 ? [{ key: a.key, name: a.name, commands }] : [];
 	});
-	if (running.length > 0 && !sure)
-		return { ok: false, ask: { apps: running, plain: list.apps.length - running.length } };
+	const settings = isRecord(doc.settings) ? doc.settings : {};
+	const turnsOn = switchesOn(paths, settings, isRecord(doc.extras) ? doc.extras : null);
+	if ((running.length > 0 || turnsOn.length > 0) && !sure)
+		return { ok: false, ask: { apps: running, plain: list.apps.length - running.length, turnsOn } };
 
 	const here = join(paths.config, "apps.toml");
 	const local = new Map((existsSync(here) ? loadManifest(here).apps : []).map((a) => [a.key, a] as const));
@@ -224,7 +257,6 @@ export function importSetup(
 			kept.push([f, copy]);
 		}
 		writeAtomic(files[0] ?? "", doc.apps);
-		const settings = isRecord(doc.settings) ? doc.settings : {};
 		updateState(paths, (s) => {
 			// SAFETY: the next loadState clamps every field of settings, so a wrong value reads as its default, never as this.
 			s.settings = { ...s.settings, ...(settings as Partial<Settings>) };

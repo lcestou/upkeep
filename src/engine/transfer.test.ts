@@ -135,7 +135,7 @@ test("commandsOf lists what acts as root, relaunches, reaches a URL or moves a c
 		"serve web stop: b",
 		"serve web start: c",
 		"serve web health: GET http://127.0.0.1:8080/health",
-		"test: POST http://127.0.0.1:8080/v1",
+		"test: POST http://127.0.0.1:8080/v1 '{}'",
 	]);
 	expect(
 		commandsOf({ key: "s", name: "S", kind: "source", repo: "o/s", dir: "~/s", move: "detach", build: ["make"] }),
@@ -158,4 +158,19 @@ test("commandsOf judges a version probe's dest with its .. parts, and quotes wha
 			update: ["npm", "i", "-g", "c@{version}", "--prefix=~/x", "~", "~/bin/c"],
 		}),
 	).toContain("update: npm i -g 'c@{version}' '--prefix=~/x' ~ ~/bin/c");
+});
+
+test("commandsOf shows an HTTP test's body, quoted, and cuts a long one", () => {
+	const lines = (body?: string) =>
+		commandsOf({
+			key: "s",
+			name: "S",
+			kind: "source",
+			repo: "o/s",
+			build: ["make"],
+			test: [{ url: "http://h/v1", body }],
+		});
+	expect(lines('{"a": 1}')).toContain(`test: POST http://h/v1 '{"a": 1}'`);
+	expect(lines()).toContain("test: POST http://h/v1");
+	expect(lines("x".repeat(250))).toContain(`test: POST http://h/v1 '${"x".repeat(200)}…'`);
 });

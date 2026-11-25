@@ -2760,3 +2760,16 @@ msgstr[1] "It also has # apps that only install their release files, without roo
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: dest may not contain a .. part"
 msgstr "{0}: dest may not contain a .. part"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "It turns on these settings, which are off on this computer:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: a config file may not contain a .. part"
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "There is no file waiting to import. Press Import and pick it again."

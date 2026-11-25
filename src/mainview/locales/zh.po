@@ -2737,3 +2737,16 @@ msgstr[0] "另有 # 个应用只安装其发布文件，不需要 root。"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: dest may not contain a .. part"
 msgstr "{0}：dest 不能包含 .. 部分"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "它会打开以下在这台电脑上关闭的设置："
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}：config 文件不能包含 .. 部分"
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "没有等待导入的文件。请按“导入”并重新选择。"

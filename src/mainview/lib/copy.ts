@@ -337,6 +337,9 @@ export const IMPORT = {
 	get autoOff() {
 		return "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app.";
 	},
+	get turnsOn() {
+		return "It turns on these settings, which are off on this computer:";
+	},
 	get yes() {
 		return "Import";
 	},

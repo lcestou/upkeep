@@ -345,7 +345,7 @@ test("import of a list whose apps run commands prints them and needs --yes; new 
 	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
 	expect(said).toEqual([
 		...ask,
-		"Nothing was changed. Read the commands, then run it again with --yes to import.",
+		"Nothing was changed. Read the list, then run it again with --yes to import.",
 		"Automatic installs come in off for every app that is new here or differs from this computer's table.",
 	]);
 	const json: string[] = [];
@@ -355,6 +355,7 @@ test("import of a list whose apps run commands prints them and needs --yes; new 
 		ask: {
 			apps: [{ key: "glow", name: "Glow", commands: ["source: npm:glow", "check: glow --version", "update: glow up"] }],
 			plain: 3,
+			turnsOn: [],
 		},
 	});
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
@@ -413,6 +414,44 @@ test("import of a list of release apps only asks nothing and says which came in 
 	const one: string[] = [];
 	expect(await main(["import", file], d, (l) => one.push(l))).toBe(1);
 	expect(one).toContain("and 1 app that only installs its release files, without root.");
+});
+
+test("import of a file that turns on a setting or extra that is off here asks first; turning things off does not", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const file = join(t.dir, "switches.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.settings.selfAuto = true;
+	doc.settings.upkeepCommand = true;
+	doc.settings.language = "de";
+	// systemInstall without the list shown is clamped away, so only the list counts.
+	doc.extras = { system: "show", systemInstall: true, cleanup: true, devCaches: true };
+	writeFileSync(file, JSON.stringify(doc));
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
+	expect(said).toEqual([
+		`${file} turns on these settings on this computer:`,
+		"  Update Upkeep automatically",
+		"  Add the upkeep command",
+		"  Show system updates",
+		"  Install system updates from Upkeep",
+		"  Show Cleanup",
+		"  Include developer caches",
+		"Nothing was changed. Read the list, then run it again with --yes to import.",
+		"Automatic installs come in off for every app that is new here or differs from this computer's table.",
+	]);
+	expect(loadState(t.paths).settings.selfAuto).toBe(false);
+	expect(await main(["import", file, "--yes"], d, () => {})).toBe(0);
+	expect(loadState(t.paths).settings).toMatchObject({ selfAuto: true, upkeepCommand: true, language: "de" });
+	// Now on here: the same file asks nothing, and a file turning them off asks nothing either.
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	doc.settings.selfAuto = false;
+	doc.settings.checkEvery = "daily";
+	doc.extras = { system: "off" };
+	writeFileSync(file, JSON.stringify(doc));
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	expect(loadState(t.paths).settings.selfAuto).toBe(false);
 });
 
 test("import refuses a file that is not an export, or whose list does not load, and changes nothing", async () => {
@@ -565,17 +604,19 @@ test("an import that cannot finish puts every file back and removes the ones it 
 	rmSync(join(t.paths.state, "state.json"), { force: true });
 	mkdirSync(join(t.paths.state, `extras.json.${process.pid}.tmp`), { recursive: true });
 	const out: string[] = [];
-	expect(await main(["import", file], d, (l) => out.push(l))).toBe(1);
-	expect(out[0]).toStartWith("could not write: ");
-	expect(out[0]).toEndWith("Nothing was changed.");
+	expect(await main(["import", file, "--yes"], d, (l) => out.push(l))).toBe(1);
+	// --yes prints the list first (the extra this file turns on), then the reason.
+	expect(out.slice(0, 2)).toEqual([`${file} turns on these settings on this computer:`, "  Show system updates"]);
+	expect(out[2]).toStartWith("could not write: ");
+	expect(out[2]).toEndWith("Nothing was changed.");
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
 	expect(existsSync(join(t.paths.state, "state.json"))).toBe(false);
 	expect(existsSync(join(t.paths.state, "extras.json"))).toBe(false);
 	rmSync(join(t.paths.state, `extras.json.${process.pid}.tmp`), { recursive: true });
 	// Two imports at the same moment keep both starting points.
 	const same: EngineDeps = { ...d, now: () => new Date("2026-11-12T10:00:00Z") };
-	expect(await main(["import", file], same, () => {})).toBe(0);
-	expect(await main(["import", file], same, () => {})).toBe(0);
+	expect(await main(["import", file, "--yes"], same, () => {})).toBe(0);
+	expect(await main(["import", file, "--yes"], same, () => {})).toBe(0);
 	const copies = readdirSync(t.paths.config).filter((f) =>
 		f.startsWith("apps.toml.pre-import-2026-11-12T10-00-00-000Z"),
 	);

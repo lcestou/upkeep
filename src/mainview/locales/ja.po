@@ -2737,3 +2737,16 @@ msgstr[0] "ほかに、root なしでリリースファイルだけをインス�
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: dest may not contain a .. part"
 msgstr "{0}：dest に .. を含めることはできません"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "このコンピューターでオフになっている次の設定をオンにします:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}：config ファイルに .. を含めることはできません"
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "読み込みを待っているファイルはありません。読み込みを押して、もう一度選んでください。"

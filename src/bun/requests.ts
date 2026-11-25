@@ -185,7 +185,7 @@ export function upkeepRequests(
 			let text: string;
 			if (sure) {
 				// The text the ask was built from, not the file read again: what the person read is what lands.
-				if (asked === null) return { ok: false };
+				if (asked === null) return { ok: false, problems: [MESSAGES.importNothingAsked()] };
 				text = asked;
 			} else {
 				const file = (await desktop.pickFile(deps.paths.home)).find((p) => p !== "");

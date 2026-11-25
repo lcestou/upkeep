@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "./shared/messages";
-import type { AppState, EngineEvent, ImportAsk, Suggestion } from "./shared/types";
+import type { AppState, EngineEvent, ImportAsk, ImportSwitch, Suggestion } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
@@ -269,19 +269,36 @@ function refuse(problem: string, json: boolean, out: Out): number {
 	return 1;
 }
 
-/** The ask as text: each app that runs commands with every command it runs, then how many plain apps come with it. */
+/** The window's names for what an import may turn on, in the English the command line prints. */
+const SWITCH_NAME = {
+	notify: "Notify when updates are ready",
+	checkAtLogin: "Start at login",
+	selfAuto: "Update Upkeep automatically",
+	upkeepCommand: "Add the upkeep command",
+	system: "Show system updates",
+	systemInstall: "Install system updates from Upkeep",
+	cleanup: "Show Cleanup",
+	devCaches: "Include developer caches",
+} satisfies Record<ImportSwitch, string>;
+
+/**
+ * The ask as text: each app that runs commands with every command it runs, how many plain apps come with it, then
+ * each setting the file turns on that is off here. A file that only turns settings on prints no app header.
+ */
 function printAsk(file: string, ask: ImportAsk, out: Out): void {
-	out(`${file} has apps that run these commands on this computer:`);
+	if (ask.apps.length > 0) out(`${file} has apps that run these commands on this computer:`);
 	for (const a of ask.apps) {
 		out(`  ${a.name} (${a.key})`);
 		for (const c of a.commands) out(`    ${c}`);
 	}
-	if (ask.plain > 0)
+	if (ask.apps.length > 0 && ask.plain > 0)
 		out(
 			ask.plain === 1
 				? "and 1 app that only installs its release files, without root."
 				: `and ${ask.plain} apps that only install their release files, without root.`,
 		);
+	if (ask.turnsOn.length > 0) out(`${file} turns on these settings on this computer:`);
+	for (const k of ask.turnsOn) out(`  ${SWITCH_NAME[k]}`);
 }
 
 /**
@@ -320,7 +337,7 @@ function importFrom(deps: EngineDeps, file: string, sure: boolean, json: boolean
 				);
 		} else if ("ask" in r) {
 			printAsk(file, r.ask, out);
-			out("Nothing was changed. Read the commands, then run it again with --yes to import.");
+			out("Nothing was changed. Read the list, then run it again with --yes to import.");
 			out("Automatic installs come in off for every app that is new here or differs from this computer's table.");
 		} else for (const p of r.problems) out(p);
 		return r.ok ? 0 : 1;

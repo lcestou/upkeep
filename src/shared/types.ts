@@ -143,10 +143,26 @@ export type Test = {
 };
 
 /**
- * What an imported list would run, shown before it is written: each app whose table carries commands, with every
- * command as one line, and how many apps come in that run only what their releases ship.
+ * What an imported file would run or turn on, shown before it is written: each app whose table carries commands,
+ * with every command as one line, how many apps come in that only install their release files, and each setting or
+ * extra the file turns on that is off on this machine.
  */
-export type ImportAsk = { apps: { key: string; name: string; commands: string[] }[]; plain: number };
+export type ImportAsk = {
+	apps: { key: string; name: string; commands: string[] }[];
+	plain: number;
+	turnsOn: ImportSwitch[];
+};
+
+/** A setting or extra an import would turn on that is off here: each one acts (writes a file, installs, shows a group). */
+export type ImportSwitch =
+	| "notify"
+	| "checkAtLogin"
+	| "selfAuto"
+	| "upkeepCommand"
+	| "system"
+	| "systemInstall"
+	| "cleanup"
+	| "devCaches";
 
 /** One app Upkeep proposes to add, with everything needed to add it in one press. */
 export type Suggestion = {

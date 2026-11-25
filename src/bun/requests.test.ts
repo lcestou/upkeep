@@ -272,7 +272,10 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 	const before = readFileSync(join(t.paths.config, "apps.toml"), "utf8");
 	const r = setup({ pickFile: async () => [file] });
 	// Import on an ask that never came does nothing.
-	expect(await r.r.importSetup({ sure: true })).toEqual({ ok: false });
+	expect(await r.r.importSetup({ sure: true })).toEqual({
+		ok: false,
+		problems: ["There is no file waiting to import. Press Import and pick it again."],
+	});
 	expect(await r.r.importSetup({})).toEqual({
 		ok: false,
 		ask: {
@@ -285,6 +288,7 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 				},
 			],
 			plain: 0,
+			turnsOn: [],
 		},
 	});
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
@@ -293,7 +297,10 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 	expect(await r.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 2, autoOff: 1 });
 	// tool's table matches this machine's, so it keeps this machine's pick (off); glow is new, so it comes in off.
 	expect(loadState(t.paths).auto).toEqual({ tool: false, glow: false });
-	expect(await r.r.importSetup({ sure: true })).toEqual({ ok: false });
+	expect(await r.r.importSetup({ sure: true })).toEqual({
+		ok: false,
+		problems: ["There is no file waiting to import. Press Import and pick it again."],
+	});
 	await r.engine.idle();
 });
 

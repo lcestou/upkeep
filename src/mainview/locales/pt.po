@@ -2783,3 +2783,16 @@ msgstr[2] "Ele também tem # apps que só instalam os arquivos das versões dele
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: dest may not contain a .. part"
 msgstr "{0}: dest não pode conter uma parte .."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "Ele liga estas configurações, que estão desligadas neste computador:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: um arquivo de config não pode conter uma parte .."
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "Não há nenhum arquivo esperando para importar. Clique em Importar e escolha-o de novo."
