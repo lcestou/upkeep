@@ -118,6 +118,7 @@ async function setup(power?: Run, net = { offline: false, githubDown: false }, q
 		fetch,
 		run,
 		power,
+		lockConfirmMs: 0,
 		arch,
 		now: () => new Date(),
 		procRoot: join(t.dir, "proc"),
@@ -235,6 +236,19 @@ test("automatic installs wait on a metered connection only with the switch on, a
 	engine.dismissSummary();
 	await engine.check();
 	expect(engine.readyKeys(true)).toEqual([]);
+});
+
+test("once automatic installs start, none of them is still ready, so the ready notice leaves them all out", async () => {
+	const power = fakePower({ inhibit: true });
+	const { engine } = await setup(power.run);
+	engine.setAuto("slow", true);
+	engine.setAuto("fd", true);
+	expect(await engine.installAuto()).toEqual({ started: true });
+	// Read right after the start, as the ready notice is: each is queued or working, none ready.
+	const rows = engine.snapshot().apps.filter((a) => a.key === "slow" || a.key === "fd");
+	expect(rows).toHaveLength(2);
+	expect(rows.filter((a) => a.status === "ready")).toEqual([]);
+	await engine.idle();
 });
 
 test("with the switch off, automatic installs start and the connection is not even asked about", async () => {

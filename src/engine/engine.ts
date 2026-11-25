@@ -105,6 +105,8 @@ export type EngineDeps = {
 	 * nothing waits; realDeps passes the real runner, and tests a fake so no real lock is ever held.
 	 */
 	power?: Run;
+	/** How long a started sleep lock must stay up before it counts as held. Default 300 ms; tests pass less. */
+	lockConfirmMs?: number;
 	now: () => Date;
 	/** The app's version, shown in Settings. */
 	version?: string;
@@ -985,7 +987,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			return null;
 		}
 		try {
-			const release = holdSleep(power, process.pid, "Installing updates");
+			const release = await holdSleep(power, process.pid, "Installing updates", deps.lockConfirmMs);
 			if (release) say(null, LOCK_LINES.held);
 			return release;
 		} catch (err) {

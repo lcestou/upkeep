@@ -42,6 +42,8 @@ export type Started = {
 	stop(): Promise<void>;
 	/** True when the process could not be started at all (no such program); output() then stays empty. */
 	failed?: boolean;
+	/** Whether the process is still running. */
+	alive?: () => boolean;
 };
 
 export type StartOpts = { stopMs?: number };
@@ -233,6 +235,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		const p = proc;
 		return {
 			failed: p === null,
+			alive: () => p !== null && p.exitCode === null && p.signalCode === null,
 			output: () => {
 				try {
 					return readFileSync(outFile, "utf8");
