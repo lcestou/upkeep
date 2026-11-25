@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { REASON_BUSY, REASON_CHECKING, REASON_NOTHING } from "../engine/engine";
 import { checkAndRetry, checkAtStart } from "./start-check";
 
 /** An engine stand-in whose checks find the network down for the first `down` tries. */
@@ -75,6 +76,18 @@ function retryEngine(offline: boolean, waits: ("metered" | "battery" | undefined
 		},
 	};
 }
+
+test("a busy or checking refusal keeps the apps waiting; a start or nothing ready ends the wait", async () => {
+	const answer = (r: { started: boolean; reason?: string }) => ({
+		check: async () => undefined,
+		offline: () => false,
+		installAuto: async () => r,
+	});
+	expect(await checkAndRetry(answer({ started: false, reason: REASON_BUSY }), "metered")).toBe("metered");
+	expect(await checkAndRetry(answer({ started: false, reason: REASON_CHECKING }), "battery")).toBe("battery");
+	expect(await checkAndRetry(answer({ started: false, reason: REASON_NOTHING }), "metered")).toBeUndefined();
+	expect(await checkAndRetry(answer({ started: true }), "metered")).toBeUndefined();
+});
 
 test("a scheduled check retries automatic apps only while they wait, and keeps the wait when offline", async () => {
 	const none = retryEngine(false, []);

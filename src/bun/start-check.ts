@@ -1,4 +1,4 @@
-import type { Engine } from "../engine/engine";
+import { type Engine, REASON_NOTHING } from "../engine/engine";
 
 /** The waits between checks while a start at login finds no network: a slow Wi-Fi first, then a longer gap. */
 const OFFLINE_RETRY_MS = [30_000, 120_000, 300_000];
@@ -26,7 +26,8 @@ export async function checkAtStart(
 /**
  * A scheduled check while the automatic apps wait for an unmetered connection or mains power: checks, then asks the
  * engine to install them again, which holds them again or starts. Returns what they still wait for, undefined once
- * they no longer wait (installed, or none left ready). A check that found no network leaves the wait as it was.
+ * they no longer wait (installed, or none left ready). A check that found no network, or an install refused because
+ * the engine was busy, leaves the wait as it was.
  */
 export async function checkAndRetry(
 	engine: Pick<Engine, "check" | "offline" | "installAuto">,
@@ -34,5 +35,8 @@ export async function checkAndRetry(
 ): Promise<"metered" | "battery" | undefined> {
 	await engine.check();
 	if (!held || engine.offline()) return held;
-	return (await engine.installAuto()).wait;
+	const r = await engine.installAuto();
+	if (r.wait) return r.wait;
+	// A busy or checking refusal decided nothing: the apps still wait. Only a start, or none left ready, ends it.
+	return r.started || r.reason === REASON_NOTHING ? undefined : held;
 }

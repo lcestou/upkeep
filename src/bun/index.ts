@@ -544,7 +544,7 @@ engine.subscribe((event) => {
 	// A finished check or a dismissed run both just looked at every app: the schedule's wait starts again.
 	if (phase === "idle" && (before === "checking" || before === "summary")) schedule.checked();
 	if (before === "checking" && phase === "idle") {
-		announceReady();
+		announceReady(heldBack);
 		void selfLook();
 	}
 	if (before === "installing" && phase === "summary") {
