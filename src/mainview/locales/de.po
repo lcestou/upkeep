@@ -2809,6 +2809,29 @@ msgid "The AppImage at {0} asks to stay out of the app menu, so Upkeep adds no e
 msgstr "Das AppImage unter {0} möchte nicht im Anwendungsmenü erscheinen, daher fügt Upkeep keinen Eintrag hinzu."
 
 #: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "Beim Wiederherstellen kommen auch die gespeicherten Einstellungen zurück. Die ersetzten Einstellungen werden beiseitegelegt."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}: keep_with_restore braucht eine App mit Wiederherstellungspunkten"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "mit Einstellungen"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+msgstr "{0}: keep_with_restore nimmt eigene Pfade im Home-Verzeichnis, etwa ~/.config/<app>"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+msgstr "Schließe zuerst {0}: Mit dieser Wiederherstellung kommen seine Einstellungen zurück, und es könnte sie beim Beenden überschreiben."
+
+#: src/mainview/lib/copy.ts
 msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 msgstr "Diese Datei enthält Apps, die diese Befehle auf diesem Rechner ausführen. Importiere sie nur, wenn du ihrer Herkunft vertraust."
 

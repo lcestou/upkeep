@@ -13,7 +13,7 @@ import {
 import { basename, dirname, isAbsolute, join, normalize, relative } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
-import { type BackupMeta, backupDir, pointName, readMeta } from "../backup";
+import { type BackupMeta, backupDir, CONFIG_DIR, pointName, putConfigBack, readMeta, saveConfig } from "../backup";
 import { expandHome, type Paths } from "../paths";
 import { installAside, type Run } from "../run";
 import { nonInteractive } from "./context";
@@ -28,6 +28,8 @@ export type TreeCtx = {
 	onStart?: (pid: number) => void;
 	/** The rename every put-back uses. Tests pass one that fails once, to stop a put-back midway. */
 	rename?: (from: string, to: string) => void;
+	/** The current table's keep_with_restore: the saved settings restoreTree may put back. None when absent. */
+	config?: string[];
 };
 
 /** The placeholders a table may use; anything else was refused when apps.toml was read. */
@@ -167,7 +169,7 @@ export async function takeTree(
 		}
 		for (const rec of spec.record ?? []) {
 			// A record is a file in the point itself: never a path, and never a name the point already uses.
-			if (/[/\0]/.test(rec.file) || [".", "..", "", "meta.json", "keep"].includes(rec.file))
+			if (/[/\0]/.test(rec.file) || [".", "..", "", "meta.json", "keep", CONFIG_DIR].includes(rec.file))
 				throw new Error(MESSAGES.recordNotPlainName(rec.file));
 			const argv = rec.run.map((a) => fill(a, { ...o.vars, point: tmp }));
 			// oxlint-disable-next-line no-await-in-loop -- a record may read the one before it
@@ -203,6 +205,8 @@ export async function takeTree(
 			tree.commit = firstLine(r.stdout);
 		}
 		const meta: BackupMeta = { version: o.version, at: o.at, files: [], sudo: false, tree };
+		const config = saveConfig(tmp, spec, ctx.paths, ctx.log);
+		if (config.length > 0) meta.config = config;
 		writeFileSync(join(tmp, "meta.json"), JSON.stringify(meta, null, "\t"));
 		rmSync(point, { recursive: true, force: true });
 		renameSync(tmp, point);
@@ -326,6 +330,8 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 		});
 		if (r.code !== 0) throw new Error(MESSAGES.undoStepFailed(step));
 	}
+	// Settings only after the stop: before it the new version never ran, so they are as the point saved them.
+	if (withPlaced) putConfigBack(point, meta.config ?? [], ctx.paths, tree.spec.key, ctx.config ?? []);
 	// A finished put-back leaves no marks, so a later restore from this point copies every kept path again.
 	for (const f of readdirSync(point)) if (f.startsWith("hold-done-")) rmSync(join(point, f), { force: true });
 }

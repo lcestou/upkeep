@@ -66,7 +66,8 @@ function shellWord(a: string): string {
  * fields quoted as a shell would need them, shell steps (build, undo, check_built) as written. Also listed: an
  * install that runs as root (every deb and rpm, whose package scripts dpkg or rpm run as root, and any table with
  * sudo), relaunch (it ends the processes named by process and starts dest), an HTTP test or health check, a git
- * move of an existing checkout in dir, and a source build's writes outside its checkout (place, config). A release
+ * move of an existing checkout in dir, a source build's writes outside its checkout (place, config), and the settings
+ * paths a restore puts back (keep_with_restore). A release
  * kind's version_args run dest, so they show as dest plus its arguments, except one plain token such as ["version"]
  * or ["-V"] on a dest under home: that asks the app's own release file its version, the same trust as the default
  * --version probe, which is not listed either. The dest is judged with its .. parts (refused at load anyway), so
@@ -130,6 +131,8 @@ export function commandsOf(spec: AppSpec): string[] {
 	tests("test", spec.test);
 	for (const p of spec.place ?? []) out.push(`place: ${p.from} -> ${p.to}`);
 	for (const c of spec.config ?? []) out.push(`config: ${c.file} ${c.key ?? `${c.array} ${c.flag}`}`);
+	// A restore swaps these folders for the point's copies, so a file naming them chooses what a restore overwrites.
+	for (const k of spec.keep_with_restore ?? []) out.push(`keep_with_restore: ${k}`);
 	const from = spec.repo ?? spec.latest;
 	if (out.length > 0 && from) out.unshift(`source: ${from}`);
 	return out;

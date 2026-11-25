@@ -30,7 +30,16 @@ const STRING_FIELDS = [
 	"process",
 	"note",
 ] as const;
-const LIST_FIELDS = ["bins", "version_args", "build", "check", "update", "restore", "restart"] as const;
+const LIST_FIELDS = [
+	"bins",
+	"version_args",
+	"build",
+	"check",
+	"update",
+	"restore",
+	"restart",
+	"keep_with_restore",
+] as const;
 const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch", "probe"] as const;
 // Process names that many programs share: relaunch closes every process with its name, so it refuses these.
 // shortcut: a fixed list of common interpreters; a table naming another shared runtime is the owner's to get right.
@@ -167,7 +176,69 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 		const refusedSource = liftSource(key, table, spec);
 		if (refusedSource) return refusedSource;
 	}
-	return spec;
+	return liftKeepWithRestore(key, spec) ?? spec;
+}
+
+// Folders that hold many apps' files: a restore swaps the whole path, so naming one would put back every app's.
+const SHARED_HOME_FOLDERS = new Set([
+	"~/.config",
+	"~/.local",
+	"~/.local/share",
+	"~/.local/state",
+	"~/.local/bin",
+	"~/.cache",
+	"~/Desktop",
+	"~/Documents",
+	"~/Downloads",
+	"~/Music",
+	"~/Pictures",
+	"~/Public",
+	"~/Templates",
+	"~/Videos",
+]);
+// Never swapped, nor anything under them: Upkeep's own files (at their default places; the engine also checks the
+// real ones when it copies), every app's menu and login entries and user units, and keys.
+const REFUSED_HOME_TREES = [
+	"~/.config/upkeep",
+	"~/.local/state/upkeep",
+	"~/.local/share/upkeep",
+	"~/.cache/upkeep",
+	"~/.local/share/applications",
+	"~/.config/autostart",
+	"~/.config/systemd",
+	"~/.ssh",
+	"~/.gnupg",
+	"~/.local/share/keyrings",
+];
+
+/**
+ * Checks keep_with_restore: every path is under home in ~/ form, never home itself, a shared folder such as ~/.config
+ * or ~/Documents, at or under one of REFUSED_HOME_TREES, or one with an empty, . or .. part; and the app keeps restore
+ * points (a source build with dir or stage, a command with restore, a release kind). Null when it passes or is absent.
+ * A folder directly in ~ (~/.mozilla) is allowed: dot folders are often one app's. Links and mount points are only
+ * known on the machine, so the engine refuses those when it copies.
+ */
+function liftKeepWithRestore(key: string, spec: AppSpec): string | null {
+	const list = spec.keep_with_restore;
+	if (list === undefined) return null;
+	const points =
+		spec.kind === "source"
+			? Boolean(spec.dir || spec.stage)
+			: spec.kind === "command"
+				? (spec.restore?.length ?? 0) > 0
+				: spec.kind !== "manual" && spec.kind !== "claude-plugins";
+	if (!points) return MESSAGES.liftKeepWithRestoreKind(key);
+	for (const raw of list) {
+		const p = tidy(raw);
+		// An empty or . segment would let ~//.config or ~/./.config past the shared-folder check.
+		const odd = p.split("/").some((seg) => seg === "" || seg === "." || seg === "..");
+		const refused = REFUSED_HOME_TREES.some((r) => p === r || p.startsWith(`${r}/`));
+		if (!p.startsWith("~/") || odd || refused || SHARED_HOME_FOLDERS.has(p))
+			return MESSAGES.liftKeepWithRestorePath(key);
+	}
+	// One written form from here on (no trailing slash), so the point, the restore and the guard compare alike.
+	spec.keep_with_restore = list.map(tidy);
+	return null;
 }
 
 /** The kinds that install a release file, and so may take their release from a links: page. */
