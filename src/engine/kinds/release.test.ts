@@ -18,7 +18,7 @@ import { listBackups, restoreBackup, takeBackup } from "../backup";
 import type { FetchLike } from "../github";
 import type { Run } from "../run";
 import { readInflight } from "../store";
-import { ok, realRun, recordingRun, script, tempHome } from "../testkit";
+import { ok, realRun, recordingRun, script, tempHome, withCancel } from "../testkit";
 import type { KindCtx, Target } from "./context";
 import { checkRelease, dlPath, installRelease, probeInstalled } from "./release";
 
@@ -1009,4 +1009,62 @@ test("install: a file fetched ahead of its turn installs without a download, and
 	expect(outcome.stages.download).toBe(1234);
 	expect(asked).toBe(0);
 	expect(stages.find(([s, p]) => s === "download" && p === 100)).toBeDefined();
+});
+
+test("Stop now during sudo -n dpkg waits it out, then puts the installed version's package back", async () => {
+	const dest = script(join(t.dir, "usr/bin/rustdesk"), 'echo "1.4.2"');
+	oldRelease = { tag: "1.4.2", files: { "rustdesk-1.4.2-x86_64.deb": new Uint8Array([9, 9, 9]) } };
+	publish("1.4.3", { "rustdesk-1.4.3-x86_64.deb": new Uint8Array([1, 2, 3]) });
+	const stop = new AbortController();
+	const installed: string[] = [];
+	const { run, calls } = recordingRun(t.paths, async (argv) => {
+		if (argv[2] !== "dpkg") return undefined;
+		const file = argv[4] ?? "";
+		// The press lands while the new package unpacks: dpkg is never cut, so it runs to its end.
+		if (!file.includes("1.4.2")) stop.abort();
+		await Bun.sleep(50);
+		installed.push(file.split("/").at(-1) ?? "");
+		script(dest, file.includes("1.4.2") ? 'echo "1.4.2"' : 'echo "1.4.3"');
+		return ok();
+	});
+	const c = { ...ctx(withCancel(run, stop.signal)), cancel: stop.signal };
+	const outcome = await installRelease(rustdesk(dest), await checkAndTarget(rustdesk(dest), ctx(run)), c);
+	expect(outcome).toMatchObject({ result: "stopped", installed: "1.4.2", detail: "Stopped. 1.4.2 is back in place." });
+	expect(installed).toEqual(["rustdesk-rustdesk-1.4.3-x86_64.deb", "rustdesk-1.4.2-x86_64.deb"]);
+	expect(calls.filter((x) => x.argv[2] === "dpkg").map((x) => x.opts.cuttable)).toEqual([undefined, undefined]);
+	expect(readInflight(t.paths)).toBeNull();
+	oldRelease = null;
+});
+
+test("Stop now during the download ends it and leaves the installed copy alone", async () => {
+	installZen("1.0.0");
+	publish("1.1.0", { "zen-x86_64.AppImage": bash('echo "zen 1.1.0"') });
+	const stop = new AbortController();
+	// A download that sends a little and then stalls until it is aborted.
+	const slow: FetchLike = async (url, init) => {
+		if (!url.startsWith("https://dl.test/")) return fakeFetch(url, init);
+		return new Response(
+			new ReadableStream<Uint8Array>({
+				start(c) {
+					c.enqueue(new Uint8Array([1]));
+					init?.signal?.addEventListener("abort", () => c.error(new Error("aborted")));
+				},
+			}),
+			{ headers: { "content-length": "100" } },
+		);
+	};
+	const base = ctx();
+	const target = await checkAndTarget(zen(), base);
+	setTimeout(() => stop.abort(), 200);
+	const started = Date.now();
+	const outcome = await installRelease(zen(), target, {
+		...base,
+		fetch: slow,
+		run: withCancel(base.run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(Date.now() - started).toBeLessThan(3000);
+	expect(outcome).toMatchObject({ result: "stopped", installed: "1.0.0", detail: "Stopped. 1.0.0 is back in place." });
+	expect(readFileSync(join(t.paths.home, ".local/bin/zen-browser.AppImage"), "utf8")).toContain("zen 1.0.0");
+	expect(listBackups(t.paths, "zen")).toEqual([]);
 });

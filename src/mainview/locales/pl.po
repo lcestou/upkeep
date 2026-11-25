@@ -2767,3 +2767,36 @@ msgstr "Nie udało się rozpakować punktu przywracania {0}: {1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "Pobrano, czeka na swoją kolej"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "Zatrzymane przez ciebie"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "Zatrzymano"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "Zatrzymano. {0} jest z powrotem na miejscu."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "Zatrzymano. {0} nadal zgłasza {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "Zatrzymano. {0} teraz się nie uruchamia: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "Czekam, aż {0} się skończy, potem przywracam {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "Czekam, aż {0} się skończy."

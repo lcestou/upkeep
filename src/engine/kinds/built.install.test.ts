@@ -17,7 +17,7 @@ import type { AppSpec, Serve } from "../../shared/types";
 import type { FetchLike } from "../github";
 import type { RunOpts, ProcessResult } from "../run";
 import { DEFAULT_SETTINGS, readInflight } from "../store";
-import { ok, strictRun, tempHome } from "../testkit";
+import { ok, strictRun, tempHome, withCancel } from "../testkit";
 import { installBuilt } from "./built";
 import type { KindCtx } from "./context";
 
@@ -607,4 +607,53 @@ test("a restore point that cannot be taken refuses the update with nothing chang
 		detail: expect.stringContaining("Could not take a restore point"),
 	});
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
+});
+
+test("Stop now during a build step puts the files back and never stops the service", async () => {
+	const before = hashTree(dir);
+	const stop = new AbortController();
+	// The press lands while make runs; the fake step then ends as a cut one would.
+	const box = fakeBox({ onBuild: () => stop.abort() });
+	const o = await installBuilt(spec(), target, {
+		...ctx(box),
+		run: withCancel(box.run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(o).toMatchObject({
+		result: "stopped",
+		installed: "f2918cabb",
+		detail: "Stopped. f2918cabb is back in place.",
+	});
+	expect(box.calls.find((c) => c.argv.join(" ") === "bash -c make all")?.opts.cuttable).toBe(true);
+	expect(argvs(box.calls).filter((a) => a.startsWith("sudo -n stop"))).toEqual([]);
+	expect(hashTree(dir)).toEqual(before);
+	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("Stop now during the health check after the start rolls the old version back in", async () => {
+	const before = hashTree(dir);
+	const stop = new AbortController();
+	const box = fakeBox();
+	const fetch: FetchLike = async (url, init) => {
+		if (box.svc.servedVersion !== "f2918cabb" && !stop.signal.aborted) {
+			stop.abort();
+			return new Response("down", { status: 503 });
+		}
+		return box.fetch(url, init);
+	};
+	const o = await installBuilt(spec({ serve: [{ ...SERVE, wait_s: 30 }] }), target, {
+		...ctx(box),
+		fetch,
+		run: withCancel(box.run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(o).toMatchObject({
+		result: "stopped",
+		installed: "f2918cabb",
+		detail: "Stopped. f2918cabb is back in place.",
+	});
+	expect(hashTree(dir)).toEqual(before);
+	expect(box.svc).toMatchObject({ running: true, servedVersion: "f2918cabb" });
+	// The root stop and start are never cut; only the forward steps are offered to Stop now.
+	expect(box.calls.filter((c) => c.argv[0] === "sudo" && c.argv[2] !== "-l").every((c) => !c.opts.cuttable)).toBe(true);
 });

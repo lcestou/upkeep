@@ -179,7 +179,8 @@ export type AppStatus =
 	| "working" // being installed now
 	| "done" // updated in this run
 	| "failed" // this run could not update it; nothing was changed or the change was undone
-	| "rolled_back"; // installed, would not start, previous copy restored
+	| "rolled_back" // installed, would not start, previous copy restored
+	| "stopped"; // the person pressed Stop now: what was changed was put back, or the detail says what is there
 
 export type RestorePoint = { version: string; at: string };
 
@@ -250,7 +251,7 @@ export type RunResult = {
 	 * "restored", "cleaned" and "skipped" appear only in history: the owner put a restore point back by hand, Cleanup
 	 * deleted something, or Cleanup left an item alone on purpose (changed since review, no sudo, polkit said no).
 	 */
-	result: "updated" | "failed" | "rolled_back" | "restored" | "cleaned" | "skipped";
+	result: "updated" | "failed" | "rolled_back" | "stopped" | "restored" | "cleaned" | "skipped";
 	detail?: string;
 	ms: number;
 };
@@ -263,6 +264,8 @@ export type RunState = {
 	total: number;
 	currentKey: string | null;
 	stopping: boolean;
+	/** Stop now was pressed: the current app is being put back, and stopping is set too. */
+	stoppingNow?: boolean;
 	results: RunResult[];
 	/** This run was started from a summary to try the failed apps again. */
 	retry: boolean;

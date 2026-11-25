@@ -282,6 +282,9 @@ export const TEXT = {
 	get rolledBack() {
 		return "Rolled back";
 	},
+	get stoppedByYou() {
+		return "Stopped by you";
+	},
 	get restored() {
 		return "Restored";
 	},
@@ -471,6 +474,8 @@ export function statusText(app: AppState): string {
 			return "Failed";
 		case "rolled_back":
 			return `Rolled back to ${app.installed ?? ""}`;
+		case "stopped":
+			return "Stopped";
 	}
 }
 

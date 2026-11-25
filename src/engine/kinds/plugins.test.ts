@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DEFAULT_SETTINGS } from "../store";
-import { recordingRun, tempHome } from "../testkit";
+import { recordingRun, tempHome, withCancel } from "../testkit";
 import type { KindCtx } from "./context";
 import { checkClaudePlugins, installClaudePlugins } from "./plugins";
 
@@ -114,4 +114,22 @@ test("an update stopped at its time limit fails, whatever it printed first", asy
 		detail: "Could not update a@m. See the log.",
 	});
 	expect(lines).toContain("a@m update failed: ran past 120 s and was stopped");
+});
+
+test("Stop now waits out the plugin being updated and skips the rest", async () => {
+	registry({ "a@m": [{ scope: "user" }], "b@m": [{ scope: "user" }] });
+	const stop = new AbortController();
+	const { run, calls } = recordingRun(t.paths, async (argv) => {
+		if (argv[2] === "update" && argv[3] === "a@m") {
+			// The press lands while the first plugin updates; that one is never cut.
+			stop.abort();
+			await Bun.sleep(50);
+			return ok('{"updateOutcome":"updated","message":"a@m updated"}');
+		}
+		return ok("");
+	});
+	const outcome = await installClaudePlugins({ ...ctx(withCancel(run, stop.signal)), cancel: stop.signal });
+	expect(outcome).toMatchObject({ result: "stopped", detail: "Updated 1. New sessions pick them up." });
+	expect(calls.map((c) => c.argv.slice(2, 4).join(" "))).toEqual(["marketplace update", "update a@m"]);
+	expect(calls.every((c) => c.opts.cuttable !== true)).toBe(true);
 });

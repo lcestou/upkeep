@@ -68,7 +68,7 @@ export type Checked = {
 export type Target = { from: string | null; version: string; tag: string; asset?: Asset };
 
 export type Outcome = {
-	result: "done" | "failed" | "rolled_back";
+	result: "done" | "failed" | "rolled_back" | "stopped";
 	installed: string | null;
 	detail?: string;
 	restartToApply: boolean;
@@ -79,6 +79,29 @@ export type Outcome = {
 /** Lifts the notes, release page and publish date off a release; each stays undefined when the release has none. */
 export function fromRelease(release: Release): Pick<Checked, "notes" | "releaseUrl" | "publishedAt"> {
 	return { notes: release.notes, releaseUrl: release.url, publishedAt: release.publishedAt };
+}
+
+/** True once the person pressed Stop now. A kind reads it between stages, never inside a step it must wait out. */
+export const stopPressed = (ctx: KindCtx): boolean => ctx.cancel?.aborted === true;
+
+/**
+ * The outcome of an app Stop now ended with its old copy in place, whether nothing had changed yet or it was put back.
+ * With no version known (a first install) the row says Stopped and nothing more.
+ */
+export function stoppedOutcome(installed: string | null): Omit<Outcome, "stages"> {
+	return {
+		result: "stopped",
+		installed,
+		detail: installed ? MESSAGES.stoppedPutBack(installed) : undefined,
+		restartToApply: false,
+	};
+}
+
+/** ctx.run with every call cuttable, for a helper that takes a runner (a probe) on the way forward, never on an undo. */
+export function cuttableRun(ctx: KindCtx): Run {
+	const run: Run = (argv, opts) => ctx.run(argv, { ...opts, cuttable: true });
+	// An AppImage's probe mounts it through start, which a cut leaves alone: the probe stops its own mount.
+	return ctx.run.start ? Object.assign(run, { start: ctx.run.start }) : run;
 }
 
 /** Times each stage and reports it as it starts. */

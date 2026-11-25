@@ -1037,3 +1037,87 @@ test("a catalogue source build not installed yet is added with install_if_missin
 	expect(await engine.addApps([spec])).toEqual({ added: ["tmux"], problems: [] });
 	expect(loadManifest(join(t.paths.config, "apps.toml")).apps.find((a) => a.key === "tmux")).toEqual(spec);
 });
+
+/** The history file's rows, as appendHistory wrote them. */
+const historyRows = (): { key: string; result: string }[] =>
+	existsSync(join(t.paths.data, "history.jsonl"))
+		? readFileSync(join(t.paths.data, "history.jsonl"), "utf8")
+				.trim()
+				.split("\n")
+				.map((l) => JSON.parse(l) as { key: string; result: string })
+		: [];
+
+test("Stop now cuts the current app, leaves the rest ready, and history says stopped", async () => {
+	const d = await deps();
+	script(join(bin, "claude-up"), "sleep 30");
+	const engine = createEngine(d);
+	await engine.check();
+	engine.subscribe((e) => {
+		if (e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) {
+			engine.stopNow();
+		}
+	});
+	const started = Date.now();
+	// Manifest order: claude runs first, plugins waits behind it.
+	await engine.install(["claude", "plugins"]);
+	await engine.idle();
+	expect(Date.now() - started).toBeLessThan(8000);
+	const snap = engine.snapshot();
+	expect(statuses(engine)).toMatchObject({ claude: "stopped", plugins: "fresh" });
+	expect(snap.apps.find((a) => a.key === "claude")?.detail).toBe("Stopped. Claude Code still reports 2.1.322.");
+	expect(snap.run).toMatchObject({ phase: "summary", stopping: false, stoppingNow: false });
+	expect(snap.run.results.map((r) => [r.key, r.result])).toEqual([["claude", "stopped"]]);
+	expect(historyRows().map((r) => [r.key, r.result])).toEqual([["claude", "stopped"]]);
+	expect(lockHeld()).toBe(false);
+}, 15_000);
+
+test("Stop now during a step it never cuts says what it waits for, and the step runs to its end", async () => {
+	const d = await deps();
+	const claudeState = join(t.dir, "claude-version");
+	// The marketplace refresh takes a moment; plugin steps are never cut.
+	script(
+		join(bin, "claude"),
+		`if [ "$1" = plugin ]; then [ "$2" = marketplace ] && sleep 0.5; [ "$2" = update ] && echo '{"updateOutcome":"up_to_date"}'; exit 0; fi; read -r v < "${claudeState}"; echo "$v (Claude Code)"`,
+	);
+	const engine = createEngine(d);
+	await engine.check();
+	const details: string[] = [];
+	let pressed = false;
+	engine.subscribe((e) => {
+		if (e.type !== "app" || e.app.key !== "plugins") return;
+		if (e.app.status === "working" && e.app.detail) details.push(e.app.detail);
+		if (!pressed && e.app.status === "working") {
+			pressed = true;
+			setTimeout(() => engine.stopNow(), 100);
+		}
+	});
+	await engine.install(["plugins"]);
+	await engine.idle();
+	expect(details).toEqual(["Waiting for claude plugin marketplace to finish."]);
+	expect(statuses(engine).plugins).toBe("stopped");
+	expect(lockHeld()).toBe(false);
+});
+
+test("a run that throws between apps still writes the history of the apps it finished", async () => {
+	const d = await deps();
+	let armed = false;
+	const now = d.now;
+	d.now = () => {
+		if (armed) {
+			armed = false;
+			throw new Error("clock gone");
+		}
+		return now();
+	};
+	const engine = createEngine(d);
+	await engine.check();
+	engine.subscribe((e) => {
+		// Once fd's result is in, the next clock read (the second app's first line) throws.
+		if (e.type === "run" && e.run.results.some((r) => r.key === "fd")) armed = true;
+	});
+	await engine.install(["fd", "claude"]);
+	await engine.idle();
+	expect(engine.snapshot().run.phase).toBe("summary");
+	expect(historyRows().map((r) => [r.key, r.result])).toEqual([["fd", "updated"]]);
+	expect(lockHeld()).toBe(false);
+});

@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
 import { listBackups } from "../backup";
-import { realRun, script, tempHome } from "../testkit";
+import { realRun, script, tempHome, withCancel } from "../testkit";
 import type { KindCtx } from "./context";
 import { checkCommand, installCommand, tagOf } from "./command";
 
@@ -207,4 +207,65 @@ test("the update runs in the home directory, whatever folder Upkeep was started 
 		ctx(),
 	);
 	expect(readFileSync(join(t.dir, "cwd"), "utf8").trim()).toBe(t.paths.home);
+});
+
+/** ctx() with Stop now wired in, as the engine passes it. */
+function stoppable(stop: AbortController): KindCtx {
+	const c = ctx();
+	return { ...c, run: withCancel(c.run, stop.signal), cancel: stop.signal };
+}
+
+test("Stop now cuts an update with a restore command and puts the installed version back", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), `printf half > ${state}; sleep 30`);
+	script(join(t.paths.home, ".local/bin/claude-back"), `printf "$1" > ${state}`);
+	const stop = new AbortController();
+	setTimeout(() => stop.abort(), 300);
+	const spec = { ...claude(["~/.local/bin/claude-up"]), restore: ["~/.local/bin/claude-back", "{version}"] };
+	const started = Date.now();
+	const outcome = await installCommand(spec, { from: "2.1.322", version: "2.1.400", tag: "2.1.400" }, stoppable(stop));
+	expect(Date.now() - started).toBeLessThan(6000);
+	expect(outcome).toMatchObject({
+		result: "stopped",
+		installed: "2.1.322",
+		detail: "Stopped. 2.1.322 is back in place.",
+	});
+	expect(readFileSync(state, "utf8")).toBe("2.1.322");
+	expect(lines).toContain("The update command was stopped.");
+}, 15_000);
+
+test("Stop now cuts an update with no restore command and says what the tool reports after", async () => {
+	const state = fakeClaude("2.1.322");
+	script(join(t.paths.home, ".local/bin/claude-up"), "sleep 30");
+	const stop = new AbortController();
+	setTimeout(() => stop.abort(), 300);
+	const target = { from: "2.1.322", version: "2.1.400", tag: "2.1.400" };
+	expect(await installCommand(claude(["~/.local/bin/claude-up"]), target, stoppable(stop))).toMatchObject({
+		result: "stopped",
+		installed: "2.1.322",
+		detail: "Stopped. Claude Code still reports 2.1.322.",
+	});
+	// A tool the cut left unable to start says so.
+	writeFileSync(state, "");
+	script(join(t.paths.home, ".local/bin/claude"), "exit 3");
+	const again = new AbortController();
+	setTimeout(() => again.abort(), 300);
+	const broken = await installCommand(claude(["~/.local/bin/claude-up"]), target, stoppable(again));
+	expect(broken.result).toBe("stopped");
+	expect(broken.detail).toStartWith("Stopped. Claude Code does not start now: ");
+}, 15_000);
+
+test("Stop now pressed before the update starts leaves the tool alone", async () => {
+	fakeClaude("2.1.322");
+	const stop = new AbortController();
+	stop.abort();
+	const marker = join(t.dir, "ran");
+	script(join(t.paths.home, ".local/bin/claude-up"), `touch ${marker}`);
+	const target = { from: "2.1.322", version: "2.1.400", tag: "2.1.400" };
+	const spec = { ...claude(["~/.local/bin/claude-up"]), restore: ["true"] };
+	expect(await installCommand(spec, target, stoppable(stop))).toMatchObject({
+		result: "stopped",
+		installed: "2.1.322",
+	});
+	expect(existsSync(marker)).toBe(false);
 });

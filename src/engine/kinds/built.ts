@@ -10,12 +10,15 @@ import { asRootArgv, installAside, type Run, type RunOpts } from "../run";
 import { argsRunning } from "../running";
 import { clearInflight, type Inflight, readInflight, startTime, writeInflight } from "../store";
 import {
+	cuttableRun,
 	type KindCtx,
 	nonInteractive,
 	type Outcome,
 	REASON_UNRECOVERED,
 	readInstalled,
 	stageClock,
+	stopPressed,
+	stoppedOutcome,
 	type Target,
 } from "./context";
 import {
@@ -123,15 +126,20 @@ export async function isActive(run: Run, svc: Service): Promise<boolean> {
 	return (await run(asRootArgv(svc.active), { timeoutMs: 30_000 })).code === 0;
 }
 
-/** Stops a unit. A stop that fails or runs out counts when the unit is down after it. */
-export async function stopService(run: Run, svc: Service): Promise<boolean> {
-	const r = await run(asRootArgv(svc.stop), { timeoutMs: SERVICE_MS, killTree: true });
+/**
+ * Stops a unit. A stop that fails or runs out counts when the unit is down after it. cuttable lets Stop now cut a stop
+ * on the way forward, never one run as root (sudo cannot hand on the kill) and never one inside an undo.
+ */
+export async function stopService(run: Run, svc: Service, cuttable = false): Promise<boolean> {
+	const argv = asRootArgv(svc.stop);
+	const r = await run(argv, { timeoutMs: SERVICE_MS, killTree: true, cuttable: cuttable && argv[0] !== "sudo" });
 	return r.code === 0 || !(await isActive(run, svc));
 }
 
-/** Starts a unit. A start that fails or runs out counts when the unit is up after it. */
-export async function startService(run: Run, svc: Service & { start: string[] }): Promise<boolean> {
-	const r = await run(asRootArgv(svc.start), { timeoutMs: SERVICE_MS, killTree: true });
+/** Starts a unit. A start that fails or runs out counts when the unit is up after it. cuttable as for stopService. */
+export async function startService(run: Run, svc: Service & { start: string[] }, cuttable = false): Promise<boolean> {
+	const argv = asRootArgv(svc.start);
+	const r = await run(argv, { timeoutMs: SERVICE_MS, killTree: true, cuttable: cuttable && argv[0] !== "sudo" });
 	return r.code === 0 || (await isActive(run, svc));
 }
 
@@ -330,6 +338,8 @@ export async function prepareBuilt(
 	}
 	const second = await busyNow(spec, ctx, false);
 	if (second) return fail({ failed: MESSAGES.busySayNothingChanged(second) });
+	// Stop now: installBuilt words the outcome, so the sentence here is never shown.
+	if (stopPressed(ctx)) return fail({ failed: "" });
 	if (dir) {
 		const status = await ctx.run(["git", "-C", dir, "status", "--porcelain", "--untracked-files=no"], {
 			timeoutMs: 60_000,
@@ -342,6 +352,7 @@ export async function prepareBuilt(
 			{
 				timeoutMs: 600_000,
 				killTree: true,
+				cuttable: true,
 			},
 		);
 		if (fetched.code !== 0) return fail({ failed: MESSAGES.couldNotFetchTag(target.tag, shown) });
@@ -360,6 +371,7 @@ export async function prepareBuilt(
 		}
 	}
 
+	if (stopPressed(ctx)) return fail({ failed: "" });
 	clock.start("backup");
 	const active: { svc: Serve; since: string }[] = [];
 	for (const s of spec.serve ?? []) {
@@ -382,6 +394,8 @@ export async function prepareBuilt(
 		});
 	}
 	vars.needs = tree.needs[0] ?? "";
+	// Nothing outside the backups changed yet; the point just taken stays as a point of the version in place.
+	if (stopPressed(ctx)) return fail({ failed: "" });
 	marker.point(target.from ?? "unknown");
 	marker.active(active.map((a) => a.svc.name));
 	marker.step("build");
@@ -421,6 +435,7 @@ export async function prepareBuilt(
 				cleanup: "revert",
 			});
 	}
+	if (stopPressed(ctx)) return fail({ failed: "", cleanup: "revert" });
 	if (stage) dropTree(stage, ctx.paths);
 	// Steps run in dir; a stage-only table runs them in the home directory, since the stage is theirs to create.
 	const cwd = dir ?? ctx.paths.home;
@@ -431,8 +446,9 @@ export async function prepareBuilt(
 			timeoutMs: LONG,
 			killTree: true,
 			onLine: (l) => ctx.log(l),
+			cuttable: true,
 		});
-		if (r.code !== 0) return fail({ failed: MESSAGES.buildStepFailed(step), cleanup: "revert" });
+		if (r.code !== 0 || stopPressed(ctx)) return fail({ failed: MESSAGES.buildStepFailed(step), cleanup: "revert" });
 	}
 	try {
 		applyConfig(spec, ctx, dir);
@@ -451,8 +467,9 @@ export async function prepareBuilt(
 				ctx.log(l);
 				if (l.trim()) last = l;
 			},
+			cuttable: true,
 		});
-		if (r.code !== 0)
+		if (r.code !== 0 || stopPressed(ctx))
 			return fail({ failed: MESSAGES.checkFailedStep(checkReason(r.timedOut ? "" : last, step)), cleanup: "revert" });
 	}
 	return { dir, stage, point, tree, vars, active, paused, marker, treeCtx };
@@ -476,13 +493,15 @@ const VERSION_CHECK = MESSAGES.versionCheckLabel();
  * unit is up, as systemctl start does for every unit type; a start that returns sooner (systemctl --no-block on a
  * Type=notify unit, or an active check that fails while the program loads) would be cut short and rolled back.
  */
-async function healthy(svc: Serve, ctx: KindCtx): Promise<boolean> {
+async function healthy(svc: Serve, ctx: KindCtx, stop?: AbortSignal): Promise<boolean> {
 	if (!svc.health) return true;
 	const until = Date.now() + (svc.wait_s ?? 120) * 1000;
 	const want = svc.status ?? 200;
 	const started = await sinceOf(ctx, svc);
 	let down = 0;
 	for (;;) {
+		// Stop now ends a forward verify's wait; a rollback's passes no signal and waits it out.
+		if (stop?.aborted) return false;
 		try {
 			// oxlint-disable-next-line no-await-in-loop -- polling until it answers or the time is up
 			const res = await ctx.fetch(svc.health, { signal: AbortSignal.timeout(10_000) });
@@ -503,7 +522,7 @@ async function healthy(svc: Serve, ctx: KindCtx): Promise<boolean> {
 			ctx.log(`${svc.name} is not running, so it will not answer.`);
 			return false;
 		}
-		if (Date.now() >= until) return false;
+		if (Date.now() >= until || stop?.aborted) return false;
 		// oxlint-disable-next-line no-await-in-loop -- polling every 2 s
 		await Bun.sleep(Math.min(2000, Math.max(0, until - Date.now())));
 	}
@@ -523,6 +542,7 @@ async function passes(test: Test, ctx: KindCtx, built: Built): Promise<boolean> 
 				timeoutMs,
 				killTree: true,
 				merge: true,
+				cuttable: true,
 			},
 		);
 		if (r.code !== 0) return false;
@@ -533,7 +553,9 @@ async function passes(test: Test, ctx: KindCtx, built: Built): Promise<boolean> 
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: test.body,
-				signal: AbortSignal.timeout(timeoutMs),
+				signal: ctx.cancel
+					? AbortSignal.any([AbortSignal.timeout(timeoutMs), ctx.cancel])
+					: AbortSignal.timeout(timeoutMs),
 			});
 			text = await res.text();
 			if (!res.ok) return false;
@@ -611,7 +633,9 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 	const clock = stageClock(ctx);
 	const finish = (o: Omit<Outcome, "stages">): Outcome => ({ ...o, stages: clock.stop() });
 	const prepared = await prepareBuilt(spec, target, ctx, clock);
-	if ("failed" in prepared) return finish(failedBefore(target, prepared.failed));
+	// prepareBuilt's failure path put back what the build changed, so a Stop now there leaves the old version in place.
+	if ("failed" in prepared)
+		return finish(stopPressed(ctx) ? stoppedOutcome(target.from) : failedBefore(target, prepared.failed));
 	const built = prepared;
 	const { marker, point } = built;
 	const from = target.from ?? MESSAGES.oldVersionLabel();
@@ -635,7 +659,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		}
 		await startPaused();
 		marker.clear();
-		return finish(failedBefore(target, detail));
+		return finish(stopPressed(ctx) ? stoppedOutcome(target.from) : failedBefore(target, detail));
 	};
 	/** After the new files were in place: stop what runs, restore the point, start the old version and prove it. */
 	const rollBack = async (detail: string): Promise<Outcome> => {
@@ -695,18 +719,24 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 				detail: MESSAGES.putBackFailedNoAnswer(from, broken),
 				restartToApply: false,
 			});
-		return finish({ result: "rolled_back", installed: target.from, detail, restartToApply: false });
+		return finish(
+			stopPressed(ctx)
+				? stoppedOutcome(target.from)
+				: { result: "rolled_back", installed: target.from, detail, restartToApply: false },
+		);
 	};
 
 	clock.start("install");
 	marker.step("stopping");
+	if (stopPressed(ctx)) return undoStop("");
 	for (const a of built.active) {
 		// oxlint-disable-next-line no-await-in-loop -- services stop in table order
-		if (!(await stopService(ctx.run, a.svc))) return undoStop(MESSAGES.couldNotStopUnit(a.svc.name));
+		if (!(await stopService(ctx.run, a.svc, true))) return undoStop(MESSAGES.couldNotStopUnit(a.svc.name));
 		stopped.push(a);
 	}
 	const busyStopped = await busyNow(spec, ctx, true);
 	if (busyStopped) return undoStop(MESSAGES.busySayNothingChanged(busyStopped));
+	if (stopPressed(ctx)) return undoStop("");
 	marker.step("placing");
 	const rename = ctx.rename ?? renameSync;
 	try {
@@ -731,10 +761,13 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		ctx.log(`place: ${err instanceof Error ? err.message : String(err)}`);
 		return rollBack(MESSAGES.couldNotPlaceFiles(from));
 	}
+	// Every place entry was waited out; from here Stop now puts the restore point back.
+	if (stopPressed(ctx)) return rollBack("");
 	marker.step("starting");
 	for (const s of stopped)
 		// oxlint-disable-next-line no-await-in-loop -- services start in table order
-		if (!(await startService(ctx.run, s.svc))) return rollBack(MESSAGES.wouldNotStartRestored(from));
+		if (!(await startService(ctx.run, s.svc, true))) return rollBack(MESSAGES.wouldNotStartRestored(from));
+	if (stopPressed(ctx)) return rollBack("");
 
 	clock.start("verify");
 	marker.step("verify");
@@ -746,7 +779,7 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 			if (now === s.since) return rollBack(MESSAGES.wouldNotStartRestored(from));
 		}
 		// oxlint-disable-next-line no-await-in-loop -- one unit at a time
-		if (!(await healthy(s.svc, ctx))) return rollBack(MESSAGES.wouldNotStartRestored(from));
+		if (!(await healthy(s.svc, ctx, ctx.cancel))) return rollBack(MESSAGES.wouldNotStartRestored(from));
 		for (const test of s.svc.test ?? []) {
 			// oxlint-disable-next-line no-await-in-loop -- tests run in order
 			if (await passes(test, ctx, built)) continue;
@@ -762,8 +795,11 @@ export async function installBuilt(spec: AppSpec, target: Target, ctx: KindCtx):
 		if (test.required === false) ctx.log(`Test did not pass (not required): ${testName(test)}`);
 		else return rollBack(MESSAGES.failedTest(testName(test), from));
 	}
+	if (stopPressed(ctx)) return rollBack("");
 	// The version is read as checkBuilt reads it and compared as written: a commit hash is not a version to reshape.
-	const after = await readInstalled(spec, ctx);
+	const after = await readInstalled(spec, { ...ctx, run: cuttableRun(ctx) });
+	// After verify passed, the finish below is waited out: Stop now ends the run there with the update done.
+	if (stopPressed(ctx)) return rollBack("");
 	const installed = after?.installed ?? null;
 	if (installed === null || (installed === target.from && target.from !== target.version))
 		return rollBack(MESSAGES.failedTest(VERSION_CHECK, from));

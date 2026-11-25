@@ -2704,3 +2704,36 @@ msgstr "无法解包还原点 {0}：{1}"
 #: src/mainview/lib/copy.ts
 msgid "Downloaded, waits its turn"
 msgstr "已下载，等待轮到它"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "由你停止"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "已停止"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "已停止。{0} 已恢复原位。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "已停止。{0} 仍报告 {1}。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "已停止。{0} 现在无法启动：{1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "等待 {0} 完成，然后恢复 {1}。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "等待 {0} 完成。"

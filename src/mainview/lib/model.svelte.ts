@@ -65,7 +65,14 @@ export type Group = { id: GroupId; label: string; apps: AppState[] };
 // its own lines from these, so a quiet app's early lines last as long as 2000 do.
 const LOG_CAP = 2000;
 
-export const IN_RUN: ReadonlySet<AppStatus> = new Set(["queued", "working", "done", "failed", "rolled_back"]);
+export const IN_RUN: ReadonlySet<AppStatus> = new Set([
+	"queued",
+	"working",
+	"done",
+	"failed",
+	"rolled_back",
+	"stopped",
+]);
 
 /** An empty run state, used before the first snapshot and as the reset value; a fresh object each call so callers never share one. */
 const idleRun = (): RunState => ({

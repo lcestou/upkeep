@@ -132,6 +132,7 @@ const RESULT_TEXT = {
 	updated: "Updated",
 	failed: "Failed",
 	rolled_back: "Rolled back",
+	stopped: "Stopped",
 	restored: "Restored",
 	cleaned: "Cleaned",
 	skipped: "Skipped",
