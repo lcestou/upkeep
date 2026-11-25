@@ -3,7 +3,16 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import codebergRelease from "./fixtures/codeberg_forgejo_forgejo.json";
 import gitlabRelease from "./fixtures/gitlab-org_gitlab-runner.json";
-import { cloneUrl, forgeOf, forgeRelease, linksRelease, pageLinks, zsyncHeader, zsyncRelease } from "./forge";
+import {
+	cloneUrl,
+	forgeOf,
+	forgeRelease,
+	forgeReleases,
+	linksRelease,
+	pageLinks,
+	zsyncHeader,
+	zsyncRelease,
+} from "./forge";
 import { type Failure, type FetchLike, isFailure, type Release, type ReleaseOpts } from "./github";
 import { tempHome } from "./testkit";
 
@@ -363,4 +372,81 @@ test("zsync: a file that is not one, a plain http address, a failed answer and a
 		failure: "network",
 		detail: `Could not reach ${address}: connection refused`,
 	});
+});
+
+/** The list, or a thrown error naming the failure. */
+function list(r: Release[] | Failure): Release[] {
+	if (isFailure(r)) throw new Error(r.detail);
+	return r;
+}
+
+test("release lists: GitLab leaves out an upcoming release, Gitea a draft, and GitHub keeps its token", async () => {
+	const gl = list(
+		await forgeReleases(
+			"gitlab.com/g/p",
+			undefined,
+			opts(
+				recording(() =>
+					Response.json([
+						{ tag_name: "v2.0.0", upcoming_release: true, assets: { links: [] } },
+						{ tag_name: "v1.1.0-rc.1", assets: { links: [] } },
+						{ tag_name: "v1.0.0", assets: { links: [] } },
+					]),
+				),
+			),
+		),
+	);
+	expect(gl.map((r) => r.version)).toEqual(["1.1.0-rc.1", "1.0.0"]);
+	expect(sent.at(-1)?.url).toBe("https://gitlab.com/api/v4/projects/g%2Fp/releases?per_page=10");
+	expect(sent.at(-1)?.headers.has("Authorization")).toBe(false);
+
+	const gitea = list(
+		await forgeReleases(
+			"codeberg.org/o/p",
+			undefined,
+			opts(
+				recording(() =>
+					Response.json([
+						{ tag_name: "v3.0.0", draft: true, assets: [] },
+						{ tag_name: "v2.1.0-beta.1", prerelease: true, assets: [] },
+						{ tag_name: "v2.0.0", prerelease: false, assets: [] },
+					]),
+				),
+			),
+		),
+	);
+	expect(gitea.map((r) => [r.version, r.prerelease])).toEqual([
+		["2.1.0-beta.1", true],
+		["2.0.0", false],
+	]);
+	expect(sent.at(-1)?.url).toBe("https://codeberg.org/api/v1/repos/o/p/releases?limit=10");
+
+	const gh = list(
+		await forgeReleases("o/p", undefined, opts(recording(() => Response.json([{ tag_name: "v1.0.0" }])))),
+	);
+	expect(gh.map((r) => r.tag)).toEqual(["v1.0.0"]);
+	expect(sent.at(-1)?.url).toBe("https://api.github.com/repos/o/p/releases?per_page=10");
+	expect(sent.at(-1)?.headers.get("Authorization")).toBe("Bearer gho_secret");
+});
+
+test("release lists: an answer that is not a list is a failure, and a cached one that turns bad is dropped", async () => {
+	const notList = await forgeReleases("codeberg.org/o/p", undefined, opts(recording(() => Response.json({}))));
+	expect(isFailure(notList)).toBe(true);
+	const gh = await forgeReleases("o/p", undefined, opts(recording(() => new Response("nope"))));
+	expect(isFailure(gh)).toBe(true);
+	// A list cached with its etag, then a 304 over a cache file that no longer reads as one.
+	const fetch = recording((_, h) =>
+		h.has("If-None-Match") ? new Response(null, { status: 304 }) : Response.json([], { headers: { etag: '"e"' } }),
+	);
+	expect(list(await forgeReleases("gitlab.com/g/p", undefined, opts(fetch)))).toEqual([]);
+	const file = join(t.paths.cache, "github", "gitlab.com__g__p#list.json");
+	await Bun.write(file, JSON.stringify({ etag: '"e"', body: "{}" }));
+	expect(isFailure(await forgeReleases("gitlab.com/g/p", undefined, opts(fetch)))).toBe(true);
+	expect(await Bun.file(file).exists()).toBe(false);
+	const failed = await forgeReleases(
+		"gitlab.com/g/p",
+		undefined,
+		opts(recording(() => new Response("", { status: 500 }))),
+	);
+	expect(isFailure(failed)).toBe(true);
 });

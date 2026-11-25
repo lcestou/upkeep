@@ -26,7 +26,7 @@ While an app installs, a row whose step has printed nothing for two minutes says
 | Path                                  | Holds                                                                             |
 | ------------------------------------- | --------------------------------------------------------------------------------- |
 | `~/.config/upkeep/apps.toml`          | the app list                                                                      |
-| `~/.local/state/upkeep/state.json`    | skipped versions, held apps, settings                                             |
+| `~/.local/state/upkeep/state.json`    | skipped versions, held apps, automatic installs, pre-release switches, settings   |
 | `~/.local/state/upkeep/logs/`         | one log per run, the newest 50                                                    |
 | `~/.local/share/upkeep/history.jsonl` | every install and cleanup, append-only                                            |
 | `~/.local/share/upkeep/backups/`      | restore points                                                                    |

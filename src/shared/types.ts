@@ -78,6 +78,8 @@ export type AppSpec = {
 	relaunch?: boolean;
 	/** The background run installs this app without asking. */
 	auto?: boolean;
+	/** A file kind with a repo: the check takes the newest release of its forge's list, pre-releases included, instead of the latest stable one. */
+	prerelease?: boolean;
 	/** One line shown in the row's details. */
 	note?: string;
 	/** List the app as ready to install when nothing is at dest yet. Set when the owner adds an app that is not installed. */
@@ -256,6 +258,8 @@ export type AppState = {
 	/** relaunch: Restart now closes the app's windows, so it asks first. */
 	closes?: boolean;
 	auto: boolean;
+	/** Set only for an app whose releases can be listed (a file kind with a repo): whether its check follows pre-releases. */
+	prerelease?: boolean;
 	/**
 	 * AppImage rows only: whether Upkeep keeps a menu entry for it ("on"), could ("off"), or another tool already has
 	 * one for the same file ("elsewhere", with menuDetail saying which).
@@ -297,6 +301,9 @@ export type AppState = {
 	settles?: string;
 	held: boolean;
 };
+
+/** One release a person may install from Install another version. */
+export type VersionChoice = { tag: string; version: string; publishedAt: string; prerelease: boolean };
 
 export type RunPhase = "idle" | "checking" | "installing" | "summary";
 
@@ -593,6 +600,12 @@ export type Requests = {
 	setSkip: { params: { key: string; version: string | null }; response: { ok: boolean } };
 	setHold: { params: { key: string; held: boolean }; response: { ok: boolean } };
 	setAuto: { params: { key: string; auto: boolean }; response: { ok: boolean } };
+	/** Follows pre-releases or not, then checks the app again. */
+	setPrerelease: { params: { key: string; prerelease: boolean }; response: { ok: boolean } };
+	/** The newest releases of a listable app, asked only when the person opens the list. */
+	versions: { params: { key: string }; response: { versions: VersionChoice[]; problem?: string } };
+	/** Installs the release of tag through the usual run; an older one than the latest skips the latest once it is in. */
+	installVersion: { params: { key: string; tag: string }; response: { started: boolean; reason?: string } };
 	setMenu: { params: { key: string; menu: boolean }; response: { ok: boolean; detail?: string } };
 	setSettings: { params: Partial<Settings>; response: Settings };
 	/** The pasted GitHub token's last four characters and whether the last check found it refused. The token never comes back. */

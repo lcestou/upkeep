@@ -20,7 +20,7 @@ import type { Run } from "../run";
 import { readInflight } from "../store";
 import { ok, realRun, recordingRun, script, tempHome, withCancel } from "../testkit";
 import type { KindCtx, Target } from "./context";
-import { checkRelease, dlPath, installRelease, probeInstalled } from "./release";
+import { canList, checkRelease, dlPath, installRelease, newestOf, probeInstalled, versionTarget } from "./release";
 
 let t: ReturnType<typeof tempHome>;
 let proc = "";
@@ -61,7 +61,13 @@ function publish(tag: string, files: Record<string, Uint8Array<ArrayBuffer>>, di
 const limited: FetchLike = async () => new Response('{"message":"API rate limit exceeded"}', { status: 403 });
 
 /** A release by tag answers only when a test published one with publishOld; by default it is GitHub's 404. */
-let oldRelease: { tag: string; files: Record<string, Uint8Array<ArrayBuffer>> } | null = null;
+let oldRelease: {
+	tag: string;
+	files: Record<string, Uint8Array<ArrayBuffer>>;
+	/** The forge lists no digest for its files. */
+	bare?: boolean;
+	immutable?: boolean;
+} | null = null;
 
 const fakeFetch: FetchLike = async (url) => {
 	const byTag = /\/releases\/tags\/([^/]+)$/.exec(url);
@@ -71,11 +77,12 @@ const fakeFetch: FetchLike = async (url) => {
 		return Response.json({
 			tag_name: oldRelease.tag,
 			html_url: "",
+			immutable: oldRelease.immutable === true,
 			assets: Object.entries(oldRelease.files).map(([name, b]) => ({
 				name,
 				browser_download_url: `https://dl.test/old/${name}`,
 				size: b.length,
-				digest: sha(b),
+				digest: oldRelease?.bare ? null : sha(b),
 			})),
 		});
 	}
@@ -1072,6 +1079,25 @@ test("install: a file fetched ahead of its turn installs without a download, and
 	expect(stages.find(([s, p]) => s === "download" && p === 100)).toBeDefined();
 });
 
+test("newestOf picks by version, not by the forge's date order, and passes over a tag with no version", () => {
+	const rel = (tag: string, version: string | null) => ({
+		tag,
+		version,
+		url: "",
+		publishedAt: "",
+		notes: "",
+		assets: [],
+	});
+	// A backport published after the newer line comes first in the forge's list.
+	const list = [rel("v1.9.5", "1.9.5"), rel("nightly", null), rel("v2.0.0-rc.2", "2.0.0-rc.2"), rel("v1.9.4", "1.9.4")];
+	expect(newestOf(list)?.tag).toBe("v2.0.0-rc.2");
+	expect(newestOf([rel("nightly", null)])).toBeNull();
+	expect(canList({ kind: "appimage", repo: "o/p" })).toBe(true);
+	expect(canList({ kind: "deb", repo: "o/p" })).toBe(true);
+	expect(canList({ kind: "appimage" })).toBe(false);
+	expect(canList({ kind: "source", repo: "o/p" })).toBe(false);
+});
+
 test("install: a file fetched ahead before a sha512 sum appeared is hashed again for it, never failed", async () => {
 	installZen("1.17.9b");
 	const body = bash('echo "zen 1.18.0b"');
@@ -1288,4 +1314,25 @@ test("Stop now after the version probe ran the new copy puts its settings back w
 	const outcome = await installRelease(spec, target, { ...ctx(withCancel(run, stop.signal)), cancel: stop.signal });
 	expect(outcome.result).toBe("stopped");
 	expect(readFileSync(cfg, "utf8")).toBe("old");
+});
+
+test("a picked release is checked as an offered update: its checksum file is read, and an immutable one is locked", async () => {
+	installZen("1.17.9b");
+	const name = "zen.linux-x86_64.AppImage";
+	const file = bash('echo "zen 1.17.0b"');
+	const hex = sha(file).slice(7);
+	oldRelease = {
+		tag: "1.17.0b",
+		files: { [name]: file, SHA256SUMS: new TextEncoder().encode(`${hex}  ${name}\n`) },
+		bare: true,
+		immutable: true,
+	};
+	const target = await versionTarget(zen(), ctx(), "1.17.0b", "1.17.9b");
+	expect(target).toMatchObject({
+		from: "1.17.9b",
+		version: "1.17.0b",
+		locked: true,
+		asset: { name, sum: { algo: "sha256", hex, file: "SHA256SUMS" } },
+	});
+	oldRelease = null;
 });

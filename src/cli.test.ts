@@ -553,6 +553,34 @@ test("import of a list of release apps only asks nothing and says which came in 
 	expect(one).toContain("and 1 app that only installs its release files, without root.");
 });
 
+test("import never takes a pre-release switch from the file, and a table that turns prerelease on comes in with auto off", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const file = join(t.dir, "pre.json");
+	const fd = '\n[apps.fd]\nname = "fd"\nkind = "file"\nrepo = "sharkdp/fd"\nasset = "fd$"\ndest = "~/.local/bin/fd"\n';
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.apps = doc.apps.replace(/\[apps\.bat\][\s\S]*$/, "") + fd;
+	writeFileSync(file, JSON.stringify(doc));
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	// The table now matches; a switch the file carries never decides, and this machine's own is kept.
+	writeFileSync(file, JSON.stringify({ ...doc, auto: { fd: true }, prerelease: { fd: true } }));
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	expect(loadState(t.paths).prerelease).toEqual({});
+	updateState(t.paths, (s) => {
+		s.prerelease.fd = false;
+		s.auto.fd = true;
+	});
+	expect(await main(["import", file], d, () => {})).toBe(0);
+	expect(loadState(t.paths)).toMatchObject({ prerelease: { fd: false }, auto: { fd: true } });
+	// prerelease = true in the table changes what installs: the app differs, its auto comes in off, the switch goes.
+	writeFileSync(file, JSON.stringify({ ...doc, apps: `${doc.apps}prerelease = true\n`, auto: { fd: true } }));
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(0);
+	expect(said).toContain("Automatic installs came in off for fd: new here or changed from this computer's table.");
+	expect(loadState(t.paths)).toMatchObject({ prerelease: {}, auto: { fd: false } });
+});
+
 test("import of a file that turns on a setting or extra that is off here asks first; turning things off does not", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});

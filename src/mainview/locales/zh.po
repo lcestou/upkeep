@@ -2919,6 +2919,53 @@ msgid "Offered at {0}"
 msgstr "{0} 提供"
 
 #: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "跟随预发布版本"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "其他版本"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "显示版本"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "正在查询版本…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "没有列出的版本。"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "安装 {0}"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "暂缓在 {0}。"
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "预发布"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "已安装"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo"
+msgstr "{0}：prerelease 只适用于带 repo 的 appimage、archive、file、deb 或 rpm 表"
+
+#: src/mainview/lib/copy.ts
+msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
+msgstr "回到较旧的版本会跳过最新版本，下次检查只会提供更新的版本。"
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "恢复时也会放回保存的设置。被替换的设置会另行保留。"
 

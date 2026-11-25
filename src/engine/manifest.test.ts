@@ -582,6 +582,42 @@ test("probe = false only on an app installed from a release file, which is what 
 	);
 });
 
+test("prerelease is refused on a table whose releases cannot be listed", () => {
+	const file = join(dir, "apps.toml");
+	writeFileSync(
+		file,
+		[
+			"[apps.src]",
+			'name = "Src"',
+			'kind = "source"',
+			'repo = "a/b"',
+			'build = ["make"]',
+			"prerelease = true",
+			"[apps.page]",
+			'name = "Page"',
+			'kind = "archive"',
+			'latest = "links:https://example.org/dl/"',
+			'asset = "x"',
+			'dest = "~/x"',
+			'bins = ["x"]',
+			"prerelease = true",
+			"[apps.ok]",
+			'name = "Ok"',
+			'kind = "file"',
+			'repo = "a/b"',
+			'asset = "x"',
+			'dest = "~/ok"',
+			"prerelease = true",
+		].join("\n"),
+	);
+	const { apps, errors } = loadManifest(file);
+	expect(errors).toEqual([
+		"src: prerelease is only for an appimage, archive, file, deb or rpm table with a repo",
+		"page: prerelease is only for an appimage, archive, file, deb or rpm table with a repo",
+	]);
+	expect(apps.map((a) => [a.key, a.prerelease])).toEqual([["ok", true]]);
+});
+
 test("keep_with_restore takes an app's own paths under home, on a kind that keeps restore points", () => {
 	const file = ['kind = "file"', 'repo = "o/r"', 'asset = "x"', 'dest = "~/x"'];
 	const fine = ["~/.config/x", "~/.x", "~/.local/share/x/db/", "~/.cache/x", "~/Documents/x"];

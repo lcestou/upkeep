@@ -149,6 +149,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		skip: {},
 		hold: {},
 		auto: {},
+		prerelease: {},
 		settings: {
 			keepBackups: 1,
 			notify: true,

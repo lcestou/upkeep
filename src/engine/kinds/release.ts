@@ -18,8 +18,8 @@ import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePo
 import { download, type DownloadResult, hashFile, needsSha512, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { cachedSum } from "../checksums";
-import { forgeRelease, linksRelease, zsyncRelease } from "../forge";
-import { type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
+import { forgeRelease, forgeReleases, linksRelease, zsyncRelease } from "../forge";
+import { type Asset, type Failure, isFailure, latestFromSource, pickAsset, type Release } from "../github";
 import { expandHome } from "../paths";
 import { probeAppImageMeta, probeCommand, probeVersion, type ProbeResult } from "../probe";
 import { asRoot, installAside, type ProcessResult, SUDO_PASSWORD, sudoNeedsPassword } from "../run";
@@ -106,13 +106,40 @@ export function probeInstalled(spec: AppSpec, ctx: KindCtx): Promise<ProbeResult
 	return probeVersion(dest, spec.version_args ?? ["--version"], { run: ctx.run });
 }
 
+/** Whether an app's releases can be listed: a file kind whose table names a repo, which a pre-release pick and Install another version both need. */
+export function canList(spec: Pick<AppSpec, "kind" | "repo">): boolean {
+	return Boolean(spec.repo) && (["appimage", "archive", "file"].includes(spec.kind) || isPackage(spec.kind));
+}
+
 /**
- * The release a check compares against, or with tag the release of that tag (a restore point's): the latest of repo
- * on its forge, else the page a "links:" latest names, else the file a "zsync:" one names, else what latest names
- * when it carries a download (a "json:" source). A latest that only gives a version has nothing to install, which is a failure here.
+ * The newest release of a list by version, pre-releases included; a release whose tag holds no version is passed over.
+ * Null when none holds one. The forge's own order is by date, and a backport can be published after a newer release.
  */
-async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Release | Failure> {
-	const opts = {
+export function newestOf(list: Release[]): Release | null {
+	let best: Release | null = null;
+	for (const r of list) if (r.version && (!best || isNewer(best.version, r.version))) best = r;
+	return best;
+}
+
+/**
+ * The release list of a listable app on its forge, newest first, as a person picks a version from it. Only releases
+ * with a file the table's pattern for this machine matches are kept: a file renamed years ago, or another product of
+ * a monorepo, is never offered. A table with no pattern for this machine keeps none.
+ */
+export async function listReleases(spec: AppSpec, ctx: KindCtx): Promise<Release[] | Failure> {
+	const list = await forgeReleases(spec.repo ?? "", spec.forge, releaseOpts(ctx));
+	return isFailure(list) ? list : fitting(list, spec, ctx);
+}
+
+/** The releases of list that hold a file matching the table's pattern for this machine. */
+function fitting(list: Release[], spec: AppSpec, ctx: KindCtx): Release[] {
+	const pattern = assetFor(spec, ctx.arch);
+	return pattern === undefined ? [] : list.filter((r) => pickAsset(r, pattern) !== null);
+}
+
+/** The options every release lookup of this app passes: its cache, token, fetch and budget callback. */
+function releaseOpts(ctx: KindCtx, tag?: string) {
+	return {
 		cacheDir: join(ctx.paths.cache, "github"),
 		token: ctx.token,
 		fetch: ctx.fetch,
@@ -120,6 +147,22 @@ async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Rel
 		api: ctx.api,
 		tag,
 	};
+}
+
+/**
+ * The release a check compares against, or with tag the release of that tag (a restore point's): the latest of repo
+ * on its forge (with prerelease, the newest of its release list), else the page a "links:" latest names, else the file a "zsync:" one names, else what latest names
+ * when it carries a download (a "json:" source). A latest that only gives a version has nothing to install, which is a failure here.
+ */
+export async function releaseOf(spec: AppSpec, ctx: KindCtx, tag?: string): Promise<Release | Failure> {
+	const opts = releaseOpts(ctx, tag);
+	if (spec.prerelease && tag === undefined && canList(spec)) {
+		const list = await forgeReleases(spec.repo ?? "", spec.forge, opts);
+		if (isFailure(list)) return list;
+		// Ranked by version among the releases this table can install; with none, the newest says why it cannot. A list of
+		// only rolling tags (nightly, continuous) holds no version: the forge's latest release is still seen.
+		return newestOf(fitting(list, spec, ctx)) ?? newestOf(list) ?? forgeRelease(spec.repo ?? "", spec.forge, opts);
+	}
 	if (spec.repo || !spec.latest) return forgeRelease(spec.repo ?? "", spec.forge, opts);
 	if (spec.latest.startsWith("links:")) return linksRelease(spec.latest.slice(6), assetFor(spec, ctx.arch) ?? "", opts);
 	if (spec.latest.startsWith("zsync:")) return zsyncRelease(spec.latest.slice(6), ctx.fetch);
@@ -200,21 +243,62 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 				...base,
 			};
 		// Only for an update on offer: a release with no digest is read for its own checksum file, once per check.
-		const sum =
-			status === "ready" && !pick.asset.digest
-				? await cachedSum(sumCache(ctx, spec.key), release, pick.asset, ctx.fetch, {
-						token: ctx.token,
-						cancel: ctx.cancel,
-						now: (ctx.now?.() ?? new Date()).getTime(),
-					})
-				: null;
-		target = { ...target, asset: sum ? { ...pick.asset, sum } : pick.asset };
+		target =
+			status === "ready"
+				? await checkedTarget(spec, ctx, release, pick.asset, target)
+				: { ...target, asset: pick.asset };
+		// A fresh row is locked as well, so a check never records its file as one that could change.
 		if (release.immutable) target.locked = true;
 		// 0 is a source's "not listed" (json:, GitLab, links:): the download server is asked, and only when the row shows it.
 		size = pick.asset.size || (status === "ready" ? await statedSize(pick.asset.url, ctx.fetch) : undefined);
 	}
 	const detail = untracked ? { detail: MESSAGES.versionNotRecorded(spec.name) } : {};
 	return { installed, latest, status, size, target, ...detail, ...base };
+}
+
+/**
+ * The install target for one release of a listable app, by its tag: what Install another version runs. The tag must
+ * hold a version, and the app's asset pattern for this machine must match exactly one of its files, as a check asks.
+ */
+export async function versionTarget(
+	spec: AppSpec,
+	ctx: KindCtx,
+	tag: string,
+	installed: string | null,
+): Promise<Target | Failure> {
+	const pattern = assetFor(spec, ctx.arch);
+	if (pattern === undefined)
+		return { failure: "http", detail: MESSAGES.noAssetForArch(spec.name, ctx.arch ?? "x86_64") };
+	const release = await releaseOf(spec, ctx, tag);
+	if (isFailure(release)) return release;
+	if (!release.version) return { failure: "http", detail: MESSAGES.latestTagNotTracked(release.tag) };
+	const pick = pickAsset(release, pattern);
+	if (!pick) return { failure: "http", detail: MESSAGES.noAssetMatches(pattern) };
+	if (pick.count > 1) return { failure: "http", detail: MESSAGES.severalAssetsMatch(pattern, pick.names.join(", ")) };
+	return checkedTarget(spec, ctx, release, pick.asset, { from: installed, version: release.version, tag: release.tag });
+}
+
+/**
+ * target with its file, checked as an offered update is: a file with no digest carries the hash its release's own
+ * checksum file lists, when one does, and a release the forge marks immutable is locked, so a changed file never holds it.
+ */
+async function checkedTarget(
+	spec: AppSpec,
+	ctx: KindCtx,
+	release: Release,
+	asset: Asset,
+	target: Target,
+): Promise<Target> {
+	const sum = asset.digest
+		? null
+		: await cachedSum(sumCache(ctx, spec.key), release, asset, ctx.fetch, {
+				token: ctx.token,
+				cancel: ctx.cancel,
+				now: (ctx.now?.() ?? new Date()).getTime(),
+			});
+	const out: Target = { ...target, asset: sum ? { ...asset, sum } : asset };
+	if (release.immutable) out.locked = true;
+	return out;
 }
 
 /** Depth-first search under dir for a file whose name matches; null when none, and the first match in directory order wins. */

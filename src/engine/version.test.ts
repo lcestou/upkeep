@@ -35,3 +35,51 @@ test("a -V tie between different strings falls back to byte order, as sort does"
 	expect(isNewer("1.01", "1.1")).toBe(true);
 	expect(isNewer("1.1", "1.01")).toBe(false);
 });
+
+test("a pre-release suffix stays on the version it is read with", () => {
+	expect(tagVersion("v2.0.0-rc.1")).toBe("2.0.0-rc.1");
+	expect(extractVersion("tool-1.3.0-beta2-linux.tar.gz")).toBe("1.3.0-beta2");
+	expect(extractVersion("app 2.10rc1")).toBe("2.10rc1");
+	expect(extractVersion("v0.9.0-alpha")).toBe("0.9.0-alpha");
+	// Some projects write the word in capitals.
+	expect(tagVersion("v1.0.0-RC1")).toBe("1.0.0-RC1");
+	expect(tagVersion("v0.7.2-Beta")).toBe("0.7.2-Beta");
+	expect(extractVersion("1.2.3-PREBUILT")).toBe("1.2.3");
+	// A word that only starts like one is no suffix.
+	expect(extractVersion("1.2.3-prebuilt")).toBe("1.2.3");
+	expect(extractVersion("1.2.3-linux")).toBe("1.2.3");
+});
+
+test.each([
+	["2.0.0-rc.1", "2.0.0", true],
+	["2.0.0", "2.0.0-rc.1", false],
+	["1.9.0", "2.0.0-rc.1", true],
+	["2.0.0-rc.1", "1.9.0", false],
+	["2.0.0-rc.1", "2.0.0-rc.2", true],
+	["2.0.0-rc.2", "2.0.0-rc.1", false],
+	["2.0.0-beta.3", "2.0.0-rc.1", true],
+	["2.0.0-rc.1", "2.0.0-beta.3", false],
+	["2.0.0-alpha", "2.0.0-alpha.1", true],
+	["2.0.0-rc.1", "2.0.0-rc.1", false],
+	["2.0.0-rc.1", "2.0.1", true],
+	["2.10rc1", "2.10", true],
+	["2.0.0-rc.1", "2.0.0-rc1", false],
+	["1.0.0-RC1", "1.0.0", true],
+	["0.7.2-Beta", "0.7.2-rc.1", true],
+	["0.7.2", "0.7.2-Beta", false],
+	// A base written with fewer parts is the same release: its candidate is never newer than it, either way round.
+	["2.0", "2.0.0-rc.1", false],
+	["2.0.0-rc.1", "2.0", true],
+	["2.0.0", "2.0-rc.1", false],
+	["2.0-rc.1", "2.0.0", true],
+	["1.2", "1.2.0-beta", false],
+	["1.2.0-beta", "1.2", true],
+	["2", "2.0.0-rc.1", false],
+	["2.0.0-rc.1", "2", true],
+	["2-rc.1", "2.0.0", true],
+	["2.0", "2.0.1-rc.1", true],
+	["2.0.1-rc.1", "2.0", false],
+	["2.0-rc.1", "2.0.0-rc.2", true],
+])("isNewer(%p, %p) is %p across pre-releases", (installed, latest, expected) => {
+	expect(isNewer(installed, latest)).toBe(expected);
+});

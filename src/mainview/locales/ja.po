@@ -2919,6 +2919,53 @@ msgid "Offered at {0}"
 msgstr "{0} に案内"
 
 #: src/mainview/lib/copy.ts
+msgid "Follow pre-releases"
+msgstr "プレリリースを追う"
+
+#: src/mainview/lib/copy.ts
+msgid "Other versions"
+msgstr "ほかのバージョン"
+
+#: src/mainview/lib/copy.ts
+msgid "Show releases"
+msgstr "リリースを表示"
+
+#: src/mainview/lib/copy.ts
+msgid "Asking for the releases…"
+msgstr "リリースを問い合わせ中…"
+
+#: src/mainview/lib/copy.ts
+msgid "No releases listed."
+msgstr "リリースがありません。"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Install {0}"
+msgstr "{0} をインストール"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Held at {0}."
+msgstr "{0} で保留中。"
+
+#: src/mainview/lib/copy.ts
+msgid "pre-release"
+msgstr "プレリリース"
+
+#: src/mainview/lib/copy.ts
+msgid "installed"
+msgstr "インストール済み"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo"
+msgstr "{0}：prerelease は repo のある appimage、archive、file、deb、rpm のテーブルだけで使えます"
+
+#: src/mainview/lib/copy.ts
+msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
+msgstr "古いリリースに戻すと最新版はスキップされ、次の確認ではそれより新しいものだけが提案されます。"
+
+#: src/mainview/lib/copy.ts
 msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
 msgstr "復元すると保存した設定も戻ります。置き換えられる設定は別に保管されます。"
 
