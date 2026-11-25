@@ -270,6 +270,8 @@ export const MESSAGES = {
 	couldNotUpdatePlugins: (v0: Value) => `Could not update ${v0}. See the log.`,
 	/** kinds/plugins.ts. {0} count of plugins updated */
 	pluginsUpdated: (v0: Value) => `Updated ${v0}. New sessions pick them up.`,
+	/** kinds/plugins.ts. {0} plugin names joined with ', ' */
+	pluginsWaiting: (v0: Value) => `New versions in their marketplaces: ${v0}.`,
 	/** kinds/release.ts. {0} latest source string, e.g. npm:pkg */
 	sourceGivesNoDownload: (v0: Value) => `${v0} gives a version but no download.`,
 	/** kinds/release.ts. {0} release tag */

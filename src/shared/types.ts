@@ -66,7 +66,7 @@ export type AppSpec = {
 	update?: string[];
 	/** A command app: puts {version} (and {tag}) back, e.g. ["npm", "i", "-g", "pkg@{version}"]; it makes a restore point possible. */
 	restore?: string[];
-	/** claude-plugins: no version to show. Always "fresh", never counted as an update, runs in every background run when auto is set, and has "Run now" on its row. */
+	/** claude-plugins: no version to show. Ready when a marketplace holds a newer version of a plugin, runs in every background run when auto is set, and has "Run now" on its row. */
 	versionless?: boolean;
 	/** manual: the command the owner runs. */
 	run?: string;

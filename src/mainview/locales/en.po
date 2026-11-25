@@ -2777,3 +2777,8 @@ msgstr "Stop now"
 #: src/mainview/lib/copy.ts
 msgid "Stopping {0}…"
 msgstr "Stopping {0}…"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "New versions in their marketplaces: {0}."

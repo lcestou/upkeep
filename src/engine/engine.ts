@@ -194,7 +194,7 @@ function checkOne(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
 		case "source":
 			return checkSource(spec, ctx);
 		case "claude-plugins":
-			return Promise.resolve(checkClaudePlugins(ctx));
+			return checkClaudePlugins(ctx);
 		case "command":
 		case "manual":
 			return checkCommand(spec, ctx);

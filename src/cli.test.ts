@@ -169,6 +169,10 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 		"  SKIP:   tmux GitHub answered 404 for a/b.",
 	);
 	expect(checkLine({ ...base, status: "fresh", versionless: true })).toBe("  OK:     tmux");
+	expect(
+		checkLine({ ...base, status: "ready", versionless: true, detail: "New versions in their marketplaces: a." }),
+	).toBe("  UPDATE: tmux New versions in their marketplaces: a.");
+	expect(checkLine({ ...base, status: "ready", versionless: true })).toBe("  UPDATE: tmux");
 	// A held or skipped update is not one install --all would run.
 	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", skipped: "10.5.2" })).toBe(
 		"  HELD:   tmux 9.0.0 -> 10.5.2 (skipping 10.5.2)",

@@ -2756,3 +2756,8 @@ msgstr "立即停止"
 #: src/mainview/lib/copy.ts
 msgid "Stopping {0}…"
 msgstr "正在停止 {0}…"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "New versions in their marketplaces: {0}."
+msgstr "其市场中有新版本：{0}。"

@@ -142,6 +142,7 @@ export const ENGINE_COPY = {
 	versionProbeFailed: () => `Version probe failed.`,
 	couldNotUpdatePlugins: (v0: string) => `Could not update ${v0}. See the log.`,
 	pluginsUpdated: (v0: string) => `Updated ${v0}. New sessions pick them up.`,
+	pluginsWaiting: (v0: string) => `New versions in their marketplaces: ${v0}.`,
 	sourceGivesNoDownload: (v0: string) => `${v0} gives a version but no download.`,
 	latestTagNotTracked: (v0: string) => `The latest tag ${v0} is not a tracked version.`,
 	rebuildFixes: () => `Will not start. A rebuild against the current libraries fixes it.`,
