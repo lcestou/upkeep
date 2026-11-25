@@ -1,5 +1,9 @@
 import { expect, test } from "bun:test";
-import { commandsOf } from "./transfer";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { readToken, writeToken } from "./store";
+import { tempHome } from "./testkit";
+import { commandsOf, exportSetup, importSetup } from "./transfer";
 
 test("commandsOf lists every command a table runs, quoted as a shell would need it, and nothing for a plain release", () => {
 	expect(commandsOf({ key: "fd", name: "fd", kind: "file", repo: "sharkdp/fd", dest: "~/.local/bin/fd" })).toEqual([]);
@@ -173,4 +177,22 @@ test("commandsOf shows an HTTP test's body, quoted, and cuts a long one", () => 
 	expect(lines('{"a": 1}')).toContain(`test: POST http://h/v1 '{"a": 1}'`);
 	expect(lines()).toContain("test: POST http://h/v1");
 	expect(lines("x".repeat(250))).toContain(`test: POST http://h/v1 '${"x".repeat(200)}…'`);
+});
+
+test("a pasted GitHub token never leaves in an export, and an import neither carries one in nor drops the kept one", () => {
+	const t = tempHome("transfer-token");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		const token = `ghp_${"t".repeat(36)}`;
+		expect(writeToken(t.paths, token)).toBe(true);
+		const out = exportSetup(t.paths, seed, new Date());
+		expect(JSON.stringify(out)).not.toContain(token);
+		// A file that names a token anywhere is not where one comes from.
+		const doc = { ...out, token: `ghp_${"x".repeat(36)}`, settings: { ...out.settings, waitDays: 0 } };
+		expect(importSetup(t.paths, seed, JSON.stringify(doc), new Date()).ok).toBe(true);
+		expect(readToken(t.paths)).toBe(token);
+	} finally {
+		t.cleanup();
+	}
 });

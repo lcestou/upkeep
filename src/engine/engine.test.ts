@@ -1424,3 +1424,33 @@ test("a row that was ready with a note drops it as it joins the run: never a wai
 	expect(working.length).toBeGreaterThan(0);
 	expect(working.every((w) => w.detail === undefined && w.waiting === undefined)).toBe(true);
 }, 20_000);
+
+test("Stop now cuts an Install now anyway like any install, and Retry takes the settling app again", async () => {
+	const d = await deps();
+	const engine = createEngine({
+		...d,
+		now: () => new Date("2026-11-10T00:00:00Z"),
+		// fd's file comes slowly, so Stop now lands during its download.
+		fetch: async (url, init) => {
+			if (url.startsWith("https://dl.test/sharkdp/fd/")) await Bun.sleep(300);
+			return d.fetch(url, init);
+		},
+	});
+	await engine.check();
+	engine.setSettings({ waitDays: 3 });
+	expect(statuses(engine).fd).toBe("held");
+	let stopped = false;
+	engine.subscribe((e) => {
+		if (!stopped && e.type === "app" && e.app.key === "fd" && e.app.status === "working") {
+			stopped = true;
+			engine.stopNow();
+		}
+	});
+	expect(await engine.install(["fd"], true)).toEqual({ started: true });
+	await engine.idle();
+	expect(statuses(engine).fd).toBe("stopped");
+	expect(engine.snapshot().run.results.map((r) => [r.key, r.result])).toEqual([["fd", "stopped"]]);
+	expect(await engine.install(["fd"])).toEqual({ started: true });
+	await engine.idle();
+	expect(statuses(engine).fd).toBe("done");
+}, 15_000);
