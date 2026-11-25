@@ -2800,3 +2800,13 @@ msgstr "Ждём завершения {0}, затем возвращаем {1}."
 #: src/mainview/lib/engine-text.ts
 msgid "Waiting for {0} to finish."
 msgstr "Ждём завершения {0}."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Нет вывода {0} мин."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Нет вывода {0} мин. Остановится сам через {1} мин."

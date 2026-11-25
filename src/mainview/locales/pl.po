@@ -2800,3 +2800,13 @@ msgstr "Czekam, aż {0} się skończy, potem przywracam {1}."
 #: src/mainview/lib/engine-text.ts
 msgid "Waiting for {0} to finish."
 msgstr "Czekam, aż {0} się skończy."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Brak wyjścia od {0} min."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Brak wyjścia od {0} min. Zatrzyma się samo za {1} min."

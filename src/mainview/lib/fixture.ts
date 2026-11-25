@@ -638,6 +638,11 @@ export type FixtureOptions = {
 	selfTestFails?: boolean;
 	/** GitHub's budget is used up for the next half hour: "out" with no sign-in (60), "signed" with one (5,000); "soon" starts over in 1.5 s. */
 	rate?: "out" | "signed" | "soon";
+	/**
+	 * The run's first app goes quiet at once: no output for 3 minutes, its step limited to 10, until Stop now. "cut" is
+	 * a step Stop now cuts; "root" one it waits out (dpkg), saying so on the row first.
+	 */
+	quiet?: "cut" | "root";
 };
 
 // Cinnamon can put the window buttons on the left: close, maximize, minimize.
@@ -876,6 +881,44 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const total = 3000 / speed;
 		const early = app.downloaded === true;
 		put({ ...app, status: "working", stage: app.stages[0]?.id, stagePct: early ? 100 : 0 });
+		/** As the engine does at Stop now: the app is put back and the row says so. */
+		const stopped = (): RunResult => {
+			const now = get(key) ?? app;
+			const detail = from ? MESSAGES.stoppedPutBack(from) : undefined;
+			if (detail) log(runId, key, detail);
+			put({
+				...now,
+				status: "stopped",
+				stage: undefined,
+				stagePct: undefined,
+				activeAt: undefined,
+				step: undefined,
+				detail,
+			});
+			return { key, name: app.name, from, to, result: "stopped", detail, ms: Date.now() - start };
+		};
+		if (opts.quiet && run.index === 1) {
+			const ago = iso(Date.now() - 3 * 60_000);
+			const first = app.stages[0]?.id;
+			put({
+				...app,
+				status: "working",
+				stage: first,
+				stagePct: null,
+				activeAt: ago,
+				step: { at: ago, limitMs: 10 * 60_000 },
+			});
+			// oxlint-disable-next-line no-await-in-loop -- the scripted stall waits for the press
+			while (!run.stoppingNow) await sleep(50);
+			if (opts.quiet === "root") {
+				const now = get(key) ?? app;
+				const detail = MESSAGES.waitingThenPutBack("dpkg", from ?? "");
+				log(runId, key, detail);
+				put({ ...now, detail });
+				await sleep(1500 / speed);
+			}
+			return stopped();
+		}
 		for (const { id, weight } of app.stages) {
 			// As the engine does: early downloads start once the current app is past its own download.
 			if (id !== "download") fetchAhead(key);
@@ -889,6 +932,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			const measured = id === "download";
 			log(runId, key, stageLog(app, id));
 			for (let i = 0; i <= steps; i++) {
+				if (run.stoppingNow) return stopped();
 				const current = get(key);
 				if (!current) break;
 				put({ ...current, stage: id, stagePct: measured ? Math.round((i / steps) * 100) : null });
@@ -965,6 +1009,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			total: order.length,
 			currentKey: order[0] ?? null,
 			stopping: false,
+			stoppingNow: false,
 			results: keep,
 			retry,
 			// A retry keeps the first pass's order on screen, as the engine does.
@@ -1009,7 +1054,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		history.unshift(...ran.map((r) => Object.assign({}, r, { runId, at, stages: {}, retry: retry || undefined })));
 		log(runId, null, "Run finished.");
 		running = null;
-		setRun({ phase: "summary", currentKey: null, results });
+		setRun({ phase: "summary", currentKey: null, results, stoppingNow: false });
 	}
 
 	/** The engine's addToRun: ready apps go after the apps waiting. */
@@ -1090,6 +1135,12 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (run.phase !== "installing") return { stopping: false };
 			setRun({ stopping: true });
 			// As the engine does: Stop drops the files that came down ahead.
+			for (const a of apps) if (a.downloaded) put({ ...a, downloaded: undefined });
+			return { stopping: true };
+		},
+		stopNow: () => {
+			if (run.phase !== "installing") return { stopping: false };
+			setRun({ stopping: true, stoppingNow: true });
 			for (const a of apps) if (a.downloaded) put({ ...a, downloaded: undefined });
 			return { stopping: true };
 		},

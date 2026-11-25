@@ -231,6 +231,13 @@ export type AppState = {
 	stage?: Stage;
 	stagePct?: number | null;
 	/**
+	 * While working: when the app last wrote a log line or moved its download (ISO). The quiet line counts silence from
+	 * this or from the newest log line the window holds for the app, whichever is later.
+	 */
+	activeAt?: string;
+	/** While working: the step running now, when it started (ISO) and its own limit in ms, null when it has none. */
+	step?: { at: string; limitMs: number | null };
+	/**
 	 * Read while queued: the file came down ahead of the app's turn and matched the release. Cleared when the row
 	 * leaves the run and when Stop is pressed; a working row may still carry it.
 	 */
@@ -509,6 +516,8 @@ export type Requests = {
 	check: { params: { keys?: string[] }; response: { started: boolean } };
 	install: { params: { keys: string[] }; response: { started: boolean; reason?: string } };
 	stopAfterCurrent: { params: Record<string, never>; response: { stopping: boolean } };
+	/** Ends the run now: the current app is put back, the rest stay ready. */
+	stopNow: { params: Record<string, never>; response: { stopping: boolean } };
 	dismissSummary: { params: Record<string, never>; response: { ok: boolean } };
 	restore: { params: { key: string; version: string }; response: { ok: boolean; detail?: string } };
 	setSkip: { params: { key: string; version: string | null }; response: { ok: boolean } };

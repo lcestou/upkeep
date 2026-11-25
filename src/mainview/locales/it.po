@@ -2779,3 +2779,13 @@ msgstr "In attesa che {0} finisca, poi rimetto {1}."
 #: src/mainview/lib/engine-text.ts
 msgid "Waiting for {0} to finish."
 msgstr "In attesa che {0} finisca."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Nessun output da {0} min."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Nessun output da {0} min. Si ferma da solo tra {1} min."

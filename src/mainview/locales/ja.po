@@ -2737,3 +2737,13 @@ msgstr "{0} の完了を待ってから、{1} を元に戻します。"
 #: src/mainview/lib/engine-text.ts
 msgid "Waiting for {0} to finish."
 msgstr "{0} の完了を待っています。"
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "{0} 分間出力がありません。"
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "{0} 分間出力がありません。{1} 分後に自動で止まります。"

@@ -2758,3 +2758,13 @@ msgstr "Waiting for {0} to finish, then putting {1} back."
 #: src/mainview/lib/engine-text.ts
 msgid "Waiting for {0} to finish."
 msgstr "Waiting for {0} to finish."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "No output for {0} min."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "No output for {0} min. It stops on its own in {1} min."

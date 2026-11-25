@@ -449,6 +449,13 @@ export const emptyLine = () =>
 /** The empty-filter message; the text is quoted exactly as typed after trimming by the caller. */
 export const noMatch = (text: string) => `No app matches "${text}".`;
 
+/**
+ * The quiet line on a working row: how long it has printed nothing, and when its step's own limit ends it. It states
+ * the two facts and never says stuck: many steps (tar, git, a health poll) are silent by design.
+ */
+export const quietLine = (m: number, n: number | null) =>
+	n === null ? `No output for ${m} min.` : `No output for ${m} min. It stops on its own in ${n} min.`;
+
 /** The text in a row's status cell. While working, the stem shows it beside the stem. */
 export function statusText(app: AppState): string {
 	switch (app.status) {

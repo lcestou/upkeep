@@ -2779,3 +2779,13 @@ msgstr "Esperando {0} terminar; depois {1} volta ao lugar."
 #: src/mainview/lib/engine-text.ts
 msgid "Waiting for {0} to finish."
 msgstr "Esperando {0} terminar."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Sem saída há {0} min."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Sem saída há {0} min. Para sozinho em {1} min."

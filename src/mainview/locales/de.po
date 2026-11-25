@@ -2758,3 +2758,13 @@ msgstr "Warte, bis {0} fertig ist, dann wird {1} zurückgesetzt."
 #: src/mainview/lib/engine-text.ts
 msgid "Waiting for {0} to finish."
 msgstr "Warte, bis {0} fertig ist."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Seit {0} Min. keine Ausgabe."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Seit {0} Min. keine Ausgabe. Es endet von selbst in {1} Min."

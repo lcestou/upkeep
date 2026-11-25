@@ -1093,7 +1093,7 @@ test("Stop now during a step it never cuts says what it waits for, and the step 
 	});
 	await engine.install(["plugins"]);
 	await engine.idle();
-	expect(details).toEqual(["Waiting for claude plugin marketplace to finish."]);
+	expect([...new Set(details)]).toEqual(["Waiting for claude plugin marketplace to finish."]);
 	expect(statuses(engine).plugins).toBe("stopped");
 	expect(lockHeld()).toBe(false);
 });
@@ -1121,3 +1121,25 @@ test("a run that throws between apps still writes the history of the apps it fin
 	expect(historyRows().map((r) => [r.key, r.result])).toEqual([["fd", "updated"]]);
 	expect(lockHeld()).toBe(false);
 });
+
+test("a working row carries its step's start and limit, and when it last wrote anything, for the quiet line", async () => {
+	const d = await deps();
+	script(join(bin, "claude-up"), "sleep 30");
+	const engine = createEngine(d);
+	await engine.check();
+	const seen: { step?: { at: string; limitMs: number | null }; activeAt?: string }[] = [];
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "claude" && e.app.step) {
+			seen.push({ step: e.app.step, activeAt: e.app.activeAt });
+			if (e.app.step.limitMs === 600_000) engine.stopNow();
+		}
+	});
+	await engine.install(["claude"]);
+	await engine.idle();
+	const update = seen.find((s) => s.step?.limitMs === 600_000);
+	expect(update?.step?.at).toMatch(/^\d{4}-\d\d-\d\dT/);
+	expect(update?.activeAt).toMatch(/^\d{4}-\d\d-\d\dT/);
+	const row = engine.snapshot().apps.find((a) => a.key === "claude");
+	expect(row?.step).toBeUndefined();
+	expect(row?.activeAt).toBeUndefined();
+}, 15_000);

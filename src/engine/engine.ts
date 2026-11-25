@@ -293,6 +293,9 @@ export function createEngine(deps: EngineDeps): Engine {
 	const emitMeta = () => emit({ type: "meta", rate, checkedAt, settings: loadState(paths).settings });
 	const say = (key: string | null, text: string) => {
 		const line: LogLine = { at: deps.now().toISOString(), key, text };
+		// No event of its own: the window reads the line's time from the log event itself.
+		const a = key ? apps.get(key) : undefined;
+		if (a?.status === "working") a.activeAt = line.at;
 		try {
 			log?.write(line);
 		} catch {
@@ -354,10 +357,20 @@ export function createEngine(deps: EngineDeps): Engine {
 		const cancellable: Run = async (argv, opts) => {
 			const mine = { argv, cuttable: opts?.cuttable === true };
 			inStep = mine;
+			const a = apps.get(key);
+			const working = a?.status === "working" ? a : undefined;
+			if (working) {
+				working.step = { at: deps.now().toISOString(), limitMs: opts?.timeoutMs ?? null };
+				emitApp(working);
+			}
 			try {
 				return await deps.run(argv, { cancel, ...opts });
 			} finally {
 				if (inStep === mine) inStep = null;
+				if (working?.status === "working" && working.step) {
+					working.step = undefined;
+					emitApp(working);
+				}
 			}
 		};
 		return {
@@ -373,6 +386,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				if (a && a.status === "working") {
 					a.stage = stage;
 					a.stagePct = pct;
+					a.activeAt = deps.now().toISOString();
 					emitApp(a);
 				}
 				// The current app's own download has the line to itself; early downloads start once it moves on.
@@ -598,6 +612,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		app.restartToApply = o.result === "done" && o.restartToApply;
 		app.stage = undefined;
 		app.stagePct = undefined;
+		app.activeAt = undefined;
+		app.step = undefined;
 		app.downloaded = undefined;
 		app.restorePoints = app.canRestore ? listBackups(paths, app.key) : [];
 		emitApp(app);
@@ -817,6 +833,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			app.status = "working";
 			app.stage = app.stages[0]?.id;
 			app.stagePct = 0;
+			app.activeAt = deps.now().toISOString();
 			run = { ...run, index: i + 1, currentKey: spec.key };
 			emitRun();
 			emitApp(app);
