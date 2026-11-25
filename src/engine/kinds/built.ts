@@ -289,6 +289,8 @@ export async function prepareBuilt(
 		log: ctx.log,
 		onStart: marker.onStart,
 		rename: ctx.rename,
+		// restoreTree runs only after the stop, once the new version may have run and rewritten its settings.
+		config: spec.keep_with_restore,
 	};
 	let point: string | null = null;
 
@@ -821,7 +823,7 @@ export async function recoverTree(m: Inflight, spec: AppSpec, ctx: RecoverCtx): 
 		await Bun.sleep(ctx.waitMs ?? 2000);
 	}
 	const point = m.backupVersion ? pointOf(ctx.paths, spec.key, m.backupVersion) : null;
-	const treeCtx: TreeCtx = { paths: ctx.paths, run: ctx.run, log: ctx.log };
+	const treeCtx: TreeCtx = { paths: ctx.paths, run: ctx.run, log: ctx.log, config: spec.keep_with_restore };
 	let ok = true;
 	const active = named(spec.serve, tree.active);
 	if (tree.step === "pause") {
@@ -956,7 +958,13 @@ export async function restoreBuilt(
 	marker.step("placing");
 	let detail: string | undefined;
 	try {
-		await restoreTree(point, { paths: ctx.paths, run: ctx.run, log: ctx.log, rename: ctx.rename });
+		await restoreTree(point, {
+			paths: ctx.paths,
+			run: ctx.run,
+			log: ctx.log,
+			rename: ctx.rename,
+			config: spec.keep_with_restore,
+		});
 	} catch (err) {
 		detail = MESSAGES.couldNotRestoreFile(version, err instanceof Error ? err.message : String(err));
 	}

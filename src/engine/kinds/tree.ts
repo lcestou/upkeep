@@ -28,6 +28,8 @@ export type TreeCtx = {
 	onStart?: (pid: number) => void;
 	/** The rename every put-back uses. Tests pass one that fails once, to stop a put-back midway. */
 	rename?: (from: string, to: string) => void;
+	/** The current table's keep_with_restore: the saved settings restoreTree may put back. None when absent. */
+	config?: string[];
 };
 
 /** The placeholders a table may use; anything else was refused when apps.toml was read. */
@@ -329,7 +331,7 @@ async function putBack(point: string, ctx: TreeCtx, withPlaced: boolean): Promis
 		if (r.code !== 0) throw new Error(MESSAGES.undoStepFailed(step));
 	}
 	// Settings only after the stop: before it the new version never ran, so they are as the point saved them.
-	if (withPlaced) putConfigBack(point, meta.config ?? [], ctx.paths, tree.spec.key);
+	if (withPlaced) putConfigBack(point, meta.config ?? [], ctx.paths, tree.spec.key, ctx.config ?? []);
 	// A finished put-back leaves no marks, so a later restore from this point copies every kept path again.
 	for (const f of readdirSync(point)) if (f.startsWith("hold-done-")) rmSync(join(point, f), { force: true });
 }

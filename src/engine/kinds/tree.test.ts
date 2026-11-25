@@ -337,10 +337,21 @@ test("a source point carries keep_with_restore: revertFiles leaves settings alon
 	await revertFiles(point, ctx(run));
 	expect(read(cfg)).toBe("port = 2");
 	changeEverything();
+	// Without the current table's list nothing of the settings goes back.
 	await restoreTree(point, ctx(run));
+	expect(read(cfg)).toBe("port = 2");
+	changeEverything();
+	await restoreTree(point, ctx(run, { config: ["~/.config/app"] }));
 	expectOld();
 	expect(read(cfg)).toBe("port = 1");
-	expect(read(join(t.paths.data, "config-aside/app/0/app.toml"))).toBe("port = 2");
+	const aside = join(t.paths.data, "config-aside/app");
+	const first = readdirSync(aside);
+	expect(first).toHaveLength(1);
+	expect(read(join(aside, first[0] ?? "", "0/app.toml"))).toBe("port = 2");
+	// A recovery rerun after the services started finds the point's copy live: no new aside, the first one kept.
+	await restoreTree(point, ctx(run, { config: ["~/.config/app"] }));
+	expect(readdirSync(aside)).toEqual(first);
+	expect(read(join(aside, first[0] ?? "", "0/app.toml"))).toBe("port = 2");
 	// A record may not take the folder the settings live in.
 	await expect(
 		takeTree(spec({ record: [{ file: "upkeep-config", run: ["v"] }] }), ctx(run), {

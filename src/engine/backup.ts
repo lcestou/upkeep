@@ -183,25 +183,31 @@ export function listBackups(paths: Paths, key: string): RestorePoint[] {
 	return points.toSorted((a, b) => b.at.localeCompare(a.at));
 }
 
-/** Puts a restore point back (each file where it came from, with its old mode), then records its version at dest. */
+/**
+ * Puts a restore point back (each file where it came from, with its old mode), then records its version at dest.
+ * config is the current table's keep_with_restore: only those of the point's saved settings go back, and none when it
+ * is absent. A rollback after an install step failed passes none, since the new version never ran.
+ */
 export async function restoreBackup(
 	paths: Paths,
 	spec: Pick<AppSpec, "key" | "dest">,
 	version: string,
 	run: Run,
+	config?: string[],
 ): Promise<{ ok: boolean; detail?: string }> {
-	const r = await putBack(paths, spec, version, run);
+	const r = await putBack(paths, spec, version, run, config ?? []);
 	// The file back at dest is the point's version: recorded, for a program that cannot name its own.
 	if (r.ok && spec.dest) stampInstalled(paths, spec.key, expandHome(spec.dest, paths.home), version);
 	return r;
 }
 
-/** Puts one restore point back: its command, its package, or its files one at a time. */
+/** Puts one restore point back: its command, its package, or its files one at a time, then the settings config names. */
 async function putBack(
 	paths: Paths,
 	spec: Pick<AppSpec, "key">,
 	version: string,
 	run: Run,
+	config: string[],
 ): Promise<{ ok: boolean; detail?: string }> {
 	const dir = join(backupDir(paths, spec.key), version);
 	// A half-built point has a meta file and maybe not every file: it is never a version to go back to.
@@ -212,11 +218,12 @@ async function putBack(
 	} catch (err) {
 		return { ok: false, detail: err instanceof Error ? err.message : String(err) };
 	}
+	const settingsBack = () => configBack(dir, meta, paths, spec.key, config);
 	if (meta.command) {
 		const r = await run(meta.command, { timeoutMs: 600_000, cwd: paths.home });
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		return r.code === 0
-			? configBack(dir, meta, paths, spec.key)
+			? settingsBack()
 			: { ok: false, detail: MESSAGES.commandExited(meta.command.join(" "), r.code) };
 	}
 	const kind = meta.deb ? "deb" : meta.rpm ? "rpm" : null;
@@ -225,7 +232,7 @@ async function putBack(
 		const r = await run(asRoot(packageInstall(kind, file), true), { timeoutMs: 600_000 });
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		return r.code === 0
-			? configBack(dir, meta, paths, spec.key)
+			? settingsBack()
 			: { ok: false, detail: MESSAGES.packageCouldNotPutBack(PACKAGE_TOOL[kind], version) };
 	}
 	for (const f of meta.files) {
@@ -246,13 +253,19 @@ async function putBack(
 		if (sudoNeedsPassword(r)) return { ok: false, detail: SUDO_PASSWORD };
 		if (r.code !== 0) return { ok: false, detail: MESSAGES.couldNotRestoreFile(f.name, (r.stderr || r.stdout).trim()) };
 	}
-	return configBack(dir, meta, paths, spec.key);
+	return settingsBack();
 }
 
 /** putConfigBack as a restore result: ok, or the path that could not go back and why. */
-function configBack(point: string, meta: BackupMeta, paths: Paths, key: string): { ok: boolean; detail?: string } {
+function configBack(
+	point: string,
+	meta: BackupMeta,
+	paths: Paths,
+	key: string,
+	config: string[],
+): { ok: boolean; detail?: string } {
 	try {
-		putConfigBack(point, meta.config ?? [], paths, key);
+		putConfigBack(point, meta.config ?? [], paths, key, config);
 		return { ok: true };
 	} catch (err) {
 		return { ok: false, detail: err instanceof Error ? err.message : String(err) };
@@ -264,6 +277,9 @@ const CONFIG_CAP = 200 * 1024 * 1024;
 
 /** The folder in a point that holds its settings; a name no installed file or record takes. */
 export const CONFIG_DIR = "upkeep-config";
+
+/** How many restores' replaced settings are kept in config-aside/<key>, newest first. */
+const ASIDE_KEEP = 3;
 
 /** One keep_with_restore path in a point: name is its place in the point, path the absolute path it goes back to. */
 export type SavedConfig = { path: string; name: string };
@@ -278,10 +294,47 @@ function there(p: string): boolean {
 	}
 }
 
+/** Whether p is at or under root, compared as resolved absolute paths. */
+const atOrUnder = (p: string, root: string) => p === root || p.startsWith(`${root}/`);
+
 /**
- * Copies each keep_with_restore path into <into>/upkeep-config/<i>, links kept as links, mode and times kept. A path that is
- * missing, over CONFIG_CAP or fails to copy is left out with a log line: settings never cost the update. The copy is
- * taken while the app may run, so a file it is writing that moment can be caught half-written.
+ * Why Upkeep will not save or swap the live path p, or null. p must be strictly under home and outside Upkeep's own
+ * folders (a restore would roll back the app list, or copy backups into themselves). A link is refused: a dotfiles
+ * folder linked in would be saved as a 20-byte link and the swap would put no settings back. A mount point (or any
+ * path on another file system than its parent) is refused: a swap renames, and a mount cannot be renamed. Checked at
+ * the time, not at load: a path can become a link or a mount after the table was written.
+ */
+function configPathProblem(p: string, paths: Paths): string | null {
+	if (!p.startsWith(`${paths.home}/`) || p.split("/").includes("..")) return "it is not under home";
+	if ([paths.config, paths.state, paths.data, paths.cache].some((own) => atOrUnder(p, own) || atOrUnder(own, p)))
+		return "it holds Upkeep's own files";
+	if (!there(p)) return null;
+	if (lstatSync(p).isSymbolicLink()) return "it is a link; name the folder it points to";
+	if (statSync(p).dev !== statSync(dirname(p)).dev) return "it is a mount point";
+	return null;
+}
+
+/** Whether the trees at a and b hold the same names, links and bytes. Links are compared, never followed. */
+function sameTree(a: string, b: string): boolean {
+	const sa = lstatSync(a, { throwIfNoEntry: false });
+	const sb = lstatSync(b, { throwIfNoEntry: false });
+	if (!sa || !sb) return false;
+	if (sa.isSymbolicLink() || sb.isSymbolicLink())
+		return sa.isSymbolicLink() && sb.isSymbolicLink() && readlinkSync(a) === readlinkSync(b);
+	if (sa.isDirectory() !== sb.isDirectory()) return false;
+	if (sa.isDirectory()) {
+		const na = readdirSync(a).toSorted();
+		const nb = readdirSync(b).toSorted();
+		return na.length === nb.length && na.every((n, i) => n === nb[i] && sameTree(join(a, n), join(b, n)));
+	}
+	return sa.isFile() && sb.isFile() && sa.size === sb.size && readFileSync(a).equals(readFileSync(b));
+}
+
+/**
+ * Copies each keep_with_restore path into <into>/upkeep-config/<i>, links inside kept as links, mode and times kept.
+ * A path that is missing, over CONFIG_CAP, refused by configPathProblem or that fails to copy is left out with a log
+ * line: settings never cost the update. The copy is taken while the app may run, so a file it is writing that moment
+ * can be caught half-written.
  */
 export function saveConfig(
 	into: string,
@@ -290,12 +343,18 @@ export function saveConfig(
 	log: (line: string) => void,
 ): SavedConfig[] {
 	const saved: SavedConfig[] = [];
+	const leftOut = (raw: string, why: string) => log(`Left ${raw} out of the restore point of ${spec.key}: ${why}.`);
 	for (const [i, raw] of (spec.keep_with_restore ?? []).entries()) {
 		const path = expandHome(raw, paths.home);
 		if (!there(path)) continue;
+		const problem = configPathProblem(path, paths);
+		if (problem) {
+			leftOut(raw, problem);
+			continue;
+		}
 		const size = bytesOf(path);
 		if (size > CONFIG_CAP) {
-			log(`Left ${raw} out of the restore point of ${spec.key}: ${Math.round(size / 1024 / 1024)} MB is over 200 MB.`);
+			leftOut(raw, `${Math.round(size / 1024 / 1024)} MB is over 200 MB`);
 			continue;
 		}
 		const name = join(CONFIG_DIR, String(i));
@@ -305,49 +364,77 @@ export function saveConfig(
 			saved.push({ path, name });
 		} catch (err) {
 			rmSync(join(into, name), { recursive: true, force: true });
-			log(`Left ${raw} out of the restore point of ${spec.key}: ${err instanceof Error ? err.message : String(err)}`);
+			leftOut(raw, err instanceof Error ? err.message : String(err));
 		}
 	}
 	return saved;
 }
 
 /**
- * Puts a point's saved settings back, each copied in beside the live path and then renamed over it. What was live is
- * moved to <data>/config-aside/<key>/<i> first, so a restore never loses the settings it replaces; only the latest
- * restore's are kept there. A path not strictly under home is skipped: meta.json is on disk and could have been
- * edited. A path the point does not hold (it was missing when the point was taken) is left as it is. Throws on the
- * first path that cannot go back.
+ * Puts a point's saved settings back, each copied in beside the live path and then renamed over it. Only paths the
+ * current table still names go back (config, as written in the table), never one only the point recorded. What was
+ * live is moved first to <data>/config-aside/<key>/<at>/<i>, a folder of this restore's own, so a retry or a second
+ * restore never deletes it; the oldest are pruned to ASIDE_KEEP only after a whole put-back. A live path that is
+ * already the point's copy is skipped, so a rerun after a cut changes nothing. When the copy cannot be renamed in, the
+ * live path is moved back from the aside. A path missing from the point is left as it is. Throws on the first path
+ * that cannot go back, or that is now a link or a mount point, before touching it.
  */
-export function putConfigBack(point: string, saved: SavedConfig[], paths: Paths, key: string): void {
-	if (saved.length === 0) return;
-	const aside = join(paths.data, "config-aside", key);
-	dropTree(aside, paths);
-	for (const [i, c] of saved.entries()) {
+export function putConfigBack(
+	point: string,
+	saved: SavedConfig[],
+	paths: Paths,
+	key: string,
+	config: string[],
+	at = new Date().toISOString(),
+): void {
+	const named = new Set(config.map((c) => expandHome(c, paths.home).replace(/\/+$/, "")));
+	const todo = saved.filter((c) => named.has(c.path) && there(join(point, c.name)));
+	if (todo.length === 0) return;
+	const root = join(paths.data, "config-aside", key);
+	let aside = join(root, at.replace(/[:.]/g, "-"));
+	for (let n = 2; there(aside); n++) aside = join(root, `${at.replace(/[:.]/g, "-")}-${n}`);
+	let used = false;
+	for (const [i, c] of todo.entries()) {
 		const src = join(point, c.name);
-		if (!c.path.startsWith(`${paths.home}/`) || c.path.split("/").includes("..") || !there(src)) continue;
+		const fail = (why: string, cause?: unknown) => new Error(MESSAGES.couldNotRestoreFile(c.path, why), { cause });
+		const problem = configPathProblem(c.path, paths);
+		if (problem) throw fail(problem);
+		const next = `${c.path}.upkeep-new`;
+		const to = join(aside, String(i));
+		let moved = false;
 		try {
-			const next = `${c.path}.upkeep-new`;
+			if (sameTree(src, c.path)) continue;
 			rmSync(next, { recursive: true, force: true });
 			mkdirSync(dirname(c.path), { recursive: true });
 			cpSync(src, next, { recursive: true, verbatimSymlinks: true, preserveTimestamps: true });
 			if (there(c.path)) {
 				mkdirSync(aside, { recursive: true });
-				const to = join(aside, String(i));
+				used = true;
 				try {
 					renameSync(c.path, to);
 				} catch {
-					// Another file system: copied aside, then dropped.
+					// Data on another file system: a whole copy in the aside first, then the live path goes by a rename beside it.
 					cpSync(c.path, to, { recursive: true, verbatimSymlinks: true, preserveTimestamps: true });
-					dropTree(c.path, paths);
+					renameSync(c.path, `${c.path}.upkeep-old`);
+					dropTree(`${c.path}.upkeep-old`, paths);
 				}
+				moved = true;
 			}
 			renameSync(next, c.path);
 		} catch (err) {
-			throw new Error(MESSAGES.couldNotRestoreFile(c.path, err instanceof Error ? err.message : String(err)), {
-				cause: err,
-			});
+			try {
+				rmSync(next, { recursive: true, force: true });
+			} catch {
+				// Left for the next try, which clears it first.
+			}
+			// The live path is never left missing: what was moved aside goes back where it was.
+			if (moved && !there(c.path))
+				cpSync(to, c.path, { recursive: true, verbatimSymlinks: true, preserveTimestamps: true });
+			throw fail(err instanceof Error ? err.message : String(err), err);
 		}
 	}
+	if (used)
+		for (const old of readdirSync(root).toSorted().toReversed().slice(ASIDE_KEEP)) dropTree(join(root, old), paths);
 }
 
 /** Points link at target, by a new link renamed over it, so the name is never missing. One already pointing there is left alone. */
@@ -437,7 +524,8 @@ function isAppImageFile(file: string): boolean {
  * Packs every restore point of key but the newest into one zstd tarball inside its folder: a source build's kept
  * trees and a folder app's folder halve or better. The newest stays plain, since a rollback right after a failed start
  * renames from it, with no unpack and no extra disk. Skipped: a package or command point (the package is compressed,
- * a command has no files), a point whose files are all AppImages (squashfs, nothing to gain), and one that did not
+ * a command has no files), a point whose files are all AppImages (squashfs, nothing to gain), unless the point also
+ * holds keep_with_restore settings, and one that did not
  * shrink by a tenth before. The tarball is written aside and renamed in before the plain files go, so a cut run
  * leaves a whole tarball or none, and the next run finishes the delete. Needs GNU tar with zstd; when tar fails the
  * points stay plain and it is tried again after the next update. Never throws.
@@ -447,7 +535,9 @@ export async function packOlder(paths: Paths, key: string, run: Run, log: (line:
 	for (const p of listBackups(paths, key).slice(1)) {
 		const point = join(root, p.version);
 		const meta = readMeta(point);
-		if (!meta || meta.deb || meta.rpm || meta.command || existsSync(join(point, PLAIN))) continue;
+		// Settings pack well, so a point holding them is packed whatever its kind.
+		const settings = (meta?.config?.length ?? 0) > 0;
+		if (!meta || ((meta.deb || meta.rpm || meta.command) && !settings) || existsSync(join(point, PLAIN))) continue;
 		const packed = join(point, PACKED);
 		const tmp = `${packed}.upkeep-tmp`;
 		const failed = (why: string) => log(`Could not pack the ${p.version} restore point of ${key}: ${why}`);
@@ -462,7 +552,7 @@ export async function packOlder(paths: Paths, key: string, run: Run, log: (line:
 			const files = meta.files.filter((f) => f.link === undefined);
 			const images =
 				!meta.tree && files.length > 0 && files.every((f) => !f.dir && isAppImageFile(join(point, f.name)));
-			if (entries.length === 0 || images) continue;
+			if (entries.length === 0 || (images && !settings)) continue;
 			// oxlint-disable-next-line no-await-in-loop -- one tarball at a time, so two never fill the disk together
 			const r = await run(["tar", "--zstd", "-cf", tmp, "-C", point, "--", ...entries], { timeoutMs: 600_000 });
 			if (r.code !== 0) {

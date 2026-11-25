@@ -23,7 +23,7 @@ import {
 	takePoint,
 	unpackPoint,
 } from "./backup";
-import { realRun, recordingRun, tempHome } from "./testkit";
+import { ok, realRun, recordingRun, tempHome } from "./testkit";
 
 let t: ReturnType<typeof tempHome>;
 beforeEach(() => {
@@ -298,7 +298,10 @@ function settings(text: string): { folder: string; file: string; neighbour: stri
 	return { folder, file, neighbour };
 }
 
-const WITH_CONFIG = { key: "tool", keep_with_restore: ["~/.config/tool", "~/.toolrc", "~/.config/missing"] };
+const NAMED = ["~/.config/tool", "~/.toolrc", "~/.config/missing"];
+const WITH_CONFIG = { key: "tool", keep_with_restore: NAMED };
+const asides = (key: string) => readdirSync(join(t.paths.data, "config-aside", key)).toSorted();
+const asideOf = (key: string, n: number) => join(t.paths.data, "config-aside", key, asides(key)[n] ?? "none");
 
 test("keep_with_restore travels with a restore point: saved, listed, put back, and what it replaced kept aside", async () => {
 	const s = settings("v1");
@@ -315,7 +318,7 @@ test("keep_with_restore travels with a restore point: saved, listed, put back, a
 	// The new version migrates its settings; a neighbour changes too, and no table names it.
 	settings("v2");
 	writeFileSync(bin, "bin 2");
-	expect(await restoreBackup(t.paths, { key: "tool" }, "1.0", realRun(t.paths))).toEqual({ ok: true });
+	expect(await restoreBackup(t.paths, { key: "tool" }, "1.0", realRun(t.paths), NAMED)).toEqual({ ok: true });
 	expect(readFileSync(bin, "utf8")).toBe("bin 1");
 	expect(readFileSync(join(s.folder, "settings.json"), "utf8")).toBe("v1");
 	expect(readlinkSync(join(s.folder, "current"))).toBe("settings.json");
@@ -324,12 +327,102 @@ test("keep_with_restore travels with a restore point: saved, listed, put back, a
 	expect(existsSync(join(t.paths.home, ".config/missing"))).toBe(false);
 	expect(existsSync(`${s.folder}.upkeep-new`)).toBe(false);
 	// The settings it replaced are kept aside, so the restore loses nothing.
-	const aside = join(t.paths.data, "config-aside/tool");
-	expect(readFileSync(join(aside, "0/settings.json"), "utf8")).toBe("v2");
-	expect(readFileSync(join(aside, "1"), "utf8")).toBe("rc v2");
+	expect(asides("tool")).toHaveLength(1);
+	expect(readFileSync(join(asideOf("tool", 0), "0/settings.json"), "utf8")).toBe("v2");
+	expect(readFileSync(join(asideOf("tool", 0), "1"), "utf8")).toBe("rc v2");
 	// A table with no keep_with_restore takes and lists points as before.
 	takeBackup(t.paths, { key: "plain" }, "1.0", [bin], "2026-11-10T10:00:00.000Z");
 	expect(listBackups(t.paths, "plain")).toEqual([{ version: "1.0", at: "2026-11-10T10:00:00.000Z" }]);
+});
+
+test("a rollback that passes no settings, or a table that dropped a path, leaves those settings as they are", async () => {
+	settings("v1");
+	const bin = join(t.dir, "tool");
+	writeFileSync(bin, "bin 1");
+	takeBackup(t.paths, WITH_CONFIG, "1.0", [bin], "x");
+	settings("v2");
+	// An install step failed: the new version never ran, so its settings stay.
+	expect(await restoreBackup(t.paths, { key: "tool" }, "1.0", realRun(t.paths))).toEqual({ ok: true });
+	expect(readFileSync(join(t.paths.home, ".config/tool/settings.json"), "utf8")).toBe("v2");
+	expect(existsSync(join(t.paths.data, "config-aside"))).toBe(false);
+	// The table no longer names ~/.toolrc: only the folder goes back.
+	expect(await restoreBackup(t.paths, { key: "tool" }, "1.0", realRun(t.paths), ["~/.config/tool/"])).toEqual({
+		ok: true,
+	});
+	expect(readFileSync(join(t.paths.home, ".config/tool/settings.json"), "utf8")).toBe("v1");
+	expect(readFileSync(join(t.paths.home, ".toolrc"), "utf8")).toBe("rc v2");
+});
+
+test("a second put-back changes nothing and keeps the first one's aside; asides are pruned to three, oldest first", () => {
+	settings("v1");
+	takePoint(t.paths, WITH_CONFIG, "1.0", { command: ["true"] }, "x");
+	const point = join(t.paths.data, "backups/tool/1.0");
+	const saved = JSON.parse(readFileSync(join(point, "meta.json"), "utf8")).config;
+	settings("v2");
+	putConfigBack(point, saved, t.paths, "tool", NAMED, "2026-11-01T00:00:00.000Z");
+	// A rerun after a cut (recovery, or a retry) finds the point's copy already live and moves nothing.
+	putConfigBack(point, saved, t.paths, "tool", NAMED, "2026-11-02T00:00:00.000Z");
+	expect(asides("tool")).toHaveLength(1);
+	expect(readFileSync(join(asideOf("tool", 0), "0/settings.json"), "utf8")).toBe("v2");
+	for (const [n, day] of ["03", "04", "05"].entries()) {
+		settings(`w${n}`);
+		putConfigBack(point, saved, t.paths, "tool", NAMED, `2026-11-${day}T00:00:00.000Z`);
+	}
+	expect(asides("tool")).toHaveLength(3);
+	expect(readFileSync(join(asideOf("tool", 0), "0/settings.json"), "utf8")).toBe("w0");
+	expect(readFileSync(join(asideOf("tool", 2), "0/settings.json"), "utf8")).toBe("w2");
+});
+
+test("when one path fails the others' asides stay, and a retry finishes without deleting them", () => {
+	settings("v1");
+	takePoint(t.paths, WITH_CONFIG, "1.0", { command: ["true"] }, "x");
+	const point = join(t.paths.data, "backups/tool/1.0");
+	const saved = JSON.parse(readFileSync(join(point, "meta.json"), "utf8")).config;
+	settings("v2");
+	// The second path cannot take the copy: a folder sits where its .upkeep-new goes and cannot be removed.
+	const blocker = join(t.paths.home, ".toolrc.upkeep-new");
+	mkdirSync(join(blocker, "inner"), { recursive: true });
+	chmodSync(blocker, 0o500);
+	try {
+		expect(() => putConfigBack(point, saved, t.paths, "tool", NAMED, "2026-11-01T00:00:00.000Z")).toThrow(
+			`Could not restore ${join(t.paths.home, ".toolrc")}: `,
+		);
+	} finally {
+		chmodSync(blocker, 0o755);
+	}
+	expect(readFileSync(join(t.paths.home, ".toolrc"), "utf8")).toBe("rc v2");
+	expect(readFileSync(join(asideOf("tool", 0), "0/settings.json"), "utf8")).toBe("v2");
+	putConfigBack(point, saved, t.paths, "tool", NAMED, "2026-11-02T00:00:00.000Z");
+	expect(readFileSync(join(t.paths.home, ".toolrc"), "utf8")).toBe("rc v1");
+	expect(readFileSync(join(asideOf("tool", 0), "0/settings.json"), "utf8")).toBe("v2");
+	expect(readFileSync(join(asideOf("tool", 1), "1"), "utf8")).toBe("rc v2");
+});
+
+test("a linked settings folder and Upkeep's own folders are left out of the point; a link at restore is refused", () => {
+	const real = join(t.paths.home, "dotfiles/app");
+	mkdirSync(real, { recursive: true });
+	writeFileSync(join(real, "conf"), "c");
+	mkdirSync(join(t.paths.home, ".config"), { recursive: true });
+	symlinkSync(real, join(t.paths.home, ".config/app"));
+	// Upkeep's config at its usual place under home, as on a real machine.
+	const own = { ...t.paths, config: join(t.paths.home, ".config/upkeep") };
+	mkdirSync(own.config, { recursive: true });
+	const lines: string[] = [];
+	const spec = { key: "app", keep_with_restore: ["~/.config/app", "~/.config/upkeep"] };
+	takePoint(own, spec, "1.0", { command: ["true"] }, "x", (l) => lines.push(l));
+	expect(lines).toEqual([
+		"Left ~/.config/app out of the restore point of app: it is a link; name the folder it points to.",
+		"Left ~/.config/upkeep out of the restore point of app: it holds Upkeep's own files.",
+	]);
+	expect(listBackups(t.paths, "app")).toEqual([{ version: "1.0", at: "x" }]);
+	// A path that became a link after its point was taken is refused before anything moves.
+	const point = join(t.dir, "point");
+	mkdirSync(join(point, "upkeep-config/0"), { recursive: true });
+	const live = join(t.paths.home, ".config/app");
+	expect(() =>
+		putConfigBack(point, [{ path: live, name: "upkeep-config/0" }], t.paths, "app", ["~/.config/app"]),
+	).toThrow(`Could not restore ${live}: it is a link; name the folder it points to`);
+	expect(readlinkSync(live)).toBe(real);
 });
 
 test("settings over 200 MB stay out of the point with a log line, and the update's point is still taken", () => {
@@ -371,18 +464,33 @@ test("a setting that cannot be read is left out with a log line, never failing t
 	expect(existsSync(join(t.paths.data, "backups/cmd/1.0/upkeep-config/0"))).toBe(false);
 });
 
-test("a command point puts settings back only when its command worked, and a packed point carries them too", async () => {
+test("command and package points put settings back only when their tool worked, and are packed when they hold some", async () => {
 	settings("v1");
 	takePoint(t.paths, WITH_CONFIG, "1.0", { command: ["put-back", "1.0"] }, "2026-11-01T10:00:00.000Z");
 	settings("v2");
 	const failing = recordingRun(t.paths, () => ({ code: 3, stdout: "", stderr: "", timedOut: false }));
-	expect((await restoreBackup(t.paths, { key: "tool" }, "1.0", failing.run)).ok).toBe(false);
+	expect((await restoreBackup(t.paths, { key: "tool" }, "1.0", failing.run, NAMED)).ok).toBe(false);
 	expect(readFileSync(join(t.paths.home, ".toolrc"), "utf8")).toBe("rc v2");
 	const working = recordingRun(t.paths, () => ({ code: 0, stdout: "", stderr: "", timedOut: false }));
-	expect(await restoreBackup(t.paths, { key: "tool" }, "1.0", working.run)).toEqual({ ok: true });
+	expect(await restoreBackup(t.paths, { key: "tool" }, "1.0", working.run, NAMED)).toEqual({ ok: true });
 	expect(readFileSync(join(t.paths.home, ".toolrc"), "utf8")).toBe("rc v1");
 
-	// A file point packed with zstd unpacks its settings with its files.
+	// A .deb point holding settings: packed when older, unpacked and put back after dpkg.
+	const deb = join(t.dir, "tool_1.0.deb");
+	writeFileSync(deb, "deb ".repeat(5000));
+	settings("d1".repeat(5000));
+	takePoint(t.paths, { ...WITH_CONFIG, key: "pkg" }, "1.0", { package: "deb", file: deb }, "2026-11-01T10:00:00.000Z");
+	takePoint(t.paths, { key: "pkg" }, "2.0", { package: "deb", file: deb }, "2026-11-02T10:00:00.000Z");
+	await packOlder(t.paths, "pkg", realRun(t.paths), () => {});
+	expect(entriesOf("pkg", "1.0")).toEqual([".upkeep-packed.tar.zst", "meta.json"]);
+	expect(entriesOf("pkg", "2.0")).toEqual(["meta.json", "tool_1.0.deb"]);
+	settings("d2");
+	const real = realRun(t.paths);
+	const dpkg: typeof real = (argv, opts) => (argv.includes("dpkg") ? Promise.resolve(ok("")) : real(argv, opts));
+	expect(await restoreBackup(t.paths, { key: "pkg" }, "1.0", dpkg, NAMED)).toEqual({ ok: true });
+	expect(readFileSync(join(t.paths.home, ".config/tool/settings.json"), "utf8")).toBe("d1".repeat(5000));
+
+	// A folder point packed with zstd unpacks its settings with its files.
 	const folder = folderApp("one ");
 	settings("p1");
 	takeBackup(t.paths, { ...WITH_CONFIG, key: "packed" }, "1.0", [folder], "2026-11-01T10:00:00.000Z");
@@ -390,7 +498,7 @@ test("a command point puts settings back only when its command worked, and a pac
 	await packOlder(t.paths, "packed", realRun(t.paths), () => {});
 	expect(entriesOf("packed", "1.0")).toEqual([".upkeep-packed.tar.zst", "meta.json"]);
 	settings("p2");
-	expect(await restoreBackup(t.paths, { key: "packed" }, "1.0", realRun(t.paths))).toEqual({ ok: true });
+	expect(await restoreBackup(t.paths, { key: "packed" }, "1.0", realRun(t.paths), NAMED)).toEqual({ ok: true });
 	expect(readFileSync(join(t.paths.home, ".config/tool/settings.json"), "utf8")).toBe("p1");
 });
 
@@ -400,12 +508,15 @@ test("putConfigBack skips a path outside home that meta.json was edited to name,
 	writeFileSync(join(point, "upkeep-config/0"), "x");
 	const outside = join(t.dir, "outside");
 	writeFileSync(outside, "kept");
-	putConfigBack(point, [{ path: outside, name: "upkeep-config/0" }], t.paths, "tool");
-	putConfigBack(point, [{ path: `${t.paths.home}/../outside`, name: "upkeep-config/0" }], t.paths, "tool");
+	// Named by the table too, so only the home check stands between it and a swap.
+	expect(() => putConfigBack(point, [{ path: outside, name: "upkeep-config/0" }], t.paths, "tool", [outside])).toThrow(
+		`Could not restore ${outside}: it is not under home`,
+	);
 	expect(readFileSync(outside, "utf8")).toBe("kept");
 	// A live path whose parent is a file cannot take the copy: the restore says so.
 	writeFileSync(join(t.paths.home, "plainfile"), "f");
+	const under = join(t.paths.home, "plainfile/x");
 	expect(() =>
-		putConfigBack(point, [{ path: join(t.paths.home, "plainfile/x"), name: "upkeep-config/0" }], t.paths, "tool"),
-	).toThrow(`Could not restore ${join(t.paths.home, "plainfile/x")}: `);
+		putConfigBack(point, [{ path: under, name: "upkeep-config/0" }], t.paths, "tool", ["~/plainfile/x"]),
+	).toThrow(`Could not restore ${under}: `);
 });

@@ -86,7 +86,8 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 	const after = await probeCommand(spec.check ?? [], { run: ctx.run });
 	const stages = clock.stop();
 	if (!("version" in after)) {
-		const back = point ? await restoreBackup(ctx.paths, spec, point, ctx.run) : null;
+		// The update and the check ran the new version, which may have rewritten its settings: they go back too.
+		const back = point ? await restoreBackup(ctx.paths, spec, point, ctx.run, spec.keep_with_restore) : null;
 		if (back?.ok)
 			return {
 				result: "rolled_back",

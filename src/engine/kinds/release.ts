@@ -554,7 +554,8 @@ async function rollBack(
 	// Only the point this run took: an older one may be another version or another dest.
 	const point = backupVersion;
 	if (point && canRestore(spec)) {
-		const r = await restoreBackup(ctx.paths, spec, point, ctx.run);
+		// The probe ran the new copy, which may have rewritten its settings: they go back too.
+		const r = await restoreBackup(ctx.paths, spec, point, ctx.run, spec.keep_with_restore);
 		if (r.ok)
 			return {
 				result: "rolled_back",
