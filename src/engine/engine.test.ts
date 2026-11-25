@@ -1143,3 +1143,20 @@ test("a working row carries its step's start and limit, and when it last wrote a
 	expect(row?.step).toBeUndefined();
 	expect(row?.activeAt).toBeUndefined();
 }, 15_000);
+
+test("after Done a stopped app is ready again and keeps its own sentence, not Last try failed", async () => {
+	const d = await deps();
+	script(join(bin, "claude-up"), "sleep 30");
+	const engine = createEngine(d);
+	await engine.check();
+	engine.subscribe((e) => {
+		if (e.type === "log" && e.line.key === "claude" && e.line.text.startsWith("$ ")) engine.stopNow();
+	});
+	await engine.install(["claude"]);
+	await engine.idle();
+	expect(statuses(engine).claude).toBe("stopped");
+	engine.dismissSummary();
+	const row = engine.snapshot().apps.find((a) => a.key === "claude");
+	expect(row).toMatchObject({ status: "ready", detail: "Stopped. Claude Code still reports 2.1.322." });
+	expect(engine.readyKeys(false)).toContain("claude");
+}, 15_000);

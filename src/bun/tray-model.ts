@@ -44,7 +44,12 @@ export function trayMenu(
  */
 export function trayIcon(snapshot: Snapshot): string {
 	if (snapshot.run.phase === "installing") return "working";
-	if (snapshot.run.phase === "summary" && snapshot.run.results.some((r) => r.result !== "updated")) return "failed";
+	// A stopped app is not a failure: the run ended on the person's press.
+	if (
+		snapshot.run.phase === "summary" &&
+		snapshot.run.results.some((r) => r.result !== "updated" && r.result !== "stopped")
+	)
+		return "failed";
 	const ready = readyNames(snapshot).length;
 	if (ready === 0) return "idle";
 	return ready > 9 ? "count-9plus" : `count-${ready}`;

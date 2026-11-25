@@ -90,6 +90,12 @@ test("icon names", () => {
 		results: [{ key: "a", name: "A", from: "1", to: "2", result: "failed", ms: 1 }],
 	};
 	expect(trayIcon(snap(0, failed))).toBe("failed");
+	// An app the person stopped is not a failure.
+	const stopped: RunState = {
+		...failed,
+		results: [{ ...failed.results[0], key: "a", name: "A", from: "1", to: "2", result: "stopped", ms: 1 }],
+	};
+	expect(trayIcon(snap(0, stopped))).toBe("idle");
 });
 
 test("titles and notices read as sentences", () => {

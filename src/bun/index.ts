@@ -476,7 +476,8 @@ function announceRun(): void {
 	const updated = results.filter((r) => r.result === "updated").map((r) => r.name);
 	const code = trayLanguage();
 	if (updated.length > 0) notify(updatedNotice(updated, code));
-	for (const r of results) if (r.result !== "updated") notify(failedNotice(r.name, code));
+	// A stopped app was the person's own press, so it gets no failure notice.
+	for (const r of results) if (r.result !== "updated" && r.result !== "stopped") notify(failedNotice(r.name, code));
 }
 
 // Before the window exists there is nobody to tell; the view asks for a snapshot when it mounts.

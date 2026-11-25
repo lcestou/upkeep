@@ -49,3 +49,18 @@ test("a quiet row carries its own Stop now", async ({ page }) => {
 	await expect(page.getByTestId("stop-now-zen")).toHaveCount(0);
 	await expect(page.getByTestId("status-fd")).toHaveText("Ready");
 });
+
+test("a stopped app is not offered as Retry; the apps not started are, and after Done it is ready to tick", async ({
+	page,
+}) => {
+	await load(page, "fixture&speed=2&quiet=cut");
+	await page.getByTestId("install").click();
+	await page.getByTestId("stop-now-zen").click();
+	await expect(page.getByTestId("done")).toBeVisible({ timeout: 10_000 });
+	await expect(page.getByTestId("retry")).toHaveCount(0);
+	await expect(page.getByTestId("install")).toHaveText("Install 3 updates");
+	await page.getByTestId("done").click();
+	await expect(page.getByTestId("status-zen")).toHaveText("Ready");
+	await expect(page.getByTestId("sentence-zen")).toHaveText("Stopped. 1.24b is back in place.");
+	await expect(page.getByTestId("tick-zen")).toBeEnabled();
+});

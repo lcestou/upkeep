@@ -1337,22 +1337,26 @@ export function createEngine(deps: EngineDeps): Engine {
 		return { ok: true };
 	}
 
-	/** Re-derives a resting row after a skip or hold change. */
-	/** Rows a run could not update go back to where the last check left them. */
+	/**
+	 * Rows a run could not update, or the person stopped, go back to where the last check left them, so each can be
+	 * ticked again. A stopped row keeps its own sentence ("Stopped. 1.0.0 is back in place."): it did not fail.
+	 */
 	function resetFailed(): void {
 		for (const a of apps.values()) {
-			if (a.status !== "failed" && a.status !== "rolled_back") continue;
+			if (a.status !== "failed" && a.status !== "rolled_back" && a.status !== "stopped") continue;
 			const spec = specOf(a.key);
 			const c = checked.get(a.key);
 			if (!spec || !c) continue;
 			// The row goes back to where it can be tried again, and says why the last try ended. The next check clears it.
 			const why = a.detail;
+			const stopped = a.status === "stopped";
 			Object.assign(a, resting(spec, { ...c, installed: a.installed }));
-			a.detail = why ? MESSAGES.lastTryFailed(why) : c.detail;
+			a.detail = why ? (stopped ? why : MESSAGES.lastTryFailed(why)) : c.detail;
 			emitApp(a);
 		}
 	}
 
+	/** Re-derives a resting row after a skip or hold change. */
 	function refresh(key: string): void {
 		const spec = specOf(key);
 		const a = apps.get(key);

@@ -1121,7 +1121,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (kept) return { started: false, reason: REASON_UNRECOVERED };
 			const ok = keys.filter((k) => {
 				const s = get(k)?.status;
-				return s === "ready" || s === "failed" || s === "rolled_back";
+				return s === "ready" || s === "failed" || s === "rolled_back" || s === "stopped";
 			});
 			if (ok.length === 0) return { started: false, reason: "Nothing to install." };
 			// A retry from the summary keeps the first pass: done rows stay done and their results stay counted.
@@ -1150,6 +1150,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			for (const app of apps)
 				if (app.status === "failed" || app.status === "rolled_back")
 					put({ ...app, status: "ready", detail: app.detail ? lastTryFailed(app.detail) : undefined });
+			// A stopped app did not fail: it is ready again and keeps its own sentence.
+			for (const app of apps) if (app.status === "stopped") put({ ...app, status: "ready" });
 			setRun({
 				id: null,
 				phase: "idle",

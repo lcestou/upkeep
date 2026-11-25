@@ -270,7 +270,10 @@ export class Model {
 			total: this.apps.length,
 		}),
 	);
-	failedKeys: string[] = $derived(this.run.results.filter((r) => r.result !== "updated").map((r) => r.key));
+	// A stopped app is the person's choice, not a failure: it is never offered as Retry.
+	failedKeys: string[] = $derived(
+		this.run.results.filter((r) => r.result !== "updated" && r.result !== "stopped").map((r) => r.key),
+	);
 	/** The apps in this run in the engine's order: list order, with apps added during the run after them. */
 	queue: AppState[] = $derived(
 		this.run.phase === "installing" || this.run.phase === "summary"
@@ -363,7 +366,7 @@ export class Model {
 				}
 				this.pinned = false;
 				// A run that ends with failures opens the inspector on the first one; a clean run leaves it alone.
-				const failed = e.run.results.find((r) => r.result !== "updated");
+				const failed = e.run.results.find((r) => r.result !== "updated" && r.result !== "stopped");
 				if (before === "installing" && e.run.phase === "summary" && failed) this.openKey = failed.key;
 				return;
 			}
