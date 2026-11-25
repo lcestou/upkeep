@@ -2753,10 +2753,6 @@ msgid "Wait before offering a new release"
 msgstr "Esperar antes de ofrecer una versión nueva"
 
 #: src/mainview/lib/copy.ts
-msgid "A new release often gets a quick fix in its first days. Counted from when it came out."
-msgstr "Una versión nueva suele recibir un arreglo rápido en sus primeros días. Se cuenta desde su publicación."
-
-#: src/mainview/lib/copy.ts
 msgid "Install now anyway"
 msgstr "Instalar ahora de todos modos"
 
@@ -2780,7 +2776,7 @@ msgstr "Quitar token"
 msgid "That does not look like a GitHub token."
 msgstr "Eso no parece un token de GitHub."
 
-#. 0: version; 1: day
+#. 0: version; 1: shortDate(iso)
 #: src/mainview/lib/copy.ts
 msgid "{0} is offered from {1}, after the wait set in Settings."
 msgstr "{0} se ofrece a partir del {1}, tras la espera elegida en Ajustes."
@@ -2814,3 +2810,29 @@ msgstr "3 días"
 #: src/mainview/lib/copy.ts
 msgid "7 days"
 msgstr "7 días"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+msgstr "Una versión nueva de una app suele recibir un arreglo rápido en sus primeros días. Se cuenta desde su publicación. Las actualizaciones de Upkeep no esperan."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused this token. It may have expired or been revoked."
+msgstr "GitHub rechazó este token. Puede haber caducado o haberse revocado."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token; using the gh sign-in."
+msgstr "GitHub rechazó el token guardado; se usa el inicio de sesión de gh."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+msgstr "GitHub rechazó el token guardado y gh no tiene sesión iniciada. Pega un token nuevo."
+
+#. 0: version; 1: shortTime(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered at {1} today, after the wait set in Settings."
+msgstr "{0} se ofrece hoy a las {1}, tras la espera elegida en Ajustes."
+
+#. 0: shortTime(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered at {0}"
+msgstr "Se ofrece a las {0}"

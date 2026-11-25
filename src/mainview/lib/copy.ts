@@ -12,7 +12,7 @@ import type {
 	SystemOutcome,
 	SystemState,
 } from "../../shared/types";
-import { formatBytes, plural, shortDate } from "./format";
+import { formatBytes, isToday, plural, shortDate, shortTime } from "./format";
 import { language } from "./language.svelte";
 
 export const KIND_LABEL = {
@@ -307,7 +307,7 @@ export const TEXT = {
 		return "Wait before offering a new release";
 	},
 	get waitDaysHint() {
-		return "A new release often gets a quick fix in its first days. Counted from when it came out.";
+		return "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait.";
 	},
 	get installNowAnyway() {
 		return "Install now anyway";
@@ -326,6 +326,15 @@ export const TEXT = {
 	},
 	get tokenRefused() {
 		return "That does not look like a GitHub token.";
+	},
+	get tokenGithubRefused() {
+		return "GitHub refused this token. It may have expired or been revoked.";
+	},
+	get tokenFallbackGh() {
+		return "GitHub refused the saved token; using the gh sign-in.";
+	},
+	get tokenFallbackNone() {
+		return "GitHub refused the saved token, and gh is not signed in. Paste a new token.";
 	},
 	get checkEvery() {
 		return "Check for updates";
@@ -368,9 +377,11 @@ export const skipLabel = (v: string) => `Skip ${v}`;
 export const stopSkipLabel = (v: string) => `Stop skipping ${v}`;
 /** The release line in the pane; relative is already a phrase such as "3 days ago". */
 export const releasedLabel = (relative: string) => `Released ${relative}`;
-/** The pane's sentence on a release still settling; day is already a short date such as "Nov 27". */
-export const settlesLine = (version: string, day: string) =>
-	`${version} is offered from ${day}, after the wait set in Settings.`;
+/** The pane's sentence on a release still settling: the day it is offered, or the hour when that is later today. */
+export const settlesLine = (version: string, iso: string) =>
+	isToday(iso)
+		? `${version} is offered at ${shortTime(iso)} today, after the wait set in Settings.`
+		: `${version} is offered from ${shortDate(iso)}, after the wait set in Settings.`;
 /** What Settings shows for a kept GitHub token: only its last four characters. */
 export const tokenKeptLine = (last: string) => `A token ending in ${last} is saved.`;
 /** Tooltip over the checked time; relative is already a phrase such as "2 hours ago". */
@@ -488,7 +499,8 @@ export function statusText(app: AppState): string {
 			return "By hand";
 		case "held":
 			if (app.skipped) return `Skipping ${app.skipped}`;
-			return app.settles ? `Offered from ${shortDate(app.settles)}` : "Held";
+			if (!app.settles) return "Held";
+			return isToday(app.settles) ? `Offered at ${shortTime(app.settles)}` : `Offered from ${shortDate(app.settles)}`;
 		case "problem":
 			return "Needs a look";
 		case "queued":

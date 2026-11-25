@@ -153,7 +153,15 @@ test("status text", () => {
 	expect(statusText(app({ status: "held", settles: "2026-11-27T12:00:00.000Z" }))).toMatch(
 		/^Offered from (Nov 27|27 Nov)$/,
 	);
-	expect(settlesLine("3.2.0", "Nov 27")).toBe("3.2.0 is offered from Nov 27, after the wait set in Settings.");
+	expect(settlesLine("3.2.0", "2026-11-27T12:00:00.000Z")).toMatch(
+		/^3\.2\.0 is offered from (Nov 27|27 Nov), after the wait set in Settings\.$/,
+	);
+	// Later today: the hour, not today's date, which would read as already due.
+	const soon = new Date(Date.now() + 1000).toISOString();
+	expect(statusText(app({ status: "held", settles: soon }))).toMatch(/^Offered at \d\d:\d\d$/);
+	expect(settlesLine("3.2.0", soon)).toMatch(
+		/^3\.2\.0 is offered at \d\d:\d\d today, after the wait set in Settings\.$/,
+	);
 	expect(tokenKeptLine("wxyz")).toBe("A token ending in wxyz is saved.");
 });
 

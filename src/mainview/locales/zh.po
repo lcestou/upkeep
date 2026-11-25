@@ -2711,10 +2711,6 @@ msgid "Wait before offering a new release"
 msgstr "提供新版本前等待"
 
 #: src/mainview/lib/copy.ts
-msgid "A new release often gets a quick fix in its first days. Counted from when it came out."
-msgstr "新版本常在头几天内收到快速修复。从发布时起算。"
-
-#: src/mainview/lib/copy.ts
 msgid "Install now anyway"
 msgstr "仍然立即安装"
 
@@ -2738,7 +2734,7 @@ msgstr "移除令牌"
 msgid "That does not look like a GitHub token."
 msgstr "这看起来不像 GitHub 令牌。"
 
-#. 0: version; 1: day
+#. 0: version; 1: shortDate(iso)
 #: src/mainview/lib/copy.ts
 msgid "{0} is offered from {1}, after the wait set in Settings."
 msgstr "{0} 将从 {1} 起提供，即设置中的等待期之后。"
@@ -2772,3 +2768,29 @@ msgstr "3 天"
 #: src/mainview/lib/copy.ts
 msgid "7 days"
 msgstr "7 天"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+msgstr "应用的新版本常在头几天内收到快速修复。从发布时起算。Upkeep 自身的更新不等待。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused this token. It may have expired or been revoked."
+msgstr "GitHub 拒绝了这个令牌。它可能已过期或被撤销。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token; using the gh sign-in."
+msgstr "GitHub 拒绝了保存的令牌；改用 gh 的登录。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+msgstr "GitHub 拒绝了保存的令牌，而 gh 也未登录。请粘贴新令牌。"
+
+#. 0: version; 1: shortTime(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered at {1} today, after the wait set in Settings."
+msgstr "{0} 将在今天 {1} 提供，即设置中的等待期之后。"
+
+#. 0: shortTime(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered at {0}"
+msgstr "{0} 提供"

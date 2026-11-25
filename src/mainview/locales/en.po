@@ -2732,10 +2732,6 @@ msgid "Wait before offering a new release"
 msgstr "Wait before offering a new release"
 
 #: src/mainview/lib/copy.ts
-msgid "A new release often gets a quick fix in its first days. Counted from when it came out."
-msgstr "A new release often gets a quick fix in its first days. Counted from when it came out."
-
-#: src/mainview/lib/copy.ts
 msgid "Install now anyway"
 msgstr "Install now anyway"
 
@@ -2759,7 +2755,7 @@ msgstr "Remove token"
 msgid "That does not look like a GitHub token."
 msgstr "That does not look like a GitHub token."
 
-#. 0: version; 1: day
+#. 0: version; 1: shortDate(iso)
 #: src/mainview/lib/copy.ts
 msgid "{0} is offered from {1}, after the wait set in Settings."
 msgstr "{0} is offered from {1}, after the wait set in Settings."
@@ -2793,3 +2789,29 @@ msgstr "3 days"
 #: src/mainview/lib/copy.ts
 msgid "7 days"
 msgstr "7 days"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+msgstr "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused this token. It may have expired or been revoked."
+msgstr "GitHub refused this token. It may have expired or been revoked."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token; using the gh sign-in."
+msgstr "GitHub refused the saved token; using the gh sign-in."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+msgstr "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+
+#. 0: version; 1: shortTime(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered at {1} today, after the wait set in Settings."
+msgstr "{0} is offered at {1} today, after the wait set in Settings."
+
+#. 0: shortTime(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered at {0}"
+msgstr "Offered at {0}"

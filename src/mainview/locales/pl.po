@@ -2774,10 +2774,6 @@ msgid "Wait before offering a new release"
 msgstr "Czekaj przed zaproponowaniem nowego wydania"
 
 #: src/mainview/lib/copy.ts
-msgid "A new release often gets a quick fix in its first days. Counted from when it came out."
-msgstr "Nowe wydanie często dostaje szybką poprawkę w pierwszych dniach. Liczone od jego publikacji."
-
-#: src/mainview/lib/copy.ts
 msgid "Install now anyway"
 msgstr "Zainstaluj mimo to teraz"
 
@@ -2801,7 +2797,7 @@ msgstr "Usuń token"
 msgid "That does not look like a GitHub token."
 msgstr "To nie wygląda na token GitHub."
 
-#. 0: version; 1: day
+#. 0: version; 1: shortDate(iso)
 #: src/mainview/lib/copy.ts
 msgid "{0} is offered from {1}, after the wait set in Settings."
 msgstr "{0} będzie proponowane od {1}, po czasie oczekiwania wybranym w Ustawieniach."
@@ -2835,3 +2831,29 @@ msgstr "3 dni"
 #: src/mainview/lib/copy.ts
 msgid "7 days"
 msgstr "7 dni"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+msgstr "Nowe wydanie aplikacji często dostaje szybką poprawkę w pierwszych dniach. Liczone od jego publikacji. Aktualizacje samego Upkeep nie czekają."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused this token. It may have expired or been revoked."
+msgstr "GitHub odrzucił ten token. Mógł wygasnąć albo zostać unieważniony."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token; using the gh sign-in."
+msgstr "GitHub odrzucił zapisany token; używane jest logowanie gh."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+msgstr "GitHub odrzucił zapisany token, a gh nie jest zalogowany. Wklej nowy token."
+
+#. 0: version; 1: shortTime(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered at {1} today, after the wait set in Settings."
+msgstr "{0} będzie proponowane dziś o {1}, po czasie oczekiwania wybranym w Ustawieniach."
+
+#. 0: shortTime(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered at {0}"
+msgstr "Proponowane o {0}"

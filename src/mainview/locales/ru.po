@@ -2774,10 +2774,6 @@ msgid "Wait before offering a new release"
 msgstr "Ждать, прежде чем предлагать новую версию"
 
 #: src/mainview/lib/copy.ts
-msgid "A new release often gets a quick fix in its first days. Counted from when it came out."
-msgstr "Новая версия часто получает быстрое исправление в первые дни. Отсчёт с момента выхода."
-
-#: src/mainview/lib/copy.ts
 msgid "Install now anyway"
 msgstr "Всё равно установить сейчас"
 
@@ -2801,7 +2797,7 @@ msgstr "Удалить токен"
 msgid "That does not look like a GitHub token."
 msgstr "Это не похоже на токен GitHub."
 
-#. 0: version; 1: day
+#. 0: version; 1: shortDate(iso)
 #: src/mainview/lib/copy.ts
 msgid "{0} is offered from {1}, after the wait set in Settings."
 msgstr "{0} будет предложена с {1}, после ожидания, заданного в настройках."
@@ -2835,3 +2831,29 @@ msgstr "3 дня"
 #: src/mainview/lib/copy.ts
 msgid "7 days"
 msgstr "7 дней"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+msgstr "Новая версия приложения часто получает быстрое исправление в первые дни. Отсчёт с момента выхода. Обновления самого Upkeep не ждут."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused this token. It may have expired or been revoked."
+msgstr "GitHub отклонил этот токен. Возможно, он истёк или отозван."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token; using the gh sign-in."
+msgstr "GitHub отклонил сохранённый токен; используется вход gh."
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+msgstr "GitHub отклонил сохранённый токен, а gh не выполнил вход. Вставьте новый токен."
+
+#. 0: version; 1: shortTime(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered at {1} today, after the wait set in Settings."
+msgstr "{0} будет предложена сегодня в {1}, после ожидания, заданного в настройках."
+
+#. 0: shortTime(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered at {0}"
+msgstr "Предлагается в {0}"

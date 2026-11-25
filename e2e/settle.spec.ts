@@ -10,7 +10,7 @@ test("Wait before offering a new release holds a young release back, says when, 
 	await page.getByTestId("tab-settings").click();
 	await expect(page.getByTestId("setting-wait-label")).toHaveText("Wait before offering a new release");
 	await expect(page.getByTestId("setting-wait-hint")).toHaveText(
-		"A new release often gets a quick fix in its first days. Counted from when it came out.",
+		"A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait.",
 	);
 	const wait = page.getByTestId("setting-wait");
 	await expect(wait).toHaveValue("0");
@@ -61,6 +61,13 @@ test("a pasted GitHub token shows only its last four characters, a wrong paste i
 	await input.fill("not a token");
 	await page.getByTestId("token-save").click();
 	await expect(page.getByTestId("token-refused")).toHaveText("That does not look like a GitHub token.");
+	// The fixture's GitHub answers a token ending in "dead" with 401.
+	await input.fill(`ghp_${"a".repeat(32)}dead`);
+	await page.getByTestId("token-save").click();
+	await expect(page.getByTestId("token-refused")).toHaveText(
+		"GitHub refused this token. It may have expired or been revoked.",
+	);
+	await expect(page.getByTestId("token-kept")).toHaveCount(0);
 	await input.fill(`ghp_${"a".repeat(32)}wxyz`);
 	await input.press("Enter");
 	await expect(page.getByTestId("token-kept")).toHaveText("A token ending in wxyz is saved.");
@@ -70,4 +77,19 @@ test("a pasted GitHub token shows only its last four characters, a wrong paste i
 	await page.getByTestId("token-remove").click();
 	await expect(page.getByTestId("token-input")).toHaveValue("");
 	await expect(page.getByTestId("token-save")).toHaveText("Save token");
+});
+
+test("a saved token GitHub refused at the last check says gh's sign-in stands in, until it is replaced", async ({
+	page,
+}) => {
+	await load(page, "fixture&token=refused");
+	await page.getByTestId("tab-settings").click();
+	await expect(page.getByTestId("token-kept")).toHaveText("A token ending in dead is saved.");
+	await expect(page.getByTestId("token-fallback")).toHaveText("GitHub refused the saved token; using the gh sign-in.");
+	await page.getByTestId("token-remove").click();
+	await expect(page.getByTestId("token-fallback")).toHaveCount(0);
+	await page.getByTestId("token-input").fill(`ghp_${"c".repeat(32)}good`);
+	await page.getByTestId("token-save").click();
+	await expect(page.getByTestId("token-kept")).toHaveText("A token ending in good is saved.");
+	await expect(page.getByTestId("token-fallback")).toHaveCount(0);
 });

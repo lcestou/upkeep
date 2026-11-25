@@ -112,10 +112,15 @@
 	/** The last four characters of the kept GitHub token, or null; the token itself never reaches the window. */
 	let tokenHint = $state<string | null>(null);
 	let tokenDraft = $state("");
-	let tokenBad = $state(false);
+	/** Why the last paste was not kept: not a token's characters, or GitHub answered it 401. */
+	let tokenProblem = $state<"shape" | "refused" | null>(null);
+	/** The last check found GitHub refusing the kept token: "gh" when gh's sign-in stood in. */
+	let tokenFallback = $state<"gh" | "none" | null>(null);
 	$effect(() => {
 		void model.send("token", {}).then((r) => {
-			if (r) tokenHint = r.hint;
+			if (!r) return;
+			tokenHint = r.hint;
+			tokenFallback = r.refused;
 		});
 	});
 
@@ -123,8 +128,9 @@
 	async function setToken(token: string | null) {
 		const r = await model.send("setToken", { token });
 		if (!r) return;
-		tokenBad = !r.ok;
+		tokenProblem = r.ok ? null : (r.problem ?? "shape");
 		tokenHint = r.hint;
+		tokenFallback = r.refused;
 		if (r.ok) tokenDraft = "";
 	}
 
@@ -259,7 +265,12 @@
 					<button type="submit" class="btn small" data-testid="token-save">{TEXT.saveToken}</button>
 				</form>
 			{/if}
-			{#if tokenBad}<p class="help" role="status" data-testid="token-refused">{TEXT.tokenRefused}</p>{/if}
+			{#if tokenProblem}<p class="help" role="status" data-testid="token-refused">
+					{tokenProblem === "refused" ? TEXT.tokenGithubRefused : TEXT.tokenRefused}
+				</p>{/if}
+			{#if tokenHint && tokenFallback}<p class="help" role="status" data-testid="token-fallback">
+					{tokenFallback === "gh" ? TEXT.tokenFallbackGh : TEXT.tokenFallbackNone}
+				</p>{/if}
 		</div>
 		<div class="row stack">
 			<span class="text">{TEXT.appList}</span>

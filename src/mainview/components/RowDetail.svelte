@@ -23,7 +23,7 @@
 		statusText,
 		stopSkipLabel,
 	} from "../lib/copy";
-	import { clockTime, formatBytes, relativeTime, shortDate } from "../lib/format";
+	import { clockTime, formatBytes, relativeTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { type Inline, parseNotes } from "../lib/notes";
 	import { CARE, glyphColor } from "../lib/state";
@@ -216,7 +216,7 @@
 		{/if}
 		{#if app.detail}<p class="sentence" data-testid="pane-detail">{say(app.detail)}</p>{/if}
 		{#if app.status === "held" && app.settles}
-			<p class="sentence" data-testid="settles-line">{settlesLine(app.latest ?? "", shortDate(app.settles))}</p>
+			<p class="sentence" data-testid="settles-line">{settlesLine(app.latest ?? "", app.settles)}</p>
 			<div>
 				<button
 					type="button"

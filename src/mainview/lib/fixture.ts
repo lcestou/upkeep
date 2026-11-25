@@ -22,6 +22,7 @@ import type {
 	Snapshot,
 	Stage,
 	Suggestion,
+	TokenState,
 	SystemState,
 	WindowButton,
 	WindowChrome,
@@ -641,6 +642,8 @@ export type FixtureOptions = {
 	self?: Exclude<SelfState["phase"], "none">;
 	/** The offered version fails its start test, so a press on Update ends failed and never ready. */
 	selfTestFails?: boolean;
+	/** "refused": a token is saved and the last check found GitHub refused it, so gh's sign-in stood in. */
+	token?: "refused";
 	/** GitHub's budget is used up for the next half hour: "out" with no sign-in (60), "signed" with one (5,000); "soon" starts over in 1.5 s. */
 	rate?: "out" | "signed" | "soon";
 };
@@ -1059,7 +1062,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 	}
 
 	/** The token pasted in Settings; the fixture keeps it in memory only. */
-	let tokenKept: string | null = null;
+	let tokenKept: string | null = opts.token ? `ghp_${"f".repeat(32)}dead` : null;
+	/** As the engine's last check: GitHub refused the kept token and gh stood in. */
+	let tokenFallback: TokenState["refused"] = opts.token === "refused" ? "gh" : null;
+	const tokenState = (): TokenState => ({
+		hint: tokenKept?.slice(-4) ?? null,
+		refused: tokenKept ? tokenFallback : null,
+	});
 
 	/**
 	 * The engine's wait, on the fixture's clock: a Ready row whose release is younger than days is held until it
@@ -1121,6 +1130,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			for (const app of apps)
 				if (app.status === "failed" || app.status === "rolled_back")
 					put({ ...app, status: "ready", detail: app.detail ? lastTryFailed(app.detail) : undefined });
+			// As the engine's resting(): a release still inside the wait goes back to waiting.
+			settleRows(settings.waitDays);
 			setRun({
 				id: null,
 				phase: "idle",
@@ -1219,12 +1230,15 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			emit({ type: "meta", rate, checkedAt, settings });
 			return clone(settings);
 		},
-		token: () => ({ hint: tokenKept?.slice(-4) ?? null }),
+		token: () => tokenState(),
 		setToken: ({ token }) => {
 			const t = token?.trim() ?? null;
-			if (t !== null && !/^\w{20,255}$/.test(t)) return { ok: false, hint: tokenKept?.slice(-4) ?? null };
+			if (t !== null && !/^\w{20,255}$/.test(t)) return { ok: false, problem: "shape", ...tokenState() };
+			// A token ending in "dead" stands for one GitHub answers 401.
+			if (t?.endsWith("dead")) return { ok: false, problem: "refused", ...tokenState() };
 			tokenKept = t;
-			return { ok: true, hint: t?.slice(-4) ?? null };
+			tokenFallback = null;
+			return { ok: true, ...tokenState() };
 		},
 		history: ({ limit }) => clone(history.slice(0, limit)),
 		runLog: ({ runId }) => clone(logs.get(runId) ?? []),

@@ -83,6 +83,19 @@ export function shortDate(iso: string): string {
 	return d.toLocaleDateString(language.locale, { month: "short", day: "numeric" });
 }
 
+/** Whether an ISO time falls on today's local calendar day. An unparseable date is not today. */
+export function isToday(iso: string, now: number = Date.now()): boolean {
+	const d = new Date(iso);
+	return !Number.isNaN(d.getTime()) && d.toDateString() === new Date(now).toDateString();
+}
+
+/** "20:00": local 24-hour hours and minutes, for a moment later today. An unparseable date comes back unchanged. */
+export function shortTime(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return iso;
+	return d.toLocaleTimeString(language.locale, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+}
+
 /** Local 24-hour time with seconds, for log lines. An unparseable date comes back unchanged. */
 export function clockTime(iso: string): string {
 	const d = new Date(iso);

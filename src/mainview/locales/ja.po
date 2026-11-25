@@ -2711,12 +2711,8 @@ msgid "Wait before offering a new release"
 msgstr "新しいリリースを案内するまで待つ"
 
 #: src/mainview/lib/copy.ts
-msgid "A new release often gets a quick fix in its first days. Counted from when it came out."
-msgstr "新しいリリースは最初の数日で手早く修正されることがよくあります。公開日から数えます。"
-
-#: src/mainview/lib/copy.ts
 msgid "Install now anyway"
-msgstr "今すぐインストールする"
+msgstr "それでも今すぐインストール"
 
 #: src/mainview/lib/copy.ts
 msgid "GitHub token"
@@ -2738,7 +2734,7 @@ msgstr "トークンを削除"
 msgid "That does not look like a GitHub token."
 msgstr "GitHub のトークンではないようです。"
 
-#. 0: version; 1: day
+#. 0: version; 1: shortDate(iso)
 #: src/mainview/lib/copy.ts
 msgid "{0} is offered from {1}, after the wait set in Settings."
 msgstr "{0} は {1} から案内します（設定の待機期間のあと）。"
@@ -2772,3 +2768,29 @@ msgstr "3 日"
 #: src/mainview/lib/copy.ts
 msgid "7 days"
 msgstr "7 日"
+
+#: src/mainview/lib/copy.ts
+msgid "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait."
+msgstr "アプリの新しいリリースは最初の数日で手早く修正されることがよくあります。公開日から数えます。Upkeep 自身の更新は待ちません。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused this token. It may have expired or been revoked."
+msgstr "GitHub がこのトークンを拒否しました。期限切れか取り消された可能性があります。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token; using the gh sign-in."
+msgstr "GitHub が保存済みのトークンを拒否しました。gh のサインインを使います。"
+
+#: src/mainview/lib/copy.ts
+msgid "GitHub refused the saved token, and gh is not signed in. Paste a new token."
+msgstr "GitHub が保存済みのトークンを拒否し、gh もサインインしていません。新しいトークンを貼り付けてください。"
+
+#. 0: version; 1: shortTime(iso)
+#: src/mainview/lib/copy.ts
+msgid "{0} is offered at {1} today, after the wait set in Settings."
+msgstr "{0} は今日 {1} に案内します（設定の待機期間のあと）。"
+
+#. 0: shortTime(app.settles)
+#: src/mainview/lib/copy.ts
+msgid "Offered at {0}"
+msgstr "{0} に案内"
