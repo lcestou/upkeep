@@ -2,7 +2,16 @@ import { expect, test } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cachedSum, MAX_SUM_BYTES, releaseSum, sumFiles, sumIn, sumInYml } from "./checksums";
+import {
+	cachedSum,
+	MAX_SUM_BYTES,
+	MISS_KEEP_MS,
+	releaseSum,
+	SUM_KEEP_MS,
+	sumFiles,
+	sumIn,
+	sumInYml,
+} from "./checksums";
 import type { Asset, FetchLike } from "./github";
 
 const H256 = "a".repeat(64);
@@ -193,40 +202,58 @@ test("releaseSum: Stop now's cancel reaches the checksum file's fetch, which the
 	expect(await releaseSum({ assets: [tool, asset("SHA256SUMS")] }, tool, fetch)).toMatchObject({ hex: H256 });
 });
 
-test("cachedSum reads a release file's checksum once per tag, keeps a final miss, and reads again after a failed read", async () => {
+test("cachedSum keeps a hash 6 hours and a final miss 1 hour, reads again after a failed read, and fresh reads past it", async () => {
 	const dir = mkdtempSync(join(tmpdir(), "upkeep-sums-"));
 	try {
 		const cache = join(dir, "sums", "tool.json");
 		const tool = asset("tool.tar.gz");
 		const assets = [tool, asset("SHA256SUMS")];
 		const asked: string[] = [];
-		const fetch = served({ "https://dl.example/SHA256SUMS": `${H256}  tool.tar.gz\n` }, asked);
+		const sums: Record<string, string> = { "https://dl.example/SHA256SUMS": `${H256}  tool.tar.gz\n` };
+		const fetch = served(sums, asked);
+		const at = (now: number, fresh?: boolean) => ({ token: null, now, fresh });
 		const want = { algo: "sha256" as const, hex: H256, file: "SHA256SUMS" };
-		expect(await cachedSum(cache, { tag: "v1", assets }, tool, fetch, null)).toEqual(want);
-		expect(await cachedSum(cache, { tag: "v1", assets }, tool, fetch, null)).toEqual(want);
+		const v1 = { tag: "v1", assets };
+		expect(await cachedSum(cache, v1, tool, fetch, at(0))).toEqual(want);
+		expect(await cachedSum(cache, v1, tool, fetch, at(SUM_KEEP_MS - 1))).toEqual(want);
 		expect(asked).toHaveLength(1);
-		// Another tag is read afresh.
-		expect(await cachedSum(cache, { tag: "v2", assets }, tool, fetch, null)).toEqual(want);
+		// Past six hours the checksum file is read again, and a changed line is what comes back.
+		sums["https://dl.example/SHA256SUMS"] = `${"c".repeat(64)}  tool.tar.gz\n`;
+		expect(await cachedSum(cache, v1, tool, fetch, at(SUM_KEEP_MS))).toEqual({ ...want, hex: "c".repeat(64) });
 		expect(asked).toHaveLength(2);
+		// fresh reads past a young cache.
+		sums["https://dl.example/SHA256SUMS"] = `${H256}  tool.tar.gz\n`;
+		expect(await cachedSum(cache, v1, tool, fetch, at(SUM_KEEP_MS + 1, true))).toEqual(want);
+		expect(asked).toHaveLength(3);
+		// Another tag is read afresh.
+		expect(await cachedSum(cache, { tag: "v2", assets }, tool, fetch, at(0))).toEqual(want);
+		expect(asked).toHaveLength(4);
 		// A file that could not be read is not a final miss: the next check asks again.
 		const down = served({}, asked);
-		expect(await cachedSum(cache, { tag: "v3", assets }, tool, down, null)).toBeNull();
-		expect(await cachedSum(cache, { tag: "v3", assets }, tool, down, null)).toBeNull();
-		expect(asked).toHaveLength(4);
-		// Every file read and none naming the asset: kept as a miss.
-		const other = served({ "https://dl.example/SHA256SUMS": `${H256}  other.tar.gz\n` }, asked);
-		expect(await cachedSum(cache, { tag: "v4", assets }, tool, other, null)).toBeNull();
-		expect(await cachedSum(cache, { tag: "v4", assets }, tool, other, null)).toBeNull();
-		expect(asked).toHaveLength(5);
-		// A cache a hand edit broke is read past.
+		expect(await cachedSum(cache, { tag: "v3", assets }, tool, down, at(0))).toBeNull();
+		expect(await cachedSum(cache, { tag: "v3", assets }, tool, down, at(1))).toBeNull();
+		expect(asked).toHaveLength(6);
+		// Every file read and none naming the asset: a miss kept for an hour, then read again (CI uploads sums late).
+		const late: Record<string, string> = { "https://dl.example/SHA256SUMS": `${H256}  other.tar.gz\n` };
+		const lateFetch = served(late, asked);
+		const v4 = { tag: "v4", assets };
+		expect(await cachedSum(cache, v4, tool, lateFetch, at(0))).toBeNull();
+		expect(await cachedSum(cache, v4, tool, lateFetch, at(MISS_KEEP_MS - 1))).toBeNull();
+		expect(asked).toHaveLength(7);
+		late["https://dl.example/SHA256SUMS"] = `${H256}  tool.tar.gz\n`;
+		expect(await cachedSum(cache, v4, tool, lateFetch, at(MISS_KEEP_MS))).toEqual(want);
+		expect(asked).toHaveLength(8);
+		// A cache a hand edit broke, or one with no time, is read past.
 		writeFileSync(
 			cache,
-			JSON.stringify({ key: "v1\nhttps://dl.example/tool.tar.gz", sum: { algo: "sha256", hex: "zz" } }),
+			JSON.stringify({ key: "v1\nhttps://dl.example/tool.tar.gz", sum: { algo: "sha256", hex: "zz" }, at: 0 }),
 		);
-		expect(await cachedSum(cache, { tag: "v1", assets }, tool, fetch, null)).toEqual(want);
+		expect(await cachedSum(cache, v1, tool, fetch, at(1))).toEqual(want);
+		writeFileSync(cache, JSON.stringify({ key: "v1\nhttps://dl.example/tool.tar.gz", sum: want }));
+		expect(await cachedSum(cache, v1, tool, fetch, at(1))).toEqual(want);
 		writeFileSync(cache, "not json");
-		expect(await cachedSum(cache, { tag: "v1", assets }, tool, fetch, null)).toEqual(want);
-		expect(asked).toHaveLength(7);
+		expect(await cachedSum(cache, v1, tool, fetch, at(1))).toEqual(want);
+		expect(asked).toHaveLength(11);
 	} finally {
 		rmSync(dir, { recursive: true, force: true });
 	}

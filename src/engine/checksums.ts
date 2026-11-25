@@ -171,38 +171,48 @@ export async function releaseSum(
 	return (await readSums(release, asset, fetch, token, cancel)).sum;
 }
 
+/** How long a kept hash is trusted before a check reads the checksum files again, so a changed one is seen. */
+export const SUM_KEEP_MS = 6 * 60 * 60 * 1000;
+
+/** How long a kept miss stands: CI often uploads the checksum file minutes after it publishes the release. */
+export const MISS_KEEP_MS = 60 * 60 * 1000;
+
+/** What cachedSum needs besides the release: the sign-in, Stop now, the clock, and whether to read past the cache. */
+export type SumOpts = { token: string | null; cancel?: AbortSignal; now: number; fresh?: boolean };
+
 /**
- * releaseSum, read once per release file: the answer for this tag and file address is kept in cacheFile, so a row that
- * waits for its update does not fetch the checksum files (or ask GitHub's API for a private one) at every check. A miss
- * is kept only when every file was read. A sum file changed under the same tag is not seen here; the download then
- * fails against the kept hash, which is the safe side.
+ * releaseSum, kept in cacheFile for this tag and file address, so a row that waits for its update does not fetch the
+ * checksum files (or ask GitHub's API for a private one) at every check. A hash is kept SUM_KEEP_MS, so a checksum file
+ * changed under the same tag is seen by a later check (and then holds the row as a changed release); a miss is kept
+ * MISS_KEEP_MS, and only when every file was read. fresh reads past the cache, for a download that failed a kept hash.
  */
 export async function cachedSum(
 	cacheFile: string,
 	release: Pick<Release, "assets" | "tag">,
 	asset: Asset,
 	fetch: FetchLike,
-	token: string | null,
-	cancel?: AbortSignal,
+	opts: SumOpts,
 ): Promise<Sum | null> {
 	const key = `${release.tag}\n${asset.url}`;
 	try {
 		const c = record(JSON.parse(readFileSync(cacheFile, "utf8")));
-		// A kept miss, or a hash as cachedSum wrote it; anything else a hand edit or a crash left is read past.
-		if (c.key === key && c.sum === null) return null;
+		// A missing or odd time reads as NaN, which is never young enough.
+		const age = opts.now - Number(c.at);
+		// A kept miss, or a hash as cachedSum wrote it, while young enough; anything else a hand edit or a crash left is read past.
+		if (!opts.fresh && c.key === key && c.sum === null && age < MISS_KEEP_MS) return null;
 		const r = record(c.sum);
 		const hex = str(r.hex);
 		const algo = algoOf(hex);
-		if (c.key === key && algo && algo === r.algo && str(r.file))
+		if (!opts.fresh && c.key === key && age < SUM_KEEP_MS && algo && algo === r.algo && str(r.file))
 			return { algo, hex: hex.toLowerCase(), file: str(r.file) };
 	} catch {
 		// no cache yet, or an unreadable one: read the files again
 	}
-	const found = await readSums(release, asset, fetch, token, cancel);
+	const found = await readSums(release, asset, fetch, opts.token, opts.cancel);
 	if (found.sum || found.whole) {
 		try {
 			mkdirSync(dirname(cacheFile), { recursive: true });
-			writeFileSync(cacheFile, JSON.stringify({ key, sum: found.sum }));
+			writeFileSync(cacheFile, JSON.stringify({ key, sum: found.sum, at: opts.now }));
 		} catch {
 			// a cache that cannot be written costs one more read next check
 		}

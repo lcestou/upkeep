@@ -15,7 +15,7 @@ import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, DownloadCheck } from "../../shared/types";
 import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
-import { download, hashFile, needsSha512, signedIn, statedSize, verifyAsset } from "../download";
+import { download, type DownloadResult, hashFile, needsSha512, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { cachedSum } from "../checksums";
 import { forgeRelease, linksRelease, zsyncRelease } from "../forge";
@@ -195,14 +195,11 @@ export async function checkRelease(spec: AppSpec, ctx: KindCtx, needAsset = true
 		// Only for an update on offer: a release with no digest is read for its own checksum file, once per check.
 		const sum =
 			status === "ready" && !pick.asset.digest
-				? await cachedSum(
-						join(ctx.paths.cache, "sums", `${spec.key}.json`),
-						release,
-						pick.asset,
-						ctx.fetch,
-						ctx.token,
-						ctx.cancel,
-					)
+				? await cachedSum(sumCache(ctx, spec.key), release, pick.asset, ctx.fetch, {
+						token: ctx.token,
+						cancel: ctx.cancel,
+						now: (ctx.now?.() ?? new Date()).getTime(),
+					})
 				: null;
 		target = { ...target, asset: sum ? { ...pick.asset, sum } : pick.asset };
 		if (release.immutable) target.locked = true;
@@ -283,6 +280,41 @@ export function dlPath(paths: KindCtx["paths"], key: string, name: string): stri
 	return join(paths.cache, "dl", `${key}-${name}`);
 }
 
+/** Where the answer of a release app's checksum files is kept between checks. */
+function sumCache(ctx: Pick<KindCtx, "paths">, key: string): string {
+	return join(ctx.paths.cache, "sums", `${key}.json`);
+}
+
+/**
+ * verifyAsset for the target's file. A mismatch against a hash from the release's checksum file reads that file again
+ * once, past the cache: a maintainer who re-uploaded the file and its checksum under the same tag is checked against
+ * the new line, and the next check sees the changed hash. A checksum file that still disagrees fails as before.
+ */
+async function verified(
+	spec: AppSpec,
+	target: Target,
+	got: DownloadResult,
+	file: string,
+	ctx: KindCtx,
+): Promise<DownloadCheck> {
+	const asset = target.asset;
+	if (!asset) throw new Error(MESSAGES.noReleaseAssetFor(spec.name));
+	try {
+		return verifyAsset(got, asset);
+	} catch (err) {
+		if (!asset.sum || asset.digest) throw err;
+		const release = await releaseOf(spec, ctx, target.tag);
+		if (isFailure(release)) throw err;
+		const now = (ctx.now?.() ?? new Date()).getTime();
+		const opts = { token: ctx.token, cancel: ctx.cancel, now, fresh: true };
+		const sum = await cachedSum(sumCache(ctx, spec.key), release, asset, ctx.fetch, opts);
+		if (!sum || (sum.algo === asset.sum.algo && sum.hex === asset.sum.hex)) throw err;
+		ctx.log(`${sum.file} changed since the check; checking the download against it again`);
+		const again = needsSha512({ sum }) && !got.sha512 ? await hashFile(file, true) : got;
+		return verifyAsset(again, { ...asset, sum });
+	}
+}
+
 /** The log's English for how a download was checked. */
 const CHECK_LOG = {
 	digest: () => "matches the forge's SHA-256 record",
@@ -361,7 +393,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 						sha512: needsSha512(asset),
 						signal: ctx.cancel,
 					})));
-		checked = verifyAsset(got, asset);
+		checked = await verified(spec, target, got, dl, ctx);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}, ${CHECK_LOG[checked](asset)}`);
 
 		if (restorable && isPackage(spec.kind) && target.from) {

@@ -286,6 +286,30 @@ test("install: a checksum file naming the file with another hash changes nothing
 	expect(lines.some((l) => l.endsWith("matches the forge's SHA-256 record"))).toBe(true);
 });
 
+test("install: a download that fails a kept checksum reads the checksum file again once, and passes a re-upload", async () => {
+	const dest = installZen("1.17.9b");
+	const name = "zen.linux-x86_64.AppImage";
+	const first = bash('echo "zen 1.18.0b"');
+	const sumsOf = (b: Uint8Array) => new TextEncoder().encode(`${sha(b).slice(7)}  ${name}\n`);
+	publish("1.18.0b", { [name]: first, SHA256SUMS: sumsOf(first) }, false);
+	const c = ctx();
+	await checkAndTarget(zen(), c);
+	// The maintainer re-uploads the file under the same tag, but not yet its checksum file: still a mismatch. The next
+	// check sees the new size, and the kept hash from the first.
+	const rebuilt = bash('echo "zen 1.18.0b" # rebuilt');
+	publish("1.18.0b", { [name]: rebuilt, SHA256SUMS: sumsOf(first) }, false);
+	const target = await checkAndTarget(zen(), c);
+	expect(target.asset?.sum?.hex).toBe(sha(first).slice(7));
+	oldRelease = { tag: "1.18.0b", files: { [name]: rebuilt, SHA256SUMS: sumsOf(first) } };
+	await expect(installRelease(zen(), target, c)).rejects.toThrow(`Checksum does not match SHA256SUMS in the release`);
+	expect(readFileSync(dest, "utf8")).toContain("zen 1.17.9b");
+	// Then the checksum file too: the install reads it again and checks the download against the new line.
+	oldRelease = { tag: "1.18.0b", files: { [name]: rebuilt, SHA256SUMS: sumsOf(rebuilt) } };
+	expect(await installRelease(zen(), target, c)).toMatchObject({ result: "done", checked: "sums" });
+	expect(lines.some((l) => l.startsWith("SHA256SUMS changed since the check"))).toBe(true);
+	oldRelease = null;
+});
+
 test("install: a checksum that does not match changes nothing", async () => {
 	const dest = installZen("1.17.9b");
 	publish("1.18.0b", { "zen.linux-x86_64.AppImage": bash('echo "zen 1.18.0b"') });

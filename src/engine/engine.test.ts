@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING } from "./engine";
 import type { FetchLike } from "./github";
+import { SUM_KEEP_MS } from "./checksums";
 import { readMeta, takePoint } from "./backup";
 import { loadManifest } from "./manifest";
 import { claimLock, loadState, readInflight, updateState, writeInflight } from "./store";
@@ -447,6 +448,26 @@ test("a changed hash is not held for an immutable release, a switch of hash kind
 	await engine.check(["fd"]);
 	expect(fdRow()).toMatchObject({ status: "ready", held: false });
 	expect(state().changed).toEqual({});
+});
+
+test("a checksum file line that changes under the same tag is seen after six hours and holds the row", async () => {
+	let clock = Date.parse("2026-11-25T00:00:00Z");
+	const engine = createEngine({ ...(await deps()), now: () => new Date(clock) });
+	const fdAsset = "fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz";
+	const fdTar = releases["sharkdp/fd"]?.assets[fdAsset] ?? bytes("");
+	const sums = (c: string) => bytes(`${c.repeat(64)}  ${fdAsset}\n`);
+	releases["sharkdp/fd"] = { tag: "v10.5.2", assets: { [fdAsset]: fdTar, SHA256SUMS: sums("1") } };
+	const fdRow = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	await engine.check();
+	expect(fdRow()?.status).toBe("ready");
+	releases["sharkdp/fd"] = { tag: "v10.5.2", assets: { [fdAsset]: fdTar, SHA256SUMS: sums("2") } };
+	// Within six hours the kept hash stands.
+	clock += SUM_KEEP_MS - 1;
+	await engine.check(["fd"]);
+	expect(fdRow()?.status).toBe("ready");
+	clock += 1;
+	await engine.check(["fd"]);
+	expect(fdRow()).toMatchObject({ status: "held", held: true });
 });
 
 test("a release's checksum file that disagrees with the download fails the row with the reason and the way out", async () => {
