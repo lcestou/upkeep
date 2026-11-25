@@ -571,3 +571,26 @@ test("asides are kept by the order they were made, not by the clock: a clock set
 	expect(readFileSync(join(asideOf("tool", 2), "0/settings.json"), "utf8")).toBe("w3");
 	expect(readFileSync(join(asideOf("tool", 0), "0/settings.json"), "utf8")).toBe("w1");
 });
+
+test("a leftover .upkeep-old is dropped when the live path is there, and moved back first when it is not", () => {
+	settings("v1");
+	takePoint(t.paths, WITH_CONFIG, "1.0", { command: ["true"] }, "x");
+	const point = join(t.paths.data, "backups/tool/1.0");
+	const saved = JSON.parse(readFileSync(join(point, "meta.json"), "utf8")).config;
+	const live = join(t.paths.home, ".config/tool");
+	// Live path there: the leftover is a stale copy.
+	settings("v2");
+	mkdirSync(`${live}.upkeep-old`);
+	writeFileSync(join(`${live}.upkeep-old`, "settings.json"), "stale");
+	putConfigBack(point, saved, t.paths, "tool", NAMED, "2026-11-01T00:00:00.000Z");
+	expect(existsSync(`${live}.upkeep-old`)).toBe(false);
+	expect(readFileSync(join(live, "settings.json"), "utf8")).toBe("v1");
+	expect(readFileSync(join(asideOf("tool", 0), "0/settings.json"), "utf8")).toBe("v2");
+	// Live path missing: the leftover may be the only copy, so it goes back in and then aside like any live folder.
+	renameSync(live, `${live}.upkeep-old`);
+	writeFileSync(join(`${live}.upkeep-old`, "settings.json"), "only copy");
+	putConfigBack(point, saved, t.paths, "tool", NAMED, "2026-11-02T00:00:00.000Z");
+	expect(existsSync(`${live}.upkeep-old`)).toBe(false);
+	expect(readFileSync(join(live, "settings.json"), "utf8")).toBe("v1");
+	expect(readFileSync(join(asideOf("tool", 1), "0/settings.json"), "utf8")).toBe("only copy");
+});

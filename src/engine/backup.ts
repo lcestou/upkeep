@@ -411,6 +411,13 @@ export function putConfigBack(
 		const to = join(aside, String(i));
 		let moved = false;
 		try {
+			// A cut in the cross-file-system branch below left the old live folder beside it: stale when the live path is
+			// there (its whole copy is in an aside), else possibly the only copy, so it goes back in first.
+			const old = `${c.path}.upkeep-old`;
+			if (there(old)) {
+				if (there(c.path)) dropTree(old, paths);
+				else rename(old, c.path);
+			}
 			if (sameTree(src, c.path)) continue;
 			rmSync(next, { recursive: true, force: true });
 			mkdirSync(dirname(c.path), { recursive: true });

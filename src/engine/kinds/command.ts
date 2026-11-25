@@ -100,7 +100,8 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 				? "The update command ran past 600 s and was stopped."
 				: `The update command exited ${r.code}.`,
 	);
-	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop());
+	// An update that ran to its end (not cut) may have run the tool's migrations: its settings go back too.
+	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop(), !r.stopped);
 	clock.start("verify");
 	const after = await probeCommand(spec.check ?? [], { run: cuttableRun(ctx) });
 	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop(), true);
@@ -147,7 +148,8 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 /**
  * After Stop now cut the update: a restore point goes back; without one the tool's own updater was interrupted, so
  * Upkeep cannot promise the old state and says what a version probe finds instead. Never cut itself: it is the undo.
- * ran: the check ran the new version, which may have rewritten its settings, so they go back too.
+ * ran: the update finished or the check ran the new version, either of which may have rewritten its settings, so
+ * they go back too.
  */
 async function stoppedAfterCut(
 	spec: AppSpec,
