@@ -39,6 +39,13 @@ export const UPOWER_ON_BATTERY = [
 	"OnBattery",
 ];
 
+/** The run log's lines about the lock, kept here so the tool's name stays in this file. */
+export const LOCK_LINES = {
+	held: "Asked logind to hold sleep until the run ends",
+	missing: "No systemd-inhibit here: sleep is not held during installs",
+	failed: (why: string) => `The sleep lock could not start (${why}): sleep is not held during this run`,
+};
+
 /** Whether this machine can take the sleep lock: the runner can start a process and systemd-inhibit answers. */
 export async function canHoldSleep(run: Run): Promise<boolean> {
 	if (!run.start) return false;

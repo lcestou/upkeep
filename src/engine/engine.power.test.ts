@@ -41,7 +41,7 @@ beforeEach(() => {
 afterEach(() => t.cleanup());
 
 /** A fake power runner: answers the lock probe and the bus questions, and records each lock started and stopped. */
-function fakePower(o: { inhibit?: boolean; metered?: boolean }) {
+function fakePower(o: { inhibit?: boolean; metered?: boolean; startThrows?: boolean }) {
 	const asked: string[] = [];
 	const locks: { argv: string[]; stopped: number }[] = [];
 	const run: Run = Object.assign(
@@ -53,6 +53,7 @@ function fakePower(o: { inhibit?: boolean; metered?: boolean }) {
 		},
 		{
 			start: (argv: string[]) => {
+				if (o.startThrows) throw new Error("EACCES: permission denied, open 'start-1.out'");
 				const lock = { argv, stopped: 0 };
 				locks.push(lock);
 				return {
@@ -174,6 +175,18 @@ test("Stop now and ending the step let the lock go, and never end the lock itsel
 	await engine.idle();
 	expect(engine.snapshot().run.phase).toBe("summary");
 	expect(power.locks.map((l) => l.stopped)).toEqual([1]);
+});
+
+test("a lock that cannot start is skipped with a line, and the run goes on", async () => {
+	const power = fakePower({ inhibit: true, startThrows: true });
+	const { engine, logs } = await setup(power.run);
+	await engine.install(["slow"]);
+	await engine.idle();
+	expect(engine.snapshot().run.results.map((r) => r.result)).toEqual(["updated"]);
+	expect(logs).toContain(
+		"The sleep lock could not start (EACCES: permission denied, open 'start-1.out'): sleep is not held during this run",
+	);
+	expect(logs).not.toContain("Asked logind to hold sleep until the run ends");
 });
 
 test("without systemd-inhibit every run goes on as before, and says so once", async () => {

@@ -58,7 +58,7 @@ import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
 import { expandHome, type Paths } from "./paths";
-import { canHoldSleep, holdSleep, waitReason } from "./power";
+import { canHoldSleep, holdSleep, LOCK_LINES, waitReason } from "./power";
 import { endGroup, killTree, type Run, type RunOpts, runsAsRoot, stepName } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
@@ -885,23 +885,32 @@ export function createEngine(deps: EngineDeps): Engine {
 		return { started: true };
 	}
 
-	/** Whether systemd-inhibit answered, asked once per engine; null until the first run asks. */
+	/** Whether the lock tool answered, asked once per engine; null until the first run asks. */
 	let lockable: Promise<boolean> | null = null;
-	/** Said once per engine: a machine without systemd-inhibit runs every install without the lock. */
+	/** Said once per engine: a machine without the lock tool runs every install without the lock. */
 	let noLockSaid = false;
 
-	/** Takes the sleep lock for a run; null, and one log line the first time, where there is none to take. */
+	/**
+	 * Takes the sleep lock for a run; null, and one log line the first time, where there is none to take. A lock that
+	 * cannot be started (its output file cannot be written) is skipped with a line: the run goes on without it.
+	 */
 	async function sleepHeld(): Promise<(() => Promise<void>) | null> {
 		const power = deps.power;
 		if (!power) return null;
 		lockable ??= canHoldSleep(power).catch(() => false);
-		const release = (await lockable) ? holdSleep(power, process.pid, "Installing updates") : null;
-		if (release) say(null, "Asked logind to hold sleep until the run ends");
-		else if (!noLockSaid) {
+		if (!(await lockable)) {
+			if (!noLockSaid) say(null, LOCK_LINES.missing);
 			noLockSaid = true;
-			say(null, "No systemd-inhibit here: sleep is not held during installs");
+			return null;
 		}
-		return release;
+		try {
+			const release = holdSleep(power, process.pid, "Installing updates");
+			if (release) say(null, LOCK_LINES.held);
+			return release;
+		} catch (err) {
+			say(null, LOCK_LINES.failed(err instanceof Error ? err.message : String(err)));
+			return null;
+		}
 	}
 
 	/**
