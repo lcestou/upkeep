@@ -6,7 +6,7 @@
 export function extractVersion(text: string): string | null {
 	// A dotted version wins over an earlier bare number: lazygit prints "commit=0fbfd…, version=0.66.3".
 	const match =
-		/[0-9]+(\.[0-9]+)+(?:[-.~_]?(?:alpha|beta|preview|pre|rc)(?:[-.]?[0-9]+)?(?![A-Za-z])|[a-z]*)/.exec(text) ??
+		/[0-9]+(\.[0-9]+)+(?:[-.~_]?(?i:alpha|beta|preview|pre|rc)(?:[-.]?[0-9]+)?(?![A-Za-z])|[a-z]*)/.exec(text) ??
 		/[0-9]+[a-z]*/.exec(text);
 	return match ? match[0] : null;
 }
@@ -59,8 +59,8 @@ function sortV(a: string, b: string): number {
 	return 0;
 }
 
-/** A pre-release suffix at the end of a version, in the forms extractVersion keeps. */
-const PRE = /[-.~_]?(alpha|beta|preview|pre|rc)(?:[-.]?([0-9]+))?$/;
+/** A pre-release suffix at the end of a version, in the forms extractVersion keeps, in any case (0.7.2-Beta, 1.0.0-RC1). */
+const PRE = /[-.~_]?((?i:alpha|beta|preview|pre|rc))(?:[-.]?([0-9]+))?$/;
 /** Pre-release words from earliest to latest: a beta comes after an alpha and before a release candidate. */
 const PRE_RANK = ["alpha", "beta", "pre", "preview", "rc"];
 
@@ -71,7 +71,7 @@ function splitPre(v: string): Split {
 	const m = PRE.exec(v);
 	const base = m ? v.slice(0, m.index) : v;
 	if (!m || !/[0-9]$/.test(base)) return { base: v, pre: null };
-	return { base, pre: { rank: PRE_RANK.indexOf(m[1] ?? ""), n: Number(m[2] ?? 0) } };
+	return { base, pre: { rank: PRE_RANK.indexOf((m[1] ?? "").toLowerCase()), n: Number(m[2] ?? 0) } };
 }
 
 /**
