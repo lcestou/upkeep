@@ -12,8 +12,7 @@ export type RunOpts = {
 	/** On timeout, also kill every descendant, deepest first. */
 	killTree?: boolean;
 	/**
-	 * Starts the child as the leader of a process group of its own, and on timeout ends the whole group with
-	 * killGroup. For root commands under sudo: sudo passes the TERM on to the command it runs, which a kill of sudo's
+	 * On timeout, ends the child's whole process group with killGroup (every child leads one of its own). For root commands under sudo: sudo passes the TERM on to the command it runs, which a kill of sudo's
 	 * own pid alone would not do, and a grandchild left behind would outlive Upkeep.
 	 */
 	group?: boolean;
@@ -23,9 +22,17 @@ export type RunOpts = {
 	merge?: boolean;
 	/** Called with the child's pid right after it starts, so a marker can record what is running. */
 	onStart?: (pid: number) => void;
+	/** The run's Stop now. It ends this step only when the step is also cuttable; any other step runs on to its end. */
+	cancel?: AbortSignal;
+	/**
+	 * This step may be ended at Stop now: TERM to its process group, KILL after 5 s. Never set on a step that runs as
+	 * root or on an undo: sudo cannot hand on a KILL, so cutting one only orphans the root command.
+	 */
+	cuttable?: boolean;
 };
 
-export type ProcessResult = { code: number; stdout: string; stderr: string; timedOut: boolean };
+/** stopped: the step was cut at Stop now, and its code is 143 whatever the child returned. */
+export type ProcessResult = { code: number; stdout: string; stderr: string; timedOut: boolean; stopped?: boolean };
 
 /** A process left running in the background, for one that never ends on its own (an AppImage mount). */
 export type Started = {
@@ -128,7 +135,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		try {
 			proc = Bun.spawn(
 				asRootArgv(argv).map((a) => expandHome(a, home)),
-				{ env: envFor(), stdin: "ignore", stdout: fd, stderr: "ignore" },
+				{ env: envFor(), detached: true, stdin: "ignore", stdout: fd, stderr: "ignore" },
 			);
 		} catch {
 			// output() stays empty, so the caller sees a process that said nothing
@@ -159,6 +166,8 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		};
 	};
 	const run = async (argv: string[], opts: RunOpts = {}): Promise<ProcessResult> => {
+		const cut = opts.cuttable === true ? opts.cancel : undefined;
+		if (cut?.aborted) return { code: 143, stdout: "", stderr: "", timedOut: false, stopped: true };
 		const cmd = asRootArgv(argv).map((a) => expandHome(a, home));
 		const env = envFor(opts.env);
 		const stream = opts.onLine !== undefined;
@@ -180,7 +189,9 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			proc = Bun.spawn(cmd, {
 				cwd: opts.cwd,
 				env,
-				detached: opts.group === true,
+				// Every child leads a session and process group of its own, so the terminal's Ctrl-C reaches Upkeep alone
+				// and never a sudo dpkg directly, and a cut can end the step's whole group.
+				detached: true,
 				stdin: "ignore",
 				stdout: stream ? "pipe" : (fds[0] ?? "ignore"),
 				stderr: stream ? "pipe" : (fds[1] ?? fds[0] ?? "ignore"),
@@ -204,6 +215,12 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 						else if (opts.killTree) killTree(proc.pid);
 						else proc.kill("SIGKILL");
 					}, opts.timeoutMs);
+		let stopped = false;
+		const onCancel = () => {
+			stopped = true;
+			killGroup(proc.pid);
+		};
+		cut?.addEventListener("abort", onCancel, { once: true });
 		const sinks = [{ text: "" }, { text: "" }];
 		const readers: Promise<void>[] = [];
 		// Once the run has returned, a grandchild's late line must not reach the caller.
@@ -219,6 +236,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		}
 		const code = await proc.exited;
 		if (timer) clearTimeout(timer);
+		cut?.removeEventListener("abort", onCancel);
 		let stdout = "";
 		let stderr = "";
 		if (stream) {
@@ -231,6 +249,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			stdout = await readAndRemove(outFile);
 			stderr = errFile ? await readAndRemove(errFile) : "";
 		}
+		if (stopped) return { code: 143, stdout, stderr, timedOut, stopped };
 		return { code: timedOut ? 137 : code, stdout, stderr, timedOut };
 	};
 	return Object.assign(run, { start });

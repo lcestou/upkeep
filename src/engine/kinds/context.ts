@@ -13,7 +13,13 @@ export const REASON_UNRECOVERED = MESSAGES.reasonUnrecovered();
 /** What a kind needs from the engine. Every path and process goes through here so tests pass temp dirs and fakes. */
 export type KindCtx = {
 	paths: Paths;
+	/** Every call carries the run's cancel, so a step a kind marks cuttable ends at Stop now. */
 	run: Run;
+	/**
+	 * Aborted at Stop now. A kind reads it between stages and takes its own failure path, which puts the app back.
+	 * Absent outside an install run.
+	 */
+	cancel?: AbortSignal;
 	fetch: FetchLike;
 	token: string | null;
 	settings: Settings;

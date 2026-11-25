@@ -143,3 +143,85 @@ test("the runner gives every argv that starts with sudo -n, in run and in start"
 	expect(started?.output()).toBe("stand-in -n sleep-ish\n");
 	await started?.stop();
 });
+
+/** True while any process is left in the group pgid leads. */
+function groupAlive(pgid: number): boolean {
+	try {
+		process.kill(-pgid, 0);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+test("every child leads a process group of its own, so the terminal's Ctrl-C never reaches it", async () => {
+	const r = await realRun(t.paths)(["bash", "-c", "echo $$; ps -o pgid= -p $$"]);
+	const [pid, pgid] = r.stdout
+		.trim()
+		.split("\n")
+		.map((s) => Number(s.trim()));
+	expect(pgid).toBe(pid);
+	expect(pgid).not.toBe(process.pid);
+});
+
+test("Stop now cuts a cuttable step: its whole group ends within 5 s and the result says stopped", async () => {
+	const stop = new AbortController();
+	let leader = 0;
+	const running = realRun(t.paths)(["bash", "-c", "sleep 30 & sleep 30; wait"], {
+		cuttable: true,
+		cancel: stop.signal,
+		onLine: () => {},
+		onStart: (pid) => {
+			leader = pid;
+		},
+	});
+	await Bun.sleep(200);
+	const at = Date.now();
+	stop.abort();
+	const r = await running;
+	expect(Date.now() - at).toBeLessThan(5000);
+	expect(r).toMatchObject({ code: 143, stopped: true, timedOut: false });
+	await Bun.sleep(200);
+	expect(groupAlive(leader)).toBe(false);
+});
+
+test("Stop now lets a step that is not cuttable run to its end", async () => {
+	const stop = new AbortController();
+	const running = realRun(t.paths)(["bash", "-c", "sleep 0.5; echo finished"], { cancel: stop.signal });
+	stop.abort();
+	const r = await running;
+	expect(r.code).toBe(0);
+	expect(r.stopped).toBeUndefined();
+	expect(r.stdout).toBe("finished\n");
+});
+
+test("a cuttable step asked to start after Stop now does not start", async () => {
+	const stop = new AbortController();
+	stop.abort();
+	const marker = join(t.dir, "ran");
+	const r = await realRun(t.paths)(["touch", marker], { cuttable: true, cancel: stop.signal });
+	expect(r.stopped).toBe(true);
+	expect(existsSync(marker)).toBe(false);
+});
+
+test("a cut step that ignores TERM is killed 5 s later", async () => {
+	const stop = new AbortController();
+	let leader = 0;
+	const s = script(join(t.dir, "deaf.sh"), "trap '' TERM\nwhile true; do sleep 0.1; done");
+	const running = realRun(t.paths)([s], {
+		cuttable: true,
+		cancel: stop.signal,
+		onStart: (pid) => {
+			leader = pid;
+		},
+	});
+	await Bun.sleep(200);
+	const at = Date.now();
+	stop.abort();
+	const r = await running;
+	expect(Date.now() - at).toBeGreaterThanOrEqual(4500);
+	expect(Date.now() - at).toBeLessThan(7000);
+	expect(r.stopped).toBe(true);
+	await Bun.sleep(200);
+	expect(groupAlive(leader)).toBe(false);
+}, 15_000);

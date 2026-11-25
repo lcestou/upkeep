@@ -243,6 +243,8 @@ export function createEngine(deps: EngineDeps): Engine {
 	let token: string | null = null;
 	let busy: Promise<void> = Promise.resolve();
 	let starting = false;
+	/** The run's Stop now; a fresh one for each run, since an aborted signal stays aborted. */
+	let stopNow = new AbortController();
 	let log: RunLog | null = null;
 	let run: RunState = {
 		id: null,
@@ -326,9 +328,13 @@ export function createEngine(deps: EngineDeps): Engine {
 	const specOf = (key: string) => specs.find((s) => s.key === key);
 
 	function kindCtx(key: string, overrides: Partial<KindCtx> = {}): KindCtx {
+		const cancel = stopNow.signal;
+		const start = deps.run.start;
+		const cancellable: Run = (argv, opts) => deps.run(argv, { cancel, ...opts });
 		return {
 			paths,
-			run: deps.run,
+			run: start ? Object.assign(cancellable, { start }) : cancellable,
+			cancel,
 			fetch: deps.fetch,
 			token,
 			settings: loadState(paths).settings,
@@ -666,6 +672,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
 		if (!claimLock(paths, process.pid, deps.procRoot)) return { started: false, reason: REASON_BUSY };
 		runQueue = queue;
+		stopNow = new AbortController();
 		// A retry keeps the first pass's order on screen, so the rows it shows do not move.
 		runBase = retry ? (run.queue ?? []) : [];
 		try {
