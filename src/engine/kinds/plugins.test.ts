@@ -65,7 +65,7 @@ test("no registry leaves the row out; one refreshes the marketplaces and is fres
 	expect(calls.map((c) => c.argv.join(" "))).toEqual(["claude plugin marketplace update"]);
 });
 
-test("a plugin whose marketplace holds a newer version, or a newer commit, makes the row ready by name", async () => {
+test("a plugin whose marketplace holds a newer version, or new commits in its own folder, makes the row ready by name", async () => {
 	registry({
 		"new@m": [{ version: "1.0.0" }, { scope: "project", projectPath: "/p", version: "1.0.0" }],
 		"same@m": [{ version: "2.0.0" }],
@@ -75,6 +75,8 @@ test("a plugin whose marketplace holds a newer version, or a newer commit, makes
 		"nover@m": [{}],
 		"gone@m": [{ version: "1.0.0" }],
 		"sha@c": [{ version: "abc", gitCommitSha: "abc" }],
+		// A commit to another plugin in the same repo moves HEAD but leaves this folder as it was.
+		"still@c": [{ version: "abc", gitCommitSha: "abc" }],
 		"nosha@c": [{ version: "x" }],
 		bare: [{ version: "1.0.0" }],
 	});
@@ -93,10 +95,14 @@ test("a plugin whose marketplace holds a newer version, or a newer commit, makes
 	);
 	const commits = market("c", [
 		{ name: "sha", source: "./sha" },
+		{ name: "still", source: "./still" },
 		{ name: "nosha", source: "./nosha" },
 	]);
 	// The refresh fails, and what the clones already hold is still compared.
-	const { run, calls } = recordingRun(t.paths, (argv) => (argv[0] === "git" ? ok("def\n") : { ...ok(""), code: 1 }));
+	// git diff --quiet answers 1 when the folder changed and 0 when it did not.
+	const { run, calls } = recordingRun(t.paths, (argv) =>
+		argv[0] === "git" ? { ...ok(""), code: argv.at(-1) === "./sha" ? 1 : 0 } : { ...ok(""), code: 1 },
+	);
 	expect(await checkClaudePlugins(ctx(run))).toMatchObject({
 		status: "ready",
 		installed: null,
@@ -105,10 +111,11 @@ test("a plugin whose marketplace holds a newer version, or a newer commit, makes
 	});
 	expect(lines).toContain("Marketplace refresh failed.");
 	expect(lines).toContain("new@m: 1.0.0 to 1.1.0 in its marketplace");
-	expect(lines).toContain("sha@c: new commit in its marketplace");
-	// git is asked once per clone, and only for a clone whose plugin is versioned by commit.
+	expect(lines).toContain("sha@c: new commits in its marketplace");
+	// git is asked only about a plugin versioned by commit that records the commit it came from, and only its folder.
 	expect(calls.filter((c) => c.argv[0] === "git").map((c) => c.argv.join(" "))).toEqual([
-		`git -C ${commits} rev-parse HEAD`,
+		`git -C ${commits} diff --quiet abc HEAD -- ./sha`,
+		`git -C ${commits} diff --quiet abc HEAD -- ./still`,
 	]);
 });
 

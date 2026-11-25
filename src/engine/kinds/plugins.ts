@@ -53,12 +53,12 @@ function marketDir(home: string, market: string): string {
 }
 
 /**
- * What a marketplace clone offers for a plugin: a version, or "commit" when the plugin sits in the clone with no
- * version anywhere, so Claude Code versions it by the clone's commit. A plugin.json version beats the marketplace
- * entry's, as in Claude Code. Null when the plugin is not listed, or its source is another repo whose entry names no
- * version: only claude plugin update can answer that one, so such a plugin is never reported as waiting.
+ * What a marketplace clone offers for a plugin: a version, or the plugin's folder in the clone when it has no version
+ * anywhere, so Claude Code versions it by the clone's commit. A plugin.json version beats the marketplace entry's, as
+ * in Claude Code. Null when the plugin is not listed, or its source is another repo whose entry names no version:
+ * only claude plugin update can answer that one, so such a plugin is never reported as waiting.
  */
-function offerOf(dir: string, name: string): { version: string } | "commit" | null {
+function offerOf(dir: string, name: string): { version: string } | { folder: string } | null {
 	const mk = readJson(join(dir, ".claude-plugin/marketplace.json"));
 	const listed = isRecord(mk) && Array.isArray(mk.plugins) ? mk.plugins.filter(isRecord) : [];
 	const p = listed.find((x) => x.name === name);
@@ -67,13 +67,17 @@ function offerOf(dir: string, name: string): { version: string } | "commit" | nu
 	const manifest = inClone ? readJson(join(dir, str(p, "source"), ".claude-plugin/plugin.json")) : null;
 	const version = (isRecord(manifest) && str(manifest, "version")) || str(p, "version");
 	if (version) return { version };
-	return inClone ? "commit" : null;
+	return inClone ? { folder: str(p, "source") } : null;
 }
 
-/** The commit a marketplace clone is at, or "" when git cannot say. */
-async function headOf(ctx: KindCtx, dir: string): Promise<string> {
-	const r = await ctx.run(["git", "-C", dir, "rev-parse", "HEAD"], { timeoutMs: STEP_MS, cwd: ctx.paths.home });
-	return r.code === 0 ? r.stdout.trim() : "";
+/**
+ * True when the plugin's own folder in the clone changed between the commit it was installed from and the clone's
+ * HEAD. Only that folder counts: one marketplace repo holds many plugins, and a commit to another plugin moves HEAD
+ * without changing this one. False when git cannot tell (no such commit in a shallow clone, no git).
+ */
+async function folderChanged(ctx: KindCtx, dir: string, sha: string, folder: string): Promise<boolean> {
+	const argv = ["git", "-C", dir, "diff", "--quiet", sha, "HEAD", "--", folder];
+	return (await ctx.run(argv, { timeoutMs: STEP_MS, cwd: ctx.paths.home })).code === 1;
 }
 
 /** Pulls every marketplace clone, as Claude Code does at its own start. A failure is logged and the old clones stand. */
@@ -85,7 +89,7 @@ async function refreshMarkets(ctx: KindCtx): Promise<void> {
 
 /**
  * Every plugin in Claude Code's registry, after a marketplace refresh: ready, naming each plugin whose marketplace
- * holds a newer version (or, for one versioned by commit, another commit), else fresh. An install with no version
+ * holds a newer version (or, for one versioned by commit, new commits in its own folder), else fresh. An install with no version
  * in the registry, or a plugin from another repo with none in its entry, cannot be compared and counts as current.
  * Null without a registry.
  */
@@ -102,16 +106,18 @@ export async function checkClaudePlugins(ctx: KindCtx): Promise<Checked | null> 
 		const dir = marketDir(ctx.paths.home, e.id.slice(at + 1));
 		return { e, name, dir, offer: at > 0 ? offerOf(dir, name) : null };
 	});
-	const dirs = [...new Set(rows.filter((r) => r.offer === "commit").map((r) => r.dir))];
-	const heads = new Map(await Promise.all(dirs.map(async (d) => [d, await headOf(ctx, d)] as const)));
-	const behind = rows.filter(({ e, dir, offer }) => {
-		if (offer === null) return false;
-		if (offer !== "commit") return isNewer(e.version || null, offer.version);
-		const head = heads.get(dir) ?? "";
-		return e.sha !== "" && head !== "" && head !== e.sha;
-	});
+	const flags = await Promise.all(
+		rows.map(({ e, dir, offer }) => {
+			if (offer === null) return false;
+			if ("version" in offer) return isNewer(e.version || null, offer.version);
+			return e.sha !== "" && folderChanged(ctx, dir, e.sha, offer.folder);
+		}),
+	);
+	const behind = rows.filter((_, i) => flags[i]);
 	for (const { e, offer } of behind)
-		ctx.log(`${e.id}: ${offer === "commit" ? "new commit" : `${e.version} to ${offer?.version}`} in its marketplace`);
+		ctx.log(
+			`${e.id}: ${offer && "version" in offer ? `${e.version} to ${offer.version}` : "new commits"} in its marketplace`,
+		);
 	const target = { from: null, version: "", tag: "" };
 	if (behind.length === 0) return { installed: null, latest: null, status: "fresh", target };
 	const names = [...new Set(behind.map((r) => r.name))].join(", ");
