@@ -67,6 +67,19 @@ test.each([
 	["1.0.0-RC1", "1.0.0", true],
 	["0.7.2-Beta", "0.7.2-rc.1", true],
 	["0.7.2", "0.7.2-Beta", false],
+	// A base written with fewer parts is the same release: its candidate is never newer than it, either way round.
+	["2.0", "2.0.0-rc.1", false],
+	["2.0.0-rc.1", "2.0", true],
+	["2.0.0", "2.0-rc.1", false],
+	["2.0-rc.1", "2.0.0", true],
+	["1.2", "1.2.0-beta", false],
+	["1.2.0-beta", "1.2", true],
+	["2", "2.0.0-rc.1", false],
+	["2.0.0-rc.1", "2", true],
+	["2-rc.1", "2.0.0", true],
+	["2.0", "2.0.1-rc.1", true],
+	["2.0.1-rc.1", "2.0", false],
+	["2.0-rc.1", "2.0.0-rc.2", true],
 ])("isNewer(%p, %p) is %p across pre-releases", (installed, latest, expected) => {
 	expect(isNewer(installed, latest)).toBe(expected);
 });

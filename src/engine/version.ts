@@ -74,6 +74,22 @@ function splitPre(v: string): Split {
 	return { base, pre: { rank: PRE_RANK.indexOf((m[1] ?? "").toLowerCase()), n: Number(m[2] ?? 0) } };
 }
 
+/**
+ * Whether two release parts name the same release once the shorter is padded with zero parts (2.0 and 2.0.0). Only
+ * the pre-release comparison asks: between two releases isNewer keeps sort -V's order, where 2.0.0 is after 2.0.
+ */
+function samePadded(a: string, b: string): boolean {
+	const pa = a.split(".");
+	const pb = b.split(".");
+	const n = Math.max(pa.length, pb.length);
+	for (let i = 0; i < n; i++) {
+		const x = pa[i] ?? "0";
+		const y = pb[i] ?? "0";
+		if (x !== y && !(/^\d+$/.test(x) && /^\d+$/.test(y) && Number(x) === Number(y))) return false;
+	}
+	return true;
+}
+
 /** Whether a version carries a pre-release suffix (2.0.0-rc.1, 0.7.2-Beta); 3.6a is a release. */
 export function isPrerelease(v: string): boolean {
 	return splitPre(v).pre !== null;
@@ -89,8 +105,9 @@ export function isNewer(installed: string | null, latest: string | null): boolea
 	const pa = splitPre(installed);
 	const pb = splitPre(latest);
 	if (pa.pre || pb.pre) {
-		if (isNewer(pa.base, pb.base)) return true;
-		if (isNewer(pb.base, pa.base) || !pa.pre) return false;
+		// 2.0 and 2.0.0 are one release here, so a candidate of it never reads as newer than the release itself.
+		if (!samePadded(pa.base, pb.base)) return isNewer(pa.base, pb.base);
+		if (!pa.pre) return false;
 		if (!pb.pre) return true;
 		return pb.pre.rank !== pa.pre.rank ? pb.pre.rank > pa.pre.rank : pb.pre.n > pa.pre.n;
 	}
