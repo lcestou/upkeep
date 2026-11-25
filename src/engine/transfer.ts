@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { AppSpec, ExtrasSettings, ImportAsk, Service, Settings, Test } from "../shared/types";
 import { loadExtras, updateExtras } from "./extras/state";
-import { ensureManifest, isRecord, parseManifest } from "./manifest";
+import { ensureManifest, isRecord, loadManifest, parseManifest } from "./manifest";
 import type { Paths } from "./paths";
 import { loadState, updateState, withStateLock, writeAtomic } from "./store";
 
@@ -54,10 +54,15 @@ function shellWord(a: string): string {
 
 /**
  * Every command an app's table makes Upkeep run, one line each, led by the field it comes from: argv fields quoted
- * as a shell would need them, shell steps (build, undo, check_built) as written. A release kind's version_args run
- * dest, so they show as dest plus its arguments; the plain probe with no version_args is not listed. A manual app's
- * run is only shown to the person, never run, and claude-plugins runs Claude Code's own CLI, so neither is listed.
- * Empty means the table runs nothing but what its releases ship.
+ * as a shell would need them, shell steps (build, undo, check_built) as written. A source build's writes outside its
+ * checkout (place, config) and a hard reset of an existing checkout are listed too, since they matter as much as the
+ * steps. A release kind's version_args run dest, so they show as dest plus its arguments, except one plain token such
+ * as ["version"] or ["-V"] on a dest under home: that asks the app's own release file its version, the same trust as
+ * the default --version probe, which is not listed either. A lone token on a dest outside home is listed, since
+ * ["--force"] on /usr/bin/reboot is not a version probe. A manual app's run is only shown to the person, never run,
+ * and claude-plugins runs Claude Code's own CLI, so neither is listed. When anything is listed, the first line names
+ * where the code comes from (repo, or latest for a command app), since that is the payload the steps run. Empty
+ * means the table runs nothing but what its releases ship.
  */
 export function commandsOf(spec: AppSpec): string[] {
 	const out: string[] = [];
@@ -81,10 +86,13 @@ export function commandsOf(spec: AppSpec): string[] {
 	argv("check", spec.check);
 	argv("update", spec.update);
 	argv("restore", spec.restore);
-	if (spec.version_args && spec.dest) argv("version_args", [spec.dest, ...spec.version_args]);
+	const args = spec.version_args;
+	const probe = args?.length === 1 && /^-{0,2}[A-Za-z][\w-]*$/.test(args[0] ?? "") && spec.dest?.startsWith("~/");
+	if (args && spec.dest && !probe) argv("version_args", [spec.dest, ...args]);
 	argv("restart", spec.restart);
 	argv("commit", spec.commit);
 	argv("needs", spec.needs);
+	if (spec.dir && spec.move === "reset") out.push(`move: reset ${spec.dir}`);
 	steps("build", spec.build);
 	steps("check_built", spec.check_built);
 	steps("undo", spec.undo);
@@ -94,7 +102,22 @@ export function commandsOf(spec: AppSpec): string[] {
 	services("serve", spec.serve);
 	for (const s of spec.serve ?? []) tests("serve test", s.test);
 	tests("test", spec.test);
+	for (const p of spec.place ?? []) out.push(`place: ${p.from} -> ${p.to}`);
+	for (const c of spec.config ?? []) out.push(`config: ${c.file} ${c.key ?? `${c.array} ${c.flag}`}`);
+	const from = spec.repo ?? spec.latest;
+	if (out.length > 0 && from) out.unshift(`source: ${from}`);
 	return out;
+}
+
+/**
+ * What decides whether an imported table is the app this machine already has: every field but the ones that only
+ * label it (name, note) or are themselves the choice being judged (auto), with keys sorted so the order a file
+ * wrote them in does not count. Nested tables keep their order, so a reordered serve list reads as different, which
+ * only costs an auto pick.
+ */
+function sameness(spec: AppSpec): string {
+	const { name: _name, note: _note, auto: _auto, ...rest } = spec;
+	return JSON.stringify(Object.entries(rest).toSorted(([a], [b]) => a.localeCompare(b)));
 }
 
 /**
@@ -102,8 +125,11 @@ export function commandsOf(spec: AppSpec): string[] {
  * is read whole before anything is written: it must be this format's version, and its app list must load with no
  * error, so a broken file never replaces a working list. A list with any app whose table runs commands (commandsOf)
  * is not written until the caller passes sure, after showing the person the ask; a file from someone else could
- * otherwise run anything at the next check. With sure, those apps come in with automatic installs off, whatever the
- * file says, so nothing it carries runs an update without a press. apps.toml, state.json and extras.json are each
+ * otherwise run anything at the next check. Automatic installs come in off, whatever the file says, for every app
+ * that is not on this machine's list with the same table (sameness), release kinds too: a release table's repo is
+ * the file writer's choice, and with auto and install_if_missing it would install unseen. An app that matches the
+ * local one keeps the file's pick, so moving one's own list back and forth loses nothing. autoOff names the apps
+ * the file wanted on that came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
  * any the import created. Skips, holds and the other automatic installs are kept only for apps the new list has;
  * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
@@ -115,7 +141,10 @@ export function importSetup(
 	text: string,
 	now: Date,
 	sure = false,
-): { ok: true; apps: number; kept: string[] } | { ok: false; problems: string[] } | { ok: false; ask: ImportAsk } {
+):
+	| { ok: true; apps: number; kept: string[]; autoOff: string[] }
+	| { ok: false; problems: string[] }
+	| { ok: false; ask: ImportAsk } {
 	let doc: unknown;
 	try {
 		doc = JSON.parse(text);
@@ -135,6 +164,12 @@ export function importSetup(
 	});
 	if (running.length > 0 && !sure)
 		return { ok: false, ask: { apps: running, plain: list.apps.length - running.length } };
+
+	const here = join(paths.config, "apps.toml");
+	const local = new Map((existsSync(here) ? loadManifest(here).apps : []).map((a) => [a.key, sameness(a)] as const));
+	const changed = list.apps.filter((a) => local.get(a.key) !== sameness(a));
+	const wanted = only(doc.auto, (x): x is boolean => typeof x === "boolean");
+	const autoOff = changed.filter((a) => wanted[a.key] ?? a.auto ?? false).map((a) => a.key);
 
 	const stamp = now.toISOString().replace(/[:.]/g, "-");
 	const files = [ensureManifest(paths, seedFile), join(paths.state, "state.json"), join(paths.state, "extras.json")];
@@ -161,9 +196,9 @@ export function importSetup(
 			s.settings = { ...s.settings, ...(settings as Partial<Settings>) };
 			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
-			s.auto = mine(only(doc.auto, (x): x is boolean => typeof x === "boolean"));
+			s.auto = mine(wanted);
 			// false, not a missing entry: it also outweighs an auto = true written in the app's own table.
-			for (const a of running) s.auto[a.key] = false;
+			for (const a of changed) s.auto[a.key] = false;
 		});
 		if (isRecord(doc.extras)) {
 			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.
@@ -178,7 +213,7 @@ export function importSetup(
 				stuck.length === 0 ? [MESSAGES.busySayNothingChanged(why)] : [MESSAGES.importSomeNotPutBack(why), ...stuck],
 		};
 	}
-	return { ok: true, apps: list.apps.length, kept: kept.map(([, copy]) => copy) };
+	return { ok: true, apps: list.apps.length, kept: kept.map(([, copy]) => copy), autoOff };
 }
 
 /**

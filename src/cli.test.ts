@@ -315,39 +315,90 @@ test("export and import carry the list, settings, skips, holds and auto picks, a
 	expect(readdirSync(t.paths.state).filter((f) => f.startsWith("state.json.pre-import-"))).toHaveLength(1);
 });
 
-test("import of a list whose apps run commands prints them and needs --yes; those apps come in with auto off", async () => {
+test("import of a list whose apps run commands prints them and needs --yes; new or changed apps come in with auto off", async () => {
 	const d = deps();
 	await main(["list"], d, () => {});
 	const file = join(t.dir, "shared.json");
 	expect(await main(["export", file], d, () => {})).toBe(0);
 	const doc = JSON.parse(readFileSync(file, "utf8"));
+	// bat now comes from another repo, and fake is new: both release apps, neither runs a command.
+	doc.apps = doc.apps.replace('repo = "sharkdp/bat"', 'repo = "evil/bat"');
 	doc.apps +=
-		'\n[apps.glow]\nname = "Glow"\nkind = "command"\ncheck = ["glow", "--version"]\nlatest = "npm:glow"\nupdate = ["glow", "up"]\n';
-	doc.auto = { glow: true, borg: true };
+		'\n[apps.glow]\nname = "Glow"\nkind = "command"\ncheck = ["glow", "--version"]\nlatest = "npm:glow"\nupdate = ["glow", "up"]\n' +
+		'\n[apps.fake]\nname = "git"\nkind = "file"\nrepo = "evil/git"\nasset = "git$"\ndest = "~/.local/bin/git"\nauto = true\ninstall_if_missing = true\n';
+	doc.auto = { glow: true, borg: true, bat: true };
 	writeFileSync(file, JSON.stringify(doc));
 	const before = readFileSync(join(t.paths.config, "apps.toml"), "utf8");
+	const ask = [
+		`${file} has apps that run these commands on this computer:`,
+		"  Glow (glow)",
+		"    source: npm:glow",
+		"    check: glow --version",
+		"    update: glow up",
+		"and 3 apps that install only what their releases ship.",
+	];
 	const said: string[] = [];
 	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
 	expect(said).toEqual([
-		`${file} has apps that run these commands on this computer:`,
-		"  Glow (glow)",
-		"    check: glow --version",
-		"    update: glow up",
-		"and 2 apps that install only what their releases ship.",
+		...ask,
 		"Nothing was changed. Read the commands, then run it again with --yes to import.",
-		"Automatic installs come in off for the apps that run commands.",
+		"Automatic installs come in off for every app that is new here or differs from this computer's table.",
 	]);
 	const json: string[] = [];
 	expect(await main(["import", file, "--json"], d, (l) => json.push(l))).toBe(1);
 	expect(JSON.parse(json[0] ?? "{}")).toEqual({
 		ok: false,
-		ask: { apps: [{ key: "glow", name: "Glow", commands: ["check: glow --version", "update: glow up"] }], plain: 2 },
+		ask: {
+			apps: [{ key: "glow", name: "Glow", commands: ["source: npm:glow", "check: glow --version", "update: glow up"] }],
+			plain: 3,
+		},
 	});
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
-	expect(await main(["import", "--yes", file], d, () => {})).toBe(0);
-	// The release app keeps its pick; the one that runs commands does not, whatever the file said.
-	expect(loadState(t.paths).auto).toEqual({ borg: true, glow: false });
-	expect(await main(["import", file, "--yes", "--yes"], d, () => {})).toBe(0);
+	// --yes prints the same list before the result, so a log records what came in.
+	const yes: string[] = [];
+	expect(await main(["import", "--yes", file], d, (l) => yes.push(l))).toBe(0);
+	expect(yes).toEqual([
+		...ask,
+		"Imported 4 apps. The files it replaced are kept beside them as .pre-import-<time>.",
+		"Automatic installs came in off for bat, glow, fake: new here or changed from this computer's table.",
+	]);
+	// borg matches this machine's table and keeps its pick; the changed and the new ones do not, whatever the file said.
+	expect(loadState(t.paths).auto).toEqual({ borg: true, bat: false, glow: false, fake: false });
+	const again: string[] = [];
+	expect(await main(["import", file, "--yes", "--yes", "--json"], d, (l) => again.push(l))).toBe(0);
+	expect(JSON.parse(again[0] ?? "{}").autoOff).toEqual([]);
+});
+
+test("import of a list of release apps only asks nothing and says which came in with auto off", async () => {
+	const d = deps();
+	await main(["list"], d, () => {});
+	const file = join(t.dir, "plain.json");
+	expect(await main(["export", file], d, () => {})).toBe(0);
+	const doc = JSON.parse(readFileSync(file, "utf8"));
+	doc.apps = doc.apps.replace(/\[apps\.bat\][\s\S]*$/, "");
+	doc.apps += '\n[apps.fd]\nname = "fd"\nkind = "file"\nrepo = "sharkdp/fd"\nasset = "fd$"\ndest = "~/.local/bin/fd"\n';
+	doc.auto = { fd: true };
+	writeFileSync(file, JSON.stringify(doc));
+	const said: string[] = [];
+	expect(await main(["import", file], d, (l) => said.push(l))).toBe(0);
+	expect(said).toEqual([
+		"Imported 2 apps. The files it replaced are kept beside them as .pre-import-<time>.",
+		"Automatic installs came in off for fd: new here or changed from this computer's table.",
+	]);
+	expect(loadState(t.paths).auto).toEqual({ fd: false });
+	// One app that installs only its releases is said in the singular.
+	writeFileSync(
+		file,
+		JSON.stringify({
+			...doc,
+			apps:
+				'[apps.glow]\nname = "Glow"\nkind = "command"\ncheck = ["glow", "-V"]\nlatest = "npm:glow"\nupdate = ["glow", "up"]\n' +
+				doc.apps.replace(/\[apps\.fd\][\s\S]*$/, ""),
+		}),
+	);
+	const one: string[] = [];
+	expect(await main(["import", file], d, (l) => one.push(l))).toBe(1);
+	expect(one).toContain("and 1 app that installs only what its releases ship.");
 });
 
 test("import refuses a file that is not an export, or whose list does not load, and changes nothing", async () => {

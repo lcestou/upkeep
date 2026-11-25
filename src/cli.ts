@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "./shared/messages";
-import type { AppState, EngineEvent, Suggestion } from "./shared/types";
+import type { AppState, EngineEvent, ImportAsk, Suggestion } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
@@ -269,10 +269,27 @@ function refuse(problem: string, json: boolean, out: Out): number {
 	return 1;
 }
 
+/** The ask as text: each app that runs commands with every command it runs, then how many plain apps come with it. */
+function printAsk(file: string, ask: ImportAsk, out: Out): void {
+	out(`${file} has apps that run these commands on this computer:`);
+	for (const a of ask.apps) {
+		out(`  ${a.name} (${a.key})`);
+		for (const c of a.commands) out(`    ${c}`);
+	}
+	if (ask.plain > 0)
+		out(
+			ask.plain === 1
+				? "and 1 app that installs only what its releases ship."
+				: `and ${ask.plain} apps that install only what their releases ship.`,
+		);
+}
+
 /**
  * Replaces the setup from an export, holding the run lock so no install runs while the files change. A list with apps
  * that run commands writes nothing without sure (--yes): it prints every such app with its commands, or the ask as
  * {"ok": false, "ask"} under --json, and exits 1, so a script that did not read the list never runs what it carries.
+ * With --yes the same list is printed before the result, so a log records what came in, and the result names the
+ * apps whose automatic installs came in off.
  */
 function importFrom(deps: EngineDeps, file: string, sure: boolean, json: boolean, out: Out): number {
 	let text: string;
@@ -289,18 +306,22 @@ function importFrom(deps: EngineDeps, file: string, sure: boolean, json: boolean
 	}
 	if (!mine) return refuse(MESSAGES.importDuringRun(), json, out);
 	try {
-		const r = importSetup(deps.paths, deps.seedManifest, text, deps.now(), sure);
+		let r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
+		if ("ask" in r && sure) {
+			if (!json) printAsk(file, r.ask, out);
+			r = importSetup(deps.paths, deps.seedManifest, text, deps.now(), true);
+		}
 		if (json) out(JSON.stringify(r));
-		else if (r.ok) out(`Imported ${r.apps} apps. The files it replaced are kept beside them as .pre-import-<time>.`);
-		else if ("ask" in r) {
-			out(`${file} has apps that run these commands on this computer:`);
-			for (const a of r.ask.apps) {
-				out(`  ${a.name} (${a.key})`);
-				for (const c of a.commands) out(`    ${c}`);
-			}
-			if (r.ask.plain > 0) out(`and ${r.ask.plain} apps that install only what their releases ship.`);
+		else if (r.ok) {
+			out(`Imported ${r.apps} apps. The files it replaced are kept beside them as .pre-import-<time>.`);
+			if (r.autoOff.length > 0)
+				out(
+					`Automatic installs came in off for ${r.autoOff.join(", ")}: new here or changed from this computer's table.`,
+				);
+		} else if ("ask" in r) {
+			printAsk(file, r.ask, out);
 			out("Nothing was changed. Read the commands, then run it again with --yes to import.");
-			out("Automatic installs come in off for the apps that run commands.");
+			out("Automatic installs come in off for every app that is new here or differs from this computer's table.");
 		} else for (const p of r.problems) out(p);
 		return r.ok ? 0 : 1;
 	} finally {

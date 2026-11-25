@@ -226,7 +226,7 @@ test("Export saves to the picked folder and Import replaces the setup from a pic
 	const loaded = setup({ pickFile: async () => [file] });
 	// The list's one app runs commands, so Import asks first and writes on sure.
 	expect((await loaded.r.importSetup({})).ask?.apps).toHaveLength(1);
-	expect(await loaded.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 1 });
+	expect(await loaded.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 1, autoOff: 0 });
 	await loaded.engine.idle();
 
 	writeFileSync(join(t.dir, "bad.json"), "{");
@@ -252,7 +252,7 @@ test("Import applies the entries from the imported settings at once, never the f
 	const loaded = setup({ pickFile: async () => [file] });
 	await loaded.r.importSetup({});
 	applied = [];
-	expect(await loaded.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 1 });
+	expect(await loaded.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 1, autoOff: 0 });
 	// Applied once, after the import wrote the settings, so the entries see the imported value.
 	expect(applied).toEqual(["entries, upkeepCommand true"]);
 	expect(loaded.engine.snapshot().settings.frame).toBe("system");
@@ -277,8 +277,12 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 		ok: false,
 		ask: {
 			apps: [
-				{ key: "tool", name: "Tool", commands: ["check: tool --version", "update: tool up"] },
-				{ key: "glow", name: "Glow", commands: ["check: glow --version", "update: sh -c 'curl x | sh'"] },
+				{ key: "tool", name: "Tool", commands: ["source: npm:tool", "check: tool --version", "update: tool up"] },
+				{
+					key: "glow",
+					name: "Glow",
+					commands: ["source: npm:glow", "check: glow --version", "update: sh -c 'curl x | sh'"],
+				},
 			],
 			plain: 0,
 		},
@@ -286,8 +290,9 @@ test("Import of a list that runs commands asks first, writes the text it asked a
 	expect(readFileSync(join(t.paths.config, "apps.toml"), "utf8")).toBe(before);
 	// The file changing after the ask does not change what lands.
 	writeFileSync(file, "{");
-	expect(await r.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 2 });
-	expect(loadState(t.paths).auto).toEqual({ tool: false, glow: false });
+	expect(await r.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 2, autoOff: 1 });
+	// tool's table matches this machine's, so it keeps the file's pick (none); glow is new, so it comes in off.
+	expect(loadState(t.paths).auto).toEqual({ glow: false });
 	expect(await r.r.importSetup({ sure: true })).toEqual({ ok: false });
 	await r.engine.idle();
 });
@@ -306,6 +311,15 @@ test("Import waits for no run: with the run lock held elsewhere it refuses", asy
 		problems: ["An Upkeep run is in progress. Try again when it ends."],
 	});
 	releaseLock(t.paths, process.ppid);
+	// A run that starts between the ask and the press refuses the press but keeps the ask's text for the next one.
+	expect((await busy.r.importSetup({})).ask).toBeDefined();
+	expect(claimLock(t.paths, process.ppid)).toBe(true);
+	expect((await busy.r.importSetup({ sure: true })).problems).toEqual([
+		"An Upkeep run is in progress. Try again when it ends.",
+	]);
+	releaseLock(t.paths, process.ppid);
+	expect(await busy.r.importSetup({ sure: true })).toEqual({ ok: true, apps: 1, autoOff: 0 });
+	await busy.engine.idle();
 });
 
 test("uninstall goes to the main process's hook with the purge choice, and only true purges", async () => {

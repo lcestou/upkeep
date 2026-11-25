@@ -196,9 +196,10 @@ export function upkeepRequests(
 					return { ok: false, problems: [err instanceof Error ? err.message : String(err)] };
 				}
 			}
-			asked = null;
-			// The same lock an install holds, so an import never lands during a run.
+			// The same lock an install holds, so an import never lands during a run. A refused Import keeps the ask's
+			// text, so pressing it again after the run needs no new pick.
 			if (!claimLock(deps.paths)) return { ok: false, problems: [MESSAGES.importDuringRun()] };
+			asked = null;
 			let r: ReturnType<typeof importSetup>;
 			try {
 				r = importSetup(deps.paths, deps.seedManifest, text, deps.now(), sure === true);
@@ -220,7 +221,7 @@ export function upkeepRequests(
 				console.error("login entry:", err);
 			}
 			void engine.check();
-			return { ok: true, apps: r.apps };
+			return { ok: true, apps: r.apps, autoOff: r.autoOff.length };
 		},
 		extras: () => hooks.extras.snapshot(),
 		setExtras: (patch) => hooks.extras.setSettings(patch),

@@ -14,7 +14,7 @@ Changing the frame or the corners rebuilds the window, which takes a moment.
 
 ## Moving to another computer
 
-**Export** in Settings, beside Open apps.toml, saves the settings and the app list as one file in a folder you pick; **Import** replaces them from such a file and checks again. The command line does the same with `upkeep export` and `upkeep import` (see [For scripts and agents](command-line.md#for-scripts-and-agents)).
+**Export** in Settings, beside Open apps.toml, saves the settings and the app list as one file in a folder you pick; **Import** replaces them from such a file and checks again. When the file has apps that run commands on this computer, Import first lists each one with where its code comes from and its exact commands, and writes nothing until you press Import there. Every app that is new to this computer, or whose table differs from the one here, comes in with automatic installs off. The command line does the same with `upkeep export` and `upkeep import` (see [For scripts and agents](command-line.md#for-scripts-and-agents)).
 
 ## Languages
 

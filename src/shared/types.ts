@@ -532,7 +532,8 @@ export type Requests = {
 	/** sure imports the file the last ask came from; without it a list that runs commands answers with ask and writes nothing. */
 	importSetup: {
 		params: { sure?: boolean };
-		response: { ok: boolean; apps?: number; problems?: string[]; ask?: ImportAsk };
+		/** autoOff: how many apps the file wanted installed automatically that came in off, being new or changed here. */
+		response: { ok: boolean; apps?: number; autoOff?: number; problems?: string[]; ask?: ImportAsk };
 	};
 	/** The desktop's languages, most preferred first, as the main process reads them from its environment; the tray uses the same list. */
 	languages: { params: Record<string, never>; response: string[] };
