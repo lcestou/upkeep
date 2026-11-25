@@ -344,11 +344,11 @@ export const IMPORT = {
 		return "Cancel";
 	},
 } as const;
-/** Under the commands: the apps in the file that run nothing but what their releases ship. */
+/** Under the commands: the apps in the file that only install their release files, with no command and no root. */
 export const importPlain = (n: number) =>
 	plural(n, [
-		"It also has # app that installs only what its releases ship.",
-		"It also has # apps that install only what their releases ship.",
+		"It also has # app that only installs its release files, without root.",
+		"It also has # apps that only install their release files, without root.",
 	]);
 /** After Import, beside importedNote: apps the file wanted installed automatically that came in off, being new or changed. */
 export const importAutoOffNote = (n: number) =>

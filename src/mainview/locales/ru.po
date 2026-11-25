@@ -2783,14 +2783,6 @@ msgid "Cancel"
 msgstr "Отмена"
 
 #: src/mainview/lib/copy.ts
-msgid "It also has # app that installs only what its releases ship."
-msgid_plural "It also has # apps that install only what their releases ship."
-msgstr[0] "В нём также # приложение, которое ставит только то, что выходит в его релизах."
-msgstr[1] "В нём также # приложения, которые ставят только то, что выходит в их релизах."
-msgstr[2] "В нём также # приложений, которые ставят только то, что выходит в их релизах."
-msgstr[3] "В нём также # приложения, которые ставят только то, что выходит в их релизах."
-
-#: src/mainview/lib/copy.ts
 msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
 msgstr "Автоматическая установка выключается для каждого приложения, которого нет на этом компьютере или чья таблица отличается от здешней. Её можно снова включить для каждого приложения."
 
@@ -2801,3 +2793,16 @@ msgstr[0] "Автоматическая установка выключена д
 msgstr[1] "Автоматическая установка выключена для # приложений, новых здесь или изменённых."
 msgstr[2] "Автоматическая установка выключена для # приложений, новых здесь или изменённых."
 msgstr[3] "Автоматическая установка выключена для # приложения, нового здесь или изменённого."
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "В нём также # приложение, которое только ставит свои файлы релизов, без root."
+msgstr[1] "В нём также # приложения, которые только ставят свои файлы релизов, без root."
+msgstr[2] "В нём также # приложений, которые только ставят свои файлы релизов, без root."
+msgstr[3] "В нём также # приложения, которые только ставят свои файлы релизов, без root."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}: dest не может содержать часть .."

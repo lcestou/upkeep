@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import type { AppSpec, ExtrasSettings, ImportAsk, Service, Settings, Test } from "../shared/types";
 import { loadExtras, updateExtras } from "./extras/state";
+import { packageInstall } from "./kinds/package";
 import { ensureManifest, isRecord, loadManifest, parseManifest } from "./manifest";
 import type { Paths } from "./paths";
 import { loadState, updateState, withStateLock, writeAtomic } from "./store";
@@ -47,22 +48,31 @@ function only<T>(v: unknown, keep: (x: unknown) => x is T): Record<string, T> {
 	return out;
 }
 
-/** One argument as a shell would need it typed: plain words bare, anything else in single quotes. */
+/**
+ * One argument as a shell would need it typed so the line shown is the argv that runs: plain words bare, anything
+ * else in single quotes. Upkeep runs argv with no shell, so a { } placeholder or a ~ inside a word is passed as
+ * written and is quoted here. A leading ~ or ~/ is left bare: the runner expands exactly that (expandHome), as a
+ * shell would.
+ */
 function shellWord(a: string): string {
-	return /^[\w@%+=:,./~{}-]+$/.test(a) ? a : `'${a.replaceAll("'", "'\\''")}'`;
+	const plain = /^[\w@%+=:,./-]+$/;
+	if (plain.test(a) || a === "~" || (a.startsWith("~/") && plain.test(a.slice(2)))) return a;
+	return `'${a.replaceAll("'", "'\\''")}'`;
 }
 
 /**
- * Every command an app's table makes Upkeep run, one line each, led by the field it comes from: argv fields quoted
- * as a shell would need them, shell steps (build, undo, check_built) as written. A source build's writes outside its
- * checkout (place, config) and a hard reset of an existing checkout are listed too, since they matter as much as the
- * steps. A release kind's version_args run dest, so they show as dest plus its arguments, except one plain token such
- * as ["version"] or ["-V"] on a dest under home: that asks the app's own release file its version, the same trust as
- * the default --version probe, which is not listed either. A lone token on a dest outside home is listed, since
- * ["--force"] on /usr/bin/reboot is not a version probe. A manual app's run is only shown to the person, never run,
- * and claude-plugins runs Claude Code's own CLI, so neither is listed. When anything is listed, the first line names
- * where the code comes from (repo, or latest for a command app), since that is the payload the steps run. Empty
- * means the table runs nothing but what its releases ship.
+ * Every command an app's table makes Upkeep run or act on, one line each, led by the field it comes from: argv
+ * fields quoted as a shell would need them, shell steps (build, undo, check_built) as written. Also listed: an
+ * install that runs as root (every deb and rpm, whose package scripts dpkg or rpm run as root, and any table with
+ * sudo), relaunch (it ends the processes named by process and starts dest), an HTTP test or health check, a git
+ * move of an existing checkout in dir, and a source build's writes outside its checkout (place, config). A release
+ * kind's version_args run dest, so they show as dest plus its arguments, except one plain token such as ["version"]
+ * or ["-V"] on a dest under home: that asks the app's own release file its version, the same trust as the default
+ * --version probe, which is not listed either. The dest is judged with its .. parts (refused at load anyway), so
+ * ~/../../usr/bin/x reads as outside home. A manual app's run is only shown to the person, never run, and
+ * claude-plugins runs Claude Code's own CLI, so neither is listed. When anything is listed, the first line names
+ * where the code comes from (repo, or latest for a command app). Empty means the table only installs its release
+ * files, without root.
  */
 export function commandsOf(spec: AppSpec): string[] {
 	const out: string[] = [];
@@ -73,7 +83,10 @@ export function commandsOf(spec: AppSpec): string[] {
 		for (const step of v ?? []) out.push(`${field}: ${step}`);
 	};
 	const tests = (field: string, v: Test[] | undefined) => {
-		for (const t of v ?? []) argv(field, t.run);
+		for (const t of v ?? []) {
+			argv(field, t.run);
+			if (t.url) out.push(`${field}: POST ${t.url}`);
+		}
 	};
 	const services = (field: string, v: Service[] | undefined) => {
 		for (const s of v ?? []) {
@@ -83,16 +96,21 @@ export function commandsOf(spec: AppSpec): string[] {
 			argv(`${field} ${s.name} since`, s.since);
 		}
 	};
+	if (spec.kind === "deb" || spec.kind === "rpm")
+		out.push(`root: sudo -n ${packageInstall(spec.kind, "<release file>").join(" ")}`);
+	else if (spec.sudo) out.push(`root: sudo -n writes ${spec.dest ?? "dest"}`);
 	argv("check", spec.check);
 	argv("update", spec.update);
 	argv("restore", spec.restore);
 	const args = spec.version_args;
-	const probe = args?.length === 1 && /^-{0,2}[A-Za-z][\w-]*$/.test(args[0] ?? "") && spec.dest?.startsWith("~/");
+	const home = spec.dest?.startsWith("~/") && !spec.dest.split("/").includes("..");
+	const probe = args?.length === 1 && /^-{0,2}[A-Za-z][\w-]*$/.test(args[0] ?? "") && home;
 	if (args && spec.dest && !probe) argv("version_args", [spec.dest, ...args]);
 	argv("restart", spec.restart);
+	if (spec.relaunch) out.push(`relaunch: ends ${spec.process ?? "?"} and starts ${spec.dest ?? "?"}`);
 	argv("commit", spec.commit);
 	argv("needs", spec.needs);
-	if (spec.dir && spec.move === "reset") out.push(`move: reset ${spec.dir}`);
+	if (spec.dir) out.push(`move: ${spec.move ?? "ff"} ${spec.dir}`);
 	steps("build", spec.build);
 	steps("check_built", spec.check_built);
 	steps("undo", spec.undo);
@@ -100,7 +118,10 @@ export function commandsOf(spec: AppSpec): string[] {
 	for (const b of spec.busy ?? []) argv("busy", b.run);
 	services("pause", spec.pause);
 	services("serve", spec.serve);
-	for (const s of spec.serve ?? []) tests("serve test", s.test);
+	for (const s of spec.serve ?? []) {
+		if (s.health) out.push(`serve ${s.name} health: GET ${s.health}`);
+		tests("serve test", s.test);
+	}
 	tests("test", spec.test);
 	for (const p of spec.place ?? []) out.push(`place: ${p.from} -> ${p.to}`);
 	for (const c of spec.config ?? []) out.push(`config: ${c.file} ${c.key ?? `${c.array} ${c.flag}`}`);
@@ -130,7 +151,7 @@ function sameness(spec: AppSpec): string {
  * the file writer's choice, and with auto and install_if_missing it would install unseen. An app that matches the
  * local one keeps this machine's pick, never the file's, so no import can turn an automatic install on: importing
  * the same shared file twice leaves its apps off, and re-importing one's own list here changes nothing. autoOff
- * names the apps the file wanted on that came in off. apps.toml, state.json and extras.json are each
+ * names the new or changed apps the file wanted on, which came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
  * any the import created. Skips and holds are kept only for apps the new list has;
  * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
@@ -171,12 +192,18 @@ export function importSetup(
 	const ours = loadState(paths).auto;
 	// This machine's effective pick (its state over its table's auto = true) for a table that matches; off otherwise.
 	const picks: Record<string, boolean> = {};
+	const changed = new Set<string>();
 	for (const a of list.apps) {
 		const was = local.get(a.key);
-		picks[a.key] = was !== undefined && sameness(was) === sameness(a) ? (ours[a.key] ?? was.auto ?? false) : false;
+		if (was !== undefined && sameness(was) === sameness(a)) picks[a.key] = ours[a.key] ?? was.auto ?? false;
+		else {
+			picks[a.key] = false;
+			changed.add(a.key);
+		}
 	}
 	const wanted = only(doc.auto, (x): x is boolean => typeof x === "boolean");
-	const autoOff = list.apps.filter((a) => (wanted[a.key] ?? a.auto ?? false) && !picks[a.key]).map((a) => a.key);
+	// Only new or changed apps "came in off"; a matching app whose pick here is off simply kept it.
+	const autoOff = list.apps.filter((a) => changed.has(a.key) && (wanted[a.key] ?? a.auto ?? false)).map((a) => a.key);
 
 	const stamp = now.toISOString().replace(/[:.]/g, "-");
 	const files = [ensureManifest(paths, seedFile), join(paths.state, "state.json"), join(paths.state, "extras.json")];

@@ -279,8 +279,8 @@ function printAsk(file: string, ask: ImportAsk, out: Out): void {
 	if (ask.plain > 0)
 		out(
 			ask.plain === 1
-				? "and 1 app that installs only what its releases ship."
-				: `and ${ask.plain} apps that install only what their releases ship.`,
+				? "and 1 app that only installs its release files, without root."
+				: `and ${ask.plain} apps that only install their release files, without root.`,
 		);
 }
 

@@ -339,7 +339,7 @@ test("import of a list whose apps run commands prints them and needs --yes; new 
 		"    source: npm:glow",
 		"    check: glow --version",
 		"    update: glow up",
-		"and 3 apps that install only what their releases ship.",
+		"and 3 apps that only install their release files, without root.",
 	];
 	const said: string[] = [];
 	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
@@ -371,7 +371,8 @@ test("import of a list whose apps run commands prints them and needs --yes; new 
 	// The same file a second time: every table now matches, and each keeps this machine's pick (off), not the file's.
 	const again: string[] = [];
 	expect(await main(["import", file, "--yes", "--yes", "--json"], d, (l) => again.push(l))).toBe(0);
-	expect(JSON.parse(again[0] ?? "{}").autoOff).toEqual(["bat", "glow", "fake"]);
+	// Nothing is new or changed now, so nothing "came in off": the picks here simply stay.
+	expect(JSON.parse(again[0] ?? "{}").autoOff).toEqual([]);
 	expect(loadState(t.paths).auto).toEqual({ borg: true, bat: false, glow: false, fake: false });
 	// A pick made here survives a re-import of a file that says otherwise.
 	updateState(t.paths, (s) => {
@@ -411,7 +412,7 @@ test("import of a list of release apps only asks nothing and says which came in 
 	);
 	const one: string[] = [];
 	expect(await main(["import", file], d, (l) => one.push(l))).toBe(1);
-	expect(one).toContain("and 1 app that installs only what its releases ship.");
+	expect(one).toContain("and 1 app that only installs its release files, without root.");
 });
 
 test("import refuses a file that is not an export, or whose list does not load, and changes nothing", async () => {

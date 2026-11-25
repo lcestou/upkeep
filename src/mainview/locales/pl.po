@@ -2783,14 +2783,6 @@ msgid "Cancel"
 msgstr "Anuluj"
 
 #: src/mainview/lib/copy.ts
-msgid "It also has # app that installs only what its releases ship."
-msgid_plural "It also has # apps that install only what their releases ship."
-msgstr[0] "Ma też # aplikację, która instaluje tylko to, co publikują jej wydania."
-msgstr[1] "Ma też # aplikacje, które instalują tylko to, co publikują ich wydania."
-msgstr[2] "Ma też # aplikacji, które instalują tylko to, co publikują ich wydania."
-msgstr[3] "Ma też # aplikacji, które instalują tylko to, co publikują ich wydania."
-
-#: src/mainview/lib/copy.ts
 msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
 msgstr "Automatyczne instalacje trafiają wyłączone dla każdej aplikacji, która jest nowa na tym komputerze albo której tabela różni się od tutejszej. Możesz je włączyć ponownie dla każdej aplikacji."
 
@@ -2801,3 +2793,16 @@ msgstr[0] "Automatyczne instalacje są wyłączone dla # aplikacji, nowej tutaj 
 msgstr[1] "Automatyczne instalacje są wyłączone dla # aplikacji, nowych tutaj lub zmienionych."
 msgstr[2] "Automatyczne instalacje są wyłączone dla # aplikacji, nowych tutaj lub zmienionych."
 msgstr[3] "Automatyczne instalacje są wyłączone dla # aplikacji, nowych tutaj lub zmienionych."
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "Ma też # aplikację, która instaluje tylko swoje pliki wydań, bez roota."
+msgstr[1] "Ma też # aplikacje, które instalują tylko swoje pliki wydań, bez roota."
+msgstr[2] "Ma też # aplikacji, które instalują tylko swoje pliki wydań, bez roota."
+msgstr[3] "Ma też # aplikacji, które instalują tylko swoje pliki wydań, bez roota."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}: dest nie może zawierać części .."

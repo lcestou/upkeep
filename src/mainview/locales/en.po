@@ -2741,12 +2741,6 @@ msgid "Cancel"
 msgstr "Cancel"
 
 #: src/mainview/lib/copy.ts
-msgid "It also has # app that installs only what its releases ship."
-msgid_plural "It also has # apps that install only what their releases ship."
-msgstr[0] "It also has # app that installs only what its releases ship."
-msgstr[1] "It also has # apps that install only what their releases ship."
-
-#: src/mainview/lib/copy.ts
 msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
 msgstr "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
 
@@ -2755,3 +2749,14 @@ msgid "Automatic installs came in off for # app that is new here or changed."
 msgid_plural "Automatic installs came in off for # apps that are new here or changed."
 msgstr[0] "Automatic installs came in off for # app that is new here or changed."
 msgstr[1] "Automatic installs came in off for # apps that are new here or changed."
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "It also has # app that only installs its release files, without root."
+msgstr[1] "It also has # apps that only install their release files, without root."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}: dest may not contain a .. part"

@@ -124,7 +124,7 @@ test("Import of a file whose apps run commands shows them first; Cancel writes n
 		"restart: systemctl --user restart llama-server",
 	]);
 	await expect(page.getByTestId("import-plain")).toHaveText(
-		/^It also has \d+ apps that install only what their releases ship\.$/,
+		/^It also has \d+ apps that only install their release files, without root\.$/,
 	);
 	await expect(page.getByTestId("import-auto-off")).toHaveText(
 		"Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app.",

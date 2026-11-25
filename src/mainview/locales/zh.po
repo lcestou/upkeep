@@ -2720,11 +2720,6 @@ msgid "Cancel"
 msgstr "取消"
 
 #: src/mainview/lib/copy.ts
-msgid "It also has # app that installs only what its releases ship."
-msgid_plural "It also has # apps that install only what their releases ship."
-msgstr[0] "另有 # 个应用只安装其发布版本提供的内容。"
-
-#: src/mainview/lib/copy.ts
 msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
 msgstr "凡是这台电脑上没有、或与这里的表不同的应用，导入后自动安装均为关闭状态。你可以为每个应用重新打开。"
 
@@ -2732,3 +2727,13 @@ msgstr "凡是这台电脑上没有、或与这里的表不同的应用，导入
 msgid "Automatic installs came in off for # app that is new here or changed."
 msgid_plural "Automatic installs came in off for # apps that are new here or changed."
 msgstr[0] "有 # 个在此处新增或已更改的应用，导入后自动安装为关闭状态。"
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "另有 # 个应用只安装其发布文件，不需要 root。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}：dest 不能包含 .. 部分"
