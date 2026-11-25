@@ -161,3 +161,17 @@ test("an AppImage with no entry inside says so and records nothing; a run in pro
 	await engine.idle();
 	expect(await during.p).toEqual({ ok: false, detail: REASON_BUSY });
 });
+
+test("Stop now during an update leaves the entry as it was: the old version is put back, and nothing is extracted", async () => {
+	const engine = createEngine(deps());
+	await engine.check();
+	await engine.setMenu("img", true);
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "img" && e.app.stage === "verify") engine.stopNow();
+	});
+	await engine.install(["img"]);
+	await engine.idle();
+	expect(row(engine, "img")?.installed).toBe("1.0.0");
+	expect(readFileSync(entry(), "utf8")).toContain("Name=Img 1.0.0");
+	expect(loadState(t.paths).menu.img).toHaveLength(2);
+});

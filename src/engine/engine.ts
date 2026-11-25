@@ -919,8 +919,9 @@ export function createEngine(deps: EngineDeps): Engine {
 					detail: outcome.detail ?? (WATCHED.has(spec.kind) ? MESSAGES.oldCopyRuns(spec.name) : undefined),
 				};
 			finishApp(app, outcome);
+			// After Stop now nothing more is started, the entry's refresh included: the old entry still starts dest.
 			// oxlint-disable-next-line no-await-in-loop -- the entry follows its own app's install, before the next starts
-			if (outcome.result === "done") await refreshMenu(spec);
+			if (outcome.result === "done" && !run.stoppingNow) await refreshMenu(spec);
 			if (outcome.result === "done" && outcome.restartToApply && WATCHED.has(spec.kind)) {
 				const at = deps.now().toISOString();
 				updateState(paths, (s) => {
