@@ -4,6 +4,7 @@ import {
 	failedNotice,
 	readyFingerprint,
 	readyNotice,
+	runNotices,
 	trayIcon,
 	trayMenu,
 	trayTitle,
@@ -91,6 +92,12 @@ test("icon names", () => {
 		results: [{ key: "a", name: "A", from: "1", to: "2", result: "failed", ms: 1 }],
 	};
 	expect(trayIcon(snap(0, failed))).toBe("failed");
+	// An app the person stopped is not a failure.
+	const stopped: RunState = {
+		...failed,
+		results: [{ ...failed.results[0], key: "a", name: "A", from: "1", to: "2", result: "stopped", ms: 1 }],
+	};
+	expect(trayIcon(snap(0, stopped))).toBe("idle");
 });
 
 test("titles and notices read as sentences", () => {
@@ -127,4 +134,15 @@ test("the menu and the icon's title speak the language given", () => {
 	expect(labels).toEqual(["Abrir Upkeep", "Buscar ahora", "Instalar 2 listas", "Salir"]);
 	expect(trayTitle(snap(2), "ru")).toBe("Upkeep, 2 обновления готовы");
 	expect(trayTitle(snap(1), "en")).toBe("Upkeep, 1 update ready");
+});
+
+test("after a run, notices say what updated and each failure, and nothing for an app the person stopped", () => {
+	expect(
+		runNotices([
+			{ name: "A", result: "updated" },
+			{ name: "B", result: "failed" },
+			{ name: "C", result: "stopped" },
+		]),
+	).toEqual([updatedNotice(["A"]), failedNotice("B")]);
+	expect(runNotices([{ name: "C", result: "stopped" }])).toEqual([]);
 });

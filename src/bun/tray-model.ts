@@ -1,5 +1,5 @@
 import type { LanguageCode } from "../shared/languages";
-import type { SelfState, Snapshot, SystemState } from "../shared/types";
+import type { RunResult, SelfState, Snapshot, SystemState } from "../shared/types";
 import { count, TRAY_TEXT } from "./tray-text";
 
 export type TrayAction = "open" | "check" | "install" | "quit";
@@ -44,7 +44,8 @@ export function trayMenu(
  */
 export function trayIcon(snapshot: Snapshot): string {
 	if (snapshot.run.phase === "installing") return "working";
-	if (snapshot.run.phase === "summary" && snapshot.run.results.some((r) => r.result !== "updated")) return "failed";
+	// A stopped app is not a failure: the run ended on the person's press.
+	if (snapshot.run.phase === "summary" && snapshot.run.results.some(failedResult)) return "failed";
 	const ready = readyNames(snapshot).length;
 	if (ready === 0) return "idle";
 	return ready > 9 ? "count-9plus" : `count-${ready}`;
@@ -87,6 +88,21 @@ export function selfNotice(version: string, code: LanguageCode = "en"): string {
 /** The notification text for one failed app; it points at the log, which holds the cause. */
 export function failedNotice(name: string, code: LanguageCode = "en"): string {
 	return TRAY_TEXT[code].failed.replace("{name}", name);
+}
+
+/** A result that counts as a failure for the tray and the notices: neither updated nor stopped by the person. */
+const failedResult = (r: Pick<RunResult, "result">) => r.result !== "updated" && r.result !== "stopped";
+
+/**
+ * The notifications for a finished run with no window to read it: one for the updated apps, one per failure. A
+ * stopped app gets none: it was the person's own press.
+ */
+export function runNotices(results: Pick<RunResult, "name" | "result">[], code: LanguageCode = "en"): string[] {
+	const updated = results.filter((r) => r.result === "updated").map((r) => r.name);
+	return [
+		...(updated.length > 0 ? [updatedNotice(updated, code)] : []),
+		...results.filter(failedResult).map((r) => failedNotice(r.name, code)),
+	];
 }
 
 /** Identifies a ready set, so the same set is announced once and not after every check. */

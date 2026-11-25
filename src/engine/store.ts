@@ -70,7 +70,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 /** Any missing or out-of-range field takes its default; keepBackups is rounded into 1 to 5. */
-function clampSettings(s: Partial<Settings>): Settings {
+export function clampSettings(s: Partial<Settings>): Settings {
 	const keep = Number(s.keepBackups ?? DEFAULT_SETTINGS.keepBackups);
 	return {
 		keepBackups: Math.min(5, Math.max(1, Number.isFinite(keep) ? Math.round(keep) : 1)),

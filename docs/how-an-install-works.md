@@ -9,6 +9,18 @@ While a run installs, from its start to its end, Upkeep asks logind to hold slee
 
 Root steps use `sudo -n`. If sudo wants a password the app fails with a message and nothing is changed.
 
+## Stop now
+
+Stop now ends a run while an app is installing. The app goes back to how it was and the apps behind it do not start.
+
+- A step Upkeep can end safely is cut: a download, unpacking into the cache, a `git clone` or `fetch`, a built app's build steps and `check_built`, its start tests and health checks, the version probe, a service stop or start that does not run as root, and a self-updating tool's `update` command. A cut step gets TERM to its whole process group, then KILL five seconds later.
+- A step Upkeep cannot end safely is waited out: `dpkg -i`, `rpm -U`, anything under `sudo` (sudo cannot pass a KILL on to the root command, so cutting it would only orphan the command), a source build in a fresh clone, the step that puts a built app's files in place, and every undo. The row says what it waits for: "Waiting for dpkg to finish, then putting 1.4.2 back."
+- Claude Code plugins are updated one at a time; Stop now lets the one in progress finish and skips the rest.
+- Then the app's own failure path runs: the restore point goes back and the row says "Stopped. 1.4.2 is back in place." A self-updating tool with no `restore` command has no point to put back, so its update is interrupted and the row says what the tool reports after: "Stopped. wrangler still reports 4.157.0.", or that it does not start.
+- Once a built app's verify has passed, the rest of its finish (pruning, packing older points) is waited out and the update stays.
+
+While an app installs, a row whose step has printed nothing for two minutes says so, with the step's own time limit beside it: "No output for 3 min. It stops on its own in 7 min." Many steps (unpacking, copying, `git fetch`, a health check) print nothing as they work, so the line only states the two times. It never stops anything by itself.
+
 ## Where things live
 
 | Path                                  | Holds                                                                             |

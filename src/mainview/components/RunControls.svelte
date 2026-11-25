@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { TEXT, installLabel, retryLabel, stoppingLabel } from "../lib/copy";
+	import { TEXT, installLabel, retryLabel, stoppingLabel, stoppingNowLabel } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
 	import type { Attachment } from "svelte/attachments";
@@ -45,14 +45,27 @@
 	{#key phase === "installing" ? "run" : phase === "summary" ? "summary" : "idle"}
 		<div class="set" {@attach handoff} in:fly={{ y: 8, duration: ms(240), delay: ms(60) }} out:fly={{ y: -8, duration: ms(180) }}>
 			{#if phase === "installing"}
-				<button
-					type="button"
-					class="btn"
-					data-testid="stop"
-					aria-disabled={model.run.stopping}
-					onclick={() => !model.run.stopping && model.stopAfterCurrent()}
-					>{model.run.stopping ? stoppingLabel(model.current?.name ?? "") : TEXT.stop}</button
-				>
+				<!-- The press escalates: Stop after this one, then Stop now beside it while that waits. -->
+				{#if !model.run.stoppingNow}
+					<button
+						type="button"
+						class="btn"
+						data-testid="stop"
+						aria-disabled={model.run.stopping}
+						onclick={() => !model.run.stopping && model.stopAfterCurrent()}
+						>{model.run.stopping ? stoppingLabel(model.current?.name ?? "") : TEXT.stop}</button
+					>
+				{/if}
+				{#if model.run.stopping}
+					<button
+						type="button"
+						class="btn"
+						data-testid="stop-now"
+						aria-disabled={model.run.stoppingNow === true}
+						onclick={() => !model.run.stoppingNow && model.stopNow()}
+						>{model.run.stoppingNow ? stoppingNowLabel(model.current?.name ?? "") : TEXT.stopNow}</button
+					>
+				{/if}
 			{:else if phase === "summary"}
 				{#if model.failedKeys.length > 0}
 					<button type="button" class="btn" data-testid="retry" disabled={model.starting} onclick={() => model.retry()}

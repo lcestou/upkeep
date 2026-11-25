@@ -3,16 +3,20 @@ import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { isFailure, latestFromSource } from "../github";
 import { probeCommand } from "../probe";
+import { runsAsRoot } from "../run";
 import { isNewer } from "../version";
 import { fill } from "./tree";
 import { prune, restoreBackup, takePoint } from "../backup";
 import {
 	type Checked,
+	cuttableRun,
 	fromRelease,
 	type KindCtx,
 	type Outcome,
 	probeProblem,
 	stageClock,
+	stopPressed,
+	stoppedOutcome,
 	type Target,
 } from "./context";
 
@@ -77,14 +81,30 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 		point = target.from;
 		ctx.log(`Restore point ${target.from} taken`);
 	}
+	if (stopPressed(ctx)) return { ...stoppedOutcome(target.from), stages: clock.stop() };
 	clock.start("install");
 	const update = (spec.update ?? []).map((a) => fill(a, { tag: target.tag, version: target.version }));
 	ctx.log(`$ ${update.join(" ")}`);
 	// In home, never in whatever folder Upkeep was started from: a tool may write beside where it runs (old line 1725).
-	const r = await ctx.run(update, { timeoutMs: 600_000, onLine: (l) => ctx.log(l), cwd: ctx.paths.home });
-	ctx.log(r.timedOut ? "The update command ran past 600 s and was stopped." : `The update command exited ${r.code}.`);
+	// Cuttable even without a restore command: the person pressed Stop now, and stoppedAfterCut says what is left.
+	const r = await ctx.run(update, {
+		timeoutMs: 600_000,
+		onLine: (l) => ctx.log(l),
+		cwd: ctx.paths.home,
+		// Never a root update: sudo cannot hand the kill on, so a cut would only orphan it.
+		cuttable: spec.sudo !== true && !runsAsRoot(update),
+	});
+	ctx.log(
+		r.stopped
+			? "The update command was stopped."
+			: r.timedOut
+				? "The update command ran past 600 s and was stopped."
+				: `The update command exited ${r.code}.`,
+	);
+	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop());
 	clock.start("verify");
-	const after = await probeCommand(spec.check ?? [], { run: ctx.run });
+	const after = await probeCommand(spec.check ?? [], { run: cuttableRun(ctx) });
+	if (stopPressed(ctx)) return stoppedAfterCut(spec, target, ctx, point, clock.stop());
 	const stages = clock.stop();
 	if (!("version" in after)) {
 		const back = point ? await restoreBackup(ctx.paths, spec, point, ctx.run) : null;
@@ -122,4 +142,39 @@ export async function installCommand(spec: AppSpec, target: Target, ctx: KindCtx
 	// Only a table that can restart the tool asks for it; open sessions of one that cannot run on, as its note says.
 	const restartToApply = (spec.restart?.length ?? 0) > 0 || spec.relaunch === true;
 	return { result: "done", installed: after.version, detail, restartToApply, stages };
+}
+
+/**
+ * After Stop now cut the update: a restore point goes back; without one the tool's own updater was interrupted, so
+ * Upkeep cannot promise the old state and says what a version probe finds instead. Never cut itself: it is the undo.
+ */
+async function stoppedAfterCut(
+	spec: AppSpec,
+	target: Target,
+	ctx: KindCtx,
+	point: string | null,
+	stages: Outcome["stages"],
+): Promise<Outcome> {
+	if (point) {
+		const back = await restoreBackup(ctx.paths, spec, point, ctx.run);
+		if (back.ok) return { ...stoppedOutcome(point), stages };
+		// The restore's own sentence says what went wrong; the update itself was cut, so "would not start" would be wrong.
+		return { result: "failed", installed: target.from, detail: back.detail, restartToApply: false, stages };
+	}
+	const now = await probeCommand(spec.check ?? [], { run: ctx.run });
+	if ("version" in now)
+		return {
+			result: "stopped",
+			installed: now.version,
+			detail: MESSAGES.stoppedStillAt(spec.name, now.version),
+			restartToApply: false,
+			stages,
+		};
+	return {
+		result: "stopped",
+		installed: target.from,
+		detail: MESSAGES.stoppedWontStart(spec.name, probeProblem(spec.name, spec.check?.[0] ?? spec.key, now)),
+		restartToApply: false,
+		stages,
+	};
 }

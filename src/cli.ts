@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "./shared/messages";
-import type { AppState, EngineEvent, Suggestion } from "./shared/types";
+import type { AppState, EngineEvent, ImportAsk, ImportSwitch, Suggestion } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
@@ -21,7 +21,7 @@ export const USAGE = [
 	"  add <name|owner/repo|link|file>",
 	"  remove <key>           take an app off the list; the app stays installed",
 	"  export [file]          settings and app list as one JSON file (stdout without a file)",
-	"  import <file>          replace settings and app list from an export; the old files are kept as .bak",
+	"  import <file> [--yes]  replace settings and app list from an export; --yes when its apps run commands",
 	"--json prints one JSON value per line instead of text.",
 ].join("\n");
 
@@ -54,7 +54,7 @@ export function checkLine(a: AppState): string {
 /** The line `install` prints for an event, or null for events a person has no use for (a working app, for instance). */
 function eventLine(e: EngineEvent): string | null {
 	if (e.type === "log") return formatLogLine(e.line);
-	if (e.type === "app" && ["queued", "working", "done", "failed", "rolled_back"].includes(e.app.status)) {
+	if (e.type === "app" && ["queued", "working", "done", "failed", "rolled_back", "stopped"].includes(e.app.status)) {
 		// A waiting app whose file came early already has its log line ("Downloaded ahead of its turn").
 		if (e.app.status === "working" || (e.app.status === "queued" && e.app.downloaded)) return null;
 		const to = e.app.status === "done" ? ` ${e.app.installed ?? ""}` : "";
@@ -77,8 +77,90 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	return 0;
 }
 
+/** The signals install turns into Stop now: Ctrl-C, a kill or systemd's stop, and the terminal closing. */
+type StopSignal = "SIGINT" | "SIGTERM" | "SIGHUP";
+
+/** Where install hears Ctrl-C, SIGTERM and SIGHUP, and how it quits at once; tests pass a fake that raises them. */
+export type Signals = {
+	on(name: StopSignal, fn: () => void): void;
+	off(name: StopSignal, fn: () => void): void;
+	exit(code: number): void;
+};
+
+/**
+ * Between the check and the run's first app: starting is set while engine.install() recovers an earlier interrupted
+ * update and claims the lock; pending records a press that came then, to be turned into Stop now once the run starts.
+ */
+export type Starting = { starting: boolean; pending: boolean };
+
+/**
+ * The first Ctrl-C, SIGTERM or SIGHUP during an install is Stop now: the current app is put back and the rest do not
+ * start. A second one ends the step in progress (TERM, then KILL after 5 s) and quits, which can leave that app
+ * half-installed; a step that runs as root cannot be ended from here, so it keeps running and the line says so. During
+ * the check before the install nothing is being changed, so the first one quits at once. While the install starts (it
+ * may be finishing an earlier interrupted update) the first one waits for that, then stops before any app; a second
+ * one quits mid-recovery. Returns the function that stops listening.
+ */
+export function stopOnSignal(
+	engine: Pick<Engine, "snapshot" | "stopNow" | "endStep">,
+	signals: Signals,
+	out: Out,
+	gate: Starting,
+): () => void {
+	let quitting = false;
+	const onSignal = () => {
+		const run = engine.snapshot().run;
+		const name = engine.snapshot().apps.find((a) => a.key === run.currentKey)?.name ?? "the current app";
+		if (gate.starting && run.phase !== "installing") {
+			if (gate.pending) {
+				out("Quit while an earlier interrupted update was being finished or undone. Run upkeep recover.");
+				return signals.exit(130);
+			}
+			gate.pending = true;
+			out("Stopping: no app will be installed. Press Ctrl-C again to quit at once.");
+			return;
+		}
+		if (run.phase !== "installing") return signals.exit(130);
+		if (run.stoppingNow) {
+			// Children run in their own process groups, so the terminal's Ctrl-C never reached the step: end it here.
+			if (quitting) return;
+			quitting = true;
+			void engine.endStep().then((left) => {
+				// With no step left to end, the put-back may already have finished: say so rather than assume it did not.
+				out(
+					left === null
+						? `Quit while ${name} was being stopped. Run upkeep recover to make sure it is back in place.`
+						: left.root
+							? `Quit before ${name} was put back. ${left.step} runs as root and is still running; run upkeep recover once it ends.`
+							: `Quit before ${name} was put back. Run upkeep recover.`,
+				);
+				signals.exit(130);
+			});
+			return;
+		}
+		out(`Stopping: putting ${name} back. Press Ctrl-C again to quit at once, which can leave ${name} half-installed.`);
+		engine.stopNow();
+	};
+	const names: StopSignal[] = ["SIGINT", "SIGTERM", "SIGHUP"];
+	for (const n of names) signals.on(n, onSignal);
+	return () => {
+		for (const n of names) signals.off(n, onSignal);
+	};
+}
+
 /** Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. Exits 0 only when every result is "updated". */
-async function install(engine: Engine, args: string[], json: boolean, out: Out): Promise<number> {
+async function install(engine: Engine, args: string[], json: boolean, out: Out, signals: Signals): Promise<number> {
+	const gate: Starting = { starting: false, pending: false };
+	const unlisten = stopOnSignal(engine, signals, out, gate);
+	try {
+		return await installRun(engine, args, json, out, gate);
+	} finally {
+		unlisten();
+	}
+}
+
+/** install's body, with Ctrl-C already turned into Stop now; a press while the install starts stops it once started. */
+async function installRun(engine: Engine, args: string[], json: boolean, out: Out, gate: Starting): Promise<number> {
 	await engine.check();
 	await engine.idle();
 	const auto = args.includes("--auto");
@@ -90,7 +172,9 @@ async function install(engine: Engine, args: string[], json: boolean, out: Out):
 			if (line) out(line);
 		}
 	});
+	gate.starting = true;
 	const r: Awaited<ReturnType<Engine["installAuto"]>> = auto ? await engine.installAuto() : await engine.install(keys);
+	gate.starting = false;
 	// Waiting for an unmetered connection or mains power is the setting working, not a failure.
 	if (r.wait) {
 		off();
@@ -98,6 +182,8 @@ async function install(engine: Engine, args: string[], json: boolean, out: Out):
 		out(json ? JSON.stringify({ started: false, wait: r.wait, reason }) : reason);
 		return 0;
 	}
+	// Pressed during the recovery or setup: the run stops before its first app.
+	if (r.started && gate.pending) engine.stopNow();
 	if (!r.started) {
 		off();
 		const reason = r.reason ?? "Nothing to install.";
@@ -138,6 +224,7 @@ const RESULT_TEXT = {
 	updated: "Updated",
 	failed: "Failed",
 	rolled_back: "Rolled back",
+	stopped: "Stopped",
 	restored: "Restored",
 	cleaned: "Cleaned",
 	skipped: "Skipped",
@@ -273,8 +360,46 @@ function refuse(problem: string, json: boolean, out: Out): number {
 	return 1;
 }
 
-/** Replaces the setup from an export, holding the run lock so no install runs while the files change. */
-function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): number {
+/** The window's names for what an import may turn on, in the English the command line prints. */
+const SWITCH_NAME = {
+	notify: "Notify when updates are ready",
+	checkAtLogin: "Start at login",
+	selfAuto: "Update Upkeep automatically",
+	upkeepCommand: "Add the upkeep command",
+	system: "Show system updates",
+	systemInstall: "Install system updates from Upkeep",
+	cleanup: "Show Cleanup",
+	devCaches: "Include developer caches",
+} satisfies Record<ImportSwitch, string>;
+
+/**
+ * The ask as text: each app that runs commands with every command it runs, how many plain apps come with it, then
+ * each setting the file turns on that is off here. A file that only turns settings on prints no app header.
+ */
+function printAsk(file: string, ask: ImportAsk, out: Out): void {
+	if (ask.apps.length > 0) out(`${file} has apps that run these commands on this computer:`);
+	for (const a of ask.apps) {
+		out(`  ${a.name} (${a.key})`);
+		for (const c of a.commands) out(`    ${c}`);
+	}
+	if (ask.apps.length > 0 && ask.plain > 0)
+		out(
+			ask.plain === 1
+				? "and 1 app that only installs its release files, without root."
+				: `and ${ask.plain} apps that only install their release files, without root.`,
+		);
+	if (ask.turnsOn.length > 0) out(`${file} turns on these settings on this computer:`);
+	for (const k of ask.turnsOn) out(`  ${SWITCH_NAME[k]}`);
+}
+
+/**
+ * Replaces the setup from an export, holding the run lock so no install runs while the files change. A list with apps
+ * that run commands writes nothing without sure (--yes): it prints every such app with its commands, or the ask as
+ * {"ok": false, "ask"} under --json, and exits 1, so a script that did not read the list never runs what it carries.
+ * With --yes the same list is printed before the result, so a log records what came in, and the result names the
+ * apps whose automatic installs came in off.
+ */
+function importFrom(deps: EngineDeps, file: string, sure: boolean, json: boolean, out: Out): number {
 	let text: string;
 	try {
 		text = readFileSync(file, "utf8");
@@ -289,10 +414,23 @@ function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): nu
 	}
 	if (!mine) return refuse(MESSAGES.importDuringRun(), json, out);
 	try {
-		const r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
+		let r = importSetup(deps.paths, deps.seedManifest, text, deps.now());
+		if ("ask" in r && sure) {
+			if (!json) printAsk(file, r.ask, out);
+			r = importSetup(deps.paths, deps.seedManifest, text, deps.now(), true);
+		}
 		if (json) out(JSON.stringify(r));
-		else if (r.ok) out(`Imported ${r.apps} apps. The files it replaced are kept beside them as .pre-import-<time>.`);
-		else for (const p of r.problems) out(p);
+		else if (r.ok) {
+			out(`Imported ${r.apps} apps. The files it replaced are kept beside them as .pre-import-<time>.`);
+			if (r.autoOff.length > 0)
+				out(
+					`Automatic installs came in off for ${r.autoOff.join(", ")}: new here or changed from this computer's table.`,
+				);
+		} else if ("ask" in r) {
+			printAsk(file, r.ask, out);
+			out("Nothing was changed. Read the list, then run it again with --yes to import.");
+			out("Automatic installs come in off for every app that is new here or differs from this computer's table.");
+		} else for (const p of r.problems) out(p);
 		return r.ok ? 0 : 1;
 	} finally {
 		releaseLock(deps.paths);
@@ -300,12 +438,17 @@ function importFrom(deps: EngineDeps, file: string, json: boolean, out: Out): nu
 }
 
 /** Runs one command line. Returns the exit code. */
-export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => console.log(l)): Promise<number> {
+export async function main(
+	argv: string[],
+	deps: EngineDeps,
+	out: Out = (l) => console.log(l),
+	signals: Signals = process,
+): Promise<number> {
 	const [cmd, ...rest] = argv;
 	const json = rest.includes("--json");
 	const args = rest.filter((a) => a !== "--json");
 	if (cmd === "check" && args.length === 0) return check(createEngine(deps), json, out);
-	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out);
+	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out, signals);
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
 		return restore(createEngine(deps), deps, args[0], args[1], json, out);
 	if (cmd === "history" && args.length === 0) return history(createEngine(deps), json, out);
@@ -314,7 +457,10 @@ export async function main(argv: string[], deps: EngineDeps, out: Out = (l) => c
 	if (cmd === "add" && args.length === 1 && args[0]) return add(createEngine(deps), args[0], json, out);
 	if (cmd === "remove" && args.length === 1 && args[0]) return remove(createEngine(deps), args[0], json, out);
 	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], json, out);
-	if (cmd === "import" && args.length === 1 && args[0]) return importFrom(deps, args[0], json, out);
+	if (cmd === "import") {
+		const files = args.filter((a) => a !== "--yes");
+		if (files.length === 1 && files[0]) return importFrom(deps, files[0], args.includes("--yes"), json, out);
+	}
 	out(USAGE);
 	return 2;
 }
