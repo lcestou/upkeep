@@ -1723,3 +1723,53 @@ test("a token GitHub revokes after a check falls back to gh at the next search, 
 	expect(sent.at(-1)).toBe("Bearer gho_fromgh");
 	expect(engine.tokenState().refused).toBe("gh");
 });
+
+test("a pause holds a ready app until its day, then lets it through; a hold or Resume now ends it early", async () => {
+	let clock = Date.parse("2026-11-10T00:00:00Z");
+	const engine = createEngine({ ...(await deps()), now: () => new Date(clock) });
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	await engine.check();
+	expect(engine.setPause("fd", 14)).toBe(true);
+	expect(fd()).toMatchObject({ status: "held", held: false, paused: "2026-11-24T00:00:00.000Z" });
+	expect(engine.readyKeys(false)).not.toContain("fd");
+	expect(await engine.install(["fd"], true)).toEqual({ started: false, reason: REASON_NOTHING });
+	// A pause wins over the release wait, and the wait comes back when the pause goes.
+	engine.setSettings({ waitDays: 7 });
+	expect(fd()).toMatchObject({ status: "held", paused: "2026-11-24T00:00:00.000Z", settles: undefined });
+	expect(engine.setPause("fd", null)).toBe(true);
+	expect(fd()).toMatchObject({ status: "held", paused: undefined, settles: "2026-11-16T00:00:00.000Z" });
+	engine.setSettings({ waitDays: 0 });
+	expect(fd()?.status).toBe("ready");
+	// Releasing a hold ends a pause too, and setting one takes its place.
+	engine.setPause("fd", 7);
+	engine.setHold("fd", true);
+	expect(fd()).toMatchObject({ status: "held", held: true, paused: undefined });
+	expect(loadState(t.paths).pause).toEqual({});
+	engine.setHold("fd", false);
+	expect(fd()?.status).toBe("ready");
+	// A pause whose day passed counts as none at the next check.
+	engine.setPause("fd", 7);
+	clock = Date.parse("2026-11-18T00:00:00Z");
+	await engine.check(["fd"]);
+	expect(fd()).toMatchObject({ status: "ready", paused: undefined });
+});
+
+test("setPause refuses an unknown key and a count that is not 1 to 365 days, and writes nothing", async () => {
+	const engine = createEngine(await deps());
+	await engine.check(["fd"]);
+	for (const days of [0, -1, 1.5, 366, Number.NaN]) expect(engine.setPause("fd", days)).toBe(false);
+	expect(engine.setPause("nope", 7)).toBe(false);
+	expect(loadState(t.paths).pause).toEqual({});
+});
+
+test("a paused row turns Ready on its own when its pause ends, without a check", async () => {
+	const engine = createEngine(await deps());
+	updateState(t.paths, (s) => {
+		s.pause.fd = new Date(Date.now() + 150).toISOString();
+	});
+	await engine.check(["fd"]);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("held");
+	await Bun.sleep(400);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({ status: "ready", paused: undefined });
+	expect(engine.readyKeys(false)).toContain("fd");
+});

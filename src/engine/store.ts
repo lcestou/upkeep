@@ -20,6 +20,8 @@ import type { Paths } from "./paths";
 export type State = {
 	skip: Record<string, string>;
 	hold: Record<string, true>;
+	/** Apps paused by the person: key to the ISO time the pause ends, after which the app is offered again by itself. */
+	pause: Record<string, string>;
 	auto: Record<string, boolean>;
 	/** The person's pre-release switch per app, over its table's prerelease field. */
 	prerelease: Record<string, boolean>;
@@ -163,6 +165,7 @@ export function loadState(paths: Paths): State {
 	return {
 		skip: obj<string>(raw.skip),
 		hold: obj<true>(raw.hold),
+		pause: obj<string>(raw.pause),
 		auto: obj<boolean>(raw.auto),
 		prerelease: obj<boolean>(raw.prerelease),
 		settings: clampSettings(obj(raw.settings)),

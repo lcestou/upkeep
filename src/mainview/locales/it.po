@@ -3104,3 +3104,33 @@ msgstr "{0}: {1} non può contenere un a capo o un altro carattere di controllo"
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Impossibile scrivere la voce di menu: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "Metti in pausa per…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "Riprendi ora"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "In pausa fino al {0}, poi di nuovo proposta da sola."
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "In pausa fino al {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 settimana"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 settimane"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 mese"

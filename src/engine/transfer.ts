@@ -20,7 +20,7 @@ import { clampSettings, loadState, updateState, withStateLock, writeAtomic } fro
 
 /**
  * Everything a person set up, in one file to carry to another machine or hand to an agent: the app list as written
- * (apps.toml, comments included), the settings, the skips, holds and automatic installs, and the extras' switches.
+ * (apps.toml, comments included), the settings, the skips, holds, pauses and automatic installs, and the extras' switches.
  * `upkeep` is the format's version; a reader refuses one it does not know. Run state (the notified set, restarts
  * pending, history, restore points) stays behind: it belongs to the machine.
  */
@@ -31,6 +31,8 @@ export type Transfer = {
 	settings: Settings;
 	skip: Record<string, string>;
 	hold: Record<string, true>;
+	/** Pauses by app, to the ISO time each ends. Absent in files written before pauses. */
+	pause?: Record<string, string>;
 	auto: Record<string, boolean>;
 	extras: ExtrasSettings;
 };
@@ -45,6 +47,7 @@ export function exportSetup(paths: Paths, seedFile: string, now: Date): Transfer
 		settings: state.settings,
 		skip: state.skip,
 		hold: state.hold,
+		pause: state.pause,
 		auto: state.auto,
 		extras: loadExtras(paths),
 	};
@@ -217,7 +220,7 @@ function waitLowered(paths: Paths, settings: Record<string, unknown>): ImportAsk
  * the same shared file twice leaves its apps off, and re-importing one's own list here changes nothing. autoOff
  * names the new or changed apps the file wanted on, which came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
- * any the import created. Skips and holds are kept only for apps the new list has. A pre-release switch is never
+ * any the import created. Skips, holds and pauses are kept only for apps the new list has. A pre-release switch is never
  * taken from the file, since it changes what installs: a matching app keeps this machine's, any other has none, and a
  * table's own prerelease field makes it differ, so its auto comes in off. The file never carries a menu
 
@@ -313,6 +316,8 @@ export function importSetup(
 			s.settings = { ...s.settings, ...(settings as Partial<Settings>) };
 			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
+			// A pause only holds an app back for a while, so it comes in without asking; an unreadable end is dropped.
+			s.pause = mine(only(doc.pause, (x): x is string => typeof x === "string" && !Number.isNaN(Date.parse(x))));
 			// Every app gets an entry, so an auto = true written in an imported table never decides.
 			s.auto = picks;
 			// A pre-release switch changes what installs: kept from this machine for a matching table, never the file's.

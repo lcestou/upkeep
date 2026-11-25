@@ -3104,3 +3104,33 @@ msgstr "{0} : {1} ne peut pas contenir de saut de ligne ni d'autre caractère de
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Impossible d'écrire l'entrée de menu : {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "Mettre en pause pour…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "Reprendre maintenant"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "En pause jusqu’au {0}, puis proposée de nouveau d’elle-même."
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "En pause jusqu’au {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 semaine"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 semaines"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 mois"

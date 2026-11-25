@@ -205,6 +205,9 @@ test("checkLine maps problems to SKIP and BROKEN", () => {
 	expect(
 		checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", settles: "2026-11-27T08:00:00.000Z" }),
 	).toBe("  HELD:   tmux 9.0.0 -> 10.5.2 (offered from 2026-11-27)");
+	expect(
+		checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", paused: "2026-12-09T08:00:00.000Z" }),
+	).toBe("  HELD:   tmux 9.0.0 -> 10.5.2 (paused until 2026-12-09)");
 	// A hold Upkeep put on a changed release says why.
 	expect(checkLine({ ...base, status: "held", installed: "9.0.0", latest: "10.5.2", detail: "Why." })).toBe(
 		"  HELD:   tmux 9.0.0 -> 10.5.2 Why.",
@@ -225,6 +228,26 @@ test("hold on and off set and release an app's hold; an unknown key or a missing
 	expect(await main(["hold", "nope", "off"], d, (l) => json.push(l))).toBe(1);
 	expect(json[1]).toBe("No app nope in the list.");
 	expect(await main(["hold", "bat"], d, () => undefined)).toBe(2);
+});
+
+test("pause sets an app's pause for days and off ends it; an unknown key or a bad count is refused", async () => {
+	const d = deps();
+	const out: string[] = [];
+	expect(await main(["pause", "bat", "14"], d, (l) => out.push(l))).toBe(0);
+	const until = loadState(t.paths).pause.bat ?? "";
+	expect(Date.parse(until) - Date.now()).toBeGreaterThan(13.9 * 86_400_000);
+	expect(out).toEqual([`Paused bat until ${new Date(until).toLocaleDateString("sv-SE")}.`]);
+	expect(await main(["pause", "bat", "off"], d, (l) => out.push(l))).toBe(0);
+	expect(out[1]).toBe("Resumed bat.");
+	expect(loadState(t.paths).pause).toEqual({});
+	const json: string[] = [];
+	expect(await main(["pause", "bat", "7", "--json"], d, (l) => json.push(l))).toBe(0);
+	expect(JSON.parse(json[0] ?? "{}")).toMatchObject({ key: "bat", ok: true });
+	expect(await main(["pause", "nope", "7"], d, (l) => json.push(l))).toBe(1);
+	expect(json[1]).toBe("No app nope in the list.");
+	const bad = await Promise.all(["0", "366", "1.5", "soon"].map((n) => main(["pause", "bat", n], d, () => undefined)));
+	expect(bad).toEqual([2, 2, 2, 2]);
+	expect(await main(["pause", "bat"], d, () => undefined)).toBe(2);
 });
 
 test("install --auto with the wait on and a metered connection installs nothing, says why and exits 0", async () => {

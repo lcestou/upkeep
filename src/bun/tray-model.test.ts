@@ -154,7 +154,7 @@ test("after a run, notices say what updated and each failure, and nothing for an
 
 test("the settle watch fires once when a waiting row turns Ready, and owes the notice to idle when it is quiet", () => {
 	const watch = createSettleWatch();
-	// SAFETY: the watch reads only key, status and settles.
+	// SAFETY: the watch reads only key, status, settles and paused.
 	const row = (over: Partial<AppState>) => ({ key: "zen", status: "held", ...over }) as AppState;
 	const waiting = row({ settles: "2026-11-27T00:00:00.000Z" });
 	expect(watch.row(row({ status: "ready" }), false)).toBe(false);
@@ -167,6 +167,9 @@ test("the settle watch fires once when a waiting row turns Ready, and owes the n
 	expect(watch.row(row({ status: "ready" }), true)).toBe(false);
 	expect(watch.idle()).toBe(true);
 	expect(watch.idle()).toBe(false);
+	// A pause that ends is a release that was waiting too.
+	watch.row(row({ paused: "2026-12-09T00:00:00.000Z" }), false);
+	expect(watch.row(row({ status: "ready" }), false)).toBe(true);
 	// A waiting row that went to a check, not Ready, is forgotten.
 	watch.row(waiting, false);
 	expect(watch.row(row({ status: "checking" }), false)).toBe(false);

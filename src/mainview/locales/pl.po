@@ -3127,3 +3127,33 @@ msgstr "{0}: {1} nie może zawierać podziału wiersza ani innego znaku sterują
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Nie udało się zapisać wpisu menu: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "Wstrzymaj na…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "Wznów teraz"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "Wstrzymane do {0}, potem znów proponowane samo."
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "Wstrzymane do {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 tydzień"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 tygodnie"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 miesiąc"

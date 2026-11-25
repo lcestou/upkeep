@@ -15,7 +15,7 @@ import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
 import { CATALOGUE_URL } from "./bun/about";
-import { claimLock, formatLogLine, readInflight, releaseLock } from "./engine/store";
+import { claimLock, formatLogLine, loadState, readInflight, releaseLock } from "./engine/store";
 import { exportSetup, importSetup } from "./engine/transfer";
 
 export const USAGE = [
@@ -29,6 +29,7 @@ export const USAGE = [
 	"  add <name|owner/repo|link|file>",
 	"  remove <key>           take an app off the list; the app stays installed",
 	"  hold <key> on|off      hold an app's updates, or release a hold (also one Upkeep put on a changed release)",
+	"  pause <key> <days>|off pause an app's updates for 1 to 365 days, or end the pause now",
 	"  export [file]          settings and app list as one JSON file (stdout without a file)",
 	"  import <file> [--yes]  replace settings and app list from an export; --yes when its apps run commands",
 	"--json prints one JSON value per line instead of text.",
@@ -53,7 +54,7 @@ export function checkLine(a: AppState): string {
 		// install --all passes these by, so they are not offered as updates.
 		case "held":
 			// The detail says why when Upkeep held it itself (a release whose file changed).
-			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${localDay(a.settles)})` : ""}${a.detail ? ` ${a.detail}` : ""}`;
+			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.paused ? ` (paused until ${localDay(a.paused)})` : a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${localDay(a.settles)})` : ""}${a.detail ? ` ${a.detail}` : ""}`;
 		default: {
 			const detail = a.detail ?? "";
 			const broken = `${a.name} will not start`;
@@ -363,6 +364,24 @@ function hold(engine: Engine, key: string, to: string, json: boolean, out: Out):
 	return ok ? 0 : 1;
 }
 
+/**
+ * Pauses an app's updates for a whole number of days, or ends the pause with off, as the window's Pause for and
+ * Resume now do. A count that is not 1 to 365, or an unknown key, fails and writes nothing.
+ */
+function pause(engine: Engine, paths: EngineDeps["paths"], key: string, to: string, json: boolean, out: Out): number {
+	const days = to === "off" ? null : Number(to);
+	if (days !== null && !(Number.isInteger(days) && days >= 1 && days <= 365)) {
+		out(json ? JSON.stringify({ key, ok: false }) : "pause takes a number of days from 1 to 365, or off.");
+		return 2;
+	}
+	const ok = engine.setPause(key, days);
+	const until = ok && days !== null ? (loadState(paths).pause[key] ?? null) : null;
+	if (json) out(JSON.stringify({ key, until, ok }));
+	else if (!ok) out(MESSAGES.noAppInList(key));
+	else out(until ? `Paused ${key} until ${localDay(until)}.` : `Resumed ${key}.`);
+	return ok ? 0 : 1;
+}
+
 /** Takes an app off the list. The app itself, its files and its restore points stay. */
 async function remove(engine: Engine, key: string, json: boolean, out: Out): Promise<number> {
 	const r = await engine.removeApp(key);
@@ -508,6 +527,8 @@ export async function main(
 	if (cmd === "remove" && args.length === 1 && args[0]) return remove(createEngine(deps), args[0], json, out);
 	if (cmd === "hold" && args.length === 2 && args[0] && (args[1] === "on" || args[1] === "off"))
 		return hold(createEngine(deps), args[0], args[1], json, out);
+	if (cmd === "pause" && args.length === 2 && args[0] && args[1])
+		return pause(createEngine(deps), deps.paths, args[0], args[1], json, out);
 	if (cmd === "export" && args.length <= 1) return exportTo(deps, args[0], json, out);
 	if (cmd === "import") {
 		const files = args.filter((a) => a !== "--yes");

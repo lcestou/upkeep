@@ -162,6 +162,8 @@ export type Engine = {
 	setSkip(key: string, version: string | null): boolean;
 	/** False, and nothing written, for a key not in the list. */
 	setHold(key: string, held: boolean): boolean;
+	/** Pauses for a whole number of days from now, or ends the pause with null. False, and nothing written, for a key not in the list or a count that is not 1 to 365. */
+	setPause(key: string, days: number | null): boolean;
 	/** False, and nothing written, for a key not in the list. */
 	setAuto(key: string, auto: boolean): boolean;
 	/** Writes the person's pre-release switch, then checks the app again when nothing else runs. False for an app whose releases cannot be listed. */
@@ -334,6 +336,15 @@ export function settlesAt(publishedAt: string | undefined, days: number, now: Da
 	const until = at + days * DAY_MS;
 	return until > now.getTime() ? new Date(until).toISOString() : undefined;
 }
+
+/**
+ * The moment a resting row changes by itself: its pause's end, else a held row's wait end. Only statuses refresh
+ * re-derives, so a checking or problem row's old date never fires the timer again and again.
+ */
+const lapse = (a: AppState) =>
+	["ready", "held", "manual", "fresh"].includes(a.status)
+		? (a.paused ?? (a.status === "held" ? a.settles : undefined))
+		: undefined;
 
 /** Whether a row goes into a run: Ready, or with now (Install now anyway) still settling. A held or skipped row never. */
 function takesRow(a: AppState | undefined, now: boolean): boolean {
@@ -579,25 +590,34 @@ export function createEngine(deps: EngineDeps): Engine {
 	/**
 	 * The row's resting status and detail from its check result, the owner's skip and hold, and the wait in Settings. An
 	 * offered release whose file changed since it was first seen is held too, with the reason as its detail, and releasing
-	 * the hold lets it through. A hold or a skip wins over the wait; a manual app never waits. settles is always present,
-	 * undefined when not settling, so Object.assign clears it.
+	 * the hold lets it through. A hold wins over a pause, and a pause or a skip over the wait; a manual app never waits
+	 * and is never paused. A pause whose end has passed counts as none. settles and paused are always present, undefined
+	 * when not set, so Object.assign clears them.
 	 */
-	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped" | "detail" | "settles"> {
+	function resting(
+		spec: AppSpec,
+		c: Checked,
+	): Pick<AppState, "status" | "held" | "skipped" | "detail" | "settles" | "paused"> {
 		const state = loadState(paths);
 		const tag = c.target?.tag;
 		const changed = tag !== undefined && state.changed[spec.key] === tag;
 		const held = state.hold[spec.key] === true || (c.status === "ready" && changed);
 		const skip = state.skip[spec.key];
 		const detail = c.status === "ready" && changed ? MESSAGES.releaseChanged(tag) : c.detail;
-		if (c.status !== "ready") return { status: c.status, held, detail, settles: undefined };
-		if (held) return { status: "held", held, skipped: skip, detail, settles: undefined };
-		if (skip !== undefined && skip === c.latest)
-			return { status: "held", held, skipped: skip, detail, settles: undefined };
+		const until = state.pause[spec.key];
+		// Shown on a Fresh row too, so pausing an app that is up to date still says until when.
+		const paused =
+			spec.kind !== "manual" && until !== undefined && Date.parse(until) > deps.now().getTime() ? until : undefined;
+		const none = { settles: undefined, paused };
+		if (c.status !== "ready") return { status: c.status, held, detail, ...none };
+		if (held) return { status: "held", held, skipped: skip, detail, ...none };
+		if (paused) return { status: "held", held, skipped: skip, detail, ...none };
+		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip, detail, ...none };
 		// A manual app is run by the person, so it never waits: Install now anyway could not run it.
-		if (spec.kind === "manual") return { status: "manual", held, detail, settles: undefined };
+		if (spec.kind === "manual") return { status: "manual", held, detail, ...none };
 		const settles = settlesAt(c.publishedAt, state.settings.waitDays, deps.now());
-		if (settles) return { status: "held", held, detail, settles };
-		return { status: "ready", held, detail, settles: undefined };
+		if (settles) return { status: "held", held, detail, settles, paused };
+		return { status: "ready", held, detail, ...none };
 	}
 
 	/**
@@ -1434,12 +1454,24 @@ export function createEngine(deps: EngineDeps): Engine {
 		setHold(key, held) {
 			if (!specOf(key)) return false;
 			updateState(paths, (s) => {
+				// A hold, set or released, takes the place of a pause: Release hold ends a pause too.
+				delete s.pause[key];
 				if (held) s.hold[key] = true;
 				else {
 					delete s.hold[key];
 					// Releasing a hold Upkeep put on a changed release lets that release through.
 					delete s.changed[key];
 				}
+			});
+			refresh(key);
+			return true;
+		},
+		setPause(key, days) {
+			if (!specOf(key)) return false;
+			if (days !== null && !(Number.isInteger(days) && days >= 1 && days <= 365)) return false;
+			updateState(paths, (s) => {
+				if (days === null) delete s.pause[key];
+				else s.pause[key] = new Date(deps.now().getTime() + days * DAY_MS).toISOString();
 			});
 			refresh(key);
 			return true;
@@ -1651,6 +1683,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			updateState(paths, (s) => {
 				delete s.skip[key];
 				delete s.hold[key];
+				delete s.pause[key];
 				delete s.auto[key];
 				delete s.prerelease[key];
 				delete s.restart[key];
@@ -1917,8 +1950,8 @@ export function createEngine(deps: EngineDeps): Engine {
 	let settleTimer: ReturnType<typeof setTimeout> | null = null;
 
 	/**
-	 * Keeps one timer set to the earliest moment a settling row is offered, so the row turns Ready then without a check
-	 * (with "Only when I ask" there may be none for days). It re-derives the settling rows and sets itself again. Called
+	 * Keeps one timer set to the earliest moment a settling or paused row is offered, so the row turns Ready then without
+	 * a check (with "Only when I ask" there may be none for days). It re-derives those rows and sets itself again. Called
 	 * after anything that can change a wait: a check's rows, a refresh, failed rows put back. The timer never keeps a
 	 * process alive, so the command line still exits.
 	 */
@@ -1927,14 +1960,17 @@ export function createEngine(deps: EngineDeps): Engine {
 		settleTimer = null;
 		// Only resting waiting rows: refresh leaves a checking or problem row alone, so its old date would fire forever.
 		const next = Math.min(
-			...[...apps.values()].map((a) => (a.status === "held" && a.settles ? Date.parse(a.settles) : Infinity)),
+			...[...apps.values()].map((a) => {
+				const at = lapse(a);
+				return at ? Date.parse(at) : Infinity;
+			}),
 		);
 		if (!Number.isFinite(next)) return;
 		// setTimeout holds at most 2^31-1 ms (about 24 days); a later moment is reached by setting it again.
 		const ms = Math.min(Math.max(0, next - deps.now().getTime()) + 50, 2 ** 31 - 1);
 		settleTimer = setTimeout(() => {
 			settleTimer = null;
-			for (const a of apps.values()) if (a.status === "held" && a.settles) refresh(a.key);
+			for (const a of apps.values()) if (lapse(a)) refresh(a.key);
 			armSettle();
 		}, ms);
 		settleTimer.unref();

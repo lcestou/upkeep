@@ -3104,3 +3104,33 @@ msgstr "{0}: {1} no puede contener un salto de línea ni otro carácter de contr
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "No se pudo escribir la entrada de menú: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "Pausar durante…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "Reanudar ahora"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "En pausa hasta el {0}; después se vuelve a ofrecer por sí sola."
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "En pausa hasta el {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 semana"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 semanas"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 mes"

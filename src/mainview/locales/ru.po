@@ -3127,3 +3127,33 @@ msgstr "{0}: {1} не может содержать перевод строки 
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Не удалось записать пункт меню: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "Приостановить на…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "Возобновить сейчас"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "Приостановлено до {0}, затем снова предлагается само."
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "Приостановлено до {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 неделю"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 недели"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 месяц"

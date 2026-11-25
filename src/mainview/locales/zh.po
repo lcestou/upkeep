@@ -3058,3 +3058,33 @@ msgstr "{0}：{1} 不能包含换行符或其他控制字符"
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "无法写入菜单项：{0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "暂停一段时间…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "立即恢复"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "暂停至 {0}，之后会自动再次提供。"
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "暂停至 {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 周"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 周"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 个月"

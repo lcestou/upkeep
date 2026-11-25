@@ -235,3 +235,31 @@ test("an import that shortens the release wait asks first; one that lengthens it
 		t.cleanup();
 	}
 });
+
+test("an export carries pauses, and an import takes them without asking, only for its apps and readable days", () => {
+	const t = tempHome("transfer-pause");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		updateState(t.paths, (s) => {
+			s.pause.old = "2026-12-01T00:00:00.000Z";
+		});
+		expect(exportSetup(t.paths, seed, new Date()).pause).toEqual({ old: "2026-12-01T00:00:00.000Z" });
+		const apps = '[apps.t]\nname = "T"\nkind = "file"\nrepo = "o/t"\nasset = "t-linux"\ndest = "~/.local/bin/t"\n';
+		const out = exportSetup(t.paths, seed, new Date());
+		const until = "2026-12-09T00:00:00.000Z";
+		const doc = { ...out, apps, pause: { t: until, gone: until, bad: "soon" } };
+		expect(importSetup(t.paths, seed, JSON.stringify({ ...doc, pause: { t: "soon" } }), new Date(), true).ok).toBe(
+			true,
+		);
+		expect(loadState(t.paths).pause).toEqual({});
+		expect(importSetup(t.paths, seed, JSON.stringify(doc), new Date(), true).ok).toBe(true);
+		expect(loadState(t.paths).pause).toEqual({ t: until });
+		// A file written before pauses has none, and clears them as it does holds.
+		const { pause: _pause, ...older } = doc;
+		expect(importSetup(t.paths, seed, JSON.stringify(older), new Date(), true).ok).toBe(true);
+		expect(loadState(t.paths).pause).toEqual({});
+	} finally {
+		t.cleanup();
+	}
+});

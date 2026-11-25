@@ -3081,3 +3081,33 @@ msgstr "{0}: {1} darf keinen Zeilenumbruch oder ein anderes Steuerzeichen enthal
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Der Menüeintrag ließ sich nicht schreiben: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "Pausieren für…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "Jetzt fortsetzen"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "Pausiert bis {0}, danach wieder von selbst angeboten."
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "Pausiert bis {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 Woche"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 Wochen"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 Monat"

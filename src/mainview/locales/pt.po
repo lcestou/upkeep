@@ -3104,3 +3104,33 @@ msgstr "{0}: {1} não pode conter quebra de linha nem outro caractere de control
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Não foi possível gravar a entrada de menu: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "Pausar por…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "Retomar agora"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "Em pausa até {0}; depois volta a ser oferecida por si só."
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "Em pausa até {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 semana"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 semanas"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 mês"

@@ -21,6 +21,8 @@
 		restoreLabel,
 		restoredText,
 		settlesLine,
+		pausedLine,
+		PAUSE_DAYS,
 		skipLabel,
 		quietLine,
 		statusText,
@@ -255,6 +257,7 @@
 				>
 			</div>
 		{/if}
+		{#if app.paused}<p class="sentence" data-testid="paused-line">{pausedLine(app.paused)}</p>{/if}
 		{#if app.checked}<p class="sentence" data-testid="pane-checked">{CHECKED[app.checked]}</p>{/if}
 		{#if app.status === "working" && app.waiting}<p class="sentence note" data-testid="pane-wait">{say(app.waiting)}</p>
 		{:else if quiet}<p class="sentence note" data-testid="pane-quiet">{quietLine(quiet.m, quiet.n)}</p>{/if}
@@ -387,6 +390,36 @@
 				onclick={() => model.send("setHold", { key: app.key, held: !app.held })}
 				>{app.held ? TEXT.releaseHold : TEXT.holdUpdates}</button
 			>
+			{#if app.paused}
+				<button
+					type="button"
+					class="btn small"
+					disabled={inRun}
+					title={inRun ? ADD.waitRun : undefined}
+					data-testid="resume-{app.key}"
+					onclick={() => model.send("setPause", { key: app.key, days: null })}>{TEXT.resumeNow}</button
+				>
+			{:else if !app.held}
+				<select
+					class="pause"
+					value=""
+					disabled={inRun}
+					title={inRun ? ADD.waitRun : undefined}
+					aria-label={TEXT.pauseFor}
+					data-testid="pause-{app.key}"
+					onchange={(e) => {
+						const box = e.currentTarget;
+						const days = PAUSE_DAYS.find((o) => String(o.v) === box.value)?.v;
+						box.value = "";
+						if (days) model.send("setPause", { key: app.key, days });
+					}}
+				>
+					<option value="" disabled>{TEXT.pauseFor}</option>
+					{#each PAUSE_DAYS as o (o.v)}
+						<option value={String(o.v)}>{o.label}</option>
+					{/each}
+				</select>
+			{/if}
 			<label class="auto">
 				<input
 					type="checkbox"
@@ -911,6 +944,24 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--s2);
+	}
+	/* Pause for sits beside the small buttons at their height, with their border and type. */
+	.pause {
+		height: 26px;
+		padding: 0 var(--s2);
+		border-radius: var(--radius);
+		border: 1px solid var(--line);
+		background: transparent;
+		font-size: var(--fs-12);
+		font-weight: 560;
+		cursor: pointer;
+	}
+	.pause:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
+	}
+	.pause option {
+		background: var(--ground);
 	}
 	.auto {
 		display: inline-flex;
