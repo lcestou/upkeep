@@ -23,9 +23,16 @@ kind = "command"
 check = ["~/.local/bin/cmd", "--version"]
 latest = "npm:cmd-pkg"
 update = ["true"]
+
+[apps.cb]
+name = "Cb"
+kind = "file"
+repo = "codeberg.org/o/cb"
+asset = 'tool-linux$'
+dest = "~/.local/bin/cb"
 `;
 
-type Rel = { tag: string; prerelease?: boolean; draft?: boolean; file?: string; broken?: boolean };
+type Rel = { tag: string; prerelease?: boolean; draft?: boolean; file?: string; broken?: boolean; prints?: string };
 
 /**
  * The releases o/tool has, newest first as GitHub lists them: another product of the repo (its own file, a higher
@@ -46,6 +53,8 @@ let releases: Rel[] = [];
 let stall = false;
 /** The tag releases/latest answers. */
 let latestTag = "v1.1.0";
+/** What the release list answers in place of releases, when set; releases/latest and tags still read releases. */
+let listed: Rel[] | null = null;
 
 let t: ReturnType<typeof tempHome>;
 beforeEach(() => {
@@ -54,8 +63,8 @@ beforeEach(() => {
 });
 afterEach(() => t.cleanup());
 
-/** The program a release of tool ships: a script that prints the release's version. */
-const program = (tag: string) => new TextEncoder().encode(`#!/bin/sh\necho "tool ${tag.slice(1)}"\n`);
+/** The program a release ships: a script that prints the release's version, or what prints says. */
+const program = (tag: string, prints = tag.slice(1)) => new TextEncoder().encode(`#!/bin/sh\necho "tool ${prints}"\n`);
 
 /** A release body in GitHub's shape, its one file served from dl.test. */
 function body(r: Rel) {
@@ -71,7 +80,7 @@ function body(r: Rel) {
 			{
 				name: file,
 				browser_download_url: `https://dl.test/${r.tag}/${file}`,
-				size: program(r.tag).length,
+				size: program(r.tag, r.prints).length,
 				digest: null,
 			},
 		],
@@ -86,10 +95,12 @@ async function setup() {
 	mkdirSync(join(t.paths.home, ".config/tool"), { recursive: true });
 	writeFileSync(join(t.paths.home, ".config/tool/settings"), "as 1.1.0 left it");
 	script(join(bin, "cmd"), 'echo "cmd 1.0.0"');
+	script(join(bin, "cb"), 'echo "tool 1.1.0"');
 	const asked: { url: string; etag?: string }[] = [];
 	releases = [...START];
 	stall = false;
 	latestTag = "v1.1.0";
+	listed = null;
 	const fetch: FetchLike = async (url, init) => {
 		if (url.includes("registry.npmjs.org")) return Response.json({ version: "1.0.0" });
 		const dl = /^https:\/\/dl\.test\/([^/]+)\/[^/]+$/.exec(url);
@@ -105,21 +116,25 @@ async function setup() {
 			);
 		if (dl) {
 			const r = releases.find((x) => x.tag === dl[1]);
-			return r && !r.broken ? new Response(program(r.tag)) : new Response("missing", { status: 404 });
+			return r && !r.broken ? new Response(program(r.tag, r.prints)) : new Response("missing", { status: 404 });
 		}
 		const etag = new Headers(init?.headers).get("If-None-Match") ?? undefined;
 		asked.push({ url, etag });
-		const api = "https://api.github.com/repos/o/tool/releases";
+		// Codeberg answers in Gitea's shape, which is GitHub's for these fields, with its list asked by limit.
+		const api = url.startsWith("https://codeberg.org/")
+			? "https://codeberg.org/api/v1/repos/o/cb/releases"
+			: "https://api.github.com/repos/o/tool/releases";
 		const tag =
 			url === `${api}/latest`
 				? latestTag
 				: url.startsWith(`${api}/tags/`)
 					? decodeURIComponent(url.slice(api.length + 6))
 					: null;
-		if (url === `${api}?per_page=10`) {
-			const etagNow = `"${releases.length}"`;
+		if (url === `${api}?per_page=10` || url === `${api}?limit=10`) {
+			const list = listed ?? releases;
+			const etagNow = `"${list.map((x) => x.tag).join()}"`;
 			if (etag === etagNow) return new Response(null, { status: 304 });
-			return Response.json(releases.map(body), { headers: { etag: etagNow } });
+			return Response.json(list.map(body), { headers: { etag: etagNow } });
 		}
 		const r = releases.find((x) => x.tag === tag);
 		return r ? Response.json(body(r)) : new Response("{}", { status: 404 });
@@ -196,7 +211,7 @@ test("the release list is asked only when wanted, keeps what this table installs
 	});
 	const again = await engine.versions("tool");
 	expect(again.versions).toEqual(first.versions);
-	expect(asked.findLast((a) => a.url.includes("per_page"))?.etag).toBe(`"${START.length}"`);
+	expect(asked.findLast((a) => a.url.includes("per_page"))?.etag).toBe(`"${START.map((x) => x.tag).join()}"`);
 	expect(await engine.versions("cmd")).toEqual({ versions: [], problem: MESSAGES.noApp("cmd") });
 });
 
@@ -318,3 +333,64 @@ test("Stop now ends a picked install like any other: nothing is skipped and the 
 	expect(row()?.status).toBe("fresh");
 	expect(await engine.install(["tool"])).toMatchObject({ started: false });
 }, 15_000);
+
+test("a list of only rolling tags falls back to the forge's latest release; one with no fitting release says why", async () => {
+	const { engine, row } = await setup();
+	listed = [{ tag: "nightly" }, { tag: "continuous" }];
+	engine.setPrerelease("tool", true);
+	await engine.idle();
+	expect(row()).toMatchObject({ latest: "1.1.0", status: "fresh" });
+	listed = [{ tag: "v3.0.0", file: "cli-linux" }];
+	await engine.check(["tool"]);
+	expect(row()).toMatchObject({ latest: "3.0.0", status: "problem", detail: MESSAGES.noAssetMatches("tool-linux$") });
+});
+
+test("a skipped pre-release is cleared when Follow pre-releases goes off; a skipped release stays", async () => {
+	const { engine } = await setup();
+	engine.setPrerelease("tool", true);
+	await engine.idle();
+	engine.setSkip("tool", "1.2.0-rc.1");
+	engine.setPrerelease("tool", false);
+	await engine.idle();
+	expect(loadState(t.paths).skip).toEqual({});
+	engine.setSkip("tool", "1.3.0");
+	engine.setPrerelease("tool", true);
+	await engine.idle();
+	engine.setPrerelease("tool", false);
+	await engine.idle();
+	expect(loadState(t.paths).skip).toEqual({ tool: "1.3.0" });
+});
+
+test("an update whose program reads 1.3 for the tag's 1.3.0 still rests fresh after the summary", async () => {
+	const { engine, row } = await setup();
+	releases = [{ tag: "v1.3.0", prints: "1.3" }, ...releases];
+	latestTag = "v1.3.0";
+	await engine.check();
+	expect(await engine.install(["tool"])).toEqual({ started: true });
+	await engine.idle();
+	expect(row()).toMatchObject({ installed: "1.3", status: "done" });
+	engine.dismissSummary();
+	expect(row()?.status).toBe("fresh");
+	expect(loadState(t.paths).skip).toEqual({});
+});
+
+test("a pick from the summary waits for the check a switch changed in the run was waiting for", async () => {
+	const { engine, row } = await setup();
+	expect(await engine.installVersion("tool", "v1.0.0")).toEqual({ started: true });
+	engine.setPrerelease("tool", true);
+	await engine.idle();
+	expect(engine.snapshot().run.phase).toBe("summary");
+	expect(await engine.installVersion("tool", "v1.1.0")).toEqual({ started: true });
+	await engine.idle();
+	expect(row()).toMatchObject({ installed: "1.1.0", status: "done", prerelease: true });
+});
+
+test("a Codeberg app lists its releases through versions and installs one", async () => {
+	const { engine, row, asked } = await setup();
+	const list = await engine.versions("cb");
+	expect(list.versions.map((v) => v.tag)).toEqual(["v1.2.0-rc.1", "v1.1.0", "v1.0.0", "v0.9.5"]);
+	expect(asked.some((a) => a.url === "https://codeberg.org/api/v1/repos/o/cb/releases?limit=10")).toBe(true);
+	expect(await engine.installVersion("cb", "v1.0.0")).toEqual({ started: true });
+	await engine.idle();
+	expect(row("cb")).toMatchObject({ installed: "1.0.0", status: "done" });
+});
