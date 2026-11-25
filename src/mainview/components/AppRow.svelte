@@ -49,7 +49,8 @@
 	const quiet = $derived(quietOf(app, lastLine, now));
 	// What a working row waits for after Stop now (an engine sentence), else its quiet line.
 	const workLine = $derived(
-		app.status === "working" && app.detail ? say(app.detail) : quiet ? quietLine(quiet.m, quiet.n) : null,
+		// The row has room for the short form only; the pane carries the step's limit too.
+		app.status === "working" && app.detail ? say(app.detail) : quiet ? quietLine(quiet.m, null) : null,
 	);
 </script>
 

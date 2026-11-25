@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { say } from "../lib/engine-say";
+	import { isStopNote, say } from "../lib/engine-say";
 	import type { CleanupId, HistoryRow } from "../../shared/types";
 	import { CLEAN, RUN_TEXT, TEXT, freedShort, installedText, runSentence } from "../lib/copy";
 	import { formatBytes, formatDuration, formatRunTime } from "../lib/format";
@@ -85,7 +85,7 @@
 											>{row.from ?? ""} <span class="to">to</span> <span class:struck={row.result !== "updated"}>{row.to ?? ""}</span></span
 										>{/if}
 								</span>
-								{#if row.detail}<span class="detail">{say(row.detail)}</span>{/if}
+								{#if row.detail}<span class="detail" class:note={isStopNote(row.detail)}>{say(row.detail)}</span>{/if}
 								{#if row.result === "updated" && pending.has(`${row.runId}:${row.key}`)}<span class="pending" data-testid="restart-pending"
 										>{RUN_TEXT.restartPending}</span
 									>{/if}
@@ -188,6 +188,13 @@
 	.detail {
 		font-size: var(--fs-12);
 		color: oklch(0.84 0.09 25);
+	}
+	/* What Stop now put back is a plain note, not a failure. */
+	.detail.note {
+		color: var(--text-2);
+	}
+	.r-stopped .struck {
+		text-decoration-color: var(--text-3);
 	}
 	.result {
 		font-weight: 560;
