@@ -196,3 +196,16 @@ test("a pasted GitHub token never leaves in an export, and an import neither car
 		t.cleanup();
 	}
 });
+
+test("commandsOf lists the settings paths a restore would put back, so an import asks before taking them", () => {
+	expect(
+		commandsOf({
+			key: "t",
+			name: "T",
+			kind: "file",
+			repo: "o/t",
+			dest: "~/.local/bin/t",
+			keep_with_restore: ["~/.config/t", "~/.trc"],
+		}),
+	).toEqual(["source: o/t", "keep_with_restore: ~/.config/t", "keep_with_restore: ~/.trc"]);
+});

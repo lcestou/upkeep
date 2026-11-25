@@ -2912,6 +2912,29 @@ msgid "Offered at {0}"
 msgstr "Предлагается в {0}"
 
 #: src/mainview/lib/copy.ts
+msgid "Restoring puts its saved settings back too. The settings it replaces are kept aside."
+msgstr "Восстановление возвращает и сохранённые настройки. Заменяемые настройки откладываются в сторону."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore needs an app that keeps restore points"
+msgstr "{0}: keep_with_restore нужна программа, у которой есть точки восстановления"
+
+#: src/mainview/lib/copy.ts
+msgid "with settings"
+msgstr "с настройками"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: keep_with_restore takes paths of their own under home, such as ~/.config/<app>"
+msgstr "{0}: keep_with_restore принимает собственные пути в домашней папке, например ~/.config/<app>"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
+msgstr "Сначала закройте {0}: это восстановление возвращает и его настройки, а при выходе он может их перезаписать."
+
+#: src/mainview/lib/copy.ts
 msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 msgstr "В этом файле есть приложения, которые выполняют эти команды на этом компьютере. Импортируйте его, только если доверяете источнику."
 

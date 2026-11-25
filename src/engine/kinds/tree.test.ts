@@ -320,3 +320,44 @@ test("the copy of a kept directory into .upkeep-new reports its pid and is kille
 	expect(copies.length).toBeGreaterThan(0);
 	expect(copies.every((c) => c.opts.onStart !== undefined && c.opts.killTree === true)).toBe(true);
 });
+
+test("a source point carries keep_with_restore: revertFiles leaves settings alone, restoreTree puts them back", async () => {
+	const cfg = join(t.paths.home, ".config/app/app.toml");
+	put(cfg, "port = 1");
+	const { run } = fakeBox();
+	const { point } = await takeTree(spec({ keep_with_restore: ["~/.config/app"] }), ctx(run), {
+		version: "1.0",
+		at: "x",
+		vars: {},
+	});
+	expect(read(join(point, "upkeep-config/0/app.toml"))).toBe("port = 1");
+	changeEverything();
+	writeFileSync(cfg, "port = 2");
+	// Before the stop the new version never ran, so its settings are as the point saved them: left as they are.
+	await revertFiles(point, ctx(run));
+	expect(read(cfg)).toBe("port = 2");
+	changeEverything();
+	// Without the current table's list nothing of the settings goes back.
+	await restoreTree(point, ctx(run));
+	expect(read(cfg)).toBe("port = 2");
+	changeEverything();
+	await restoreTree(point, ctx(run, { config: ["~/.config/app"] }));
+	expectOld();
+	expect(read(cfg)).toBe("port = 1");
+	const aside = join(t.paths.data, "config-aside/app");
+	const first = readdirSync(aside);
+	expect(first).toHaveLength(1);
+	expect(read(join(aside, first[0] ?? "", "0/app.toml"))).toBe("port = 2");
+	// A recovery rerun after the services started finds the point's copy live: no new aside, the first one kept.
+	await restoreTree(point, ctx(run, { config: ["~/.config/app"] }));
+	expect(readdirSync(aside)).toEqual(first);
+	expect(read(join(aside, first[0] ?? "", "0/app.toml"))).toBe("port = 2");
+	// A record may not take the folder the settings live in.
+	await expect(
+		takeTree(spec({ record: [{ file: "upkeep-config", run: ["v"] }] }), ctx(run), {
+			version: "2.0",
+			at: "x",
+			vars: {},
+		}),
+	).rejects.toThrow();
+});
