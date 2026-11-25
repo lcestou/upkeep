@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
 import type { Run } from "../run";
-import { ok, recordingRun, script, tempHome } from "../testkit";
+import { ok, recordingRun, script, tempHome, withCancel } from "../testkit";
 import { type KindCtx, nonInteractive } from "./context";
 import { checkSource, installSource } from "./source";
 
@@ -210,4 +210,34 @@ test("a clone that fails stops before any build step runs", async () => {
 		detail: "Could not clone tmux/tmux at 3.6a.",
 	});
 	expect(calls.some((x) => x.argv[0] === "bash")).toBe(false);
+});
+
+test("Stop now may cut a fresh clone, never its build steps: there is no restore point to put back", async () => {
+	const dest = script(join(t.dir, "tmux"), 'echo "tmux 3.6"');
+	const { run, calls } = cloneFake(t);
+	const spec = tmux(dest, [`printf '#!/bin/bash\\necho tmux 3.6a\\n' > ${dest}`]);
+	const outcome = await installSource(spec, { from: "3.6", version: "3.6a", tag: "3.6a" }, ctx(run));
+	expect(outcome.result).toBe("done");
+	expect(calls.filter((c) => c.opts.cuttable).map((c) => c.argv.slice(0, 2).join(" "))).toEqual(["git clone"]);
+});
+
+test("Stop now pressed during the clone ends the install before any build step", async () => {
+	const dest = script(join(t.dir, "tmux"), 'echo "tmux 3.6"');
+	const stop = new AbortController();
+	const { run, calls } = recordingRun(t.paths, (argv) => {
+		if (argv[0] !== "git") return undefined;
+		stop.abort();
+		return { code: 143, stdout: "", stderr: "", timedOut: false, stopped: true };
+	});
+	const spec = tmux(dest, ["touch never"]);
+	const outcome = await installSource(
+		spec,
+		{ from: "3.6", version: "3.6a", tag: "3.6a" },
+		{
+			...ctx(withCancel(run, stop.signal)),
+			cancel: stop.signal,
+		},
+	);
+	expect(outcome).toMatchObject({ result: "stopped", installed: "3.6", detail: "Stopped. 3.6 is back in place." });
+	expect(calls.map((c) => c.argv[0])).toEqual(["git"]);
 });

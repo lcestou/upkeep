@@ -165,6 +165,8 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	}
 	if (RELEASE_KINDS.has(spec.kind) && spec.kind !== "appimage" && !spec.repo && !spec.latest?.startsWith("links:"))
 		return MESSAGES.liftRepoOrLinks(key, spec.kind);
+	// A .. part lets a dest that reads as under home resolve anywhere; no real table needs one.
+	if (spec.dest?.split("/").includes("..")) return MESSAGES.liftDestDotDot(key);
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.
 	if (spec.relaunch && !spec.dest) return MESSAGES.liftRelaunchNeedsDest(key);
 	if (spec.relaunch && !spec.process) return MESSAGES.liftRelaunchNeedsProcess(key);
@@ -511,6 +513,8 @@ function liftSource(key: string, table: Record<string, unknown>, spec: AppSpec):
 	// The loop above returned every string, so each list is an array or absent.
 	if (Array.isArray(record)) spec.record = record;
 	if (Array.isArray(config)) spec.config = config;
+	// Like dest and folder: a .. part would let a config write land outside the paths the table names.
+	if (spec.config?.some((c) => c.file.split("/").includes(".."))) return MESSAGES.liftConfigDotDot(key);
 	if (Array.isArray(place)) spec.place = place;
 	if (Array.isArray(busy)) spec.busy = busy;
 	if (Array.isArray(pause)) spec.pause = pause;

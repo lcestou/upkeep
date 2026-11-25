@@ -28,11 +28,14 @@ import { isNewer } from "../version";
 import { isPackage, PACKAGE_TOOL, packageInstall } from "./package";
 import {
 	type Checked,
+	cuttableRun,
 	fromRelease,
 	type KindCtx,
 	type Outcome,
 	probeProblem,
 	stageClock,
+	stopPressed,
+	stoppedOutcome,
 	type Target,
 } from "./context";
 
@@ -291,6 +294,10 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 	const bins = spec.kind === "archive" ? (spec.bins ?? []) : [];
 	const targets = installedFiles(spec, dest, ctx.paths.home);
 	let backupVersion: string | null = null;
+	// Set once the first change on disk is near: from here Stop now puts the restore point back instead.
+	let changing = false;
+	// A bin this run added has no restore point, so a failure or Stop now takes it out again.
+	const added: string[] = [];
 	// A file fetched ahead records its real download time, so the next run's stem keeps the download's width.
 	let earlyMs: number | undefined;
 	const finish = (o: Omit<Outcome, "stages">): Outcome => {
@@ -325,6 +332,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				stallMs: ctx.stallMs,
 				retryMs: ctx.retryMs,
 				signedIn: signedIn(asset, ctx.token),
+				signal: ctx.cancel,
 			}));
 		verifyAsset(got, asset);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}`);
@@ -332,7 +340,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		if (restorable && isPackage(spec.kind) && target.from) {
 			clock.start("backup");
 			const old = await oldPackage(spec, target, ctx);
-			if ("problem" in old) ctx.log(`No restore point: ${old.problem}`);
+			if ("problem" in old)
+				ctx.log(stopPressed(ctx) ? "Stopped before the restore point was taken." : `No restore point: ${old.problem}`);
 			else {
 				takePoint(
 					ctx.paths,
@@ -356,8 +365,10 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			}
 		}
 
+		if (stopPressed(ctx)) return finish(stoppedOutcome(target.from));
 		const existed = new Set(targets.filter((f) => existsSync(f)));
 		const running = isRunning({ ...spec, dest: resolved(dest) }, ctx.procRoot);
+		changing = true;
 		writeInflight(ctx.paths, { key: spec.key, dest, backupVersion, files: targets });
 		clock.start("install");
 		if (spec.kind === "appimage" || spec.kind === "file") {
@@ -383,7 +394,9 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				? ["unzip", "-q", dl, "-d", extract]
 				: // GNU tar tells gzip, xz, bzip2 and zstd apart on its own when it reads a file.
 					["tar", "xf", dl, "-C", extract];
-			const x = await ctx.run(unpack, { timeoutMs: 300_000 });
+			const x = await ctx.run(unpack, { timeoutMs: 300_000, cuttable: true });
+			// Only the cache folder holds anything new yet.
+			if (stopPressed(ctx)) return finish(stoppedOutcome(target.from));
 			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x, unpack[0] ?? "tar"));
 			if (spec.folder) {
 				// A failure after the swap (a link that cannot be made) is put back like a missing bin.
@@ -404,9 +417,9 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 					return finish({ result: "failed", installed: target.from, detail, restartToApply: false });
 				}
 			}
-			// A bin this run added has no restore point, so a failure takes it out again.
-			const added: string[] = [];
 			for (const bin of spec.folder ? [] : bins) {
+				// oxlint-disable-next-line no-await-in-loop -- the loop ends here
+				if (stopPressed(ctx)) return finish(await putBack(spec, ctx, backupVersion, added));
 				const name = binName(bin, dest);
 				const to = join(dirname(dest), name);
 				const direct = join(extract, bin);
@@ -449,6 +462,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			if (r.code !== 0) {
 				// The tool can leave the new package half unpacked, so the point goes back in.
 				const back = backupVersion ? await restoreBackup(ctx.paths, spec, backupVersion, ctx.run) : null;
+				if (back?.ok && stopPressed(ctx)) return finish(stoppedOutcome(backupVersion));
 				if (back?.ok)
 					return finish({
 						result: "rolled_back",
@@ -467,10 +481,13 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			}
 		}
 
+		// A step Stop now could not cut (dpkg, a root install) was waited out: what it changed goes back now.
+		if (stopPressed(ctx)) return finish(await putBack(spec, ctx, backupVersion, added));
 		clock.start("verify");
 		// Before the probe, so a table with probe false reads back the version just installed.
 		stampInstalled(ctx.paths, spec.key, dest, target.version);
-		const after = await probeInstalled(spec, ctx);
+		const after = await probeInstalled(spec, { ...ctx, run: cuttableRun(ctx) });
+		if (stopPressed(ctx)) return finish(await putBack(spec, ctx, backupVersion, added));
 		if ("version" in after && after.version === target.from && target.from !== target.version)
 			return finish({
 				result: "failed",
@@ -487,6 +504,8 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		ctx.log(`Probe after install: ${after.state}${after.detail ? ` ${after.detail}` : ""}`);
 		return finish(await rollBack(spec, ctx, backupVersion, target));
 	} catch (err) {
+		// A download Stop now aborted throws; nothing outside the cache had changed.
+		if (stopPressed(ctx) && !changing) return finish(stoppedOutcome(target.from));
 		if (!(err instanceof StepError)) throw err;
 		return finish({ result: "failed", installed: target.from, detail: err.message, restartToApply: false });
 	} finally {
@@ -528,6 +547,7 @@ async function oldPackage(
 				stallMs: ctx.stallMs,
 				retryMs: ctx.retryMs,
 				signedIn: signedIn(picked.asset, ctx.token),
+				signal: ctx.cancel,
 			}),
 			picked.asset,
 		);
@@ -542,6 +562,32 @@ async function oldPackage(
 async function installedNow(spec: AppSpec, ctx: KindCtx): Promise<string | null> {
 	const p = await probeInstalled(spec, ctx);
 	return "version" in p ? p.version : null;
+}
+
+/**
+ * Stop now after the install changed things: the bins this run added go, and the point this run took goes back. With
+ * no point (a first install, a kind without one) the new copy stays, and the row says what a probe reads now.
+ */
+async function putBack(
+	spec: AppSpec,
+	ctx: KindCtx,
+	backupVersion: string | null,
+	added: string[],
+): Promise<Omit<Outcome, "stages">> {
+	await Promise.all(added.map((f) => ctx.run(asRoot(["rm", "-f", f], spec.sudo), { timeoutMs: 60_000 })));
+	if (backupVersion && canRestore(spec)) {
+		const r = await restoreBackup(ctx.paths, spec, backupVersion, ctx.run);
+		if (r.ok) return stoppedOutcome(backupVersion);
+		ctx.log(`Restore failed: ${r.detail ?? ""}`);
+		return { result: "failed", installed: await installedNow(spec, ctx), detail: r.detail, restartToApply: false };
+	}
+	const now = await installedNow(spec, ctx);
+	return {
+		result: "stopped",
+		installed: now,
+		detail: now ? MESSAGES.stoppedStillAt(spec.name, now) : undefined,
+		restartToApply: false,
+	};
 }
 
 /** The new copy would not start: put the restore point back when there is one. */

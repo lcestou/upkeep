@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
-	import { CHIP, KIND_LABEL, TEXT, statusText } from "../lib/copy";
+	import { CHIP, KIND_LABEL, TEXT, quietLine, statusText } from "../lib/copy";
 	import { fitLine, fitWords } from "../lib/fit";
 	import { formatBytes } from "../lib/format";
 	import { IN_RUN, type Model } from "../lib/model.svelte";
 	import { ms } from "../lib/motion";
 	import { CARE, glyphColor, restoreText } from "../lib/state";
+	import { quietOf } from "../lib/quiet";
 	import { fade } from "svelte/transition";
 	import Glyph from "./Glyph.svelte";
 	import Stem from "./Stem.svelte";
@@ -24,7 +25,7 @@
 	const stemmed = $derived(app.status === "working" || app.status === "done");
 	// A ready row may carry why its last try ended; it reads like any reason line.
 	const sentence = $derived(
-		app.detail && ["problem", "failed", "rolled_back", "done", "ready"].includes(app.status) ? say(app.detail) : null,
+		app.detail && ["problem", "failed", "rolled_back", "stopped", "done", "ready"].includes(app.status) ? say(app.detail) : null,
 	);
 	// While a row is re-checked it keeps what it showed before: its versions and its (disabled) tick.
 	const was = $derived(app.status === "checking" ? model.prior[app.key] : undefined);
@@ -36,12 +37,28 @@
 	const back = $derived(inRun && (app.status === "queued" || app.status === "done"));
 	const chip = CHIP.running;
 	const statusWord = $derived(fresh && !app.restartToApply ? "" : statusText(app));
+	// The quiet line's clock ticks only while the row works; the newest log line is read only then too.
+	let now = $state(Date.now());
+	$effect(() => {
+		if (app.status !== "working") return;
+		now = Date.now();
+		const id = setInterval(() => (now = Date.now()), 15_000);
+		return () => clearInterval(id);
+	});
+	const lastLine = $derived(app.status === "working" ? model.log.findLast((l) => l.key === app.key)?.at : undefined);
+	const quiet = $derived(quietOf(app, lastLine, now));
+	// What a working row waits for after Stop now (an engine sentence), else its quiet line.
+	const workLine = $derived(
+		// The row has room for the short form only; the pane carries the step's limit too.
+		app.status === "working" && app.waiting ? say(app.waiting) : quiet ? quietLine(quiet.m, null) : null,
+	);
 </script>
 
 <div
 	class="row ledger-cols s-{app.status}"
 	class:fresh
-	class:said={sentence !== null}
+	class:said={sentence !== null || workLine !== null}
+	class:quiet={quiet !== null && !app.waiting && !model.run.stoppingNow}
 	class:wide={sentence !== null && noVersions}
 	class:open
 	class:back
@@ -106,6 +123,8 @@
 				{#if app.repo}<span class="latin">{app.repo}</span>{/if}
 			</span>
 			{#if sentence}<span class="sentence" title={sentence} data-testid="sentence-{app.key}">{sentence}</span>{/if}
+			{#if workLine}<span class="sentence" title={workLine} data-testid="{app.waiting ? 'wait' : 'quiet'}-{app.key}">{workLine}</span
+				>{/if}
 		</span>
 		<span class="cell kind" title={KIND_LABEL[app.kind]}>{KIND_LABEL[app.kind]}</span>
 		<span class="cell ver"><Versions app={look} {from} /></span>
@@ -139,6 +158,17 @@
 		<!-- Always present and absolutely placed, so opening a row never changes the button's set of grid items. -->
 		<svg class="marker" class:shown={open} viewBox="0 0 8 14" aria-hidden="true"><path d="M8 0v14L1 7Z" /></svg>
 	</button>
+	{#if quiet !== null && !app.waiting && !model.run.stoppingNow}
+		<!-- Outside the row's own button: a quiet row carries its Stop now where the reason is read. The list stays one
+			tab stop; from the keyboard the footer's Stop after this one escalates to Stop now. -->
+		<button
+			type="button"
+			class="btn small row-stop"
+			data-testid="stop-now-{app.key}"
+			tabindex="-1"
+			onclick={() => model.stopNow()}>{TEXT.stopNow}</button
+		>
+	{/if}
 </div>
 
 <style>
@@ -183,6 +213,19 @@
 	.s-rolled_back .sentence {
 		-webkit-line-clamp: 1;
 		line-clamp: 1;
+	}
+	/* A quiet row reads its line and keeps its Stop now under the status, so its cells sit at the top. */
+	.row.quiet {
+		height: 76px;
+	}
+	.row.quiet .hit {
+		align-items: start;
+		padding-top: 10px;
+	}
+	.row-stop {
+		position: absolute;
+		right: var(--pad-r);
+		bottom: 8px;
 	}
 	.row.fresh {
 		height: 36px;

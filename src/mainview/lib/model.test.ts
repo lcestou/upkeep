@@ -677,3 +677,18 @@ describe("window ops", () => {
 		]);
 	});
 });
+
+test("a stopped app is not a failure: no Retry for it, and after Done it is ready to tick again", async () => {
+	const model = new Model(createFixture({ speed: 40, quiet: "cut" }));
+	await model.start();
+	await model.install();
+	await until(() => model.apps.find((a) => a.key === "zen")?.status === "working");
+	await model.stopNow();
+	await until(() => model.run.phase === "summary");
+	expect(model.run.results.map((r) => [r.key, r.result])).toEqual([["zen", "stopped"]]);
+	expect(model.failedKeys).toEqual([]);
+	expect(model.openKey).toBeNull();
+	await model.dismiss();
+	await until(() => model.apps.find((a) => a.key === "zen")?.status === "ready");
+	expect(model.apps.find((a) => a.key === "zen")?.detail).toBe("Stopped. 1.24b is back in place.");
+});

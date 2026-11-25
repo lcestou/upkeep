@@ -1014,6 +1014,7 @@ msgid "Export"
 msgstr "导出"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "导入"
 
@@ -2705,6 +2706,58 @@ msgstr "无法解包还原点 {0}：{1}"
 msgid "Downloaded, waits its turn"
 msgstr "已下载，等待轮到它"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "由你停止"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "已停止"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "已停止。{0} 已恢复原位。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "已停止。{0} 仍报告 {1}。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "已停止。{0} 现在无法启动：{1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "等待 {0} 完成，然后恢复 {1}。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "等待 {0} 完成。"
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "已 {0} 分钟没有输出。"
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "已 {0} 分钟没有输出。将在 {1} 分钟后自行停止。"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "立即停止"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "正在停止 {0}…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
@@ -2732,3 +2785,43 @@ msgstr "{0}：keep_with_restore 只接受主目录下该应用自己的路径，
 #: src/mainview/lib/engine-text.ts
 msgid "Close {0} first: its settings go back with this restore, and it could write over them when it quits."
 msgstr "请先关闭 {0}：此次恢复会一并放回它的设置，而它退出时可能会覆盖这些设置。"
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "此文件中的应用会在这台电脑上运行以下命令。只有在信任其来源时才导入。"
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "取消"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "凡是这台电脑上没有、或与这里的表不同的应用，导入后自动安装均为关闭状态。你可以为每个应用重新打开。"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "有 # 个在此处新增或已更改的应用，导入后自动安装为关闭状态。"
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "另有 # 个应用只安装其发布文件，不需要 root。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}：dest 不能包含 .. 部分"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "它会打开以下在这台电脑上关闭的设置："
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}：config 文件不能包含 .. 部分"
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "没有等待导入的文件。请按“导入”并重新选择。"

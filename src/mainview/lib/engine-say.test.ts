@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { MESSAGES, type MessageId } from "../../shared/messages";
-import { match, say, sentencesOf } from "./engine-say";
+import { isStopNote, match, say, sentencesOf } from "./engine-say";
 import { ENGINE_COPY } from "./engine-text";
 
 const ids = Object.keys(MESSAGES) as MessageId[];
@@ -91,4 +91,14 @@ test("at the top, a line that is several templates is cut even when one template
 	const started = performance.now();
 	say(many);
 	expect(performance.now() - started).toBeLessThan(250);
+});
+
+test("Stop now's put-back and waiting sentences are plain notes; a tool that does not start is not", () => {
+	expect(isStopNote(MESSAGES.stoppedPutBack("1.0.0"))).toBe(true);
+	expect(isStopNote(MESSAGES.stoppedStillAt("Beta", "1.0.0"))).toBe(true);
+	expect(isStopNote(MESSAGES.waitingThenPutBack("dpkg", "1.0.0"))).toBe(true);
+	expect(isStopNote(MESSAGES.waitingFor("dpkg"))).toBe(true);
+	expect(isStopNote(MESSAGES.stoppedWontStart("Beta", "exit 3"))).toBe(false);
+	expect(isStopNote(MESSAGES.wouldNotStartRestored("1.0.0"))).toBe(false);
+	expect(isStopNote(undefined)).toBe(false);
 });

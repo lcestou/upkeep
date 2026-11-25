@@ -241,3 +241,19 @@ test("only a release kind with a file, and nothing it stops or pauses, downloads
 	expect(canFetchEarly(spec("appimage", { serve: [unit] }), asset)).toBe(false);
 	expect(canFetchEarly(spec("appimage", { pause: [unit] }), asset)).toBe(false);
 });
+
+test("Stop now aborts a download already handed to its turn, which cancel alone leaves running", async () => {
+	const h = held();
+	const { a, lines } = ahead(h.fetch);
+	a.plan([item("a")]);
+	a.gate(true);
+	await until(() => h.asked.length === 1);
+	const stop = new AbortController();
+	const got = a.claim("a", () => {}, stop.signal);
+	await a.cancel();
+	stop.abort();
+	expect(await got).toBeNull();
+	expect(existsSync(item("a").file)).toBe(false);
+	// An abort is not a failure to report.
+	expect(lines.filter((l) => l.includes("failed"))).toEqual([]);
+});
