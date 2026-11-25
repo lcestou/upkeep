@@ -101,10 +101,13 @@ function stopOnSignal(engine: Engine, signals: Signals, out: Out): () => void {
 			if (quitting) return;
 			quitting = true;
 			void engine.endStep().then((left) => {
+				// With no step left to end, the put-back may already have finished: say so rather than assume it did not.
 				out(
-					left?.root
-						? `Quit before ${name} was put back. ${left.step} runs as root and is still running; run upkeep recover once it ends.`
-						: `Quit before ${name} was put back. Run upkeep recover.`,
+					left === null
+						? `Quit while ${name} was being stopped. Run upkeep recover to make sure it is back in place.`
+						: left.root
+							? `Quit before ${name} was put back. ${left.step} runs as root and is still running; run upkeep recover once it ends.`
+							: `Quit before ${name} was put back. Run upkeep recover.`,
 				);
 				signals.exit(130);
 			});

@@ -581,7 +581,7 @@ test("the first Ctrl-C during an install is Stop now: it says so, puts the app b
 	expect((await realRun(t.paths)([join(t.paths.home, ".local/bin/borg")])).stdout).toBe("borg 1.4.1\n");
 });
 
-test("SIGTERM is Stop now too, and a second signal quits at once with a warning", async () => {
+test("SIGTERM is Stop now too, and a second signal with no step left to end quits without claiming the put-back failed", async () => {
 	const sig = fakeSignals();
 	const out: string[] = [];
 	await main(
@@ -597,7 +597,9 @@ test("SIGTERM is Stop now too, and a second signal quits at once with a warning"
 		sig,
 	);
 	expect(out.filter((l) => l.startsWith("Stopping: putting BorgBackup back."))).toHaveLength(1);
-	expect(out).toContain("Quit before BorgBackup was put back. Run upkeep recover.");
+	expect(out).toContain(
+		"Quit while BorgBackup was being stopped. Run upkeep recover to make sure it is back in place.",
+	);
 	expect(sig.exits).toEqual([130]);
 });
 
