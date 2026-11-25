@@ -229,8 +229,6 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			closeSync(fd);
 		}
 		const p = proc;
-		const exited = (ms: number) =>
-			p ? Promise.race([p.exited.then(() => true), Bun.sleep(ms).then(() => false)]) : Promise.resolve(true);
 		return {
 			output: () => {
 				try {
@@ -240,13 +238,9 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 				}
 			},
 			stop: async () => {
-				const ms = opts.stopMs ?? 3000;
-				p?.kill("SIGTERM");
-				if (!(await exited(ms))) {
-					p?.kill("SIGKILL");
-					// A process stuck in the kernel (FUSE in D state) may never exit: stop waiting anyway.
-					await exited(ms);
-				}
+				// The whole group it leads, so a child it started (systemd-inhibit's command) goes with it. A process stuck
+				// in the kernel (FUSE in D state) may never exit: endGroup stops waiting anyway.
+				if (p) await endGroup(p.pid, opts.stopMs ?? 3000);
 				rmSync(outFile, { force: true });
 			},
 		};

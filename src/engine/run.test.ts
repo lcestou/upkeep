@@ -267,6 +267,16 @@ test("start's process leads a process group of its own too", async () => {
 	await started?.stop();
 });
 
+test("stopping a started process ends the child it started too, as systemd-inhibit's command", async () => {
+	// The leader stands in for systemd-inhibit: it starts a child and waits on it, ignoring nothing.
+	const started = realRun(t.paths).start?.(["bash", "-c", "sleep 30 & echo $!; wait"], { stopMs: 500 });
+	await until(() => (started?.output() ?? "").includes("\n"));
+	const child = Number((started?.output() ?? "").trim());
+	expect(() => process.kill(child, 0)).not.toThrow();
+	await started?.stop();
+	expect(() => process.kill(child, 0)).toThrow();
+});
+
 /** Waits until cond holds, every 20 ms for up to 3 s. */
 async function until(cond: () => boolean, left = 150): Promise<void> {
 	if (cond() || left === 0) return;
