@@ -662,9 +662,10 @@ export function createEngine(deps: EngineDeps): Engine {
 		lastOffline = offlineIn(list, found);
 		if (quietOffline && lastOffline) say(null, "No network yet: the rows keep what the last check found");
 		else checkedAt = deps.now().toISOString();
+		// A row that answered is stamped now even when the check found no network; a kept row keeps its own stamp.
 		rememberRows(
 			list.filter((s) => !kept.has(s.key)),
-			checkedAt ?? deps.now().toISOString(),
+			deps.now().toISOString(),
 		);
 		log?.close();
 		log = null;

@@ -4,7 +4,9 @@ import { join } from "node:path";
 import type { AppState, EngineEvent } from "../shared/types";
 import { createEngine } from "./engine";
 import type { FetchLike } from "./github";
+import type { Arch } from "./arch";
 import type { Run } from "./run";
+import { loadRows } from "./store";
 import { ok, realRun, recordingRun, script, tempHome } from "./testkit";
 
 // A command app that takes 0.3 s to update runs first; the archive app fd waits behind it.
@@ -72,7 +74,7 @@ function fakePower(o: { inhibit?: boolean; metered?: boolean; startThrows?: bool
  * The engine over a temp home with both apps ready, unless the first check (quiet when asked) finds no network: offline
  * makes every fetch a network error, githubDown only GitHub's.
  */
-async function setup(power?: Run, net = { offline: false, githubDown: false }, quiet = false) {
+async function setup(power?: Run, net = { offline: false, githubDown: false }, quiet = false, arch: Arch = "x86_64") {
 	writeFileSync(join(t.dir, "seed.toml"), MANIFEST);
 	const bin = join(t.paths.home, ".local/bin");
 	const version = join(t.dir, "slow-version");
@@ -115,6 +117,7 @@ async function setup(power?: Run, net = { offline: false, githubDown: false }, q
 		fetch,
 		run,
 		power,
+		arch,
 		now: () => new Date(),
 		procRoot: join(t.dir, "proc"),
 		retryMs: 1,
@@ -259,6 +262,20 @@ test("a command app that got its answer means the network is up, even with GitHu
 	expect(engine.offline()).toBe(false);
 	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("problem");
 	expect(engine.snapshot().apps.find((a) => a.key === "slow")?.status).toBe("ready");
+});
+
+test("a quiet offline check stamps a row that answered with now, and leaves a kept row's stamp", async () => {
+	// On aarch64 fd's table has no pattern, so its row is a problem found before any lookup: it answers offline too.
+	const net = { offline: false, githubDown: false };
+	const { engine } = await setup(undefined, net, false, "aarch64");
+	const first = loadRows(t.paths);
+	await Bun.sleep(5);
+	net.offline = true;
+	await engine.check(undefined, { quietOffline: true });
+	expect(engine.offline()).toBe(true);
+	const rows = loadRows(t.paths);
+	expect(rows.slow?.checkedAt).toBe(first.slow?.checkedAt);
+	expect((rows.fd?.checkedAt ?? "") > (first.fd?.checkedAt ?? "")).toBe(true);
 });
 
 test("a first quiet check with no network shows no row at all rather than a failure", async () => {
