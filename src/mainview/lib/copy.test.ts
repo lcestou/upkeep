@@ -353,5 +353,5 @@ test("Other versions and the held line name the version", () => {
 		"Asking for the releases…",
 		"No releases listed.",
 	]);
-	expect(TEXT.versionsHint).toContain("held");
+	expect(TEXT.versionsHint).toContain("skips the latest");
 });

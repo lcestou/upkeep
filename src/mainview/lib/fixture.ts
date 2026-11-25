@@ -941,13 +941,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				? [{ version: from, at: iso(Date.now()) }, ...after.restorePoints].slice(0, settings.keepBackups)
 				: after.restorePoints;
 		log(runId, key, `${app.name} reports ${to}.`);
-		// As the engine does: a picked version older than the latest holds the app there.
+		// As the engine does: a picked version older than the latest skips the latest.
 		const order = fixtureVersions(after, stableOf(after)).map((v) => v.version);
 		const older = to !== null && after.latest !== null && order.indexOf(to) > order.indexOf(after.latest);
-		const held = after.held || (picked.delete(key) && older);
+		const skipped = picked.delete(key) && older ? (after.latest ?? undefined) : after.skipped;
 		put({
 			...after,
-			held,
+			skipped,
 			status: "done",
 			installed: to,
 			stage: undefined,
@@ -1130,7 +1130,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		dismissSummary: () => {
 			for (const app of apps)
-				if (app.status === "done") put({ ...app, status: app.held && app.installed !== app.latest ? "held" : "fresh" });
+				if (app.status === "done")
+					put({ ...app, status: app.skipped && app.installed !== app.latest ? "held" : "fresh" });
 			picked.clear();
 			// As the engine does: a failed app is ready to try again and says why its last try ended, until the next check.
 			for (const app of apps)
@@ -1229,7 +1230,11 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		versions: async ({ key }) => {
 			const app = get(key);
 			if (!app || app.prerelease === undefined) return { versions: [], problem: MESSAGES.noApp(key) };
-			// A forge takes a moment to answer.
+			// A forge takes a moment to answer; zoxide's takes long enough to see the waiting label, and lists nothing this table installs.
+			if (key === "zoxide") {
+				await sleep(1500);
+				return { versions: [] };
+			}
 			await sleep(120 / speed);
 			return { versions: fixtureVersions(app, stableOf(app)) };
 		},

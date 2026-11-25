@@ -2793,10 +2793,6 @@ msgstr "Запрос выпусков…"
 msgid "No releases listed."
 msgstr "Выпусков нет."
 
-#: src/mainview/lib/copy.ts
-msgid "An older release is held once it is in, so checks stop offering the latest until you release the hold."
-msgstr "Более старый выпуск после установки приостанавливается, и проверки не предлагают новейший, пока вы не нажмёте «Возобновить обновления»."
-
 #. 0: v
 #: src/mainview/lib/copy.ts
 msgid "Install {0}"
@@ -2814,3 +2810,12 @@ msgstr "предварительная"
 #: src/mainview/lib/copy.ts
 msgid "installed"
 msgstr "установлена"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo"
+msgstr "{0}: prerelease подходит только для таблицы appimage, archive, file, deb или rpm с repo"
+
+#: src/mainview/lib/copy.ts
+msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
+msgstr "Возврат к более старому выпуску пропускает новейший, и следующая проверка предложит только более новый."

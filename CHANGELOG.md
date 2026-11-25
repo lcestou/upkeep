@@ -3,8 +3,8 @@
 ## Unreleased
 
 - The Claude Code plugins row now says when an update is waiting. A check refreshes the plugin marketplaces, as Claude Code does at start, and compares each installed plugin's version with the one its marketplace now holds (for a plugin with no version, new commits in its own folder of the marketplace). The row turns to Update and names the plugins, so it shows in the count and the tray like any other update. A plugin whose marketplace entry points to another repo and names no version is still only updated by Run now or an automatic run.
-- An app installed from GitHub, GitLab or Codeberg releases can follow pre-releases: switch on Follow pre-releases in its pane, or set `prerelease = true` in its table. Versions such as 2.0.0-rc.1 now count as older than 2.0.0 everywhere.
-- Other versions in the same pane lists the ten newest releases when you ask for them and installs the one you pick, with a restore point, verify and rollback as usual. An older release is held once it is in, and Release hold offers the latest again.
+- An app installed from GitHub, GitLab or Codeberg releases can follow pre-releases: switch on Follow pre-releases in its pane, or set `prerelease = true` in its table. Versions such as 2.0.0-rc.1 and 0.7.2-Beta now count as older than their release everywhere.
+- Other versions in the same pane lists, when you ask, the newest releases that have a file for this machine, and installs the one you pick with a restore point, verify and rollback as usual. Going back to an older one skips the latest, as a restore point does, so the next newer release is still offered.
 
 ## 0.1.8, 2026-11-21
 

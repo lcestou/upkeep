@@ -2730,10 +2730,6 @@ msgstr "正在查询版本…"
 msgid "No releases listed."
 msgstr "没有列出的版本。"
 
-#: src/mainview/lib/copy.ts
-msgid "An older release is held once it is in, so checks stop offering the latest until you release the hold."
-msgstr "装上较旧的版本后会暂缓更新，在你选择“取消暂缓”之前，检查不会再提供最新版本。"
-
 #. 0: v
 #: src/mainview/lib/copy.ts
 msgid "Install {0}"
@@ -2751,3 +2747,12 @@ msgstr "预发布"
 #: src/mainview/lib/copy.ts
 msgid "installed"
 msgstr "已安装"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo"
+msgstr "{0}：prerelease 只适用于带 repo 的 appimage、archive、file、deb 或 rpm 表"
+
+#: src/mainview/lib/copy.ts
+msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
+msgstr "回到较旧的版本会跳过最新版本，下次检查只会提供更新的版本。"

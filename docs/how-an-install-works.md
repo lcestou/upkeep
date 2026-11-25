@@ -12,7 +12,7 @@ Root steps use `sudo -n`. If sudo wants a password the app fails with a message 
 | Path                                  | Holds                                                                             |
 | ------------------------------------- | --------------------------------------------------------------------------------- |
 | `~/.config/upkeep/apps.toml`          | the app list                                                                      |
-| `~/.local/state/upkeep/state.json`    | skipped versions, held apps, settings                                             |
+| `~/.local/state/upkeep/state.json`    | skipped versions, held apps, automatic installs, pre-release switches, settings   |
 | `~/.local/state/upkeep/logs/`         | one log per run, the newest 50                                                    |
 | `~/.local/share/upkeep/history.jsonl` | every install and cleanup, append-only                                            |
 | `~/.local/share/upkeep/backups/`      | restore points                                                                    |

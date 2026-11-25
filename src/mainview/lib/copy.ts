@@ -230,7 +230,7 @@ export const TEXT = {
 	},
 	/** Under Other versions: what installing an older one does, said before it is pressed. */
 	get versionsHint() {
-		return "An older release is held once it is in, so checks stop offering the latest until you release the hold.";
+		return "Going back to an older release skips the latest, so the next check offers only a newer one.";
 	},
 	get prereleaseTag() {
 		// @wc-include

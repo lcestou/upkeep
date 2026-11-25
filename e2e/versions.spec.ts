@@ -16,13 +16,18 @@ test("Follow pre-releases offers the next candidate, and switching it off goes b
 	await expect(page.getByTestId("detail-yazi")).toContainText("26.1.23-rc.1");
 	await box.uncheck();
 	await expect(page.getByTestId("pane-status")).toHaveText("Fresh");
+	// A hold says the version it keeps.
+	await page.getByTestId("hold-yazi").click();
+	await expect(page.getByTestId("held-at")).toHaveText("Held at 26.1.22.");
+	await page.getByTestId("hold-yazi").click();
+	await expect(page.getByTestId("held-at")).toHaveCount(0);
 	// A command app has no release list: no switch and no other versions.
 	await page.getByTestId("open-wrangler").click();
 	await expect(page.getByTestId("prerelease-wrangler")).toHaveCount(0);
 	await expect(page.getByTestId("versions-wrangler")).toHaveCount(0);
 });
 
-test("Other versions asks for the releases only on the press, and an older one installs held there", async ({
+test("Other versions asks for the releases only on the press, and going back to an older one skips the latest", async ({
 	page,
 }) => {
 	await load(page, "fixture&speed=4");
@@ -31,7 +36,7 @@ test("Other versions asks for the releases only on the press, and an older one i
 	const block = page.getByTestId("versions-yazi");
 	await expect(block.getByTestId("versions-heading")).toHaveText("Other versions");
 	await expect(block.getByTestId("versions-hint")).toHaveText(
-		"An older release is held once it is in, so checks stop offering the latest until you release the hold.",
+		"Going back to an older release skips the latest, so the next check offers only a newer one.",
 	);
 	await expect(page.getByTestId("version-yazi-26.1.22")).toHaveCount(0);
 	await expect(page.getByTestId("versions-show-yazi")).toHaveText("Show releases");
@@ -47,11 +52,18 @@ test("Other versions asks for the releases only on the press, and an older one i
 	await expect(page.getByTestId("pane-status")).toHaveText("Updated to 25.5.31");
 	await page.getByTestId("done").click();
 	await expect(page.getByTestId("group-held")).toHaveText("Held back");
-	await expect(page.getByTestId("status-yazi")).toHaveText("Held");
-	await page.getByTestId("open-yazi").click();
-	await expect(page.getByTestId("held-at")).toHaveText("Held at 25.5.31.");
-	await expect(page.getByTestId("hold-yazi")).toHaveText("Release hold");
-	await page.getByTestId("hold-yazi").click();
-	await expect(page.getByTestId("status-yazi")).toHaveText("Ready");
+	await expect(page.getByTestId("status-yazi")).toHaveText("Skipping 26.1.22");
 	await expect(page.getByTestId("held-at")).toHaveCount(0);
+	await expect(page.getByTestId("skip-yazi")).toHaveText("Stop skipping 26.1.22");
+	await page.getByTestId("skip-yazi").click();
+	await expect(page.getByTestId("status-yazi")).toHaveText("Ready");
+});
+
+test("Other versions says it is waiting, and says when no release fits this machine", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-zoxide").click();
+	await page.getByTestId("versions-show-zoxide").click();
+	await expect(page.getByTestId("versions-show-zoxide")).toHaveText("Asking for the releases…");
+	await expect(page.getByTestId("versions-none")).toHaveText("No releases listed.");
 });
