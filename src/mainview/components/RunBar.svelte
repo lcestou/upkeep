@@ -14,7 +14,7 @@
 <span class="sr-only" role="status">{stage}</span>
 <ol class="runbar" data-testid="runbar">
 	{#each stops as app (app.key)}
-		{@const p = app.status === "failed" || app.status === "rolled_back" ? 1 : progressOf(app)}
+		{@const p = app.status === "failed" || app.status === "rolled_back" || app.status === "stopped" ? 1 : progressOf(app)}
 		<li class="stop s-{app.status}" style:--tone={CARE[app.status].band}>
 			<span class="label">
 				<Glyph name={CARE[app.status].glyph} color={glyphColor(app.status)} />

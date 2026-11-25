@@ -1014,6 +1014,7 @@ msgid "Export"
 msgstr "書き出し"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "読み込み"
 
@@ -2705,6 +2706,58 @@ msgstr "復元ポイント {0} を展開できませんでした：{1}"
 msgid "Downloaded, waits its turn"
 msgstr "ダウンロード済み、順番待ち"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "あなたが停止"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "停止済み"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "停止しました。{0} が元に戻っています。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "停止しました。{0} は引き続き {1} と報告しています。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "停止しました。{0} は現在起動しません: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "{0} の完了を待ってから、{1} を元に戻します。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "{0} の完了を待っています。"
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "{0} 分間出力がありません。"
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "{0} 分間出力がありません。{1} 分後に自動で止まります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "今すぐ停止"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "{0} を停止中…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
@@ -2756,3 +2809,43 @@ msgstr "{0}：prerelease は repo のある appimage、archive、file、deb、rp
 #: src/mainview/lib/copy.ts
 msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
 msgstr "古いリリースに戻すと最新版はスキップされ、次の確認ではそれより新しいものだけが提案されます。"
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "このファイルには、このコンピューターで次のコマンドを実行するアプリが含まれています。入手元を信頼できる場合にだけ読み込んでください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "このコンピューターにとって新しいアプリ、またはここの表と異なるアプリは、自動インストールがオフの状態で追加されます。アプリごとに再びオンにできます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "ここで新しいか変更された # 件のアプリは、自動インストールがオフの状態で追加されました。"
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "ほかに、root なしでリリースファイルだけをインストールするアプリが # 件あります。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}：dest に .. を含めることはできません"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "このコンピューターでオフになっている次の設定をオンにします:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}：config ファイルに .. を含めることはできません"
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "読み込みを待っているファイルはありません。読み込みを押して、もう一度選んでください。"

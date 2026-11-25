@@ -1031,6 +1031,7 @@ msgid "Export"
 msgstr "Export"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "Import"
 
@@ -2726,6 +2727,58 @@ msgstr "Could not unpack the {0} restore point: {1}"
 msgid "Downloaded, waits its turn"
 msgstr "Downloaded, waits its turn"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "Stopped by you"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "Stopped"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "Stopped. {0} is back in place."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "Stopped. {0} still reports {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "Stopped. {0} does not start now: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "Waiting for {0} to finish, then putting {1} back."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "Waiting for {0} to finish."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "No output for {0} min."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "No output for {0} min. It stops on its own in {1} min."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Stop now"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Stopping {0}…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
@@ -2777,3 +2830,45 @@ msgstr "{0}: prerelease is only for an appimage, archive, file, deb or rpm table
 #: src/mainview/lib/copy.ts
 msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
 msgstr "Going back to an older release skips the latest, so the next check offers only a newer one."
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "Cancel"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "Automatic installs came in off for # app that is new here or changed."
+msgstr[1] "Automatic installs came in off for # apps that are new here or changed."
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "It also has # app that only installs its release files, without root."
+msgstr[1] "It also has # apps that only install their release files, without root."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}: dest may not contain a .. part"
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "It turns on these settings, which are off on this computer:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: a config file may not contain a .. part"
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "There is no file waiting to import. Press Import and pick it again."

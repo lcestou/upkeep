@@ -1,5 +1,5 @@
 import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { MESSAGES } from "../shared/messages";
 import { expandHome } from "./paths";
 
@@ -12,8 +12,7 @@ export type RunOpts = {
 	/** On timeout, also kill every descendant, deepest first. */
 	killTree?: boolean;
 	/**
-	 * Starts the child as the leader of a process group of its own, and on timeout ends the whole group with
-	 * killGroup. For root commands under sudo: sudo passes the TERM on to the command it runs, which a kill of sudo's
+	 * On timeout, ends the child's whole process group with killGroup (every child leads one of its own). For root commands under sudo: sudo passes the TERM on to the command it runs, which a kill of sudo's
 	 * own pid alone would not do, and a grandchild left behind would outlive Upkeep.
 	 */
 	group?: boolean;
@@ -23,9 +22,17 @@ export type RunOpts = {
 	merge?: boolean;
 	/** Called with the child's pid right after it starts, so a marker can record what is running. */
 	onStart?: (pid: number) => void;
+	/** The run's Stop now. It ends this step only when the step is also cuttable; any other step runs on to its end. */
+	cancel?: AbortSignal;
+	/**
+	 * This step may be ended at Stop now: TERM to its process group, KILL after 5 s. Never set on a step that runs as
+	 * root or on an undo: sudo cannot hand on a KILL, so cutting one only orphans the root command.
+	 */
+	cuttable?: boolean;
 };
 
-export type ProcessResult = { code: number; stdout: string; stderr: string; timedOut: boolean };
+/** stopped: the step was cut at Stop now, and its code is 143 whatever the child returned. */
+export type ProcessResult = { code: number; stdout: string; stderr: string; timedOut: boolean; stopped?: boolean };
 
 /** A process left running in the background, for one that never ends on its own (an AppImage mount). */
 export type Started = {
@@ -110,6 +117,92 @@ export function killGroup(pid: number, graceMs = 5000): void {
 	setTimeout(() => send("SIGKILL"), graceMs).unref();
 }
 
+/** True while any process is left in the group pid leads. A group of processes this user may not signal counts too. */
+function groupAlive(pid: number): boolean {
+	try {
+		process.kill(-pid, 0);
+		return true;
+	} catch (err) {
+		return err instanceof Error && "code" in err && err.code === "EPERM";
+	}
+}
+
+/**
+ * Ends the process group pid leads and resolves only once it is gone: TERM, then KILL after graceMs, then up to
+ * another graceMs for the kernel to reap it (a process stuck in D state may outlast even that; the wait still ends).
+ * A cut uses it so a caller never restores files while a member of the cut step can still write them.
+ */
+export async function endGroup(pid: number, graceMs = 5000): Promise<void> {
+	const send = (signal: NodeJS.Signals) => {
+		try {
+			process.kill(-pid, signal);
+		} catch {
+			// the group is gone, or holds only processes this user may not signal
+		}
+	};
+	const goneWithin = async (ms: number) => {
+		const until = Date.now() + ms;
+		while (groupAlive(pid)) {
+			if (Date.now() >= until) return false;
+			// oxlint-disable-next-line no-await-in-loop -- polling until the group is gone
+			await Bun.sleep(50);
+		}
+		return true;
+	};
+	send("SIGTERM");
+	if (await goneWithin(graceMs)) return;
+	send("SIGKILL");
+	await goneWithin(graceMs);
+}
+
+/** argv past an `env` prefix (its NAME=value and option words), so the program that runs comes first. */
+function pastEnv(argv: string[]): string[] {
+	if (basename(argv[0] ?? "") !== "env") return argv;
+	let i = 1;
+	while (i < argv.length && /^(-|[A-Za-z_][A-Za-z0-9_]*=)/.test(argv[i] ?? "")) i += 1;
+	return argv.slice(i);
+}
+
+/** True for a shell step (`bash -c`, `sh -c`, by name or full path) and its script. */
+function shellScript(argv: string[]): string | null {
+	const [prog = "", flag, script] = argv;
+	const name = basename(prog);
+	return (name === "bash" || name === "sh") && flag === "-c" && script !== undefined ? script : null;
+}
+
+/**
+ * True for a step that runs as root: sudo by name or full path, after an `env` prefix or not, or a shell step whose
+ * script calls sudo. Stop now never cuts one: sudo cannot hand a KILL on to the root command, so a cut would only
+ * orphan it. A program that becomes root some other way (pkexec, a setuid helper) is not seen.
+ */
+export function runsAsRoot(argv: string[]): boolean {
+	const words = pastEnv(argv);
+	if (basename(words[0] ?? "") === "sudo") return true;
+	return /\bsudo\b/.test(shellScript(words) ?? "");
+}
+
+/**
+ * The step as the log names it, for "Waiting for {step} to finish": the program without env, sudo or its path, then
+ * up to two plain subcommand words ("claude plugin marketplace", "make install"); a shell step is named by its own
+ * script. sudo's option words are skipped; one that takes a value (sudo -u name) is not understood.
+ */
+export function stepName(argv: string[]): string {
+	let words = pastEnv(argv);
+	if (basename(words[0] ?? "") === "sudo") {
+		words = words.slice(1);
+		while (words[0]?.startsWith("-")) words = words.slice(1);
+		words = pastEnv(words);
+	}
+	const script = shellScript(words);
+	if (script) return stepName(script.trim().split(/\s+/));
+	const sub: string[] = [];
+	for (const w of words.slice(1, 3)) {
+		if (!/^[a-z][a-z-]*$/.test(w)) break;
+		sub.push(w);
+	}
+	return [basename(words[0] ?? ""), ...sub].join(" ");
+}
+
 /**
  * The real runner. Stdin is ignored, ~/ is expanded in every argv element, the owner's bin directories lead PATH,
  * and an argv that starts with sudo gets -n: a child keeps the terminal, so a sudo without it would prompt there
@@ -128,7 +221,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		try {
 			proc = Bun.spawn(
 				asRootArgv(argv).map((a) => expandHome(a, home)),
-				{ env: envFor(), stdin: "ignore", stdout: fd, stderr: "ignore" },
+				{ env: envFor(), detached: true, stdin: "ignore", stdout: fd, stderr: "ignore" },
 			);
 		} catch {
 			// output() stays empty, so the caller sees a process that said nothing
@@ -159,6 +252,9 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		};
 	};
 	const run = async (argv: string[], opts: RunOpts = {}): Promise<ProcessResult> => {
+		// A root step is never cut, whatever its caller asked.
+		const cut = opts.cuttable === true && !runsAsRoot(argv) ? opts.cancel : undefined;
+		if (cut?.aborted) return { code: 143, stdout: "", stderr: "", timedOut: false, stopped: true };
 		const cmd = asRootArgv(argv).map((a) => expandHome(a, home));
 		const env = envFor(opts.env);
 		const stream = opts.onLine !== undefined;
@@ -180,7 +276,9 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 			proc = Bun.spawn(cmd, {
 				cwd: opts.cwd,
 				env,
-				detached: opts.group === true,
+				// Every child leads a session and process group of its own, so the terminal's Ctrl-C reaches Upkeep alone
+				// and never a sudo dpkg directly, and a cut can end the step's whole group.
+				detached: true,
 				stdin: "ignore",
 				stdout: stream ? "pipe" : (fds[0] ?? "ignore"),
 				stderr: stream ? "pipe" : (fds[1] ?? fds[0] ?? "ignore"),
@@ -204,6 +302,13 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 						else if (opts.killTree) killTree(proc.pid);
 						else proc.kill("SIGKILL");
 					}, opts.timeoutMs);
+		let stopped = false;
+		let ending: Promise<void> | null = null;
+		const onCancel = () => {
+			stopped = true;
+			ending = endGroup(proc.pid);
+		};
+		cut?.addEventListener("abort", onCancel, { once: true });
 		const sinks = [{ text: "" }, { text: "" }];
 		const readers: Promise<void>[] = [];
 		// Once the run has returned, a grandchild's late line must not reach the caller.
@@ -219,6 +324,7 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		}
 		const code = await proc.exited;
 		if (timer) clearTimeout(timer);
+		cut?.removeEventListener("abort", onCancel);
 		let stdout = "";
 		let stderr = "";
 		if (stream) {
@@ -230,6 +336,11 @@ export function createRunner(home: string, tmpDir: string, basePath: string): Ru
 		} else {
 			stdout = await readAndRemove(outFile);
 			stderr = errFile ? await readAndRemove(errFile) : "";
+		}
+		// The leader may exit while a member that ignored TERM still writes: return only once the whole group is gone.
+		if (stopped) {
+			await ending;
+			return { code: 143, stdout, stderr, timedOut, stopped };
 		}
 		return { code: timedOut ? 137 : code, stdout, stderr, timedOut };
 	};

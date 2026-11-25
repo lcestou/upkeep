@@ -661,6 +661,11 @@ export type FixtureOptions = {
 	selfTestFails?: boolean;
 	/** GitHub's budget is used up for the next half hour: "out" with no sign-in (60), "signed" with one (5,000); "soon" starts over in 1.5 s. */
 	rate?: "out" | "signed" | "soon";
+	/**
+	 * The run's first app goes quiet at once: no output for 3 minutes, its step limited to 10, until Stop now. "cut" is
+	 * a step Stop now cuts; "root" one it waits out (dpkg), saying so on the row first.
+	 */
+	quiet?: "cut" | "root";
 };
 
 // Cinnamon can put the window buttons on the left: close, maximize, minimize.
@@ -883,7 +888,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		emit({ type: "run", run });
 	};
 	const log = (runId: string, key: string | null, text: string) => {
-		const line: LogLine = { at: iso(Date.now()), key, text };
+		// A quiet run's lines are three minutes old, so a row that spoke in an earlier run still reads quiet now.
+		const line: LogLine = { at: iso(Date.now() - (opts.quiet ? 3 * 60_000 : 0)), key, text };
 		const lines = logs.get(runId) ?? [];
 		lines.push(line);
 		logs.set(runId, lines);
@@ -898,7 +904,47 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const to = picked.get(key) ?? app.latest;
 		const total = 3000 / speed;
 		const early = app.downloaded === true;
-		put({ ...app, status: "working", stage: app.stages[0]?.id, stagePct: early ? 100 : 0 });
+		put({ ...app, status: "working", detail: undefined, stage: app.stages[0]?.id, stagePct: early ? 100 : 0 });
+		/** As the engine does at Stop now: the app is put back and the row says so. */
+		const stopped = (): RunResult => {
+			const now = get(key) ?? app;
+			const detail = from ? MESSAGES.stoppedPutBack(from) : undefined;
+			if (detail) log(runId, key, detail);
+			put({
+				...now,
+				status: "stopped",
+				stage: undefined,
+				stagePct: undefined,
+				activeAt: undefined,
+				step: undefined,
+				waiting: undefined,
+				detail,
+			});
+			return { key, name: app.name, from, to, result: "stopped", detail, ms: Date.now() - start };
+		};
+		if (opts.quiet && run.index === 1) {
+			const ago = iso(Date.now() - 3 * 60_000);
+			const first = app.stages[0]?.id;
+			put({
+				...app,
+				status: "working",
+				detail: undefined,
+				stage: first,
+				stagePct: null,
+				activeAt: ago,
+				step: { at: ago, limitMs: 10 * 60_000 },
+			});
+			// oxlint-disable-next-line no-await-in-loop -- the scripted stall waits for the press
+			while (!run.stoppingNow) await sleep(50);
+			if (opts.quiet === "root") {
+				const now = get(key) ?? app;
+				const waiting = MESSAGES.waitingThenPutBack("dpkg", from ?? "");
+				log(runId, key, waiting);
+				put({ ...now, waiting });
+				await sleep(1500 / speed);
+			}
+			return stopped();
+		}
 		for (const { id, weight } of app.stages) {
 			// As the engine does: early downloads start once the current app is past its own download.
 			if (id !== "download") fetchAhead(key);
@@ -912,6 +958,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			const measured = id === "download";
 			log(runId, key, stageLog(app, id));
 			for (let i = 0; i <= steps; i++) {
+				if (run.stoppingNow) return stopped();
 				const current = get(key);
 				if (!current) break;
 				put({ ...current, stage: id, stagePct: measured ? Math.round((i / steps) * 100) : null });
@@ -991,6 +1038,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		const fromSummary = run.phase === "summary";
 		for (const key of order) {
 			const app = get(key);
+			// As the engine does: a row that joins the run drops its note, so one that never starts does not keep it.
 			if (app) put({ ...app, status: "queued", detail: undefined });
 		}
 		setRun({
@@ -1000,6 +1048,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			total: order.length,
 			currentKey: order[0] ?? null,
 			stopping: false,
+			stoppingNow: false,
 			results: keep,
 			retry,
 			// A retry keeps the first pass's order on screen, as the engine does.
@@ -1044,7 +1093,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		history.unshift(...ran.map((r) => Object.assign({}, r, { runId, at, stages: {}, retry: retry || undefined })));
 		log(runId, null, "Run finished.");
 		running = null;
-		setRun({ phase: "summary", currentKey: null, results });
+		setRun({ phase: "summary", currentKey: null, results, stoppingNow: false });
 	}
 
 	/** The engine's addToRun: ready apps go after the apps waiting. */
@@ -1111,7 +1160,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (kept) return { started: false, reason: REASON_UNRECOVERED };
 			const ok = keys.filter((k) => {
 				const s = get(k)?.status;
-				return s === "ready" || s === "failed" || s === "rolled_back";
+				return s === "ready" || s === "failed" || s === "rolled_back" || s === "stopped";
 			});
 			if (ok.length === 0) return { started: false, reason: "Nothing to install." };
 			// A retry from the summary keeps the first pass: done rows stay done and their results stay counted.
@@ -1128,6 +1177,12 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			for (const a of apps) if (a.downloaded) put({ ...a, downloaded: undefined });
 			return { stopping: true };
 		},
+		stopNow: () => {
+			if (run.phase !== "installing") return { stopping: false };
+			setRun({ stopping: true, stoppingNow: true });
+			for (const a of apps) if (a.downloaded) put({ ...a, downloaded: undefined });
+			return { stopping: true };
+		},
 		dismissSummary: () => {
 			for (const app of apps)
 				if (app.status === "done")
@@ -1137,6 +1192,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			for (const app of apps)
 				if (app.status === "failed" || app.status === "rolled_back")
 					put({ ...app, status: "ready", detail: app.detail ? lastTryFailed(app.detail) : undefined });
+			// A stopped app did not fail: it is ready again and keeps its own sentence.
+			for (const app of apps) if (app.status === "stopped") put({ ...app, status: "ready" });
 			setRun({
 				id: null,
 				phase: "idle",
@@ -1443,9 +1500,31 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		// The file dialogs answer at once in the fixture; the real ones are the desktop's.
 		exportSetup: async () => ({ ok: true, file: "/home/you/upkeep-settings-2026-11-12.json" }),
-		importSetup: async () => {
+		// The built variant's file carries a source build, so Import asks first; the default one runs no commands.
+		importSetup: async ({ sure }) => {
+			if (variant === "built" && !sure) {
+				return {
+					ok: false,
+					ask: {
+						apps: [
+							{
+								key: "llama",
+								name: "llama.cpp",
+								commands: [
+									"source: ggml-org/llama.cpp",
+									"build: cmake -B build -DGGML_CUDA=ON",
+									"build: cmake --build build -j",
+									"restart: systemctl --user restart llama-server",
+								],
+							},
+						],
+						plain: apps.length - 1,
+						turnsOn: ["selfAuto"],
+					},
+				};
+			}
 			emit({ type: "meta", rate, checkedAt, settings });
-			return { ok: true, apps: apps.length };
+			return variant === "built" ? { ok: true, apps: apps.length, autoOff: 1 } : { ok: true, apps: apps.length };
 		},
 		pickFile: async () => {
 			await sleep(200 / speed);

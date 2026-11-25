@@ -27,7 +27,6 @@ import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
 import { loadWindowSize, saveWindowSize } from "./window-size";
 import {
-	failedNotice,
 	readyFingerprint,
 	readyNames,
 	readyNotice,
@@ -35,7 +34,7 @@ import {
 	trayIcon,
 	trayMenu,
 	trayTitle,
-	updatedNotice,
+	runNotices,
 } from "./tray-model";
 
 // Before any window opens: the launcher's ICU_DATA blanks the window where ICU keeps its data in a file (openSUSE).
@@ -472,11 +471,7 @@ function announceReady(): void {
 
 /** Says the outcome of an install with no window to read it: one notice for the updated apps, one per failure. */
 function announceRun(): void {
-	const results = engine.snapshot().run.results;
-	const updated = results.filter((r) => r.result === "updated").map((r) => r.name);
-	const code = trayLanguage();
-	if (updated.length > 0) notify(updatedNotice(updated, code));
-	for (const r of results) if (r.result !== "updated") notify(failedNotice(r.name, code));
+	for (const text of runNotices(engine.snapshot().run.results, trayLanguage())) notify(text);
 }
 
 // Before the window exists there is nobody to tell; the view asks for a snapshot when it mounts.

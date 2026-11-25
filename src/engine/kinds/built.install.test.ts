@@ -15,10 +15,10 @@ import {
 import { dirname, join } from "node:path";
 import type { AppSpec, Serve } from "../../shared/types";
 import type { FetchLike } from "../github";
-import type { RunOpts, ProcessResult } from "../run";
+import type { ProcessResult, Run, RunOpts } from "../run";
 import { DEFAULT_SETTINGS, readInflight } from "../store";
-import { ok, strictRun, tempHome } from "../testkit";
-import { installBuilt } from "./built";
+import { ok, strictRun, tempHome, withCancel } from "../testkit";
+import { installBuilt, startService, stopService } from "./built";
 import type { KindCtx } from "./context";
 
 let t: ReturnType<typeof tempHome>;
@@ -607,4 +607,166 @@ test("a restore point that cannot be taken refuses the update with nothing chang
 		detail: expect.stringContaining("Could not take a restore point"),
 	});
 	expect(readFileSync(join(dir, "bin/srv"), "utf8")).toBe("version f2918cabb");
+});
+
+test("Stop now during a build step puts the files back and never stops the service", async () => {
+	const before = hashTree(dir);
+	const stop = new AbortController();
+	// The press lands while make runs; the fake step then ends as a cut one would.
+	const box = fakeBox({ onBuild: () => stop.abort() });
+	const o = await installBuilt(spec(), target, {
+		...ctx(box),
+		run: withCancel(box.run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(o).toMatchObject({
+		result: "stopped",
+		installed: "f2918cabb",
+		detail: "Stopped. f2918cabb is back in place.",
+	});
+	expect(box.calls.find((c) => c.argv.join(" ") === "bash -c make all")?.opts.cuttable).toBe(true);
+	expect(argvs(box.calls).filter((a) => a.startsWith("sudo -n stop"))).toEqual([]);
+	expect(hashTree(dir)).toEqual(before);
+	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("Stop now during the health check after the start rolls the old version back in", async () => {
+	const before = hashTree(dir);
+	const stop = new AbortController();
+	const box = fakeBox();
+	const fetch: FetchLike = async (url, init) => {
+		if (box.svc.servedVersion !== "f2918cabb" && !stop.signal.aborted) {
+			stop.abort();
+			return new Response("down", { status: 503 });
+		}
+		return box.fetch(url, init);
+	};
+	const o = await installBuilt(spec({ serve: [{ ...SERVE, wait_s: 30 }] }), target, {
+		...ctx(box),
+		fetch,
+		run: withCancel(box.run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(o).toMatchObject({
+		result: "stopped",
+		installed: "f2918cabb",
+		detail: "Stopped. f2918cabb is back in place.",
+	});
+	expect(hashTree(dir)).toEqual(before);
+	expect(box.svc).toMatchObject({ running: true, servedVersion: "f2918cabb" });
+	// The root stop and start are never cut; only the forward steps are offered to Stop now.
+	expect(box.calls.filter((c) => c.argv[0] === "sudo" && c.argv[2] !== "-l").every((c) => !c.opts.cuttable)).toBe(true);
+});
+
+test("Stop now may cut a built app's fetch, build, check and verify read; root stops and starts and undos never", async () => {
+	const box = fakeBox();
+	// check_built runs as the build does; the fake box answers it like the build step.
+	const run: Run = (argv, opts) =>
+		argv.join(" ") === "bash -c make check" ? box.run(["bash", "-c", "make all"], opts) : box.run(argv, opts);
+	const checks: RunOpts[] = [];
+	const watched: Run = (argv, opts = {}) => {
+		if (argv.join(" ") === "bash -c make check") checks.push(opts);
+		return run(argv, opts);
+	};
+	expect(
+		await installBuilt(spec({ check_built: ["make check"] }), target, { ...ctx(box), run: watched }),
+	).toMatchObject({
+		result: "done",
+	});
+	const cut = box.calls.filter((c) => c.opts.cuttable).map((c) => c.argv.join(" "));
+	expect(cut).toEqual([
+		expect.stringMatching(/^git -C .* fetch --no-tags origin tag v0\.9\.0$/),
+		"bash -c make all",
+		"bash -c make all",
+		"print-version",
+	]);
+	expect(checks.map((o) => o.cuttable)).toEqual([true]);
+});
+
+test("a unit's stop or start is cuttable on the way forward only when it does not run as root", async () => {
+	const seen: [string, boolean][] = [];
+	const run: Run = async (argv, opts = {}) => {
+		seen.push([argv.join(" "), opts.cuttable === true]);
+		return ok();
+	};
+	const user = {
+		name: "u",
+		active: ["is-active"],
+		stop: ["systemctl", "--user", "stop", "u"],
+		start: ["systemctl", "--user", "start", "u"],
+	};
+	const root = { ...user, stop: ["sudo", "systemctl", "stop", "u"], start: ["sudo", "systemctl", "start", "u"] };
+	await stopService(run, user, true);
+	await startService(run, user, true);
+	await stopService(run, root, true);
+	await startService(run, root, true);
+	await stopService(run, user);
+	expect(seen).toEqual([
+		["systemctl --user stop u", true],
+		["systemctl --user start u", true],
+		["sudo -n systemctl stop u", false],
+		["sudo -n systemctl start u", false],
+		["systemctl --user stop u", false],
+	]);
+});
+
+test("Stop now never cuts a built app's step that runs as root: a sudo table, or sudo in the step's own text", async () => {
+	const box = fakeBox();
+	const run: Run = (argv, opts) =>
+		argv[0] === "bash" && argv[2]?.includes("sudo") ? box.run(["bash", "-c", "make all"], opts) : box.run(argv, opts);
+	const seen: [string, boolean][] = [];
+	const watched: Run = (argv, opts = {}) => {
+		if (argv[0] === "bash") seen.push([argv[2] ?? "", opts.cuttable === true]);
+		return run(argv, opts);
+	};
+	expect(await installBuilt(spec({ build: ["sudo make all"] }), target, { ...ctx(box), run: watched })).toMatchObject({
+		result: "done",
+	});
+	expect(seen).toEqual([["sudo -n make all", false]]);
+	const box2 = fakeBox();
+	expect(await installBuilt(spec({ sudo: true }), target, ctx(box2))).toMatchObject({ result: "done" });
+	expect(box2.calls.find((c) => c.argv.join(" ") === "bash -c make all")?.opts.cuttable).toBe(false);
+});
+
+test("Stop now pressed after verify passed keeps the update: the run just ends", async () => {
+	const stop = new AbortController();
+	const box = fakeBox();
+	// The last version read, after the new unit answered, is where the press lands; that read still passes.
+	const run: Run = (argv, opts) => {
+		if (argv[0] === "print-version" && box.svc.servedVersion === "a1b2c3d4e") stop.abort();
+		return box.run(argv, opts);
+	};
+	const o = await installBuilt(spec(), target, {
+		...ctx(box),
+		run: withCancel(run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(stop.signal.aborted).toBe(true);
+	expect(o).toMatchObject({ result: "done", installed: "a1b2c3d4e" });
+	expect(box.svc).toMatchObject({ running: true, servedVersion: "a1b2c3d4e" });
+	expect(readInflight(t.paths)).toBeNull();
+});
+
+test("Stop now pressed before the health check starts ends it without a poll, and the old version goes back", async () => {
+	const stop = new AbortController();
+	const box = fakeBox();
+	let polls = 0;
+	// The press lands on the new unit's since read, just before health would poll.
+	const run: Run = (argv, opts) => {
+		if (argv.join(" ") === "since srv" && box.svc.servedVersion === "a1b2c3d4e" && !stop.signal.aborted) stop.abort();
+		return box.run(argv, opts);
+	};
+	const fetch: FetchLike = async (url, init) => {
+		if (box.svc.servedVersion === "a1b2c3d4e") polls += 1;
+		return box.fetch(url, init);
+	};
+	const o = await installBuilt(spec({ serve: [{ ...SERVE, wait_s: 30 }] }), target, {
+		...ctx(box),
+		fetch,
+		run: withCancel(run, stop.signal),
+		cancel: stop.signal,
+	});
+	expect(o).toMatchObject({ result: "stopped", installed: "f2918cabb" });
+	expect(polls).toBe(0);
+	expect(box.svc).toMatchObject({ running: true, servedVersion: "f2918cabb" });
 });

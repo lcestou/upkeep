@@ -51,7 +51,7 @@ import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
 import { expandHome, type Paths } from "./paths";
-import { killTree, type Run, type RunOpts } from "./run";
+import { endGroup, killTree, type Run, type RunOpts, runsAsRoot, stepName } from "./run";
 import { earliestStart, isRunning } from "./running";
 import {
 	appendHistory,
@@ -114,6 +114,17 @@ export type Engine = {
 	check(keys?: string[]): Promise<void>;
 	install(keys: string[]): Promise<{ started: boolean; reason?: string }>;
 	stopAfterCurrent(): void;
+	/**
+	 * Ends the run now: a cuttable step of the current app is cut and the app put back; a step that is never cut (a
+	 * root package install, an undo) is waited out first, and the row says what it waits for. The rest stay ready.
+	 */
+	stopNow(): void;
+	/**
+	 * For quitting at once (a second Ctrl-C): ends the step in progress, TERM to its process group and KILL after 5 s,
+	 * and resolves once it is gone. A step that runs as root cannot be ended from here and is left running; the answer
+	 * names it then. Null when no step runs.
+	 */
+	endStep(): Promise<{ step: string; root: boolean } | null>;
 	dismissSummary(): void;
 	restore(key: string, version: string): Promise<{ ok: boolean; detail?: string }>;
 	/** Restarts an app whose table says how, and drops its waiting restart once that worked. Refused during a run. */
@@ -242,6 +253,9 @@ const POINT_WEIGHTS = {
 	],
 } satisfies Record<"deb" | "rpm" | "command", [Stage, number][]>;
 
+/** A step a kind runs now: its argv, whether Stop now may cut it, and its pid once it started. */
+type InStep = { argv: string[]; cuttable: boolean; pid?: number; waitedOn?: boolean };
+
 /** A finished install is "updated" in the run's results; failures keep their own word. */
 const resultOf = (r: Outcome["result"]): RunResult["result"] => (r === "done" ? "updated" : r);
 
@@ -258,6 +272,10 @@ export function createEngine(deps: EngineDeps): Engine {
 	let token: string | null = null;
 	let busy: Promise<void> = Promise.resolve();
 	let starting = false;
+	/** The run's Stop now; a fresh one for each run, since an aborted signal stays aborted. */
+	let stopNow = new AbortController();
+	/** The step a kind waits on now, so Stop now can say what it waits for when the step is one it never cuts. */
+	let inStep: InStep | null = null;
 	let log: RunLog | null = null;
 	let run: RunState = {
 		id: null,
@@ -285,6 +303,9 @@ export function createEngine(deps: EngineDeps): Engine {
 	const emitMeta = () => emit({ type: "meta", rate, checkedAt, settings: loadState(paths).settings });
 	const say = (key: string | null, text: string) => {
 		const line: LogLine = { at: deps.now().toISOString(), key, text };
+		// No event of its own: the window reads the line's time from the log event itself.
+		const a = key ? apps.get(key) : undefined;
+		if (a?.status === "working") a.activeAt = line.at;
 		try {
 			log?.write(line);
 		} catch {
@@ -353,9 +374,40 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	function kindCtx(key: string, overrides: Partial<KindCtx> = {}): KindCtx {
+		const cancel = stopNow.signal;
+		const start = deps.run.start;
+		const cancellable: Run = async (argv, opts) => {
+			const mine: InStep = { argv, cuttable: opts?.cuttable === true };
+			inStep = mine;
+			const a = apps.get(key);
+			const working = a?.status === "working" ? a : undefined;
+			if (working) {
+				working.step = { at: deps.now().toISOString(), limitMs: opts?.timeoutMs ?? null };
+				emitApp(working);
+			}
+			try {
+				return await deps.run(argv, {
+					cancel,
+					...opts,
+					onStart: (pid) => {
+						mine.pid = pid;
+						opts?.onStart?.(pid);
+					},
+				});
+			} finally {
+				if (inStep === mine) inStep = null;
+				if (working?.status === "working" && working.step) {
+					working.step = undefined;
+					// The step Stop now waited on has ended: the put-back that follows is not that wait.
+					if (mine.waitedOn) working.waiting = undefined;
+					emitApp(working);
+				}
+			}
+		};
 		return {
 			paths,
-			run: deps.run,
+			run: start ? Object.assign(cancellable, { start }) : cancellable,
+			cancel,
 			fetch: deps.fetch,
 			token,
 			settings: loadState(paths).settings,
@@ -365,6 +417,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				if (a && a.status === "working") {
 					a.stage = stage;
 					a.stagePct = pct;
+					a.activeAt = deps.now().toISOString();
 					emitApp(a);
 				}
 				// The current app's own download has the line to itself; early downloads start once it moves on.
@@ -379,7 +432,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			now: deps.now,
 			stallMs: deps.stallMs,
 			retryMs: deps.retryMs,
-			early: (onProgress) => ahead?.claim(key, onProgress) ?? Promise.resolve(null),
+			early: (onProgress) => ahead?.claim(key, onProgress, cancel) ?? Promise.resolve(null),
 			...overrides,
 		};
 	}
@@ -593,6 +646,9 @@ export function createEngine(deps: EngineDeps): Engine {
 		app.restartToApply = o.result === "done" && o.restartToApply;
 		app.stage = undefined;
 		app.stagePct = undefined;
+		app.activeAt = undefined;
+		app.step = undefined;
+		app.waiting = undefined;
 		app.downloaded = undefined;
 		app.restorePoints = app.canRestore ? listBackups(paths, app.key) : [];
 		emitApp(app);
@@ -667,6 +723,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			const a = apps.get(s.key);
 			if (a) {
 				a.status = "queued";
+				// A note from the check or a last try is about the row at rest; an app that never starts must not keep it.
+				a.detail = undefined;
 				a.restartToApply = false;
 				emitApp(a);
 			}
@@ -696,6 +754,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
 		if (!claimLock(paths, process.pid, deps.procRoot)) return { started: false, reason: REASON_BUSY };
 		runQueue = queue;
+		stopNow = new AbortController();
 		// A retry keeps the first pass's order on screen, so the rows it shows do not move.
 		runBase = retry ? (run.queue ?? []) : [];
 		try {
@@ -717,6 +776,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				const a = apps.get(s.key);
 				if (a) {
 					a.status = "queued";
+					// A note from the check or a last try is about the row at rest; an app that never starts must not keep it.
+					a.detail = undefined;
 					a.restartToApply = false;
 					emitApp(a);
 				}
@@ -765,7 +826,7 @@ export function createEngine(deps: EngineDeps): Engine {
 							restartToApply: false,
 						});
 				}
-				run = { ...run, phase: "summary", currentKey: null, stopping: false };
+				run = { ...run, phase: "summary", currentKey: null, stopping: false, stoppingNow: false };
 				emitRun();
 			})
 			.finally(async () => {
@@ -782,8 +843,29 @@ export function createEngine(deps: EngineDeps): Engine {
 		return { started: true };
 	}
 
+	/**
+	 * Runs the queue, then ends the run: the history of every app that finished is appended in a finally, so a stopped
+	 * run or one that throws still records them; the log closes and the run moves to summary with stopping and
+	 * stoppingNow cleared. A throw skips the summary here; startInstall's catch fails the open rows instead.
+	 */
 	async function doRun(queue: AppSpec[]): Promise<void> {
 		const history: HistoryRow[] = [];
+		// In a finally: a run that throws or is stopped still records the apps it finished.
+		try {
+			await eachApp(queue, history);
+		} finally {
+			appendHistory(paths, run.retry ? history.map((h) => ({ ...h, retry: true })) : history);
+		}
+		say(null, `Run finished: ${run.results.filter((r) => r.result === "updated").length} updated`);
+		log?.close();
+		log = null;
+		pruneLogs(paths, 50);
+		run = { ...run, phase: "summary", currentKey: null, stopping: false, stoppingNow: false };
+		emitRun();
+	}
+
+	/** The run's loop, one app at a time; each finished app's row goes into history as it ends. */
+	async function eachApp(queue: AppSpec[], history: HistoryRow[]): Promise<void> {
 		for (const [i, spec] of queue.entries()) {
 			if (run.stopping) {
 				backToReady(queue.slice(i));
@@ -795,6 +877,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			app.status = "working";
 			app.stage = app.stages[0]?.id;
 			app.stagePct = 0;
+			app.activeAt = deps.now().toISOString();
 			run = { ...run, index: i + 1, currentKey: spec.key };
 			emitRun();
 			emitApp(app);
@@ -856,13 +939,6 @@ export function createEngine(deps: EngineDeps): Engine {
 		}
 		// The loop is over: an app added from here on would never run, so the run takes no more.
 		runQueue = null;
-		appendHistory(paths, run.retry ? history.map((h) => ({ ...h, retry: true })) : history);
-		say(null, `Run finished: ${run.results.filter((r) => r.result === "updated").length} updated`);
-		log?.close();
-		log = null;
-		pruneLogs(paths, 50);
-		run = { ...run, phase: "summary", currentKey: null, stopping: false };
-		emitRun();
 	}
 
 	const engine: Engine = {
@@ -924,6 +1000,34 @@ export function createEngine(deps: EngineDeps): Engine {
 					a.downloaded = undefined;
 					emitApp(a);
 				}
+			emitRun();
+		},
+		async endStep() {
+			const step = inStep;
+			if (!step) return null;
+			const root = runsAsRoot(step.argv);
+			if (!root && step.pid) await endGroup(step.pid);
+			return { step: stepName(step.argv), root };
+		},
+		stopNow() {
+			if (run.phase !== "installing" || run.stoppingNow) return;
+			engine.stopAfterCurrent();
+			run = { ...run, stopping: true, stoppingNow: true };
+			stopNow.abort();
+			const key = run.currentKey;
+			const step = inStep;
+			const app = key ? apps.get(key) : undefined;
+			const spec = key ? specOf(key) : undefined;
+			if (app && spec && step && !step.cuttable) {
+				const back = canRestore(spec) ? app.installed : null;
+				const line = back
+					? MESSAGES.waitingThenPutBack(stepName(step.argv), back)
+					: MESSAGES.waitingFor(stepName(step.argv));
+				say(app.key, line);
+				step.waitedOn = true;
+				app.waiting = line;
+				emitApp(app);
+			}
 			emitRun();
 		},
 		dismissSummary() {
@@ -1384,17 +1488,21 @@ export function createEngine(deps: EngineDeps): Engine {
 		return true;
 	}
 
-	/** Rows a run could not update go back to where the last check left them. */
+	/**
+	 * Rows a run could not update, or the person stopped, go back to where the last check left them, so each can be
+	 * ticked again. A stopped row keeps its own sentence ("Stopped. 1.0.0 is back in place."): it did not fail.
+	 */
 	function resetFailed(): void {
 		for (const a of apps.values()) {
-			if (a.status !== "failed" && a.status !== "rolled_back") continue;
+			if (a.status !== "failed" && a.status !== "rolled_back" && a.status !== "stopped") continue;
 			const spec = specOf(a.key);
 			const c = checked.get(a.key);
 			if (!spec || !c) continue;
 			// The row goes back to where it can be tried again, and says why the last try ended. The next check clears it.
 			const why = a.detail;
+			const stopped = a.status === "stopped";
 			Object.assign(a, resting(spec, { ...c, installed: a.installed }));
-			a.detail = why ? MESSAGES.lastTryFailed(why) : c.detail;
+			a.detail = why ? (stopped ? why : MESSAGES.lastTryFailed(why)) : c.detail;
 			emitApp(a);
 		}
 	}

@@ -1048,6 +1048,7 @@ msgid "Export"
 msgstr "Exportar"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Import"
 msgstr "Importar"
 
@@ -2747,6 +2748,58 @@ msgstr "Não foi possível descompactar o ponto de restauração {0}: {1}"
 msgid "Downloaded, waits its turn"
 msgstr "Baixada, aguarda a sua vez"
 
+#: src/mainview/lib/copy.ts
+msgid "Stopped by you"
+msgstr "Parado por você"
+
+#: src/mainview/lib/copy.ts
+msgid "Stopped"
+msgstr "Parado"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} is back in place."
+msgstr "Parado. {0} está de volta no lugar."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} still reports {1}."
+msgstr "Parado. {0} ainda informa {1}."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Stopped. {0} does not start now: {1}"
+msgstr "Parado. {0} não inicia agora: {1}"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish, then putting {1} back."
+msgstr "Esperando {0} terminar; depois {1} volta ao lugar."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Waiting for {0} to finish."
+msgstr "Esperando {0} terminar."
+
+#. 0: m
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min."
+msgstr "Sem saída há {0} min."
+
+#. 0: m; 1: n
+#: src/mainview/lib/copy.ts
+msgid "No output for {0} min. It stops on its own in {1} min."
+msgstr "Sem saída há {0} min. Para sozinho em {1} min."
+
+#: src/mainview/lib/copy.ts
+msgid "Stop now"
+msgstr "Parar agora"
+
+#. 0: name
+#: src/mainview/lib/copy.ts
+msgid "Stopping {0}…"
+msgstr "Parando {0}…"
+
 #. 0: v0
 #: src/mainview/lib/engine-text.ts
 msgid "New versions in their marketplaces: {0}."
@@ -2798,3 +2851,47 @@ msgstr "{0}: prerelease só vale para uma tabela appimage, archive, file, deb ou
 #: src/mainview/lib/copy.ts
 msgid "Going back to an older release skips the latest, so the next check offers only a newer one."
 msgstr "Voltar a uma versão mais antiga pula a mais recente, então a próxima verificação só oferece uma mais nova."
+
+#: src/mainview/lib/copy.ts
+msgid "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
+msgstr "Este arquivo tem apps que executam estes comandos neste computador. Importe-o só se confiar na origem dele."
+
+#: src/mainview/lib/copy.ts
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs come in off for every app that is new to this computer or differs from its table here. You can turn them on again for each app."
+msgstr "As instalações automáticas chegam desligadas em todo app novo neste computador ou cuja tabela difere da daqui. Você pode ligá-las de novo em cada app."
+
+#: src/mainview/lib/copy.ts
+msgid "Automatic installs came in off for # app that is new here or changed."
+msgid_plural "Automatic installs came in off for # apps that are new here or changed."
+msgstr[0] "As instalações automáticas chegaram desligadas em # app novo aqui ou alterado."
+msgstr[1] "As instalações automáticas chegaram desligadas em # apps novos aqui ou alterados."
+msgstr[2] "As instalações automáticas chegaram desligadas em # apps novos aqui ou alterados."
+
+#: src/mainview/lib/copy.ts
+msgid "It also has # app that only installs its release files, without root."
+msgid_plural "It also has # apps that only install their release files, without root."
+msgstr[0] "Ele também tem # app que só instala os arquivos das versões dele, sem root."
+msgstr[1] "Ele também tem # apps que só instalam os arquivos das versões deles, sem root."
+msgstr[2] "Ele também tem # apps que só instalam os arquivos das versões deles, sem root."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: dest may not contain a .. part"
+msgstr "{0}: dest não pode conter uma parte .."
+
+#: src/mainview/lib/copy.ts
+msgid "It turns on these settings, which are off on this computer:"
+msgstr "Ele liga estas configurações, que estão desligadas neste computador:"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: a config file may not contain a .. part"
+msgstr "{0}: um arquivo de config não pode conter uma parte .."
+
+#: src/mainview/lib/engine-text.ts
+msgid "There is no file waiting to import. Press Import and pick it again."
+msgstr "Não há nenhum arquivo esperando para importar. Clique em Importar e escolha-o de novo."
