@@ -2895,3 +2895,18 @@ msgstr "{0}: un archivo de config no puede contener una parte .."
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "No hay ningún archivo esperando para importar. Pulsa Importar y elígelo de nuevo."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} no puede ser una clave de aplicación: usa letras, dígitos, puntos, guiones y guiones bajos, empezando por una letra o un dígito."
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}: {1} no puede contener un salto de línea ni otro carácter de control"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "No se pudo escribir la entrada de menú: {0}"

@@ -2849,3 +2849,18 @@ msgstr "{0}：config 文件不能包含 .. 部分"
 #: src/mainview/lib/engine-text.ts
 msgid "There is no file waiting to import. Press Import and pick it again."
 msgstr "没有等待导入的文件。请按“导入”并重新选择。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit."
+msgstr "{0} 不能作为应用键名：请使用字母、数字、点、连字符和下划线，并以字母或数字开头。"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: {1} may not contain a line break or other control character"
+msgstr "{0}：{1} 不能包含换行符或其他控制字符"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Could not write the menu entry: {0}"
+msgstr "无法写入菜单项：{0}"

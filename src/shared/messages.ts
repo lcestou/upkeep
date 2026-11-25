@@ -400,6 +400,11 @@ export const MESSAGES = {
 	importNothingAsked: () => "There is no file waiting to import. Press Import and pick it again.",
 	/** manifest.ts. {0} app key */
 	liftDestDotDot: (v0: Value) => `${v0}: dest may not contain a .. part`,
+	/** manifest.ts. {0} the key, JSON-quoted */
+	liftBadKey: (v0: Value) =>
+		`${v0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit.`,
+	/** manifest.ts. {0} app key; {1} field name */
+	liftControlChar: (v0: Value, v1: Value) => `${v0}: ${v1} may not contain a line break or other control character`,
 	/** manifest.ts. {0} app key */
 	liftRelaunchNeedsProcess: (v0: Value) => `${v0}: relaunch needs process`,
 	/** manifest.ts. {0} app key; {1} process name */
@@ -457,6 +462,8 @@ export const MESSAGES = {
 	metaNoVersion: (v0: Value) => `${v0} names no version.`,
 	/** menu.ts. {0} the AppImage's path */
 	menuNoEntry: (v0: Value) => `Could not read a menu entry from ${v0}.`,
+	/** menu.ts. {0} the error's own text */
+	menuCouldNotWrite: (v0: Value) => `Could not write the menu entry: ${v0}`,
 	/** menu.ts. {0} the AppImage's path */
 	menuNotInstalled: (v0: Value) =>
 		`Nothing is installed at ${v0} yet, so there is no menu entry to read. Install it first.`,

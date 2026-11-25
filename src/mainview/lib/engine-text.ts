@@ -211,6 +211,9 @@ export const ENGINE_COPY = {
 	liftConfigDotDot: (v0: string) => `${v0}: a config file may not contain a .. part`,
 	importNothingAsked: () => "There is no file waiting to import. Press Import and pick it again.",
 	liftDestDotDot: (v0: string) => `${v0}: dest may not contain a .. part`,
+	liftBadKey: (v0: string) =>
+		`${v0} cannot be an app key: use letters, digits, dots, dashes and underscores, starting with a letter or digit.`,
+	liftControlChar: (v0: string, v1: string) => `${v0}: ${v1} may not contain a line break or other control character`,
 	liftRelaunchNeedsProcess: (v0: string) => `${v0}: relaunch needs process`,
 	liftRelaunchShared: (v0: string, v1: string) =>
 		`${v0}: relaunch would close every ${v1} process; give process the app's own name`,
@@ -241,6 +244,7 @@ export const ENGINE_COPY = {
 	metaMissing: (v0: string, v1: string) => `${v0} is missing inside ${v1}.`,
 	metaNoVersion: (v0: string) => `${v0} names no version.`,
 	menuNoEntry: (v0: string) => `Could not read a menu entry from ${v0}.`,
+	menuCouldNotWrite: (v0: string) => `Could not write the menu entry: ${v0}`,
 	menuNotInstalled: (v0: string) =>
 		`Nothing is installed at ${v0} yet, so there is no menu entry to read. Install it first.`,
 	menuStaysOut: (v0: string) => `The AppImage at ${v0} asks to stay out of the app menu, so Upkeep adds no entry.`,
