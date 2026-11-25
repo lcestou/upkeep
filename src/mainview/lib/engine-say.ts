@@ -93,6 +93,24 @@ export function match(text: string, depth = 0): { id: MessageId; values: string[
 	return best && { id: best.id, values: best.values };
 }
 
+/** The sentences Stop now writes about the app it put back or waits on. */
+const STOP_NOTES: ReadonlySet<MessageId> = new Set([
+	"stoppedPutBack",
+	"stoppedStillAt",
+	"waitingThenPutBack",
+	"waitingFor",
+] satisfies MessageId[]);
+
+/**
+ * True for a sentence Stop now wrote about the app it put back or waits on: a plain note, drawn in the neutral text
+ * colour, since stopping is the person's choice and not a failure. "Does not start now" is left out: that one is a
+ * problem to look at.
+ */
+export function isStopNote(text: string | null | undefined): boolean {
+	const m = text ? match(text) : null;
+	return m !== null && STOP_NOTES.has(m.id);
+}
+
 /**
  * An engine sentence in the language shown, or the text unchanged when it is not one. Values that are engine
  * sentences themselves are worded too, three deep at most.

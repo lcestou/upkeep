@@ -15,6 +15,7 @@ export const CARE = {
 	problem: { band: "var(--rust)", glyph: "bang" },
 	failed: { band: "var(--fail)", glyph: "cross" },
 	rolled_back: { band: "var(--fail)", glyph: "cross" },
+	stopped: { band: "var(--frost)", glyph: "pause" },
 } satisfies Record<AppStatus, { band: string; glyph: GlyphName }>;
 
 /** The glyph's colour. Checking draws its dot in --dot because the --line band is too faint for a glyph. */
