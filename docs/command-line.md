@@ -20,6 +20,8 @@ upkeep export upkeep.json    # settings and app list as one file (to stdout with
 upkeep import upkeep.json    # replace them from such a file
 ```
 
+With Settings' **Wait for an unmetered connection and mains power for automatic updates** on, `install --auto` installs nothing while NetworkManager says the connection is metered or UPower says the machine is on battery: it prints `Automatic updates wait: the connection is metered.` (or `on battery.`) and exits 0, so a timer can run it again later. `--json` prints `{"started": false, "wait": "metered", "reason": …}`. Installing named apps or `--all` never waits.
+
 `check` exits 0; an app it could not check is a SKIP line, not a failure. `install` exits 0 when every app it ran ended updated. Every other command exits 0 when it did what was asked and 1 when it did not, and prints why.
 
 ## For scripts and agents
