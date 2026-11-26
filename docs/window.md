@@ -40,7 +40,7 @@ A heading that matches, such as "## Breaking changes", is not quoted itself: the
 
 The address must be https, or plain http to this computer or the home network: a private or loopback address (10.x, 172.16 to 172.31, 192.168.x, 127.x, 169.254.x, Tailscale's 100.64 to 100.127, IPv6 `::1`, `fc00::/7`, `fe80::/10`), a name with no dot such as `http://nas:2586`, or a name ending in `.local`, `.lan`, `.home`, `.home.arpa`, `.internal` or `.localhost`. Over the internet, plain http would show the app list, and any token in the address, to every network in between. Only the address as written is judged: a public name that your own DNS points inward still needs https. Redirects are not followed, so an https address is never sent on to http.
 
-The address may hold a secret (an ntfy topic works as a password, and a token may sit in its query), so it is kept apart from the settings, in `~/.local/state/upkeep/webhook`, readable by you alone. Settings shows only its scheme and host, an export never carries it, and an import that would set or change it shows the whole address and asks first.
+The address may hold a secret (an ntfy topic works as a password, and a token may sit in its query), so it is kept apart from the settings, in `~/.local/state/upkeep/webhook`, readable by you alone. Settings shows only its scheme and host, an export never carries it, and an import that would set or change it shows where it sends (scheme, host, port and path, with user info, query and fragment masked: `https://ntfy.sh/topic?…`) and asks first.
 
 The body:
 

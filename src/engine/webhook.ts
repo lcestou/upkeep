@@ -93,18 +93,54 @@ export type NoticeBody = {
 /** What createNoticeSender hands back: one send per notice, true when the receiver took it. */
 export type NoticeSender = { send(body: NoticeBody): Promise<boolean> };
 
+/**
+ * Where an address sends, for the person to judge it before an import keeps it: scheme, host, port and path in full;
+ * user info, query and fragment each shown as "…", since a token or password sits there. Text that is not a URL
+ * shows as "…". Unlike maskAddress, the path stays: it is the destination (an ntfy topic) the person must recognise.
+ */
+export function destinationOf(text: string): string {
+	try {
+		const url = new URL(text.trim());
+		const user = url.username || url.password ? "…@" : "";
+		return `${url.protocol}//${user}${url.host}${url.pathname}${url.search ? "?…" : ""}${url.hash ? "#…" : ""}`;
+	} catch {
+		return "…";
+	}
+}
+
+/**
+ * Text with every spelling of address replaced by its mask: as written, as the URL parser normalises it, and that
+ * form without its scheme, so an error that quotes the request's URL cannot carry the query or path into a log.
+ */
+function scrub(text: string, address: string): string {
+	const masked = maskAddress(address);
+	let spellings = [address.trim()];
+	try {
+		const url = new URL(address.trim());
+		spellings = [...spellings, url.href, url.href.slice(url.protocol.length + 2)];
+	} catch {
+		// not a URL: only the text as written can appear
+	}
+	return spellings
+		.filter((s) => s !== "")
+		.toSorted((a, b) => b.length - a.length)
+		.reduce((out, s) => out.replaceAll(s, masked), text);
+}
+
 /** What createNoticeSender needs: where the address is kept, the network, and where a failure is written. */
 export type NoticeDeps = { paths: Paths; fetch: FetchLike; log: (line: string) => void; timeoutMs?: number };
 
 /**
  * Posts notices to the kept address, one try each. A failure (no answer in timeoutMs, a refused connection, an answer
  * other than 2xx, a redirect, which is refused so an https address can never be sent on to http) is logged once with
- * the masked address; later failures stay quiet until a notice goes through again. send never throws, and the
+ * the masked address; later failures to the same address stay quiet until a notice goes through again, and a
+ * new address's first failure is logged. send never throws, and the
  * callers do not await it, so a check or run never waits on the receiver. No address kept, or one that no longer
  * passes addressProblem (a hand-edited file), sends nothing.
  */
 export function createNoticeSender(deps: NoticeDeps): NoticeSender {
-	let failing = false;
+	// The addresses whose last notice failed: a new address's first failure is always logged.
+	const failing = new Set<string>();
 	return {
 		async send(body) {
 			const address = readWebhook(deps.paths);
@@ -123,13 +159,13 @@ export function createNoticeSender(deps: NoticeDeps): NoticeSender {
 				why = err instanceof Error ? err.message : String(err);
 			}
 			if (why === null) {
-				failing = false;
+				failing.delete(address);
 				return true;
 			}
 			// An error that quotes the address must not put its secret in the log.
-			const masked = maskAddress(address);
-			if (!failing) deps.log(`Could not send the notice to ${masked}: ${why.replaceAll(address, masked)}`);
-			failing = true;
+			if (!failing.has(address))
+				deps.log(`Could not send the notice to ${maskAddress(address)}: ${scrub(why, address)}`);
+			failing.add(address);
 			return false;
 		},
 	};

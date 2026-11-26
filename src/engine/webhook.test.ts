@@ -4,7 +4,14 @@ import { join } from "node:path";
 import type { FetchLike } from "./github";
 import { readWebhook, writeWebhook } from "./store";
 import { tempHome } from "./testkit";
-import { addressProblem, createNoticeSender, maskAddress, type NoticeBody, onHomeNetwork } from "./webhook";
+import {
+	addressProblem,
+	createNoticeSender,
+	destinationOf,
+	maskAddress,
+	type NoticeBody,
+	onHomeNetwork,
+} from "./webhook";
 
 let t: ReturnType<typeof tempHome>;
 beforeEach(() => {
@@ -155,4 +162,49 @@ test("a receiver that never answers is given up after the timeout, never retried
 	expect(calls).toBe(1);
 	expect(lines).toHaveLength(1);
 	expect(lines[0]).toStartWith("Could not send the notice to https://ntfy.sh/…:");
+});
+
+test("the destination keeps scheme, host, port and path, and masks user info, query and fragment", () => {
+	expect(destinationOf("https://ntfy.sh/topic?auth=abc")).toBe("https://ntfy.sh/topic?…");
+	expect(destinationOf(" https://me:pw@hooks.example.com:8443/in/x#frag ")).toBe(
+		"https://…@hooks.example.com:8443/in/x#…",
+	);
+	expect(destinationOf("http://nas:2586")).toBe("http://nas:2586/");
+	expect(destinationOf("not a url")).toBe("…");
+});
+
+test("an error that quotes the normalised address never carries its path or query into the log", async () => {
+	// Written with an upper-case host and a default port: the parser's href differs from the text kept.
+	writeWebhook(t.paths, "HTTPS://NTFY.sh:443/secret-topic?auth=tok");
+	const lines: string[] = [];
+	const sender = createNoticeSender({
+		paths: t.paths,
+		fetch: async (url) => {
+			const u = new URL(url);
+			throw new Error(`Unable to connect to ${u.href}, and to ${u.host}${u.pathname}${u.search}`);
+		},
+		log: (l) => lines.push(l),
+	});
+	expect(await sender.send(BODY)).toBe(false);
+	expect(lines).toHaveLength(1);
+	expect(lines[0]).not.toContain("secret-topic");
+	expect(lines[0]).not.toContain("tok");
+});
+
+test("each address has its own failure streak: a new address's first failure is logged", async () => {
+	const lines: string[] = [];
+	const sender = createNoticeSender({
+		paths: t.paths,
+		fetch: async () => new Response("", { status: 503 }),
+		log: (l) => lines.push(l),
+	});
+	writeWebhook(t.paths, "https://a.example.com/x");
+	await sender.send(BODY);
+	await sender.send(BODY);
+	writeWebhook(t.paths, "https://b.example.com/x");
+	await sender.send(BODY);
+	expect(lines).toEqual([
+		"Could not send the notice to https://a.example.com/…: it answered HTTP 503",
+		"Could not send the notice to https://b.example.com/…: it answered HTTP 503",
+	]);
 });

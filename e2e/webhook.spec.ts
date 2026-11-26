@@ -35,10 +35,15 @@ test("a notice address is refused when it is not one or is plain http to the int
 	await expect(page.getByTestId("webhook-remove")).toHaveText("Remove address");
 	await page.getByTestId("webhook-remove").click();
 	await expect(page.getByTestId("webhook-input")).toHaveValue("");
+	// A private 172.16/12 address takes plain http; a bare origin shows with no mask.
+	await input.fill("http://172.20.0.5:2586");
+	await page.getByTestId("webhook-save").click();
+	await expect(page.getByTestId("webhook-kept")).toHaveText("Notices go to http://172.20.0.5:2586/");
+	await page.getByTestId("webhook-remove").click();
 	await expect(page.getByTestId("setting-webhook-run")).toHaveCount(0);
 });
 
-test("an import whose file names a notice address shows the whole address and keeps it only on Import", async ({
+test("an import whose file names a notice address shows where it sends, its query masked, and keeps it only on Import", async ({
 	page,
 }) => {
 	await load(page, "fixture&webhook=import");
@@ -47,7 +52,8 @@ test("an import whose file names a notice address shows the whole address and ke
 	await expect(page.getByTestId("import-webhook")).toHaveText(
 		"It sends Upkeep's notices, with the app list, to this address:",
 	);
-	await expect(page.getByTestId("import-webhook-address")).toHaveText("https://ntfy.example.net/upkeep-home?tpl=yes");
+	await expect(page.getByTestId("import-webhook-address")).toHaveText("https://ntfy.example.net/upkeep-home?…");
+	await expect(page.getByTestId("settings")).not.toContainText("tpl=yes");
 	await expect(page.getByTestId("webhook-kept")).toHaveCount(0);
 	await page.getByTestId("import-confirm").click();
 	await expect(page.getByTestId("import-webhook")).toHaveCount(0);

@@ -571,13 +571,17 @@ engine.subscribe((event) => {
 	if (before === "installing" && phase === "summary") {
 		const done = engine.snapshot();
 		const said = runNotices(done.run.results, trayLanguage()).join("\n");
-		if (done.settings.webhookRun && said) void notices.send(webhookBody("run", done, said, hostname()));
+		// Never awaited by the run; a quit after it waits for it (10 s at most), so the POST is not cut off.
+		const sent =
+			done.settings.webhookRun && said
+				? notices.send(webhookBody("run", done, said, hostname()))
+				: Promise.resolve(false);
 		// With no window to read the summary in, say it once and clear it.
 		if (!win?.isVisible() || quitAfterRun) {
 			announceRun();
 			engine.dismissSummary();
 		}
-		if (quitAfterRun && !extras.installing()) quit();
+		if (quitAfterRun && !extras.installing()) void sent.finally(() => quit());
 	}
 });
 
