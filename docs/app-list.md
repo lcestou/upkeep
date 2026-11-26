@@ -91,7 +91,7 @@ For 3 days after Upkeep updates an app, each check (the timer, or Check again) a
 
 A flagged row shows "Crashed since update", "Service failing since update" or "Not answering since update". Its details say what was seen and offer "Go back to <version>", which restores the restore point of the version before the update, and "It's fine", which ends the watch. Upkeep never goes back by itself. `upkeep status` and `upkeep check` print a `WATCH:` line for a flagged app. With `--json`, `status` lists them under `watch`, and `check` prints one `{"key": …, "watch": …}` object for each after the rows.
 
-Once a sign is up, Upkeep stops reading that app. The sign stays until you answer it, restore, update the app again, or the 3 days end. A service that was already failed before the update is not counted as failing since it.
+Once a sign is up, Upkeep stops reading that app. The sign stays until you answer it, restore, update the app again, or the 3 days end. A service that was already failed before the update is not counted as failing since it, until it has been seen running again. After the 3 days, the restore points in the app's pane still offer Restore, which is the way back.
 
 ## Menu entries for AppImages
 

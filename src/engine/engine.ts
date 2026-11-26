@@ -729,7 +729,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			note: spec.note,
 			dest: spec.dest,
 			also: alsoNotes.get(spec.key),
-			watch: state.settings.watchUpdates ? watchOf(state.probation[spec.key]) : undefined,
+			watch: state.settings.watchUpdates ? watchOf(state.probation[spec.key], deps.now()) : undefined,
 			stages: stageWeights(
 				history,
 				spec.key,
@@ -1010,7 +1010,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		for (const { spec, was, p } of seen) {
 			if (p.sign && !was.sign) say(spec.key, `Watching ${spec.name}: ${p.sign} sign since ${p.to ?? "the update"}`);
 			const a = apps.get(spec.key);
-			const w = watchOf(p);
+			const w = watchOf(p, now);
 			if (a && JSON.stringify(a.watch) !== JSON.stringify(w)) {
 				a.watch = w;
 				emitApp(a);
@@ -1853,7 +1853,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			// Watch updated apps turned off hides every sign at once, and turned on shows the kept ones again.
 			if (patch.watchUpdates !== undefined)
 				for (const a of apps.values()) {
-					const w = s.settings.watchUpdates ? watchOf(s.probation[a.key]) : undefined;
+					const w = s.settings.watchUpdates ? watchOf(s.probation[a.key], deps.now()) : undefined;
 					if (JSON.stringify(a.watch) !== JSON.stringify(w)) {
 						a.watch = w;
 						emitApp(a);

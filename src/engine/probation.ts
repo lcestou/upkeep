@@ -229,7 +229,7 @@ export type LookDeps = { run: Run; fetch: FetchLike; paths: Pick<Paths, "home">;
  * is the one kept; crashes are looked at first.
  */
 export async function look(spec: AppSpec, p: Probation, crashes: Crash[], deps: LookDeps): Promise<Probation> {
-	const next: Probation = { ...p, restarts: { ...p.restarts } };
+	const next: Probation = { ...p, restarts: { ...p.restarts }, failed: [...p.failed] };
 	const at = Date.parse(p.at);
 	const c = crashSign(crashes, crashPaths(spec, deps.paths), at, deps.now.getTime());
 	if (c.after > 0) next.crashes = c.after;
@@ -238,7 +238,10 @@ export async function look(spec: AppSpec, p: Probation, crashes: Crash[], deps: 
 	const read = await Promise.all(units.map((u) => readUnit(deps.run, u)));
 	for (const [i, u] of units.entries()) {
 		const r = read[i];
-		if (r && serviceSign(r, p.restarts[unitKey(u)], p.failed.includes(unitKey(u)))) next.sign ??= "service";
+		if (!r) continue;
+		if (serviceSign(r, p.restarts[unitKey(u)], p.failed.includes(unitKey(u)))) next.sign ??= "service";
+		// Seen out of failed since the update: a later failure is the new version's, so it counts.
+		if (r.active !== "failed") next.failed = next.failed.filter((k) => k !== unitKey(u));
 	}
 	if (spec.health) {
 		const ok = await healthAnswers(deps.fetch, spec.health, deps.healthTimeoutMs);
@@ -248,9 +251,12 @@ export async function look(spec: AppSpec, p: Probation, crashes: Crash[], deps: 
 	return next;
 }
 
-/** The sign a row shows for a probation record, only while one is up; versions and times as the record keeps them. */
-export function watchOf(p: Probation | undefined): Watch | undefined {
-	if (!p?.sign) return undefined;
+/**
+ * The sign a row shows for a probation record, only while one is up and its three days have not run out at now (a
+ * record kept past them until the next check shows nothing); versions and times as the record keeps them.
+ */
+export function watchOf(p: Probation | undefined, now: Date): Watch | undefined {
+	if (!p?.sign || expired(p, now)) return undefined;
 	const w: Watch = { sign: p.sign, from: p.from, to: p.to, at: p.at };
 	if (p.sign === "crash" && p.crashes) w.crashes = p.crashes;
 	return w;

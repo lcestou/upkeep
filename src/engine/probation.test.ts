@@ -235,9 +235,12 @@ test("a probation runs out after 3 days, and only a sign shows on the row", () =
 	const p: Probation = { at: new Date(AT).toISOString(), from: "1.0", to: "1.1", restarts: {}, failed: [], misses: 0 };
 	expect(expired(p, new Date(AT + 71 * HOUR))).toBe(false);
 	expect(expired(p, new Date(AT + 73 * HOUR))).toBe(true);
-	expect(watchOf(undefined)).toBeUndefined();
-	expect(watchOf(p)).toBeUndefined();
-	expect(watchOf({ ...p, sign: "crash", crashes: 2 })).toEqual({
+	const now = new Date(AT + HOUR);
+	expect(watchOf(undefined, now)).toBeUndefined();
+	expect(watchOf(p, now)).toBeUndefined();
+	// Past the three days a kept sign shows nothing, before the next check takes the record away.
+	expect(watchOf({ ...p, sign: "crash", crashes: 2 }, new Date(AT + 73 * HOUR))).toBeUndefined();
+	expect(watchOf({ ...p, sign: "crash", crashes: 2 }, now)).toEqual({
 		sign: "crash",
 		from: "1.0",
 		to: "1.1",
@@ -245,5 +248,38 @@ test("a probation runs out after 3 days, and only a sign shows on the row", () =
 		crashes: 2,
 	});
 	// A count left from before carries no meaning on another sign.
-	expect(watchOf({ ...p, sign: "service", crashes: 1 })).toEqual({ sign: "service", from: "1.0", to: "1.1", at: p.at });
+	expect(watchOf({ ...p, sign: "service", crashes: 1 }, now)).toEqual({
+		sign: "service",
+		from: "1.0",
+		to: "1.1",
+		at: p.at,
+	});
+});
+
+test("a unit failed at the update that comes up again counts its next failure, and the record keeps that", async () => {
+	let active = "active";
+	const { run } = strictRun((argv) =>
+		argv[0] === "systemctl" ? ok(`ActiveState=${active}\nNRestarts=0\n`) : undefined,
+	);
+	const fetch: FetchLike = async () => new Response("");
+	const s = spec({ restart: ["systemctl", "restart", "tool"] });
+	const deps = { run, fetch, paths: t.paths, now: new Date(AT + HOUR) };
+	const start: Probation = {
+		at: new Date(AT).toISOString(),
+		from: "1.0",
+		to: "1.1",
+		restarts: { "system:tool": 0 },
+		failed: ["system:tool"],
+		misses: 0,
+	};
+	const up = await look(s, start, [], deps);
+	expect(up.failed).toEqual([]);
+	expect(up.sign).toBeUndefined();
+	expect(start.failed).toEqual(["system:tool"]);
+	active = "failed";
+	expect(await look(s, up, [], deps)).toMatchObject({ sign: "service" });
+	// Still failed as it was at the update: no sign, and it stays in failed.
+	const still = await look(s, start, [], deps);
+	expect(still).toMatchObject({ failed: ["system:tool"] });
+	expect(still.sign).toBeUndefined();
 });

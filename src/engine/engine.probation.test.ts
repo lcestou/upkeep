@@ -330,3 +330,16 @@ test("removing an app drops its probation", async () => {
 	expect((await engine.removeApp("tool")).ok).toBe(true);
 	expect(loadState(t.paths).probation).toEqual({});
 });
+
+test("a unit failed at the update, then seen running, counts when it fails again", async () => {
+	const { engine, m } = await setup();
+	m.active = "failed";
+	await update(engine);
+	m.active = "active";
+	await engine.check();
+	expect(loadState(t.paths).probation.tool?.failed).toEqual([]);
+	expect(row(engine)?.watch).toBeUndefined();
+	m.active = "failed";
+	await engine.check();
+	expect(row(engine)?.watch?.sign).toBe("service");
+});
