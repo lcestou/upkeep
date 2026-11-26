@@ -82,6 +82,11 @@ export type AppSpec = {
 	prerelease?: boolean;
 	/** One line shown in the row's details. */
 	note?: string;
+	/**
+	 * An http or https address that answers when the app is healthy. Read with one GET at each check while the app is
+	 * on probation after an update; two misses in a row put up a sign. Never in a catalogue table.
+	 */
+	health?: string;
 	/** Versions never offered: a check passes over them to the newest release that is not listed. Needs bad_reason. */
 	bad_versions?: string[];
 	/** Why bad_versions are listed, shown in the row's details whenever one is passed over. */
@@ -310,8 +315,19 @@ export type AppState = {
 	settles?: string;
 	/** When the person's pause ends, as an ISO time, while status is held because of it. */
 	paused?: string;
+	/** Set while the app is on probation and a sign is up; absent otherwise. */
+	watch?: Watch;
 	held: boolean;
 };
+
+/** What Upkeep saw in the days after it updated an app: crashes, a failing service, or a health address gone quiet. */
+export type WatchSign = "crash" | "service" | "health";
+
+/**
+ * An app on probation with a sign up: what was seen, the versions before and after the update, when the update ended
+ * (ISO), and for a crash how many since.
+ */
+export type Watch = { sign: WatchSign; from: string | null; to: string | null; at: string; crashes?: number };
 
 /** One release a person may install from Install another version. */
 export type VersionChoice = { tag: string; version: string; publishedAt: string; prerelease: boolean };
@@ -404,6 +420,8 @@ export type Settings = {
 	webhookReady: boolean;
 	/** With a notice address kept: post each run's result when it ends. */
 	webhookRun: boolean;
+	/** For 3 days after an update, each check reads the app's crash reports, service state and health address. */
+	watchUpdates: boolean;
 };
 
 /**
@@ -632,6 +650,8 @@ export type Requests = {
 	/** Pauses an app's updates for days, or ends its pause early with null. */
 	setPause: { params: { key: string; days: number | null }; response: { ok: boolean } };
 	setAuto: { params: { key: string; auto: boolean }; response: { ok: boolean } };
+	/** It's fine: ends the app's probation and takes its sign down. */
+	endWatch: { params: { key: string }; response: { ok: boolean } };
 	/** Follows pre-releases or not, then checks the app again. */
 	setPrerelease: { params: { key: string; prerelease: boolean }; response: { ok: boolean } };
 	/** The newest releases of a listable app, asked only when the person opens the list. */

@@ -14,6 +14,7 @@ import {
 	writeInflight,
 } from "./engine/store";
 import type { FetchLike } from "./engine/github";
+import { localDay } from "./engine/status";
 import { realRun, recordingRun, script, tempHome } from "./engine/testkit";
 import type { AppState, Suggestion } from "./shared/types";
 
@@ -60,9 +61,9 @@ function deps(): EngineDeps {
 	writeFileSync(seed, MANIFEST);
 	script(join(t.paths.home, ".local/bin/borg"), 'echo "borg 1.4.1"');
 	script(join(t.paths.home, ".local/bin/bat"), 'echo "bat 0.26.1"');
-	// gh, and the system's own lists (Flatpak, Snap, apt), read as not there: no test reads the machine it runs on.
+	// gh, the system's own lists (Flatpak, Snap, apt) and the journal read as not there: no test reads the machine it runs on.
 	const { run } = recordingRun(t.paths, (argv) =>
-		["gh", "flatpak", "snap", "apt-cache"].includes(argv[0] ?? "")
+		["gh", "flatpak", "snap", "apt-cache", "journalctl"].includes(argv[0] ?? "")
 			? { code: argv[0] === "gh" ? 1 : 127, stdout: "", stderr: "", timedOut: false }
 			: undefined,
 	);
@@ -88,6 +89,22 @@ test("check --json prints one AppState per line", async () => {
 	await main(["check", "--json"], deps(), (l) => out.push(l));
 	const rows = out.map((l) => JSON.parse(l) as AppState);
 	expect(rows.map((r) => r.key).toSorted()).toEqual(["bat", "borg"]);
+});
+
+test("check ends with a WATCH line, or a {key, watch} object, for an app with a sign since its update", async () => {
+	const at = new Date(Date.now() - 3_600_000).toISOString();
+	updateState(t.paths, (s) => {
+		s.probation.bat = { at, from: "0.26.0", to: "0.26.1", restarts: {}, misses: 0, sign: "crash", crashes: 1 };
+	});
+	const out: string[] = [];
+	await main(["check"], deps(), (l) => out.push(l));
+	expect(out.at(-1)).toBe(`  WATCH:  bat 0.26.1 crashed 1 time since the update from 0.26.0 on ${localDay(at)}`);
+	const json: string[] = [];
+	await main(["check", "--json"], deps(), (l) => json.push(l));
+	expect(JSON.parse(json.at(-1) ?? "")).toEqual({
+		key: "bat",
+		watch: { sign: "crash", from: "0.26.0", to: "0.26.1", at, crashes: 1 },
+	});
 });
 
 test("a release inside the wait: check says HELD, --all passes it by, and naming the app installs it", async () => {

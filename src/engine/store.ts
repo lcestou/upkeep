@@ -17,6 +17,7 @@ import { isLanguage } from "../shared/languages";
 import type { AppKind, HistoryRow, LogLine, Settings, Stage } from "../shared/types";
 import type { RepoId } from "./github";
 import type { Paths } from "./paths";
+import type { Probation } from "./probation";
 
 export type State = {
 	skip: Record<string, string>;
@@ -46,7 +47,44 @@ export type State = {
 	origin: Record<string, Origin>;
 	/** Apps held because their repo's name now answers with another repository: key to it as host/owner/name. */
 	swapped: Record<string, string>;
+	/** Apps Upkeep updated in the last days, watched for crashes and a failing service until the probation ends. */
+	probation: Record<string, Probation>;
 };
+
+/** A version a probation keeps: a string, or null for one a check could not read. */
+const isVersion = (x: unknown) => typeof x === "string" || x === null;
+
+/** The signs a probation may carry; anything else a hand edit left reads as none. */
+const SIGNS = new Set(["crash", "service", "health"] as const);
+
+/**
+ * The entries with a readable update time, two versions (or null) and a miss count; a baseline that is not a number
+ * is dropped by itself, and a sign or crash count that does not read is left out. Anything else a hand edit left is
+ * dropped.
+ */
+function probationsOf(v: unknown): Record<string, Probation> {
+	const out: Record<string, Probation> = {};
+	for (const [key, p] of Object.entries(obj<unknown>(v))) {
+		const r = obj<unknown>(p);
+		if (typeof r.at !== "string" || Number.isNaN(Date.parse(r.at)) || !isVersion(r.from) || !isVersion(r.to)) continue;
+		const restarts: Record<string, number> = {};
+		for (const [u, n] of Object.entries(obj<unknown>(r.restarts))) if (typeof n === "number") restarts[u] = n;
+		const rec: Probation = {
+			at: r.at,
+			// SAFETY: isVersion() just held for both: each is a string or null.
+			from: r.from as string | null,
+			// SAFETY: as above.
+			to: r.to as string | null,
+			restarts,
+			misses: typeof r.misses === "number" ? r.misses : 0,
+		};
+		const sign = [...SIGNS].find((s) => s === r.sign);
+		if (sign) rec.sign = sign;
+		if (typeof r.crashes === "number") rec.crashes = r.crashes;
+		out[key] = rec;
+	}
+	return out;
+}
 
 /**
  * A repo's ids as GitHub gave them, with repo, the table's own repo field when they were read: a table that names
@@ -122,6 +160,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	waitUnmetered: false,
 	webhookReady: true,
 	webhookRun: false,
+	watchUpdates: true,
 };
 
 /** The waits Settings offers, in days. */
@@ -149,6 +188,7 @@ export function clampSettings(s: Partial<Settings>): Settings {
 		waitUnmetered: typeof s.waitUnmetered === "boolean" ? s.waitUnmetered : DEFAULT_SETTINGS.waitUnmetered,
 		webhookReady: typeof s.webhookReady === "boolean" ? s.webhookReady : DEFAULT_SETTINGS.webhookReady,
 		webhookRun: typeof s.webhookRun === "boolean" ? s.webhookRun : DEFAULT_SETTINGS.webhookRun,
+		watchUpdates: typeof s.watchUpdates === "boolean" ? s.watchUpdates : DEFAULT_SETTINGS.watchUpdates,
 	};
 }
 
@@ -210,6 +250,7 @@ export function loadState(paths: Paths): State {
 		changed: obj<string>(raw.changed),
 		origin: originsOf(raw.origin),
 		swapped: obj<string>(raw.swapped),
+		probation: probationsOf(raw.probation),
 	};
 }
 

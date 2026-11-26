@@ -166,6 +166,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			waitUnmetered: false,
 			webhookReady: true,
 			webhookRun: false,
+			watchUpdates: true,
 		},
 		notified: "",
 		restart: {},
@@ -177,6 +178,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		changed: {},
 		origin: {},
 		swapped: {},
+		probation: {},
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";

@@ -75,6 +75,24 @@ asset_aarch64 = 'aarch64-unknown-linux-gnu\.tar\.gz$'
 
 Upkeep reads the machine's architecture once at start and uses only that machine's pattern. An app added on an arm64 machine is written with `asset_aarch64`. A list moved to a machine of the other architecture (Export and Import) keeps its tables, and an app whose table has no pattern for that machine shows "The table for … names no release file for … machines." instead of installing another architecture's file. Add the missing pattern by hand to fix it.
 
+## Watching an app after an update
+
+For 3 days after Upkeep updates an app, each check (the timer, or Check again) also looks at how the new version is doing. It starts no timer or process of its own, and it only reads. Settings, Safety, "Watch updated apps for 3 days" turns it off, and then nothing is read.
+
+- **Crashes.** Upkeep reads the core dumps systemd-coredump logged in the journal (`journalctl`) for the app's own installed files. It counts the crashes since the update and the crashes in the same length of time before it, and flags the app only when there are more after than before. A crash of a Chromium or Electron helper process (its command line holds `--type=`) does not count. Where the journal holds no core dumps, or Upkeep may not read it, there is nothing to report. An AppImage runs from its own mount, so its crashes are not matched yet.
+- **Service.** For a table whose `restart` or `serve` entries drive a unit with `systemctl`, Upkeep reads the unit's `ActiveState` and `NRestarts`. It flags the app when the unit is failed, or when it restarted 3 or more times since the update.
+- **Health address.** `health` names an http or https address that answers while the app is healthy:
+
+  ```toml
+  health = "http://127.0.0.1:8080/health"
+  ```
+
+  Each check sends one GET with a 5-second limit. Two misses in a row flag the app, since one miss can be a restart. A table in the catalogue may not carry `health`, and an imported list that names one asks first.
+
+A flagged row shows "Crashed since update", "Service failing since update" or "Not answering since update". Its details say what was seen and offer "Go back to <version>", which restores the restore point of the version before the update, and "It's fine", which ends the watch. Upkeep never goes back by itself. `upkeep status` and `upkeep check` print a `WATCH:` line for a flagged app. With `--json`, `status` lists them under `watch`, and `check` prints one `{"key": …, "watch": …}` object for each after the rows.
+
+A sign stays until you answer it, restore, or update the app again. A watch with no sign ends after 3 days.
+
 ## Menu entries for AppImages
 
 An AppImage row's pane has a **Show in the app menu** switch, off until you turn it on. On, Upkeep reads the AppImage's own `.desktop` file and its icon with `--appimage-extract` into a temp folder, following a top-level file that links further into the image. It asks only a type-2 AppImage, and never starts the AppImage any other way. Each `Exec=` is pointed at the AppImage's `dest`, keeping an `env VAR=value` prefix and the arguments it had (such as `%U`). `TryExec=` and `DBusActivatable=` are dropped, since both would hide or break an entry that starts the AppImage. The entry is written as `upkeep-<key>.desktop` in `$XDG_DATA_HOME/applications` (`~/.local/share/applications` by default). The icon, a PNG or SVG, goes to `$XDG_DATA_HOME/icons/upkeep-<key>.<ext>`, and the entry names it by its full path. Upkeep then runs `update-desktop-database` on that folder when the system has it.

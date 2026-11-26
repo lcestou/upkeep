@@ -156,6 +156,8 @@ export function commandsOf(spec: AppSpec): string[] {
 		tests("serve test", s.test);
 	}
 	tests("test", spec.test);
+	// Read at every check while the app is on probation after an update: a file naming one makes Upkeep ask it.
+	if (spec.health) out.push(`health: GET ${spec.health}`);
 	for (const p of spec.place ?? []) out.push(`place: ${p.from} -> ${p.to}`);
 	for (const c of spec.config ?? []) out.push(`config: ${c.file} ${c.key ?? `${c.array} ${c.flag}`}`);
 	// A restore swaps these folders for the point's copies, so a file naming them chooses what a restore overwrites.

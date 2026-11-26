@@ -508,6 +508,7 @@ test("settings and auto are kept in state", async () => {
 		waitUnmetered: false,
 		webhookReady: true,
 		webhookRun: false,
+		watchUpdates: true,
 	});
 	engine.setAuto("bat", true);
 	expect(engine.snapshot().apps.find((a) => a.key === "bat")?.auto).toBe(true);

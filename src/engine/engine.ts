@@ -92,6 +92,7 @@ import {
 import { launchDetached, restartApp, terminate } from "./restart";
 import { isNewer, isPrerelease } from "./version";
 import { notesSpan } from "./notes";
+import { expired, look, type Probation, readCrashes, restartBaseline, watchOf } from "./probation";
 
 export type EngineDeps = {
 	/** Ends a process tree during recovery. Default killTree; tests pass a recorder so no real pid is signalled. */
@@ -175,6 +176,8 @@ export type Engine = {
 	isHeld(key: string): boolean;
 	/** False, and nothing written, for a key not in the list. */
 	setAuto(key: string, auto: boolean): boolean;
+	/** It's fine: ends the app's probation and takes its sign down. False for a key not in the list. */
+	endWatch(key: string): boolean;
 	/** Writes the person's pre-release switch, then checks the app again when nothing else runs. False for an app whose releases cannot be listed. */
 	setPrerelease(key: string, prerelease: boolean): boolean;
 	/** The newest releases of an app whose releases can be listed, asked of its forge only now. */
@@ -705,6 +708,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			note: spec.note,
 			dest: spec.dest,
 			also: alsoNotes.get(spec.key),
+			watch: state.settings.watchUpdates ? watchOf(state.probation[spec.key]) : undefined,
 			stages: stageWeights(
 				history,
 				spec.key,
@@ -875,6 +879,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				done();
 			}),
 		);
+		await watchApps(list);
 		lastOffline = offlineIn(list, found);
 		if (quietOffline && lastOffline) say(null, "No network yet: the rows keep what the last check found");
 		else checkedAt = deps.now().toISOString();
@@ -888,6 +893,78 @@ export function createEngine(deps: EngineDeps): Engine {
 		run = { ...run, id: null, phase: "idle", index: run.total, currentKey: null };
 		emitRun();
 		emitMeta();
+	}
+
+	/**
+	 * Looks once at each app in list that is on probation: one journal read for every app's crashes, then each app's
+	 * units and health address (probation.look). Nothing is read while Settings' Watch updated apps is off or no app
+	 * in list is on probation. A probation past its three days with no sign ends here, setting on or off; one with a
+	 * sign stays until the person answers, but is not read again. A sign that is new is logged and shown on the row.
+	 */
+	async function watchApps(list: AppSpec[]): Promise<void> {
+		const state = loadState(paths);
+		const now = deps.now();
+		const on = list.flatMap((s) => {
+			const p = state.probation[s.key];
+			return p ? [{ spec: s, p }] : [];
+		});
+		const over = on.filter(({ p }) => expired(p, now) && !p.sign).map(({ spec }) => spec.key);
+		if (over.length > 0)
+			updateState(paths, (s) => {
+				for (const key of over) delete s.probation[key];
+			});
+		if (!state.settings.watchUpdates) return;
+		const live = on.filter(({ p }) => !expired(p, now));
+		if (live.length === 0) return;
+		// Back as far before the oldest update as it is ago, so each app's before and after spans are both read.
+		const oldest = Math.min(...live.map(({ p }) => Date.parse(p.at)));
+		const crashes = await readCrashes(deps.run, oldest - (now.getTime() - oldest));
+		const seen = await Promise.all(
+			live.map(async ({ spec, p }) => ({
+				spec,
+				was: p,
+				p: await look(spec, p, crashes, { run: deps.run, fetch: deps.fetch, paths, now }),
+			})),
+		);
+		updateState(paths, (s) => {
+			// A record replaced meanwhile (an update from the command line) is not written over.
+			for (const { spec, p } of seen) if (s.probation[spec.key]?.at === p.at) s.probation[spec.key] = p;
+		});
+		for (const { spec, was, p } of seen) {
+			if (p.sign && !was.sign) say(spec.key, `Watching ${spec.name}: ${p.sign} sign since ${p.to ?? "the update"}`);
+			const a = apps.get(spec.key);
+			const w = watchOf(p);
+			if (a && JSON.stringify(a.watch) !== JSON.stringify(w)) {
+				a.watch = w;
+				emitApp(a);
+			}
+		}
+	}
+
+	/** Ends an app's probation in state and takes its row's sign down. */
+	function endProbation(key: string): void {
+		updateState(paths, (s) => {
+			delete s.probation[key];
+		});
+		const a = apps.get(key);
+		if (a?.watch) {
+			a.watch = undefined;
+			emitApp(a);
+		}
+	}
+
+	/**
+	 * Starts an app's probation after an update went through, with its units' restart counts read now as the
+	 * baseline. A new update replaces the record. Nothing is read or kept while Watch updated apps is off, and an app
+	 * with no version (Claude Code's plugins) is never watched.
+	 */
+	async function startProbation(spec: AppSpec, from: string | null, to: string | null): Promise<void> {
+		if (spec.versionless || !loadState(paths).settings.watchUpdates) return;
+		const restarts = await restartBaseline(deps.run, spec);
+		const rec: Probation = { at: deps.now().toISOString(), from, to, restarts, misses: 0 };
+		updateState(paths, (s) => {
+			s.probation[spec.key] = rec;
+		});
 	}
 
 	function finishApp(app: AppState, o: Omit<Outcome, "stages">): void {
@@ -1212,7 +1289,11 @@ export function createEngine(deps: EngineDeps): Engine {
 					restartToApply: false,
 					detail: outcome.detail ?? (WATCHED.has(spec.kind) ? MESSAGES.oldCopyRuns(spec.name) : undefined),
 				};
+			// A new version starts a new probation: the old one's sign was about the version just replaced.
+			if (outcome.result === "done") app.watch = undefined;
 			finishApp(app, outcome);
+			// oxlint-disable-next-line no-await-in-loop -- the baseline is read right after this app's own install
+			if (outcome.result === "done") await startProbation(spec, from, outcome.installed);
 			if (outcome.result === "done" && chosen.delete(spec.key)) {
 				picked.add(spec.key);
 				skipIfBehind(spec, app, from);
@@ -1460,6 +1541,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				updateState(paths, (st) => {
 					delete st.restart[key];
 				});
+				// Going back answers the probation: the version it watched is gone.
+				endProbation(key);
 				return { ok: true };
 			} finally {
 				releaseLock(paths);
@@ -1557,6 +1640,11 @@ export function createEngine(deps: EngineDeps): Engine {
 				a.auto = auto;
 				emitApp(a);
 			}
+			return true;
+		},
+		endWatch(key) {
+			if (!specOf(key)) return false;
+			endProbation(key);
 			return true;
 		},
 		setPrerelease(key, prerelease) {
@@ -1781,6 +1869,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				delete s.changed[key];
 				delete s.origin[key];
 				delete s.swapped[key];
+				delete s.probation[key];
 			});
 			emit({ type: "removed", key });
 			return { ok: true };
@@ -1913,6 +2002,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			emitApp(app);
 			armSettle();
 		}
+		endProbation(spec.key);
 		return { ok: true };
 	}
 

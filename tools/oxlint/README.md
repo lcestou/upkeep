@@ -15,6 +15,7 @@ Exemptions, all in `.oxlintrc.json` under `overrides`:
   - `src/engine/extras/system.ts` (cinnamon-spice-updater's JSON)
   - `src/engine/backup.ts` (a restore point's `meta.json`)
   - `src/engine/kinds/plugins.ts` (Claude Code's plugin registry and its `claude plugin update --json` answers)
+  - `src/engine/probation.ts` (journalctl's JSON lines for systemd-coredump's entries)
   - `src/bun/window-size.ts` (the saved window size)
   - `src/bun/dev-script.ts` (a development build's scripted steps)
 

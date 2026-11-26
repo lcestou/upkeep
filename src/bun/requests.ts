@@ -121,6 +121,7 @@ export function upkeepRequests(
 		setHold: ({ key, held }) => ({ ok: engine.setHold(key, held) }),
 		setPause: ({ key, days }) => ({ ok: engine.setPause(key, days) }),
 		setAuto: ({ key, auto }) => ({ ok: engine.setAuto(key, auto) }),
+		endWatch: ({ key }) => ({ ok: engine.endWatch(key) }),
 		setPrerelease: ({ key, prerelease }) => ({ ok: engine.setPrerelease(key, prerelease) }),
 		versions: ({ key }) => engine.versions(key),
 		releaseNotes: ({ key }) => engine.releaseNotes(key),

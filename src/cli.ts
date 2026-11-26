@@ -15,7 +15,7 @@ import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
 import { CATALOGUE_URL } from "./bun/about";
-import { heldLine, localDay, metricsText, statusLines, statusOf } from "./engine/status";
+import { heldLine, localDay, metricsText, statusLines, statusOf, watchLine } from "./engine/status";
 import { claimLock, formatLogLine, loadState, lockHeld, readInflight, releaseLock } from "./engine/store";
 import { exportSetup, importSetup } from "./engine/transfer";
 import pkg from "../package.json";
@@ -76,7 +76,10 @@ function eventLine(e: EngineEvent): string | null {
 	return null;
 }
 
-/** Prints one line per app as its check ends. Problems are lines, not a failed check: it exits 0. */
+/**
+ * Prints one line per app as its check ends, then a WATCH line for each app with a sign since its update (in JSON,
+ * one {key, watch} object each). Problems are lines, not a failed check: it exits 0.
+ */
 async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	const printed = new Set<string>();
 	const off = engine.subscribe((e) => {
@@ -87,6 +90,9 @@ async function check(engine: Engine, json: boolean, out: Out): Promise<number> {
 	await engine.check();
 	await engine.idle();
 	off();
+	// After every row: the look at apps on probation runs once the rows are in.
+	for (const a of engine.snapshot().apps)
+		if (a.watch) out(json ? JSON.stringify({ key: a.key, watch: a.watch }) : watchLine({ ...a, watch: a.watch }));
 	return 0;
 }
 

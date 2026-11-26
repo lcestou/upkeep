@@ -26,10 +26,13 @@ export const GROUP_ORDER: GroupId[] = ["run", "ready", "manual", "problem", "hel
 
 /**
  * Apps in a run form their own group until the summary is dismissed, so rows do not jump mid-run.
- * A row being checked again stays in the group of what it was before the check (prior).
+ * A row being checked again stays in the group of what it was before the check (prior). A fresh row with a watch
+ * sign goes to Needs a look.
  */
 export function groupOf(app: AppState, prior?: AppStatus): GroupId {
 	const status = app.status === "checking" && prior ? prior : app.status;
+	// An app with a sign since its update needs a look: folded away in Fresh, the sign would go unseen.
+	if (status === "fresh" && app.watch) return "problem";
 	// An update that waits on a restart keeps its own group, open above Fresh, until the app restarts.
 	if (status === "fresh" && app.restartToApply) return "restart";
 	switch (status) {
@@ -110,6 +113,7 @@ export class Model {
 		waitUnmetered: false,
 		webhookReady: true,
 		webhookRun: false,
+		watchUpdates: true,
 	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
 	chrome = $state<WindowChrome | null>(null);

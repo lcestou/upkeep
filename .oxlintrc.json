@@ -65,6 +65,7 @@
 				"src/engine/extras/system.ts",
 				"src/engine/backup.ts",
 				"src/engine/kinds/plugins.ts",
+				"src/engine/probation.ts",
 				"src/bun/window-size.ts",
 				"src/bun/dev-script.ts"
 			],
