@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING, settlesAt } from "./engine";
 import type { FetchLike } from "./github";
@@ -599,6 +600,20 @@ test("an interrupted install shows on its row at the next check", async () => {
 		detail: "An update was interrupted. Restore 10.5.1 from this row.",
 	});
 	expect(Bun.file(join(bin, "fd.upkeep-new")).size).toBe(0);
+});
+
+test("an interrupted install still shows on its row when the last check's rows were kept", async () => {
+	const d = await deps();
+	await createEngine(d).check();
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	writeFileSync(join(bin, "fd.upkeep-new"), "half");
+	const engine = createEngine(d);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("problem");
+	await engine.check();
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({
+		status: "problem",
+		detail: "An update was interrupted. Restore 10.5.1 from this row.",
+	});
 });
 
 const lockHeld = () => existsSync(join(t.paths.state, "run.lock"));
@@ -1723,4 +1738,188 @@ test("a token GitHub revokes after a check falls back to gh at the next search, 
 	expect(probes).toBe(afterCheck + 1);
 	expect(sent.at(-1)).toBe("Bearer gho_fromgh");
 	expect(engine.tokenState().refused).toBe("gh");
+});
+
+test("a pause holds a ready app until its day, then lets it through; a hold or Resume now ends it early", async () => {
+	let clock = Date.parse("2026-11-10T00:00:00Z");
+	const engine = createEngine({ ...(await deps()), now: () => new Date(clock) });
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	await engine.check();
+	expect(engine.setPause("fd", 14)).toBe(true);
+	expect(fd()).toMatchObject({ status: "held", held: false, paused: "2026-11-24T00:00:00.000Z" });
+	expect(engine.readyKeys(false)).not.toContain("fd");
+	expect(await engine.install(["fd"], true)).toEqual({ started: false, reason: REASON_NOTHING });
+	// A pause wins over the release wait, and the wait comes back when the pause goes.
+	engine.setSettings({ waitDays: 7 });
+	expect(fd()).toMatchObject({ status: "held", paused: "2026-11-24T00:00:00.000Z", settles: undefined });
+	expect(engine.setPause("fd", null)).toBe(true);
+	expect(fd()).toMatchObject({ status: "held", paused: undefined, settles: "2026-11-16T00:00:00.000Z" });
+	engine.setSettings({ waitDays: 0 });
+	expect(fd()?.status).toBe("ready");
+	// Releasing a hold ends a pause too, and setting one takes its place.
+	engine.setPause("fd", 7);
+	engine.setHold("fd", true);
+	expect(fd()).toMatchObject({ status: "held", held: true, paused: undefined });
+	expect(loadState(t.paths).pause).toEqual({});
+	engine.setHold("fd", false);
+	expect(fd()?.status).toBe("ready");
+	// A pause whose day passed counts as none at the next check.
+	engine.setPause("fd", 7);
+	clock = Date.parse("2026-11-18T00:00:00Z");
+	await engine.check(["fd"]);
+	expect(fd()).toMatchObject({ status: "ready", paused: undefined });
+});
+
+test("setPause refuses an unknown key and a count that is not 1 to 365 days, and writes nothing", async () => {
+	const engine = createEngine(await deps());
+	await engine.check(["fd"]);
+	for (const days of [0, -1, 1.5, 366, Number.NaN]) expect(engine.setPause("fd", days)).toBe(false);
+	expect(engine.setPause("nope", 7)).toBe(false);
+	expect(loadState(t.paths).pause).toEqual({});
+});
+
+test("a paused row turns Ready on its own when its pause ends, without a check", async () => {
+	const engine = createEngine(await deps());
+	updateState(t.paths, (s) => {
+		s.pause.fd = new Date(Date.now() + 150).toISOString();
+	});
+	await engine.check(["fd"]);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("held");
+	await Bun.sleep(400);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({ status: "ready", paused: undefined });
+	expect(engine.readyKeys(false)).toContain("fd");
+	// The pause that ran out is dropped from the state, so an export never carries it.
+	expect(loadState(t.paths).pause).toEqual({});
+});
+
+test("a swapped repo's hold wins over a pause, and Release hold ends the pause but leaves the swap to its own release", async () => {
+	const engine = createEngine(await deps());
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	updateState(t.paths, (s) => {
+		s.swapped.fd = "github.com/other/fd";
+	});
+	await engine.check(["fd"]);
+	engine.setPause("fd", 7);
+	expect(fd()).toMatchObject({ status: "held", held: true, detail: MESSAGES.repoReplaced("github.com/other/fd") });
+	// The person's own hold and the swap together: releasing it ends the pause, and the swap still holds.
+	engine.setHold("fd", true);
+	engine.setPause("fd", 7);
+	engine.setHold("fd", false);
+	expect(loadState(t.paths).pause).toEqual({});
+	expect(loadState(t.paths).swapped.fd).toBe("github.com/other/fd");
+	expect(fd()).toMatchObject({ status: "held", held: true, paused: undefined });
+});
+
+test("a held app refuses a pause and never says Paused until; a pause on a problem row shows at once", async () => {
+	const engine = createEngine(await deps());
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	await engine.check(["fd"]);
+	engine.setHold("fd", true);
+	expect(engine.isHeld("fd")).toBe(true);
+	expect(engine.setPause("fd", 7)).toBe(false);
+	expect(loadState(t.paths).pause).toEqual({});
+	// A pause written by hand beside a hold is hidden by it: the row says Held.
+	updateState(t.paths, (s) => {
+		s.pause.fd = new Date(Date.now() + 7 * 86_400_000).toISOString();
+	});
+	engine.setAuto("fd", false);
+	await engine.check(["fd"]);
+	expect(fd()).toMatchObject({ status: "held", held: true, paused: undefined });
+	engine.setHold("fd", false);
+	expect(engine.isHeld("fd")).toBe(false);
+	// A row refresh cannot re-derive takes the pause on its row at once, and Resume now clears it.
+	// An interrupted install read at start makes the next check's row a problem.
+	const d = await deps();
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	writeFileSync(join(bin, "fd.upkeep-new"), "half");
+	const later = createEngine(d);
+	const row = () => later.snapshot().apps.find((a) => a.key === "fd");
+	await later.check();
+	expect(row()?.status).toBe("problem");
+	expect(later.setPause("fd", 7)).toBe(true);
+	expect(row()?.paused).toBe(loadState(t.paths).pause.fd);
+	expect(later.setPause("fd", null)).toBe(true);
+	expect(row()?.paused).toBeUndefined();
+});
+
+test("an automatic run leaves a held or paused versionless row alone, and Run now still runs it", async () => {
+	const d = await deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		`${MANIFEST}\n[apps.cc]\nname = "Claude Code plugins"\nkind = "claude-plugins"\nversionless = true\nauto = true\n`,
+	);
+	mkdirSync(join(t.paths.home, ".claude/plugins"), { recursive: true });
+	writeFileSync(
+		join(t.paths.home, ".claude/plugins/installed_plugins.json"),
+		JSON.stringify({ plugins: { "a@m": [{ scope: "user" }] } }),
+	);
+	script(
+		join(bin, "claude"),
+		`[ "$2" = update ] && echo '{"updateOutcome":"updated","message":"a@m updated"}'; exit 0`,
+	);
+	const engine = createEngine(d);
+	await engine.check();
+	expect(engine.readyKeys(true)).toContain("cc");
+	engine.setHold("cc", true);
+	expect(engine.readyKeys(true)).not.toContain("cc");
+	expect(engine.readyKeys(false)).not.toContain("cc");
+	engine.setHold("cc", false);
+	expect(engine.setPause("cc", 7)).toBe(true);
+	expect(engine.snapshot().apps.find((a) => a.key === "cc")?.paused).toBeDefined();
+	expect(engine.readyKeys(true)).not.toContain("cc");
+	expect(engine.setPause("cc", null)).toBe(true);
+	// Its check names no version, so no skip matches it in resting, but one set at all (by an import, or setSkip)
+	// keeps it out of automatic runs too.
+	expect(engine.setSkip("cc", "1.0")).toBe(true);
+	expect(engine.readyKeys(true)).not.toContain("cc");
+	expect(await engine.install(["cc"], false, true)).toEqual({ started: false, reason: REASON_NOTHING });
+	expect(engine.setSkip("cc", null)).toBe(true);
+	expect(engine.readyKeys(true)).toContain("cc");
+	// The person's own press runs it whatever is set.
+	engine.setHold("cc", true);
+	expect(await engine.install(["cc"])).toEqual({ started: true });
+	await engine.idle();
+	expect(engine.snapshot().run.results.find((r) => r.key === "cc")).toMatchObject({ result: "updated" });
+});
+
+test("a Hold pressed while an automatic run waits on the power check keeps the plugins row out of it", async () => {
+	const d = await deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		`${MANIFEST}\n[apps.cc]\nname = "Claude Code plugins"\nkind = "claude-plugins"\nversionless = true\nauto = true\n`,
+	);
+	mkdirSync(join(t.paths.home, ".claude/plugins"), { recursive: true });
+	writeFileSync(join(t.paths.home, ".claude/plugins/installed_plugins.json"), JSON.stringify({ plugins: {} }));
+	script(join(bin, "claude"), "exit 0");
+	updateState(t.paths, (s) => {
+		s.settings.waitUnmetered = true;
+	});
+	// No bus here: each power question fails, which reads as unmetered and on mains, after the person pressed Hold.
+	const power: EngineDeps["run"] = async () => {
+		engine.setHold("cc", true);
+		throw new Error("no bus");
+	};
+	const engine = createEngine({ ...d, power });
+	await engine.check();
+	expect(engine.readyKeys(true)).toContain("cc");
+	await engine.installAuto();
+	await engine.idle();
+	expect(engine.snapshot().run.results.map((r) => r.key)).not.toContain("cc");
+});
+
+test("a restore before the first check drops the interrupted note the cached row kept for that check", async () => {
+	const d = await deps();
+	const first = createEngine(d);
+	await first.check();
+	await first.install(["fd"]);
+	await first.idle();
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	writeFileSync(join(bin, "fd.upkeep-new"), "half");
+	const engine = createEngine(d);
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	expect(fd()?.status).toBe("problem");
+	expect(await engine.restore("fd", "10.5.1")).toEqual({ ok: true });
+	await engine.check();
+	expect(fd()?.status).not.toBe("problem");
+	expect(fd()?.detail ?? "").not.toContain("interrupted");
 });

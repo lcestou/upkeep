@@ -3,6 +3,11 @@
 ## Unreleased
 
 - An update whose program cannot start here is refused after the download, before any restore point or change: a loader this system lacks (a musl build on glibc), a newer glibc than the system has, or a higher x86-64 level than the CPU. The row says which, and the next check offers it again. Programs inside an AppImage are not read.
+- A held or paused Claude Code plugins row is left alone by automatic runs. Before, a row set to install automatically ran in every background run even while held. Run now still runs it.
+- After an install was cut off, its row says so again when Upkeep starts with the last check's rows kept. Before, the row went back to Ready at the first check and the restore hint was lost.
+- Pause in the Log stays paused while lines pour in. Before, the Log's own scroll to the newest line could undo a Pause pressed at the same moment, which happened often on a busy machine.
+- History can be scrolled from the keyboard: its list is one Tab stop when its runs do not fit the window.
+- An app's pane has "Pause for…" beside Hold updates: 1 week, 2 weeks or 1 month. A paused app sits under Held back, its row says "Paused until Dec 9", and on that day it is offered again by itself, with no check needed. Resume now, or a hold set or released, ends the pause early. On the command line, `upkeep pause <app> <days>` and `upkeep pause <app> off` do the same, and `check` shows the day. An export carries pauses, and an import takes them without asking.
 - A table can list versions to avoid: `bad_versions = ["2.4.1"]` with `bad_reason = "…"`. A check never offers a listed version. It offers the newest release before it, or keeps the app where it is, and the row says why. Catalogue tables may carry the same two fields.
 - Upkeep remembers each GitHub app's repository by its id. A renamed or transferred repo is followed. If the same owner/name later belongs to a different repository, the update is held with the reason until you release the hold.
 - A source build checks that its tag still points at the commit the check saw. If the tag moved in between, the build stops before any step runs, and the log names both commits.

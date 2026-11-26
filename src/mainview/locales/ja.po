@@ -3059,6 +3059,36 @@ msgstr "{0}: {1} に改行やその他の制御文字は使えません"
 msgid "Could not write the menu entry: {0}"
 msgstr "メニュー項目を書き込めませんでした: {0}"
 
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "一時停止の期間…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "今すぐ再開"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "{0} まで一時停止中。その後は自動でまた提示されます。"
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "{0} まで一時停止"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 週間"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 週間"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 か月"
+
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"

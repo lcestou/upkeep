@@ -4,26 +4,12 @@ import { expect, load, test } from "./helpers";
 
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-/**
- * Violations that are on main already and not from Stop now, each excluded as exactly its rule on its selector (axe's
- * own exclude would drop every rule for the element).
- */
-const PRE_EXISTING: { rule: string; selector: string }[] = [
-	// Pre-existing: History's scroll area (.history) takes no keyboard focus when its runs overflow, as at 760x520.
-	// It fires on main with no run at all; the fix belongs to History, not to this branch.
-	{ rule: "scrollable-region-focusable", selector: ".history" },
-];
-
-/** Runs axe over the page as it is now; each violation not listed in PRE_EXISTING comes back as "screen | rule | target". */
+/** Runs axe over the page as it is now; each violation comes back as "screen | rule | target". */
 async function scan(page: Page, screen: string): Promise<string[]> {
 	// Past any fade still running, so colour contrast reads the settled colours.
 	await page.waitForTimeout(400);
 	const r = await new AxeBuilder({ page }).withTags(TAGS).analyze();
-	return r.violations.flatMap((v) =>
-		v.nodes
-			.filter((n) => !PRE_EXISTING.some((p) => p.rule === v.id && n.target.join(" ") === p.selector))
-			.map((n) => `${screen} | ${v.id} | ${n.target.join(" ")}`),
-	);
+	return r.violations.flatMap((v) => v.nodes.map((n) => `${screen} | ${v.id} | ${n.target.join(" ")}`));
 }
 
 for (const locale of ["en-US", "de-DE"])
