@@ -26,12 +26,15 @@ export type Status = {
 	checkedAt: string | null;
 	/** A live process holds the run lock: an install, a restore or an import is under way. */
 	running: boolean;
-	counts: Counts;
+	/** Counts, with unchecked: apps in apps.toml the saved rows do not have (added since, or found not installed). */
+	counts: Counts & { unchecked: number };
 	ready: StatusApp[];
 	held: StatusApp[];
 	failing: StatusApp[];
 	/** Up-to-date apps whose row says something, such as a listed bad version it kept the app clear of. */
 	noted: StatusApp[];
+	/** Apps in the list the last check left no row for, by key and name. */
+	unchecked: { key: string; name: string }[];
 };
 
 /** The bucket a row counts in; a row still checking or in a run counts in none of them, only in apps. */
@@ -66,7 +69,7 @@ export function countsOf(apps: AppState[]): Counts {
 }
 
 /** A row as a status list names it, with its detail and what holds it only where the row has them. */
-function listed(a: AppState): StatusApp {
+function listedApp(a: AppState): StatusApp {
 	const out: StatusApp = { key: a.key, name: a.name, installed: a.installed, latest: a.latest };
 	if (a.detail) out.detail = a.detail;
 	if (a.status === "held" && a.paused) out.paused = a.paused;
@@ -100,20 +103,28 @@ export function heldLine(
 	return `  HELD:   ${a.name} ${versions(a)}${why}${a.detail ? ` ${a.detail}` : ""}`;
 }
 
-/** The status of a snapshot built from the saved rows, with whether a run holds the lock. */
-export function statusOf(snapshot: Snapshot, running: boolean): Status {
+/**
+ * The status of a snapshot built from the saved rows, with whether a run holds the lock. listed is every app in
+ * apps.toml: one with no row counts as unchecked and in apps, since the rows alone would leave it out of the total.
+ * The rows cannot tell an app added since the last check from one that check found not installed.
+ */
+export function statusOf(snapshot: Snapshot, running: boolean, listed: { key: string; name: string }[] = []): Status {
 	const of = (b: ReturnType<typeof bucket>) => snapshot.apps.filter((a) => bucket(a) === b);
+	const known = new Set(snapshot.apps.map((a) => a.key));
+	const unchecked = listed.filter((a) => !known.has(a.key)).map((a) => ({ key: a.key, name: a.name }));
+	const counts = countsOf(snapshot.apps);
 	return {
 		version: snapshot.version,
 		checkedAt: snapshot.checkedAt,
 		running,
-		counts: countsOf(snapshot.apps),
-		ready: of("ready").map(listed),
-		held: of("held").map(listed),
-		failing: of("failing").map(listed),
+		counts: { ...counts, apps: counts.apps + unchecked.length, unchecked: unchecked.length },
+		unchecked,
+		ready: of("ready").map(listedApp),
+		held: of("held").map(listedApp),
+		failing: of("failing").map(listedApp),
 		noted: of("upToDate")
 			.filter((a) => a.detail)
-			.map(listed),
+			.map(listedApp),
 	};
 }
 
@@ -131,7 +142,7 @@ export function statusLines(s: Status): string[] {
 	const lines = [
 		head,
 		`Last check: ${s.checkedAt}`,
-		`${c.apps} apps: ${c.upToDate} up to date, ${c.ready} ready, ${c.held} held, ${c.failing} failing`,
+		`${c.apps} apps: ${c.upToDate} up to date, ${c.ready} ready, ${c.held} held, ${c.failing} failing${c.unchecked > 0 ? `, ${c.unchecked} not checked yet or not installed` : ""}`,
 	];
 	for (const a of s.ready) lines.push(`  UPDATE: ${a.name} ${versions(a)}${why(a)}`);
 	for (const a of s.held) lines.push(heldLine(a));
@@ -161,12 +172,13 @@ export function metricsText(s: Status): string {
 		"# HELP upkeep_run_in_progress 1 while an install, restore or import holds the run lock.",
 		"# TYPE upkeep_run_in_progress gauge",
 		`upkeep_run_in_progress ${s.running ? 1 : 0}`,
-		"# HELP upkeep_apps Apps in the list, by the state the last check left them in.",
+		"# HELP upkeep_apps Apps in the list, by the state the last check left them in; unchecked has no row from it.",
 		"# TYPE upkeep_apps gauge",
 		`upkeep_apps{state="up_to_date"} ${s.counts.upToDate}`,
 		`upkeep_apps{state="ready"} ${s.counts.ready}`,
 		`upkeep_apps{state="held"} ${s.counts.held}`,
 		`upkeep_apps{state="failing"} ${s.counts.failing}`,
+		`upkeep_apps{state="unchecked"} ${s.counts.unchecked}`,
 		"# HELP upkeep_update_ready 1 for each app with an update ready, labelled with its versions.",
 		"# TYPE upkeep_update_ready gauge",
 		...s.ready.map(

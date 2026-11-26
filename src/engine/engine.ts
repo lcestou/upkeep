@@ -615,7 +615,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		c: Checked,
 	): Pick<AppState, "status" | "held" | "skipped" | "detail" | "settles" | "paused"> {
 		const state = loadState(paths);
-		const tag = c.target?.tag;
+		const tag = c.target?.tag ?? c.tag;
 		const changed = tag !== undefined && state.changed[spec.key] === tag;
 		const swapped = state.swapped[spec.key];
 		const held = state.hold[spec.key] === true || (c.status === "ready" && (changed || swapped !== undefined));
@@ -2093,8 +2093,10 @@ export function createEngine(deps: EngineDeps): Engine {
 				delete rows[s.key];
 				continue;
 			}
-			const { target: _target, ...known } = c;
-			rows[s.key] = { ...known, checkedAt: at };
+			const { target, ...known } = c;
+			// The target stays out (an install waits for a check), but its tag is kept for the changed-release hold.
+			const tag = target?.tag ?? c.tag;
+			rows[s.key] = tag === undefined ? { ...known, checkedAt: at } : { ...known, tag, checkedAt: at };
 		}
 		try {
 			saveRows(paths, rows);
@@ -2106,7 +2108,9 @@ export function createEngine(deps: EngineDeps): Engine {
 	/**
 	 * Writes the new version of every app a run updated into the saved rows, as fresh, so `upkeep status` and the next
 	 * start do not show it waiting until a check. One that went to an older version than the latest (a picked one)
-	 * stays ready. A row the cache does not have is left out, and a cache that cannot be written costs nothing more.
+	 * stays ready. A row whose latest the check could not read takes the installed version as its latest, so the row
+	 * never claims an unknown latest is in. A row the cache does not have is left out, and a cache that cannot be
+	 * written costs nothing more.
 	 */
 	function rememberUpdated(done: HistoryRow[]): void {
 		const rows = loadRows(paths);
@@ -2114,7 +2118,8 @@ export function createEngine(deps: EngineDeps): Engine {
 		for (const h of done) {
 			const row = rows[h.key];
 			if (h.result !== "updated" || !row || !h.to) continue;
-			rows[h.key] = { ...row, installed: h.to, status: isNewer(h.to, row.latest) ? "ready" : "fresh" };
+			const latest = row.latest ?? h.to;
+			rows[h.key] = { ...row, installed: h.to, latest, status: isNewer(h.to, latest) ? "ready" : "fresh" };
 			changed = true;
 		}
 		try {

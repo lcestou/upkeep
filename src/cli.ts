@@ -279,8 +279,15 @@ async function recover(engine: Engine, paths: EngineDeps["paths"], json: boolean
  * and 1 when no check has run yet, so a script can tell "nothing ready" from "nothing known"; --metrics always exits
  * 0, since its check time of 0 says the same and a collector's file is written with `&&`.
  */
-function status(engine: Engine, paths: EngineDeps["paths"], json: boolean, metrics: boolean, out: Out): number {
-	const s = statusOf(engine.snapshot(), lockHeld(paths));
+function status(
+	engine: Engine,
+	paths: EngineDeps["paths"],
+	seed: string,
+	json: boolean,
+	metrics: boolean,
+	out: Out,
+): number {
+	const s = statusOf(engine.snapshot(), lockHeld(paths), loadManifest(ensureManifest(paths, seed)).apps);
 	if (metrics) {
 		out(metricsText(s).trimEnd());
 		return 0;
@@ -541,7 +548,7 @@ export async function main(
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
 		return restore(createEngine(deps), deps, args[0], args[1], json, out);
 	if (cmd === "status" && args.filter((a) => a !== "--metrics").length === 0)
-		return status(createEngine(deps), deps.paths, json, args.includes("--metrics"), out);
+		return status(createEngine(deps), deps.paths, deps.seedManifest, json, args.includes("--metrics"), out);
 	if (cmd === "history" && args.length === 0) return history(createEngine(deps), json, out);
 	if (cmd === "recover" && args.length === 0) return recover(createEngine(deps), deps.paths, json, out);
 	if (cmd === "list" && args.length === 0) return list(deps, json, out);

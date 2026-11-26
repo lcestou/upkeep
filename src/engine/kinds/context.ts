@@ -63,6 +63,11 @@ export type Checked = {
 	ahead?: number;
 	/** What an install of this app would put in place. */
 	target?: Target;
+	/**
+	 * The offered release's tag, set only on a row read back from the saved rows, which keep no target: a hold on a
+	 * release whose file changed is judged by it, so a start before any check holds the same app the window held.
+	 */
+	tag?: string;
 	/** The check failed before the forge answered at all: the network, not the app. */
 	offline?: boolean;
 };

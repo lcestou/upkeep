@@ -738,6 +738,8 @@ export type KnownRow = {
 	/** A built row's newest commits (at most 30) and how far the release is ahead, so the pane has them at start. */
 	commits?: { sha: string; title: string }[];
 	ahead?: number;
+	/** The tag the check offered, so a hold on a release whose file changed holds again at the next start. */
+	tag?: string;
 	checkedAt: string;
 };
 
@@ -787,6 +789,7 @@ export function loadRows(paths: Paths): Record<string, KnownRow> {
 			const commits = commitsOf(r.commits);
 			if (commits) out[key].commits = commits;
 			if (typeof r.ahead === "number") out[key].ahead = r.ahead;
+			if (typeof r.tag === "string") out[key].tag = r.tag;
 		}
 		return out;
 	} catch {

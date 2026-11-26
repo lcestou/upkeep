@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { MESSAGES } from "./shared/messages";
 import { checkLine, main, pickSure, stopOnSignal, USAGE } from "./cli";
 import { createEngine, type EngineDeps } from "./engine/engine";
 import {
@@ -1046,7 +1047,8 @@ test("status reads what the last check saved, as text, JSON and metrics, without
 	await main(["status", "--json"], quiet, (l) => json.push(l));
 	const s = JSON.parse(json[0] ?? "");
 	expect(s.running).toBe(false);
-	expect(s.counts).toEqual({ apps: 2, upToDate: 1, ready: 1, held: 0, failing: 0 });
+	expect(s.counts).toEqual({ apps: 2, upToDate: 1, ready: 1, held: 0, failing: 0, unchecked: 0 });
+	expect(s.unchecked).toEqual([]);
 	expect(s.ready).toEqual([{ key: "borg", name: "BorgBackup", installed: "1.4.1", latest: "1.4.2" }]);
 
 	const metrics: string[] = [];
@@ -1104,4 +1106,51 @@ test("status counts a paused app as held and prints its HELD line as check does,
 	const json: string[] = [];
 	await main(["status", "--json"], quiet, (l) => json.push(l));
 	expect(JSON.parse(json[0] ?? "").held[0].paused).toMatch(/^\d{4}-/);
+});
+
+test("a hold on a release whose file changed is read back from the saved rows, so status says Held as the window does", async () => {
+	const d = deps();
+	await main(["check"], d, () => {});
+	updateState(t.paths, (s) => {
+		s.changed.borg = "1.4.2";
+	});
+	const out: string[] = [];
+	await main(["status"], { ...d, fetch: noNetwork }, (l) => out.push(l));
+	expect(out).toContain("2 apps: 1 up to date, 0 ready, 1 held, 0 failing");
+	expect(out).toContain(`  HELD:   BorgBackup 1.4.1 -> 1.4.2 ${MESSAGES.releaseChanged("1.4.2")}`);
+});
+
+test("an app added since the last check counts as not checked yet, in the text, the JSON and the metrics", async () => {
+	const d = deps();
+	await main(["check"], d, () => {});
+	const file = join(t.paths.config, "apps.toml");
+	writeFileSync(
+		file,
+		`${readFileSync(file, "utf8")}\n[apps.jq]\nname = "jq"\nkind = "file"\nrepo = "jqlang/jq"\nasset = 'jq-linux$'\ndest = "~/.local/bin/jq"\n`,
+	);
+	const quiet = { ...d, fetch: noNetwork };
+	const out: string[] = [];
+	await main(["status"], quiet, (l) => out.push(l));
+	expect(out).toContain("3 apps: 1 up to date, 1 ready, 0 held, 0 failing, 1 not checked yet or not installed");
+	const json: string[] = [];
+	await main(["status", "--json"], quiet, (l) => json.push(l));
+	expect(JSON.parse(json[0] ?? "").unchecked).toEqual([{ key: "jq", name: "jq" }]);
+	const metrics: string[] = [];
+	await main(["status", "--metrics"], quiet, (l) => metrics.push(l));
+	expect(metrics[0]).toContain('upkeep_apps{state="unchecked"} 1');
+});
+
+test("an update whose saved row had no latest takes the installed version as its latest, never an unknown one", async () => {
+	const d = deps();
+	const engine = createEngine(d);
+	await engine.check();
+	await engine.idle();
+	const rows = join(t.paths.cache, "rows.json");
+	const saved = JSON.parse(readFileSync(rows, "utf8"));
+	saved.borg.latest = null;
+	writeFileSync(rows, JSON.stringify(saved));
+	expect((await engine.install(["borg"])).started).toBe(true);
+	await engine.idle();
+	const after = JSON.parse(readFileSync(rows, "utf8"));
+	expect(after.borg).toMatchObject({ installed: "1.4.2", latest: "1.4.2", status: "fresh" });
 });
