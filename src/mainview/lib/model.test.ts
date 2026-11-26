@@ -107,6 +107,8 @@ describe("events", () => {
 				upkeepCommand: false,
 				waitDays: 0,
 				waitUnmetered: false,
+				webhookReady: true,
+				webhookRun: false,
 			},
 			rate: null,
 			checkedAt: null,

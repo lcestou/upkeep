@@ -1,10 +1,12 @@
 import { existsSync, writeFileSync } from "node:fs";
+import { hostname } from "node:os";
 import { dirname, join } from "node:path";
 import Electrobun, { BrowserWindow, Screen, Tray, Updater, Utils } from "electrobun/main";
 import pkg from "../../package.json";
 import { createEngine } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
 import { realDeps } from "../engine/real";
+import { createNoticeSender } from "../engine/webhook";
 import { loadState, updateState } from "../engine/store";
 import type { EngineEvent, RunPhase, WindowButton, WindowChrome } from "../shared/types";
 import { syncAutostart, syncMenuExec } from "./autostart";
@@ -37,6 +39,7 @@ import {
 	trayMenu,
 	trayTitle,
 	runNotices,
+	webhookBody,
 } from "./tray-model";
 
 // Before any window opens: the launcher's ICU_DATA blanks the window where ICU keeps its data in a file (openSUSE).
@@ -454,6 +457,13 @@ function notify(body: string): void {
 	if (engine.snapshot().settings.notify) Utils.showNotification({ title: "Upkeep", body });
 }
 
+// The notice address from Settings, if any: one try per notice, never awaited, so a slow receiver holds nothing up.
+const notices = createNoticeSender({
+	paths: deps.paths,
+	fetch: deps.fetch,
+	log: (line) => console.error("notice:", line),
+});
+
 // While a login start, or a scheduled check that retries waiting automatic apps, checks and starts its automatic
 // installs, its checks say nothing: the one notice comes after, once the automatic apps are either queued (and get
 // their own "Updated" notice) or waiting (and are named with what they wait for).
@@ -486,8 +496,12 @@ function announceReady(wait?: "metered" | "battery"): void {
 	updateState(deps.paths, (s) => {
 		s.notified = fingerprint;
 	});
+	if (!fingerprint) return;
+	const text = readyNotice(readyNames(snapshot), trayLanguage(), wait);
+	// The address is told whether or not the window shows: it is read somewhere else.
+	if (snapshot.settings.webhookReady) void notices.send(webhookBody("ready", snapshot, text, hostname()));
 	// A visible window already shows the list.
-	if (fingerprint && !win?.isVisible()) notify(readyNotice(readyNames(snapshot), trayLanguage(), wait));
+	if (!win?.isVisible()) notify(text);
 }
 
 /** Says the outcome of an install with no window to read it: one notice for the updated apps, one per failure. */
@@ -555,6 +569,9 @@ engine.subscribe((event) => {
 		void selfLook();
 	}
 	if (before === "installing" && phase === "summary") {
+		const done = engine.snapshot();
+		const said = runNotices(done.run.results, trayLanguage()).join("\n");
+		if (done.settings.webhookRun && said) void notices.send(webhookBody("run", done, said, hostname()));
 		// With no window to read the summary in, say it once and clear it.
 		if (!win?.isVisible() || quitAfterRun) {
 			announceRun();

@@ -397,6 +397,30 @@ export const TEXT = {
 	get tokenFallbackNone() {
 		return "GitHub refused the saved token, and gh is not signed in. Paste a new token.";
 	},
+	get webhook() {
+		return "Send a notice to a web address";
+	},
+	get webhookHint() {
+		return "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported.";
+	},
+	get saveWebhook() {
+		return "Save address";
+	},
+	get removeWebhook() {
+		return "Remove address";
+	},
+	get webhookBadAddress() {
+		return "That is not a web address. It starts with https://.";
+	},
+	get webhookPlain() {
+		return "Plain http only goes to this computer or the home network. Use https for anywhere else.";
+	},
+	get webhookReady() {
+		return "When updates are ready";
+	},
+	get webhookRun() {
+		return "After each run, with its result";
+	},
 	get checkEvery() {
 		return "Check for updates";
 	},
@@ -439,6 +463,9 @@ export const IMPORT = {
 	},
 	get turnsOff() {
 		return "It turns off these settings, which are on on this computer:";
+	},
+	get webhook() {
+		return "It sends Upkeep's notices, with the app list, to this address:";
 	},
 	get yes() {
 		return "Import";
@@ -487,6 +514,8 @@ export const settlesLine = (version: string, iso: string) =>
 		: `${version} is offered from ${shortDate(iso)}, after the wait set in Settings.`;
 /** What Settings shows for a kept GitHub token: only its last four characters. */
 export const tokenKeptLine = (last: string) => `A token ending in ${last} is saved.`;
+/** The kept notice address, masked past its host. */
+export const webhookKeptLine = (masked: string) => `Notices go to ${masked}`;
 /** Tooltip over the checked time; relative is already a phrase such as "2 hours ago". */
 export const checkedTitle = (relative: string) => `Checked ${relative}`;
 /** The note after a restore finishes. It ends with a full stop, unlike the button label. */

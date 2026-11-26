@@ -3095,3 +3095,53 @@ msgstr "古いリリースはここには表示されません。リリースペ
 msgid "# older release not shown."
 msgid_plural "# older releases not shown."
 msgstr[0] "表示していない古いリリースが # 件あります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Send a notice to a web address"
+msgstr "Web アドレスに通知を送る"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+msgstr "Upkeep はそこへ短い JSON メッセージを送ります。たとえば ntfy のトピックや自宅のサーバーです。アドレスにはトークンを含められます。このコンピューターに保存され、あなただけが読め、エクスポートされることはありません。"
+
+#: src/mainview/lib/copy.ts
+msgid "Save address"
+msgstr "アドレスを保存"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove address"
+msgstr "アドレスを削除"
+
+#: src/mainview/lib/copy.ts
+msgid "That is not a web address. It starts with https://."
+msgstr "Web アドレスではありません。https:// で始まります。"
+
+#: src/mainview/lib/copy.ts
+msgid "Plain http only goes to this computer or the home network. Use https for anywhere else."
+msgstr "暗号化なしの http はこのコンピューターか自宅のネットワークにだけ送れます。それ以外には https を使ってください。"
+
+#: src/mainview/lib/copy.ts
+msgid "When updates are ready"
+msgstr "アップデートの準備ができたとき"
+
+#: src/mainview/lib/copy.ts
+msgid "After each run, with its result"
+msgstr "実行のたびに、その結果を"
+
+#: src/mainview/lib/copy.ts
+msgid "It sends Upkeep's notices, with the app list, to this address:"
+msgstr "Upkeep の通知を、アプリ一覧と一緒に、このアドレスへ送ります:"
+
+#. 0: masked
+#: src/mainview/lib/copy.ts
+msgid "Notices go to {0}"
+msgstr "通知の送り先: {0}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+msgstr "ファイルにある通知アドレス {0} は、https のアドレスでも、このコンピューターや自宅のネットワーク上の http のアドレスでもありません。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The notice address from before could not be put back. Set it again in Settings."
+msgstr "以前の通知アドレスを元に戻せませんでした。設定でもう一度指定してください。"

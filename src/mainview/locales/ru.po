@@ -3167,3 +3167,53 @@ msgstr[0] "# более старый выпуск не показан."
 msgstr[1] "# более старых выпуска не показаны."
 msgstr[2] "# более старых выпусков не показано."
 msgstr[3] "# более старого выпуска не показано."
+
+#: src/mainview/lib/copy.ts
+msgid "Send a notice to a web address"
+msgstr "Отправлять уведомление на веб-адрес"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+msgstr "Upkeep отправляет туда короткое сообщение JSON, например в тему ntfy или на домашний сервер. В адресе может быть токен: он хранится на этом компьютере, доступен для чтения только вам и никогда не экспортируется."
+
+#: src/mainview/lib/copy.ts
+msgid "Save address"
+msgstr "Сохранить адрес"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove address"
+msgstr "Удалить адрес"
+
+#: src/mainview/lib/copy.ts
+msgid "That is not a web address. It starts with https://."
+msgstr "Это не веб-адрес. Он начинается с https://."
+
+#: src/mainview/lib/copy.ts
+msgid "Plain http only goes to this computer or the home network. Use https for anywhere else."
+msgstr "Обычный http уходит только на этот компьютер или в домашнюю сеть. Для всего остального используйте https."
+
+#: src/mainview/lib/copy.ts
+msgid "When updates are ready"
+msgstr "Когда готовы обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "After each run, with its result"
+msgstr "После каждого запуска, с его итогом"
+
+#: src/mainview/lib/copy.ts
+msgid "It sends Upkeep's notices, with the app list, to this address:"
+msgstr "Он отправляет уведомления Upkeep со списком приложений на этот адрес:"
+
+#. 0: masked
+#: src/mainview/lib/copy.ts
+msgid "Notices go to {0}"
+msgstr "Уведомления уходят на {0}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+msgstr "Адрес уведомлений {0} в файле не является адресом https или адресом http на этом компьютере или в домашней сети."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The notice address from before could not be put back. Set it again in Settings."
+msgstr "Не удалось вернуть прежний адрес уведомлений. Задайте его снова в настройках."

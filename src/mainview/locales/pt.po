@@ -3143,3 +3143,53 @@ msgid_plural "# older releases not shown."
 msgstr[0] "# versão mais antiga não mostrada."
 msgstr[1] "# versões mais antigas não mostradas."
 msgstr[2] "# versões mais antigas não mostradas."
+
+#: src/mainview/lib/copy.ts
+msgid "Send a notice to a web address"
+msgstr "Enviar um aviso para um endereço web"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+msgstr "O Upkeep envia para lá uma mensagem JSON curta, por exemplo para um tópico do ntfy ou um servidor de casa. O endereço pode levar um token: fica neste computador, legível só por você, e nunca é exportado."
+
+#: src/mainview/lib/copy.ts
+msgid "Save address"
+msgstr "Salvar endereço"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove address"
+msgstr "Remover endereço"
+
+#: src/mainview/lib/copy.ts
+msgid "That is not a web address. It starts with https://."
+msgstr "Isso não é um endereço web. Ele começa com https://."
+
+#: src/mainview/lib/copy.ts
+msgid "Plain http only goes to this computer or the home network. Use https for anywhere else."
+msgstr "O http simples só vai para este computador ou para a rede de casa. Use https para qualquer outro lugar."
+
+#: src/mainview/lib/copy.ts
+msgid "When updates are ready"
+msgstr "Quando houver atualizações prontas"
+
+#: src/mainview/lib/copy.ts
+msgid "After each run, with its result"
+msgstr "Depois de cada execução, com o resultado"
+
+#: src/mainview/lib/copy.ts
+msgid "It sends Upkeep's notices, with the app list, to this address:"
+msgstr "Ele envia os avisos do Upkeep, com a lista de apps, para este endereço:"
+
+#. 0: masked
+#: src/mainview/lib/copy.ts
+msgid "Notices go to {0}"
+msgstr "Os avisos vão para {0}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+msgstr "O endereço de avisos {0} do arquivo não é um endereço https, nem um http neste computador ou na rede de casa."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The notice address from before could not be put back. Set it again in Settings."
+msgstr "Não foi possível repor o endereço de avisos de antes. Defina-o de novo nas Configurações."

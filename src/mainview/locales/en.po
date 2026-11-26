@@ -3119,3 +3119,53 @@ msgid "# older release not shown."
 msgid_plural "# older releases not shown."
 msgstr[0] "# older release not shown."
 msgstr[1] "# older releases not shown."
+
+#: src/mainview/lib/copy.ts
+msgid "Send a notice to a web address"
+msgstr "Send a notice to a web address"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+msgstr "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+
+#: src/mainview/lib/copy.ts
+msgid "Save address"
+msgstr "Save address"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove address"
+msgstr "Remove address"
+
+#: src/mainview/lib/copy.ts
+msgid "That is not a web address. It starts with https://."
+msgstr "That is not a web address. It starts with https://."
+
+#: src/mainview/lib/copy.ts
+msgid "Plain http only goes to this computer or the home network. Use https for anywhere else."
+msgstr "Plain http only goes to this computer or the home network. Use https for anywhere else."
+
+#: src/mainview/lib/copy.ts
+msgid "When updates are ready"
+msgstr "When updates are ready"
+
+#: src/mainview/lib/copy.ts
+msgid "After each run, with its result"
+msgstr "After each run, with its result"
+
+#: src/mainview/lib/copy.ts
+msgid "It sends Upkeep's notices, with the app list, to this address:"
+msgstr "It sends Upkeep's notices, with the app list, to this address:"
+
+#. 0: masked
+#: src/mainview/lib/copy.ts
+msgid "Notices go to {0}"
+msgstr "Notices go to {0}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+msgstr "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The notice address from before could not be put back. Set it again in Settings."
+msgstr "The notice address from before could not be put back. Set it again in Settings."

@@ -3119,3 +3119,53 @@ msgid "# older release not shown."
 msgid_plural "# older releases not shown."
 msgstr[0] "# ältere Version nicht angezeigt."
 msgstr[1] "# ältere Versionen nicht angezeigt."
+
+#: src/mainview/lib/copy.ts
+msgid "Send a notice to a web address"
+msgstr "Hinweis an eine Webadresse senden"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+msgstr "Upkeep sendet dort eine kurze JSON-Nachricht hin, etwa an ein ntfy-Thema oder einen Heimserver. Die Adresse darf ein Token enthalten: Sie bleibt auf diesem Computer, nur für dich lesbar, und wird nie exportiert."
+
+#: src/mainview/lib/copy.ts
+msgid "Save address"
+msgstr "Adresse speichern"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove address"
+msgstr "Adresse entfernen"
+
+#: src/mainview/lib/copy.ts
+msgid "That is not a web address. It starts with https://."
+msgstr "Das ist keine Webadresse. Sie beginnt mit https://."
+
+#: src/mainview/lib/copy.ts
+msgid "Plain http only goes to this computer or the home network. Use https for anywhere else."
+msgstr "Einfaches http geht nur an diesen Computer oder das Heimnetz. Für alles andere https verwenden."
+
+#: src/mainview/lib/copy.ts
+msgid "When updates are ready"
+msgstr "Wenn Updates bereit sind"
+
+#: src/mainview/lib/copy.ts
+msgid "After each run, with its result"
+msgstr "Nach jedem Lauf, mit seinem Ergebnis"
+
+#: src/mainview/lib/copy.ts
+msgid "It sends Upkeep's notices, with the app list, to this address:"
+msgstr "Sie sendet die Hinweise von Upkeep, mit der App-Liste, an diese Adresse:"
+
+#. 0: masked
+#: src/mainview/lib/copy.ts
+msgid "Notices go to {0}"
+msgstr "Hinweise gehen an {0}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+msgstr "Die Hinweisadresse {0} in der Datei ist keine https-Adresse und auch keine http-Adresse auf diesem Computer oder im Heimnetz."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The notice address from before could not be put back. Set it again in Settings."
+msgstr "Die vorherige Hinweisadresse konnte nicht wiederhergestellt werden. Lege sie in den Einstellungen neu fest."

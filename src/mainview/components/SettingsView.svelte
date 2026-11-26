@@ -18,6 +18,7 @@
 		rateText,
 		setupFailed,
 		tokenKeptLine,
+		webhookKeptLine,
 		versionText,
 	} from "../lib/copy";
 	import { LOCKUP_SVG } from "../lib/brand";
@@ -152,6 +153,26 @@
 		tokenHint = r.hint;
 		tokenFallback = r.refused;
 		if (r.ok) tokenDraft = "";
+	}
+
+	/** The kept notice address, masked past its host, or null; the address itself never reaches the window. */
+	let webhookMasked = $state<string | null>(null);
+	let webhookDraft = $state("");
+	/** Why the last address was not kept: not a web address, or plain http off the home network. */
+	let webhookProblem = $state<"address" | "plain" | null>(null);
+	$effect(() => {
+		void model.send("webhook", {}).then((r) => {
+			if (r) webhookMasked = r.masked;
+		});
+	});
+
+	/** Keeps the typed address, or forgets the kept one with null. A refused address stays in the field with the reason under it. */
+	async function setWebhook(address: string | null) {
+		const r = await model.send("setWebhook", { address });
+		if (!r) return;
+		webhookProblem = r.ok ? null : (r.problem ?? "address");
+		webhookMasked = r.masked;
+		if (r.ok) webhookDraft = "";
 	}
 
 	/** The Settings label of what an import would turn on, the same words the person finds the switch under. */
@@ -328,6 +349,63 @@
 				</p>{/if}
 		</div>
 		<div class="row stack">
+			<span class="text">
+				<span id="webhook-label" data-testid="setting-webhook-label">{TEXT.webhook}</span>
+				<span class="hint" data-testid="setting-webhook-hint">{TEXT.webhookHint}</span>
+			</span>
+			{#if webhookMasked}
+				<span class="buttons">
+					<span class="kept" data-testid="webhook-kept">{webhookKeptLine(webhookMasked)}</span>
+					<button type="button" class="btn small" data-testid="webhook-remove" onclick={() => setWebhook(null)}
+						>{TEXT.removeWebhook}</button
+					>
+				</span>
+			{:else}
+				<form
+					class="buttons"
+					onsubmit={(e) => {
+						e.preventDefault();
+						if (webhookDraft.trim()) void setWebhook(webhookDraft);
+					}}
+				>
+					<input
+						class="token"
+						type="text"
+						inputmode="url"
+						autocomplete="off"
+						spellcheck="false"
+						aria-labelledby="webhook-label"
+						data-testid="webhook-input"
+						bind:value={webhookDraft}
+					/>
+					<button type="submit" class="btn small" data-testid="webhook-save">{TEXT.saveWebhook}</button>
+				</form>
+			{/if}
+			{#if webhookProblem}<p class="help" role="status" data-testid="webhook-refused">
+					{webhookProblem === "plain" ? TEXT.webhookPlain : TEXT.webhookBadAddress}
+				</p>{/if}
+			{#if webhookMasked}
+				<label class="sub">
+					<input
+						type="checkbox"
+						checked={model.settings.webhookReady}
+						data-testid="setting-webhook-ready"
+						onchange={(e) => set({ webhookReady: e.currentTarget.checked })}
+					/>
+					<span data-testid="setting-webhook-ready-label">{TEXT.webhookReady}</span>
+				</label>
+				<label class="sub">
+					<input
+						type="checkbox"
+						checked={model.settings.webhookRun}
+						data-testid="setting-webhook-run"
+						onchange={(e) => set({ webhookRun: e.currentTarget.checked })}
+					/>
+					<span data-testid="setting-webhook-run-label">{TEXT.webhookRun}</span>
+				</label>
+			{/if}
+		</div>
+		<div class="row stack">
 			<span class="text">{TEXT.appList}</span>
 			<span class="buttons">
 				<button type="button" class="btn small" data-testid="open-manifest" onclick={() => model.send("open", { what: "manifest" })}
@@ -383,6 +461,22 @@
 							<li data-testid="import-wait-change">
 								{waitLabel(importAsk.waitDays.from)} → {waitLabel(importAsk.waitDays.to)}
 							</li>
+						</ul>
+					{/if}
+					{#if importAsk.webhook}
+						<p
+							id={importAsk.apps.length > 0 ||
+							importAsk.turnsOn.length > 0 ||
+							importAsk.turnsOff.length > 0 ||
+							importAsk.waitDays
+								? undefined
+								: "import-ask"}
+							data-testid="import-webhook"
+						>
+							{IMPORT.webhook}
+						</p>
+						<ul class="switches">
+							<li><code class="mono" data-testid="import-webhook-address">{importAsk.webhook}</code></li>
 						</ul>
 					{/if}
 					<p data-testid="import-auto-off">{IMPORT.autoOff}</p>
@@ -660,6 +754,16 @@
 		color: var(--text);
 		font-family: var(--mono);
 		font-size: var(--fs-12);
+	}
+	/* A choice under a stacked row, each on its own line below the field. */
+	.sub {
+		flex-basis: 100%;
+		display: flex;
+		align-items: center;
+		gap: var(--s2);
+		font-size: var(--fs-13);
+		color: var(--text);
+		cursor: pointer;
 	}
 	.help {
 		flex-basis: 100%;

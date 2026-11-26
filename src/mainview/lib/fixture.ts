@@ -737,6 +737,8 @@ export type FixtureOptions = {
 	selfTestFails?: boolean;
 	/** "refused": a token is saved and the last check found GitHub refused it, so gh's sign-in stood in. */
 	token?: "refused";
+	/** "import": the picked export names a notice address, so Import asks before keeping it. */
+	webhook?: "import";
 	/** GitHub's budget is used up for the next half hour: "out" with no sign-in (60), "signed" with one (5,000); "soon" starts over in 1.5 s. */
 	rate?: "out" | "signed" | "soon";
 	/**
@@ -772,6 +774,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		upkeepCommand: false,
 		waitDays: 0,
 		waitUnmetered: false,
+		webhookReady: true,
+		webhookRun: false,
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",
@@ -1221,6 +1225,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 
 	/** The token pasted in Settings; the fixture keeps it in memory only. */
 	let tokenKept: string | null = opts.token ? `ghp_${"f".repeat(32)}dead` : null;
+	/** The notice address Settings kept; the fixture masks it as the main process does. */
+	let webhookKept: string | null = null;
+	const webhookState = () => {
+		if (webhookKept === null) return { masked: null };
+		const url = new URL(webhookKept);
+		return { masked: `${url.protocol}//${url.host}${url.pathname === "/" && !url.search ? "/" : "/…"}` };
+	};
 	/** As the engine's last check: GitHub refused the kept token and gh stood in. */
 	let tokenFallback: TokenState["refused"] = opts.token === "refused" ? "gh" : null;
 	const tokenState = (): TokenState => ({
@@ -1469,6 +1480,25 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			tokenFallback = null;
 			return { ok: true, ...tokenState() };
 		},
+		webhook: () => webhookState(),
+		// As the main process: an address that is no URL is refused, and plain http only goes to a home-network host.
+		setWebhook: ({ address }) => {
+			const a = address?.trim() || null;
+			if (a !== null) {
+				let url: URL | null = null;
+				try {
+					url = new URL(a);
+				} catch {
+					// not a URL
+				}
+				if (!url || (url.protocol !== "https:" && url.protocol !== "http:"))
+					return { ok: false, problem: "address", ...webhookState() };
+				if (url.protocol === "http:" && !/^(localhost|127\.|10\.|192\.168\.|[^.]+$)/.test(url.hostname))
+					return { ok: false, problem: "plain", ...webhookState() };
+			}
+			webhookKept = a;
+			return { ok: true, ...webhookState() };
+		},
 		history: ({ limit }) => clone(history.slice(0, limit)),
 		runLog: ({ runId }) => clone(logs.get(runId) ?? []),
 		open: ({ what }) => {
@@ -1666,6 +1696,13 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 						turnsOff: ["waitUnmetered"],
 					},
 				};
+			}
+			// A file that names a notice address asks first, and keeps it once the person says Import.
+			if (opts.webhook === "import") {
+				const address = "https://ntfy.example.net/upkeep-home?tpl=yes";
+				if (!sure)
+					return { ok: false, ask: { apps: [], plain: apps.length, turnsOn: [], turnsOff: [], webhook: address } };
+				webhookKept = address;
 			}
 			// The default file's settings have no release wait: with one set here, Import asks before taking it off.
 			if (variant !== "built" && settings.waitDays > 0) {
