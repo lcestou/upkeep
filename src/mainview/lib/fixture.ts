@@ -1374,8 +1374,18 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			if (!app) return { ok: false };
 			const pending = app.latest !== null && app.latest !== app.installed;
 			const status: AppStatus = held ? "held" : app.skipped ? "held" : pending ? "ready" : "fresh";
-			// As the engine does: releasing a hold Upkeep put on a changed release drops the reason with it.
-			put({ ...app, held, status, detail: held || app.status !== "held" ? app.detail : undefined });
+			// As the engine does: releasing a hold Upkeep put on a changed release drops the reason with it, and either
+			// way a pause ends.
+			put({ ...app, held, status, paused: undefined, detail: held || app.status !== "held" ? app.detail : undefined });
+			return { ok: true };
+		},
+		setPause: ({ key, days }) => {
+			const app = get(key);
+			// As the engine does: a hold wins over a pause, so pausing a held app is refused.
+			if (!app || (days !== null && app.held)) return { ok: false };
+			const pending = app.latest !== null && app.latest !== app.installed;
+			if (days !== null) put({ ...app, status: pending ? "held" : app.status, paused: iso(NOW + days * DAY) });
+			else put({ ...app, status: app.held || app.skipped ? "held" : pending ? "ready" : "fresh", paused: undefined });
 			return { ok: true };
 		},
 		setAuto: ({ key, auto }) => {

@@ -148,6 +148,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 	expect(loadState(t.paths)).toEqual({
 		skip: {},
 		hold: {},
+		pause: {},
 		auto: {},
 		prerelease: {},
 		settings: {

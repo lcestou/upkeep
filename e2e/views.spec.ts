@@ -129,12 +129,33 @@ test("a build that floods the Log keeps the window answering, and the Log keeps 
 	await page.getByTestId("log-toggle").click();
 	// A CUDA compile's warnings, 4 lines a turn as the engine sends them: fill to 2000, then keep pouring and click.
 	await page.evaluate(() => globalThis.upkeepFlood?.(2000));
+	// The longest wait between two painted frames while the lines pour, measured in the page: it reads the window's
+	// own freeze, not Playwright's round trips, which a busy machine (a local model generating) stretches past 2 s.
+	// Healthy it is about 100 ms even then; drawing every row again per line (rows keyed by position) froze the window
+	// for a minute, and one 1.2 s block on the main thread is enough to fail it.
+	await page.evaluate(() => {
+		const w = globalThis as unknown as { frameGap: number; framing: boolean };
+		w.frameGap = 0;
+		w.framing = true;
+		let last = performance.now();
+		const tick = () => {
+			const now = performance.now();
+			w.frameGap = Math.max(w.frameGap, now - last);
+			last = now;
+			if (w.framing) requestAnimationFrame(tick);
+		};
+		requestAnimationFrame(tick);
+	});
 	const pouring = page.evaluate(() => globalThis.upkeepFlood?.(1200));
-	const started = Date.now();
 	await page.getByTestId("log-follow").click();
 	await expect(page.getByTestId("log-follow")).toHaveText("Follow new lines");
-	expect(Date.now() - started).toBeLessThan(1500);
 	await pouring;
+	const gap = await page.evaluate(() => {
+		const w = globalThis as unknown as { frameGap: number; framing: boolean };
+		w.framing = false;
+		return w.frameGap;
+	});
+	expect(gap).toBeLessThan(1000);
 	await expect(page.getByTestId("log-drawer").locator("li")).toHaveCount(2000);
 	await expect(page.getByTestId("log-drawer").locator("li").last()).toContainText("(1199)");
 });

@@ -20,7 +20,7 @@ import { clampSettings, loadState, updateState, withStateLock, writeAtomic } fro
 
 /**
  * Everything a person set up, in one file to carry to another machine or hand to an agent: the app list as written
- * (apps.toml, comments included), the settings, the skips, holds and automatic installs, and the extras' switches.
+ * (apps.toml, comments included), the settings, the skips, holds, pauses and automatic installs, and the extras' switches.
  * `upkeep` is the format's version; a reader refuses one it does not know. Run state (the notified set, restarts
  * pending, history, restore points) stays behind: it belongs to the machine.
  */
@@ -31,9 +31,23 @@ export type Transfer = {
 	settings: Settings;
 	skip: Record<string, string>;
 	hold: Record<string, true>;
+	/** Pauses by app, to the ISO time each ends. Absent in files written before pauses. */
+	pause?: Record<string, string>;
 	auto: Record<string, boolean>;
 	extras: ExtrasSettings;
 };
+
+/**
+ * The pauses still running at now and ending within 365 days of it, the longest Pause for allows. An unreadable end,
+ * one already past or one further off (a hand-edited or hostile file holding an app back for years) is dropped.
+ */
+function livePauses(pause: Record<string, unknown>, now: Date): Record<string, string> {
+	const from = now.getTime();
+	return only(pause, (x): x is string => {
+		const at = typeof x === "string" ? Date.parse(x) : Number.NaN;
+		return at > from && at <= from + 365 * 86_400_000;
+	});
+}
 
 /** The current setup as a Transfer. A missing apps.toml is first seeded, as a check would. */
 export function exportSetup(paths: Paths, seedFile: string, now: Date): Transfer {
@@ -45,6 +59,7 @@ export function exportSetup(paths: Paths, seedFile: string, now: Date): Transfer
 		settings: state.settings,
 		skip: state.skip,
 		hold: state.hold,
+		pause: livePauses(state.pause, now),
 		auto: state.auto,
 		extras: loadExtras(paths),
 	};
@@ -217,14 +232,12 @@ function waitLowered(paths: Paths, settings: Record<string, unknown>): ImportAsk
  * the same shared file twice leaves its apps off, and re-importing one's own list here changes nothing. autoOff
  * names the new or changed apps the file wanted on, which came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
- * any the import created. Skips and holds are kept only for apps the new list has. A pre-release switch is never
- * taken from the file, since it changes what installs: a matching app keeps this machine's, any other has none, and a
- * table's own prerelease field makes it differ, so its auto comes in off. The file never carries a menu
-
- * entry: an app it drops or changes has its entry switched off and its files deleted, so no entry points at a dest
- * the new table no longer names;
- * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
- * default.
+ * any the import created. Skips, holds and pauses are kept only for apps the new list has, and a skip never for a
+ * versionless app, which has no version to skip. A pre-release switch is never taken from the file, since it changes
+ * what installs: a matching app keeps this machine's, any other has none, and a table's own prerelease field makes it
+ * differ, so its auto comes in off. The file never carries a menu entry: an app it drops or changes has its entry
+ * switched off and its files deleted, so no entry points at a dest the new table no longer names; settings and
+ * extras go through the same checks as the files they land in, so an out-of-range value reads as its default.
  */
 export function importSetup(
 	paths: Paths,
@@ -311,8 +324,16 @@ export function importSetup(
 		updateState(paths, (s) => {
 			// SAFETY: the next loadState clamps every field of settings, so a wrong value reads as its default, never as this.
 			s.settings = { ...s.settings, ...(settings as Partial<Settings>) };
-			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
+			const versionless = new Set(list.apps.filter((a) => a.versionless).map((a) => a.key));
+			// A versionless app has no version to skip; a skip on one would only keep it out of automatic runs unseen.
+			s.skip = Object.fromEntries(
+				Object.entries(mine(only(doc.skip, (x): x is string => typeof x === "string"))).filter(
+					([k]) => !versionless.has(k),
+				),
+			);
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
+			// A pause only holds an app back for a while, so it comes in without asking; livePauses drops any other end.
+			s.pause = mine(livePauses(isRecord(doc.pause) ? doc.pause : {}, now));
 			// Every app gets an entry, so an auto = true written in an imported table never decides.
 			s.auto = picks;
 			// A pre-release switch changes what installs: kept from this machine for a matching table, never the file's.
