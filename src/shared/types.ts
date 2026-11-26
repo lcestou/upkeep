@@ -618,6 +618,27 @@ export type SystemState = {
 	install?: SystemInstall;
 };
 
+/** What happens when a run ends. Chosen for one run only and never saved, so a forgotten choice cannot power the PC off. */
+export type WhenDone = "nothing" | "quit" | "suspend" | "poweroff";
+
+/** The main process's when-done choice, which the window and the tray both show. */
+export type WhenDoneState = {
+	choice: WhenDone;
+	/** Whether logind allows each power action here ("yes" or "challenge"); the choice offers only those it allows. */
+	can: { suspend: boolean; poweroff: boolean };
+	/** A suspend or power-off counting down: it acts at `at`, in epoch milliseconds, unless cancelled. */
+	countdown: { action: "suspend" | "poweroff"; at: number } | null;
+	/**
+	 * Why the chosen suspend or power-off did not happen: an app that failed, a run that was stopped, a System step
+	 * that failed, or logind refusing the call (`detail` holds what it said). Cleared when the next run starts.
+	 */
+	cancelled: {
+		action: "suspend" | "poweroff";
+		why: "failed" | "stopped" | "system" | "refused";
+		detail?: string;
+	} | null;
+};
+
 export type ExtrasSnapshot = { settings: ExtrasSettings; system: SystemState; cleanup: CleanupState };
 
 export type EngineEvent =
@@ -628,7 +649,8 @@ export type EngineEvent =
 	| { type: "removed"; key: string }
 	| { type: "chrome"; chrome: WindowChrome }
 	| { type: "extras"; extras: ExtrasSnapshot }
-	| { type: "self"; self: SelfState };
+	| { type: "self"; self: SelfState }
+	| { type: "whenDone"; whenDone: WhenDoneState };
 
 /** What the view can ask of the main process. */
 export type Requests = {
@@ -716,6 +738,12 @@ export type Requests = {
 	selfRestart: { params: Record<string, never>; response: { ok: boolean } };
 	/** Takes a finished self-update notice off the list. */
 	selfDismiss: { params: Record<string, never>; response: { ok: boolean } };
+	/** What happens when this run ends. Changes come as whenDone events. */
+	whenDone: { params: Record<string, never>; response: WhenDoneState };
+	/** Picks what happens when this run ends; refused outside a run, or for a power action logind does not allow. */
+	setWhenDone: { params: { choice: WhenDone }; response: { ok: boolean } };
+	/** Cancels a suspend or power-off counting down. */
+	cancelWhenDone: { params: Record<string, never>; response: { ok: boolean } };
 	/** Removes Upkeep's entries, command and install, and with purge its data too; Upkeep quits after ok. */
 	uninstall: { params: { purge: boolean }; response: { ok: boolean; problem?: string } };
 	setExtras: { params: Partial<ExtrasSettings>; response: ExtrasSettings };

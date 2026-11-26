@@ -8,6 +8,7 @@ import { exportSetup, importSetup } from "../engine/transfer";
 import { MESSAGES } from "../shared/messages";
 import { aboutUrl, releasePage } from "./about";
 import type { Self } from "./self-update";
+import type { WhenDoneControl } from "./when-done";
 import type { RequestHandlers, WindowButton, WindowChrome } from "../shared/types";
 
 /** The newest run log, for "Open log file" when no run is in progress. */
@@ -41,6 +42,8 @@ export type WindowHooks = {
 	env: Record<string, string | undefined>;
 	/** Upkeep's own update. */
 	self: Pick<Self, "snapshot" | "prepare" | "restart" | "dismiss">;
+	/** What happens when this run ends, shared with the tray. */
+	whenDone: Pick<WhenDoneControl, "snapshot" | "choose" | "cancel">;
 	/** Called each time a view asks for its snapshot: a start test waits for the first. */
 	onSnapshot?: () => void;
 	/** Uninstalls Upkeep (uninstall.ts) and quits it, or answers why not. */
@@ -96,6 +99,12 @@ export function upkeepRequests(
 			hooks.self.dismiss();
 			return { ok: true };
 		},
+		whenDone: () => hooks.whenDone.snapshot(),
+		// The choice belongs to a run: outside one there is nothing for it to wait on.
+		setWhenDone: ({ choice }) => ({
+			ok: engine.snapshot().run.phase === "installing" && hooks.whenDone.choose(choice),
+		}),
+		cancelWhenDone: () => ({ ok: hooks.whenDone.cancel() }),
 		check: ({ keys }) => {
 			// The engine ignores a check while it is checking or installing. Say so, so the view can.
 			const phase = engine.snapshot().run.phase;

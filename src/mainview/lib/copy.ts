@@ -1615,3 +1615,46 @@ export const typeLabel = (word: string) => `Type ${word} to also remove packages
 export const freedLine = (size: string) => `Freed ${size}.`;
 /** A History row for a cleanup: what it freed. */
 export const freedShort = (size: string) => `${size} freed`;
+
+/** What happens when a run ends: the choice beside the run controls, its countdown and why it did not happen. */
+export const WHEN = {
+	get label() {
+		return "When done";
+	},
+	get nothing() {
+		return "Nothing";
+	},
+	get quit() {
+		return "Quit Upkeep";
+	},
+	get suspend() {
+		return "Suspend";
+	},
+	get poweroff() {
+		return "Shut down";
+	},
+	get cancel() {
+		return "Cancel";
+	},
+	get notSuspended() {
+		return "The PC was not suspended.";
+	},
+	get notShutDown() {
+		return "The PC was not shut down.";
+	},
+	get failed() {
+		return "An app did not update.";
+	},
+	get stopped() {
+		return "The run was stopped.";
+	},
+	get system() {
+		return "A System update failed.";
+	},
+};
+/** The countdown to a suspend after a run, in whole seconds. */
+export const suspendIn = (n: number) => `Suspending in ${n} s`;
+/** The countdown to a shut-down after a run, in whole seconds. */
+export const shutDownIn = (n: number) => `Shutting down in ${n} s`;
+/** logind refused the call; its own words follow, untranslated. */
+export const refusedText = (detail: string) => `The system refused: ${detail}`;

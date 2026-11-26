@@ -1,11 +1,38 @@
 import type { LanguageCode } from "../shared/languages";
-import type { AppState, RunResult, SelfState, Snapshot, SystemState } from "../shared/types";
+import type { AppState, RunResult, SelfState, Snapshot, SystemState, WhenDone, WhenDoneState } from "../shared/types";
 import { countsOf } from "../engine/status";
 import type { NoticeApp, NoticeBody } from "../engine/webhook";
 import { count, TRAY_TEXT } from "./tray-text";
+import { WHEN_DONE } from "./when-done";
 
-export type TrayAction = "open" | "check" | "install" | "quit";
-export type TrayItem = { type: "normal"; label: string; action: TrayAction } | { type: "divider" };
+export type TrayAction = "open" | "check" | "install" | "quit" | `then-${WhenDone}` | "cancel-power";
+export type TrayItem =
+	| { type: "normal"; label: string; action: TrayAction; checked?: boolean }
+	| { type: "normal"; label: string; submenu: TrayItem[] }
+	| { type: "divider" };
+
+/** The tray's when-done choices, in the window's order; suspend and power-off only where logind allows them. */
+function whenDoneMenu(state: WhenDoneState, code: LanguageCode): TrayItem {
+	const t = TRAY_TEXT[code];
+	const label = {
+		nothing: t.thenNothing,
+		quit: t.thenQuit,
+		suspend: t.thenSuspend,
+		poweroff: t.thenPowerOff,
+	} satisfies Record<WhenDone, string>;
+	const choices = WHEN_DONE.filter((c) => (c !== "suspend" && c !== "poweroff") || state.can[c]);
+	return {
+		type: "normal",
+		// The current choice is in the menu's own name: not every panel draws a check mark.
+		label: `${t.whenDone}: ${label[state.choice]}`,
+		submenu: choices.map((c) => ({
+			type: "normal",
+			label: label[c],
+			action: `then-${c}`,
+			checked: c === state.choice,
+		})),
+	};
+}
 
 /** Names of the apps an Install press would update right now, in list order. */
 export function readyNames(snapshot: Snapshot): string[] {
@@ -18,6 +45,7 @@ export function trayMenu(
 	system?: SystemState,
 	code: LanguageCode = "en",
 	self?: SelfState,
+	whenDone?: WhenDoneState,
 ): TrayItem[] {
 	const t = TRAY_TEXT[code];
 	const ready = readyNames(snapshot).length;
@@ -35,8 +63,23 @@ export function trayMenu(
 	// Upkeep's own update is named, never counted: it opens the window, where the row is.
 	if (self && (self.phase === "available" || self.phase === "ready"))
 		items.push({ type: "normal", label: selfNotice(self.version, code), action: "open" });
+	const countdown = whenDone?.countdown;
+	if (countdown)
+		items.push({
+			type: "normal",
+			label: countdown.action === "suspend" ? t.cancelSuspend : t.cancelPowerOff,
+			action: "cancel-power",
+		});
 	items.push({ type: "divider" });
-	items.push({ type: "normal", label: installing ? t.quitAfterRun : t.quit, action: "quit" });
+	// During a run Quit waits for its end, as one of the when-done choices; a quit in the middle would cut an app off.
+	if (installing)
+		items.push(
+			whenDoneMenu(
+				whenDone ?? { choice: "nothing", can: { suspend: false, poweroff: false }, countdown: null, cancelled: null },
+				code,
+			),
+		);
+	else items.push({ type: "normal", label: t.quit, action: "quit" });
 	return items;
 }
 
