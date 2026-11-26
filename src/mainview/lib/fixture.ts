@@ -33,6 +33,7 @@ import type {
 	WindowButton,
 	WindowChrome,
 } from "../../shared/types";
+import { SNAPSHOT_HISTORY_KEY } from "../../shared/types";
 import { PICKED, scanResults, suggestFor } from "./fixture-add";
 import { afterClean, fixtureCleanupItems, fixtureReview } from "./fixture-cleanup";
 import { lastTryFailed, tomlWriteFailed } from "./copy";
@@ -984,7 +985,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				}
 			} else
 				history.unshift({
-					key: "system:snapshot",
+					key: SNAPSHOT_HISTORY_KEY,
 					name: "Timeshift",
 					from: null,
 					to: null,

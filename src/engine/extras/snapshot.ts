@@ -1,15 +1,19 @@
+import { mkdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { SnapshotSetup } from "../../shared/types";
 import { isRecord } from "../manifest";
 import { asRoot, type ProcessResult, type Run, sudoNeedsPassword } from "../run";
+import { writeAtomic } from "../store";
 
 // The snapshot tools Upkeep drives before a System install, named here and nowhere else: Timeshift (its command line
 // and its config file) and Snapper (its root config), with cat and test to read whether each is set up. Every command
 // that takes, lists or deletes a snapshot runs as root through sudo -n, the same root path System's packages use.
 
-/** History's key for the snapshot before a System install; the row has no versions, and its detail names the snapshot. */
-export const SNAPSHOT_KEY = "system:snapshot";
-/** The comment on every snapshot Upkeep takes. Pruning deletes only Timeshift snapshots whose comment is exactly this. */
+/**
+ * The comment on every snapshot Upkeep takes. Pruning deletes only Timeshift snapshots Upkeep recorded as its own
+ * when it took them, and only while their comment is still exactly this.
+ */
 export const SNAPSHOT_COMMENT = "Upkeep before system updates";
 /** How many of Upkeep's own Timeshift snapshots are kept; older ones are deleted after a new one is taken. */
 export const KEEP = 3;
@@ -25,8 +29,11 @@ export const SNAPPER_VERSION = ["snapper", "--version"];
 export const SNAPPER_HAS_ROOT = ["test", "-e", SNAPPER_ROOT_CONFIG];
 export const SNAPSHOT_PROBES = [TIMESHIFT_VERSION, TIMESHIFT_READ_CONFIG, SNAPPER_VERSION, SNAPPER_HAS_ROOT];
 
-/** Timeshift's list. --scripted never asks; listing needs root, as Timeshift mounts its backup device for it. */
-export const TIMESHIFT_LIST = asRoot(["timeshift", "--list", "--scripted"], true);
+/**
+ * Timeshift's list. --scripted never asks; listing needs root, as Timeshift mounts its backup device for it. In the C
+ * locale, since its column headings are read and Timeshift translates them.
+ */
+export const TIMESHIFT_LIST = asRoot(["env", "LC_ALL=C", "timeshift", "--list", "--scripted"], true);
 /** An on-demand (O) Timeshift snapshot with Upkeep's comment. */
 export const TIMESHIFT_CREATE = asRoot(
 	["timeshift", "--create", "--comments", SNAPSHOT_COMMENT, "--tags", "O", "--scripted"],
@@ -108,16 +115,36 @@ export function timeshiftConfig(text: string): { btrfs: boolean } | null {
 /** One snapshot in Timeshift's list: its name (the local time it was taken), its tag letters and its comment. */
 export type TimeshiftSnapshot = { name: string; tags: string; comment: string };
 
+const SNAPSHOT_NAME = /^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}$/;
+
 /**
- * timeshift --list: after a dashed rule, "<num> > <name> <tags> <comment>" per snapshot, where the name is the local
- * time YYYY-MM-DD_HH-MM-SS and tags are letters from O, B, H, D, W and M. The ">" may be absent, and so may the
- * comment. The device lines above the rule are not snapshots.
+ * timeshift --list --scripted in the C locale, as Timeshift's AppConsole.vala prints it: the device status lines, then
+ * (list_snapshots, print_grid) a header of Num, an empty column, Name, Tags and Description, a rule of 78 dashes, and
+ * one row per snapshot, every column padded to its widest cell plus two spaces, the last one too. The columns are cut
+ * at the header's positions, so neither a tagless row nor a comment that starts with a tag letter can shift them; a
+ * comment's trailing spaces are padding and dropped. With no snapshot Timeshift prints "No snapshots found" and exits
+ * 1: that is an empty list. Null for anything else: a failed run, no header, or a row that is not a snapshot.
  */
-export function parseTimeshiftList(stdout: string): TimeshiftSnapshot[] {
+export function parseTimeshiftList(r: ProcessResult): TimeshiftSnapshot[] | null {
+	if (r.timedOut) return null;
+	if (r.code !== 0) return /^No snapshots found\s*$/m.test(`${r.stdout}\n${r.stderr}`) ? [] : null;
+	const lines = r.stdout.split("\n");
+	const at = lines.findIndex((l, i) => /^Num\s/.test(l) && /^-{78}\s*$/.test(lines[i + 1] ?? ""));
+	const header = lines[at] ?? "";
+	const [name, tags, desc] = ["Name", "Tags", "Description"].map(
+		(h) => header.search(new RegExp(`\\s${h}(\\s|$)`)) + 1,
+	);
+	if (at < 0 || !name || !tags || !desc || !(name < tags && tags < desc)) return null;
 	const out: TimeshiftSnapshot[] = [];
-	for (const l of stdout.split("\n")) {
-		const m = /^\s*\d+\s+(?:>\s+)?(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})(?:\s+([OBHDWM]+)(?=\s|$))?\s*(.*?)\s*$/.exec(l);
-		if (m) out.push({ name: m[1] ?? "", tags: m[2] ?? "", comment: m[3] ?? "" });
+	for (const l of lines.slice(at + 2)) {
+		if (!l.trim()) break;
+		const row = {
+			name: l.slice(name, tags).trim(),
+			tags: l.slice(tags, desc).trim(),
+			comment: l.slice(desc).replace(/ +$/, ""),
+		};
+		if (!/^\s*\d+\s/.test(l) || !SNAPSHOT_NAME.test(row.name)) return null;
+		out.push(row);
 	}
 	return out;
 }
@@ -139,14 +166,37 @@ export function freshSnapshot(list: TimeshiftSnapshot[], now: Date): string | nu
 	return age >= 0 && age < FRESH_MS ? newest : null;
 }
 
-/** Upkeep's own snapshots past the newest KEEP, oldest last: only a comment exactly Upkeep's counts as Upkeep's. */
-export function toPrune(list: TimeshiftSnapshot[]): string[] {
+/**
+ * Upkeep's own snapshots past the newest KEEP, newest first: a snapshot counts as Upkeep's only when its name is in
+ * owned (recorded when Upkeep took it) and its comment is still exactly Upkeep's. Anything else is never listed.
+ */
+export function toPrune(list: TimeshiftSnapshot[], owned: string[]): string[] {
+	const mine = new Set(owned);
 	return list
-		.filter((s) => s.comment === SNAPSHOT_COMMENT)
+		.filter((s) => mine.has(s.name) && s.comment === SNAPSHOT_COMMENT)
 		.map((s) => s.name)
 		.toSorted()
 		.toReversed()
 		.slice(KEEP);
+}
+
+/** The file of the Timeshift snapshot names Upkeep took, in its state directory. */
+const ownedFile = (state: string) => join(state, "timeshift-snapshots.json");
+
+/** The names Upkeep recorded as its own Timeshift snapshots; a missing or broken file is none. */
+export function readOwned(state: string): string[] {
+	try {
+		const data: unknown = JSON.parse(readFileSync(ownedFile(state), "utf8"));
+		return Array.isArray(data) ? data.filter((x): x is string => typeof x === "string" && SNAPSHOT_NAME.test(x)) : [];
+	} catch {
+		return [];
+	}
+}
+
+/** Replaces the record of Upkeep's own Timeshift snapshots, by rename. */
+function writeOwned(state: string, names: string[]): void {
+	mkdirSync(state, { recursive: true });
+	writeAtomic(ownedFile(state), JSON.stringify(names));
 }
 
 /** The snapshot before a System install: taken (with Snapper's pre number to pair), skipped with why, or failed with why. */
@@ -162,6 +212,8 @@ export type SnapshotCtx = {
 	log: (line: string) => void;
 	/** The pid of the command now running, so a quit can end its process group. */
 	onStart?: (pid: number) => void;
+	/** Upkeep's state directory, where the names of the Timeshift snapshots it took are kept. */
+	state: string;
 };
 
 /** The tool's name as people write it, for the log and History. */
@@ -176,11 +228,14 @@ function failure(argv: string[], r: ProcessResult): string {
 }
 
 /**
- * Takes the snapshot before a System install. Timeshift: the list is read first, and when its newest snapshot (the
- * daily one too) is under 6 hours old none is taken, except in btrfs mode, where a snapshot costs next to nothing;
- * after a new one, Upkeep's own past the newest 3 are deleted and nothing else is touched. A delete that fails is
- * logged and does not fail the snapshot. Snapper: a pre snapshot, always, whose number the caller pairs with a post
- * one after the steps (finishSnapshot). A failed list or create is a failure with its reason; nothing throws.
+ * Takes the snapshot before a System install. Timeshift: the list is read first, and one that cannot be read fails
+ * before anything is taken. When its newest snapshot (the daily one too) is under 6 hours old none is taken, except
+ * in btrfs mode, where a snapshot costs next to nothing. The new snapshot is the one listed afterwards that was not
+ * before, with Upkeep's comment; its name is recorded as Upkeep's, and Upkeep's recorded ones past the newest 3 are
+ * deleted. Nothing unrecorded is ever deleted, and a list after the create that cannot be read deletes nothing. A
+ * delete that fails is logged and does not fail the snapshot. Snapper: a pre snapshot, always, whose number the
+ * caller pairs with a post one after the steps (finishSnapshot); a pre that prints no number is taken, unnamed and
+ * unpaired. A failed list or create is a failure with its reason; nothing throws.
  */
 export async function takeSnapshot(setup: SnapshotSetup, ctx: SnapshotCtx): Promise<SnapshotResult> {
 	const { tool } = setup;
@@ -188,36 +243,57 @@ export async function takeSnapshot(setup: SnapshotSetup, ctx: SnapshotCtx): Prom
 	const stream = { group: true, onLine: ctx.log, onStart: ctx.onStart };
 	if (tool === "snapper") {
 		const r = await ctx.run(SNAPPER_PRE, { timeoutMs: 600_000, ...stream });
+		if (r.code !== 0 || r.timedOut) return { status: "failed", tool, reason: failure(SNAPPER_PRE, r) };
 		const pre = Number.parseInt(r.stdout.trim().split("\n").at(-1) ?? "", 10);
-		if (r.code !== 0 || r.timedOut || !Number.isInteger(pre))
-			return { status: "failed", tool, reason: failure(SNAPPER_PRE, r) };
+		if (!Number.isInteger(pre)) {
+			ctx.log(`Snapper pre snapshot taken, but its number could not be read: ${r.stdout.trim()}`);
+			return { status: "taken", tool, name: null };
+		}
 		ctx.log(`Snapper pre snapshot ${pre} taken`);
 		return { status: "taken", tool, name: String(pre), pre };
 	}
 	const listed = await ctx.run(TIMESHIFT_LIST, { timeoutMs: 120_000 });
-	if (listed.code !== 0 || listed.timedOut) return { status: "failed", tool, reason: failure(TIMESHIFT_LIST, listed) };
-	const fresh = setup.btrfs ? null : freshSnapshot(parseTimeshiftList(listed.stdout), ctx.now());
+	const before = parseTimeshiftList(listed);
+	if (!before)
+		return {
+			status: "failed",
+			tool,
+			reason:
+				listed.code !== 0 || listed.timedOut
+					? failure(TIMESHIFT_LIST, listed)
+					: MESSAGES.snapshotFailed(MESSAGES.snapshotListUnread()),
+		};
+	const fresh = setup.btrfs ? null : freshSnapshot(before, ctx.now());
 	if (fresh) {
 		ctx.log(`No snapshot taken: the newest, ${fresh}, is under 6 hours old`);
 		return { status: "skipped", tool, name: fresh };
 	}
 	const made = await ctx.run(TIMESHIFT_CREATE, { timeoutMs: 7_200_000, ...stream });
 	if (made.code !== 0 || made.timedOut) return { status: "failed", tool, reason: failure(TIMESHIFT_CREATE, made) };
-	const after = await ctx.run(TIMESHIFT_LIST, { timeoutMs: 120_000 });
-	const list = after.code === 0 && !after.timedOut ? parseTimeshiftList(after.stdout) : [];
-	const name =
-		list
-			.filter((s) => s.comment === SNAPSHOT_COMMENT)
-			.map((s) => s.name)
-			.toSorted()
-			.at(-1) ?? null;
-	ctx.log(`Timeshift snapshot taken${name ? `: ${name}` : ""}`);
-	for (const old of toPrune(list)) {
+	const list = parseTimeshiftList(await ctx.run(TIMESHIFT_LIST, { timeoutMs: 120_000 }));
+	if (!list) {
+		ctx.log("Timeshift snapshot taken, but the list could not be read again: nothing is pruned");
+		return { status: "taken", tool, name: null };
+	}
+	const had = new Set(before.map((s) => s.name));
+	const added = list.filter((s) => !had.has(s.name) && s.comment === SNAPSHOT_COMMENT).map((s) => s.name);
+	const name = added.length === 1 ? (added[0] ?? null) : null;
+	ctx.log(`Timeshift snapshot taken${name ? `: ${name}` : ", but which one it is could not be told"}`);
+	// Only names Upkeep recorded, and still listed, stay in the record.
+	const listedNames = new Set(list.map((s) => s.name));
+	const owned = [...readOwned(ctx.state).filter((n) => listedNames.has(n)), ...(name ? [name] : [])];
+	const gone = new Set<string>();
+	for (const old of toPrune(list, owned)) {
 		ctx.log(`Deleting Upkeep's older Timeshift snapshot ${old}`);
 		// oxlint-disable-next-line no-await-in-loop -- Timeshift deletes one snapshot at a time
 		const r = await ctx.run(timeshiftDelete(old), { timeoutMs: 600_000, ...stream });
 		if (r.code !== 0 || r.timedOut) ctx.log(`Could not delete ${old}; it stays`);
+		else gone.add(old);
 	}
+	writeOwned(
+		ctx.state,
+		owned.filter((n) => !gone.has(n)),
+	);
 	return { status: "taken", tool, name };
 }
 

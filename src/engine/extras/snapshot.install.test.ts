@@ -25,18 +25,35 @@ const key = (argv: string[]) => argv.join(" ");
 const NO_PID = 2_147_483_647;
 const exit = (code: number, stdout = "", stderr = ""): ProcessResult => ({ code, stdout, stderr, timedOut: false });
 
+/** Waits until check holds, up to two seconds, then fails. */
+async function until(check: () => boolean): Promise<void> {
+	for (let i = 0; i < 400 && !check(); i++)
+		// oxlint-disable-next-line no-await-in-loop -- polling waits one turn at a time
+		await Bun.sleep(5);
+	expect(check()).toBe(true);
+}
+
 let t: ReturnType<typeof tempHome>;
 beforeEach(() => {
 	t = tempHome("snapshot");
 });
 afterEach(() => t.cleanup());
 
+/** timeshift --list --scripted's grid, as print_grid pads it: every column to its widest cell plus two spaces. */
+function listing(rows: [string, string, string][]): string {
+	const grid = [["Num", "", "Name", "Tags", "Description"], ...rows.map(([n, tg, c], i) => [String(i), ">", n, tg, c])];
+	const widths = [0, 1, 2, 3, 4].map((c) => Math.max(...grid.map((r) => (r[c] ?? "").length)));
+	const line = (r: string[]) => r.map((cell, c) => `${cell.padEnd(widths[c] ?? 0)}  `).join("");
+	const [head = [], ...body] = grid;
+	return ["Status : OK", "", line(head), "-".repeat(78), ...body.map(line), "", ""].join("\n");
+}
+
 /**
  * A machine with Flatpak and Timeshift (rsync mode) and nothing else: the Flatpak update succeeds and drops Discord
- * from the list; the Timeshift list holds the owner's day-old daily snapshot until a create adds Upkeep's. create
- * replaces the create's answer.
+ * from the list, or throws when told to; the Timeshift list holds the owner's day-old daily snapshot until a create
+ * adds Upkeep's. create replaces the create's answer, and may be one that comes later.
  */
-function machine(create: ProcessResult = ok()) {
+function machine(create: ProcessResult | Promise<ProcessResult> = ok(), updateThrows = false) {
 	let installed = false;
 	let made = false;
 	return strictRun((argv, opts) => {
@@ -45,18 +62,24 @@ function machine(create: ProcessResult = ok()) {
 		if (k === key(TIMESHIFT_READ_CONFIG)) return ok('{"backup_device_uuid": "u", "btrfs_mode": "false"}');
 		if (k === key(TIMESHIFT_LIST))
 			return ok(
-				`0    >  2026-11-25_06-00-01  D\n${made ? `1    >  2026-11-26_10-00-00  O     ${SNAPSHOT_COMMENT}\n` : ""}`,
+				listing([
+					["2026-11-25_06-00-01", "D", ""],
+					...(made ? [["2026-11-26_10-00-00", "O", SNAPSHOT_COMMENT] as [string, string, string]] : []),
+				]),
 			);
 		if (k === key(TIMESHIFT_CREATE)) {
 			opts.onStart?.(NO_PID);
-			made = create.code === 0;
-			return create;
+			return Promise.resolve(create).then((r) => {
+				made = r.code === 0;
+				return r;
+			});
 		}
 		if (k === key(FLATPAK_UPDATES))
 			return ok(
 				installed ? fx("flatpak-updates.txt").replace(/^app\/com\.discordapp.*\n/m, "") : fx("flatpak-updates.txt"),
 			);
 		if (argv[0] === "flatpak" && argv[1] === "update") {
+			if (updateThrows) throw new Error("the runner broke");
 			opts.onStart?.(NO_PID);
 			installed = true;
 			return ok();
@@ -106,7 +129,7 @@ test("a snapshot is taken before the first System step, and History names it", a
 	await x.idle();
 	const order = box.calls
 		.map((c) => key(c.argv))
-		.filter((k) => k.startsWith("sudo -n timeshift") || k.startsWith("flatpak update"));
+		.filter((k) => (k.startsWith("sudo -n ") && k.includes(" timeshift --")) || k.startsWith("flatpak update"));
 	expect(order).toEqual([key(TIMESHIFT_LIST), key(TIMESHIFT_CREATE), key(TIMESHIFT_LIST), key(commands[0] ?? [])]);
 	expect(seen.phases).toEqual(["taking"]);
 	expect(x.snapshot().system.install?.snapshot).toBeUndefined();
@@ -175,4 +198,34 @@ test("Stop after a failed snapshot installs nothing; a quit answers Stop too", a
 		expect(x.snapshot().system.phase).toBe("idle");
 		expect(readHistory(t.paths, 100).map((r) => [r.key, r.result])).toEqual([["system:snapshot", "failed"]]);
 	}
+});
+
+test("a quit while the snapshot is being taken never asks: the snapshot it ended counts as Stop", async () => {
+	let finish: (r: ProcessResult) => void = () => undefined;
+	const box = machine(new Promise<ProcessResult>((r) => (finish = r)));
+	const x = await ready(box);
+	const seen = watch(x);
+	x.installSystem([DISCORD], x.planSystem([DISCORD]).commands);
+	await until(() => seen.phases.includes("taking") && box.calls.some((c) => c.argv.includes("--create")));
+	x.stopSystem();
+	// The create ends as a stopped command does.
+	finish(exit(143, "", "Terminated"));
+	await x.idle();
+	expect(seen.phases).toEqual(["taking"]);
+	expect(x.answerSnapshot(true)).toEqual({ ok: false });
+	expect(box.calls.some((c) => c.argv[0] === "flatpak" && c.argv[1] === "update")).toBe(false);
+	expect(x.snapshot().system.install?.refused).toBe(MESSAGES.snapshotStopped());
+	expect(readHistory(t.paths, 100).map((r) => [r.key, r.result])).toEqual([["system:snapshot", "failed"]]);
+});
+
+test("a System run that throws after the snapshot still writes the snapshot's History row", async () => {
+	const x = await ready(machine(ok(), true));
+	x.installSystem([DISCORD], x.planSystem([DISCORD]).commands);
+	await x.idle();
+	expect(x.snapshot().system.install?.refused).toBe("the runner broke");
+	expect(readHistory(t.paths, 100).find((r) => r.key === "system:snapshot")).toMatchObject({
+		result: "updated",
+		detail: MESSAGES.snapshotTaken("2026-11-26_10-00-00"),
+	});
+	expect(x.snapshot().system.phase).toBe("idle");
 });

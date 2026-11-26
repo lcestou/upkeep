@@ -11,6 +11,7 @@ import type {
 	SystemOutcome,
 	SystemState,
 } from "../../shared/types";
+import { SNAPSHOT_HISTORY_KEY } from "../../shared/types";
 import { stamp } from "../engine";
 import { isAbsolute } from "node:path";
 import { expandHome, type Paths } from "../paths";
@@ -18,7 +19,7 @@ import { killGroup, type Run } from "../run";
 import { appendHistory, claimLock, openRunLog, readInflight, releaseLock, type RunLog } from "../store";
 import { clean, measureCandidates, type Measured, needsTyping, review, TYPE_WORD } from "./cleanup";
 import { installable, outcomesAfter, planSteps, preflight, runSteps } from "./install";
-import { detectSnapshot, finishSnapshot, SNAPSHOT_KEY, type SnapshotResult, takeSnapshot, TOOL_NAME } from "./snapshot";
+import { detectSnapshot, finishSnapshot, type SnapshotResult, takeSnapshot, TOOL_NAME } from "./snapshot";
 import { loadExtras, updateExtras } from "./state";
 import { checkSystem } from "./system";
 
@@ -90,7 +91,7 @@ const offState = (): SystemState => ({
 /** History's row for the snapshot: taken, skipped because a fresh one exists, or failed and gone on without. */
 function snapshotRow(snap: SnapshotResult, ms: number, runId: string, at: string): HistoryRow {
 	const base = {
-		key: SNAPSHOT_KEY,
+		key: SNAPSHOT_HISTORY_KEY,
 		name: TOOL_NAME[snap.tool],
 		from: null,
 		to: null,
@@ -129,6 +130,8 @@ export function createExtras(deps: ExtrasDeps): Extras {
 	let installingNow = false;
 	// The answer to a failed snapshot's ask, while one waits; a quit that cannot wait answers Stop.
 	let answer: ((go: boolean) => void) | null = null;
+	// Set by a quit that cannot wait, for the rest of the System install: a snapshot that then fails never asks.
+	let stopAsked = false;
 	let cleanup = cleanupOff(settings.cleanup === true);
 	// What the last measure found, with how each part is deleted; the view only ever sees its items.
 	let measured: Measured | null = null;
@@ -207,9 +210,10 @@ export function createExtras(deps: ExtrasDeps): Extras {
 	}
 
 	/**
-	 * The snapshot before the steps, when its setting is on and a tool is set up; null when none is due. A failed one
-	 * asks the person; stop is true when they chose Stop (or did not answer), after which nothing of the System
-	 * install runs.
+	 * The snapshot before the steps, when its setting is on and a tool is set up; snap is null when none is due. A
+	 * failed one asks the person, unless a quit was asked meanwhile (its command was ended under it), which counts as
+	 * Stop at once; stop is true when they chose Stop (or did not answer), after which nothing of the System install
+	 * runs.
 	 */
 	async function snapshotFirst(log: (line: string) => void): Promise<{ snap: SnapshotResult | null; stop: boolean }> {
 		const setup = system.snapshotSetup;
@@ -222,6 +226,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			onStart: (pid) => {
 				child = pid;
 			},
+			state: deps.paths.state,
 		});
 		child = null;
 		if (snap.status !== "failed") {
@@ -229,6 +234,11 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			return { snap, stop: false };
 		}
 		log(snap.reason);
+		if (stopAsked) {
+			snapshotPhase(undefined);
+			log("Stopped before the system updates: Upkeep is quitting");
+			return { snap, stop: true };
+		}
 		snapshotPhase({ phase: "asking", reason: snap.reason });
 		const go = await ask();
 		snapshotPhase(undefined);
@@ -239,15 +249,19 @@ export function createExtras(deps: ExtrasDeps): Extras {
 	/**
 	 * The install itself, once the lock is held: the read-only pre-checks, the snapshot when it is on, the steps, the
 	 * list read again, then one history row per ticked row and one for the snapshot. Snapper's post snapshot follows
-	 * the steps even when they fail. The lock is given back in finally and only under this owner, so it never frees a
+	 * the steps even when they fail, and the snapshot's history row is written in finally when nothing after the steps
+	 * wrote it (a step that threw). The lock is given back in finally and only under this owner, so it never frees a
 	 * lock the engine holds.
 	 */
 	async function install(ids: string[], commands: string[][], log: RunLog, runId: string) {
 		installingNow = true;
+		stopAsked = false;
+		const started = Date.now();
+		// The snapshot taken (or failed or skipped) in this run, until its history row is written.
+		let unwritten: SnapshotResult | null = null;
 		try {
 			const steps = planSteps(system.rows, ids, system.packages);
 			const picked = system.rows.filter((r) => steps.some((s) => s.ids.includes(r.id)));
-			const started = Date.now();
 			const say = (text: string) => log.write({ at: deps.now().toISOString(), key: "system", text });
 			const set = (outcomes: SystemOutcome[]) => {
 				if (system.install) system = { ...system, install: { ...system.install, outcomes } };
@@ -270,7 +284,9 @@ export function createExtras(deps: ExtrasDeps): Extras {
 				return;
 			}
 			const { snap, stop } = await snapshotFirst(say);
+			unwritten = snap;
 			if (snap && stop) {
+				unwritten = null;
 				appendHistory(deps.paths, [snapshotRow(snap, Date.now() - started, runId, deps.now().toISOString())]);
 				system = { ...system, phase: "idle" };
 				refuse(commands, MESSAGES.snapshotStopped());
@@ -285,7 +301,13 @@ export function createExtras(deps: ExtrasDeps): Extras {
 					set(outcomes);
 				});
 			} finally {
-				await finishSnapshot(snap, { run: deps.run, now: deps.now, log: say, onStart: ctx.onStart });
+				await finishSnapshot(snap, {
+					run: deps.run,
+					now: deps.now,
+					log: say,
+					onStart: ctx.onStart,
+					state: deps.paths.state,
+				});
 			}
 			child = null;
 			const after = await checkSystem({ run: deps.run });
@@ -304,6 +326,7 @@ export function createExtras(deps: ExtrasDeps): Extras {
 				at,
 				stages: {},
 			}));
+			unwritten = null;
 			appendHistory(deps.paths, snap ? [snapshotRow(snap, ms, runId, at), ...rows] : rows);
 			for (const o of outcomes) say(`${o.name}: ${o.status}${o.detail ? `: ${o.detail}` : ""}`);
 			generation += 1;
@@ -311,6 +334,12 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			if (system.mode === "show") system = { ...system, ...after, phase: "idle", checkedAt: at };
 			set(outcomes);
 		} finally {
+			if (unwritten)
+				try {
+					appendHistory(deps.paths, [snapshotRow(unwritten, Date.now() - started, runId, deps.now().toISOString())]);
+				} catch {
+					// History that cannot be written must not keep the lock held.
+				}
 			child = null;
 			log.close();
 			releaseLock(deps.paths, process.pid, LOCK_OWNER);
@@ -558,7 +587,8 @@ export function createExtras(deps: ExtrasDeps): Extras {
 		},
 		installing: () => installingNow || cleanup.phase === "cleaning",
 		stopSystem() {
-			// A quit that cannot wait takes Stop as the answer to a failed snapshot's ask.
+			// A quit that cannot wait takes Stop as the answer to a failed snapshot's ask, now or once one fails.
+			stopAsked = true;
 			answer?.(false);
 			if (child !== null) killGroup(child);
 		},

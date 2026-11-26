@@ -2,7 +2,7 @@ import { MESSAGES } from "../../shared/messages";
 import type { SystemOutcome, SystemRow, SystemState } from "../../shared/types";
 import { onBattery } from "../power";
 import type { ProcessResult, Run } from "../run";
-import { fwupdArgv } from "./firmware";
+import { FWUPD_UPDATES, fwupdArgv } from "./firmware";
 import {
 	APT_LIST,
 	DNF_LIST,
@@ -47,7 +47,7 @@ const LIST_TOOL = {
 	flatpak: "flatpak",
 	cinnamon: "cinnamon-spice-updater",
 	snap: "snap",
-	firmware: "fwupdmgr",
+	firmware: FWUPD_UPDATES[0] ?? "",
 } satisfies Record<SystemRow["source"], string>;
 
 /** A binary package a trial run may not touch: a kernel's image, headers, modules or meta package, or anything NVIDIA. */

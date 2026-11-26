@@ -48,7 +48,9 @@ test("with the snapshot on, the sheet says so and the run shows Taking a snapsho
 	await page.getByTestId("setting-system-snapshot").check();
 	await page.getByTestId("tab-updates").click();
 	await tickPerl(page);
-	await expect(page.getByTestId("system-confirm-snapshot")).toHaveText("Upkeep takes a Timeshift snapshot first.");
+	await expect(page.getByTestId("system-confirm-snapshot")).toHaveText(
+		"Upkeep takes a Timeshift snapshot first, unless one is under 6 hours old.",
+	);
 	await page.getByTestId("system-confirm").click();
 	await expect(page.getByTestId("system-snapshot-step")).toHaveText("Taking a snapshot");
 	await expect(page.getByTestId("sys-row-apt:perl").getByTestId("sys-state")).toHaveText("Waiting");

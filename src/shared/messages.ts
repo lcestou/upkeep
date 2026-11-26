@@ -592,6 +592,8 @@ export const MESSAGES = {
 	snapshotFailed: (v0: Value) => `The snapshot did not finish: ${v0}`,
 	/** extras/snapshot.ts: a value inside snapshotFailed */
 	snapshotNoRoot: () => `sudo needs a password here`,
+	/** extras/snapshot.ts: a value inside snapshotFailed, when timeshift --list printed something Upkeep cannot read */
+	snapshotListUnread: () => `Timeshift's list of snapshots could not be read`,
 	/** extras/extras.ts: the person chose Stop after a failed snapshot */
 	snapshotStopped: () => `The snapshot did not finish, so nothing was installed.`,
 	/** extras/cleanup.ts: a part whose size or time differs from what the review showed */

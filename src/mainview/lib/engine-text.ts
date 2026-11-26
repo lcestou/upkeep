@@ -318,6 +318,7 @@ export const ENGINE_COPY = {
 	snapshotSkipped: (v0: string) => `No snapshot taken: ${v0} is under 6 hours old.`,
 	snapshotFailed: (v0: string) => `The snapshot did not finish: ${v0}`,
 	snapshotNoRoot: () => `sudo needs a password here`,
+	snapshotListUnread: () => `Timeshift's list of snapshots could not be read`,
 	snapshotStopped: () => `The snapshot did not finish, so nothing was installed.`,
 	cleanChanged: () => `Skipped: changed since you reviewed it.`,
 	cleanSudo: () => `Skipped: sudo needs a password here.`,

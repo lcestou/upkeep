@@ -3286,6 +3286,7 @@ msgid "Snapper"
 msgstr "Snapper"
 
 #: src/mainview/components/SystemConfirm.svelte
+#: src/mainview/components/SystemConfirm.svelte
 msgid "Timeshift"
 msgstr "Timeshift"
 
@@ -3377,3 +3378,12 @@ msgstr "安全修复除外"
 #: src/mainview/lib/copy.ts
 msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
 msgstr "修复安全问题的更新会立即提供。只有设为“自动”的应用才会自行安装。"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first, unless one is under 6 hours old."
+msgstr "Upkeep 会先创建一个 {0} 快照，除非已有不到 6 小时的快照。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Timeshift's list of snapshots could not be read"
+msgstr "无法读取 Timeshift 的快照列表"

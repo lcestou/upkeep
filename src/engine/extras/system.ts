@@ -385,12 +385,16 @@ async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null | "imag
 
 /**
  * fwupd's pending firmware, one row per device. Without fwupdmgr, or when it fails (no daemon in a container or a VM),
- * there are none and nothing is said: firmware is a part of the group only where fwupd runs.
+ * there are none and nothing is said: firmware is a part of the group only where fwupd runs. An answer that is not
+ * fwupd's JSON is a failed read, named like any other source's.
  */
-async function firmwareRows(ctx: SystemCtx): Promise<SystemRow[]> {
+async function firmwareRows(ctx: SystemCtx): Promise<{ rows: SystemRow[]; problem: SystemCheck["problem"] }> {
 	const r = await ctx.run(FWUPD_UPDATES, { timeoutMs: 60_000 });
-	if (r.timedOut || !FWUPD_OK.includes(r.code)) return [];
-	return parseFwupd(r.stdout) ?? [];
+	if (r.timedOut || !FWUPD_OK.includes(r.code)) return { rows: [], problem: null };
+	const rows = parseFwupd(r.stdout);
+	if (rows) return { rows, problem: null };
+	const detail = (r.stdout.trim() || r.stderr.trim()).split("\n")[0] ?? "";
+	return { rows: [], problem: { code: "failed", command: FWUPD_UPDATES.join(" "), detail } };
 }
 
 /**
@@ -442,12 +446,14 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 	}
 	if (ok(snapUpdates))
 		rows.push(...parseSnapList(snapUpdates?.stdout ?? "", ok(snapInstalled) ? (snapInstalled?.stdout ?? "") : ""));
-	rows.push(...firmware);
+	rows.push(...firmware.rows);
 	return {
 		rows,
 		// A tool this system lacks is said quietly in the window, so a real failure elsewhere goes first.
 		problem:
-			[mintProblem, flatpakProblem, spiceProblem].find((p) => p?.code === "failed") ?? mintProblem ?? flatpakProblem,
+			[mintProblem, flatpakProblem, spiceProblem, firmware.problem].find((p) => p?.code === "failed") ??
+			mintProblem ??
+			flatpakProblem,
 		glMissing: ok(gl) && ok(runtimes) ? glMissing(gl?.stdout ?? "", runtimes?.stdout ?? "") : null,
 		packages: list?.packages ?? null,
 	};

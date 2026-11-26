@@ -484,6 +484,9 @@ export type ExtrasSettings = {
 	snapshotBeforeSystem?: boolean;
 };
 
+/** History's key for the snapshot before a System install, which the engine writes and the view and CLI read. */
+export const SNAPSHOT_HISTORY_KEY = "system:snapshot";
+
 /** The snapshot tool set up on this machine: Timeshift (in rsync or btrfs mode) or Snapper (always btrfs). */
 export type SnapshotSetup = { tool: "timeshift" | "snapper"; btrfs: boolean };
 

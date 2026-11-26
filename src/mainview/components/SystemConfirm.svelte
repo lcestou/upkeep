@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SYS, systemConfirmSnapshot, systemThenApps } from "../lib/copy";
+	import { SYS, systemConfirmSnapshot, systemConfirmSnapshotFresh, systemThenApps } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
 	import type { Attachment } from "svelte/attachments";
 
@@ -11,9 +11,13 @@
 	// The snapshot is not one of the commands: it runs first, only while its setting is on and a tool is set up.
 	const setup = $derived(model.extras?.system.snapshotSetup ?? null);
 	const snapshot = $derived(
-		model.extras?.settings.snapshotBeforeSystem === true && setup
-			? systemConfirmSnapshot(setup.tool === "snapper" ? "Snapper" : "Timeshift")
-			: null,
+		model.extras?.settings.snapshotBeforeSystem !== true || !setup
+			? null
+			: setup.tool === "snapper"
+				? systemConfirmSnapshot("Snapper")
+				: setup.btrfs
+					? systemConfirmSnapshot("Timeshift")
+					: systemConfirmSnapshotFresh("Timeshift"),
 	);
 	/** Focus lands on Not now when the sheet opens, so a stray Enter cancels instead of running root commands. */
 	const focusFirst: Attachment<HTMLButtonElement> = (node) => {

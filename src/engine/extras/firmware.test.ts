@@ -92,6 +92,14 @@ test("checkSystem lists firmware after the rest, and nothing at all without fwup
 		// The problem is Update Manager's missing list, never fwupd's.
 		expect(check.problem?.command).toBe("mintupdate-cli list");
 	}
+	// An answer that is not fwupd's JSON is a failed read of fwupd's list, not an empty one.
+	const broken = await checkSystem({ run: onlyFwupd(ok("WARNING: something unexpected\n{")).run });
+	expect(broken.rows).toEqual([]);
+	expect(broken.problem).toEqual({
+		code: "failed",
+		command: "fwupdmgr get-updates --json",
+		detail: "WARNING: something unexpected",
+	});
 });
 
 test("firmware installs one device per step, last, with every flag that keeps it from asking or restarting", () => {

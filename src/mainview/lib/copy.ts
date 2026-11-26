@@ -1314,11 +1314,13 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 			? "Flatpak"
 			: tool === "cinnamon-spice-updater"
 				? ALSO_FROM.cinnamon
-				: tool === "apt" || tool === "dnf" || tool === "zypper"
-					? tool
-					: tool === "checkupdates" || tool === "pacman"
-						? "pacman"
-						: PACKAGES_FROM.mint;
+				: tool === "fwupdmgr"
+					? ALSO_FROM.firmware
+					: tool === "apt" || tool === "dnf" || tool === "zypper"
+						? tool
+						: tool === "checkupdates" || tool === "pacman"
+							? "pacman"
+							: PACKAGES_FROM.mint;
 	return problem.detail ? `Could not read the ${source} list: ${problem.detail}` : `Could not read the ${source} list.`;
 }
 
@@ -1333,6 +1335,9 @@ export function systemThenApps(n: number): string {
 
 /** The command sheet's line when a snapshot is taken first; the tool is Timeshift or Snapper. */
 export const systemConfirmSnapshot = (tool: string) => `Upkeep takes a ${tool} snapshot first.`;
+/** The same for Timeshift in rsync mode, which takes none when its newest snapshot is under 6 hours old. */
+export const systemConfirmSnapshotFresh = (tool: string) =>
+	`Upkeep takes a ${tool} snapshot first, unless one is under 6 hours old.`;
 
 /** The line over a finished System install's results. */
 export const systemSummary = (done: number, all: number) => `Installed ${done} of ${all}.`;

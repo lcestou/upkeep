@@ -3334,6 +3334,7 @@ msgid "Snapper"
 msgstr "Snapper"
 
 #: src/mainview/components/SystemConfirm.svelte
+#: src/mainview/components/SystemConfirm.svelte
 msgid "Timeshift"
 msgstr "Timeshift"
 
@@ -3425,3 +3426,12 @@ msgstr "Sauf les correctifs de sécurité"
 #: src/mainview/lib/copy.ts
 msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
 msgstr "Une mise à jour qui corrige un problème de sécurité est proposée tout de suite. Elle ne s'installe d'elle-même que pour une app réglée sur Auto."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first, unless one is under 6 hours old."
+msgstr "Upkeep prend d'abord un instantané {0}, sauf s'il en existe un de moins de 6 heures."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Timeshift's list of snapshots could not be read"
+msgstr "La liste des instantanés de Timeshift n'a pas pu être lue"

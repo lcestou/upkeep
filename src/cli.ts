@@ -10,13 +10,13 @@ import type {
 	ImportSwitch,
 	Suggestion,
 } from "./shared/types";
+import { SNAPSHOT_HISTORY_KEY } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { COUNTDOWN_MS, type PowerAction, powerBlocker, powerNow } from "./engine/power";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
 import { CATALOGUE_URL } from "./bun/about";
-import { SNAPSHOT_KEY } from "./engine/extras/snapshot";
 import { heldLine, localDay, metricsText, securityNote, statusLines, statusOf } from "./engine/status";
 import { claimLock, formatLogLine, loadState, lockHeld, readInflight, releaseLock } from "./engine/store";
 import { exportSetup, importSetup } from "./engine/transfer";
@@ -384,7 +384,7 @@ function history(engine: Engine, json: boolean, out: Out): number {
 		// A Cleanup row has no versions: what it freed stands in their place, and nothing when that went unmeasured
 		// (apt does not say what autoremove freed). The snapshot before a System install has none either, and one
 		// taken reads as Taken.
-		const snapshot = r.key === SNAPSHOT_KEY;
+		const snapshot = r.key === SNAPSHOT_HISTORY_KEY;
 		const what =
 			r.freed !== undefined
 				? r.freed > 0
