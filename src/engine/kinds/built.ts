@@ -366,6 +366,8 @@ export async function prepareBuilt(
 			},
 		);
 		if (fetched.code !== 0) return fail({ failed: MESSAGES.couldNotFetchTag(target.tag, shown) });
+		const moved = await tagStillAt(target, dir, `${target.tag}^{commit}`, ctx);
+		if (moved) return fail({ failed: moved });
 		// A reset drops every commit the tag does not hold. HEAD inside the tag just fetched loses nothing; else it
 		// must be on a remote branch. The branch test alone failed after a reset to a tag newer than the last
 		// branch fetch, since the fetch above brings the tag only and origin/<branch> stays where it was.
@@ -630,6 +632,20 @@ async function pruneBuilds(spec: AppSpec, ctx: KindCtx, built: Built): Promise<v
 			ctx.log(`Pruned ${d}`);
 			dropTree(d, ctx.paths);
 		}
+}
+
+/**
+ * Null when the build's checkout holds the commit the check saw for the tag, or when the check saw none. Otherwise the
+ * sentence to fail with, after both commits are logged: a tag moved between check and build is the pattern of a
+ * repointed release, and building it would run code nobody was offered.
+ */
+export async function tagStillAt(target: Target, dir: string, rev: string, ctx: KindCtx): Promise<string | null> {
+	if (!target.commit) return null;
+	const r = await ctx.run(["git", "-C", dir, "rev-parse", "--verify", rev], { timeoutMs: 60_000 });
+	const now = r.code === 0 ? r.stdout.trim() : "";
+	if (now === target.commit) return null;
+	ctx.log(`${target.tag} pointed at ${target.commit} at check time, and at ${now || "nothing readable"} now.`);
+	return MESSAGES.tagMoved(target.tag);
 }
 
 /**

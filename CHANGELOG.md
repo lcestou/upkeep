@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A table can list versions to avoid: `bad_versions = ["2.4.1"]` with `bad_reason = "…"`. A check never offers a listed version. It offers the newest release before it, or keeps the app where it is, and the row says why. Catalogue tables may carry the same two fields.
+- Upkeep remembers each GitHub app's repository by its id. A renamed or transferred repo is followed. If the same owner/name later belongs to a different repository, the update is held with the reason until you release the hold.
+- A source build checks that its tag still points at the commit the check saw. If the tag moved in between, the build stops before any step runs, and the log names both commits.
 - An app several releases behind shows the release notes of every version it skips, newest first, each under its version, not only the latest's. A "Breaking changes" line above them quotes up to three lines that mention a breaking change, a migration, an incompatibility, a removal after deprecation or a manual step, with the version each comes from. The list is asked of GitHub, GitLab or Codeberg only when the pane opens.
 - A run can now be stopped at once. After Stop after this one, the footer offers Stop now: the app being installed goes back to how it was and the apps behind it stay ready. Downloads, builds and a self-updating tool's own update command are cut; a step that runs as root (`dpkg -i`, `rpm -U`, `sudo make install`) or an undo is waited out first, and the row says what it waits for. A tool with no `restore` command is cut too, and its row says what version it reports afterwards. History shows the app as Stopped by you, and a run that ends early still records the apps it finished.
 - A row whose step has printed nothing for two minutes says so, with the time left before the step's own limit ends it ("No output for 3 min. It stops on its own in 7 min."), and offers Stop now.

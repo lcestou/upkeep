@@ -3128,6 +3128,26 @@ msgstr "{0}: {1} не может содержать перевод строки 
 msgid "Could not write the menu entry: {0}"
 msgstr "Не удалось записать пункт меню: {0}"
 
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"
+msgstr "{0} отмечена как плохая версия, поэтому Upkeep её пропускает: {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold."
+msgstr "{0} теперь принадлежит другому репозиторию, а не тому, который Upkeep увидел впервые. Проверьте его, прежде чем возобновить обновления."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The tag {0} points at another commit than the one the check saw, so nothing was built. Check again before you install."
+msgstr "Тег {0} указывает на другой коммит, чем тот, что видела проверка, поэтому ничего не собрано. Проверьте снова перед установкой."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
+msgstr "{0}: для bad_versions нужен bad_reason, который объясняет, почему они в списке"
+
 #: src/mainview/lib/copy.ts
 msgid "Breaking changes"
 msgstr "Несовместимые изменения"

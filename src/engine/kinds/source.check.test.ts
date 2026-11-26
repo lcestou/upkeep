@@ -4,7 +4,7 @@ import type { AppSpec } from "../../shared/types";
 import type { FetchLike } from "../github";
 import { ok, script, strictRun, tempHome } from "../testkit";
 import type { KindCtx } from "./context";
-import { checkSource } from "./source";
+import { checkSource, tagCommitOf } from "./source";
 
 let t: ReturnType<typeof tempHome>;
 let release: Record<string, unknown> = {};
@@ -36,6 +36,8 @@ const COMMIT = ["sh", "-c", "print the built commit"];
 function ctx(answers: Record<string, string | null>) {
 	const { run, calls } = strictRun((argv) => {
 		const out = answers[argv.join(" ")];
+		// A remote that does not answer leaves the tag's commit unread, which every older case expects.
+		if (out === undefined && argv.includes("ls-remote")) return { code: 128, stdout: "", stderr: "", timedOut: false };
 		if (out === undefined) return undefined;
 		return out === null ? { code: 127, stdout: "", stderr: "", timedOut: false } : ok(out);
 	});
@@ -63,22 +65,32 @@ const srv = (extra: Partial<AppSpec> = {}): AppSpec => ({
 	...extra,
 });
 
+const A = "a".repeat(40);
+const B = "b".repeat(40);
+const LS_DIR = (home: string) =>
+	["git", "-C", `${home}/srv`, "ls-remote", "origin", "refs/tags/v0.9.0", "refs/tags/v0.9.0^{}"].join(" ");
+
 test("a release ahead of the built commit is ready and carries the newest commits", async () => {
 	comparison = { status: "ahead", ahead_by: 569 };
-	const { c, calls } = ctx({ [PROBE.join(" ")]: "f2918cabb\n", [COMMIT.join(" ")]: "f2918cabb\n" });
+	// An annotated tag: the peeled ^{} line is the commit the build must find.
+	const { c, calls } = ctx({
+		[PROBE.join(" ")]: "f2918cabb\n",
+		[COMMIT.join(" ")]: "f2918cabb\n",
+		[LS_DIR(t.paths.home)]: `${A}\trefs/tags/v0.9.0\n${B}\trefs/tags/v0.9.0^{}\n`,
+	});
 	const r = await checkSource(srv(), c);
 	expect(r).toMatchObject({
 		installed: "f2918cabb",
 		latest: "0.9.0",
 		status: "ready",
 		ahead: 569,
-		target: { from: "f2918cabb", version: "0.9.0", tag: "v0.9.0" },
+		target: { from: "f2918cabb", version: "0.9.0", tag: "v0.9.0", commit: B },
 		notes: "Notes.",
 	});
 	expect(r?.commits).toHaveLength(30);
 	expect(r?.commits?.[0]).toEqual({ sha: "c0", title: "title 0" });
 	expect(fetched).toContain("https://api.github.com/repos/o/srv/compare/f2918cabb...v0.9.0?per_page=1");
-	expect(calls.map((x) => x.argv)).toEqual([PROBE, COMMIT]);
+	expect(calls.map((x) => x.argv.join(" "))).toEqual([PROBE.join(" "), COMMIT.join(" "), LS_DIR(t.paths.home)]);
 	expect(calls[1]?.opts.timeoutMs).toBe(10_000);
 });
 
@@ -162,11 +174,55 @@ test("the check's first line is the version as written: prereleases compare in f
 test("a source row without check takes the old path and probes dest", async () => {
 	release = { tag_name: "3.6a" };
 	const dest = script(`${t.dir}/tmux`, "exit 0");
-	const { c, calls } = ctx({ [`${dest} --version`]: "tmux 3.6" });
+	// A lightweight tag has only its own line, which is the commit.
+	const ls = ["git", "ls-remote", "https://github.com/tmux/tmux.git", "refs/tags/3.6a", "refs/tags/3.6a^{}"];
+	const { c, calls } = ctx({ [`${dest} --version`]: "tmux 3.6", [ls.join(" ")]: `${A}\trefs/tags/3.6a\n` });
 	const r = await checkSource(
 		{ key: "tmux", name: "tmux", kind: "source", repo: "tmux/tmux", dest, build: ["make"] },
 		c,
 	);
-	expect(r).toMatchObject({ installed: "3.6", latest: "3.6a", status: "ready" });
-	expect(calls.map((x) => x.argv)).toEqual([[dest, "--version"]]);
+	expect(r).toMatchObject({ installed: "3.6", latest: "3.6a", status: "ready", target: { commit: A } });
+	expect(calls.map((x) => x.argv)).toEqual([[dest, "--version"], ls]);
+});
+
+test("tagCommitOf reads the peeled commit first, else the tag's own line, and nothing that is not a hash", () => {
+	expect(tagCommitOf(`${A}\trefs/tags/v1\n${B}\trefs/tags/v1^{}\n`, "v1")).toBe(B);
+	expect(tagCommitOf(`${A}\trefs/tags/v1\n`, "v1")).toBe(A);
+	expect(tagCommitOf(`${A}\trefs/tags/v10\n`, "v1")).toBeNull();
+	expect(tagCommitOf("nothing\trefs/tags/v1\n", "v1")).toBeNull();
+	expect(tagCommitOf("", "v1")).toBeNull();
+});
+
+test("a stage row reads no tag commit, and a row that is fresh asks no remote", async () => {
+	const { c, calls } = ctx({ [PROBE.join(" ")]: "0.8.0\n" });
+	const staged = await checkSource(srv({ dir: undefined, stage: "~/stage", commit: undefined }), c);
+	expect(staged?.status).toBe("ready");
+	expect(staged?.target?.commit).toBeUndefined();
+	const fresh = ctx({ [PROBE.join(" ")]: "0.9.0\n" });
+	expect((await checkSource(srv({ commit: undefined }), fresh.c))?.status).toBe("fresh");
+	expect(fresh.calls.some((x) => x.argv.includes("ls-remote"))).toBe(false);
+	expect(calls.some((x) => x.argv.includes("ls-remote"))).toBe(false);
+});
+
+test("a bad latest whose release list cannot be read is a problem, not a pass", async () => {
+	const { c } = ctx({ [PROBE.join(" ")]: "0.8.0\n" });
+	const r = await checkSource(srv({ commit: undefined, bad_versions: ["0.9.0"], bad_reason: "eats data" }), c);
+	expect(r).toMatchObject({ installed: "0.8.0", latest: null, status: "problem", offline: false });
+	expect(r?.detail).not.toContain("bad version");
+});
+
+test("a bad latest from another source than repo's releases rests, and repo's release list is never read for it", async () => {
+	const { c } = ctx({ [PROBE.join(" ")]: "0.2.0\n" });
+	const r = await checkSource(
+		srv({ commit: undefined, latest: "npm-tags:srv", bad_versions: ["0.2.2-rc.1"], bad_reason: "eats data" }),
+		c,
+	);
+	expect(r).toMatchObject({
+		installed: "0.2.0",
+		latest: "0.2.0",
+		status: "fresh",
+		detail: "0.2.2-rc.1 is marked as a bad version, so Upkeep passes over it: eats data",
+	});
+	expect(r?.target).toBeUndefined();
+	expect(fetched.some((u) => u.includes("/releases"))).toBe(false);
 });

@@ -1336,7 +1336,8 @@ test("a saved token GitHub stops taking falls back to gh's sign-in for the check
 	expect(await engine.setToken(token)).toBe("ok");
 	expired = true;
 	await engine.check(["fd"]);
-	expect(sent).toEqual(["Bearer gho_fromgh"]);
+	// The release, then the repo's ids on first sight: both with gh's sign-in.
+	expect(sent).toEqual(["Bearer gho_fromgh", "Bearer gho_fromgh"]);
 	expect(engine.tokenState()).toEqual({ hint: "bbbb", refused: "gh" });
 	gh = false;
 	await engine.check(["fd"]);

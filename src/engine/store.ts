@@ -15,6 +15,7 @@ import {
 import { join } from "node:path";
 import { isLanguage } from "../shared/languages";
 import type { AppKind, HistoryRow, LogLine, Settings, Stage } from "../shared/types";
+import type { RepoId } from "./github";
 import type { Paths } from "./paths";
 
 export type State = {
@@ -39,7 +40,33 @@ export type State = {
 	seen: Record<string, Seen>;
 	/** Apps held because their offered release's file changed after it was first seen: key to that tag. */
 	changed: Record<string, string>;
+	/** The GitHub repo each app's first check saw, by key: its ids, which a rename keeps and a new repo under the name does not. */
+	origin: Record<string, Origin>;
+	/** Apps held because their repo's name now answers with another repository: key to it as host/owner/name. */
+	swapped: Record<string, string>;
 };
+
+/**
+ * A repo's ids as GitHub gave them, with repo, the table's own repo field when they were read: a table that names
+ * another repo since starts afresh instead of reading as a swap.
+ */
+export type Origin = RepoId & { repo: string };
+
+/** The entries that hold a string repo and name and two numeric ids; anything else a hand edit left is dropped. */
+function originsOf(v: unknown): Record<string, Origin> {
+	const out: Record<string, Origin> = {};
+	for (const [key, o] of Object.entries(obj<unknown>(v))) {
+		const r = obj<unknown>(o);
+		if (
+			typeof r.repo === "string" &&
+			typeof r.name === "string" &&
+			typeof r.id === "number" &&
+			typeof r.owner === "number"
+		)
+			out[key] = { repo: r.repo, name: r.name, id: r.id, owner: r.owner };
+	}
+	return out;
+}
 
 /** A release file as a check saw it: its tag, its name and its hash as "<algo>:<hex>". */
 export type Seen = { tag: string; file: string; hash: string };
@@ -174,6 +201,8 @@ export function loadState(paths: Paths): State {
 		menu: filesOf(raw.menu),
 		seen: seenOf(raw.seen),
 		changed: obj<string>(raw.changed),
+		origin: originsOf(raw.origin),
+		swapped: obj<string>(raw.swapped),
 	};
 }
 

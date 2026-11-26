@@ -12,6 +12,28 @@ test("a release whose file changed is held with its reason, and Release hold off
 	await expect(page.getByTestId("pane-detail")).toHaveCount(0);
 });
 
+test("an app whose repo now answers with another repository is held with its reason until released", async ({
+	page,
+}) => {
+	await load(page, "fixture=problems", { wait: "sentence" });
+	await page.getByTestId("open-cursor").click();
+	await expect(page.getByTestId("pane-detail")).toHaveText(
+		"github.com/cursor/cursor now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold.",
+	);
+	await expect(page.getByTestId("hold-cursor")).toHaveText("Release hold");
+	await page.getByTestId("hold-cursor").click();
+	await expect(page.getByTestId("status-cursor")).toHaveText("Ready");
+});
+
+test("a row whose newer release is listed as bad says why it rests where it is", async ({ page }) => {
+	await load(page, "fixture=problems", { wait: "sentence" });
+	await page.getByTestId("group-fresh-toggle").click();
+	await page.getByTestId("open-llama").click();
+	await expect(page.getByTestId("pane-detail")).toHaveText(
+		"0.9.1 is marked as a bad version, so Upkeep passes over it: crashes on start under Wayland",
+	);
+});
+
 test("after an update the pane says how each download was checked", async ({ page }) => {
 	await load(page, "fixture&speed=4");
 	await page.getByTestId("tick-wrangler").click();

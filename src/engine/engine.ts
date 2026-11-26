@@ -59,6 +59,7 @@ import {
 } from "./kinds/release";
 import { type Ahead, canFetchEarly, createAhead } from "./ahead";
 import { recoverTree, restoreBuilt } from "./kinds/built";
+import { guardRepo } from "./repoid";
 import { checkSource, installSource } from "./kinds/source";
 import { cutTable, ensureManifest, loadCatalogue, loadManifest, relift, replaceManifest, tomlTable } from "./manifest";
 import { dropTree, sweepTrash } from "./drop";
@@ -585,17 +586,25 @@ export function createEngine(deps: EngineDeps): Engine {
 
 	/**
 	 * The row's resting status and detail from its check result, the owner's skip and hold, and the wait in Settings. An
-	 * offered release whose file changed since it was first seen is held too, with the reason as its detail, and releasing
-	 * the hold lets it through. A hold or a skip wins over the wait; a manual app never waits. settles is always present,
+	 * offered release whose file changed since it was first seen, or whose repo's name now answers with another
+	 * repository, is held too, with the reason as its detail, and releasing the hold lets it through. A hold or a skip wins over the wait; a manual app never waits. settles is always present,
 	 * undefined when not settling, so Object.assign clears it.
 	 */
 	function resting(spec: AppSpec, c: Checked): Pick<AppState, "status" | "held" | "skipped" | "detail" | "settles"> {
 		const state = loadState(paths);
 		const tag = c.target?.tag;
 		const changed = tag !== undefined && state.changed[spec.key] === tag;
-		const held = state.hold[spec.key] === true || (c.status === "ready" && changed);
+		const swapped = state.swapped[spec.key];
+		const held = state.hold[spec.key] === true || (c.status === "ready" && (changed || swapped !== undefined));
 		const skip = state.skip[spec.key];
-		const detail = c.status === "ready" && changed ? MESSAGES.releaseChanged(tag) : c.detail;
+		const detail =
+			c.status !== "ready"
+				? c.detail
+				: swapped !== undefined
+					? MESSAGES.repoReplaced(swapped)
+					: changed
+						? MESSAGES.releaseChanged(tag)
+						: c.detail;
 		if (c.status !== "ready") return { status: c.status, held, detail, settles: undefined };
 		if (held) return { status: "held", held, skipped: skip, detail, settles: undefined };
 		if (skip !== undefined && skip === c.latest)
@@ -802,7 +811,22 @@ export function createEngine(deps: EngineDeps): Engine {
 				const before = checked.get(spec.key);
 				let c: Checked | null;
 				try {
-					c = await checkOne(effective(spec, switches), kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun }));
+					const ctx = kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun });
+					c = await checkOne(effective(spec, switches), ctx);
+					if (c && !c.offline)
+						await guardRepo(
+							spec,
+							c.status === "ready",
+							paths,
+							{
+								cacheDir: join(paths.cache, "github"),
+								token: ctx.token,
+								fetch: ctx.fetch,
+								onRate: ctx.onRate,
+								api: ctx.api,
+							},
+							ctx.log,
+						);
 				} catch (err) {
 					c = {
 						installed: null,
@@ -1443,9 +1467,17 @@ export function createEngine(deps: EngineDeps): Engine {
 			updateState(paths, (s) => {
 				if (held) s.hold[key] = true;
 				else {
+					// A swapped repo's hold is released only on a press of its own: releasing the person's own hold
+					// leaves it, so no press meant for one accepts another repository unseen.
+					const own = s.hold[key] === true;
 					delete s.hold[key];
 					// Releasing a hold Upkeep put on a changed release lets that release through.
 					delete s.changed[key];
+					// Releasing a swapped repo's hold takes the repository now under the name as the one to follow.
+					if (!own && s.swapped[key] !== undefined) {
+						delete s.swapped[key];
+						delete s.origin[key];
+					}
 				}
 			});
 			refresh(key);
@@ -1503,6 +1535,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!spec) return { ...none, problem: MESSAGES.noApp(key) };
 			// A source build shows its commits and a command app has no release list: no span, and nothing wrong.
 			if (!canList(spec) || !app?.installed || !app.latest || !isNewer(app.installed, app.latest)) return none;
+			// A repo whose name now answers with another repository: the newcomer's notes are not this app's.
+			if (loadState(paths).swapped[key] !== undefined) return none;
 			token = await freshToken();
 			const list = await allReleases(spec, kindCtx(key));
 			if (isFailure(list)) return { ...none, problem: list.detail };
@@ -1523,6 +1557,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (t.version === first.installed) return { started: false, reason: REASON_NOTHING };
 			// A release whose file changed since it was first seen stays held here too, until the person releases the hold.
 			if (loadState(paths).changed[key] === t.tag) return { started: false, reason: MESSAGES.releaseChanged(t.tag) };
+			const swapped = loadState(paths).swapped[key];
+			if (swapped !== undefined) return { started: false, reason: MESSAGES.repoReplaced(swapped) };
 			// A new run, not a retry of the one on the summary. Dismissing may start the check a switch changed in the run
 			// was waiting for; the pick waits for it instead of being refused, then reads the row it left.
 			if (run.phase === "summary") {
@@ -1676,6 +1712,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				delete s.menu[key];
 				delete s.seen[key];
 				delete s.changed[key];
+				delete s.origin[key];
+				delete s.swapped[key];
 			});
 			emit({ type: "removed", key });
 			return { ok: true };

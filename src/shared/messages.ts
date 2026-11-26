@@ -124,6 +124,14 @@ export const MESSAGES = {
 	/** engine.ts. {0} the release's tag */
 	releaseChanged: (v0: Value) =>
 		`The file behind ${v0} changed after Upkeep first saw it. Check the release page before you release the hold.`,
+	/** release.ts, source.ts. {0} the version passed over, {1} the table's bad_reason */
+	badVersionPassed: (v0: Value, v1: Value) => `${v0} is marked as a bad version, so Upkeep passes over it: ${v1}`,
+	/** engine.ts. {0} the repo as host/owner/name */
+	repoReplaced: (v0: Value) =>
+		`${v0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold.`,
+	/** source.ts, built.ts. {0} the release tag */
+	tagMoved: (v0: Value) =>
+		`The tag ${v0} points at another commit than the one the check saw, so nothing was built. Check again before you install.`,
 	/** engine.ts */
 	reasonChecking: () => `A check is running.`,
 	/** engine.ts */
@@ -403,6 +411,8 @@ export const MESSAGES = {
 	/** manifest.ts. {0} app key */
 	liftPrereleaseNeedsList: (v0: Value) =>
 		`${v0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo`,
+	/** manifest.ts. {0} app key */
+	liftBadVersionsNeedReason: (v0: Value) => `${v0}: bad_versions needs a bad_reason that says why they are listed`,
 	/** manifest.ts. {0} app key */
 	liftRelaunchNeedsDest: (v0: Value) => `${v0}: relaunch needs dest`,
 	/** manifest.ts. {0} app key */

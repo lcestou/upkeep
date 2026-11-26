@@ -56,9 +56,12 @@ const tmux = (dest: string, build: string[]): AppSpec => ({
 	sudo: true,
 });
 
-function cloneFake(t2: typeof t) {
+/** git answered as a remote with tag 3.6a at commit, and a clone that checks out head (commit unless told). */
+function cloneFake(t2: typeof t, commit = "", head = commit) {
 	return recordingRun(t2.paths, (argv) => {
 		if (argv[0] !== "git") return undefined;
+		if (argv[1] === "ls-remote") return ok(commit ? `${commit}\trefs/tags/3.6a\n` : "");
+		if (argv.includes("rev-parse")) return ok(`${head}\n`);
 		mkdirSync(argv.at(-1) ?? "", { recursive: true });
 		return ok();
 	});
@@ -98,6 +101,13 @@ test("install clones the tag, runs each step in the clone, and verifies", async 
 	const dir = join(t.paths.cache, "build/tmux");
 	expect(calls[1]?.argv).toEqual([
 		"git",
+		"ls-remote",
+		"https://github.com/tmux/tmux.git",
+		"refs/tags/3.6a",
+		"refs/tags/3.6a^{}",
+	]);
+	expect(calls[2]?.argv).toEqual([
+		"git",
 		"clone",
 		"--branch",
 		"3.6a",
@@ -106,8 +116,34 @@ test("install clones the tag, runs each step in the clone, and verifies", async 
 		"https://github.com/tmux/tmux.git",
 		dir,
 	]);
-	expect(calls[2]?.opts.cwd).toBe(dir);
+	expect(calls[3]?.opts.cwd).toBe(dir);
 	expect(Object.keys(outcome.stages)).toEqual(["download", "install", "verify"]);
+});
+
+const A = "a".repeat(40);
+const B = "b".repeat(40);
+
+test("a clone whose tag still points at the commit the check saw builds; one that moved fails before any step", async () => {
+	const dest = script(join(t.dir, "tmux"), 'echo "tmux 3.6"');
+	const steps = [`printf '#!/bin/bash\\necho tmux 3.6a\\n' > ${dest}`];
+	const same = cloneFake(t, A);
+	const c = ctx(same.run);
+	const checked = await checkSource(tmux(dest, steps), c);
+	expect(checked?.target?.commit).toBe(A);
+	if (!checked?.target) throw new Error("no target");
+	expect(await installSource(tmux(dest, steps), checked.target, c)).toMatchObject({ result: "done" });
+	expect(same.calls.some((x) => x.argv.join(" ").endsWith("rev-parse --verify HEAD"))).toBe(true);
+
+	const moved = cloneFake(t, A, B);
+	const out = await installSource(tmux(dest, ["touch built"]), checked.target, ctx(moved.run));
+	expect(out).toMatchObject({
+		result: "failed",
+		installed: "3.6",
+		detail:
+			"The tag 3.6a points at another commit than the one the check saw, so nothing was built. Check again before you install.",
+	});
+	expect(moved.calls.some((x) => x.argv[0] === "bash")).toBe(false);
+	expect(lines).toContain(`3.6a pointed at ${A} at check time, and at ${B} now.`);
 });
 
 test("a failing step stops the build, and sudo in a step never prompts", async () => {

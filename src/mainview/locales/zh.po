@@ -3059,6 +3059,26 @@ msgstr "{0}：{1} 不能包含换行符或其他控制字符"
 msgid "Could not write the menu entry: {0}"
 msgstr "无法写入菜单项：{0}"
 
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"
+msgstr "{0} 被标记为有问题的版本，因此 Upkeep 跳过它：{1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold."
+msgstr "{0} 现在属于另一个仓库，不是 Upkeep 首次看到的那个。取消暂缓前请先检查。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The tag {0} points at another commit than the one the check saw, so nothing was built. Check again before you install."
+msgstr "标签 {0} 指向的提交与检查时看到的不同，因此没有构建任何内容。安装前请重新检查。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
+msgstr "{0}：bad_versions 需要一个说明列出原因的 bad_reason"
+
 #: src/mainview/lib/copy.ts
 msgid "Breaking changes"
 msgstr "不兼容的变更"

@@ -172,6 +172,8 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		menu: {},
 		seen: {},
 		changed: {},
+		origin: {},
+		swapped: {},
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";

@@ -703,3 +703,36 @@ test("a line break in a path field is refused; a note may wrap", () => {
 	]);
 	expect(apps.map((a) => a.key)).toEqual(["b"]);
 });
+
+test("bad_versions loads with its reason, is refused without one, and is written back", () => {
+	const file = join(dir, "apps.toml");
+	const table = (key: string, extra: string[]) => [
+		`[apps.${key}]`,
+		`name = "${key}"`,
+		'kind = "file"',
+		'repo = "a/b"',
+		'asset = "x"',
+		`dest = "~/${key}"`,
+		...extra,
+	];
+	writeFileSync(
+		file,
+		[
+			...table("bare", ['bad_versions = ["1.2.0"]']),
+			...table("blank", ['bad_versions = ["1.2.0"]', 'bad_reason = " "']),
+			...table("wrong", ['bad_versions = "1.2.0"', 'bad_reason = "x"']),
+			...table("ok", ['bad_versions = ["1.2.0", "1.2.1"]', 'bad_reason = "loses settings"']),
+		].join("\n"),
+	);
+	const { apps, errors } = loadManifest(file);
+	expect(errors).toEqual([
+		"bare: bad_versions needs a bad_reason that says why they are listed",
+		"blank: bad_versions needs a bad_reason that says why they are listed",
+		"wrong: bad_versions must be a list of strings",
+	]);
+	const ok = apps.find((a) => a.key === "ok");
+	expect(ok).toMatchObject({ bad_versions: ["1.2.0", "1.2.1"], bad_reason: "loses settings" });
+	if (!ok) throw new Error("no ok");
+	expect(tomlTable(ok)).toContain('bad_reason = "loses settings"');
+	expect(tomlTable(ok)).toContain('bad_versions = ["1.2.0", "1.2.1"]');
+});

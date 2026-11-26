@@ -322,6 +322,23 @@ export async function fetchReleases(repo: string, opts: ReleaseOpts): Promise<Re
 	);
 }
 
+/** A GitHub repo as its own endpoint names it: full_name, and the numeric ids that stay through a rename or a transfer. */
+export type RepoId = { name: string; id: number; owner: number };
+
+/**
+ * GET /repos/owner/repo, revalidated with its own cached etag, so asking again while nothing changed costs no budget.
+ * GitHub answers a renamed repo's old name with the repo under its new name and the same id.
+ */
+export async function fetchRepoId(repo: string, opts: ReleaseOpts): Promise<RepoId | Failure> {
+	return cachedGithub(`/repos/${repo}`, "#repo", repo, opts, (body) => {
+		const b = record(body);
+		const owner = record(b.owner).id;
+		return typeof b.id === "number" && typeof owner === "number" && str(b.full_name)
+			? { name: str(b.full_name), id: b.id, owner }
+			: { failure: "http", detail: MESSAGES.githubReleaseNotJson(repo) };
+	});
+}
+
 /**
  * A GitHub GET of path with the token and the rate rules, its answer kept in the cache file named for repo and suffix.
  * read gets the parsed body, or undefined when the text is not JSON; a cached answer read as a failure is deleted, so a

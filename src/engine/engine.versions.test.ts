@@ -63,6 +63,8 @@ let stall = false;
 let latestTag = "v1.1.0";
 /** What the release list answers in place of releases, when set; releases/latest and tags still read releases. */
 let listed: Rel[] | null = null;
+/** The id GET /repos/o/tool answers with; the repo's name and owner never change here. */
+let repoId = 7;
 
 let t: ReturnType<typeof tempHome>;
 beforeEach(() => {
@@ -112,7 +114,10 @@ async function setup(now = () => new Date()) {
 	stall = false;
 	latestTag = "v1.1.0";
 	listed = null;
+	repoId = 7;
 	const fetch: FetchLike = async (url, init) => {
+		if (url === "https://api.github.com/repos/o/tool")
+			return Response.json({ id: repoId, full_name: "o/tool", owner: { id: 1 } });
 		if (url.includes("registry.npmjs.org")) return Response.json({ version: "1.0.0" });
 		const dl = /^https:\/\/dl\.test\/([^/]+)\/[^/]+$/.exec(url);
 		if (dl && stall)
@@ -451,6 +456,41 @@ test("a pre-release followed by the switch waits like any release, and a version
 	expect(await engine.installVersion("tool", "v1.2.0-rc.1")).toEqual({ started: true });
 	await engine.idle();
 	expect(row()).toMatchObject({ installed: "1.2.0-rc.1", status: "done", settles: undefined });
+});
+
+test("a repo whose name now answers with another repository holds its update until the person releases the hold", async () => {
+	const { engine, row } = await setup();
+	expect(loadState(t.paths).origin.tool).toEqual({ repo: "o/tool", name: "o/tool", id: 7, owner: 1 });
+	repoId = 9;
+	// Fresh: nothing on offer, so the repo is not asked again and nothing is held.
+	await engine.check();
+	expect(loadState(t.paths).swapped).toEqual({});
+	engine.setPrerelease("tool", true);
+	await engine.idle();
+	const reason = MESSAGES.repoReplaced("github.com/o/tool");
+	expect(row()).toMatchObject({ latest: "1.2.0-rc.1", status: "held", held: true, detail: reason });
+	expect(await engine.installVersion("tool", "v1.0.0")).toEqual({ started: false, reason });
+	// The newcomer repository's release notes are not shown for this app.
+	expect(await engine.releaseNotes("tool")).toEqual({ releases: [], breaking: [], older: 0, more: false });
+	// Held by the person as well: releasing that hold leaves the swap, which needs a press of its own.
+	engine.setHold("tool", true);
+	engine.setHold("tool", false);
+	expect(loadState(t.paths).swapped).toEqual({ tool: "github.com/o/tool" });
+	expect(row()).toMatchObject({ status: "held", held: true, detail: reason });
+	// Releasing it takes the repository now under the name: the next check learns its id and offers the update.
+	engine.setHold("tool", false);
+	expect(loadState(t.paths).swapped).toEqual({});
+	expect(row()).toMatchObject({ status: "ready", held: false });
+	expect((await engine.releaseNotes("tool")).releases.length).toBeGreaterThan(0);
+	await engine.check();
+	expect(loadState(t.paths).origin.tool?.id).toBe(9);
+	expect(row()).toMatchObject({ status: "ready" });
+	// Removing the app forgets the repo it saw.
+	updateState(t.paths, (st) => {
+		st.swapped.tool = "github.com/o/tool";
+	});
+	expect((await engine.removeApp("tool")).ok).toBe(true);
+	expect(loadState(t.paths)).toMatchObject({ origin: {}, swapped: {} });
 });
 
 test("the notes of every release skipped over come newest first, with the lines that read as breaking", async () => {
