@@ -167,6 +167,12 @@ export const ENGINE_COPY = {
 	couldNotExtract: (v0: string) => `Could not extract ${v0}.`,
 	folderNotOurs: (v0: string) =>
 		`${v0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new.`,
+	cannotRunLoader: (v0: string, v1: string, v2: string) =>
+		`${v0} ${v1} needs ${v2}, which this system does not have, so nothing was installed.`,
+	cannotRunGlibc: (v0: string, v1: string, v2: string, v3: string) =>
+		`${v0} ${v1} needs glibc ${v2}; this system has ${v3}, so nothing was installed.`,
+	cannotRunCpu: (v0: string, v1: string, v2: string, v3: string) =>
+		`${v0} ${v1} is built for ${v2}; this processor is ${v3}, so nothing was installed.`,
 	archiveNeedsTool: (v0: string, v1: string) =>
 		`Opening ${v0} needs the ${v1} program, which is not installed. Install ${v1} from the system's packages, then try again.`,
 	couldNotInstallRestored: (v0: string, v1: string) => `Could not install ${v0}. Restored ${v1}.`,

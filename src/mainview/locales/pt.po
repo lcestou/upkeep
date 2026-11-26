@@ -3223,3 +3223,18 @@ msgstr "O endereço de avisos {0} do arquivo não é um endereço https, nem um 
 #: src/mainview/lib/engine-text.ts
 msgid "The notice address from before could not be put back. Set it again in Settings."
 msgstr "Não foi possível repor o endereço de avisos de antes. Defina-o de novo nas Configurações."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs {2}, which this system does not have, so nothing was installed."
+msgstr "{0} {1} precisa de {2}, que este sistema não tem, por isso nada foi instalado."
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs glibc {2}; this system has {3}, so nothing was installed."
+msgstr "{0} {1} precisa da glibc {2}; este sistema tem a {3}, por isso nada foi instalado."
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
+msgstr "{0} {1} foi compilado para {2}; este processador é {3}, por isso nada foi instalado."

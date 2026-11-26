@@ -313,6 +313,15 @@ export const MESSAGES = {
 	/** kinds/release.ts. {0} the folder's path */
 	folderNotOurs: (v0: Value) =>
 		`${v0} is already there and Upkeep did not make it, so it is left alone. Move it, or point the table's folder somewhere new.`,
+	/** preflight.ts. {0} app name; {1} new version; {2} the loader's path, as /lib/ld-musl-x86_64.so.1 */
+	cannotRunLoader: (v0: Value, v1: Value, v2: Value) =>
+		`${v0} ${v1} needs ${v2}, which this system does not have, so nothing was installed.`,
+	/** preflight.ts. {0} app name; {1} new version; {2} glibc version it needs; {3} this system's glibc version */
+	cannotRunGlibc: (v0: Value, v1: Value, v2: Value, v3: Value) =>
+		`${v0} ${v1} needs glibc ${v2}; this system has ${v3}, so nothing was installed.`,
+	/** preflight.ts. {0} app name; {1} new version; {2} level it is built for, as x86-64-v3; {3} this processor's level */
+	cannotRunCpu: (v0: Value, v1: Value, v2: Value, v3: Value) =>
+		`${v0} ${v1} is built for ${v2}; this processor is ${v3}, so nothing was installed.`,
 	/** kinds/release.ts, discover.ts. {0} archive file name; {1} the program tar needed: xz, bzip2 or zstd */
 	archiveNeedsTool: (v0: Value, v1: Value) =>
 		`Opening ${v0} needs the ${v1} program, which is not installed. Install ${v1} from the system's packages, then try again.`,

@@ -3199,3 +3199,18 @@ msgstr "Die Hinweisadresse {0} in der Datei ist keine https-Adresse und auch kei
 #: src/mainview/lib/engine-text.ts
 msgid "The notice address from before could not be put back. Set it again in Settings."
 msgstr "Die vorherige Hinweisadresse konnte nicht wiederhergestellt werden. Lege sie in den Einstellungen neu fest."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs {2}, which this system does not have, so nothing was installed."
+msgstr "{0} {1} braucht {2}, das dieses System nicht hat, daher wurde nichts installiert."
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs glibc {2}; this system has {3}, so nothing was installed."
+msgstr "{0} {1} braucht glibc {2}; dieses System hat {3}, daher wurde nichts installiert."
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
+msgstr "{0} {1} ist für {2} gebaut; dieser Prozessor ist {3}, daher wurde nichts installiert."
