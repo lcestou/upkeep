@@ -102,6 +102,23 @@ test("a notice is one JSON POST to the kept address, with no redirect followed",
 	expect(JSON.parse(String(calls[0]?.init?.body))).toEqual(BODY);
 });
 
+test("a notice with a security fix asks for high priority by header; any other sends none", async () => {
+	writeWebhook(t.paths, "https://ntfy.sh/topic?tpl=yes");
+	const { calls, fetch } = recording();
+	const sender = createNoticeSender({ paths: t.paths, fetch, log: () => {} });
+	await sender.send(BODY);
+	const fix = { ids: [{ id: "CVE-2026-0001", url: "https://www.cve.org/CVERecord?id=CVE-2026-0001" }] };
+	const urgent: NoticeBody = {
+		...BODY,
+		priority: "high",
+		apps: [{ ...BODY.apps[0], key: "bat", name: "bat", security: fix }],
+	};
+	await sender.send(urgent);
+	expect(new Headers(calls[0]?.init?.headers).get("x-priority")).toBeNull();
+	expect(new Headers(calls[1]?.init?.headers).get("x-priority")).toBe("high");
+	expect(JSON.parse(String(calls[1]?.init?.body))).toEqual(urgent);
+});
+
 test("no address, or one a hand edit made unsafe, sends nothing", async () => {
 	const { calls, fetch } = recording();
 	const sender = createNoticeSender({ paths: t.paths, fetch, log: () => {} });

@@ -14,7 +14,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { isLanguage } from "../shared/languages";
-import type { AppKind, HistoryRow, LogLine, Settings, Stage } from "../shared/types";
+import type { AppKind, HistoryRow, LogLine, SecurityFix, Settings, Stage } from "../shared/types";
 import type { RepoId } from "./github";
 import type { Paths } from "./paths";
 import type { Probation } from "./probation";
@@ -49,6 +49,8 @@ export type State = {
 	swapped: Record<string, string>;
 	/** Apps Upkeep updated in the last days, watched for crashes and a failing service until the probation ends. */
 	probation: Record<string, Probation>;
+	/** What the last look for a security fix found, by key, for the latest version it looked at. */
+	security: Record<string, SecurityLook>;
 };
 
 /** A version a probation keeps: a string, or null for one a check could not read. */
@@ -82,6 +84,35 @@ function probationsOf(v: unknown): Record<string, Probation> {
 		if (sign) rec.sign = sign;
 		if (typeof r.crashes === "number") rec.crashes = r.crashes;
 		out[key] = rec;
+	}
+	return out;
+}
+
+/**
+ * One app's security look: the latest version it was for, the fix found (null for none) and whether every source
+ * answered. An incomplete look is shown but asked again at the next check; a complete one is never asked again for
+ * the same latest.
+ */
+export type SecurityLook = { latest: string; fix: SecurityFix | null; complete: boolean };
+
+/** The looks with a string latest, a complete flag and a fix of string id and https address pairs; anything else is dropped. */
+function looksOf(v: unknown): Record<string, SecurityLook> {
+	const out: Record<string, SecurityLook> = {};
+	for (const [key, l] of Object.entries(obj<unknown>(v))) {
+		const r = obj<unknown>(l);
+		if (typeof r.latest !== "string" || typeof r.complete !== "boolean") continue;
+		const ids = r.fix === null ? null : obj<unknown>(r.fix).ids;
+		if (ids !== null && !Array.isArray(ids)) continue;
+		const fix =
+			ids === null
+				? null
+				: {
+						ids: ids
+							.map((a) => obj<unknown>(a))
+							.filter((a) => typeof a.id === "string" && typeof a.url === "string" && a.url.startsWith("https://"))
+							.map((a) => ({ id: String(a.id), url: String(a.url) })),
+					};
+		out[key] = { latest: r.latest, fix, complete: r.complete };
 	}
 	return out;
 }
@@ -157,6 +188,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	selfAuto: false,
 	upkeepCommand: false,
 	waitDays: 0,
+	waitExceptSecurity: true,
 	waitUnmetered: false,
 	webhookReady: true,
 	webhookRun: false,
@@ -185,6 +217,8 @@ export function clampSettings(s: Partial<Settings>): Settings {
 		selfAuto: typeof s.selfAuto === "boolean" ? s.selfAuto : DEFAULT_SETTINGS.selfAuto,
 		upkeepCommand: typeof s.upkeepCommand === "boolean" ? s.upkeepCommand : DEFAULT_SETTINGS.upkeepCommand,
 		waitDays: WAITS.find((w) => w === s.waitDays) ?? DEFAULT_SETTINGS.waitDays,
+		waitExceptSecurity:
+			typeof s.waitExceptSecurity === "boolean" ? s.waitExceptSecurity : DEFAULT_SETTINGS.waitExceptSecurity,
 		waitUnmetered: typeof s.waitUnmetered === "boolean" ? s.waitUnmetered : DEFAULT_SETTINGS.waitUnmetered,
 		webhookReady: typeof s.webhookReady === "boolean" ? s.webhookReady : DEFAULT_SETTINGS.webhookReady,
 		webhookRun: typeof s.webhookRun === "boolean" ? s.webhookRun : DEFAULT_SETTINGS.webhookRun,
@@ -251,6 +285,7 @@ export function loadState(paths: Paths): State {
 		origin: originsOf(raw.origin),
 		swapped: obj<string>(raw.swapped),
 		probation: probationsOf(raw.probation),
+		security: looksOf(raw.security),
 	};
 }
 

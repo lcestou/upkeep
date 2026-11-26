@@ -3341,3 +3341,28 @@ msgstr "Адрес проверки перестал отвечать с тех 
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: health must be an http or https address"
 msgstr "{0}: health должен быть адресом http или https"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "Исправление безопасности"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "Это обновление устраняет проблему безопасности. Откройте строку, чтобы узнать какую."
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "Упомянуто в примечаниях к выпуску"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "Найдено в примечаниях к выпуску, рекомендациях проекта на GitHub или в OSV.dev. Каждая ссылка открывает свою страницу в браузере."
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "Кроме исправлений безопасности"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "Обновление, устраняющее проблему безопасности, предлагается сразу. Само оно устанавливается только для приложения с режимом «Авто»."

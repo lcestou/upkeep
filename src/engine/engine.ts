@@ -9,6 +9,7 @@ import type {
 	Requests,
 	RunResult,
 	RunState,
+	SecurityFix,
 	Settings,
 	Snapshot,
 	Stage,
@@ -87,12 +88,14 @@ import {
 	releaseLock,
 	type RunLog,
 	stageWeights,
+	type State,
 	updateState,
 } from "./store";
 import { launchDetached, restartApp, terminate } from "./restart";
 import { isNewer, isPrerelease } from "./version";
 import { notesSpan } from "./notes";
-import { expired, look, type Probation, readCrashes, restartBaseline, watchOf } from "./probation";
+import { expired, look as lookProbation, type Probation, readCrashes, restartBaseline, watchOf } from "./probation";
+import { lookSecurity } from "./security";
 
 export type EngineDeps = {
 	/** Ends a process tree during recovery. Default killTree; tests pass a recorder so no real pid is signalled. */
@@ -354,6 +357,21 @@ export function settlesAt(publishedAt: string | undefined, days: number, now: Da
 	return until > now.getTime() ? new Date(until).toISOString() : undefined;
 }
 
+/**
+ * GitHub answers kept back from the security look: below this many left in the hour, the repo's advisories are not
+ * asked, so the checks themselves never run out. The look is then incomplete and asked again at a later check.
+ */
+const SECURITY_RESERVE = 50;
+
+/**
+ * The security fix the last look found for a row's waiting update. Undefined when the row waits for none (an app up
+ * to date) or the look was for another latest: a fix found for 1.2 never marks 1.3.
+ */
+function fixOf(state: State, key: string, c: Pick<Checked, "installed" | "latest">): SecurityFix | undefined {
+	const look = state.security[key];
+	return look?.fix && look.latest === c.latest && isNewer(c.installed, c.latest) ? look.fix : undefined;
+}
+
 /** The statuses refresh re-derives from a row's check result; every other status waits for its run or check to end. */
 const RESTING: ReadonlySet<AppState["status"]> = new Set(["ready", "held", "manual", "fresh"]);
 
@@ -610,14 +628,16 @@ export function createEngine(deps: EngineDeps): Engine {
 	 * offered release whose file changed since it was first seen, or whose repo's name now answers with another
 	 * repository, is held too, with the reason as its detail, and releasing the hold lets it through. A hold (the
 	 * person's or one of those) wins over a pause, and a pause or a skip over the wait; a manual app never waits and is
-	 * never paused. A pause whose end has passed counts as none. settles and paused are always present, undefined when
-	 * not set, so Object.assign clears them.
+	 * never paused. A pause whose end has passed counts as none. A security fix skips the wait while Settings' "Except
+	 * security fixes" is on, and nothing else. settles, paused and security are always present, undefined when not set,
+	 * so Object.assign clears them.
 	 */
 	function resting(
 		spec: AppSpec,
 		c: Checked,
-	): Pick<AppState, "status" | "held" | "skipped" | "detail" | "settles" | "paused"> {
+	): Pick<AppState, "status" | "held" | "skipped" | "detail" | "settles" | "paused" | "security"> {
 		const state = loadState(paths);
+		const security = fixOf(state, spec.key, c);
 		const tag = c.target?.tag ?? c.tag;
 		const changed = tag !== undefined && state.changed[spec.key] === tag;
 		const swapped = state.swapped[spec.key];
@@ -638,15 +658,16 @@ export function createEngine(deps: EngineDeps): Engine {
 			!held && spec.kind !== "manual" && until !== undefined && Date.parse(until) > deps.now().getTime()
 				? until
 				: undefined;
-		const none = { settles: undefined, paused };
+		const none = { settles: undefined, paused, security };
 		if (c.status !== "ready") return { status: c.status, held, detail, ...none };
 		if (held) return { status: "held", held, skipped: skip, detail, ...none };
 		if (paused) return { status: "held", held, skipped: skip, detail, ...none };
 		if (skip !== undefined && skip === c.latest) return { status: "held", held, skipped: skip, detail, ...none };
 		// A manual app is run by the person, so it never waits: Install now anyway could not run it.
 		if (spec.kind === "manual") return { status: "manual", held, detail, ...none };
-		const settles = settlesAt(c.publishedAt, state.settings.waitDays, deps.now());
-		if (settles) return { status: "held", held, detail, settles, paused };
+		const skipsWait = security !== undefined && state.settings.waitExceptSecurity;
+		const settles = skipsWait ? undefined : settlesAt(c.publishedAt, state.settings.waitDays, deps.now());
+		if (settles) return { status: "held", held, detail, settles, paused, security };
 		return { status: "ready", held, detail, ...none };
 	}
 
@@ -795,6 +816,51 @@ export function createEngine(deps: EngineDeps): Engine {
 		armSettle();
 	}
 
+	/**
+	 * Looks once per app and latest version for a security fix in a waiting update, and keeps the answer in the state,
+	 * so a later check asks nothing for the same latest. An app with no update waiting asks nothing, and loses an old
+	 * answer. The notes are the span's (one release list from the forge, revalidated with its cached etag), or the
+	 * check's own notes for an app whose releases are not listed. Never throws: a failure only means no flag this time.
+	 */
+	async function lookFor(spec: AppSpec, c: Checked, ctx: KindCtx): Promise<void> {
+		const { installed, latest } = c;
+		try {
+			const was = loadState(paths).security[spec.key];
+			if (c.status !== "ready" || !installed || !latest || !isNewer(installed, latest)) {
+				if (was)
+					updateState(paths, (s) => {
+						delete s.security[spec.key];
+					});
+				return;
+			}
+			if (was?.latest === latest && was.complete) return;
+			// Read before the release list too: with the budget low, nothing more goes to GitHub and the look stays incomplete.
+			const low = rate !== null && rate.remaining < SECURITY_RESERVE;
+			// A low budget learns nothing new for a latest already looked at: keep that answer rather than lose its advisories.
+			if (low && was?.latest === latest) return;
+			let notes = c.notes ? [c.notes] : [];
+			let listed = !low || !canList(spec);
+			if (canList(spec) && !low) {
+				const list = await allReleases(spec, ctx);
+				if (isFailure(list)) listed = false;
+				else notes = notesSpan(list, installed, latest, spec.prerelease === true).releases.map((r) => r.notes);
+			}
+			const github = {
+				cacheDir: join(paths.cache, "github"),
+				token: ctx.token,
+				fetch: ctx.fetch,
+				onRate: ctx.onRate,
+				api: ctx.api,
+			};
+			const r = await lookSecurity(spec, installed, latest, notes, { fetch: ctx.fetch, github: low ? null : github });
+			updateState(paths, (s) => {
+				s.security[spec.key] = { latest, fix: r.fix, complete: r.complete && listed };
+			});
+		} catch (err) {
+			ctx.log(`Could not look for a security fix: ${err instanceof Error ? err.message : String(err)}`);
+		}
+	}
+
 	/** Whether the last check found the network down; see offline(). */
 	let lastOffline = false;
 
@@ -847,7 +913,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				let c: Checked | null;
 				try {
 					const ctx = kindCtx(spec.key, { fetch: limitedFetch, run: limitedRun });
-					c = await checkOne(effective(spec, switches), ctx);
+					const eff = effective(spec, switches);
+					c = await checkOne(eff, ctx);
 					if (c && !c.offline)
 						await guardRepo(
 							spec,
@@ -862,6 +929,7 @@ export function createEngine(deps: EngineDeps): Engine {
 							},
 							ctx.log,
 						);
+					if (c && !c.offline) await lookFor(eff, c, ctx);
 				} catch (err) {
 					c = {
 						installed: null,
@@ -923,7 +991,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			live.map(async ({ spec, p }) => ({
 				spec,
 				was: p,
-				p: await look(spec, p, crashes, { run: deps.run, fetch: deps.fetch, paths, now }),
+				p: await lookProbation(spec, p, crashes, { run: deps.run, fetch: deps.fetch, paths, now }),
 			})),
 		);
 		updateState(paths, (s) => {
@@ -1770,7 +1838,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				st.settings = { ...st.settings, ...patch };
 			});
 			// A new wait moves rows between Ready and settling at once, without a check.
-			if (patch.waitDays !== undefined) for (const key of apps.keys()) refresh(key);
+			if (patch.waitDays !== undefined || patch.waitExceptSecurity !== undefined)
+				for (const key of apps.keys()) refresh(key);
 			emitMeta();
 			return s.settings;
 		},

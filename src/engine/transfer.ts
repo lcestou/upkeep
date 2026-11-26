@@ -178,7 +178,7 @@ function sameness(spec: AppSpec): string {
 	return JSON.stringify(Object.entries(rest).toSorted(([a], [b]) => a.localeCompare(b)));
 }
 
-const SETTING_SWITCHES = ["notify", "checkAtLogin", "selfAuto", "upkeepCommand"] as const;
+const SETTING_SWITCHES = ["notify", "checkAtLogin", "selfAuto", "upkeepCommand", "waitExceptSecurity"] as const;
 const PROTECTIONS = ["waitUnmetered"] as const satisfies readonly ImportProtection[];
 
 /** Each protection the import would turn off that is on here, judged on the values as they would land. */

@@ -3316,3 +3316,28 @@ msgstr "O endereço de saúde deixou de responder desde que {0} foi instalada {1
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: health must be an http or https address"
 msgstr "{0}: health tem de ser um endereço http ou https"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "Correção de segurança"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "Esta atualização corrige um problema de segurança. Abra a linha para ver qual."
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "Mencionado nas notas da versão"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "Encontrado nas notas da versão, nos avisos do projeto no GitHub ou no OSV.dev. Cada um abre sua página no navegador."
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "Exceto correções de segurança"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "Uma atualização que corrige um problema de segurança é oferecida na hora. Ela só se instala sozinha em um app definido como Auto."

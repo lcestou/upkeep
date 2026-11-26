@@ -21,6 +21,7 @@ import type {
 	RestorePoint,
 	RunResult,
 	RunState,
+	SecurityFix,
 	SelfState,
 	Settings,
 	Snapshot,
@@ -75,6 +76,8 @@ type Seed = {
 	menu?: "on" | "off" | "elsewhere";
 	/** On probation with a sign: updated a day ago to installed, from its first restore point's version unless from says. */
 	watch?: { sign: WatchSign; crashes?: number; from?: string };
+	/** The waiting update fixes a security problem. */
+	security?: SecurityFix;
 };
 
 /** The entry another tool wrote for Ghostty's AppImage, which the fixture's elsewhere row names. */
@@ -170,6 +173,12 @@ const SEEDS: Seed[] = [
 		size: 1_203_456,
 		dest: "~/.local/bin/fd",
 		restore: ["10.5.0"],
+		security: {
+			ids: [
+				{ id: "CVE-2026-31337", url: "https://www.cve.org/CVERecord?id=CVE-2026-31337" },
+				{ id: "GHSA-q4w7-2v5m-9xjc", url: "https://github.com/advisories/GHSA-q4w7-2v5m-9xjc" },
+			],
+		},
 		stages: [
 			["download", 44],
 			["backup", 12],
@@ -399,6 +408,7 @@ function toApp(seed: Seed): AppState {
 		size: seed.size,
 		notes: seed.notes,
 		also: seed.also,
+		security: seed.security,
 		menu: seed.kind === "appimage" ? (seed.menu ?? "off") : undefined,
 		menuDetail: seed.menu === "elsewhere" ? MESSAGES.menuElsewhere(OTHER_ENTRY) : undefined,
 		releaseUrl: seed.repo ? `https://github.com/${seed.repo}/releases/latest` : undefined,
@@ -818,6 +828,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		selfAuto: false,
 		upkeepCommand: false,
 		waitDays: 0,
+		waitExceptSecurity: true,
 		waitUnmetered: false,
 		webhookReady: true,
 		webhookRun: false,
@@ -1292,12 +1303,14 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 
 	/**
 	 * The engine's wait, on the fixture's clock: a Ready row whose release is younger than days is held until it
-	 * settles, and a settling row that is old enough by now goes back to Ready.
+	 * settles, and a settling row that is old enough by now goes back to Ready. A security fix does not wait while
+	 * Except security fixes is on.
 	 */
 	function settleRows(days: number): void {
 		for (const a of apps) {
 			const at = Date.parse(a.publishedAt ?? "");
-			const until = days > 0 && !Number.isNaN(at) && at + days * DAY > NOW ? iso(at + days * DAY) : undefined;
+			const skips = a.security !== undefined && settings.waitExceptSecurity;
+			const until = days > 0 && !skips && !Number.isNaN(at) && at + days * DAY > NOW ? iso(at + days * DAY) : undefined;
 			if (a.status === "ready" && until) put({ ...a, status: "held", settles: until });
 			else if (a.settles) put(until ? { ...a, settles: until } : { ...a, status: "ready", settles: undefined });
 		}
@@ -1535,7 +1548,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				...patch,
 				keepBackups: Math.min(5, Math.max(1, patch.keepBackups ?? settings.keepBackups)),
 			};
-			if (patch.waitDays !== undefined) settleRows(patch.waitDays);
+			if (patch.waitDays !== undefined || patch.waitExceptSecurity !== undefined) settleRows(settings.waitDays);
 			emit({ type: "meta", rate, checkedAt, settings });
 			return clone(settings);
 		},
@@ -1570,8 +1583,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		history: ({ limit }) => clone(history.slice(0, limit)),
 		runLog: ({ runId }) => clone(logs.get(runId) ?? []),
-		open: ({ what }) => {
-			globalThis.upkeepOps?.push(`open ${what}`);
+		open: ({ what, id }) => {
+			globalThis.upkeepOps?.push(id === undefined ? `open ${what}` : `open ${what} ${id}`);
 			return { ok: true };
 		},
 		self: () => clone(selfNow),

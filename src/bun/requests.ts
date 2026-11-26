@@ -152,7 +152,7 @@ export function upkeepRequests(
 		},
 		history: ({ limit }) => engine.history(limit),
 		runLog: ({ runId }) => engine.runLog(runId),
-		open: ({ what, key }) => {
+		open: ({ what, key, id: advisory }) => {
 			if (what === "manifest") return { ok: desktop.openPath(join(deps.paths.config, "apps.toml")) };
 			if (what === "log") {
 				const id = engine.snapshot().run.id;
@@ -175,7 +175,13 @@ export function upkeepRequests(
 				};
 				return { ok: desktop.openExternal(aboutUrl(what, info)) };
 			}
-			const url = engine.snapshot().apps.find((a) => a.key === key)?.releaseUrl;
+			const app = engine.snapshot().apps.find((a) => a.key === key);
+			// An advisory's page is the one the engine built for that ID, never an address from the view.
+			if (what === "advisory") {
+				const page = app?.security?.ids.find((a) => a.id === advisory)?.url;
+				return { ok: page?.startsWith("https://") ? desktop.openExternal(page) : false };
+			}
+			const url = app?.releaseUrl;
 			// Only a release page the engine itself fetched is opened, never a string from the view.
 			return { ok: url?.startsWith("https://") ? desktop.openExternal(url) : false };
 		},

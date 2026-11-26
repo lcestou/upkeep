@@ -142,6 +142,14 @@ export const CHIP = {
 			return "Installed without asking when Upkeep checks in the background.";
 		},
 	},
+	security: {
+		get text() {
+			return "Security fix";
+		},
+		get title() {
+			return "This update fixes a security problem. Open the row to see which.";
+		},
+	},
 } as const;
 
 export const TEXT = {
@@ -219,6 +227,18 @@ export const TEXT = {
 	/** Under those lines: they were found by plain word rules, so the notes stay the thing to read. */
 	get breakingHint() {
 		return "Lines in these notes that mention a breaking change or a migration. Read them before you update.";
+	},
+	/** Over the advisories a waiting update fixes. */
+	get securityFix() {
+		return "Security fix";
+	},
+	/** In place of advisory IDs, when only the release notes' words said the update fixes a security problem. */
+	get securityInNotes() {
+		return "Mentioned in the release notes";
+	},
+	/** Under the IDs: where they came from, and that each opens a page. */
+	get securityHint() {
+		return "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser.";
 	},
 	/** Under the notes of skipped releases when the forge's list stops before the installed version. */
 	get olderNotListed() {
@@ -398,6 +418,13 @@ export const TEXT = {
 	},
 	get waitDaysHint() {
 		return "A new release of an app often gets a quick fix in its first days. Counted from when it came out. Upkeep's own updates do not wait.";
+	},
+	/** Under the wait row, shown while there is a wait. */
+	get waitExceptSecurity() {
+		return "Except security fixes";
+	},
+	get waitExceptSecurityHint() {
+		return "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto.";
 	},
 	get installNowAnyway() {
 		return "Install now anyway";

@@ -14,6 +14,7 @@ const settings: Settings = {
 	selfAuto: false,
 	upkeepCommand: false,
 	waitDays: 0,
+	waitExceptSecurity: true,
 	waitUnmetered: false,
 	webhookReady: true,
 	webhookRun: false,

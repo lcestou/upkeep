@@ -144,6 +144,30 @@ test("the self-update switch and the skipped build survive a write that changes 
 	expect(loadState(t.paths).settings.selfAuto).toBe(false);
 });
 
+test("security looks read back as written, and a hand-edited entry of the wrong shape is dropped", () => {
+	const url = "https://www.cve.org/CVERecord?id=CVE-2026-0001";
+	mkdirSync(t.paths.state, { recursive: true });
+	writeFileSync(
+		join(t.paths.state, "state.json"),
+		JSON.stringify({
+			security: {
+				fd: {
+					latest: "10.5.2",
+					complete: true,
+					fix: { ids: [{ id: "CVE-2026-0001", url }, { id: "X", url: "http://plain" }, 7] },
+				},
+				bat: { latest: "0.27.0", complete: false, fix: null },
+				bad: { latest: 3, complete: true, fix: null },
+				odd: { latest: "1", complete: true, fix: { ids: "none" } },
+			},
+		}),
+	);
+	expect(loadState(t.paths).security).toEqual({
+		fd: { latest: "10.5.2", complete: true, fix: { ids: [{ id: "CVE-2026-0001", url }] } },
+		bat: { latest: "0.27.0", complete: false, fix: null },
+	});
+});
+
 test("state defaults, and updateState merges one change into what is on disk", () => {
 	expect(loadState(t.paths)).toEqual({
 		skip: {},
@@ -163,6 +187,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			selfAuto: false,
 			upkeepCommand: false,
 			waitDays: 0,
+			waitExceptSecurity: true,
 			waitUnmetered: false,
 			webhookReady: true,
 			webhookRun: false,
@@ -179,6 +204,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		origin: {},
 		swapped: {},
 		probation: {},
+		security: {},
 	});
 	updateState(t.paths, (s) => {
 		s.skip.fd = "10.5.2";

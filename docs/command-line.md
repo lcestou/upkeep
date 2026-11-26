@@ -44,7 +44,7 @@ Last check: 2026-11-25T10:00:00.000Z
   HELD:   Zen Browser 1.17b -> 1.18b
 ```
 
-`--json` prints one object: `{"version", "checkedAt", "running", "counts": {"apps", "upToDate", "ready", "manual", "held", "failing", "unchecked"}, "ready", "manual", "held", "failing", "noted", "unchecked", "watch"}`, each list holding `{"key", "name", "installed", "latest"}` with `"detail"` when the row has a reason, and a held app also `"paused"`, `"skipped"` or `"settles"` when one holds it. A paused app counts as held. An update you run by hand (a manual app) is not ready, as in the window: it has its own count, a `BY HAND:` line, `"manual"` under `--json` and `upkeep_apps{state="manual"}`. An app in `apps.toml` that the last check left no row for (added since, or found not installed) counts in `apps` and as `unchecked`, listed by key and name; the text line then ends with "N not checked yet or not installed", and `--metrics` has `upkeep_apps{state="unchecked"}`. `checkedAt` is `null` before the first check. `"watch"` lists each app with a sign since Upkeep updated it, as `{"key", "name", "installed", "watch": {"sign", "from", "to", "at"}}` with `"crashes"` for a crash sign; the text prints a `WATCH:` line for each (see [watching an app after an update](app-list.md#watching-an-app-after-an-update)).
+`--json` prints one object: `{"version", "checkedAt", "running", "counts": {"apps", "upToDate", "ready", "manual", "held", "failing", "unchecked"}, "ready", "manual", "held", "failing", "noted", "unchecked", "watch"}`, each list holding `{"key", "name", "installed", "latest"}` with `"detail"` when the row has a reason, and a held app also `"paused"`, `"skipped"` or `"settles"` when one holds it. An app whose waiting update fixes a security problem also has `"security": {"ids": [{"id", "url"}]}`, its text line ends with `(security fix: CVE-…)`, or `(security fix)` when only its release notes say so, and `--metrics` counts such apps in `upkeep_security_fixes`. A paused app counts as held. An update you run by hand (a manual app) is not ready, as in the window: it has its own count, a `BY HAND:` line, `"manual"` under `--json` and `upkeep_apps{state="manual"}`. An app in `apps.toml` that the last check left no row for (added since, or found not installed) counts in `apps` and as `unchecked`, listed by key and name; the text line then ends with "N not checked yet or not installed", and `--metrics` has `upkeep_apps{state="unchecked"}`. `checkedAt` is `null` before the first check. `"watch"` lists each app with a sign since Upkeep updated it, as `{"key", "name", "installed", "watch": {"sign", "from", "to", "at"}}` with `"crashes"` for a crash sign; the text prints a `WATCH:` line for each (see [watching an app after an update](app-list.md#watching-an-app-after-an-update)).
 
 `--metrics` prints the same numbers in Prometheus's text format and always exits 0 (before the first check, `upkeep_last_check_timestamp_seconds` is 0):
 
@@ -56,6 +56,7 @@ upkeep_apps{state="up_to_date"} 10
 upkeep_apps{state="ready"} 1
 upkeep_apps{state="held"} 1
 upkeep_apps{state="failing"} 0
+upkeep_security_fixes 0
 upkeep_update_ready{app="fd",installed="10.2.0",latest="10.3.0"} 1
 ```
 

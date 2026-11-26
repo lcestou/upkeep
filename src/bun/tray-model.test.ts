@@ -46,6 +46,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			selfAuto: false,
 			upkeepCommand: false,
 			waitDays: 0,
+			waitExceptSecurity: true,
 			waitUnmetered: false,
 			webhookReady: true,
 			webhookRun: false,
@@ -192,6 +193,16 @@ test("a ready notice's body names the ready apps with their versions and the cou
 		counts: { apps: 4, upToDate: 2, ready: 1, manual: 0, held: 0, failing: 0, unchecked: 1 },
 		apps: [{ key: "app0", name: "App 0", installed: undefined, latest: "1.0" }],
 	});
+});
+
+test("a ready notice with a security fix marks the app and asks for high priority", () => {
+	const s = snap(1);
+	const fix = { ids: [] };
+	const withFix = { ...s, apps: s.apps.map((a) => (a.status === "ready" ? { ...a, security: fix } : a)) };
+	const body = webhookBody("ready", withFix, "1 update ready: App 0", "box", []);
+	expect(body.priority).toBe("high");
+	expect(body.apps[0]?.security).toEqual(fix);
+	expect(webhookBody("ready", s, "x", "box", [])).not.toHaveProperty("priority");
 });
 
 test("a run notice's body carries each result, with its detail only where there is one", () => {

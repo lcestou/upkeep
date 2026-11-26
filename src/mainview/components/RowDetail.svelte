@@ -584,6 +584,30 @@
 		{/if}
 	</div>
 
+	{#if app.security}
+		<div class="block">
+			<div class="breaking" data-testid="security">
+				<p class="nh"><Glyph name="bang" color="var(--rust)" /><span data-testid="security-heading">{TEXT.securityFix}</span></p>
+				{#if app.security.ids.length > 0}
+					<ul>
+						{#each app.security.ids as a (a.id)}
+							<li>
+								<button
+									type="button"
+									class="url linkish"
+									data-testid="security-id"
+									onclick={() => model.send("open", { what: "advisory", key: app.key, id: a.id })}>{a.id}</button
+								>
+							</li>
+						{/each}
+					</ul>
+					<p class="released" data-testid="security-hint">{TEXT.securityHint}</p>
+				{:else}
+					<p class="released" data-testid="security-notes">{TEXT.securityInNotes}</p>
+				{/if}
+			</div>
+		</div>
+	{/if}
 	{#if pending || app.notes}
 		<div class="block">
 			<h3>{TEXT.whatChanged}</h3>

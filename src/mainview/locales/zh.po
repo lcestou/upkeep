@@ -3266,3 +3266,28 @@ msgstr "自 {0} 于{1}安装以来，健康检查地址不再响应。"
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: health must be an http or https address"
 msgstr "{0}：health 必须是 http 或 https 地址"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "安全修复"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "此更新修复了一个安全问题。打开该行可查看详情。"
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "发行说明中提到"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "来自发行说明、项目在 GitHub 上的安全公告或 OSV.dev。每一项都会在浏览器中打开对应页面。"
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "安全修复除外"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "修复安全问题的更新会立即提供。只有设为“自动”的应用才会自行安装。"

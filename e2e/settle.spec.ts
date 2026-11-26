@@ -39,11 +39,12 @@ test("turning the wait off offers a settling release again", async ({ page }) =>
 	await page.getByTestId("tab-settings").click();
 	await page.getByTestId("setting-wait-days").selectOption("7");
 	await page.getByTestId("tab-updates").click();
-	await expect(page.getByTestId("status-fd")).toHaveText(/^Offered from /);
+	// Wrangler, not fd: fd's update fixes a security problem, which never waits while Except security fixes is on.
+	await expect(page.getByTestId("status-wrangler")).toHaveText(/^Offered from /);
 	await page.getByTestId("tab-settings").click();
 	await page.getByTestId("setting-wait-days").selectOption("0");
 	await page.getByTestId("tab-updates").click();
-	await expect(page.getByTestId("status-fd")).toHaveText("Ready");
+	await expect(page.getByTestId("status-wrangler")).toHaveText("Ready");
 	await expect(page.getByTestId("status-zen")).toHaveText("Ready");
 });
 
