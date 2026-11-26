@@ -99,6 +99,12 @@ export type ElfFixture = {
 	interp?: string;
 	/** Symbol version names libc.so.6 is needed at, as GLIBC_2.39. */
 	versions?: string[];
+	/** Of versions, the ones needed weakly (VER_FLG_WEAK). */
+	weak?: string[];
+	/** The string table's offset in its section header, in place of the real one, to make a damaged file. */
+	stringsAt?: number;
+	/** The verneed record's entry count, in place of the real one. */
+	count?: number;
 	/** The X86_ISA_1_NEEDED mask in a GNU property note. */
 	isa?: number;
 	/** The note goes in a plain PT_NOTE segment instead of PT_GNU_PROPERTY, as older links do. */
@@ -157,15 +163,16 @@ export function elfFile(f: ElfFixture): Uint8Array<ArrayBuffer> {
 		}
 		const need = put(16 + 16 * versions.length);
 		w16(need, 1);
-		w16(need + 2, versions.length);
+		w16(need + 2, f.count ?? versions.length);
 		w32(need + 4, offsets[0] ?? 0);
 		w32(need + 8, 16);
-		versions.forEach((_, i) => {
+		versions.forEach((v, i) => {
 			const aux = need + 16 + 16 * i;
+			if (f.weak?.includes(v)) w16(aux + 4, 0x2);
 			w32(aux + 8, offsets[i + 1] ?? 0);
 			w32(aux + 12, i === versions.length - 1 ? 0 : 16);
 		});
-		sections.push([3, str, o + 1, 0], [0x6ffffffe, need, 16 + 16 * versions.length, 1]);
+		sections.push([3, f.stringsAt ?? str, o + 1, 0], [0x6ffffffe, need, 16 + 16 * versions.length, 1]);
 	}
 	buf.setUint32(0, 0x7f454c46, false);
 	w8(4, wide ? 2 : 1);

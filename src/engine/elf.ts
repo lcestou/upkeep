@@ -16,6 +16,8 @@ const PT_GNU_PROPERTY = 0x6474e553;
 const SHT_GNU_VERNEED = 0x6ffffffe;
 const EM_X86_64 = 62;
 const NT_GNU_PROPERTY_TYPE_0 = 5;
+/** vna_flags bit for a weak version need: ld.so starts the program without it, so it asks nothing of the system. */
+const VER_FLG_WEAK = 0x2;
 const GNU_PROPERTY_X86_ISA_1_NEEDED = 0xc0008002;
 /** No header table or section the reader needs is this big in a real program; a bigger one is a damaged file. */
 const MAX_PART = 16 * 1024 * 1024;
@@ -44,6 +46,15 @@ export function versionAbove(a: string, b: string): boolean {
 		if (d !== 0) return d > 0;
 	}
 	return false;
+}
+
+/** f's answer, or null when it throws: one damaged part of a file is unknown, and the other parts are still read. */
+function part<T>(f: () => T | null): T | null {
+	try {
+		return f();
+	} catch {
+		return null;
+	}
 }
 
 /** n rounded up to a multiple of a, as note fields are padded. */
@@ -82,7 +93,10 @@ function isaInNotes(notes: DataView, little: boolean, wide: boolean): number | n
 	return null;
 }
 
-/** The highest GLIBC_x.y in a .gnu.version_r section, its names read from the string table it links to. */
+/**
+ * The highest GLIBC_x.y in a .gnu.version_r section, its names read from the string table it links to. A weak need is
+ * left out: the loader starts the program without it.
+ */
 function glibcIn(verneed: DataView, strings: DataView, little: boolean): string | null {
 	let best: string | null = null;
 	let need = 0;
@@ -91,7 +105,8 @@ function glibcIn(verneed: DataView, strings: DataView, little: boolean): string 
 		const cnt = verneed.getUint16(need + 2, little);
 		let aux = need + verneed.getUint32(need + 8, little);
 		for (let i = 0; i < cnt && aux + 16 <= verneed.byteLength; i++) {
-			const m = /^GLIBC_(\d+\.\d+(?:\.\d+)?)$/.exec(strAt(strings, verneed.getUint32(aux + 8, little)));
+			const weak = (verneed.getUint16(aux + 4, little) & VER_FLG_WEAK) !== 0;
+			const m = weak ? null : /^GLIBC_(\d+\.\d+(?:\.\d+)?)$/.exec(strAt(strings, verneed.getUint32(aux + 8, little)));
 			if (m?.[1] && (best === null || versionAbove(m[1], best))) best = m[1];
 			const next = verneed.getUint32(aux + 12, little);
 			if (next === 0) break;
@@ -106,8 +121,9 @@ function glibcIn(verneed: DataView, strings: DataView, little: boolean): string 
 
 /**
  * What the ELF file at path needs to start, read from its headers without running it: 32 or 64 bit, either byte
- * order. Null when it is not an ELF file or cannot be read, which is never a reason to refuse it. A program stripped of
- * its section headers still gives its loader and ISA note, but no glibc version.
+ * order. Null when it is not an ELF file or its header or program headers cannot be read, which is never a reason to
+ * refuse it. Past those, each part (loader, ISA note, glibc needs) is read on its own, and a damaged one is null while
+ * the others stand. A program stripped of its section headers still gives its loader and ISA note, but no glibc.
  */
 export function elfNeeds(path: string): ElfNeeds | null {
 	let fd: number;
@@ -141,36 +157,39 @@ export function elfNeeds(path: string): ElfNeeds | null {
 				size: word(phs, at + (wide ? 32 : 16)),
 			};
 		});
-		for (const s of segments) if (s.type === PT_INTERP) interp = strAt(readAt(fd, s.offset, s.size), 0) || null;
+		for (const s of segments)
+			if (s.type === PT_INTERP) interp = part(() => strAt(readAt(fd, s.offset, s.size), 0) || null);
 		if (machine === EM_X86_64) {
 			// The property segment holds exactly the note the level is in; older links only have it among the notes.
 			const property = segments.filter((s) => s.type === PT_GNU_PROPERTY);
 			for (const seg of property.length ? property : segments.filter((s) => s.type === PT_NOTE)) {
-				x86Level = isaInNotes(readAt(fd, seg.offset, seg.size), little, wide);
+				x86Level = part(() => isaInNotes(readAt(fd, seg.offset, seg.size), little, wide));
 				if (x86Level !== null) break;
 			}
 		}
 
-		let glibc: string | null = null;
-		if (shnum && shoff) {
-			const shs = readAt(fd, shoff, shentsize * shnum);
-			const section = (i: number) => {
-				const at = i * shentsize;
-				return {
-					type: shs.getUint32(at + 4, little),
-					offset: word(shs, at + (wide ? 24 : 16)),
-					size: word(shs, at + (wide ? 32 : 20)),
-					link: shs.getUint32(at + (wide ? 40 : 24), little),
-				};
-			};
-			for (let i = 0; i < shnum; i++) {
-				const s = section(i);
-				if (s.type !== SHT_GNU_VERNEED || s.link >= shnum) continue;
-				const str = section(s.link);
-				glibc = glibcIn(readAt(fd, s.offset, s.size), readAt(fd, str.offset, str.size), little);
-				break;
-			}
-		}
+		const glibc =
+			shnum && shoff
+				? part(() => {
+						const shs = readAt(fd, shoff, shentsize * shnum);
+						const section = (i: number) => {
+							const at = i * shentsize;
+							return {
+								type: shs.getUint32(at + 4, little),
+								offset: word(shs, at + (wide ? 24 : 16)),
+								size: word(shs, at + (wide ? 32 : 20)),
+								link: shs.getUint32(at + (wide ? 40 : 24), little),
+							};
+						};
+						for (let i = 0; i < shnum; i++) {
+							const s = section(i);
+							if (s.type !== SHT_GNU_VERNEED || s.link >= shnum) continue;
+							const str = section(s.link);
+							return glibcIn(readAt(fd, s.offset, s.size), readAt(fd, str.offset, str.size), little);
+						}
+						return null;
+					})
+				: null;
 		return { glibc, x86Level, interp };
 	} catch {
 		return null;

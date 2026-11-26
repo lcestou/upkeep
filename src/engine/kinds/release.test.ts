@@ -1258,6 +1258,9 @@ test("Stop now pressed as an archive unpacks ends the install there, with the in
 	expect(readFileSync(join(bin, "uv"), "utf8")).toContain("uv 0.9.1");
 	expect(existsSync(join(t.paths.cache, "dl", "uv-x"))).toBe(false);
 	expect(readInflight(t.paths)).toBeNull();
+	// The unpack comes before the restore point now, so a stop there takes none and changes nothing.
+	expect(existsSync(join(t.paths.data, "backups/uv"))).toBe(false);
+	expect(Object.keys(outcome.stages)).toEqual(["download"]);
 });
 
 test("Stop now during the version probe puts the point back; a put-back that fails says what the restore said", async () => {

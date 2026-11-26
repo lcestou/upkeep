@@ -49,9 +49,15 @@ test("a static program needs nothing, and a program with no sections gives no gl
 	});
 });
 
-test("a file that is not ELF, is cut short or is missing reads as nothing", () => {
+test("a file that is not ELF, has a cut header or is missing reads as nothing", () => {
 	expect(read(new TextEncoder().encode("#!/bin/sh\necho hi\n"))).toBeNull();
-	expect(read(elfFile(full).slice(0, 600))).toBeNull();
+	expect(read(elfFile(full).slice(0, 40))).toBeNull();
+	// Cut inside the sections: the header and the loader are whole, the glibc needs are gone.
+	expect(read(elfFile(full).slice(0, 600))).toEqual({
+		glibc: null,
+		x86Level: 3,
+		interp: "/lib64/ld-linux-x86-64.so.2",
+	});
 	expect(elfNeeds(join(t.dir, "absent"))).toBeNull();
 });
 
@@ -60,4 +66,25 @@ test("versions compare part by part as numbers", () => {
 	expect(versionAbove("2.4", "2.39")).toBe(false);
 	expect(versionAbove("2.35", "2.35")).toBe(false);
 	expect(versionAbove("2.35.1", "2.35")).toBe(true);
+});
+
+test("a weak glibc need is left out of the highest", () => {
+	expect(read({ versions: ["GLIBC_2.17", "GLIBC_2.39"], weak: ["GLIBC_2.39"] })?.glibc).toBe("2.17");
+	expect(read({ versions: ["GLIBC_2.39"], weak: ["GLIBC_2.39"] })?.glibc).toBeNull();
+});
+
+test("a damaged string table leaves the glibc unknown and the loader and ISA note still read", () => {
+	expect(read({ ...full, stringsAt: 1_000_000 })).toEqual({
+		glibc: null,
+		x86Level: 3,
+		interp: "/lib64/ld-linux-x86-64.so.2",
+	});
+});
+
+test("a version count past the section's end reads the entries that are there", () => {
+	expect(read({ ...full, count: 60_000 })).toEqual({
+		glibc: "2.39",
+		x86Level: 3,
+		interp: "/lib64/ld-linux-x86-64.so.2",
+	});
 });
