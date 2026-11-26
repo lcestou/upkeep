@@ -601,7 +601,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			c.status !== "ready"
 				? c.detail
 				: swapped !== undefined
-					? MESSAGES.repoReplaced(`github.com/${swapped}`)
+					? MESSAGES.repoReplaced(swapped)
 					: changed
 						? MESSAGES.releaseChanged(tag)
 						: c.detail;
@@ -1535,6 +1535,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (!spec) return { ...none, problem: MESSAGES.noApp(key) };
 			// A source build shows its commits and a command app has no release list: no span, and nothing wrong.
 			if (!canList(spec) || !app?.installed || !app.latest || !isNewer(app.installed, app.latest)) return none;
+			// A repo whose name now answers with another repository: the newcomer's notes are not this app's.
+			if (loadState(paths).swapped[key] !== undefined) return none;
 			token = await freshToken();
 			const list = await allReleases(spec, kindCtx(key));
 			if (isFailure(list)) return { ...none, problem: list.detail };
@@ -1556,7 +1558,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			// A release whose file changed since it was first seen stays held here too, until the person releases the hold.
 			if (loadState(paths).changed[key] === t.tag) return { started: false, reason: MESSAGES.releaseChanged(t.tag) };
 			const swapped = loadState(paths).swapped[key];
-			if (swapped !== undefined) return { started: false, reason: MESSAGES.repoReplaced(`github.com/${swapped}`) };
+			if (swapped !== undefined) return { started: false, reason: MESSAGES.repoReplaced(swapped) };
 			// A new run, not a retry of the one on the summary. Dismissing may start the check a switch changed in the run
 			// was waiting for; the pick waits for it instead of being refused, then reads the row it left.
 			if (run.phase === "summary") {

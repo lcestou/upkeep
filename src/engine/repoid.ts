@@ -41,9 +41,10 @@ export async function guardRepo(
 		return;
 	}
 	if (now.id !== was.id) {
-		log(`github.com/${f.path} answers with repository id ${now.id}; Upkeep first saw id ${was.id}. Held.`);
+		const where = `${f.host}/${f.path}`;
+		log(`${where} answers with repository id ${now.id}; Upkeep first saw id ${was.id}. Held.`);
 		updateState(paths, (s) => {
-			s.swapped[spec.key] = f.path;
+			s.swapped[spec.key] = where;
 		});
 		return;
 	}

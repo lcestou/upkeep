@@ -42,7 +42,7 @@ export type State = {
 	changed: Record<string, string>;
 	/** The GitHub repo each app's first check saw, by key: its ids, which a rename keeps and a new repo under the name does not. */
 	origin: Record<string, Origin>;
-	/** Apps held because their repo's name now answers with another repository: key to that owner/name. */
+	/** Apps held because their repo's name now answers with another repository: key to it as host/owner/name. */
 	swapped: Record<string, string>;
 };
 

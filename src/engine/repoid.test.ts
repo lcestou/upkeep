@@ -53,7 +53,7 @@ test("another repository under the same name holds the app and keeps the id firs
 	await guard(false);
 	answer = { name: "o/tool", id: 9, owner: 90 };
 	await guard(true);
-	expect(loadState(t.paths).swapped).toEqual({ tool: "o/tool" });
+	expect(loadState(t.paths).swapped).toEqual({ tool: "github.com/o/tool" });
 	expect(loadState(t.paths).origin.tool?.id).toBe(7);
 	expect(lines).toEqual(["github.com/o/tool answers with repository id 9; Upkeep first saw id 7. Held."]);
 });
@@ -62,7 +62,7 @@ test("a table edited to name another repo starts afresh: its ids are read anew a
 	await guard(false);
 	answer = { name: "o/tool", id: 9, owner: 90 };
 	await guard(true);
-	expect(loadState(t.paths).swapped).toEqual({ tool: "o/tool" });
+	expect(loadState(t.paths).swapped).toEqual({ tool: "github.com/o/tool" });
 	// The owner points the table at another repo: never a swap, whatever its id.
 	answer = { name: "other/fork", id: 11, owner: 110 };
 	await guard(false, { key: "tool", repo: "other/fork" });

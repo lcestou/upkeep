@@ -470,21 +470,24 @@ test("a repo whose name now answers with another repository holds its update unt
 	const reason = MESSAGES.repoReplaced("github.com/o/tool");
 	expect(row()).toMatchObject({ latest: "1.2.0-rc.1", status: "held", held: true, detail: reason });
 	expect(await engine.installVersion("tool", "v1.0.0")).toEqual({ started: false, reason });
+	// The newcomer repository's release notes are not shown for this app.
+	expect(await engine.releaseNotes("tool")).toEqual({ releases: [], breaking: [], older: 0, more: false });
 	// Held by the person as well: releasing that hold leaves the swap, which needs a press of its own.
 	engine.setHold("tool", true);
 	engine.setHold("tool", false);
-	expect(loadState(t.paths).swapped).toEqual({ tool: "o/tool" });
+	expect(loadState(t.paths).swapped).toEqual({ tool: "github.com/o/tool" });
 	expect(row()).toMatchObject({ status: "held", held: true, detail: reason });
 	// Releasing it takes the repository now under the name: the next check learns its id and offers the update.
 	engine.setHold("tool", false);
 	expect(loadState(t.paths).swapped).toEqual({});
 	expect(row()).toMatchObject({ status: "ready", held: false });
+	expect((await engine.releaseNotes("tool")).releases.length).toBeGreaterThan(0);
 	await engine.check();
 	expect(loadState(t.paths).origin.tool?.id).toBe(9);
 	expect(row()).toMatchObject({ status: "ready" });
 	// Removing the app forgets the repo it saw.
 	updateState(t.paths, (st) => {
-		st.swapped.tool = "o/tool";
+		st.swapped.tool = "github.com/o/tool";
 	});
 	expect((await engine.removeApp("tool")).ok).toBe(true);
 	expect(loadState(t.paths)).toMatchObject({ origin: {}, swapped: {} });
