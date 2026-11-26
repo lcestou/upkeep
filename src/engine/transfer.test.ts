@@ -236,7 +236,7 @@ test("an import that shortens the release wait asks first; one that lengthens it
 	}
 });
 
-test("the notice address never goes out in an export; a file that sets or changes it asks and shows where it sends, its secrets masked", () => {
+test("the notice address never goes out in an export; a file that sets or changes it asks and shows its host, the rest masked", () => {
 	const t = tempHome("transfer-webhook");
 	try {
 		const seed = join(t.dir, "seed.toml");
@@ -252,7 +252,7 @@ test("the notice address never goes out in an export; a file that sets or change
 		const theirs = JSON.stringify({ ...out, webhook: "https://hooks.example.com/collect?k=1" });
 		expect(importSetup(t.paths, seed, theirs, new Date())).toEqual({
 			ok: false,
-			ask: { apps: [], plain: 0, turnsOn: [], turnsOff: [], webhook: "https://hooks.example.com/collect?…" },
+			ask: { apps: [], plain: 0, turnsOn: [], turnsOff: [], webhook: "https://hooks.example.com/…" },
 		});
 		expect(readWebhook(t.paths)).toBe("https://ntfy.sh/mine");
 		expect(importSetup(t.paths, seed, theirs, new Date(), true).ok).toBe(true);
@@ -309,7 +309,7 @@ test("a file whose notice address is plain http to the internet is refused whole
 		expect(importSetup(t.paths, seed, bad, new Date(), true)).toEqual({
 			ok: false,
 			problems: [
-				"The file's notice address http://…@hooks.example.com/x?…#… is not an https address, or an http one on this computer or the home network.",
+				"The file's notice address http://…@hooks.example.com/… is not an https address, or an http one on this computer or the home network.",
 			],
 		});
 		expect(loadState(t.paths).settings.keepBackups).toBe(1);

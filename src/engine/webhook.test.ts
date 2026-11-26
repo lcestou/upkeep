@@ -4,14 +4,7 @@ import { join } from "node:path";
 import type { FetchLike } from "./github";
 import { readWebhook, writeWebhook } from "./store";
 import { tempHome } from "./testkit";
-import {
-	addressProblem,
-	createNoticeSender,
-	destinationOf,
-	maskAddress,
-	type NoticeBody,
-	onHomeNetwork,
-} from "./webhook";
+import { addressProblem, createNoticeSender, maskAddress, type NoticeBody, onHomeNetwork } from "./webhook";
 
 let t: ReturnType<typeof tempHome>;
 beforeEach(() => {
@@ -57,7 +50,7 @@ test("onHomeNetwork judges the address as written, never a public name", () => {
 
 test("the mask keeps scheme, host and port and hides the path, query and credentials", () => {
 	expect(maskAddress("https://ntfy.sh/secret-topic?auth=abc")).toBe("https://ntfy.sh/…");
-	expect(maskAddress("https://user:pass@hooks.example.com:8443/")).toBe("https://hooks.example.com:8443/");
+	expect(maskAddress("https://user:pass@hooks.example.com:8443/")).toBe("https://…@hooks.example.com:8443/");
 	expect(maskAddress("http://nas:2586")).toBe("http://nas:2586/");
 	expect(maskAddress("not a url")).toBe("…");
 });
@@ -164,13 +157,11 @@ test("a receiver that never answers is given up after the timeout, never retried
 	expect(lines[0]).toStartWith("Could not send the notice to https://ntfy.sh/…:");
 });
 
-test("the destination keeps scheme, host, port and path, and masks user info, query and fragment", () => {
-	expect(destinationOf("https://ntfy.sh/topic?auth=abc")).toBe("https://ntfy.sh/topic?…");
-	expect(destinationOf(" https://me:pw@hooks.example.com:8443/in/x#frag ")).toBe(
-		"https://…@hooks.example.com:8443/in/x#…",
-	);
-	expect(destinationOf("http://nas:2586")).toBe("http://nas:2586/");
-	expect(destinationOf("not a url")).toBe("…");
+test("the shown address keeps scheme, host and port and masks user info and a path, query or fragment", () => {
+	// A Discord or Slack webhook keeps its token in the path.
+	expect(maskAddress("https://discord.com/api/webhooks/123/s3cret")).toBe("https://discord.com/…");
+	expect(maskAddress(" https://me:pw@hooks.example.com:8443/in/x#frag ")).toBe("https://…@hooks.example.com:8443/…");
+	expect(maskAddress("https://me@hooks.example.com")).toBe("https://…@hooks.example.com/");
 });
 
 test("an error that quotes the normalised address never carries its path or query into the log", async () => {

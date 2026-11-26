@@ -53,15 +53,18 @@ export function addressProblem(text: string): "address" | "plain" | null {
 }
 
 /**
- * The address as Settings and the log show it: scheme, host and port, then "/…" when a path or query follows (an
- * ntfy topic works as a password, and a token may sit in the query). Credentials are never shown. Text that is not
- * a URL shows as "…".
+ * The address wherever Upkeep shows it (Settings, the log, an import's ask and its refusal, the command line):
+ * scheme, host and port, which is what a person needs to judge where notices go, then "/…" when a path, query or
+ * fragment follows, and "…@" for user info. Each of those can hold the secret: an ntfy topic works as a password,
+ * a Discord or Slack webhook keeps its token in the path, and a token may sit in the query. Text that is not a URL
+ * shows as "…".
  */
 export function maskAddress(text: string): string {
 	try {
-		const url = new URL(text);
+		const url = new URL(text.trim());
+		const user = url.username || url.password ? "…@" : "";
 		const rest = url.pathname !== "/" || url.search !== "" || url.hash !== "";
-		return `${url.protocol}//${url.host}${rest ? "/…" : "/"}`;
+		return `${url.protocol}//${user}${url.host}${rest ? "/…" : "/"}`;
 	} catch {
 		return "…";
 	}
@@ -92,21 +95,6 @@ export type NoticeBody = {
 
 /** What createNoticeSender hands back: one send per notice, true when the receiver took it. */
 export type NoticeSender = { send(body: NoticeBody): Promise<boolean> };
-
-/**
- * Where an address sends, for the person to judge it before an import keeps it: scheme, host, port and path in full;
- * user info, query and fragment each shown as "…", since a token or password sits there. Text that is not a URL
- * shows as "…". Unlike maskAddress, the path stays: it is the destination (an ntfy topic) the person must recognise.
- */
-export function destinationOf(text: string): string {
-	try {
-		const url = new URL(text.trim());
-		const user = url.username || url.password ? "…@" : "";
-		return `${url.protocol}//${user}${url.host}${url.pathname}${url.search ? "?…" : ""}${url.hash ? "#…" : ""}`;
-	} catch {
-		return "…";
-	}
-}
 
 /**
  * Text with every spelling of address replaced by its mask: as written, as the URL parser normalises it, and that

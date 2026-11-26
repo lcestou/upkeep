@@ -17,7 +17,7 @@ import { ensureManifest, isRecord, loadManifest, parseManifest } from "./manifes
 import { removeMenuFiles } from "./menu";
 import type { Paths } from "./paths";
 import { clampSettings, loadState, readWebhook, updateState, withStateLock, writeAtomic, writeWebhook } from "./store";
-import { addressProblem, destinationOf } from "./webhook";
+import { addressProblem, maskAddress } from "./webhook";
 
 /**
  * Everything a person set up, in one file to carry to another machine or hand to an agent: the app list as written
@@ -275,14 +275,14 @@ export function importSetup(
 	const waitDays = waitLowered(paths, settings);
 	const hook = typeof doc.webhook === "string" ? doc.webhook.trim() : null;
 	if (hook !== null && addressProblem(hook))
-		return { ok: false, problems: [MESSAGES.importBadWebhook(destinationOf(hook))] };
+		return { ok: false, problems: [MESSAGES.importBadWebhook(maskAddress(hook))] };
 	// Only a new or changed address asks: it would start sending this machine's app list somewhere.
 	const hookBefore = readWebhook(paths);
 	const webhook = hook !== null && hook !== hookBefore ? hook : undefined;
 	if ((running.length > 0 || turnsOn.length > 0 || turnsOff.length > 0 || waitDays || webhook) && !sure) {
 		const ask: ImportAsk = { apps: running, plain: list.apps.length - running.length, turnsOn, turnsOff };
 		if (waitDays) ask.waitDays = waitDays;
-		if (webhook) ask.webhook = destinationOf(webhook);
+		if (webhook) ask.webhook = maskAddress(webhook);
 		return { ok: false, ask };
 	}
 

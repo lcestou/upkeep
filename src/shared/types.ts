@@ -167,7 +167,7 @@ export type ImportAsk = {
 	/** Set when the file shortens the wait before a new release is offered (a protection); lengthening it is not asked. */
 	waitDays?: { from: Settings["waitDays"]; to: Settings["waitDays"] };
 	/**
-	 * Where the file's notice address sends (destinationOf: scheme, host, port and path; user info, query and fragment
+	 * Where the file's notice address sends (maskAddress: scheme, host and port; user info, path, query and fragment
 	 * masked), when it differs from this machine's: it would start sending the app list there.
 	 */
 	webhook?: string;

@@ -1737,7 +1737,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			// A file that names a notice address asks first, and keeps it once the person says Import.
 			if (opts.webhook === "import") {
 				const address = "https://ntfy.example.net/upkeep-home?tpl=yes";
-				// The ask carries where it sends, its query masked, as the engine's destinationOf gives it.
+				// The ask carries where it sends, masked past its host, as the engine's maskAddress gives it.
 				if (!sure)
 					return {
 						ok: false,
@@ -1746,7 +1746,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 							plain: apps.length,
 							turnsOn: [],
 							turnsOff: [],
-							webhook: "https://ntfy.example.net/upkeep-home?…",
+							webhook: "https://ntfy.example.net/…",
 						},
 					};
 				webhookKept = address;
