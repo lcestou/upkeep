@@ -97,7 +97,11 @@ test("the requests answer from the engine, and refuse what the engine refuses", 
 	expect(await r.stopNow({})).toEqual({ stopping: false });
 	expect(await r.dismissSummary({})).toEqual({ ok: true });
 	expect(await r.setSkip({ key: "nope", version: "1" })).toEqual({ ok: false });
+	expect(await r.setPause({ key: "tool", days: 7 })).toEqual({ ok: true });
+	expect(await r.setPause({ key: "tool", days: null })).toEqual({ ok: true });
 	expect(await r.setHold({ key: "tool", held: true })).toEqual({ ok: true });
+	// A hold wins over a pause, so a held app refuses one.
+	expect(await r.setPause({ key: "tool", days: 7 })).toEqual({ ok: false });
 	expect(await r.setAuto({ key: "nope", auto: true })).toEqual({ ok: false });
 	expect(await r.setPrerelease({ key: "nope", prerelease: true })).toEqual({ ok: false });
 	expect(await r.versions({ key: "nope" })).toEqual({ versions: [], problem: "No app nope." });

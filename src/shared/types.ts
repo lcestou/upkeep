@@ -305,6 +305,8 @@ export type AppState = {
 	skipped?: string;
 	/** When the release is offered, as an ISO time, while status is held because it is younger than the wait in Settings. */
 	settles?: string;
+	/** When the person's pause ends, as an ISO time, while status is held because of it. */
+	paused?: string;
 	held: boolean;
 };
 
@@ -624,6 +626,8 @@ export type Requests = {
 	restore: { params: { key: string; version: string }; response: { ok: boolean; detail?: string } };
 	setSkip: { params: { key: string; version: string | null }; response: { ok: boolean } };
 	setHold: { params: { key: string; held: boolean }; response: { ok: boolean } };
+	/** Pauses an app's updates for days, or ends its pause early with null. */
+	setPause: { params: { key: string; days: number | null }; response: { ok: boolean } };
 	setAuto: { params: { key: string; auto: boolean }; response: { ok: boolean } };
 	/** Follows pre-releases or not, then checks the app again. */
 	setPrerelease: { params: { key: string; prerelease: boolean }; response: { ok: boolean } };

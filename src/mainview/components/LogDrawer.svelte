@@ -12,24 +12,44 @@
 	// Following the newest line is on when the drawer opens, even with lines already in it; scrolling up to read an
 	// older line pauses it, and so does the Pause button.
 	let following = $state(true);
+	// Where Upkeep's own move left the list, so the scroll event that follows a frame later is not read as the reader's.
+	let ours: number | null = null;
+
+	/**
+	 * Moves the list to its newest line and notes where that left it. A move that changes nothing fires no event, so it
+	 * notes nothing, and the reader's next scroll still counts.
+	 */
+	function toBottom(el: HTMLElement): void {
+		const was = el.scrollTop;
+		el.scrollTop = el.scrollHeight;
+		if (el.scrollTop !== was) ours = el.scrollTop;
+	}
 
 	$effect(() => {
 		void model.log.length;
 		const el = scroller;
-		if (el && following) el.scrollTop = el.scrollHeight;
+		if (el && following) toBottom(el);
 	});
 
-	/** A scroll the reader made: up away from the bottom pauses following, back down to the bottom follows again. */
+	/**
+	 * A scroll the reader made: up away from the bottom pauses following, back down to the bottom follows again. The
+	 * event of Upkeep's own move is skipped, known by the list still standing where that move left it: arriving after
+	 * Pause, it would read as the reader at the bottom and follow again, which a busy machine made happen often. A
+	 * reader's wheel in the same frame moves the list elsewhere, so it still counts.
+	 */
 	function scrolled(): void {
 		const el = scroller;
-		if (el) following = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+		if (!el) return;
+		const mine = ours !== null && el.scrollTop === ours;
+		ours = null;
+		if (!mine) following = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
 	}
 
 	/** Pauses following where the reader is, or follows again from the newest line. */
 	function toggleFollow(): void {
 		following = !following;
 		const el = scroller;
-		if (following && el) el.scrollTop = el.scrollHeight;
+		if (following && el) toBottom(el);
 	}
 </script>
 

@@ -229,6 +229,12 @@ export const TEXT = {
 	get releaseHold() {
 		return "Release hold";
 	},
+	get pauseFor() {
+		return "Pause for…";
+	},
+	get resumeNow() {
+		return "Resume now";
+	},
 	get openRelease() {
 		return "Open release page";
 	},
@@ -512,6 +518,8 @@ export const settlesLine = (version: string, iso: string) =>
 	isToday(iso)
 		? `${version} is offered at ${shortTime(iso)} today, after the wait set in Settings.`
 		: `${version} is offered from ${shortDate(iso)}, after the wait set in Settings.`;
+/** The pane's sentence on a paused app: the day its pause ends. */
+export const pausedLine = (iso: string) => `Paused until ${shortDate(iso)}, then offered again by itself.`;
 /** What Settings shows for a kept GitHub token: only its last four characters. */
 export const tokenKeptLine = (last: string) => `A token ending in ${last} is saved.`;
 /** The kept notice address, masked past its host. */
@@ -671,6 +679,7 @@ export function statusText(app: AppState): string {
 		case "manual":
 			return "By hand";
 		case "held":
+			if (app.paused) return `Paused until ${shortDate(app.paused)}`;
 			if (app.skipped) return `Skipping ${app.skipped}`;
 			if (!app.settles) return "Held";
 			return isToday(app.settles) ? `Offered at ${shortTime(app.settles)}` : `Offered from ${shortDate(app.settles)}`;
@@ -1297,6 +1306,31 @@ export const WAIT_DAYS = [
 		},
 	},
 ] as const satisfies readonly { v: Settings["waitDays"]; label: string }[];
+
+/** The pauses a row's pane offers, in days. A month is 30 days, so every pause is a plain count. */
+export const PAUSE_DAYS = [
+	{
+		v: 7,
+		get label() {
+			// @wc-include
+			return "1 week";
+		},
+	},
+	{
+		v: 14,
+		get label() {
+			// @wc-include
+			return "2 weeks";
+		},
+	},
+	{
+		v: 30,
+		get label() {
+			// @wc-include
+			return "1 month";
+		},
+	},
+] as const;
 
 /** The Cleanup tab: a fixed list of caches and leftovers, each deleted only after it is ticked and reviewed. */
 export const CLEAN = {

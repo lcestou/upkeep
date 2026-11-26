@@ -119,6 +119,7 @@ export function upkeepRequests(
 		restore: ({ key, version }) => engine.restore(key, version),
 		setSkip: ({ key, version }) => ({ ok: engine.setSkip(key, version) }),
 		setHold: ({ key, held }) => ({ ok: engine.setHold(key, held) }),
+		setPause: ({ key, days }) => ({ ok: engine.setPause(key, days) }),
 		setAuto: ({ key, auto }) => ({ ok: engine.setAuto(key, auto) }),
 		setPrerelease: ({ key, prerelease }) => ({ ok: engine.setPrerelease(key, prerelease) }),
 		versions: ({ key }) => engine.versions(key),

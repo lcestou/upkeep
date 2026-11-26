@@ -262,6 +262,39 @@ test("the notice address never goes out in an export; a file that sets or change
 	}
 });
 
+test("an export carries running pauses, and an import takes them without asking, only for its apps and sane days", () => {
+	const t = tempHome("transfer-pause");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		const now = new Date();
+		const inDays = (d: number) => new Date(now.getTime() + d * 86_400_000).toISOString();
+		updateState(t.paths, (s) => {
+			s.pause.old = inDays(6);
+			s.pause.done = inDays(-1);
+		});
+		// A pause that ran out stays behind.
+		expect(exportSetup(t.paths, seed, now).pause).toEqual({ old: inDays(6) });
+		const apps = '[apps.t]\nname = "T"\nkind = "file"\nrepo = "o/t"\nasset = "t-linux"\ndest = "~/.local/bin/t"\n';
+		const out = exportSetup(t.paths, seed, now);
+		const until = inDays(14);
+		const doc = { ...out, apps, pause: { t: until, gone: until } };
+		// An unreadable end, one already past and one more than 365 days ahead are each dropped.
+		for (const end of ["soon", inDays(-2), inDays(366), 7]) {
+			expect(importSetup(t.paths, seed, JSON.stringify({ ...doc, pause: { t: end } }), now, true).ok).toBe(true);
+			expect(loadState(t.paths).pause).toEqual({});
+		}
+		expect(importSetup(t.paths, seed, JSON.stringify(doc), now, true).ok).toBe(true);
+		expect(loadState(t.paths).pause).toEqual({ t: until });
+		// A file written before pauses has none, and clears them as it does holds.
+		const { pause: _pause, ...older } = doc;
+		expect(importSetup(t.paths, seed, JSON.stringify(older), now, true).ok).toBe(true);
+		expect(loadState(t.paths).pause).toEqual({});
+	} finally {
+		t.cleanup();
+	}
+});
+
 test("a file whose notice address is plain http to the internet is refused whole, even when sure", () => {
 	const t = tempHome("transfer-webhook-plain");
 	try {
@@ -281,6 +314,21 @@ test("a file whose notice address is plain http to the internet is refused whole
 		});
 		expect(loadState(t.paths).settings.keepBackups).toBe(1);
 		expect(readWebhook(t.paths)).toBeNull();
+	} finally {
+		t.cleanup();
+	}
+});
+
+test("an import drops a skip on a versionless app, which has no version to skip", () => {
+	const t = tempHome("transfer-skip-versionless");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		const apps =
+			'[apps.cc]\nname = "Claude Code plugins"\nkind = "claude-plugins"\nversionless = true\n\n[apps.t]\nname = "T"\nkind = "file"\nrepo = "o/t"\nasset = "t-linux"\ndest = "~/.local/bin/t"\n';
+		const doc = { ...exportSetup(t.paths, seed, new Date()), apps, skip: { cc: "1.0", t: "2.0" } };
+		expect(importSetup(t.paths, seed, JSON.stringify(doc), new Date(), true).ok).toBe(true);
+		expect(loadState(t.paths).skip).toEqual({ t: "2.0" });
 	} finally {
 		t.cleanup();
 	}

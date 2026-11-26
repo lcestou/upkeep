@@ -3082,6 +3082,36 @@ msgstr "{0}: {1} may not contain a line break or other control character"
 msgid "Could not write the menu entry: {0}"
 msgstr "Could not write the menu entry: {0}"
 
+#: src/mainview/lib/copy.ts
+msgid "Pause for…"
+msgstr "Pause for…"
+
+#: src/mainview/lib/copy.ts
+msgid "Resume now"
+msgstr "Resume now"
+
+#. 0: shortDate(iso)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}, then offered again by itself."
+msgstr "Paused until {0}, then offered again by itself."
+
+#. 0: shortDate(app.paused)
+#: src/mainview/lib/copy.ts
+msgid "Paused until {0}"
+msgstr "Paused until {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "1 week"
+msgstr "1 week"
+
+#: src/mainview/lib/copy.ts
+msgid "2 weeks"
+msgstr "2 weeks"
+
+#: src/mainview/lib/copy.ts
+msgid "1 month"
+msgstr "1 month"
+
 #. 0: v0; 1: v1
 #: src/mainview/lib/engine-text.ts
 msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"

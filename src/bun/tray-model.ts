@@ -122,7 +122,7 @@ export function readyFingerprint(snapshot: Snapshot, wait?: "metered" | "battery
 export type SettleWatch = { row(app: AppState, quiet: boolean): boolean; idle(): boolean };
 
 /**
- * Watches row events for a release that was waiting (it had settles) and is Ready now, which the engine's own timer
+ * Watches row events for a release that was waiting (it had settles or paused) and is Ready now, which the engine's own timer
  * does without a check, so the ready notice can go out then as after a check. row answers true when the notice is due
  * now: quiet is true while a run, its summary or a held check is showing, and the notice then waits for idle(), called
  * once when Upkeep is idle again, which answers whether one is owed. A row that stops waiting any other way (held, a
@@ -133,7 +133,7 @@ export function createSettleWatch(): SettleWatch {
 	let owed = false;
 	return {
 		row(app, quiet) {
-			if (app.settles) {
+			if (app.settles || app.paused) {
 				waiting.add(app.key);
 				return false;
 			}

@@ -57,7 +57,9 @@
 	});
 </script>
 
-<div class="history" data-testid="history">
+<!-- A scroll box is a tab stop, named as its tab, so the runs scroll from the keyboard when they overflow the window. -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<div class="history" data-testid="history" role="region" tabindex="0" aria-label={TEXT.history}>
 	<!-- A live run is the top line; the past runs stay listed under it. -->
 	{#if model.run.phase === "installing"}
 		<p class="empty live" data-testid="history-empty">{RUN_TEXT.inProgress}</p>
@@ -106,6 +108,11 @@
 		height: 100%;
 		overflow: auto;
 		padding: var(--s5) var(--s5) var(--s6);
+	}
+	/* The ring sits inside the area, which fills the window and would clip one drawn outside it. */
+	.history:focus-visible {
+		outline: 2px solid var(--focus);
+		outline-offset: -2px;
 	}
 	section {
 		max-width: 820px;
