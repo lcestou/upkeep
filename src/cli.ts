@@ -15,7 +15,7 @@ import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
 import { CATALOGUE_URL } from "./bun/about";
-import { metricsText, statusLines, statusOf } from "./engine/status";
+import { heldLine, localDay, metricsText, statusLines, statusOf } from "./engine/status";
 import { claimLock, formatLogLine, loadState, lockHeld, readInflight, releaseLock } from "./engine/store";
 import { exportSetup, importSetup } from "./engine/transfer";
 import pkg from "../package.json";
@@ -40,9 +40,6 @@ export const USAGE = [
 
 type Out = (line: string) => void;
 
-/** The local calendar day of an ISO time as YYYY-MM-DD, the day the window shows, so a script can compare it with `date +%F`. */
-const localDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE");
-
 /** One line per app, as OK, UPDATE, HELD, BROKEN or SKIP first, so a script or a glance reads the state from the first word. */
 export function checkLine(a: AppState): string {
 	switch (a.status) {
@@ -56,8 +53,7 @@ export function checkLine(a: AppState): string {
 			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
 		// install --all passes these by, so they are not offered as updates.
 		case "held":
-			// The detail says why when Upkeep held it itself (a release whose file changed).
-			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.paused ? ` (paused until ${localDay(a.paused)})` : a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${localDay(a.settles)})` : ""}${a.detail ? ` ${a.detail}` : ""}`;
+			return heldLine(a);
 		default: {
 			const detail = a.detail ?? "";
 			const broken = `${a.name} will not start`;

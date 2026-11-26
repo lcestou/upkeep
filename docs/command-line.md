@@ -34,7 +34,7 @@ With **Wait before offering a new release** on in Settings, a release younger th
 
 ## Status for a home server or a panel
 
-`upkeep status` prints what the last check found, read from what Upkeep saved after it: when it ran, how many apps are up to date, ready, held and failing, each ready, held and failing app with its versions or the reason, whether an install, restore or import is under way (another process holds the run lock), and Upkeep's version. It never uses the network and never starts a check, so it is cheap enough for a panel widget that runs it every few seconds. Apps an install updated count as up to date at once, before the next check. Before the first check it prints `No check has run yet.` and exits 1; otherwise it exits 0.
+`upkeep status` prints what the last check found, read from what Upkeep saved after it: when it ran, how many apps are up to date, ready, held and failing, each ready, held and failing app with its versions and the row's reason (a held app's line reads as `check` prints it, with a pause's end, a skipped version or a release wait's end, and why Upkeep held it itself), an up-to-date app whose row says something (a bad version it kept clear of) as a `NOTE` line, whether an install, restore or import is under way (another process holds the run lock), and Upkeep's version. It never uses the network and never starts a check, so it is cheap enough for a panel widget that runs it every few seconds. Apps an install updated count as up to date at once, before the next check. Before the first check it prints `No check has run yet.` and exits 1; otherwise it exits 0.
 
 ```text
 Upkeep 0.2.0
@@ -44,7 +44,7 @@ Last check: 2026-11-25T10:00:00.000Z
   HELD:   Zen Browser 1.17b -> 1.18b
 ```
 
-`--json` prints one object: `{"version", "checkedAt", "running", "counts": {"apps", "upToDate", "ready", "held", "failing"}, "ready", "held", "failing"}`, each list holding `{"key", "name", "installed", "latest"}`, and a failing app also its `"detail"`. `checkedAt` is `null` before the first check.
+`--json` prints one object: `{"version", "checkedAt", "running", "counts": {"apps", "upToDate", "ready", "held", "failing"}, "ready", "held", "failing", "noted"}`, plus `"noted"`, each list holding `{"key", "name", "installed", "latest"}` with `"detail"` when the row has a reason, and a held app also `"paused"`, `"skipped"` or `"settles"` when one holds it. A paused app counts as held. `checkedAt` is `null` before the first check.
 
 `--metrics` prints the same numbers in Prometheus's text format and always exits 0 (before the first check, `upkeep_last_check_timestamp_seconds` is 0):
 

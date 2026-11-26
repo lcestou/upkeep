@@ -77,3 +77,35 @@ test("before the first check the time reads 0 and the text says no check has run
 	expect(metricsText(s)).toContain("upkeep_last_check_timestamp_seconds 0\n");
 	expect(statusLines(s)).toEqual(["Upkeep 0.2.0", "No check has run yet."]);
 });
+
+test("a held row says what holds it, and a reason shows on held, ready and up-to-date rows alike", () => {
+	const s = statusOf(
+		snap([
+			row("pz", "held", { paused: "2026-12-09T12:00:00.000Z", skipped: "1.1" }),
+			row("sk", "held", { skipped: "1.1" }),
+			row("st", "held", { settles: "2026-11-27T12:00:00.000Z" }),
+			row("sw", "held", { detail: "The repo now answers as another repository." }),
+			row("bv", "ready", { detail: "Passed over 1.2, listed as bad." }),
+			row("ok", "fresh", { detail: "Kept on 1.0: 1.1 is listed as bad." }),
+			row("plain", "fresh"),
+		]),
+		false,
+	);
+	expect(s.held[0]).toEqual({
+		key: "pz",
+		name: "PZ",
+		installed: "1.0",
+		latest: "1.1",
+		paused: "2026-12-09T12:00:00.000Z",
+		skipped: "1.1",
+	});
+	expect(s.noted.map((a) => a.key)).toEqual(["ok"]);
+	expect(statusLines(s).slice(3)).toEqual([
+		"  UPDATE: BV 1.0 -> 1.1 Passed over 1.2, listed as bad.",
+		`  HELD:   PZ 1.0 -> 1.1 (paused until ${new Date("2026-12-09T12:00:00.000Z").toLocaleDateString("sv-SE")})`,
+		"  HELD:   SK 1.0 -> 1.1 (skipping 1.1)",
+		`  HELD:   ST 1.0 -> 1.1 (offered from ${new Date("2026-11-27T12:00:00.000Z").toLocaleDateString("sv-SE")})`,
+		"  HELD:   SW 1.0 -> 1.1 The repo now answers as another repository.",
+		"  NOTE:   OK 1.0 Kept on 1.0: 1.1 is listed as bad.",
+	]);
+});

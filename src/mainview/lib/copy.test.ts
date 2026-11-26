@@ -68,6 +68,7 @@ import {
 	settlesLine,
 	statusText,
 	tokenKeptLine,
+	webhookKeptLine,
 	stoppingLabel,
 	stopSkipLabel,
 	SYS,
@@ -401,5 +402,25 @@ test("each way a download was checked has a pane sentence and a History line", (
 		"Matches the checksum file",
 		"Size checked only",
 		"Download not checked",
+	]);
+});
+
+test("the notice address copy, and the import ask's lines", () => {
+	expect(webhookKeptLine("https://ntfy.sh/…")).toBe("Notices go to https://ntfy.sh/…");
+	expect([TEXT.webhook, TEXT.saveWebhook, TEXT.removeWebhook, TEXT.webhookReady, TEXT.webhookRun]).toEqual([
+		"Send a notice to a web address",
+		"Save address",
+		"Remove address",
+		"When updates are ready",
+		"After each run, with its result",
+	]);
+	expect(TEXT.webhookHint).toContain("never exported");
+	expect(TEXT.webhookBadAddress).toBe("That is not a web address. It starts with https://.");
+	expect(TEXT.webhookPlain).toContain("home network");
+	expect(IMPORT.webhook).toBe("It sends Upkeep's notices, with the app list, to this address:");
+	expect([IMPORT.turnsOn, IMPORT.turnsOff, IMPORT.waitShorter]).toEqual([
+		"It turns on these settings, which are off on this computer:",
+		"It turns off these settings, which are on on this computer:",
+		"It shortens the wait before a new release is offered:",
 	]);
 });

@@ -1087,3 +1087,21 @@ test("status with an unknown argument prints the usage", async () => {
 	expect(await main(["status", "now"], deps(), (l) => out.push(l))).toBe(2);
 	expect(out).toEqual([USAGE]);
 });
+
+test("status counts a paused app as held and prints its HELD line as check does, with the pause's end", async () => {
+	const d = deps();
+	await main(["check"], d, () => {});
+	expect(await main(["pause", "borg", "14"], d, () => {})).toBe(0);
+	const quiet = { ...d, fetch: noNetwork };
+	const out: string[] = [];
+	await main(["status"], quiet, (l) => out.push(l));
+	expect(out).toContain("2 apps: 1 up to date, 0 ready, 1 held, 0 failing");
+	const line = out.find((l) => l.startsWith("  HELD:"));
+	expect(line).toMatch(/^ {2}HELD: {3}BorgBackup 1\.4\.1 -> 1\.4\.2 \(paused until \d{4}-\d\d-\d\d\)$/);
+	const checked: string[] = [];
+	await main(["check"], d, (l) => checked.push(l));
+	expect(checked).toContain(line ?? "no HELD line");
+	const json: string[] = [];
+	await main(["status", "--json"], quiet, (l) => json.push(l));
+	expect(JSON.parse(json[0] ?? "").held[0].paused).toMatch(/^\d{4}-/);
+});
