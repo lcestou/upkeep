@@ -2,7 +2,7 @@
 
 The app list can also show the computer's own pending updates: Flatpak apps and runtimes on any system with Flatpak, Snaps where snapd is installed (`snap refresh --list`), Cinnamon's applets, desklets, extensions and themes on any Cinnamon desktop (`cinnamon-spice-updater --list-json`, the list Update Manager shows them from), and the packages the system's package manager would install (security, kernel and driver updates marked as such). The packages come from the first list the system has: Linux Mint's Update Manager (`mintupdate-cli list`), else `apt list --upgradable`, `dnf check-update`, pacman (`checkupdates`, else `pacman -Qu`), or `zypper list-updates`. None needs root. apt, `pacman -Qu` and zypper read the system's last refresh; dnf and `checkupdates` may fetch fresh metadata into a cache of their own. They sit in a folded `System` group at the end of the list, whose subline names the source. On Linux Mint its header has a button that opens Update Manager.
 
-The group is off until you turn on **Show system updates** in Settings, under Extras. The tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
+The group is off until you turn on **Show system updates** in Settings, under System. The tray number counts only Upkeep's own apps; the tray menu gets a separate "System updates" line instead.
 
 A second switch beneath it, **Install system updates from Upkeep**, is off by default and shows only while the list is on. With it off the group stays read-only. With it on, the rows Upkeep can install get a tick box, and the ticked ones install from the footer's Install button with the ticked apps:
 

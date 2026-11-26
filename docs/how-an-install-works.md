@@ -36,3 +36,17 @@ While an app installs, a row whose step has printed nothing for two minutes says
 | `~/.local/share/upkeep/history.jsonl` | every install and cleanup, append-only                                                     |
 | `~/.local/share/upkeep/backups/`      | restore points                                                                             |
 | `~/.cache/upkeep/`                    | release lookups, downloads, source clones, the last check's rows. Safe to delete.          |
+
+## Running Upkeep with its files elsewhere
+
+Upkeep reads `XDG_CONFIG_HOME`, `XDG_STATE_HOME`, `XDG_DATA_HOME` and `XDG_CACHE_HOME`, and puts its `upkeep` folder inside each one instead of the paths above. An empty variable counts as unset. To keep the list, state, history and restore points on a USB stick, start it from a terminal:
+
+```sh
+S=/media/$USER/STICK/upkeep
+XDG_CONFIG_HOME=$S/config XDG_STATE_HOME=$S/state XDG_DATA_HOME=$S/data XDG_CACHE_HOME=$S/cache \
+  ~/.local/share/dev.afk.upkeep/stable/app/bin/launcher
+```
+
+Quit any other Upkeep first. Its single-instance socket is `upkeep.sock` in `XDG_RUNTIME_DIR`, which both copies share, so the second start only shows the first one's window. The menu entry, the `upkeep` command and the apps themselves keep their usual places. The paths in the stick's list do too, so an app's `dest` still names this machine. With `XDG_CONFIG_HOME` moved, Start at login writes its entry to `$XDG_CONFIG_HOME/autostart`, where the desktop does not look. With `XDG_DATA_HOME` moved, AppImage menu entries go under it too.
+
+To move a setup to another machine instead, use Settings, Safety, **Export** there and **Import** on the other machine.

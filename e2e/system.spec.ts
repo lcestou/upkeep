@@ -16,7 +16,7 @@ test("the System group is absent while the setting is off, and Settings shows an
 	await expect(page.getByTestId("setting-system-help")).toHaveText(
 		"Lists your system's own pending updates: Flatpak apps and runtimes, Snaps, Cinnamon's applets, desklets, extensions and themes, and the packages your package manager would install (Update Manager on Linux Mint, else apt, dnf, pacman or zypper). Not counted in the tray number.",
 	);
-	await expect(page.getByTestId("extras-group")).toHaveText("Extras");
+	await expect(page.getByTestId("settings-group-system")).toHaveText("System");
 	await page.getByTestId("setting-system").check();
 	await page.getByTestId("tab-updates").click();
 	await expect(page.getByTestId("group-system")).toHaveText("System");

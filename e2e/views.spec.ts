@@ -33,6 +33,30 @@ test("each Settings control", async ({ page }) => {
 	await expect(page.getByTestId("version")).toHaveText("Version 0.1.0");
 });
 
+test("Settings groups its rows under headings, in order", async ({ page }) => {
+	await load(page);
+	await page.getByTestId("tab-settings").click();
+	const headings = page.locator('[data-testid^="settings-group-"]');
+	await expect(headings).toHaveText(["General", "Updates", "Notices", "Safety", "System", "Window", "About"]);
+	await expect(page.getByTestId("settings").getByRole("heading", { level: 2 })).toHaveCount(7);
+	// Each heading's sheet is the element right after it, and holds that group's rows.
+	const groups = {
+		general: ["setting-login", "setting-command", "setting-language"],
+		updates: ["setting-check-every", "setting-wait", "setting-wait-days", "setting-token-label", "setting-self-auto"],
+		notices: ["setting-notify", "setting-webhook-label"],
+		safety: ["setting-keep", "export-setup", "import-setup"],
+		system: ["setting-system", "setting-cleanup"],
+		window: ["setting-frame"],
+		about: ["version", "uninstall"],
+	};
+	await Promise.all(
+		Object.entries(groups).flatMap(([key, ids]) => {
+			const sheet = page.getByTestId(`settings-group-${key}`).locator("xpath=following-sibling::div[1]");
+			return ids.map((id) => expect(sheet.getByTestId(id)).toHaveCount(1));
+		}),
+	);
+});
+
 test("the upkeep command switch starts off, says where the command goes, and keeps its state", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("tab-settings").click();
