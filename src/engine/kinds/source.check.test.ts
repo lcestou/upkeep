@@ -210,3 +210,19 @@ test("a bad latest whose release list cannot be read is a problem, not a pass", 
 	expect(r).toMatchObject({ installed: "0.8.0", latest: null, status: "problem", offline: false });
 	expect(r?.detail).not.toContain("bad version");
 });
+
+test("a bad latest from another source than repo's releases rests, and repo's release list is never read for it", async () => {
+	const { c } = ctx({ [PROBE.join(" ")]: "0.2.0\n" });
+	const r = await checkSource(
+		srv({ commit: undefined, latest: "npm-tags:srv", bad_versions: ["0.2.2-rc.1"], bad_reason: "eats data" }),
+		c,
+	);
+	expect(r).toMatchObject({
+		installed: "0.2.0",
+		latest: "0.2.0",
+		status: "fresh",
+		detail: "0.2.2-rc.1 is marked as a bad version, so Upkeep passes over it: eats data",
+	});
+	expect(r?.target).toBeUndefined();
+	expect(fetched.some((u) => u.includes("/releases"))).toBe(false);
+});

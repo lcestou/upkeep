@@ -123,7 +123,8 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 				...fromRelease(r),
 			};
 	}
-	const passed = await passBad(spec, ctx, { tag, version: latest }, false);
+	// Only the list the version came from may stand in for it: with latest naming another source, repo's releases may not.
+	const passed = await passBad(spec.latest ? { ...spec, repo: undefined } : spec, ctx, { tag, version: latest }, false);
 	if (passed && isFailure(passed)) return listFailed(installed, passed);
 	const avoided = passed === undefined ? {} : { detail: MESSAGES.badVersionPassed(latest, spec.bad_reason ?? "") };
 	// Nothing else to offer: the row rests at the build it has, saying why.
