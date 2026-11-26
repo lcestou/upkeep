@@ -79,8 +79,11 @@
 	const chip = CHIP.running;
 	const notes = $derived(app.notes ? parseNotes(app.notes) : []);
 	// The notes of every release skipped over, asked for when the pane opens on a listable app with a newer release, and
-	// again only when the installed or latest version changes (a row's every event would otherwise ask the forge again).
-	const spanOf = $derived(app.prerelease !== undefined && pending ? `${app.installed} ${app.latest}` : null);
+	// again only when the installed or latest version or the pre-release switch changes (a row's every event would
+	// otherwise ask the forge again).
+	const spanOf = $derived(
+		app.prerelease !== undefined && pending ? `${app.installed} ${app.latest} ${app.prerelease}` : null,
+	);
 	let span = $state<NotesSpan | null>(null);
 	$effect(() => {
 		span = null;
