@@ -3011,6 +3011,7 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "This file has apps that run these commands on this computer. Import it only if you trust where it came from."
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -3211,6 +3212,61 @@ msgstr "{0} {1} needs glibc {2}; this system has {3}, so nothing was installed."
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
+
+#: src/mainview/lib/copy.ts
+msgid "When done"
+msgstr "When done"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing"
+msgstr "Nothing"
+
+#: src/mainview/lib/copy.ts
+msgid "Quit Upkeep"
+msgstr "Quit Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Suspend"
+msgstr "Suspend"
+
+#: src/mainview/lib/copy.ts
+msgid "Shut down"
+msgstr "Shut down"
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not suspended."
+msgstr "The PC was not suspended."
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not shut down."
+msgstr "The PC was not shut down."
+
+#: src/mainview/lib/copy.ts
+msgid "An app did not update."
+msgstr "An app did not update."
+
+#: src/mainview/lib/copy.ts
+msgid "The run was stopped."
+msgstr "The run was stopped."
+
+#: src/mainview/lib/copy.ts
+msgid "A System update failed."
+msgstr "A System update failed."
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Suspending in {0} s"
+msgstr "Suspending in {0} s"
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Shutting down in {0} s"
+msgstr "Shutting down in {0} s"
+
+#. 0: detail
+#: src/mainview/lib/copy.ts
+msgid "The system refused: {0}"
+msgstr "The system refused: {0}"
 
 #: src/mainview/lib/copy.ts
 msgid "General"

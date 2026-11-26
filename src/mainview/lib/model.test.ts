@@ -708,3 +708,28 @@ test("a stopped app is not a failure: no Retry for it, and after Done it is read
 	await until(() => model.apps.find((a) => a.key === "zen")?.status === "ready");
 	expect(model.apps.find((a) => a.key === "zen")?.detail).toBe("Stopped. 1.24b is back in place.");
 });
+
+test("the when-done choice follows the main process: a failed app cancels it, Done clears why, Cancel stops a countdown", async () => {
+	const model = new Model(createFixture({ speed: 40 }));
+	await model.start();
+	expect(model.whenDone).toMatchObject({ choice: "nothing", can: { suspend: true, poweroff: true } });
+	await model.install();
+	await until(() => model.run.phase === "installing");
+	await model.setWhenDone("poweroff");
+	await until(() => model.whenDone.choice === "poweroff");
+	await until(() => model.run.phase === "summary");
+	// wrangler fails on the first pass.
+	await until(() => model.whenDone.cancelled !== null);
+	expect(model.whenDone.cancelled).toEqual({ action: "poweroff", why: "failed" });
+	await model.retry();
+	await until(() => model.run.phase === "installing");
+	expect(model.whenDone.cancelled).toBeNull();
+	await model.setWhenDone("suspend");
+	await until(() => model.whenDone.countdown !== null);
+	await model.cancelWhenDone();
+	await until(() => model.whenDone.countdown === null);
+	expect(globalThis.upkeepOps).not.toContain("suspend");
+	// A note left from a cancelled action goes with the summary's Done.
+	await model.dismiss();
+	expect(model.whenDone.cancelled).toBeNull();
+});

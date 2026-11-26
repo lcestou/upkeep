@@ -3032,6 +3032,7 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "Ce fichier contient des applications qui lancent ces commandes sur cet ordinateur. Ne l’importez que si vous faites confiance à sa provenance."
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -3235,6 +3236,61 @@ msgstr "{0} {1} a besoin de glibc {2} ; ce système a {3}, donc rien n’a été
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} est compilé pour {2} ; ce processeur est {3}, donc rien n’a été installé."
+
+#: src/mainview/lib/copy.ts
+msgid "When done"
+msgstr "Une fois terminé"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing"
+msgstr "Rien"
+
+#: src/mainview/lib/copy.ts
+msgid "Quit Upkeep"
+msgstr "Quitter Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Suspend"
+msgstr "Mettre en veille"
+
+#: src/mainview/lib/copy.ts
+msgid "Shut down"
+msgstr "Éteindre"
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not suspended."
+msgstr "Le PC n’a pas été mis en veille."
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not shut down."
+msgstr "Le PC n’a pas été éteint."
+
+#: src/mainview/lib/copy.ts
+msgid "An app did not update."
+msgstr "Une application n’a pas été mise à jour."
+
+#: src/mainview/lib/copy.ts
+msgid "The run was stopped."
+msgstr "La passe a été arrêtée."
+
+#: src/mainview/lib/copy.ts
+msgid "A System update failed."
+msgstr "Une mise à jour du système a échoué."
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Suspending in {0} s"
+msgstr "Mise en veille dans {0} s"
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Shutting down in {0} s"
+msgstr "Extinction dans {0} s"
+
+#. 0: detail
+#: src/mainview/lib/copy.ts
+msgid "The system refused: {0}"
+msgstr "Le système a refusé : {0}"
 
 #: src/mainview/lib/copy.ts
 msgid "General"
