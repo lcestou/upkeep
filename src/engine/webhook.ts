@@ -1,4 +1,5 @@
 import { isIP } from "node:net";
+import type { SecurityFix } from "../shared/types";
 import type { FetchLike } from "./github";
 import type { Counts } from "./status";
 import type { Paths } from "./paths";
@@ -80,6 +81,8 @@ export type NoticeApp = {
 	to?: string | null;
 	result?: string;
 	detail?: string;
+	/** A ready app's update fixes a security problem. */
+	security?: SecurityFix;
 };
 
 /** The JSON a notice address gets: title and message for a person, the rest for a program. */
@@ -91,6 +94,8 @@ export type NoticeBody = {
 	version: string;
 	counts: Counts;
 	apps: NoticeApp[];
+	/** "high" on a ready notice when an update in it fixes a security problem; absent on every other notice. */
+	priority?: "high";
 };
 
 /** What createNoticeSender hands back: one send per notice, true when the receiver took it. */
@@ -137,9 +142,11 @@ export function createNoticeSender(deps: NoticeDeps): NoticeSender {
 			if (!address || addressProblem(address)) return false;
 			let why: string | null = null;
 			try {
+				// ntfy reads its priority from this header, which the message template leaves alone; others ignore it.
+				const priority: Record<string, string> = body.priority ? { "X-Priority": body.priority } : {};
 				const res = await deps.fetch(address, {
 					method: "POST",
-					headers: { "Content-Type": "application/json" },
+					headers: { "Content-Type": "application/json", ...priority },
 					body: JSON.stringify(body),
 					redirect: "error",
 					signal: AbortSignal.timeout(deps.timeoutMs ?? NOTICE_TIMEOUT_MS),

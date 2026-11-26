@@ -236,6 +236,28 @@ test("an import that shortens the release wait asks first; one that lengthens it
 	}
 });
 
+test("an import that turns Except security fixes back on asks first, like any switch it turns on", () => {
+	const t = tempHome("transfer-security");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		updateState(t.paths, (s) => {
+			s.settings.waitDays = 3;
+			s.settings.waitExceptSecurity = false;
+		});
+		const out = exportSetup(t.paths, seed, new Date());
+		const on = JSON.stringify({ ...out, settings: { ...out.settings, waitExceptSecurity: true } });
+		expect(importSetup(t.paths, seed, on, new Date())).toEqual({
+			ok: false,
+			ask: { apps: [], plain: 0, turnsOn: ["waitExceptSecurity"], turnsOff: [] },
+		});
+		expect(importSetup(t.paths, seed, on, new Date(), true).ok).toBe(true);
+		expect(loadState(t.paths).settings.waitExceptSecurity).toBe(true);
+	} finally {
+		t.cleanup();
+	}
+});
+
 test("the notice address never goes out in an export; a file that sets or changes it asks and shows its host, the rest masked", () => {
 	const t = tempHome("transfer-webhook");
 	try {

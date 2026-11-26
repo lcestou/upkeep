@@ -322,6 +322,20 @@ export async function fetchReleases(repo: string, opts: ReleaseOpts): Promise<Re
 	);
 }
 
+/**
+ * The published security advisories of owner/repo, newest first, as GitHub's repository advisories list gives them,
+ * revalidated with its own cached etag as fetchReleases is. A repo with none answers an empty list.
+ */
+export async function fetchAdvisories(repo: string, opts: ReleaseOpts): Promise<unknown[] | Failure> {
+	return cachedGithub(
+		`/repos/${repo}/security-advisories?state=published&per_page=100`,
+		"#advisories",
+		repo,
+		opts,
+		(body) => (Array.isArray(body) ? body : { failure: "http", detail: MESSAGES.githubReleaseNotJson(repo) }),
+	);
+}
+
 /** A GitHub repo as its own endpoint names it: full_name, and the numeric ids that stay through a rename or a transfer. */
 export type RepoId = { name: string; id: number; owner: number };
 
