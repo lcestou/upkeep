@@ -1,6 +1,6 @@
 # Cleanup
 
-**Show Cleanup** in Settings, under Extras, adds a Cleanup tab between History and Settings. It is off by default. The tab measures a fixed list of caches and leftovers, never a folder you point it at, and deletes only what you tick and then confirm.
+**Show Cleanup** in Settings, under System, adds a Cleanup tab between History and Settings. It is off by default. The tab measures a fixed list of caches and leftovers, never a folder you point it at, and deletes only what you tick and then confirm.
 
 | Item                            | Measured as                                                                                                                        | Deleted by                                                                                                                 | Default                                                                                |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
