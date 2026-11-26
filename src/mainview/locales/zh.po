@@ -3204,3 +3204,23 @@ msgstr "安全"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "系统"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "需要重启"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "固件"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "这台电脑正在使用电池供电，因此没有安装任何内容。固件更新需要接通电源。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "需要重启才能完成固件更新。"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "固件更新可能会在系统自己的窗口中要求输入密码。"

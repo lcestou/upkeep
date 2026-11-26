@@ -3276,3 +3276,23 @@ msgstr "Безопасность"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "Система"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "Нужна перезагрузка"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "Прошивка"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "Компьютер работает от батареи, поэтому ничего не установлено. Для обновления прошивки нужно питание от сети."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "Чтобы завершить обновление прошивки, нужна перезагрузка."
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "Обновление прошивки может запросить пароль в системном окне."

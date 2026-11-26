@@ -1,6 +1,8 @@
 import { MESSAGES } from "../../shared/messages";
 import type { SystemOutcome, SystemRow, SystemState } from "../../shared/types";
+import { onBattery } from "../power";
 import type { ProcessResult, Run } from "../run";
+import { fwupdArgv } from "./firmware";
 import {
 	APT_LIST,
 	DNF_LIST,
@@ -45,6 +47,7 @@ const LIST_TOOL = {
 	flatpak: "flatpak",
 	cinnamon: "cinnamon-spice-updater",
 	snap: "snap",
+	firmware: "fwupdmgr",
 } satisfies Record<SystemRow["source"], string>;
 
 /** A binary package a trial run may not touch: a kernel's image, headers, modules or meta package, or anything NVIDIA. */
@@ -57,7 +60,7 @@ const DNF_EXCLUDES = ["--exclude=kernel*", "--exclude=*nvidia*"];
 /** One command of a System install and the rows it answers for. */
 export type Step = {
 	/** apt is Update Manager's mintupdate-cli; apt-get is plain apt where there is no Update Manager. */
-	kind: "apt" | "apt-get" | "dnf" | "zypper" | "flatpak" | "snap" | "cinnamon";
+	kind: "apt" | "apt-get" | "dnf" | "zypper" | "flatpak" | "snap" | "cinnamon" | "firmware";
 	argv: string[];
 	ids: string[];
 	timeoutMs: number;
@@ -75,7 +78,7 @@ export type InstallCtx = {
 
 /**
  * Upkeep installs Update Manager's packages, plain apt's (Ubuntu, Debian), dnf's (Fedora), zypper's (openSUSE),
- * Flatpak refs, Snaps and Cinnamon spices. Never a kernel or a driver, by type or by package name. pacman rows stay
+ * Flatpak refs, Snaps, Cinnamon spices and fwupd's firmware. Never a kernel or a driver, by type or by package name. pacman rows stay
  * with pacman: Arch supports no partial upgrade, and a whole -Syu would bring the kernel and driver along.
  */
 export function installable(row: SystemRow, packages: SystemState["packages"]): boolean {
@@ -83,7 +86,7 @@ export function installable(row: SystemRow, packages: SystemState["packages"]): 
 	if (row.source === "apt") return packages === "mint" || (packages === "apt" && !RESTART_PACKAGE.test(row.name));
 	if (row.source === "dnf" || row.source === "zypper")
 		return packages === row.source && !RPM_RESTART_PACKAGE.test(row.name);
-	return row.source === "flatpak" || row.source === "snap" || row.source === "cinnamon";
+	return row.source === "flatpak" || row.source === "snap" || row.source === "cinnamon" || row.source === "firmware";
 }
 
 /** apt-get's name for a plain apt row: the package, with the arch its id carries unless it is "all" (libc6:i386). */
@@ -196,8 +199,9 @@ export const trialArgv = (ignore: string) => [
 
 /**
  * The commands for the ticked rows, in the order they run: the package tool first (apt, dnf or zypper; a system has
- * one), since a new NVIDIA userspace from it would need its runtime from Flatpak, then Flatpak, Snap and Cinnamon. Rows Upkeep does not install are dropped, ticked or not.
- * Cinnamon's updater updates a whole spice type at once, so a ticked spice brings every spice of its type along.
+ * one), since a new NVIDIA userspace from it would need its runtime from Flatpak, then Flatpak, Snap and Cinnamon, and
+ * firmware last, one device per step, as fwupdmgr update takes one. Rows Upkeep does not install are dropped, ticked
+ * or not. Cinnamon's updater updates a whole spice type at once, so a ticked spice brings every spice of its type along.
  */
 export function planSteps(rows: SystemRow[], ids: string[], packages: SystemState["packages"]): Step[] {
 	const ticked = new Set(ids);
@@ -264,6 +268,13 @@ export function planSteps(rows: SystemRow[], ids: string[], packages: SystemStat
 				.map((r) => r.id),
 			timeoutMs: 600_000,
 		});
+	for (const r of of("firmware"))
+		steps.push({
+			kind: "firmware",
+			argv: fwupdArgv(r.id.slice("firmware:".length)),
+			ids: [r.id],
+			timeoutMs: 1_800_000,
+		});
 	return steps;
 }
 
@@ -294,13 +305,17 @@ function polkitActions(rows: SystemRow[], step: Step): string[] {
 }
 
 /**
- * Everything checked before a step runs, read-only, in order: sudo without a password when a step needs root, nobody
+ * Everything checked before a step runs, read-only, in order: mains power when firmware is flashed (UPower's
+ * OnBattery; no UPower reads as mains), sudo without a password when a step needs root, nobody
  * on dpkg's lock, polkit letting Flatpak update without a dialog, Update Manager's list unchanged since the rows were
  * read, and a dry run that names no kernel or NVIDIA package. The dry run matters because mintupdate-cli throws away
  * apt's exit code, so the -i globs are the only other guard. Returns the refusal, or null when all pass.
  */
 export async function preflight(steps: Step[], rows: SystemRow[], ctx: InstallCtx): Promise<string | null> {
 	const opts = { timeoutMs: 60_000 };
+	// A flash that loses power halfway can leave a device that does not start; fwupd checks some devices itself, not all.
+	if (steps.some((s) => s.kind === "firmware") && (await onBattery(ctx.run).catch(() => false)))
+		return MESSAGES.firmwareBattery();
 	if (steps.some((s) => s.argv[0] === "sudo") && bad(await ctx.run(SUDO_CHECK, opts))) return MESSAGES.systemSudo();
 	const apt = steps.find((s) => s.kind === "apt");
 	const aptGet = steps.find((s) => s.kind === "apt-get");
@@ -487,7 +502,9 @@ export async function runSteps(
  * Each ticked row's result, judged against the list read again afterwards: gone from it is done, still in it is
  * failed. A row whose step failed keeps that step's sentence. When its source's list could not be read again, a row
  * missing from it is not known to be done, so it is failed with the read's problem rather than counted. snap's list
- * reports no problem when it fails, so a Snap row is judged by its own refresh's exit code and the list alone.
+ * reports no problem when it fails, so a Snap row is judged by its own refresh's exit code and the list alone. A
+ * firmware row is judged by its step alone: a flash that waits for the restart can still be listed until then. One
+ * that needs the restart says so.
  */
 export function outcomesAfter(picked: SystemRow[], failed: Map<string, string>, after: SystemCheck): SystemOutcome[] {
 	const still = new Set(after.rows.map((r) => r.id));
@@ -496,6 +513,10 @@ export function outcomesAfter(picked: SystemRow[], failed: Map<string, string>, 
 		const base = { id: row.id, name: row.name, from: row.installed, to: row.latest };
 		const why = failed.get(row.id);
 		if (why) return { ...base, status: "failed", detail: why };
+		if (row.source === "firmware")
+			return row.note === "restart-needed"
+				? { ...base, status: "done", detail: MESSAGES.firmwareRestart() }
+				: { ...base, status: "done" };
 		if (still.has(row.id)) return { ...base, status: "failed", detail: MESSAGES.systemStillPending() };
 		// Plain apt's list is "apt list", not Update Manager's.
 		const tool = row.source === "apt" && !unread?.command.startsWith(LIST_TOOL.apt) ? "apt " : LIST_TOOL[row.source];

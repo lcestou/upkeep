@@ -14,6 +14,7 @@
 	import type { Model } from "../lib/model.svelte";
 	import Glyph from "./Glyph.svelte";
 	import SystemRow from "./SystemRow.svelte";
+	import type { SystemRow as SystemRowData } from "../../shared/types";
 
 	let { model }: { model: Model } = $props();
 
@@ -62,6 +63,9 @@
 	const gl = $derived(sys?.glMissing ? glLine(sys.glMissing) : null);
 	const warning = $derived([problem, gl].filter((s) => s !== null).join(" "));
 	const rows = $derived(model.systemShown);
+	// Firmware is a part of its own under the other rows, under its own heading.
+	const packageRows = $derived(rows.filter((r) => r.source !== "firmware"));
+	const firmwareRows = $derived(rows.filter((r) => r.source === "firmware"));
 
 	// Installing: only while its switch is on, and only the rows the main process says Upkeep can install. The ticks
 	// live in the model, since the footer's Install takes them.
@@ -80,6 +84,18 @@
 		installOn && sys?.packages && sys.packages !== "mint" ? systemToolNote(sys.packages) : null,
 	);
 </script>
+
+{#snippet line(row: SystemRowData)}
+	<SystemRow
+		{row}
+		can={installOn && can.has(row.id)}
+		ticked={model.systemTicked.has(row.id) || outcomes.has(row.id)}
+		locked={installing}
+		onTick={(on, range) => model.tickSystem(row.id, on, range)}
+		outcome={outcomes.get(row.id) ?? null}
+		note={can.has(row.id) ? null : toolNote}
+	/>
+{/snippet}
 
 {#if sys}
 	<section class="sys" data-testid="group-system-section">
@@ -149,17 +165,11 @@
 			{:else if !checking && sys.rows.length === 0 && !problem}
 				<p class="line" data-testid="system-none">{SYS.none}</p>
 			{/if}
-			{#each rows as row (row.id)}
-				<SystemRow
-					{row}
-					can={installOn && can.has(row.id)}
-					ticked={model.systemTicked.has(row.id) || outcomes.has(row.id)}
-					locked={installing}
-					onTick={(on, range) => model.tickSystem(row.id, on, range)}
-					outcome={outcomes.get(row.id) ?? null}
-					note={can.has(row.id) ? null : toolNote}
-				/>
-			{/each}
+			{#each packageRows as row (row.id)}{@render line(row)}{/each}
+			{#if firmwareRows.length > 0}
+				<h3 class="part" data-testid="system-firmware">{SYS.type.firmware}</h3>
+				{#each firmwareRows as row (row.id)}{@render line(row)}{/each}
+			{/if}
 		{/if}
 	</section>
 {/if}
@@ -277,6 +287,13 @@
 	}
 	.results .btn {
 		align-self: flex-start;
+	}
+	.part {
+		margin: 0;
+		padding: var(--s3) var(--pad-r) var(--s1) 20px;
+		font-size: var(--fs-12);
+		font-weight: 560;
+		color: var(--text-2);
 	}
 	.note,
 	.line {

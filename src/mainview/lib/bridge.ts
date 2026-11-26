@@ -24,6 +24,7 @@ const SYSTEM_VARIANTS: SystemVariant[] = [
 	"pacman",
 	"install",
 	"refuse",
+	"firmware",
 ];
 
 // Requests that wait on real work (a download, a restore, a scan) get five minutes; the engine has its own step limits.

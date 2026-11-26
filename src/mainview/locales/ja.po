@@ -3204,3 +3204,23 @@ msgstr "安全"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "システム"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "再起動が必要"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "ファームウェア"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "このコンピューターはバッテリーで動作しているため、何もインストールしませんでした。ファームウェアの更新には電源の接続が必要です。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "ファームウェアの更新を完了するには再起動が必要です。"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "ファームウェアの更新では、システムのウィンドウでパスワードを求められることがあります。"

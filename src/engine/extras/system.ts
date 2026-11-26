@@ -2,6 +2,7 @@ import type { SystemRow, SystemState } from "../../shared/types";
 import { isRecord } from "../manifest";
 import type { Run, ProcessResult } from "../run";
 import { readOnlyUsr } from "../kinds/package";
+import { FWUPD_OK, FWUPD_UPDATES, parseFwupd } from "./firmware";
 
 export type SystemCtx = { run: Run };
 
@@ -383,22 +384,35 @@ async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null | "imag
 }
 
 /**
+ * fwupd's pending firmware, one row per device. Without fwupdmgr, or when it fails (no daemon in a container or a VM),
+ * there are none and nothing is said: firmware is a part of the group only where fwupd runs.
+ */
+async function firmwareRows(ctx: SystemCtx): Promise<SystemRow[]> {
+	const r = await ctx.run(FWUPD_UPDATES, { timeoutMs: 60_000 });
+	if (r.timedOut || !FWUPD_OK.includes(r.code)) return [];
+	return parseFwupd(r.stdout) ?? [];
+}
+
+/**
  * Lists the pending system updates, read-only: the first package list this system has, and Flatpak, side by side.
  * A source that cannot answer leaves its rows out and names the problem; the other source still lists. With no
- * package list at all, the problem is Update Manager's missing command, which the view says quietly.
+ * package list at all, the problem is Update Manager's missing command, which the view says quietly. Firmware rows
+ * come last, and only where fwupd answers.
  */
 export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 	const opts = { timeoutMs: 60_000 };
-	const [pkg, [updates, installed, running, gl, runtimes], spices, [snapUpdates, snapInstalled]] = await Promise.all([
-		packageList(ctx),
-		Promise.all(
-			[FLATPAK_UPDATES, FLATPAK_INSTALLED, FLATPAK_RUNNING, DRIVER_GL, FLATPAK_RUNTIMES].map((argv) =>
-				ctx.run(argv, opts),
+	const [pkg, [updates, installed, running, gl, runtimes], spices, [snapUpdates, snapInstalled], firmware] =
+		await Promise.all([
+			packageList(ctx),
+			Promise.all(
+				[FLATPAK_UPDATES, FLATPAK_INSTALLED, FLATPAK_RUNNING, DRIVER_GL, FLATPAK_RUNTIMES].map((argv) =>
+					ctx.run(argv, opts),
+				),
 			),
-		),
-		Promise.all(SPICE_TYPES.map(async (type) => ({ type, r: await ctx.run(spiceList(type), opts) }))),
-		Promise.all([SNAP_UPDATES, SNAP_INSTALLED].map((argv) => ctx.run(argv, opts))),
-	]);
+			Promise.all(SPICE_TYPES.map(async (type) => ({ type, r: await ctx.run(spiceList(type), opts) }))),
+			Promise.all([SNAP_UPDATES, SNAP_INSTALLED].map((argv) => ctx.run(argv, opts))),
+			firmwareRows(ctx),
+		]);
 	const list = pkg === "image" ? null : pkg;
 	const rows: SystemRow[] = [...(list?.rows ?? [])];
 	const mintProblem: SystemCheck["problem"] =
@@ -428,6 +442,7 @@ export async function checkSystem(ctx: SystemCtx): Promise<SystemCheck> {
 	}
 	if (ok(snapUpdates))
 		rows.push(...parseSnapList(snapUpdates?.stdout ?? "", ok(snapInstalled) ? (snapInstalled?.stdout ?? "") : ""));
+	rows.push(...firmware);
 	return {
 		rows,
 		// A tool this system lacks is said quietly in the window, so a real failure elsewhere goes first.

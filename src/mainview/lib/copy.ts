@@ -1089,6 +1089,14 @@ export const SYS = {
 	get restartNote() {
 		return "Needs a restart after it installs.";
 	},
+	/** A firmware row whose device takes the new version only after a restart; Upkeep never restarts. */
+	get restartNeeded() {
+		return "Restart needed";
+	},
+	/** The command sheet's line when firmware is ticked: fwupd asks polkit, not sudo. */
+	get confirmFirmware() {
+		return "Firmware updates may ask for your password in the system's own window.";
+	},
 	get installSetting() {
 		return "Install system updates from Upkeep";
 	},
@@ -1174,6 +1182,9 @@ export const SYS = {
 		get snap() {
 			return "Snap";
 		},
+		get firmware() {
+			return "Firmware";
+		},
 	} satisfies Record<SystemRow["type"], string>,
 } as const;
 
@@ -1222,10 +1233,13 @@ export const ALSO_FROM = {
 	get cinnamon() {
 		return "Cinnamon";
 	},
+	get firmware() {
+		return "fwupd";
+	},
 };
 
 /**
- * The subline's "From …" names: the package list (or Flatpak when there is none), then Snap and Cinnamon when the
+ * The subline's "From …" names: the package list (or Flatpak when there is none), then Snap, Cinnamon and fwupd when the
  * group holds their rows, joined the way the language joins a list. On Linux Mint, Update Manager already shows
  * Cinnamon's spices, so it is not named twice.
  */
@@ -1233,6 +1247,7 @@ export function systemSources(packages: SystemState["packages"], rows: { source:
 	const names = [packages ? PACKAGES_FROM[packages] : "Flatpak"];
 	if (rows.some((r) => r.source === "snap")) names.push(ALSO_FROM.snap);
 	if (packages !== "mint" && rows.some((r) => r.source === "cinnamon")) names.push(ALSO_FROM.cinnamon);
+	if (rows.some((r) => r.source === "firmware")) names.push(ALSO_FROM.firmware);
 	return new Intl.ListFormat(language.locale, { type: "conjunction" }).format(names);
 }
 

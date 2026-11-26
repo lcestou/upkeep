@@ -3276,3 +3276,23 @@ msgstr "Bezpieczeństwo"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "System"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "Wymaga ponownego uruchomienia"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "Oprogramowanie układowe"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "Ten komputer działa na baterii, więc nic nie zostało zainstalowane. Aktualizacje oprogramowania układowego wymagają zasilania sieciowego."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "Aby dokończyć aktualizację oprogramowania układowego, uruchom komputer ponownie."
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "Aktualizacje oprogramowania układowego mogą poprosić o hasło w oknie systemu."

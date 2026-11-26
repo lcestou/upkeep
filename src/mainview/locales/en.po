@@ -3228,3 +3228,23 @@ msgstr "Safety"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "System"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "Restart needed"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "Firmware"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "Restart needed to finish the firmware update."
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "Firmware updates may ask for your password in the system's own window."

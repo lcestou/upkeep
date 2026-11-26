@@ -542,10 +542,10 @@ export type CleanupState = {
 
 /** One pending update from the system's own lists. Upkeep installs one only when its id is in SystemState.installable. */
 export type SystemRow = {
-	/** "<source>:<package>", "flatpak:<ref>", "cinnamon:<spice type>:<uuid>" or "snap:<name>". */
+	/** "<source>:<package>", "flatpak:<ref>", "cinnamon:<spice type>:<uuid>", "snap:<name>" or "firmware:<fwupd device id>". */
 	id: string;
-	/** apt for Linux Mint's Update Manager and for apt; dnf; pacman; zypper; flatpak; cinnamon for Cinnamon's spices; snap. */
-	source: "apt" | "dnf" | "pacman" | "zypper" | "flatpak" | "cinnamon" | "snap";
+	/** apt for Linux Mint's Update Manager and for apt; dnf; pacman; zypper; flatpak; cinnamon for Cinnamon's spices; snap; firmware for fwupd's devices. */
+	source: "apt" | "dnf" | "pacman" | "zypper" | "flatpak" | "cinnamon" | "snap" | "firmware";
 	name: string;
 	type:
 		| "security"
@@ -558,13 +558,17 @@ export type SystemRow = {
 		| "desklet"
 		| "extension"
 		| "theme"
-		| "snap";
+		| "snap"
+		| "firmware";
 	installed: string | null;
 	latest: string;
 	/** A Flatpak app with a process running now. */
 	running: boolean;
-	/** Kernel and driver rows: Update Manager is the place to install them. */
-	note?: "update-manager-only";
+	/**
+	 * update-manager-only: a kernel or driver row, which the system's own updater installs. restart-needed: a firmware
+	 * row whose new version takes effect only after a restart; Upkeep installs it and never restarts.
+	 */
+	note?: "update-manager-only" | "restart-needed";
 };
 
 /** One ticked row in a System install: waiting its turn, running, or its result. detail is a MESSAGES sentence. */

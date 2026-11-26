@@ -6,6 +6,7 @@
 	let { model, plan }: { model: Model; plan: { ids: string[]; commands: string[][] } } = $props();
 
 	const root = $derived(plan.commands.some((argv) => argv[0] === "sudo"));
+	const firmware = $derived(plan.commands.some((argv) => argv[0] === "fwupdmgr"));
 	const apps = $derived(model.tickedApps.length);
 	/** Focus lands on Not now when the sheet opens, so a stray Enter cancels instead of running root commands. */
 	const focusFirst: Attachment<HTMLButtonElement> = (node) => {
@@ -21,6 +22,7 @@
 		{#each plan.commands as argv, i (i)}<li><code class="mono" data-testid="system-command">{argv.join(" ")}</code></li>{/each}
 	</ol>
 	{#if root}<p data-testid="system-confirm-root">{SYS.confirmRoot}</p>{/if}
+	{#if firmware}<p data-testid="system-confirm-firmware">{SYS.confirmFirmware}</p>{/if}
 	{#if apps > 0}<p data-testid="system-then-apps">{systemThenApps(apps)}</p>{/if}
 	<div class="confirm-buttons">
 		<button type="button" class="btn small primary" data-testid="system-confirm" onclick={() => model.confirmSystem()}

@@ -3252,3 +3252,23 @@ msgstr "Sicurezza"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "Sistema"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "Riavvio necessario"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "Firmware"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "Questo computer funziona a batteria, quindi non è stato installato nulla. Gli aggiornamenti del firmware richiedono l'alimentazione di rete."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "Serve un riavvio per completare l'aggiornamento del firmware."
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "Gli aggiornamenti del firmware possono chiedere la password nella finestra del sistema."

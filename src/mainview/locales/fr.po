@@ -3252,3 +3252,23 @@ msgstr "Sécurité"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "Système"
+
+#: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "Redémarrage nécessaire"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "Micrologiciel"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "Cet ordinateur fonctionne sur batterie, donc rien n'a été installé. Les mises à jour du micrologiciel ont besoin du secteur."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "Un redémarrage est nécessaire pour terminer la mise à jour du micrologiciel."
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "Les mises à jour du micrologiciel peuvent demander votre mot de passe dans la fenêtre du système."

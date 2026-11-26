@@ -577,6 +577,11 @@ export const MESSAGES = {
 	/** extras/install.ts. {0} the first line of the failed re-read */
 	systemNotRechecked: (v0: Value) => `Could not read the list again to see whether it installed: ${v0}`,
 	systemRestartApp: () => `Updated. Restart it to use the new version.`,
+	/** extras/install.ts: refused, a firmware step and UPower says the machine runs on its battery */
+	firmwareBattery: () =>
+		`This computer runs on its battery, so nothing was installed. Firmware updates need mains power.`,
+	/** extras/install.ts: a firmware row installed whose device needs a restart */
+	firmwareRestart: () => `Restart needed to finish the firmware update.`,
 	/** extras/cleanup.ts: a part whose size or time differs from what the review showed */
 	cleanChanged: () => `Skipped: changed since you reviewed it.`,
 	/** extras/cleanup.ts: a root part, and sudo -n true failed */

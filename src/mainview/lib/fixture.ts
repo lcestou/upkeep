@@ -846,7 +846,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			await new Promise((r) => setTimeout(r, 0));
 		}
 	};
-	const installing = opts.system === "install" || opts.system === "refuse";
+	const installing = opts.system === "install" || opts.system === "refuse" || opts.system === "firmware";
 	const systemSettings: ExtrasSettings =
 		!opts.system || opts.system === "off"
 			? { system: "off" }
@@ -949,7 +949,11 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		});
 		await sleep(1200 / speed);
 		const outcomes = picked.map((r) =>
-			r.id === "apt:libsoup3" ? fixtureOutcome(r, "failed", MESSAGES.systemStillPending()) : fixtureOutcome(r, "done"),
+			r.id === "apt:libsoup3"
+				? fixtureOutcome(r, "failed", MESSAGES.systemStillPending())
+				: r.note === "restart-needed"
+					? fixtureOutcome(r, "done", MESSAGES.firmwareRestart())
+					: fixtureOutcome(r, "done"),
 		);
 		const done = new Set(outcomes.filter((o) => o.status === "done").map((o) => o.id));
 		setExtras({
