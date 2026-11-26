@@ -148,6 +148,7 @@ msgid "Installed without asking when Upkeep checks in the background."
 msgstr "Upkeep 在后台检查时直接安装，不再询问。"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Updates"
 msgstr "更新"
 
@@ -873,10 +874,6 @@ msgstr "关于"
 #: src/mainview/lib/copy.ts
 msgid "Keeps the apps your package manager misses up to date."
 msgstr "让包管理器管不到的应用保持最新。"
-
-#: src/mainview/lib/copy.ts
-msgid "Extras"
-msgstr "附加功能"
 
 #: src/mainview/lib/copy.ts
 msgid "Show system updates"
@@ -3190,6 +3187,23 @@ msgstr "{0} {1} 需要 glibc {2}；此系统为 {3}，因此未安装任何内�
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} 是为 {2} 构建的；此处理器为 {3}，因此未安装任何内容。"
+
+#: src/mainview/lib/copy.ts
+msgid "General"
+msgstr "常规"
+
+#: src/mainview/lib/copy.ts
+msgid "Notices"
+msgstr "通知"
+
+#: src/mainview/lib/copy.ts
+msgid "Safety"
+msgstr "安全"
+
+#: src/mainview/lib/copy.ts
+msgctxt "Settings heading"
+msgid "System"
+msgstr "系统"
 
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts

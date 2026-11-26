@@ -148,6 +148,7 @@ msgid "Installed without asking when Upkeep checks in the background."
 msgstr "Instalowana bez pytania, gdy Upkeep sprawdza w tle."
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Updates"
 msgstr "Aktualizacje"
 
@@ -924,10 +925,6 @@ msgstr "O programie"
 #: src/mainview/lib/copy.ts
 msgid "Keeps the apps your package manager misses up to date."
 msgstr "Aktualizuje aplikacje, które pomija twój menedżer pakietów."
-
-#: src/mainview/lib/copy.ts
-msgid "Extras"
-msgstr "Dodatki"
 
 #: src/mainview/lib/copy.ts
 msgid "Show system updates"
@@ -3262,6 +3259,23 @@ msgstr "{0} {1} wymaga glibc {2}; ten system ma {3}, więc niczego nie zainstalo
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} jest zbudowany dla {2}; ten procesor to {3}, więc niczego nie zainstalowano."
+
+#: src/mainview/lib/copy.ts
+msgid "General"
+msgstr "Ogólne"
+
+#: src/mainview/lib/copy.ts
+msgid "Notices"
+msgstr "Powiadomienia"
+
+#: src/mainview/lib/copy.ts
+msgid "Safety"
+msgstr "Bezpieczeństwo"
+
+#: src/mainview/lib/copy.ts
+msgctxt "Settings heading"
+msgid "System"
+msgstr "System"
 
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts

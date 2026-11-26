@@ -15,7 +15,7 @@ const marks = (s: string) => [...s.matchAll(/\{\d+\}/g)].map((m) => m[0]).toSort
  */
 const SAME_IN: Record<string, readonly string[]> = {
 	zh: ["Snap", "Cinnamon", "Root"],
-	es: ["Snap", "Cinnamon", "Plugins", "App", "Root", "Auto", "Extras", "Kernel"],
+	es: ["Snap", "Cinnamon", "Plugins", "App", "Root", "Auto", "Extras", "Kernel", "General"],
 	pt: ["Snap", "Cinnamon", "Plugins", "App", "Status", "Root", "Auto", "Extras", "Kernel", "Driver"],
 	de: [
 		"Snap",
@@ -34,7 +34,7 @@ const SAME_IN: Record<string, readonly string[]> = {
 	],
 	fr: ["Snap", "Cinnamon", "Plugins", "Version", "Root", "Auto", "Source", "Version {0}", "Extras"],
 	it: ["Snap", "Cinnamon", "Download", "App", "Root", "Auto", "Kernel", "Driver"],
-	pl: ["Snap", "Cinnamon", "Root", "Auto"],
+	pl: ["Snap", "Cinnamon", "Root", "Auto", "System"],
 	ru: ["Snap", "Cinnamon", "Root"],
 	ja: ["Snap", "Cinnamon", "Root"],
 };

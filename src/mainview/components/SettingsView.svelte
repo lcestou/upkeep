@@ -209,16 +209,8 @@
 </script>
 
 <div class="settings" data-testid="settings">
+	<h2 class="group" data-testid="settings-group-general">{TEXT.groupGeneral}</h2>
 	<div class="sheet">
-		<label class="row">
-			<span class="text">{TEXT.notify}</span>
-			<input
-				type="checkbox"
-				checked={model.settings.notify}
-				data-testid="setting-notify"
-				onchange={(e) => set({ notify: e.currentTarget.checked })}
-			/>
-		</label>
 		<label class="row">
 			<span class="text">
 				<span data-testid="setting-login-label">{TEXT.startAtLogin}</span>
@@ -243,18 +235,17 @@
 				onchange={(e) => set({ upkeepCommand: e.currentTarget.checked })}
 			/>
 		</label>
-		<label class="row">
-			<span class="text">
-				<span data-testid="setting-wait-label">{TEXT.waitUnmetered}</span>
-				<span class="hint" data-testid="setting-wait-hint">{TEXT.waitUnmeteredHint}</span>
-			</span>
-			<input
-				type="checkbox"
-				checked={model.settings.waitUnmetered}
-				data-testid="setting-wait"
-				onchange={(e) => set({ waitUnmetered: e.currentTarget.checked })}
+		<div class="row">
+			<span class="text" id="language-label" data-testid="setting-language-label">{TEXT.language}</span>
+			<LanguagePicker
+				value={model.settings.language}
+				labelledby="language-label"
+				onpick={(v) => set({ language: v })}
 			/>
-		</label>
+		</div>
+	</div>
+	<h2 class="group" data-testid="settings-group-updates">{TEXT.groupUpdates}</h2>
+	<div class="sheet">
 		<label class="row">
 			<span class="text" data-testid="setting-check-every-label">{TEXT.checkEvery}</span>
 			<select
@@ -270,6 +261,18 @@
 					<option value={o.v}>{o.label}</option>
 				{/each}
 			</select>
+		</label>
+		<label class="row">
+			<span class="text">
+				<span data-testid="setting-wait-label">{TEXT.waitUnmetered}</span>
+				<span class="hint" data-testid="setting-wait-hint">{TEXT.waitUnmeteredHint}</span>
+			</span>
+			<input
+				type="checkbox"
+				checked={model.settings.waitUnmetered}
+				data-testid="setting-wait"
+				onchange={(e) => set({ waitUnmetered: e.currentTarget.checked })}
+			/>
 		</label>
 		<label class="row">
 			<span class="text">
@@ -304,26 +307,6 @@
 				/>
 			</label>
 		{/if}
-		<div class="row">
-			<span class="text" id="language-label" data-testid="setting-language-label">{TEXT.language}</span>
-			<LanguagePicker
-				value={model.settings.language}
-				labelledby="language-label"
-				onpick={(v) => set({ language: v })}
-			/>
-		</div>
-		<label class="row">
-			<span class="text">{TEXT.keepBackups}</span>
-			<select
-				value={String(model.settings.keepBackups)}
-				data-testid="setting-keep"
-				onchange={(e) => set({ keepBackups: Number(e.currentTarget.value) })}
-			>
-				{#each [1, 2, 3, 4, 5] as n (n)}
-					<option value={String(n)}>{n}</option>
-				{/each}
-			</select>
-		</label>
 		<div class="row stack">
 			<span class="text">
 				<span id="token-label" data-testid="setting-token-label">{TEXT.githubToken}</span>
@@ -363,6 +346,30 @@
 					{tokenFallback === "gh" ? TEXT.tokenFallbackGh : TEXT.tokenFallbackNone}
 				</p>{/if}
 		</div>
+		<label class="row">
+			<span class="text">
+				<span data-testid="setting-self-auto-label">{SELF.auto}</span>
+				<span class="hint" data-testid="setting-self-auto-help">{SELF.autoHelp}</span>
+			</span>
+			<input
+				type="checkbox"
+				checked={model.settings.selfAuto}
+				data-testid="setting-self-auto"
+				onchange={(e) => set({ selfAuto: e.currentTarget.checked })}
+			/>
+		</label>
+	</div>
+	<h2 class="group" data-testid="settings-group-notices">{TEXT.groupNotices}</h2>
+	<div class="sheet">
+		<label class="row">
+			<span class="text">{TEXT.notify}</span>
+			<input
+				type="checkbox"
+				checked={model.settings.notify}
+				data-testid="setting-notify"
+				onchange={(e) => set({ notify: e.currentTarget.checked })}
+			/>
+		</label>
 		<div class="row stack">
 			<span class="text">
 				<span id="webhook-label" data-testid="setting-webhook-label">{TEXT.webhook}</span>
@@ -420,6 +427,21 @@
 				</label>
 			{/if}
 		</div>
+	</div>
+	<h2 class="group" data-testid="settings-group-safety">{TEXT.groupSafety}</h2>
+	<div class="sheet">
+		<label class="row">
+			<span class="text">{TEXT.keepBackups}</span>
+			<select
+				value={String(model.settings.keepBackups)}
+				data-testid="setting-keep"
+				onchange={(e) => set({ keepBackups: Number(e.currentTarget.value) })}
+			>
+				{#each [1, 2, 3, 4, 5] as n (n)}
+					<option value={String(n)}>{n}</option>
+				{/each}
+			</select>
+		</label>
 		<div class="row stack">
 			<span class="text">{TEXT.appList}</span>
 			<span class="buttons">
@@ -511,7 +533,57 @@
 			{/if}
 		</div>
 	</div>
-	<h2 class="group">{WIN.group}</h2>
+	<h2 class="group" data-testid="settings-group-system">{TEXT.groupSystem}</h2>
+	<div class="sheet">
+		<label class="row stack">
+			<span class="text">{SYS.setting}</span>
+			<input
+				type="checkbox"
+				checked={model.extras?.settings.system === "show"}
+				disabled={model.extras === null || model.extras.system.phase === "installing"}
+				data-testid="setting-system"
+				onchange={(e) => model.setExtras({ system: e.currentTarget.checked ? "show" : "off" })}
+			/>
+			<span class="help" data-testid="setting-system-help">{SYS.settingHelp}</span>
+		</label>
+		{#if model.extras?.settings.system === "show"}
+			<label class="row stack">
+				<span class="text">{SYS.installSetting}</span>
+				<input
+					type="checkbox"
+					checked={model.extras.settings.systemInstall === true}
+					disabled={model.extras.system.phase === "installing"}
+					data-testid="setting-system-install"
+					onchange={(e) => model.setExtras({ systemInstall: e.currentTarget.checked })}
+				/>
+				<span class="help" data-testid="setting-system-install-help">{SYS.installSettingHelp}</span>
+			</label>
+		{/if}
+		<label class="row stack">
+			<span class="text">{CLEAN.setting}</span>
+			<input
+				type="checkbox"
+				checked={model.extras?.settings.cleanup === true}
+				disabled={model.extras === null}
+				data-testid="setting-cleanup"
+				onchange={(e) => model.setExtras({ cleanup: e.currentTarget.checked })}
+			/>
+			<span class="help" data-testid="setting-cleanup-help">{CLEAN.settingHelp}</span>
+		</label>
+		{#if model.extras?.settings.cleanup}
+			<label class="row stack">
+				<span class="text">{CLEAN.devSetting}</span>
+				<input
+					type="checkbox"
+					checked={model.extras.settings.devCaches === true}
+					data-testid="setting-cleanup-dev"
+					onchange={(e) => model.setExtras({ devCaches: e.currentTarget.checked })}
+				/>
+				<span class="help" data-testid="setting-cleanup-dev-help">{CLEAN.devSettingHelp}</span>
+			</label>
+		{/if}
+	</div>
+	<h2 class="group" data-testid="settings-group-window">{WIN.group}</h2>
 	<div class="sheet">
 		<div class="row stack">
 			<span class="text" id="frame-label">{WIN.frame}</span>
@@ -566,76 +638,12 @@
 			</div>
 		{/if}
 	</div>
-
-	<h2 class="group" data-testid="extras-group">{SYS.extras}</h2>
-	<div class="sheet">
-		<label class="row stack">
-			<span class="text">{SYS.setting}</span>
-			<input
-				type="checkbox"
-				checked={model.extras?.settings.system === "show"}
-				disabled={model.extras === null || model.extras.system.phase === "installing"}
-				data-testid="setting-system"
-				onchange={(e) => model.setExtras({ system: e.currentTarget.checked ? "show" : "off" })}
-			/>
-			<span class="help" data-testid="setting-system-help">{SYS.settingHelp}</span>
-		</label>
-		{#if model.extras?.settings.system === "show"}
-			<label class="row stack">
-				<span class="text">{SYS.installSetting}</span>
-				<input
-					type="checkbox"
-					checked={model.extras.settings.systemInstall === true}
-					disabled={model.extras.system.phase === "installing"}
-					data-testid="setting-system-install"
-					onchange={(e) => model.setExtras({ systemInstall: e.currentTarget.checked })}
-				/>
-				<span class="help" data-testid="setting-system-install-help">{SYS.installSettingHelp}</span>
-			</label>
-		{/if}
-		<label class="row stack">
-			<span class="text">{CLEAN.setting}</span>
-			<input
-				type="checkbox"
-				checked={model.extras?.settings.cleanup === true}
-				disabled={model.extras === null}
-				data-testid="setting-cleanup"
-				onchange={(e) => model.setExtras({ cleanup: e.currentTarget.checked })}
-			/>
-			<span class="help" data-testid="setting-cleanup-help">{CLEAN.settingHelp}</span>
-		</label>
-		{#if model.extras?.settings.cleanup}
-			<label class="row stack">
-				<span class="text">{CLEAN.devSetting}</span>
-				<input
-					type="checkbox"
-					checked={model.extras.settings.devCaches === true}
-					data-testid="setting-cleanup-dev"
-					onchange={(e) => model.setExtras({ devCaches: e.currentTarget.checked })}
-				/>
-				<span class="help" data-testid="setting-cleanup-dev-help">{CLEAN.devSettingHelp}</span>
-			</label>
-		{/if}
-	</div>
-
-	<h2 class="group">{WIN.about}</h2>
+	<h2 class="group" data-testid="settings-group-about">{WIN.about}</h2>
 	<div class="sheet about" data-testid="about">
 		<!-- The horizontal lockup for the dark ground carries the mark and the word. Trusted constant markup. -->
 		<span class="lockup" role="img" aria-label={WIN.word}>{@html lockup}</span>
 		<p class="about-version" data-testid="version">{versionText(model.version)}</p>
 		<p class="about-line">{WIN.tagline}</p>
-		<label class="auto">
-			<input
-				type="checkbox"
-				checked={model.settings.selfAuto}
-				data-testid="setting-self-auto"
-				onchange={(e) => set({ selfAuto: e.currentTarget.checked })}
-			/>
-			<span>
-				<span class="auto-label" data-testid="setting-self-auto-label">{SELF.auto}</span>
-				<span class="auto-help" data-testid="setting-self-auto-help">{SELF.autoHelp}</span>
-			</span>
-		</label>
 		<div class="about-links">
 			{#each ABOUT_LINKS as link (link.what)}
 				<button
@@ -744,6 +752,10 @@
 		font-weight: 640;
 		color: var(--text);
 	}
+	/* The first heading sits at the top of the view, whose own padding is the gap. */
+	.group:first-child {
+		margin-top: 0;
+	}
 	.stack {
 		flex-wrap: wrap;
 		padding: var(--s3) var(--s4);
@@ -843,25 +855,6 @@
 		stroke-width: 1.5;
 		stroke-linecap: round;
 		stroke-linejoin: round;
-	}
-	.auto {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--s2);
-		margin-top: var(--s3);
-		max-width: 60ch;
-	}
-	.auto input {
-		margin-top: 2px;
-	}
-	.auto-label,
-	.auto-help {
-		display: block;
-	}
-	.auto-help {
-		margin-top: 2px;
-		font-size: var(--fs-12);
-		color: var(--text-3);
 	}
 	.about-links {
 		display: flex;

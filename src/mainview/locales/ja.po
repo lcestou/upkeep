@@ -148,6 +148,7 @@ msgid "Installed without asking when Upkeep checks in the background."
 msgstr "Upkeep がバックグラウンドで確認したとき、確認なしでインストールします。"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Updates"
 msgstr "更新"
 
@@ -873,10 +874,6 @@ msgstr "情報"
 #: src/mainview/lib/copy.ts
 msgid "Keeps the apps your package manager misses up to date."
 msgstr "パッケージマネージャーが扱わないアプリを最新に保ちます。"
-
-#: src/mainview/lib/copy.ts
-msgid "Extras"
-msgstr "追加機能"
 
 #: src/mainview/lib/copy.ts
 msgid "Show system updates"
@@ -3190,6 +3187,23 @@ msgstr "{0} {1} には glibc {2} が必要です。このシステムは {3} の
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} は {2} 向けにビルドされています。このプロセッサは {3} のため、何もインストールしませんでした。"
+
+#: src/mainview/lib/copy.ts
+msgid "General"
+msgstr "一般"
+
+#: src/mainview/lib/copy.ts
+msgid "Notices"
+msgstr "通知"
+
+#: src/mainview/lib/copy.ts
+msgid "Safety"
+msgstr "安全"
+
+#: src/mainview/lib/copy.ts
+msgctxt "Settings heading"
+msgid "System"
+msgstr "システム"
 
 #: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts

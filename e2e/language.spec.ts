@@ -30,6 +30,7 @@ test("Settings picks the language; the whole window switches at once, and back",
 	await expect(page.locator("html")).toHaveAttribute("lang", "es");
 	await expect(page.getByTestId("tab-settings")).toHaveText(inLanguage("es", "Settings"));
 	await expect(page.getByTestId("setting-language-label")).toHaveText(inLanguage("es", "Language"));
+	await expect(page.getByTestId("settings-group-safety")).toHaveText(inLanguage("es", "Safety"));
 	await expect(page.getByTestId("setting-check-every").locator("option").first()).toHaveText(
 		inLanguage("es", "Every 6 hours"),
 	);
