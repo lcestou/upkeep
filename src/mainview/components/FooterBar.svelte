@@ -7,6 +7,7 @@
 	import RunControls from "./RunControls.svelte";
 	import Selection from "./Selection.svelte";
 	import SystemConfirm from "./SystemConfirm.svelte";
+	import WhenDone from "./WhenDone.svelte";
 
 	let { model, logOpen, ontogglelog }: { model: Model; logOpen: boolean; ontogglelog: () => void } = $props();
 
@@ -31,6 +32,8 @@
 	</div>
 	<div class="end">
 		<LogToggle open={logOpen} ontoggle={ontogglelog} />
+		<!-- What happens when the run ends, its countdown or why it did not happen: on every view, the window was raised for it. -->
+		<WhenDone {model} />
 		<!-- The primary button belongs to the Updates view; History and Settings show Show log alone. -->
 		{#if (!model.allFresh || model.systemCan.size > 0 || running) && model.view === "updates"}
 			<RunControls {model} />

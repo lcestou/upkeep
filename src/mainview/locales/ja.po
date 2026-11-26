@@ -2993,6 +2993,7 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "このファイルには、このコンピューターで次のコマンドを実行するアプリが含まれています。入手元を信頼できる場合にだけ読み込んでください。"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -3190,3 +3191,58 @@ msgstr "{0} {1} には glibc {2} が必要です。このシステムは {3} の
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} は {2} 向けにビルドされています。このプロセッサは {3} のため、何もインストールしませんでした。"
+
+#: src/mainview/lib/copy.ts
+msgid "When done"
+msgstr "完了後"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing"
+msgstr "何もしない"
+
+#: src/mainview/lib/copy.ts
+msgid "Quit Upkeep"
+msgstr "Upkeep を終了"
+
+#: src/mainview/lib/copy.ts
+msgid "Suspend"
+msgstr "サスペンド"
+
+#: src/mainview/lib/copy.ts
+msgid "Shut down"
+msgstr "シャットダウン"
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not suspended."
+msgstr "PC はサスペンドしませんでした。"
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not shut down."
+msgstr "PC はシャットダウンしませんでした。"
+
+#: src/mainview/lib/copy.ts
+msgid "An app did not update."
+msgstr "更新できなかったアプリがあります。"
+
+#: src/mainview/lib/copy.ts
+msgid "The run was stopped."
+msgstr "実行は停止されました。"
+
+#: src/mainview/lib/copy.ts
+msgid "A System update failed."
+msgstr "システムの更新が失敗しました。"
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Suspending in {0} s"
+msgstr "{0} 秒後にサスペンド"
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Shutting down in {0} s"
+msgstr "{0} 秒後にシャットダウン"
+
+#. 0: detail
+#: src/mainview/lib/copy.ts
+msgid "The system refused: {0}"
+msgstr "システムが拒否しました: {0}"

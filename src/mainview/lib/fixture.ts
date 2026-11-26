@@ -22,6 +22,7 @@ import type {
 	RunResult,
 	RunState,
 	SelfState,
+	WhenDoneState,
 	Settings,
 	Snapshot,
 	Stage,
@@ -748,6 +749,8 @@ export type FixtureOptions = {
 	quiet?: "cut" | "root";
 	/** "long": Zen's newest notes alone fill the notes budget, so its span holds one release and says older ones are left out. */
 	notes?: "long";
+	/** "no": logind allows neither suspend nor power-off, so the when-done choice offers Nothing and Quit only. */
+	power?: "no";
 };
 
 // Cinnamon can put the window buttons on the left: close, maximize, minimize.
@@ -982,6 +985,37 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		selfNow = next;
 		emit({ type: "self", self: clone(next) });
 	};
+	/** What happens when the run ends, as the main process would hold it; at zero the fixture only records the call. */
+	let whenDone: WhenDoneState = {
+		choice: "nothing",
+		can: { suspend: opts.power !== "no", poweroff: opts.power !== "no" },
+		countdown: null,
+		cancelled: null,
+	};
+	let powerTimer: ReturnType<typeof setTimeout> | undefined;
+	const setWhenDone = (patch: Partial<WhenDoneState>) => {
+		whenDone = { ...whenDone, ...patch };
+		emit({ type: "whenDone", whenDone: clone(whenDone) });
+	};
+	/** The main process's end of a run: Quit is recorded, a power action counts down only when every app updated. */
+	const runEndedWhenDone = (results: RunResult[], queue: string[]) => {
+		const choice = whenDone.choice;
+		if (choice === "nothing") return;
+		setWhenDone({ choice: "nothing" });
+		if (choice === "quit") return void globalThis.upkeepOps?.push("quit");
+		const done = new Set(results.filter((r) => r.result === "updated").map((r) => r.key));
+		const why = results.some((r) => r.result === "failed" || r.result === "rolled_back")
+			? "failed"
+			: queue.some((k) => !done.has(k)) || results.some((r) => !done.has(r.key))
+				? "stopped"
+				: null;
+		if (why) return setWhenDone({ cancelled: { action: choice, why } });
+		setWhenDone({ countdown: { action: choice, at: Date.now() + 60_000 / speed } });
+		powerTimer = setTimeout(() => {
+			globalThis.upkeepOps?.push(choice);
+			setWhenDone({ countdown: null });
+		}, 60_000 / speed);
+	};
 	const emit = (e: EngineEvent) => {
 		const copy = clone(e);
 		queueMicrotask(() => listeners.forEach((l) => l(copy)));
@@ -1165,6 +1199,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		});
 		base = fromSummary ? (run.queue ?? []) : [];
 		running = order;
+		clearTimeout(powerTimer);
+		setWhenDone({ choice: "nothing", countdown: null, cancelled: null });
 		log(runId, null, `Run started: ${order.length} apps.`);
 		const results: RunResult[] = [...keep];
 		for (let i = 0; i < order.length; i++) {
@@ -1203,6 +1239,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		log(runId, null, "Run finished.");
 		running = null;
 		setRun({ phase: "summary", currentKey: null, results, stoppingNow: false });
+		runEndedWhenDone(results, run.queue ?? order);
 	}
 
 	/** The engine's addToRun: ready apps go after the apps waiting. */
@@ -1569,6 +1606,19 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		selfDismiss: () => {
 			setSelf({ phase: "none" });
+			return { ok: true };
+		},
+		whenDone: () => clone(whenDone),
+		setWhenDone: ({ choice }) => {
+			const power = choice === "suspend" || choice === "poweroff";
+			if (run.phase !== "installing" || (power && !whenDone.can[choice])) return { ok: false };
+			setWhenDone({ choice });
+			return { ok: true };
+		},
+		cancelWhenDone: () => {
+			if (!whenDone.countdown && !whenDone.cancelled) return { ok: false };
+			clearTimeout(powerTimer);
+			setWhenDone({ countdown: null, cancelled: null });
 			return { ok: true };
 		},
 		// The fixture never quits: it records the press for the specs.

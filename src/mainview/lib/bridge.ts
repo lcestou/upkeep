@@ -58,6 +58,7 @@ export async function getBridge(): Promise<Bridge> {
 			webhook: query.get("webhook") === "import" ? "import" : undefined,
 			quiet: query.get("quiet") === "cut" ? "cut" : query.get("quiet") === "root" ? "root" : undefined,
 			notes: query.get("notes") === "long" ? "long" : undefined,
+			power: query.get("power") === "no" ? "no" : undefined,
 		});
 	}
 

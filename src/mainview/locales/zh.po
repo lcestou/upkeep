@@ -2993,6 +2993,7 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "此文件中的应用会在这台电脑上运行以下命令。只有在信任其来源时才导入。"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "取消"
 
@@ -3190,3 +3191,58 @@ msgstr "{0} {1} 需要 glibc {2}；此系统为 {3}，因此未安装任何内�
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} 是为 {2} 构建的；此处理器为 {3}，因此未安装任何内容。"
+
+#: src/mainview/lib/copy.ts
+msgid "When done"
+msgstr "完成后"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing"
+msgstr "不做任何事"
+
+#: src/mainview/lib/copy.ts
+msgid "Quit Upkeep"
+msgstr "退出 Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Suspend"
+msgstr "睡眠"
+
+#: src/mainview/lib/copy.ts
+msgid "Shut down"
+msgstr "关机"
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not suspended."
+msgstr "电脑未进入睡眠。"
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not shut down."
+msgstr "电脑未关机。"
+
+#: src/mainview/lib/copy.ts
+msgid "An app did not update."
+msgstr "有应用未能更新。"
+
+#: src/mainview/lib/copy.ts
+msgid "The run was stopped."
+msgstr "本次运行已停止。"
+
+#: src/mainview/lib/copy.ts
+msgid "A System update failed."
+msgstr "有系统更新失败。"
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Suspending in {0} s"
+msgstr "{0} 秒后睡眠"
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Shutting down in {0} s"
+msgstr "{0} 秒后关机"
+
+#. 0: detail
+#: src/mainview/lib/copy.ts
+msgid "The system refused: {0}"
+msgstr "系统拒绝了：{0}"
