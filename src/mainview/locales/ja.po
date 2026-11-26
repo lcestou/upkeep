@@ -3095,3 +3095,18 @@ msgstr "古いリリースはここには表示されません。リリースペ
 msgid "# older release not shown."
 msgid_plural "# older releases not shown."
 msgstr[0] "表示していない古いリリースが # 件あります。"
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs {2}, which this system does not have, so nothing was installed."
+msgstr "{0} {1} には {2} が必要ですが、このシステムにはないため、何もインストールしませんでした。"
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs glibc {2}; this system has {3}, so nothing was installed."
+msgstr "{0} {1} には glibc {2} が必要です。このシステムは {3} のため、何もインストールしませんでした。"
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
+msgstr "{0} {1} は {2} 向けにビルドされています。このプロセッサは {3} のため、何もインストールしませんでした。"

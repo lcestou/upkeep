@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An update whose program cannot start here is refused after the download, before any restore point or change: a loader this system lacks (a musl build on glibc), a newer glibc than the system has, or a higher x86-64 level than the CPU. The row says which, and the next check offers it again. Programs inside an AppImage are not read.
 - A table can list versions to avoid: `bad_versions = ["2.4.1"]` with `bad_reason = "…"`. A check never offers a listed version. It offers the newest release before it, or keeps the app where it is, and the row says why. Catalogue tables may carry the same two fields.
 - Upkeep remembers each GitHub app's repository by its id. A renamed or transferred repo is followed. If the same owner/name later belongs to a different repository, the update is held with the reason until you release the hold.
 - A source build checks that its tag still points at the commit the check saw. If the tag moved in between, the build stops before any step runs, and the log names both commits.

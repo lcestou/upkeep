@@ -87,3 +87,117 @@ export function withCancel(run: Run, cancel: AbortSignal): Run {
 	const wrapped: Run = (argv, opts) => run(argv, { cancel, ...opts });
 	return run.start ? Object.assign(wrapped, { start: run.start }) : wrapped;
 }
+
+/** What a crafted ELF file carries; every field left out is absent from the file. */
+export type ElfFixture = {
+	/** 32-bit when false; default 64-bit. */
+	wide?: boolean;
+	/** Big-endian when false; default little-endian. */
+	little?: boolean;
+	/** e_machine; default 62, x86-64. */
+	machine?: number;
+	interp?: string;
+	/** Symbol version names libc.so.6 is needed at, as GLIBC_2.39. */
+	versions?: string[];
+	/** The X86_ISA_1_NEEDED mask in a GNU property note. */
+	isa?: number;
+	/** The note goes in a plain PT_NOTE segment instead of PT_GNU_PROPERTY, as older links do. */
+	plainNote?: boolean;
+};
+
+/**
+ * The bytes of a minimal ELF file with only the parts the pre-flight reads: the loader, a GNU property note and a
+ * .gnu.version_r section with its string table. Nothing in it runs; it is for reading, never for starting.
+ */
+export function elfFile(f: ElfFixture): Uint8Array<ArrayBuffer> {
+	const wide = f.wide ?? true;
+	const little = f.little ?? true;
+	const buf = new DataView(new ArrayBuffer(4096));
+	const w8 = (at: number, v: number) => buf.setUint8(at, v);
+	const w16 = (at: number, v: number) => buf.setUint16(at, v, little);
+	const w32 = (at: number, v: number) => buf.setUint32(at, v, little);
+	const word = (at: number, v: number) => (wide ? buf.setBigUint64(at, BigInt(v), little) : w32(at, v));
+	const bytes = (at: number, s: string) => [...Buffer.from(`${s}\0`, "latin1")].forEach((b, i) => w8(at + i, b));
+	let end = 512;
+	const put = (size: number) => {
+		const at = end;
+		end += Math.ceil(size / 8) * 8;
+		return at;
+	};
+	const phs: [number, number, number][] = [];
+	if (f.interp !== undefined) {
+		const at = put(f.interp.length + 1);
+		bytes(at, f.interp);
+		phs.push([3, at, f.interp.length + 1]);
+	}
+	if (f.isa !== undefined) {
+		const desc = wide ? 16 : 12;
+		const at = put(16 + desc);
+		w32(at, 4);
+		w32(at + 4, desc);
+		w32(at + 8, 5);
+		bytes(at + 12, "GNU");
+		w32(at + 16, 0xc0008002);
+		w32(at + 20, 4);
+		w32(at + 24, f.isa);
+		phs.push([f.plainNote ? 4 : 0x6474e553, at, 16 + desc]);
+	}
+	// type, offset, size, link; sh_info is the one verneed record for the version section.
+	const sections: [number, number, number, number][] = [[0, 0, 0, 0]];
+	const versions = f.versions;
+	if (versions) {
+		const names = ["libc.so.6", ...versions];
+		const str = put(names.join("\0").length + 2);
+		const offsets: number[] = [];
+		let o = 1;
+		for (const n of names) {
+			offsets.push(o);
+			bytes(str + o, n);
+			o += n.length + 1;
+		}
+		const need = put(16 + 16 * versions.length);
+		w16(need, 1);
+		w16(need + 2, versions.length);
+		w32(need + 4, offsets[0] ?? 0);
+		w32(need + 8, 16);
+		versions.forEach((_, i) => {
+			const aux = need + 16 + 16 * i;
+			w32(aux + 8, offsets[i + 1] ?? 0);
+			w32(aux + 12, i === versions.length - 1 ? 0 : 16);
+		});
+		sections.push([3, str, o + 1, 0], [0x6ffffffe, need, 16 + 16 * versions.length, 1]);
+	}
+	buf.setUint32(0, 0x7f454c46, false);
+	w8(4, wide ? 2 : 1);
+	w8(5, little ? 1 : 2);
+	w8(6, 1);
+	w16(16, 2);
+	w16(18, f.machine ?? 62);
+	const phent = wide ? 56 : 32;
+	const shent = wide ? 64 : 40;
+	const phoff = 64;
+	word(wide ? 32 : 28, phoff);
+	w16(wide ? 54 : 42, phent);
+	w16(wide ? 56 : 44, phs.length);
+	phs.forEach(([type, at, size], i) => {
+		const p = phoff + i * phent;
+		w32(p, type);
+		word(p + (wide ? 8 : 4), at);
+		word(p + (wide ? 32 : 16), size);
+	});
+	if (sections.length > 1) {
+		const shoff = put(shent * sections.length);
+		word(wide ? 40 : 32, shoff);
+		w16(wide ? 58 : 46, shent);
+		w16(wide ? 60 : 48, sections.length);
+		sections.forEach(([type, at, size, link], i) => {
+			const s = shoff + i * shent;
+			w32(s + 4, type);
+			word(s + (wide ? 24 : 16), at);
+			word(s + (wide ? 32 : 20), size);
+			w32(s + (wide ? 40 : 24), link);
+			w32(s + (wide ? 44 : 28), type === 0x6ffffffe ? 1 : 0);
+		});
+	}
+	return new Uint8Array(buf.buffer.slice(0, end));
+}

@@ -3143,3 +3143,18 @@ msgid_plural "# older releases not shown."
 msgstr[0] "# versione più vecchia non mostrata."
 msgstr[1] "# versioni più vecchie non mostrate."
 msgstr[2] "# versioni più vecchie non mostrate."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs {2}, which this system does not have, so nothing was installed."
+msgstr "{0} {1} richiede {2}, che questo sistema non ha, quindi non è stato installato nulla."
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs glibc {2}; this system has {3}, so nothing was installed."
+msgstr "{0} {1} richiede glibc {2}; questo sistema ha {3}, quindi non è stato installato nulla."
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
+msgstr "{0} {1} è compilato per {2}; questo processore è {3}, quindi non è stato installato nulla."
