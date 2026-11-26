@@ -521,7 +521,7 @@ describe("what the components read and write", () => {
 
 describe("System rows in the footer's Install", () => {
 	/** A model on the fixture with System install on; the four ready apps start ticked. */
-	async function withSystem(system: "install" | "refuse") {
+	async function withSystem(system: "install" | "refuse" | "snapshot-fail") {
 		const m = new Model(createFixture({ speed: 40, system }));
 		await m.start();
 		await until(() => (m.extras?.system.installable?.length ?? 0) > 0);
@@ -563,6 +563,17 @@ describe("System rows in the footer's Install", () => {
 		m.tickSystem("apt:perl", true);
 		await m.installTicked();
 		await m.confirmSystem();
+		await until(() => m.extras?.system.install?.refused !== null && m.extras?.system.phase === "idle");
+		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
+	});
+
+	test("after a failed snapshot, answerSnapshot's Stop ends the System install and the apps follow", async () => {
+		const m = await withSystem("snapshot-fail");
+		m.tickSystem("apt:perl", true);
+		await m.installTicked();
+		await m.confirmSystem();
+		await until(() => m.extras?.system.install?.snapshot?.phase === "asking");
+		await m.answerSnapshot(false);
 		await until(() => m.extras?.system.install?.refused !== null && m.extras?.system.phase === "idle");
 		await until(() => m.run.phase === "installing" || m.run.phase === "summary");
 	});

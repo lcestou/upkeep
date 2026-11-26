@@ -21,6 +21,8 @@ const fx = (name: string) => readFileSync(join(import.meta.dir, "fixtures", name
 const DISCORD = "flatpak:app/com.discordapp.Discord/x86_64/stable";
 const NOW = new Date(2026, 10, 26, 10, 0);
 const key = (argv: string[]) => argv.join(" ");
+// Above any kernel's pid_max (2^22), so a quit that ended this "process" would signal nobody.
+const NO_PID = 2_147_483_647;
 const exit = (code: number, stdout = "", stderr = ""): ProcessResult => ({ code, stdout, stderr, timedOut: false });
 
 let t: ReturnType<typeof tempHome>;
@@ -37,7 +39,7 @@ afterEach(() => t.cleanup());
 function machine(create: ProcessResult = ok()) {
 	let installed = false;
 	let made = false;
-	return strictRun((argv) => {
+	return strictRun((argv, opts) => {
 		const k = key(argv);
 		if (k === key(TIMESHIFT_VERSION)) return ok("Timeshift 25.12.4\n");
 		if (k === key(TIMESHIFT_READ_CONFIG)) return ok('{"backup_device_uuid": "u", "btrfs_mode": "false"}');
@@ -46,6 +48,7 @@ function machine(create: ProcessResult = ok()) {
 				`0    >  2026-11-25_06-00-01  D\n${made ? `1    >  2026-11-26_10-00-00  O     ${SNAPSHOT_COMMENT}\n` : ""}`,
 			);
 		if (k === key(TIMESHIFT_CREATE)) {
+			opts.onStart?.(NO_PID);
 			made = create.code === 0;
 			return create;
 		}
@@ -54,6 +57,7 @@ function machine(create: ProcessResult = ok()) {
 				installed ? fx("flatpak-updates.txt").replace(/^app\/com\.discordapp.*\n/m, "") : fx("flatpak-updates.txt"),
 			);
 		if (argv[0] === "flatpak" && argv[1] === "update") {
+			opts.onStart?.(NO_PID);
 			installed = true;
 			return ok();
 		}
@@ -102,7 +106,7 @@ test("a snapshot is taken before the first System step, and History names it", a
 	await x.idle();
 	const order = box.calls
 		.map((c) => key(c.argv))
-		.filter((k) => k.includes("timeshift") || k.startsWith("flatpak update"));
+		.filter((k) => k.startsWith("sudo -n timeshift") || k.startsWith("flatpak update"));
 	expect(order).toEqual([key(TIMESHIFT_LIST), key(TIMESHIFT_CREATE), key(TIMESHIFT_LIST), key(commands[0] ?? [])]);
 	expect(seen.phases).toEqual(["taking"]);
 	expect(x.snapshot().system.install?.snapshot).toBeUndefined();
