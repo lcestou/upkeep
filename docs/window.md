@@ -51,12 +51,12 @@ The body:
 	"event": "ready",
 	"host": "desk",
 	"version": "0.2.0",
-	"counts": { "apps": 12, "upToDate": 10, "ready": 1, "held": 1, "failing": 0 },
+	"counts": { "apps": 12, "upToDate": 10, "ready": 1, "manual": 0, "held": 1, "failing": 0, "unchecked": 0 },
 	"apps": [{ "key": "fd", "name": "fd", "installed": "10.2.0", "latest": "10.3.0" }]
 }
 ```
 
-`title` and `message` are the desktop notice's own words, in the language Upkeep speaks. `event` is `"ready"` or `"run"`; after a run, `apps` holds each result instead: `{"key", "name", "from", "to", "result"}`, with `"detail"` when the app failed. `host` is the computer's name, so one receiver can tell several machines apart.
+`title` and `message` are the desktop notice's own words, in the language Upkeep speaks. `event` is `"ready"` or `"run"`; after a run, `apps` holds each result instead: `{"key", "name", "from", "to", "result"}`, with `"detail"` when the app failed. `host` is the computer's name, so one receiver can tell several machines apart. `counts` are the numbers `upkeep status` prints: `ready` is what Install takes, `manual` an update you run by hand.
 
 ### ntfy
 

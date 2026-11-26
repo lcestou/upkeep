@@ -82,7 +82,7 @@ const BODY: NoticeBody = {
 	event: "ready",
 	host: "box",
 	version: "0.2.0",
-	counts: { apps: 1, upToDate: 0, ready: 1, held: 0, failing: 0 },
+	counts: { apps: 1, upToDate: 0, ready: 1, manual: 0, held: 0, failing: 0, unchecked: 0 },
 	apps: [{ key: "bat", name: "bat", installed: "0.25.0", latest: "0.26.1" }],
 };
 

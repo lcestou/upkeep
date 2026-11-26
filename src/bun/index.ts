@@ -5,6 +5,7 @@ import Electrobun, { BrowserWindow, Screen, Tray, Updater, Utils } from "electro
 import pkg from "../../package.json";
 import { createEngine } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
+import { ensureManifest, loadManifest } from "../engine/manifest";
 import { realDeps } from "../engine/real";
 import { createNoticeSender } from "../engine/webhook";
 import { loadState, updateState } from "../engine/store";
@@ -457,6 +458,9 @@ function notify(body: string): void {
 	if (engine.snapshot().settings.notify) Utils.showNotification({ title: "Upkeep", body });
 }
 
+/** Every app in apps.toml, read now, so a notice counts the ones with no row yet as status does. A broken file is the apps it can read. */
+const listedApps = () => loadManifest(ensureManifest(deps.paths, deps.seedManifest)).apps;
+
 // The notice address from Settings, if any: one try per notice, never awaited, so a slow receiver holds nothing up.
 const notices = createNoticeSender({
 	paths: deps.paths,
@@ -499,7 +503,7 @@ function announceReady(wait?: "metered" | "battery"): void {
 	if (!fingerprint) return;
 	const text = readyNotice(readyNames(snapshot), trayLanguage(), wait);
 	// The address is told whether or not the window shows: it is read somewhere else.
-	if (snapshot.settings.webhookReady) void notices.send(webhookBody("ready", snapshot, text, hostname()));
+	if (snapshot.settings.webhookReady) void notices.send(webhookBody("ready", snapshot, text, hostname(), listedApps()));
 	// A visible window already shows the list.
 	if (!win?.isVisible()) notify(text);
 }
@@ -574,7 +578,7 @@ engine.subscribe((event) => {
 		// Never awaited by the run; a quit after it waits for it (10 s at most), so the POST is not cut off.
 		const sent =
 			done.settings.webhookRun && said
-				? notices.send(webhookBody("run", done, said, hostname()))
+				? notices.send(webhookBody("run", done, said, hostname(), listedApps()))
 				: Promise.resolve(false);
 		// With no window to read the summary in, say it once and clear it.
 		if (!win?.isVisible() || quitAfterRun) {

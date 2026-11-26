@@ -153,16 +153,24 @@ export function createSettleWatch(): SettleWatch {
 /**
  * The JSON a notice address gets: title and message for a person (the desktop notice's own text, in the window's
  * language), then the same facts for a program. For "ready" the apps are the ready ones with their versions; for
- * "run" they are the run's results. ntfy reads title and message through its template query (docs/window.md).
+ * "run" they are the run's results. listed is every app in apps.toml, so the counts match `upkeep status`. ntfy reads
+ * title and message through its template query (docs/window.md).
  */
-export function webhookBody(event: "ready" | "run", snapshot: Snapshot, message: string, host: string): NoticeBody {
+export function webhookBody(
+	event: "ready" | "run",
+	snapshot: Snapshot,
+	message: string,
+	host: string,
+	listed: { key: string }[],
+): NoticeBody {
 	return {
 		title: "Upkeep",
 		message,
 		event,
 		host,
 		version: snapshot.version,
-		counts: countsOf(snapshot.apps),
+		// The same counts `upkeep status` prints: ready is what Install takes (as apps lists), manual apart.
+		counts: countsOf(snapshot.apps, listed),
 		apps:
 			event === "ready"
 				? snapshot.apps

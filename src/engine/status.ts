@@ -1,7 +1,20 @@
 import type { AppState, Snapshot } from "../shared/types";
 
-/** How many apps rest in each state, as `upkeep status`, its metrics and a sent notice count them. */
-export type Counts = { apps: number; upToDate: number; ready: number; held: number; failing: number };
+/**
+ * How many apps rest in each state, as `upkeep status`, its metrics and a sent notice count them. ready is what
+ * Install would take, as the window and the tray count it; manual is an update the person runs by hand, which the
+ * window shows in a group of its own. unchecked is an app in apps.toml with no row (added since the last check, or
+ * found not installed); apps counts every one of them.
+ */
+export type Counts = {
+	apps: number;
+	upToDate: number;
+	ready: number;
+	manual: number;
+	held: number;
+	failing: number;
+	unchecked: number;
+};
 
 /**
  * One app in a status list: its versions, the sentence that says why when the row has one (a failure, a passed-over
@@ -26,9 +39,10 @@ export type Status = {
 	checkedAt: string | null;
 	/** A live process holds the run lock: an install, a restore or an import is under way. */
 	running: boolean;
-	/** Counts, with unchecked: apps in apps.toml the saved rows do not have (added since, or found not installed). */
-	counts: Counts & { unchecked: number };
+	counts: Counts;
 	ready: StatusApp[];
+	/** Updates the person runs by hand (a manual app), apart from ready as the window keeps them. */
+	manual: StatusApp[];
 	held: StatusApp[];
 	failing: StatusApp[];
 	/** Up-to-date apps whose row says something, such as a listed bad version it kept the app clear of. */
@@ -38,14 +52,15 @@ export type Status = {
 };
 
 /** The bucket a row counts in; a row still checking or in a run counts in none of them, only in apps. */
-function bucket(a: AppState): "upToDate" | "ready" | "held" | "failing" | null {
+function bucket(a: AppState): "upToDate" | "ready" | "manual" | "held" | "failing" | null {
 	switch (a.status) {
 		case "fresh":
 		case "done":
 			return "upToDate";
 		case "ready":
-		case "manual":
 			return "ready";
+		case "manual":
+			return "manual";
 		case "held":
 			return "held";
 		case "problem":
@@ -58,9 +73,22 @@ function bucket(a: AppState): "upToDate" | "ready" | "held" | "failing" | null {
 	}
 }
 
-/** The counts of a list of rows. Every row counts in apps, whatever its state. */
-export function countsOf(apps: AppState[]): Counts {
-	const counts: Counts = { apps: apps.length, upToDate: 0, ready: 0, held: 0, failing: 0 };
+/**
+ * The counts of a list of rows, with listed (every app in apps.toml) adding the ones that have no row as unchecked.
+ * Every row counts in apps, whatever its state. The one count status, its metrics and a notice all use.
+ */
+export function countsOf(apps: AppState[], listed: { key: string }[] = []): Counts {
+	const known = new Set(apps.map((a) => a.key));
+	const unchecked = listed.filter((a) => !known.has(a.key)).length;
+	const counts: Counts = {
+		apps: apps.length + unchecked,
+		upToDate: 0,
+		ready: 0,
+		manual: 0,
+		held: 0,
+		failing: 0,
+		unchecked,
+	};
 	for (const a of apps) {
 		const b = bucket(a);
 		if (b) counts[b] += 1;
@@ -112,14 +140,14 @@ export function statusOf(snapshot: Snapshot, running: boolean, listed: { key: st
 	const of = (b: ReturnType<typeof bucket>) => snapshot.apps.filter((a) => bucket(a) === b);
 	const known = new Set(snapshot.apps.map((a) => a.key));
 	const unchecked = listed.filter((a) => !known.has(a.key)).map((a) => ({ key: a.key, name: a.name }));
-	const counts = countsOf(snapshot.apps);
 	return {
 		version: snapshot.version,
 		checkedAt: snapshot.checkedAt,
 		running,
-		counts: { ...counts, apps: counts.apps + unchecked.length, unchecked: unchecked.length },
+		counts: countsOf(snapshot.apps, listed),
 		unchecked,
 		ready: of("ready").map(listedApp),
+		manual: of("manual").map(listedApp),
 		held: of("held").map(listedApp),
 		failing: of("failing").map(listedApp),
 		noted: of("upToDate")
@@ -132,7 +160,7 @@ export function statusOf(snapshot: Snapshot, running: boolean, listed: { key: st
 const why = (a: StatusApp) => (a.detail ? ` ${a.detail}` : "");
 
 /**
- * The status as English lines for a terminal: the head line first, then one line per ready, held and failing app,
+ * The status as English lines for a terminal: the head line first, then one line per ready, by-hand, held and failing app,
  * then an up-to-date app whose row says something. A held line reads as `upkeep check` prints it (heldLine).
  */
 export function statusLines(s: Status): string[] {
@@ -142,9 +170,10 @@ export function statusLines(s: Status): string[] {
 	const lines = [
 		head,
 		`Last check: ${s.checkedAt}`,
-		`${c.apps} apps: ${c.upToDate} up to date, ${c.ready} ready, ${c.held} held, ${c.failing} failing${c.unchecked > 0 ? `, ${c.unchecked} not checked yet or not installed` : ""}`,
+		`${c.apps} apps: ${c.upToDate} up to date, ${c.ready} ready, ${c.held} held, ${c.failing} failing${c.manual > 0 ? `, ${c.manual} by hand` : ""}${c.unchecked > 0 ? `, ${c.unchecked} not checked yet or not installed` : ""}`,
 	];
 	for (const a of s.ready) lines.push(`  UPDATE: ${a.name} ${versions(a)}${why(a)}`);
+	for (const a of s.manual) lines.push(`  BY HAND: ${a.name} ${versions(a)}${why(a)}`);
 	for (const a of s.held) lines.push(heldLine(a));
 	for (const a of s.failing) lines.push(`  FAILED: ${a.name}${why(a)}`);
 	for (const a of s.noted) lines.push(`  NOTE:   ${a.name} ${a.installed ?? "unknown"}${why(a)}`);
@@ -172,10 +201,11 @@ export function metricsText(s: Status): string {
 		"# HELP upkeep_run_in_progress 1 while an install, restore or import holds the run lock.",
 		"# TYPE upkeep_run_in_progress gauge",
 		`upkeep_run_in_progress ${s.running ? 1 : 0}`,
-		"# HELP upkeep_apps Apps in the list, by the state the last check left them in; unchecked has no row from it.",
+		"# HELP upkeep_apps Apps in the list, by the state the last check left them in; manual is run by hand, unchecked has no row.",
 		"# TYPE upkeep_apps gauge",
 		`upkeep_apps{state="up_to_date"} ${s.counts.upToDate}`,
 		`upkeep_apps{state="ready"} ${s.counts.ready}`,
+		`upkeep_apps{state="manual"} ${s.counts.manual}`,
 		`upkeep_apps{state="held"} ${s.counts.held}`,
 		`upkeep_apps{state="failing"} ${s.counts.failing}`,
 		`upkeep_apps{state="unchecked"} ${s.counts.unchecked}`,

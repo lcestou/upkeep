@@ -39,7 +39,9 @@ test("every state lands in one bucket, and rows still checking count only in app
 	const apps = (
 		["fresh", "done", "ready", "manual", "held", "problem", "failed", "rolled_back", "stopped", "checking"] as const
 	).map((s, i) => row(`a${i}`, s));
-	expect(countsOf(apps)).toEqual({ apps: 10, upToDate: 2, ready: 2, held: 1, failing: 4 });
+	expect(countsOf(apps)).toEqual({ apps: 10, upToDate: 2, ready: 1, manual: 1, held: 1, failing: 4, unchecked: 0 });
+	// A listed app with no row counts in apps and as unchecked; a listed app with a row counts once.
+	expect(countsOf(apps, [{ key: "a0" }, { key: "new" }])).toMatchObject({ apps: 11, unchecked: 1 });
 });
 
 test("the status lists ready and held apps with versions, and failing ones with why", () => {
@@ -108,4 +110,18 @@ test("a held row says what holds it, and a reason shows on held, ready and up-to
 		"  HELD:   SW 1.0 -> 1.1 The repo now answers as another repository.",
 		"  NOTE:   OK 1.0 Kept on 1.0: 1.1 is listed as bad.",
 	]);
+});
+
+test("a manual app is its own by-hand count and line, apart from ready, in the text, JSON and metrics", () => {
+	const s = statusOf(snap([row("bat", "ready"), row("hand", "manual")]), false);
+	expect(s.counts).toMatchObject({ ready: 1, manual: 1 });
+	expect(s.manual.map((a) => a.key)).toEqual(["hand"]);
+	expect(statusLines(s).slice(2)).toEqual([
+		"2 apps: 0 up to date, 1 ready, 0 held, 0 failing, 1 by hand",
+		"  UPDATE: BAT 1.0 -> 1.1",
+		"  BY HAND: HAND 1.0 -> 1.1",
+	]);
+	const text = metricsText(s);
+	expect(text).toContain('upkeep_apps{state="manual"} 1\n');
+	expect(text).not.toContain('upkeep_update_ready{app="hand"');
 });

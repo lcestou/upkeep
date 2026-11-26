@@ -1047,7 +1047,7 @@ test("status reads what the last check saved, as text, JSON and metrics, without
 	await main(["status", "--json"], quiet, (l) => json.push(l));
 	const s = JSON.parse(json[0] ?? "");
 	expect(s.running).toBe(false);
-	expect(s.counts).toEqual({ apps: 2, upToDate: 1, ready: 1, held: 0, failing: 0, unchecked: 0 });
+	expect(s.counts).toEqual({ apps: 2, upToDate: 1, ready: 1, manual: 0, held: 0, failing: 0, unchecked: 0 });
 	expect(s.unchecked).toEqual([]);
 	expect(s.ready).toEqual([{ key: "borg", name: "BorgBackup", installed: "1.4.1", latest: "1.4.2" }]);
 
