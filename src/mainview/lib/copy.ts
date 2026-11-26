@@ -145,6 +145,23 @@ export const CHIP = {
 } as const;
 
 export const TEXT = {
+	get groupGeneral() {
+		return "General";
+	},
+	get groupUpdates() {
+		return "Updates";
+	},
+	get groupNotices() {
+		return "Notices";
+	},
+	get groupSafety() {
+		return "Safety";
+	},
+	get groupSystem() {
+		// A heading over Settings' system and Cleanup switches, apart from the ledger's System group, which some languages inflect.
+		// @wc-context: Settings heading
+		return "System";
+	},
 	get updates() {
 		return "Updates";
 	},
@@ -1041,9 +1058,6 @@ export const selfRolledBack = (version: string) =>
 
 /** The System group: the system's own pending updates, read-only unless installing is switched on. Flatpak anywhere; packages from Update Manager on Linux Mint, else apt, dnf, pacman or zypper. */
 export const SYS = {
-	get extras() {
-		return "Extras";
-	},
 	get setting() {
 		return "Show system updates";
 	},
