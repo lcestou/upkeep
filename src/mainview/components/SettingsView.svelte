@@ -182,6 +182,7 @@
 			checkAtLogin: TEXT.startAtLogin,
 			selfAuto: SELF.auto,
 			upkeepCommand: TEXT.upkeepCommand,
+			waitExceptSecurity: TEXT.waitExceptSecurity,
 			system: SYS.setting,
 			systemInstall: SYS.installSetting,
 			cleanup: CLEAN.setting,
@@ -289,6 +290,20 @@
 				{/each}
 			</select>
 		</label>
+		{#if model.settings.waitDays > 0}
+			<label class="row">
+				<span class="text">
+					<span data-testid="setting-wait-security-label">{TEXT.waitExceptSecurity}</span>
+					<span class="hint" data-testid="setting-wait-security-hint">{TEXT.waitExceptSecurityHint}</span>
+				</span>
+				<input
+					type="checkbox"
+					checked={model.settings.waitExceptSecurity}
+					data-testid="setting-wait-security"
+					onchange={(e) => set({ waitExceptSecurity: e.currentTarget.checked })}
+				/>
+			</label>
+		{/if}
 		<div class="row">
 			<span class="text" id="language-label" data-testid="setting-language-label">{TEXT.language}</span>
 			<LanguagePicker

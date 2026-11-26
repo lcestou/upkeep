@@ -3238,3 +3238,28 @@ msgstr "{0} {1} richiede glibc {2}; questo sistema ha {3}, quindi non è stato i
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} è compilato per {2}; questo processore è {3}, quindi non è stato installato nulla."
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "Correzione di sicurezza"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "Questo aggiornamento corregge un problema di sicurezza. Apri la riga per vedere quale."
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "Citato nelle note di rilascio"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "Trovato nelle note di rilascio, negli avvisi del progetto su GitHub o su OSV.dev. Ognuno apre la sua pagina nel browser."
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "Tranne le correzioni di sicurezza"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "Un aggiornamento che corregge un problema di sicurezza viene proposto subito. Si installa da solo solo per un'app impostata su Auto."

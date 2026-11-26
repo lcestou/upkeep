@@ -105,7 +105,7 @@
 			<!-- One line: the repo gives way first, then each chip shrinks to its glyph; nothing wraps or is cut. -->
 			<span class="line" {@attach fitLine}>
 				<span class="tag-name" id="name-{app.key}">{app.name}</span>
-				{#if app.running || (!fresh && (app.sudo || app.auto))}
+				{#if app.running || (!fresh && (app.sudo || app.auto || app.security))}
 					<span class="chips">
 						{#if app.running}<span class="chip-use" title={chip.title} data-testid="chip-running"
 								><span class="dot" aria-hidden="true"></span><span class="ct">{chip.text}</span></span
@@ -114,6 +114,11 @@
 								><svg class="cg lock" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"
 									><path d="M3.5 5.5V4a2.5 2.5 0 0 1 5 0v1.5M2.75 5.5h6.5v4.25h-6.5Z" /></svg
 								><span class="ct">{CHIP.root.text}</span></span
+							>{/if}
+						{#if app.security && !fresh}<span class="chip sec" title={CHIP.security.title} data-testid="chip-security"
+								><svg class="cg shield" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"
+									><path d="M6 1.25 2.25 2.75v3c0 2.4 1.6 4.1 3.75 5 2.15-.9 3.75-2.6 3.75-5v-3Z" /></svg
+								><span class="ct">{CHIP.security.text}</span></span
 							>{/if}
 						{#if app.auto && !fresh}<span class="chip" title={CHIP.auto.title} data-testid="chip-auto"
 								><span class="cg auto-tile" aria-hidden="true"></span><span class="ct">{CHIP.auto.text}</span></span
@@ -421,6 +426,17 @@
 	.auto-tile::before {
 		content: "A";
 		font-weight: 700;
+	}
+	/* The breaking-change sign's colour: a fix worth reading about, not an alarm. */
+	.sec {
+		color: var(--rust);
+		border-color: var(--rust);
+	}
+	.shield {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.4;
+		stroke-linejoin: round;
 	}
 	.lock {
 		fill: none;
