@@ -268,3 +268,18 @@ test("an export carries running pauses, and an import takes them without asking,
 		t.cleanup();
 	}
 });
+
+test("an import drops a skip on a versionless app, which has no version to skip", () => {
+	const t = tempHome("transfer-skip-versionless");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		const apps =
+			'[apps.cc]\nname = "Claude Code plugins"\nkind = "claude-plugins"\nversionless = true\n\n[apps.t]\nname = "T"\nkind = "file"\nrepo = "o/t"\nasset = "t-linux"\ndest = "~/.local/bin/t"\n';
+		const doc = { ...exportSetup(t.paths, seed, new Date()), apps, skip: { cc: "1.0", t: "2.0" } };
+		expect(importSetup(t.paths, seed, JSON.stringify(doc), new Date(), true).ok).toBe(true);
+		expect(loadState(t.paths).skip).toEqual({ t: "2.0" });
+	} finally {
+		t.cleanup();
+	}
+});

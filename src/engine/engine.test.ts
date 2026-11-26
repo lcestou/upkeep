@@ -1867,9 +1867,59 @@ test("an automatic run leaves a held or paused versionless row alone, and Run no
 	expect(engine.setPause("cc", 7)).toBe(true);
 	expect(engine.snapshot().apps.find((a) => a.key === "cc")?.paused).toBeDefined();
 	expect(engine.readyKeys(true)).not.toContain("cc");
-	// A skip cannot reach this row: its check names no version (latest is null), so the pane offers no Skip and no
-	// skip matches. The person's own press still runs it.
+	expect(engine.setPause("cc", null)).toBe(true);
+	// Its check names no version, so no skip matches it in resting, but one set at all (by an import, or setSkip)
+	// keeps it out of automatic runs too.
+	expect(engine.setSkip("cc", "1.0")).toBe(true);
+	expect(engine.readyKeys(true)).not.toContain("cc");
+	expect(await engine.install(["cc"], false, true)).toEqual({ started: false, reason: REASON_NOTHING });
+	expect(engine.setSkip("cc", null)).toBe(true);
+	expect(engine.readyKeys(true)).toContain("cc");
+	// The person's own press runs it whatever is set.
+	engine.setHold("cc", true);
 	expect(await engine.install(["cc"])).toEqual({ started: true });
 	await engine.idle();
 	expect(engine.snapshot().run.results.find((r) => r.key === "cc")).toMatchObject({ result: "updated" });
+});
+
+test("a Hold pressed while an automatic run waits on the power check keeps the plugins row out of it", async () => {
+	const d = await deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		`${MANIFEST}\n[apps.cc]\nname = "Claude Code plugins"\nkind = "claude-plugins"\nversionless = true\nauto = true\n`,
+	);
+	mkdirSync(join(t.paths.home, ".claude/plugins"), { recursive: true });
+	writeFileSync(join(t.paths.home, ".claude/plugins/installed_plugins.json"), JSON.stringify({ plugins: {} }));
+	script(join(bin, "claude"), "exit 0");
+	updateState(t.paths, (s) => {
+		s.settings.waitUnmetered = true;
+	});
+	// No bus here: each power question fails, which reads as unmetered and on mains, after the person pressed Hold.
+	const power: EngineDeps["run"] = async () => {
+		engine.setHold("cc", true);
+		throw new Error("no bus");
+	};
+	const engine = createEngine({ ...d, power });
+	await engine.check();
+	expect(engine.readyKeys(true)).toContain("cc");
+	await engine.installAuto();
+	await engine.idle();
+	expect(engine.snapshot().run.results.map((r) => r.key)).not.toContain("cc");
+});
+
+test("a restore before the first check drops the interrupted note the cached row kept for that check", async () => {
+	const d = await deps();
+	const first = createEngine(d);
+	await first.check();
+	await first.install(["fd"]);
+	await first.idle();
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	writeFileSync(join(bin, "fd.upkeep-new"), "half");
+	const engine = createEngine(d);
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	expect(fd()?.status).toBe("problem");
+	expect(await engine.restore("fd", "10.5.1")).toEqual({ ok: true });
+	await engine.check();
+	expect(fd()?.status).not.toBe("problem");
+	expect(fd()?.detail ?? "").not.toContain("interrupted");
 });

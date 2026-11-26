@@ -143,8 +143,12 @@ export type Engine = {
 	check(keys?: string[], opts?: { quietOffline?: boolean }): Promise<void>;
 	/** Whether the last check found the network down: some app could not reach its forge and none that asks one got an answer. */
 	offline(): boolean;
-	/** now: a row held only because its release is still settling goes too, as Install now anyway asks. */
-	install(keys: string[], now?: boolean): Promise<{ started: boolean; reason?: string }>;
+	/**
+	 * now: a row held only because its release is still settling goes too, as Install now anyway asks. auto: an
+	 * automatic run, set only by installAuto, which never takes a versionless row the person held, paused or skipped,
+	 * even one held after readyKeys listed it. Without it (Run now, the person's press) a versionless row always runs.
+	 */
+	install(keys: string[], now?: boolean, auto?: boolean): Promise<{ started: boolean; reason?: string }>;
 	stopAfterCurrent(): void;
 	/**
 	 * Ends the run now: a cuttable step of the current app is cut and the app put back; a step that is never cut (a
@@ -990,6 +994,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		this: Engine,
 		keys: string[],
 		now: boolean,
+		auto: boolean,
 	): Promise<{ started: boolean; reason?: string }> {
 		// A run would write its own marker over the one a failed recovery kept.
 		if ((await this.recover()).some((r) => !r.ok)) return { started: false, reason: REASON_UNRECOVERED };
@@ -1007,7 +1012,9 @@ export function createEngine(deps: EngineDeps): Engine {
 		const wanted = new Set(keys);
 		const pick = specs.filter((s) => {
 			const a = apps.get(s.key);
-			return wanted.has(s.key) && a && (takesRow(a, now || (retry && failed.has(s.key))) || a.versionless);
+			if (!wanted.has(s.key) || !a) return false;
+			if (takesRow(a, now || (retry && failed.has(s.key)))) return true;
+			return a.versionless === true && (!auto || versionlessFree(a));
 		});
 		const queue = [...pick];
 		if (queue.length === 0) return { started: false, reason: REASON_NOTHING };
@@ -1230,6 +1237,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				checked: outcome.checked,
 			};
 			run.results.push(result);
+			// An install that went through leaves nothing interrupted to report at the next check.
+			if (outcome.result === "done") interrupted.delete(spec.key);
 			history.push({ ...result, runId: run.id ?? "", at: deps.now().toISOString(), stages: outcome.stages });
 			emitRun();
 			// A marker this app kept is the only record of a tree that could not be put back; the next app would erase it.
@@ -1279,7 +1288,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			busy = p;
 			return p;
 		},
-		async install(keys, now = false) {
+		async install(keys, now = false, auto = false) {
 			if (run.phase === "checking") return { started: false, reason: REASON_CHECKING };
 			if (run.phase === "installing" && runQueue) return addToRun(keys, now);
 			if (run.phase === "installing" || starting) return { started: false, reason: REASON_BUSY };
@@ -1287,7 +1296,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			// (pressed, or the schedule's) would run beside the install, so check() refuses while this is set.
 			starting = true;
 			try {
-				return await startInstall.call(this, keys, now);
+				return await startInstall.call(this, keys, now, auto);
 			} finally {
 				starting = false;
 			}
@@ -1404,6 +1413,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				}
 				const r = await restoreBackup(paths, spec, version, deps.run, spec.keep_with_restore);
 				if (!r.ok) return r;
+				// A restore that went through leaves nothing interrupted to report at the next check.
+				interrupted.delete(key);
 				prune(paths, key, loadState(paths).settings.keepBackups);
 				await refreshMenu(spec);
 				await packOlder(paths, key, deps.run, kindCtx(key).log);
@@ -1698,7 +1709,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			const keys = engine.readyKeys(true);
 			if (keys.length === 0) return { started: false, reason: REASON_NOTHING };
 			const wait = deps.power && loadState(paths).settings.waitUnmetered ? await waitReason(deps.power) : null;
-			if (!wait) return engine.install(keys);
+			// Hold, Pause or Skip may be pressed while the power check waits: install looks again with auto.
+			if (!wait) return engine.install(keys, false, true);
 			say(null, `Automatic updates wait: ${wait === "metered" ? "metered connection" : "on battery"}`);
 			return { started: false, wait };
 		},
@@ -1709,7 +1721,7 @@ export function createEngine(deps: EngineDeps): Engine {
 				if (!a) continue;
 				if (a.status === "ready" && (!autoOnly || a.auto)) keys.push(s.key);
 				// A versionless row runs in every automatic run, unless the person held, paused or skipped it.
-				else if (autoOnly && a.versionless && a.auto && !a.held && !a.paused && a.status !== "held") keys.push(s.key);
+				else if (autoOnly && a.versionless && a.auto && versionlessFree(a)) keys.push(s.key);
 			}
 			return keys;
 		},
@@ -1874,6 +1886,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const current = apps.get(spec.key)?.installed ?? null;
 		const r = await restoreBuilt(spec, version, kindCtx(spec.key));
 		if (!r.ok) return r;
+		interrupted.delete(spec.key);
 		const installed = (await readInstalled(spec, kindCtx(spec.key)))?.installed ?? null;
 		const at = deps.now();
 		appendHistory(paths, [
@@ -1952,6 +1965,14 @@ export function createEngine(deps: EngineDeps): Engine {
 			emitApp(a);
 		}
 		armSettle();
+	}
+
+	/**
+	 * Whether an automatic run may take a versionless row: not held, not paused, and no skip set for it. Its check names
+	 * no version, so a skip never matches one and holds it in resting; one set at all (an import, setSkip) still counts.
+	 */
+	function versionlessFree(a: AppState): boolean {
+		return !a.held && !a.paused && a.status !== "held" && loadState(paths).skip[a.key] === undefined;
 	}
 
 	/** Re-derives a resting row after a skip or hold change. */

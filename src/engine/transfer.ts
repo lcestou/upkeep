@@ -232,14 +232,12 @@ function waitLowered(paths: Paths, settings: Record<string, unknown>): ImportAsk
  * the same shared file twice leaves its apps off, and re-importing one's own list here changes nothing. autoOff
  * names the new or changed apps the file wanted on, which came in off. apps.toml, state.json and extras.json are each
  * kept beside themselves as <file>.pre-import-<time> first, and a write that fails midway puts them back and removes
- * any the import created. Skips, holds and pauses are kept only for apps the new list has. A pre-release switch is never
- * taken from the file, since it changes what installs: a matching app keeps this machine's, any other has none, and a
- * table's own prerelease field makes it differ, so its auto comes in off. The file never carries a menu
-
- * entry: an app it drops or changes has its entry switched off and its files deleted, so no entry points at a dest
- * the new table no longer names;
- * settings and extras go through the same checks as the files they land in, so an out-of-range value reads as its
- * default.
+ * any the import created. Skips, holds and pauses are kept only for apps the new list has, and a skip never for a
+ * versionless app, which has no version to skip. A pre-release switch is never taken from the file, since it changes
+ * what installs: a matching app keeps this machine's, any other has none, and a table's own prerelease field makes it
+ * differ, so its auto comes in off. The file never carries a menu entry: an app it drops or changes has its entry
+ * switched off and its files deleted, so no entry points at a dest the new table no longer names; settings and
+ * extras go through the same checks as the files they land in, so an out-of-range value reads as its default.
  */
 export function importSetup(
 	paths: Paths,
@@ -326,7 +324,13 @@ export function importSetup(
 		updateState(paths, (s) => {
 			// SAFETY: the next loadState clamps every field of settings, so a wrong value reads as its default, never as this.
 			s.settings = { ...s.settings, ...(settings as Partial<Settings>) };
-			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
+			const versionless = new Set(list.apps.filter((a) => a.versionless).map((a) => a.key));
+			// A versionless app has no version to skip; a skip on one would only keep it out of automatic runs unseen.
+			s.skip = Object.fromEntries(
+				Object.entries(mine(only(doc.skip, (x): x is string => typeof x === "string"))).filter(
+					([k]) => !versionless.has(k),
+				),
+			);
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
 			// A pause only holds an app back for a while, so it comes in without asking; livePauses drops any other end.
 			s.pause = mine(livePauses(isRecord(doc.pause) ? doc.pause : {}, now));
