@@ -505,6 +505,7 @@ test("settings and auto are kept in state", async () => {
 		selfAuto: false,
 		upkeepCommand: false,
 		waitDays: 0,
+		waitExceptSecurity: true,
 		waitUnmetered: false,
 		webhookReady: true,
 		webhookRun: false,
@@ -1283,6 +1284,45 @@ test("a wait in Settings holds a release younger than it until it settles, and I
 	expect(fd()).toMatchObject({ status: "done", settles: undefined });
 });
 
+test("a security fix is looked for once per latest, and skips the wait while Except security fixes is on", async () => {
+	const d = await deps();
+	const asked: string[] = [];
+	const advisories = [
+		{ ghsa_id: "GHSA-aaaa-bbbb-cccc", cve_id: "CVE-2026-0001", vulnerabilities: [{ patched_versions: "10.5.2" }] },
+	];
+	const engine = createEngine({
+		...d,
+		now: () => new Date("2026-11-10T00:00:00Z"),
+		fetch: (url, init) => {
+			asked.push(url);
+			if (url.includes("/repos/sharkdp/fd/security-advisories")) return Promise.resolve(Response.json(advisories));
+			if (url.includes("/repos/sharkdp/fd/releases?"))
+				return Promise.resolve(
+					Response.json([
+						{ tag_name: "v10.5.2", body: "Fixes a vulnerability.", published_at: "2026-11-09T00:00:00Z", assets: [] },
+					]),
+				);
+			return d.fetch(url, init);
+		},
+	});
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	engine.setSettings({ waitDays: 3 });
+	await engine.check();
+	expect(fd()).toMatchObject({ status: "ready", settles: undefined });
+	expect(fd()?.security?.ids.map((i) => i.id)).toEqual(["GHSA-aaaa-bbbb-cccc", "CVE-2026-0001"]);
+	// An app up to date is never asked about.
+	expect(asked.some((u) => u.includes("sharkdp/bat/security-advisories"))).toBe(false);
+	engine.setSettings({ waitExceptSecurity: false });
+	expect(fd()).toMatchObject({ status: "held", settles: "2026-11-12T00:00:00.000Z" });
+	engine.setSettings({ waitExceptSecurity: true });
+	expect(fd()?.status).toBe("ready");
+	// The same latest at the next check: the answer is kept, nothing is asked again.
+	const before = asked.filter((u) => u.includes("security-advisories")).length;
+	await engine.check(["fd"]);
+	expect(asked.filter((u) => u.includes("security-advisories")).length).toBe(before);
+	expect(fd()?.security?.ids).toHaveLength(2);
+});
+
 test("settlesAt: no wait, no date, an unreadable date or an old enough release offers it now", () => {
 	const now = new Date("2026-11-10T00:00:00Z");
 	expect(settlesAt("2026-11-09T00:00:00Z", 0, now)).toBeUndefined();
@@ -1353,8 +1393,8 @@ test("a saved token GitHub stops taking falls back to gh's sign-in for the check
 	expect(await engine.setToken(token)).toBe("ok");
 	expired = true;
 	await engine.check(["fd"]);
-	// The release, then the repo's ids on first sight: both with gh's sign-in.
-	expect(sent).toEqual(["Bearer gho_fromgh", "Bearer gho_fromgh"]);
+	// The release, the repo's ids on first sight, and the security look's release list and advisories: all with gh's sign-in.
+	expect(sent).toEqual(["Bearer gho_fromgh", "Bearer gho_fromgh", "Bearer gho_fromgh", "Bearer gho_fromgh"]);
 	expect(engine.tokenState()).toEqual({ hint: "bbbb", refused: "gh" });
 	gh = false;
 	await engine.check(["fd"]);

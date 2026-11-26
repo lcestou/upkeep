@@ -163,7 +163,8 @@ export function webhookBody(
 	host: string,
 	listed: { key: string }[],
 ): NoticeBody {
-	return {
+	const apps = event === "ready" ? snapshot.apps.filter((a) => a.status === "ready").map(readyApp) : null;
+	const body: NoticeBody = {
 		title: "Upkeep",
 		message,
 		event,
@@ -171,13 +172,18 @@ export function webhookBody(
 		version: snapshot.version,
 		// The same counts `upkeep status` prints: ready is what Install takes (as apps lists), manual apart.
 		counts: countsOf(snapshot.apps, listed),
-		apps:
-			event === "ready"
-				? snapshot.apps
-						.filter((a) => a.status === "ready")
-						.map((a) => ({ key: a.key, name: a.name, installed: a.installed, latest: a.latest }))
-				: snapshot.run.results.map(resultApp),
+		apps: apps ?? snapshot.run.results.map(resultApp),
 	};
+	// Only a ready notice with a security fix in it asks for more; every other notice is as it always was.
+	if (apps?.some((a) => a.security)) body.priority = "high";
+	return body;
+}
+
+/** A ready app as a notice names it, with its security fix only when it has one. */
+function readyApp(a: AppState): NoticeApp {
+	const out: NoticeApp = { key: a.key, name: a.name, installed: a.installed, latest: a.latest };
+	if (a.security) out.security = a.security;
+	return out;
 }
 
 /** A run's result as a notice names it, with its detail only where there is one. */
