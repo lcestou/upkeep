@@ -95,7 +95,16 @@ test("check --json prints one AppState per line", async () => {
 test("check ends with a WATCH line, or a {key, watch} object, for an app with a sign since its update", async () => {
 	const at = new Date(Date.now() - 3_600_000).toISOString();
 	updateState(t.paths, (s) => {
-		s.probation.bat = { at, from: "0.26.0", to: "0.26.1", restarts: {}, misses: 0, sign: "crash", crashes: 1 };
+		s.probation.bat = {
+			at,
+			from: "0.26.0",
+			to: "0.26.1",
+			restarts: {},
+			failed: [],
+			misses: 0,
+			sign: "crash",
+			crashes: 1,
+		};
 	});
 	const out: string[] = [];
 	await main(["check"], deps(), (l) => out.push(l));

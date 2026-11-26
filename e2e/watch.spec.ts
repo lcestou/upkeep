@@ -47,6 +47,13 @@ test("Settings has Watch updated apps under Safety, on by default", async ({ pag
 	await expect(box).toBeChecked();
 	await box.uncheck();
 	await expect(box).not.toBeChecked();
+	// Off takes the signs down at once; on again puts them back.
+	await page.getByTestId("tab-updates").click();
+	await expect(page.getByTestId("chip-watch-fzf")).toHaveCount(0);
+	await page.getByTestId("tab-settings").click();
+	await page.getByTestId("setting-watch").check();
+	await page.getByTestId("tab-updates").click();
+	await expect(page.getByTestId("chip-watch-fzf")).toHaveText("Crashed since update");
 });
 
 test("with no restore point of the version before, the pane says so and offers only It's fine", async ({ page }) => {

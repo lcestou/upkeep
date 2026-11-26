@@ -79,9 +79,19 @@ test("a unit reads as its state and restart count, and anything unreadable as nu
 	// systemctl missing: the runner throws, which is nothing to report.
 	expect(await readUnit(run, { name: "throws", user: false })).toBeNull();
 	expect(await restartBaseline(run, spec({ restart: ["systemctl", "--user", "restart", "good"] }))).toEqual({
-		"user:good": 4,
+		restarts: { "user:good": 4 },
+		failed: [],
 	});
-	expect(await restartBaseline(run, spec({ restart: ["systemctl", "restart", "denied"] }))).toEqual({});
+	expect(await restartBaseline(run, spec({ restart: ["systemctl", "restart", "denied"] }))).toEqual({
+		restarts: {},
+		failed: [],
+	});
+	// A unit already failed at the update is kept apart, so its failing later says nothing about the update.
+	const down = strictRun(() => ok("NRestarts=1\nActiveState=failed\n")).run;
+	expect(await restartBaseline(down, spec({ restart: ["systemctl", "restart", "down"] }))).toEqual({
+		restarts: { "system:down": 1 },
+		failed: ["system:down"],
+	});
 });
 
 test("crashes come from the journal, leaving out Chromium and Electron helpers and lines that do not read", async () => {
@@ -144,6 +154,9 @@ test("a service is a sign when failed or when it restarted 3 times since the upd
 	expect(serviceSign({ active: "failed", restarts: 0 }, 0)).toBe(true);
 	expect(serviceSign({ active: "active", restarts: 5 }, 2)).toBe(true);
 	expect(serviceSign({ active: "active", restarts: 4 }, 2)).toBe(false);
+	// Failed already at the update: not a sign of it, though restarting on and on since still is.
+	expect(serviceSign({ active: "failed", restarts: 0 }, 0, true)).toBe(false);
+	expect(serviceSign({ active: "failed", restarts: 3 }, 0, true)).toBe(true);
 	// No baseline (the unit could not be read at the update): only failed counts.
 	expect(serviceSign({ active: "activating", restarts: 40 }, undefined)).toBe(false);
 });
@@ -176,7 +189,14 @@ test("two health misses in a row make a sign; an answer between them starts the 
 	const { run } = strictRun(() => undefined);
 	const s = spec({ health: "http://127.0.0.1:9/health" });
 	const deps = { run, fetch, paths: t.paths, now: new Date(AT + HOUR) };
-	const start: Probation = { at: new Date(AT).toISOString(), from: "1.0", to: "1.1", restarts: {}, misses: 0 };
+	const start: Probation = {
+		at: new Date(AT).toISOString(),
+		from: "1.0",
+		to: "1.1",
+		restarts: {},
+		failed: [],
+		misses: 0,
+	};
 	const one = await look(s, start, [], deps);
 	expect(one).toMatchObject({ misses: 1 });
 	expect(one.sign).toBeUndefined();
@@ -201,6 +221,7 @@ test("a look reads crashes first, then the service, and keeps the first sign it 
 		from: "1.0",
 		to: "1.1",
 		restarts: { "system:tool": 0 },
+		failed: [],
 		misses: 0,
 	};
 	expect(await look(s, start, [], deps)).toMatchObject({ sign: "service" });
@@ -211,7 +232,7 @@ test("a look reads crashes first, then the service, and keeps the first sign it 
 });
 
 test("a probation runs out after 3 days, and only a sign shows on the row", () => {
-	const p: Probation = { at: new Date(AT).toISOString(), from: "1.0", to: "1.1", restarts: {}, misses: 0 };
+	const p: Probation = { at: new Date(AT).toISOString(), from: "1.0", to: "1.1", restarts: {}, failed: [], misses: 0 };
 	expect(expired(p, new Date(AT + 71 * HOUR))).toBe(false);
 	expect(expired(p, new Date(AT + 73 * HOUR))).toBe(true);
 	expect(watchOf(undefined)).toBeUndefined();

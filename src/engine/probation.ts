@@ -21,15 +21,17 @@ const COREDUMP_MESSAGE = "MESSAGE_ID=fc2e22bc6ee647b6b90729ab34a250b1";
 
 /**
  * One app's probation, kept in state.json from the update that finished until the person answers or it runs out.
- * restarts is each unit's NRestarts read right after the update; misses counts health checks failed in a row; sign
- * is set once and stays until the person answers, a restore or a new update; crashes is the last count seen since
- * the update.
+ * restarts is each unit's NRestarts read right after the update, and failed the units already failed then; misses
+ * counts health checks failed in a row; sign is set once and stays until the person answers, a restore, a new update
+ * or the end of the three days, and a record with a sign is not read again; crashes is the count seen when the sign
+ * went up.
  */
 export type Probation = {
 	at: string;
 	from: string | null;
 	to: string | null;
 	restarts: Record<string, number>;
+	failed: string[];
 	misses: number;
 	sign?: WatchSign;
 	crashes?: number;
@@ -80,16 +82,22 @@ export async function readUnit(run: Run, u: Unit): Promise<{ active: string; res
 	}
 }
 
-/** Every unit's NRestarts now, for the baseline an update starts probation with. A unit that cannot be read is left out. */
-export async function restartBaseline(run: Run, spec: AppSpec): Promise<Record<string, number>> {
+/**
+ * Every unit's NRestarts now, and the units already failed now, for the baseline an update starts probation with. A
+ * unit that cannot be read is left out of both.
+ */
+export async function restartBaseline(run: Run, spec: AppSpec): Promise<Pick<Probation, "restarts" | "failed">> {
 	const units = unitsOf(spec);
 	const read = await Promise.all(units.map((u) => readUnit(run, u)));
-	const out: Record<string, number> = {};
+	const restarts: Record<string, number> = {};
+	const failed: string[] = [];
 	for (const [i, u] of units.entries()) {
 		const r = read[i];
-		if (r) out[unitKey(u)] = r.restarts;
+		if (!r) continue;
+		restarts[unitKey(u)] = r.restarts;
+		if (r.active === "failed") failed.push(unitKey(u));
 	}
-	return out;
+	return { restarts, failed };
 }
 
 /** One core dump: the crashed program's path and when it was logged, in ms. */
@@ -185,9 +193,18 @@ export function crashSign(
 	return { after, sign: after > before };
 }
 
-/** A service is a sign when it is failed, or when it restarted RESTART_GROWTH times or more since the update. */
-export function serviceSign(now: { active: string; restarts: number }, baseline: number | undefined): boolean {
-	return now.active === "failed" || (baseline !== undefined && now.restarts - baseline >= RESTART_GROWTH);
+/**
+ * A service is a sign when it is failed and was not already failed at the update, or when it restarted
+ * RESTART_GROWTH times or more since the update. A unit failed before the update says nothing about it.
+ */
+export function serviceSign(
+	now: { active: string; restarts: number },
+	baseline: number | undefined,
+	wasFailed = false,
+): boolean {
+	return (
+		(now.active === "failed" && !wasFailed) || (baseline !== undefined && now.restarts - baseline >= RESTART_GROWTH)
+	);
 }
 
 /** Whether the health address answers a GET with a 2xx status within HEALTH_TIMEOUT_MS. Any fault is a miss. */
@@ -221,7 +238,7 @@ export async function look(spec: AppSpec, p: Probation, crashes: Crash[], deps: 
 	const read = await Promise.all(units.map((u) => readUnit(deps.run, u)));
 	for (const [i, u] of units.entries()) {
 		const r = read[i];
-		if (r && serviceSign(r, p.restarts[unitKey(u)])) next.sign ??= "service";
+		if (r && serviceSign(r, p.restarts[unitKey(u)], p.failed.includes(unitKey(u)))) next.sign ??= "service";
 	}
 	if (spec.health) {
 		const ok = await healthAnswers(deps.fetch, spec.health, deps.healthTimeoutMs);

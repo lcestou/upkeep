@@ -219,7 +219,28 @@ test("a new update replaces the probation, sign and all", async () => {
 	});
 });
 
-test("a probation with no sign ends after 3 days; one with a sign stays but is not read again", async () => {
+test("a record with a sign is not read again, and every probation ends after 3 days, sign and all", async () => {
+	const { engine, m } = await setup();
+	await update(engine);
+	m.active = "failed";
+	await engine.check();
+	expect(row(engine)?.watch?.sign).toBe("service");
+	// The sign stays, and nothing about the app is read again: no journal, no unit, no GET.
+	m.active = "active";
+	m.reads = [];
+	m.clock += HOUR;
+	await engine.check();
+	expect(m.reads).toEqual([]);
+	expect(row(engine)?.watch?.sign).toBe("service");
+	// Past the three days the record and its sign go, still with nothing read.
+	m.clock += 72 * HOUR;
+	await engine.check();
+	expect(m.reads).toEqual([]);
+	expect(loadState(t.paths).probation).toEqual({});
+	expect(row(engine)?.watch).toBeUndefined();
+});
+
+test("a probation with no sign ends after 3 days with nothing read", async () => {
 	const { engine, m } = await setup();
 	await update(engine);
 	m.clock += 73 * HOUR;
@@ -227,19 +248,55 @@ test("a probation with no sign ends after 3 days; one with a sign stays but is n
 	await engine.check();
 	expect(m.reads).toEqual([]);
 	expect(loadState(t.paths).probation).toEqual({});
-	updateState(t.paths, (s) => {
-		s.probation.tool = {
-			at: new Date(m.clock - 80 * HOUR).toISOString(),
-			from: "1.0.0",
-			to: "1.1.0",
-			restarts: {},
-			misses: 0,
-			sign: "health",
-		};
-	});
+});
+
+test("a unit already failed at the update is no sign; restarting on and on since still is", async () => {
+	const { engine, m } = await setup();
+	m.active = "failed";
+	await update(engine);
+	expect(loadState(t.paths).probation.tool?.failed).toEqual(["user:tool.service"]);
+	await engine.check();
+	expect(row(engine)?.watch).toBeUndefined();
+	m.restarts = 5;
+	await engine.check();
+	expect(row(engine)?.watch?.sign).toBe("service");
+});
+
+test("an update with Watch updated apps off drops the record of the update before", async () => {
+	const { engine, m } = await setup();
+	await update(engine);
+	expect(loadState(t.paths).probation.tool?.to).toBe("1.1.0");
+	engine.setSettings({ watchUpdates: false });
+	m.latest = "1.2.0";
+	await engine.check();
+	await update(engine);
+	expect(loadState(t.paths).probation).toEqual({});
+	// Turned on again, no stale record comes back to life.
+	engine.setSettings({ watchUpdates: true });
+	m.reads = [];
 	await engine.check();
 	expect(m.reads).toEqual([]);
-	expect(row(engine)?.watch?.sign).toBe("health");
+	expect(row(engine)?.watch).toBeUndefined();
+});
+
+test("turning Watch updated apps off takes every sign down at once, and on puts a kept one back", async () => {
+	const { engine, m } = await setup();
+	await update(engine);
+	m.active = "failed";
+	await engine.check();
+	const seen: (string | undefined)[] = [];
+	engine.subscribe((e) => {
+		if (e.type === "app" && e.app.key === "tool") seen.push(e.app.watch?.sign);
+	});
+	engine.setSettings({ watchUpdates: false });
+	expect(row(engine)?.watch).toBeUndefined();
+	expect(seen).toEqual([undefined]);
+	// Setting it to what it already is sends nothing.
+	engine.setSettings({ watchUpdates: false });
+	expect(seen).toEqual([undefined]);
+	engine.setSettings({ watchUpdates: true });
+	expect(row(engine)?.watch?.sign).toBe("service");
+	expect(seen).toEqual([undefined, "service"]);
 });
 
 test("with Watch updated apps off, an update keeps no probation and a check reads nothing", async () => {
@@ -255,6 +312,7 @@ test("with Watch updated apps off, an update keeps no probation and a check read
 			from: "1.0.0",
 			to: "1.1.0",
 			restarts: {},
+			failed: [],
 			misses: 0,
 			sign: "crash",
 		};

@@ -30,6 +30,7 @@ import type {
 	Suggestion,
 	TokenState,
 	SystemState,
+	Watch,
 	WatchSign,
 	WindowButton,
 	WindowChrome,
@@ -1060,6 +1061,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		emit({ type: "app", app });
 	};
 	const get = (key: string) => apps.find((a) => a.key === key);
+	// Signs hidden while Watch updated apps is off, as the engine keeps them in state, by key.
+	const hiddenWatch = new Map<string, Watch>();
 	const setRun = (patch: Partial<RunState>) => {
 		run = { ...run, ...patch };
 		emit({ type: "run", run });
@@ -1586,6 +1589,20 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				keepBackups: Math.min(5, Math.max(1, patch.keepBackups ?? settings.keepBackups)),
 			};
 			if (patch.waitDays !== undefined || patch.waitExceptSecurity !== undefined) settleRows(settings.waitDays);
+			// As the engine: off takes every sign down at once, on puts the kept ones back.
+			if (patch.watchUpdates === false)
+				for (const a of apps)
+					if (a.watch) {
+						hiddenWatch.set(a.key, a.watch);
+						put({ ...a, watch: undefined });
+					}
+			if (patch.watchUpdates === true) {
+				for (const [key, watch] of hiddenWatch) {
+					const a = get(key);
+					if (a) put({ ...a, watch });
+				}
+				hiddenWatch.clear();
+			}
 			emit({ type: "meta", rate, checkedAt, settings });
 			return clone(settings);
 		},

@@ -94,7 +94,7 @@ import {
 import { launchDetached, restartApp, terminate } from "./restart";
 import { isNewer, isPrerelease } from "./version";
 import { notesSpan } from "./notes";
-import { expired, look as lookProbation, type Probation, readCrashes, restartBaseline, watchOf } from "./probation";
+import { expired, look as lookProbation, readCrashes, restartBaseline, watchOf } from "./probation";
 import { lookSecurity } from "./security";
 
 export type EngineDeps = {
@@ -966,8 +966,9 @@ export function createEngine(deps: EngineDeps): Engine {
 	/**
 	 * Looks once at each app in list that is on probation: one journal read for every app's crashes, then each app's
 	 * units and health address (probation.look). Nothing is read while Settings' Watch updated apps is off or no app
-	 * in list is on probation. A probation past its three days with no sign ends here, setting on or off; one with a
-	 * sign stays until the person answers, but is not read again. A sign that is new is logged and shown on the row.
+	 * in list is on probation, and a record that already has a sign is not read again. A probation past its three days
+	 * ends here, sign or not, setting on or off, and its row's sign comes down. A sign that is new is logged and shown
+	 * on the row.
 	 */
 	async function watchApps(list: AppSpec[]): Promise<void> {
 		const state = loadState(paths);
@@ -976,13 +977,21 @@ export function createEngine(deps: EngineDeps): Engine {
 			const p = state.probation[s.key];
 			return p ? [{ spec: s, p }] : [];
 		});
-		const over = on.filter(({ p }) => expired(p, now) && !p.sign).map(({ spec }) => spec.key);
+		const over = on.filter(({ p }) => expired(p, now)).map(({ spec }) => spec.key);
 		if (over.length > 0)
 			updateState(paths, (s) => {
 				for (const key of over) delete s.probation[key];
 			});
+		for (const key of over) {
+			const a = apps.get(key);
+			if (a?.watch) {
+				a.watch = undefined;
+				emitApp(a);
+			}
+		}
 		if (!state.settings.watchUpdates) return;
-		const live = on.filter(({ p }) => !expired(p, now));
+		// A record with a sign is not read again: the sign stays as it is until the person answers or the days run out.
+		const live = on.filter(({ p }) => !expired(p, now) && !p.sign);
 		if (live.length === 0) return;
 		// Back as far before the oldest update as it is ago, so each app's before and after spans are both read.
 		const oldest = Math.min(...live.map(({ p }) => Date.parse(p.at)));
@@ -1022,16 +1031,17 @@ export function createEngine(deps: EngineDeps): Engine {
 	}
 
 	/**
-	 * Starts an app's probation after an update went through, with its units' restart counts read now as the
-	 * baseline. A new update replaces the record. Nothing is read or kept while Watch updated apps is off, and an app
+	 * Starts an app's probation after an update went through, with its units' restart counts and failed states read
+	 * now as the baseline. A new update always drops the record of the one before, whose versions it no longer
+	 * describes; a new record is kept only while Watch updated apps is on, and nothing is read while it is off. An app
 	 * with no version (Claude Code's plugins) is never watched.
 	 */
 	async function startProbation(spec: AppSpec, from: string | null, to: string | null): Promise<void> {
-		if (spec.versionless || !loadState(paths).settings.watchUpdates) return;
-		const restarts = await restartBaseline(deps.run, spec);
-		const rec: Probation = { at: deps.now().toISOString(), from, to, restarts, misses: 0 };
+		const watching = !spec.versionless && loadState(paths).settings.watchUpdates;
+		const base = watching ? await restartBaseline(deps.run, spec) : null;
 		updateState(paths, (s) => {
-			s.probation[spec.key] = rec;
+			if (base) s.probation[spec.key] = { at: deps.now().toISOString(), from, to, ...base, misses: 0 };
+			else delete s.probation[spec.key];
 		});
 	}
 
@@ -1840,6 +1850,15 @@ export function createEngine(deps: EngineDeps): Engine {
 			// A new wait moves rows between Ready and settling at once, without a check.
 			if (patch.waitDays !== undefined || patch.waitExceptSecurity !== undefined)
 				for (const key of apps.keys()) refresh(key);
+			// Watch updated apps turned off hides every sign at once, and turned on shows the kept ones again.
+			if (patch.watchUpdates !== undefined)
+				for (const a of apps.values()) {
+					const w = s.settings.watchUpdates ? watchOf(s.probation[a.key]) : undefined;
+					if (JSON.stringify(a.watch) !== JSON.stringify(w)) {
+						a.watch = w;
+						emitApp(a);
+					}
+				}
 			emitMeta();
 			return s.settings;
 		},

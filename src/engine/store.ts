@@ -78,6 +78,7 @@ function probationsOf(v: unknown): Record<string, Probation> {
 			// SAFETY: as above.
 			to: r.to as string | null,
 			restarts,
+			failed: Array.isArray(r.failed) ? r.failed.filter((u): u is string => typeof u === "string") : [],
 			misses: typeof r.misses === "number" ? r.misses : 0,
 		};
 		const sign = [...SIGNS].find((s) => s === r.sign);
