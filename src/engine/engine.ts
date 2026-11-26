@@ -832,6 +832,8 @@ export function createEngine(deps: EngineDeps): Engine {
 			if (was?.latest === latest && was.complete) return;
 			// Read before the release list too: with the budget low, nothing more goes to GitHub and the look stays incomplete.
 			const low = rate !== null && rate.remaining < SECURITY_RESERVE;
+			// A low budget learns nothing new for a latest already looked at: keep that answer rather than lose its advisories.
+			if (low && was?.latest === latest) return;
 			let notes = c.notes ? [c.notes] : [];
 			let listed = !low || !canList(spec);
 			if (canList(spec) && !low) {

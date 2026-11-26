@@ -1323,7 +1323,7 @@ test("a security fix is looked for once per latest, and skips the wait while Exc
 	expect(fd()?.security?.ids).toHaveLength(2);
 });
 
-test("with GitHub's budget low, the security look asks GitHub nothing and stays open for the next check", async () => {
+test("with GitHub's budget low, the security look adds no GitHub request to the check's own", async () => {
 	const d = await deps();
 	const asked: string[] = [];
 	const engine = createEngine({
