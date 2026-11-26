@@ -14,7 +14,7 @@ While a run installs, the footer shows **Stop after this one**: the app being in
 
 ## Release notes
 
-An app's pane shows what changed in the release on offer. When the app comes from GitHub, GitLab or Codeberg releases and the installed version is more than one release behind, it shows the notes of every release after the installed one up to the latest, newest first, each under its version. Upkeep asks the forge for that list only when the pane opens, never during a check, and an unchanged list is read from its cache. The list holds the forge's ten newest releases and about 40,000 characters of notes; past either, the pane says that older releases are not shown, and the release page has them all. Source builds show their commits instead, and an app updated by its own command keeps the notes it showed before.
+An app's pane shows what changed in the release on offer. When the app comes from GitHub, GitLab or Codeberg releases and the installed version is more than one release behind, it shows the notes of every release after the installed one up to the latest, newest first, each under its version. Upkeep asks the forge for that list when the pane opens, and once during a check when an app has a new latest to look over for a security fix (below); an unchanged list is read from its cache. The list holds the forge's ten newest releases and about 40,000 characters of notes; past either, the pane says that older releases are not shown, and the release page has them all. Source builds show their commits instead, and an app updated by its own command keeps the notes it showed before.
 
 Above the notes, a **Breaking changes** line quotes up to three lines that read as a breaking change, each with the version it comes from. It is found by plain word rules, not by a model, so it can miss one or quote a harmless line; it only informs and never holds an update. A line counts when it holds any of these, in any case:
 
@@ -25,6 +25,18 @@ Above the notes, a **Breaking changes** line quotes up to three lines that read 
 - "requires manual" or "require manual"
 
 A heading that matches, such as "## Breaking changes", is not quoted itself: the first line under it is. The list lives in `BREAKING_MARKERS` in `src/engine/notes.ts`.
+
+### Security fixes
+
+When an app has an update waiting, a check looks once whether that update fixes a security problem, and keeps the answer for that latest version, so later checks ask nothing more until a newer version appears. An app that is up to date is never asked about. Three sources count:
+
+- The release notes between the installed version and the latest: a CVE ID (`CVE-2026-12345`), a GitHub advisory ID (`GHSA-xxxx-xxxx-xxxx`), or one of the words "security fix", "security issue", "security vulnerability", "security advisory", "security release", "security update" or "vulnerability", in any case. "security" alone does not count ("security policy", `SECURITY.md`), nor "non-security update" or "no known vulnerabilities". The list lives in `SECURITY_WORDS` in `src/engine/security.ts`.
+- For an app whose releases are on GitHub, the repo's published security advisories: one counts when a patched version lies above the installed version and at or below the latest. This uses your GitHub token when one is set, and is skipped while fewer than 50 requests are left in GitHub's hour.
+- For a tool from PyPI, npm or crates.io (installed with uv, pipx, npm or cargo), OSV.dev, asked with the installed version: a vulnerability counts when its fix is at or below the latest.
+
+A source that cannot be reached adds nothing and is asked again at the next check; it never shows as a problem. The row then wears a **Security fix** chip, and its pane lists the IDs found, each opening its page (cve.org, GitHub's advisory database or OSV.dev) in your browser, or says "Mentioned in the release notes" when only the words matched. `upkeep check` and `upkeep status` add `(security fix: …)` to the line.
+
+With **Wait before offering a new release** set in Settings, **Except security fixes** (on by default) offers such an update at once instead of waiting. It installs by itself only for an app set to install automatically, as any offered update does.
 
 ## About
 
@@ -55,6 +67,8 @@ The body:
 	"apps": [{ "key": "fd", "name": "fd", "installed": "10.2.0", "latest": "10.3.0" }]
 }
 ```
+
+When an update in a ready notice fixes a security problem, that app carries `"security": {"ids": [{"id", "url"}]}` (the list is empty when only its release notes say so), the body carries `"priority": "high"`, and the request carries the header `X-Priority: high`, which ntfy reads as its priority. Every other notice is sent as before.
 
 `title` and `message` are the desktop notice's own words, in the language Upkeep speaks. `event` is `"ready"` or `"run"`; after a run, `apps` holds each result instead: `{"key", "name", "from", "to", "result"}`, with `"detail"` when the app failed. `host` is the computer's name, so one receiver can tell several machines apart. `counts` are the numbers `upkeep status` prints: `ready` is what Install takes, `manual` an update you run by hand.
 
