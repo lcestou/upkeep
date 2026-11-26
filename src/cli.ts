@@ -11,6 +11,7 @@ import type {
 	Suggestion,
 } from "./shared/types";
 import { listBackups } from "./engine/backup";
+import { COUNTDOWN_MS, type PowerAction, powerBlocker, powerNow } from "./engine/power";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
@@ -24,7 +25,9 @@ export const USAGE = [
 	"Usage: upkeep <command> [--json]",
 	"  check                  check every app; one line each",
 	"  status [--metrics]     what the last check found, without checking; --metrics in Prometheus text format",
-	"  install <key>...|--all|--auto   an app named here skips the release wait set in Settings",
+	"  install <key>...|--all|--auto [--then suspend|poweroff]",
+	"                         an app named here skips the release wait set in Settings; --then suspends or",
+	"                         powers off the PC after 60 s, only when every app updated",
 	"  restore <key> [version]",
 	"  history                the last 200 runs",
 	"  recover                finish or undo an interrupted built update",
@@ -162,18 +165,89 @@ export function stopOnSignal(
 }
 
 /**
+ * `--then <action>` taken out of install's arguments. Only suspend and poweroff are taken; any other value, or none,
+ * is an error, so a typo never runs the install without the action asked for.
+ */
+export function thenOf(args: string[]): { action: PowerAction | null; rest: string[] } | { error: string } {
+	const at = args.indexOf("--then");
+	if (at === -1) return { action: null, rest: args };
+	const value = args[at + 1];
+	if (value !== "suspend" && value !== "poweroff")
+		return { error: `--then takes suspend or poweroff, not ${value ?? "nothing"}.` };
+	const rest = args.filter((_, i) => i !== at && i !== at + 1);
+	if (rest.includes("--then")) return { error: "--then is given once." };
+	return { action: value, rest };
+}
+
+/**
+ * The countdown after a clean install with --then: one line, then logind is asked after 60 s unless Ctrl-C, SIGTERM
+ * or SIGHUP comes first, which cancels it and leaves the PC on. Exits 0 when cancelled or when logind took the call,
+ * 1 when it refused. `wait` is the countdown's sleep; tests pass one that never ends or ends at once.
+ */
+export async function powerAfter(
+	action: PowerAction,
+	run: EngineDeps["run"],
+	json: boolean,
+	out: Out,
+	signals: Signals,
+	wait: (ms: number) => Promise<void> = (ms) => Bun.sleep(ms),
+): Promise<number> {
+	const seconds = COUNTDOWN_MS / 1000;
+	const say = (text: string, value: { in?: number; cancelled?: boolean; refused?: string }) =>
+		out(json ? JSON.stringify({ after: action, ...value }) : text);
+	say(`${action === "suspend" ? "Suspending" : "Shutting down"} in ${seconds} s. Press Ctrl-C to cancel.`, {
+		in: seconds,
+	});
+	const { promise: cancelled, resolve } = Promise.withResolvers<boolean>();
+	const cancel = () => resolve(true);
+	const names: StopSignal[] = ["SIGINT", "SIGTERM", "SIGHUP"];
+	for (const n of names) signals.on(n, cancel);
+	let stop: boolean;
+	try {
+		stop = await Promise.race([wait(COUNTDOWN_MS).then(() => false), cancelled]);
+	} finally {
+		for (const n of names) signals.off(n, cancel);
+	}
+	if (stop) {
+		say("Cancelled. The PC stays on.", { cancelled: true });
+		return 0;
+	}
+	const refused = await powerNow(run, action);
+	if (refused === null) return 0;
+	say(`The system refused to ${action === "suspend" ? "suspend" : "shut down"}: ${refused}`, { refused });
+	return 1;
+}
+
+/**
  * Checks first, then installs the named apps, or all ready ones with `--all`, or the automatic ones with `--auto`. An
  * app named by key skips the release wait, as Install now anyway does in the window; --all and --auto keep it. Exits 0
- * only when every result is "updated".
+ * only when every result is "updated". With `after`, a run where every app updated ends in a countdown to that action;
+ * any other run, automatic apps that waited included, leaves the PC as it is and says so.
  */
-async function install(engine: Engine, args: string[], json: boolean, out: Out, signals: Signals): Promise<number> {
+async function install(
+	engine: Engine,
+	deps: EngineDeps,
+	args: string[],
+	json: boolean,
+	out: Out,
+	signals: Signals,
+	after: PowerAction | null,
+): Promise<number> {
 	const gate: Starting = { starting: false, pending: false };
 	const unlisten = stopOnSignal(engine, signals, out, gate);
+	let code: number;
 	try {
-		return await installRun(engine, args, json, out, gate);
+		code = await installRun(engine, args, json, out, gate);
 	} finally {
 		unlisten();
 	}
+	if (!after) return code;
+	// Ctrl-C during the run was Stop now; from here on it cancels the countdown instead.
+	if (code === 0 && powerBlocker(engine.snapshot().run, false) === null)
+		return powerAfter(after, deps.run, json, out, signals);
+	const not = after === "suspend" ? "suspending" : "shutting down";
+	out(json ? JSON.stringify({ after, cancelled: true }) : `Not ${not}: not every app updated.`);
+	return code;
 }
 
 /** install's body, with Ctrl-C already turned into Stop now; a press while the install starts stops it once started. */
@@ -544,7 +618,15 @@ export async function main(
 	const json = rest.includes("--json");
 	const args = rest.filter((a) => a !== "--json");
 	if (cmd === "check" && args.length === 0) return check(createEngine(deps), json, out);
-	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out, signals);
+	if (cmd === "install") {
+		const t = thenOf(args);
+		if ("error" in t) {
+			out(t.error);
+			out(USAGE);
+			return 2;
+		}
+		if (t.rest.length > 0) return install(createEngine(deps), deps, t.rest, json, out, signals, t.action);
+	}
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
 		return restore(createEngine(deps), deps, args[0], args[1], json, out);
 	if (cmd === "status" && args.filter((a) => a !== "--metrics").length === 0)
