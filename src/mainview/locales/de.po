@@ -3081,3 +3081,21 @@ msgstr "{0}: {1} darf keinen Zeilenumbruch oder ein anderes Steuerzeichen enthal
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Der Menüeintrag ließ sich nicht schreiben: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Inkompatible Änderungen"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Zeilen in diesen Hinweisen, die eine inkompatible Änderung oder eine Migration erwähnen. Lies sie vor dem Update."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Ältere Versionen sind hier nicht aufgeführt. Die Release-Seite hat sie alle."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# ältere Version nicht angezeigt."
+msgstr[1] "# ältere Versionen nicht angezeigt."

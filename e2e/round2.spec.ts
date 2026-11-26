@@ -177,8 +177,9 @@ test("Zen's release notes keep their sections", async ({ page }) => {
 	await load(page);
 	await page.getByTestId("open-zen").click();
 	const notes = page.getByTestId("notes");
-	await expect(notes.locator(".nh")).toHaveCount(5);
-	await expect(notes.locator("ul")).toHaveCount(4);
+	// Zen is two releases behind: 1.24.1b's five sections, then the hotfix's one.
+	await expect(notes.locator(".nh")).toHaveCount(6);
+	await expect(notes.locator("ul")).toHaveCount(5);
 });
 
 test("a restore writes a line into the pane's log", async ({ page }) => {

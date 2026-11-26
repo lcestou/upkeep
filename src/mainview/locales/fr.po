@@ -3104,3 +3104,22 @@ msgstr "{0} : {1} ne peut pas contenir de saut de ligne ni d'autre caractère de
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Impossible d'écrire l'entrée de menu : {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Changements incompatibles"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Lignes de ces notes qui mentionnent un changement incompatible ou une migration. Lisez-les avant de mettre à jour."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Les versions plus anciennes ne sont pas listées ici. La page de la version les contient toutes."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# version plus ancienne non affichée."
+msgstr[1] "# versions plus anciennes non affichées."
+msgstr[2] "# versions plus anciennes non affichées."

@@ -3058,3 +3058,20 @@ msgstr "{0}: {1} に改行やその他の制御文字は使えません"
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "メニュー項目を書き込めませんでした: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "互換性のない変更"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "互換性のない変更や移行に触れている、このノート内の行です。更新の前に読んでください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "古いリリースはここには表示されません。リリースページにすべてあります。"
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "表示していない古いリリースが # 件あります。"

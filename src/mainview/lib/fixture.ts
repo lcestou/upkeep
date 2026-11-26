@@ -1,5 +1,6 @@
 // The dev bridge: the 32 seeded apps with the real pending list of 2026-11-10, and a scripted run.
 import type {
+	NotesSpan,
 	VersionChoice,
 	AppKind,
 	AppState,
@@ -334,6 +335,28 @@ const NOW = Date.parse("2026-11-10T09:41:00Z");
 const DAY = 86_400_000;
 /** An epoch time in the ISO form the engine sends. */
 const iso = (ms: number) => new Date(ms).toISOString();
+
+/**
+ * Zen's span from 1.24b: the latest release, an invented hotfix between with a migration and a breaking heading, one
+ * release left out for size, and a list that did not reach 1.24b. Any other app answers with no span, so its pane keeps the latest's notes.
+ */
+const ZEN_SPAN: NotesSpan = {
+	releases: [
+		{ version: "1.24.1b", tag: "1.24.1b", publishedAt: iso(NOW - 2 * DAY), notes: ZEN_NOTES },
+		{
+			version: "1.24.0.1b",
+			tag: "1.24.0.1b",
+			publishedAt: iso(NOW - 6 * DAY),
+			notes:
+				"## Breaking changes\n- Workspaces made before 1.20 must be migrated: open Settings, Workspaces once.\n- Fixed the sidebar flicker on Wayland.",
+		},
+	],
+	breaking: [
+		{ version: "1.24.0.1b", line: "Workspaces made before 1.20 must be migrated: open Settings, Workspaces once." },
+	],
+	older: 1,
+	more: true,
+};
 /** A fixture restore point; config marks one that holds the app's settings, as keep_with_restore makes them. */
 function pointOf(version: string, at: string, config = false): RestorePoint {
 	const p: RestorePoint = { version, at };
@@ -710,6 +733,8 @@ export type FixtureOptions = {
 	 * a step Stop now cuts; "root" one it waits out (dpkg), saying so on the row first.
 	 */
 	quiet?: "cut" | "root";
+	/** "long": Zen's newest notes alone fill the notes budget, so its span holds one release and says older ones are left out. */
+	notes?: "long";
 };
 
 // Cinnamon can put the window buttons on the left: close, maximize, minimize.
@@ -1371,6 +1396,16 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			}
 			await sleep(120 / speed);
 			return { versions: fixtureVersions(app, stableOf(app)) };
+		},
+		releaseNotes: async ({ key }) => {
+			const app = get(key);
+			const none = { releases: [], breaking: [], older: 0, more: false };
+			if (!app || app.prerelease === undefined) return { ...none, problem: MESSAGES.noApp(key) };
+			await sleep(80 / speed);
+			if (key !== "zen" || app.installed !== "1.24b" || app.latest !== "1.24.1b") return none;
+			return opts.notes === "long"
+				? { ...ZEN_SPAN, releases: ZEN_SPAN.releases.slice(0, 1), breaking: [], older: 2 }
+				: ZEN_SPAN;
 		},
 		installVersion: ({ key, tag }) => {
 			const app = get(key);

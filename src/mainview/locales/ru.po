@@ -3127,3 +3127,23 @@ msgstr "{0}: {1} не может содержать перевод строки 
 #: src/mainview/lib/engine-text.ts
 msgid "Could not write the menu entry: {0}"
 msgstr "Не удалось записать пункт меню: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Несовместимые изменения"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Строки этих заметок, где упомянуты несовместимое изменение или миграция. Прочтите их перед обновлением."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Более старые выпуски здесь не перечислены. На странице выпуска есть все."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# более старый выпуск не показан."
+msgstr[1] "# более старых выпуска не показаны."
+msgstr[2] "# более старых выпусков не показано."
+msgstr[3] "# более старого выпуска не показано."
