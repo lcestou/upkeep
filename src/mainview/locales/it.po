@@ -3174,6 +3174,56 @@ msgstr[0] "# versione più vecchia non mostrata."
 msgstr[1] "# versioni più vecchie non mostrate."
 msgstr[2] "# versioni più vecchie non mostrate."
 
+#: src/mainview/lib/copy.ts
+msgid "Send a notice to a web address"
+msgstr "Invia un avviso a un indirizzo web"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+msgstr "Upkeep vi invia un breve messaggio JSON, per esempio a un argomento ntfy o a un server di casa. L'indirizzo può contenere un token: resta su questo computer, leggibile solo da te, e non viene mai esportato."
+
+#: src/mainview/lib/copy.ts
+msgid "Save address"
+msgstr "Salva indirizzo"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove address"
+msgstr "Rimuovi indirizzo"
+
+#: src/mainview/lib/copy.ts
+msgid "That is not a web address. It starts with https://."
+msgstr "Questo non è un indirizzo web. Inizia con https://."
+
+#: src/mainview/lib/copy.ts
+msgid "Plain http only goes to this computer or the home network. Use https for anywhere else."
+msgstr "L'http semplice va solo a questo computer o alla rete di casa. Usa https per tutto il resto."
+
+#: src/mainview/lib/copy.ts
+msgid "When updates are ready"
+msgstr "Quando ci sono aggiornamenti pronti"
+
+#: src/mainview/lib/copy.ts
+msgid "After each run, with its result"
+msgstr "Dopo ogni esecuzione, con il suo risultato"
+
+#: src/mainview/lib/copy.ts
+msgid "It sends Upkeep's notices, with the app list, to this address:"
+msgstr "Invia gli avvisi di Upkeep, con l'elenco delle app, a questo indirizzo:"
+
+#. 0: masked
+#: src/mainview/lib/copy.ts
+msgid "Notices go to {0}"
+msgstr "Gli avvisi vanno a {0}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+msgstr "L'indirizzo per gli avvisi {0} nel file non è un indirizzo https, né un http su questo computer o sulla rete di casa."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The notice address from before could not be put back. Set it again in Settings."
+msgstr "Non è stato possibile rimettere l'indirizzo per gli avvisi di prima. Impostalo di nuovo nelle Impostazioni."
+
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} needs {2}, which this system does not have, so nothing was installed."

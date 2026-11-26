@@ -40,6 +40,8 @@ function ctx(): KindCtx {
 			upkeepCommand: false,
 			waitDays: 0,
 			waitUnmetered: false,
+			webhookReady: true,
+			webhookRun: false,
 		},
 		log: (l) => lines.push(l),
 		stage: () => {},

@@ -120,6 +120,8 @@ export const DEFAULT_SETTINGS: Settings = {
 	upkeepCommand: false,
 	waitDays: 0,
 	waitUnmetered: false,
+	webhookReady: true,
+	webhookRun: false,
 };
 
 /** The waits Settings offers, in days. */
@@ -145,6 +147,8 @@ export function clampSettings(s: Partial<Settings>): Settings {
 		upkeepCommand: typeof s.upkeepCommand === "boolean" ? s.upkeepCommand : DEFAULT_SETTINGS.upkeepCommand,
 		waitDays: WAITS.find((w) => w === s.waitDays) ?? DEFAULT_SETTINGS.waitDays,
 		waitUnmetered: typeof s.waitUnmetered === "boolean" ? s.waitUnmetered : DEFAULT_SETTINGS.waitUnmetered,
+		webhookReady: typeof s.webhookReady === "boolean" ? s.webhookReady : DEFAULT_SETTINGS.webhookReady,
+		webhookRun: typeof s.webhookRun === "boolean" ? s.webhookRun : DEFAULT_SETTINGS.webhookRun,
 	};
 }
 
@@ -304,13 +308,14 @@ const GITHUB_TOKEN = /^\w{20,255}$/;
 /** Whether text is made only of a GitHub token's characters, at a token's length. */
 export const isTokenText = (t: string) => GITHUB_TOKEN.test(t);
 
-/** The token pasted in Settings, or null when none is kept or the file no longer holds one. A file others can read is made 0600 first. Never throws. */
-export function readToken(paths: Paths): string | null {
+/**
+ * A secret file's trimmed text when it passes valid, else null; a missing file is null too. A file copied in readable
+ * by others is made 0600 before its text is used. Never throws.
+ */
+function readSecret(file: string, valid: (t: string) => boolean): string | null {
 	try {
-		const file = tokenFile(paths);
 		const t = readFileSync(file, "utf8").trim();
-		if (!GITHUB_TOKEN.test(t)) return null;
-		// A file copied in readable by others is closed to its owner before it is used.
+		if (!valid(t)) return null;
 		if (statSync(file).mode & 0o077) chmodSync(file, 0o600);
 		return t;
 	} catch {
@@ -318,25 +323,50 @@ export function readToken(paths: Paths): string | null {
 	}
 }
 
+/** Writes text to a fresh 0600 file by rename, or deletes the file for null. The state directory is made first. */
+function writeSecret(paths: Paths, file: string, text: string | null): void {
+	if (text === null) {
+		rmSync(file, { force: true });
+		return;
+	}
+	mkdirSync(paths.state, { recursive: true });
+	const tmp = `${file}.${process.pid}.tmp`;
+	// A fresh file made 0600 as it is written (a crash's leftover goes first); rename keeps the mode.
+	rmSync(tmp, { force: true });
+	writeFileSync(tmp, text, { mode: 0o600, flag: "wx" });
+	renameSync(tmp, file);
+}
+
+/** The token pasted in Settings, or null when none is kept or the file no longer holds one. A file others can read is made 0600 first. Never throws. */
+export function readToken(paths: Paths): string | null {
+	return readSecret(tokenFile(paths), (t) => GITHUB_TOKEN.test(t));
+}
+
 /**
  * Keeps a token in a file only its owner can read (0600), or deletes the file for null. False, and nothing written, for
  * text that is not a token's shape, so a stray paste never reaches a request header.
  */
 export function writeToken(paths: Paths, token: string | null): boolean {
-	const file = tokenFile(paths);
-	if (token === null) {
-		rmSync(file, { force: true });
-		return true;
-	}
-	const t = token.trim();
-	if (!GITHUB_TOKEN.test(t)) return false;
-	mkdirSync(paths.state, { recursive: true });
-	const tmp = `${file}.${process.pid}.tmp`;
-	// A fresh file made 0600 as it is written (a crash's leftover goes first); rename keeps the mode.
-	rmSync(tmp, { force: true });
-	writeFileSync(tmp, t, { mode: 0o600, flag: "wx" });
-	renameSync(tmp, file);
+	const t = token?.trim() ?? null;
+	if (t !== null && !GITHUB_TOKEN.test(t)) return false;
+	writeSecret(paths, tokenFile(paths), t);
 	return true;
+}
+
+/**
+ * The web address Upkeep sends its notices to, kept apart from state.json like the token: an ntfy topic works as a
+ * password and an address may carry a token, so an export, a log or an event never carries it.
+ */
+const webhookFile = (paths: Paths) => join(paths.state, "webhook");
+
+/** The kept notice address, or null when none is kept. Only the address's shape is read here; webhook.ts judges it. Never throws. */
+export function readWebhook(paths: Paths): string | null {
+	return readSecret(webhookFile(paths), (t) => t !== "" && !/\s/.test(t));
+}
+
+/** Keeps the notice address in a 0600 file, or deletes it for null. The caller has checked the address. */
+export function writeWebhook(paths: Paths, address: string | null): void {
+	writeSecret(paths, webhookFile(paths), address);
 }
 
 /** Records that file holds version, as Upkeep just wrote it. A file that is not there drops the record instead. */
@@ -708,6 +738,8 @@ export type KnownRow = {
 	/** A built row's newest commits (at most 30) and how far the release is ahead, so the pane has them at start. */
 	commits?: { sha: string; title: string }[];
 	ahead?: number;
+	/** The tag the check offered, so a hold on a release whose file changed holds again at the next start. */
+	tag?: string;
 	checkedAt: string;
 };
 
@@ -757,6 +789,7 @@ export function loadRows(paths: Paths): Record<string, KnownRow> {
 			const commits = commitsOf(r.commits);
 			if (commits) out[key].commits = commits;
 			if (typeof r.ahead === "number") out[key].ahead = r.ahead;
+			if (typeof r.tag === "string") out[key].tag = r.tag;
 		}
 		return out;
 	} catch {

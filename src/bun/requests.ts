@@ -2,7 +2,8 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Engine, EngineDeps } from "../engine/engine";
 import type { Extras } from "../engine/extras/extras";
-import { claimLock, releaseLock } from "../engine/store";
+import { claimLock, readWebhook, releaseLock, writeWebhook } from "../engine/store";
+import { addressProblem, maskAddress } from "../engine/webhook";
 import { exportSetup, importSetup } from "../engine/transfer";
 import { MESSAGES } from "../shared/messages";
 import { aboutUrl, releasePage } from "./about";
@@ -71,6 +72,11 @@ export function upkeepRequests(
 	const logDir = join(deps.paths.state, "logs");
 	/** The text of the file an import last asked about; Import on the ask writes this, and any other press clears it. */
 	let asked: string | null = null;
+	/** The kept notice address as Settings shows it, or null; the address itself never goes to the window. */
+	const maskedWebhook = () => {
+		const a = readWebhook(deps.paths);
+		return a === null ? null : maskAddress(a);
+	};
 	return {
 		snapshot: () => {
 			hooks.onSnapshot?.();
@@ -134,6 +140,14 @@ export function upkeepRequests(
 		setToken: async ({ token }) => {
 			const r = await engine.setToken(token);
 			return r === "ok" ? { ok: true, ...engine.tokenState() } : { ok: false, problem: r, ...engine.tokenState() };
+		},
+		webhook: () => ({ masked: maskedWebhook() }),
+		setWebhook: ({ address }) => {
+			const a = address?.trim() || null;
+			const problem = a === null ? null : addressProblem(a);
+			if (problem) return { ok: false, problem, masked: maskedWebhook() };
+			writeWebhook(deps.paths, a);
+			return { ok: true, masked: maskedWebhook() };
 		},
 		history: ({ limit }) => engine.history(limit),
 		runLog: ({ runId }) => engine.runLog(runId),

@@ -3198,6 +3198,56 @@ msgstr[1] "# starsze wydania nie są pokazane."
 msgstr[2] "# starszych wydań nie jest pokazanych."
 msgstr[3] "# starszego wydania nie pokazano."
 
+#: src/mainview/lib/copy.ts
+msgid "Send a notice to a web address"
+msgstr "Wysyłaj powiadomienie na adres internetowy"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+msgstr "Upkeep wysyła tam krótką wiadomość JSON, na przykład do tematu ntfy albo domowego serwera. Adres może zawierać token: zostaje na tym komputerze, czytelny tylko dla ciebie, i nigdy nie jest eksportowany."
+
+#: src/mainview/lib/copy.ts
+msgid "Save address"
+msgstr "Zapisz adres"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove address"
+msgstr "Usuń adres"
+
+#: src/mainview/lib/copy.ts
+msgid "That is not a web address. It starts with https://."
+msgstr "To nie jest adres internetowy. Zaczyna się od https://."
+
+#: src/mainview/lib/copy.ts
+msgid "Plain http only goes to this computer or the home network. Use https for anywhere else."
+msgstr "Zwykłe http trafia tylko na ten komputer lub do sieci domowej. Wszędzie indziej użyj https."
+
+#: src/mainview/lib/copy.ts
+msgid "When updates are ready"
+msgstr "Gdy aktualizacje są gotowe"
+
+#: src/mainview/lib/copy.ts
+msgid "After each run, with its result"
+msgstr "Po każdym przebiegu, z jego wynikiem"
+
+#: src/mainview/lib/copy.ts
+msgid "It sends Upkeep's notices, with the app list, to this address:"
+msgstr "Wysyła powiadomienia Upkeep, z listą aplikacji, na ten adres:"
+
+#. 0: masked
+#: src/mainview/lib/copy.ts
+msgid "Notices go to {0}"
+msgstr "Powiadomienia trafiają do {0}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+msgstr "Adres powiadomień {0} z pliku nie jest adresem https ani adresem http na tym komputerze lub w sieci domowej."
+
+#: src/mainview/lib/engine-text.ts
+msgid "The notice address from before could not be put back. Set it again in Settings."
+msgstr "Nie udało się przywrócić poprzedniego adresu powiadomień. Ustaw go ponownie w Ustawieniach."
+
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} needs {2}, which this system does not have, so nothing was installed."

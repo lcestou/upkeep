@@ -283,6 +283,9 @@ export const ENGINE_COPY = {
 	importSomeNotPutBack: (v0: string) => `${v0} Some files could not be put back:`,
 	importCopyFromBefore: (v0: string, v1: string) => `${v0}: its copy from before is ${v1}`,
 	importCreatedNotRemoved: (v0: string) => `${v0}: written by this import, and could not be removed`,
+	importBadWebhook: (v0: string) =>
+		`The file's notice address ${v0} is not an https address, or an http one on this computer or the home network.`,
+	importWebhookNotPutBack: () => `The notice address from before could not be put back. Set it again in Settings.`,
 	draftedFrom: (v0: string) =>
 		`No file of this release runs on this machine, so Upkeep drafted a source build from its ${v0}. Read the steps before adding it.`,
 	draftNamedAfterRepo: (v0: string) =>

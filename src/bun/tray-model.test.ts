@@ -10,6 +10,7 @@ import {
 	trayMenu,
 	trayTitle,
 	updatedNotice,
+	webhookBody,
 } from "./tray-model";
 
 const idle: RunState = {
@@ -46,6 +47,8 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			upkeepCommand: false,
 			waitDays: 0,
 			waitUnmetered: false,
+			webhookReady: true,
+			webhookRun: false,
 		},
 		rate: null,
 		checkedAt: null,
@@ -174,4 +177,33 @@ test("the settle watch fires once when a waiting row turns Ready, and owes the n
 	watch.row(waiting, false);
 	expect(watch.row(row({ status: "checking" }), false)).toBe(false);
 	expect(watch.row(row({ status: "ready" }), false)).toBe(false);
+});
+
+test("a ready notice's body names the ready apps with their versions and the counts", () => {
+	// app9 is in apps.toml with no row yet: it counts in apps and as unchecked, as status counts it.
+	const body = webhookBody("ready", snap(1), "1 update ready: App 0", "box", [{ key: "app0" }, { key: "app9" }]);
+	expect(body).toEqual({
+		title: "Upkeep",
+		message: "1 update ready: App 0",
+		event: "ready",
+		host: "box",
+		version: "0.1.0",
+		counts: { apps: 4, upToDate: 2, ready: 1, manual: 0, held: 0, failing: 0, unchecked: 1 },
+		apps: [{ key: "app0", name: "App 0", installed: undefined, latest: "1.0" }],
+	});
+});
+
+test("a run notice's body carries each result, with its detail only where there is one", () => {
+	const run: RunState = {
+		...idle,
+		phase: "summary",
+		results: [
+			{ key: "a", name: "A", from: "1", to: "2", result: "updated", ms: 0 },
+			{ key: "b", name: "B", from: "1", to: null, result: "failed", detail: "404", ms: 0 },
+		],
+	};
+	expect(webhookBody("run", snap(0, run), "Updated A", "box", []).apps).toEqual([
+		{ key: "a", name: "A", from: "1", to: "2", result: "updated" },
+		{ key: "b", name: "B", from: "1", to: null, result: "failed", detail: "404" },
+	]);
 });

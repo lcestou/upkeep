@@ -5,7 +5,7 @@ import { createEngine, type EngineDeps } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
 import { MESSAGES } from "../shared/messages";
 import type { SelfState } from "../shared/types";
-import { claimLock, loadState, releaseLock } from "../engine/store";
+import { claimLock, loadState, readWebhook, releaseLock } from "../engine/store";
 import { recordingRun, tempHome } from "../engine/testkit";
 import { HOME } from "./about";
 import { type Desktop, upkeepRequests } from "./requests";
@@ -377,4 +377,27 @@ test("uninstall goes to the main process's hook with the purge choice, and only 
 		"uninstall false",
 		"uninstall true",
 	]);
+});
+
+test("a notice address is kept whole on disk and only ever answered masked; a refused one changes nothing", async () => {
+	const { r } = setup();
+	expect(await r.webhook({})).toEqual({ masked: null });
+	expect(await r.setWebhook({ address: "ntfy.sh/topic" })).toEqual({ ok: false, problem: "address", masked: null });
+	expect(await r.setWebhook({ address: "http://ntfy.sh/topic" })).toEqual({
+		ok: false,
+		problem: "plain",
+		masked: null,
+	});
+	expect(await r.setWebhook({ address: " https://ntfy.sh/secret?auth=x " })).toEqual({
+		ok: true,
+		masked: "https://ntfy.sh/…",
+	});
+	expect(readWebhook(t.paths)).toBe("https://ntfy.sh/secret?auth=x");
+	expect(await r.webhook({})).toEqual({ masked: "https://ntfy.sh/…" });
+	expect(await r.setWebhook({ address: "http://192.168.1.9:2586/upkeep" })).toEqual({
+		ok: true,
+		masked: "http://192.168.1.9:2586/…",
+	});
+	expect(await r.setWebhook({ address: null })).toEqual({ ok: true, masked: null });
+	expect(readWebhook(t.paths)).toBeNull();
 });

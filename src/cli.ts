@@ -15,12 +15,15 @@ import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
 import { CATALOGUE_URL } from "./bun/about";
-import { claimLock, formatLogLine, loadState, readInflight, releaseLock } from "./engine/store";
+import { heldLine, localDay, metricsText, statusLines, statusOf } from "./engine/status";
+import { claimLock, formatLogLine, loadState, lockHeld, readInflight, releaseLock } from "./engine/store";
 import { exportSetup, importSetup } from "./engine/transfer";
+import pkg from "../package.json";
 
 export const USAGE = [
 	"Usage: upkeep <command> [--json]",
 	"  check                  check every app; one line each",
+	"  status [--metrics]     what the last check found, without checking; --metrics in Prometheus text format",
 	"  install <key>...|--all|--auto   an app named here skips the release wait set in Settings",
 	"  restore <key> [version]",
 	"  history                the last 200 runs",
@@ -37,9 +40,6 @@ export const USAGE = [
 
 type Out = (line: string) => void;
 
-/** The local calendar day of an ISO time as YYYY-MM-DD, the day the window shows, so a script can compare it with `date +%F`. */
-const localDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE");
-
 /** One line per app, as OK, UPDATE, HELD, BROKEN or SKIP first, so a script or a glance reads the state from the first word. */
 export function checkLine(a: AppState): string {
 	switch (a.status) {
@@ -53,8 +53,7 @@ export function checkLine(a: AppState): string {
 			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
 		// install --all passes these by, so they are not offered as updates.
 		case "held":
-			// The detail says why when Upkeep held it itself (a release whose file changed).
-			return `  HELD:   ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${a.paused ? ` (paused until ${localDay(a.paused)})` : a.skipped ? ` (skipping ${a.skipped})` : a.settles ? ` (offered from ${localDay(a.settles)})` : ""}${a.detail ? ` ${a.detail}` : ""}`;
+			return heldLine(a);
 		default: {
 			const detail = a.detail ?? "";
 			const broken = `${a.name} will not start`;
@@ -274,6 +273,30 @@ async function recover(engine: Engine, paths: EngineDeps["paths"], json: boolean
 	return done.every((r) => r.ok) ? 0 : 1;
 }
 
+/**
+ * What the last check found, read from the rows the engine saved, and whether a run holds the lock: no network, no
+ * check, nothing installed. Text, one JSON object with --json, or Prometheus's text format with --metrics. Exits 0,
+ * and 1 when no check has run yet, so a script can tell "nothing ready" from "nothing known"; --metrics always exits
+ * 0, since its check time of 0 says the same and a collector's file is written with `&&`.
+ */
+function status(
+	engine: Engine,
+	paths: EngineDeps["paths"],
+	seed: string,
+	json: boolean,
+	metrics: boolean,
+	out: Out,
+): number {
+	const s = statusOf(engine.snapshot(), lockHeld(paths), loadManifest(ensureManifest(paths, seed)).apps);
+	if (metrics) {
+		out(metricsText(s).trimEnd());
+		return 0;
+	}
+	if (json) out(JSON.stringify(s));
+	else for (const line of statusLines(s)) out(line);
+	return s.checkedAt === null ? 1 : 0;
+}
+
 /** Prints the last 200 runs, in the order the engine returns them. Always exits 0. */
 function history(engine: Engine, json: boolean, out: Out): number {
 	const rows = engine.history(200);
@@ -437,7 +460,7 @@ const PROTECTION_NAME = {
 
 /**
  * The ask as text: each app that runs commands with every command it runs, how many plain apps come with it, then
- * each setting the file turns on that is off here, and a release wait it shortens. A file that only turns settings on prints no app header.
+ * each setting the file turns on that is off here, a release wait it shortens, and a notice address it sets. A file that only turns settings on prints no app header.
  */
 function printAsk(file: string, ask: ImportAsk, out: Out): void {
 	if (ask.apps.length > 0) out(`${file} has apps that run these commands on this computer:`);
@@ -458,6 +481,8 @@ function printAsk(file: string, ask: ImportAsk, out: Out): void {
 	if (ask.waitDays) out(`${file} shortens this setting on this computer:`);
 	if (ask.waitDays)
 		out(`  Wait before offering a new release: ${waitWords(ask.waitDays.from)} -> ${waitWords(ask.waitDays.to)}`);
+	if (ask.webhook) out(`${file} sends Upkeep's notices, with the app list, to this address:`);
+	if (ask.webhook) out(`  ${ask.webhook}`);
 }
 
 /** A release wait as Settings words it, in English: "Off", "1 day", "3 days". */
@@ -522,6 +547,8 @@ export async function main(
 	if (cmd === "install" && args.length > 0) return install(createEngine(deps), args, json, out, signals);
 	if (cmd === "restore" && (args.length === 1 || args.length === 2) && args[0])
 		return restore(createEngine(deps), deps, args[0], args[1], json, out);
+	if (cmd === "status" && args.filter((a) => a !== "--metrics").length === 0)
+		return status(createEngine(deps), deps.paths, deps.seedManifest, json, args.includes("--metrics"), out);
 	if (cmd === "history" && args.length === 0) return history(createEngine(deps), json, out);
 	if (cmd === "recover" && args.length === 0) return recover(createEngine(deps), deps.paths, json, out);
 	if (cmd === "list" && args.length === 0) return list(deps, json, out);
@@ -542,13 +569,13 @@ export async function main(
 
 if (import.meta.main)
 	process.exit(
-		await main(
-			process.argv.slice(2),
-			realDeps(
+		await main(process.argv.slice(2), {
+			...realDeps(
 				process.env,
 				join(import.meta.dir, "../manifest/apps.toml"),
 				join(import.meta.dir, "../catalogue"),
 				CATALOGUE_URL,
 			),
-		),
+			version: pkg.version,
+		}),
 	);

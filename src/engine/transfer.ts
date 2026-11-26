@@ -16,13 +16,16 @@ import { packageInstall } from "./kinds/package";
 import { ensureManifest, isRecord, loadManifest, parseManifest } from "./manifest";
 import { removeMenuFiles } from "./menu";
 import type { Paths } from "./paths";
-import { clampSettings, loadState, updateState, withStateLock, writeAtomic } from "./store";
+import { clampSettings, loadState, readWebhook, updateState, withStateLock, writeAtomic, writeWebhook } from "./store";
+import { addressProblem, maskAddress } from "./webhook";
 
 /**
  * Everything a person set up, in one file to carry to another machine or hand to an agent: the app list as written
  * (apps.toml, comments included), the settings, the skips, holds, pauses and automatic installs, and the extras' switches.
  * `upkeep` is the format's version; a reader refuses one it does not know. Run state (the notified set, restarts
- * pending, history, restore points) stays behind: it belongs to the machine.
+ * pending, history, restore points) stays behind: it belongs to the machine. So do the secrets, the GitHub token and
+ * the notice address: an export never carries them. A file written by hand may name a notice address in `webhook`,
+ * which an import asks about before keeping.
  */
 export type Transfer = {
 	upkeep: 1;
@@ -270,9 +273,17 @@ export function importSetup(
 	const turnsOn = switchesOn(paths, settings, isRecord(doc.extras) ? doc.extras : null);
 	const turnsOff = protectionsOff(paths, settings);
 	const waitDays = waitLowered(paths, settings);
-	if ((running.length > 0 || turnsOn.length > 0 || turnsOff.length > 0 || waitDays) && !sure) {
+	// An empty string names no address, as a missing field does: this machine's stays.
+	const hook = typeof doc.webhook === "string" && doc.webhook.trim() !== "" ? doc.webhook.trim() : null;
+	if (hook !== null && addressProblem(hook))
+		return { ok: false, problems: [MESSAGES.importBadWebhook(maskAddress(hook))] };
+	// Only a new or changed address asks: it would start sending this machine's app list somewhere.
+	const hookBefore = readWebhook(paths);
+	const webhook = hook !== null && hook !== hookBefore ? hook : undefined;
+	if ((running.length > 0 || turnsOn.length > 0 || turnsOff.length > 0 || waitDays || webhook) && !sure) {
 		const ask: ImportAsk = { apps: running, plain: list.apps.length - running.length, turnsOn, turnsOff };
 		if (waitDays) ask.waitDays = waitDays;
+		if (webhook) ask.webhook = maskAddress(webhook);
 		return { ok: false, ask };
 	}
 
@@ -352,9 +363,15 @@ export function importSetup(
 			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.
 			updateExtras(paths, doc.extras as Partial<ExtrasSettings>);
 		}
+		if (webhook) writeWebhook(paths, webhook);
 	} catch (err) {
 		const why = MESSAGES.importCouldNotWrite(err instanceof Error ? err.message : String(err));
 		const stuck = rollBack(paths, kept, absent);
+		try {
+			if (webhook) writeWebhook(paths, hookBefore);
+		} catch {
+			stuck.push(MESSAGES.importWebhookNotPutBack());
+		}
 		return {
 			ok: false,
 			problems:

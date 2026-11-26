@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadState, readToken, updateState, writeToken } from "./store";
+import { loadState, readToken, readWebhook, updateState, writeToken, writeWebhook } from "./store";
 import { tempHome } from "./testkit";
 import { commandsOf, exportSetup, importSetup } from "./transfer";
 
@@ -236,6 +236,32 @@ test("an import that shortens the release wait asks first; one that lengthens it
 	}
 });
 
+test("the notice address never goes out in an export; a file that sets or changes it asks and shows its host, the rest masked", () => {
+	const t = tempHome("transfer-webhook");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		writeWebhook(t.paths, "https://ntfy.sh/mine");
+		const out = exportSetup(t.paths, seed, new Date());
+		expect(JSON.stringify(out)).not.toContain("ntfy.sh");
+		// The same address asks nothing; a file without one leaves this machine's alone.
+		const same = JSON.stringify({ ...out, webhook: "https://ntfy.sh/mine" });
+		expect(importSetup(t.paths, seed, same, new Date()).ok).toBe(true);
+		expect(importSetup(t.paths, seed, JSON.stringify(out), new Date()).ok).toBe(true);
+		expect(readWebhook(t.paths)).toBe("https://ntfy.sh/mine");
+		const theirs = JSON.stringify({ ...out, webhook: "https://hooks.example.com/collect?k=1" });
+		expect(importSetup(t.paths, seed, theirs, new Date())).toEqual({
+			ok: false,
+			ask: { apps: [], plain: 0, turnsOn: [], turnsOff: [], webhook: "https://hooks.example.com/…" },
+		});
+		expect(readWebhook(t.paths)).toBe("https://ntfy.sh/mine");
+		expect(importSetup(t.paths, seed, theirs, new Date(), true).ok).toBe(true);
+		expect(readWebhook(t.paths)).toBe("https://hooks.example.com/collect?k=1");
+	} finally {
+		t.cleanup();
+	}
+});
+
 test("an export carries running pauses, and an import takes them without asking, only for its apps and sane days", () => {
 	const t = tempHome("transfer-pause");
 	try {
@@ -269,6 +295,30 @@ test("an export carries running pauses, and an import takes them without asking,
 	}
 });
 
+test("a file whose notice address is plain http to the internet is refused whole, even when sure", () => {
+	const t = tempHome("transfer-webhook-plain");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		const out = exportSetup(t.paths, seed, new Date());
+		const bad = JSON.stringify({
+			...out,
+			webhook: "http://me:pw@hooks.example.com/x?token=s3cret#f",
+			settings: { ...out.settings, keepBackups: 4 },
+		});
+		expect(importSetup(t.paths, seed, bad, new Date(), true)).toEqual({
+			ok: false,
+			problems: [
+				"The file's notice address http://…@hooks.example.com/… is not an https address, or an http one on this computer or the home network.",
+			],
+		});
+		expect(loadState(t.paths).settings.keepBackups).toBe(1);
+		expect(readWebhook(t.paths)).toBeNull();
+	} finally {
+		t.cleanup();
+	}
+});
+
 test("an import drops a skip on a versionless app, which has no version to skip", () => {
 	const t = tempHome("transfer-skip-versionless");
 	try {
@@ -279,6 +329,21 @@ test("an import drops a skip on a versionless app, which has no version to skip"
 		const doc = { ...exportSetup(t.paths, seed, new Date()), apps, skip: { cc: "1.0", t: "2.0" } };
 		expect(importSetup(t.paths, seed, JSON.stringify(doc), new Date(), true).ok).toBe(true);
 		expect(loadState(t.paths).skip).toEqual({ t: "2.0" });
+	} finally {
+		t.cleanup();
+	}
+});
+
+test("an empty notice address in a file names none: the import keeps this machine's without asking", () => {
+	const t = tempHome("transfer-webhook-empty");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		writeWebhook(t.paths, "https://ntfy.sh/mine");
+		const out = exportSetup(t.paths, seed, new Date());
+		for (const webhook of ["", "   "])
+			expect(importSetup(t.paths, seed, JSON.stringify({ ...out, webhook }), new Date()).ok).toBe(true);
+		expect(readWebhook(t.paths)).toBe("https://ntfy.sh/mine");
 	} finally {
 		t.cleanup();
 	}

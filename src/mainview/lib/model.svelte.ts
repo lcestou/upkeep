@@ -108,6 +108,8 @@ export class Model {
 		upkeepCommand: false,
 		waitDays: 0,
 		waitUnmetered: false,
+		webhookReady: true,
+		webhookRun: false,
 	});
 	/** How the window is dressed; null until the main process answers (a system frame then). */
 	chrome = $state<WindowChrome | null>(null);

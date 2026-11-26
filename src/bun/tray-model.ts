@@ -1,5 +1,7 @@
 import type { LanguageCode } from "../shared/languages";
 import type { AppState, RunResult, SelfState, Snapshot, SystemState } from "../shared/types";
+import { countsOf } from "../engine/status";
+import type { NoticeApp, NoticeBody } from "../engine/webhook";
 import { count, TRAY_TEXT } from "./tray-text";
 
 export type TrayAction = "open" | "check" | "install" | "quit";
@@ -146,4 +148,41 @@ export function createSettleWatch(): SettleWatch {
 			return was;
 		},
 	};
+}
+
+/**
+ * The JSON a notice address gets: title and message for a person (the desktop notice's own text, in the window's
+ * language), then the same facts for a program. For "ready" the apps are the ready ones with their versions; for
+ * "run" they are the run's results. listed is every app in apps.toml, so the counts match `upkeep status`. ntfy reads
+ * title and message through its template query (docs/window.md).
+ */
+export function webhookBody(
+	event: "ready" | "run",
+	snapshot: Snapshot,
+	message: string,
+	host: string,
+	listed: { key: string }[],
+): NoticeBody {
+	return {
+		title: "Upkeep",
+		message,
+		event,
+		host,
+		version: snapshot.version,
+		// The same counts `upkeep status` prints: ready is what Install takes (as apps lists), manual apart.
+		counts: countsOf(snapshot.apps, listed),
+		apps:
+			event === "ready"
+				? snapshot.apps
+						.filter((a) => a.status === "ready")
+						.map((a) => ({ key: a.key, name: a.name, installed: a.installed, latest: a.latest }))
+				: snapshot.run.results.map(resultApp),
+	};
+}
+
+/** A run's result as a notice names it, with its detail only where there is one. */
+function resultApp(r: RunResult): NoticeApp {
+	const out: NoticeApp = { key: r.key, name: r.name, from: r.from, to: r.to, result: r.result };
+	if (r.detail) out.detail = r.detail;
+	return out;
 }

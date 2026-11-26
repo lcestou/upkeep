@@ -531,6 +531,11 @@ export const MESSAGES = {
 	importCopyFromBefore: (v0: Value, v1: Value) => `${v0}: its copy from before is ${v1}`,
 	/** transfer.ts. {0} file path */
 	importCreatedNotRemoved: (v0: Value) => `${v0}: written by this import, and could not be removed`,
+	/** transfer.ts. {0} the notice address the file names */
+	importBadWebhook: (v0: Value) =>
+		`The file's notice address ${v0} is not an https address, or an http one on this computer or the home network.`,
+	/** transfer.ts */
+	importWebhookNotPutBack: () => `The notice address from before could not be put back. Set it again in Settings.`,
 	/** discover.ts. {0} the build file the steps were drafted from, e.g. Cargo.toml */
 	draftedFrom: (v0: Value) =>
 		`No file of this release runs on this machine, so Upkeep drafted a source build from its ${v0}. Read the steps before adding it.`,

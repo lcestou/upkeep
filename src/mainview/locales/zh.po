@@ -3126,6 +3126,56 @@ msgid "# older release not shown."
 msgid_plural "# older releases not shown."
 msgstr[0] "还有 # 个更早的版本未显示。"
 
+#: src/mainview/lib/copy.ts
+msgid "Send a notice to a web address"
+msgstr "向网址发送通知"
+
+#: src/mainview/lib/copy.ts
+msgid "Upkeep posts a short JSON message there, such as to an ntfy topic or a home server. The address may hold a token: it is kept on this computer, readable by you alone, and never exported."
+msgstr "Upkeep 会向那里发送一条简短的 JSON 消息，例如发到 ntfy 主题或家里的服务器。地址里可以带令牌：它保存在这台电脑上，只有你能读取，也绝不会被导出。"
+
+#: src/mainview/lib/copy.ts
+msgid "Save address"
+msgstr "保存地址"
+
+#: src/mainview/lib/copy.ts
+msgid "Remove address"
+msgstr "移除地址"
+
+#: src/mainview/lib/copy.ts
+msgid "That is not a web address. It starts with https://."
+msgstr "这不是网址。网址以 https:// 开头。"
+
+#: src/mainview/lib/copy.ts
+msgid "Plain http only goes to this computer or the home network. Use https for anywhere else."
+msgstr "未加密的 http 只能发往这台电脑或家庭网络。其他地方请用 https。"
+
+#: src/mainview/lib/copy.ts
+msgid "When updates are ready"
+msgstr "有更新可安装时"
+
+#: src/mainview/lib/copy.ts
+msgid "After each run, with its result"
+msgstr "每次运行后，附上结果"
+
+#: src/mainview/lib/copy.ts
+msgid "It sends Upkeep's notices, with the app list, to this address:"
+msgstr "它会把 Upkeep 的通知连同应用列表发送到这个地址："
+
+#. 0: masked
+#: src/mainview/lib/copy.ts
+msgid "Notices go to {0}"
+msgstr "通知发往 {0}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The file's notice address {0} is not an https address, or an http one on this computer or the home network."
+msgstr "文件中的通知地址 {0} 既不是 https 地址，也不是这台电脑或家庭网络上的 http 地址。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The notice address from before could not be put back. Set it again in Settings."
+msgstr "无法恢复之前的通知地址。请在设置中重新设置。"
+
 #. 0: v0; 1: v1; 2: v2
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} needs {2}, which this system does not have, so nothing was installed."

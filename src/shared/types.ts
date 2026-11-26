@@ -166,6 +166,11 @@ export type ImportAsk = {
 	turnsOff: ImportProtection[];
 	/** Set when the file shortens the wait before a new release is offered (a protection); lengthening it is not asked. */
 	waitDays?: { from: Settings["waitDays"]; to: Settings["waitDays"] };
+	/**
+	 * Where the file's notice address sends (maskAddress: scheme, host and port; user info, path, query and fragment
+	 * masked), when it differs from this machine's: it would start sending the app list there.
+	 */
+	webhook?: string;
 };
 
 /** A setting that holds something back, which an import asks before turning off. */
@@ -370,6 +375,9 @@ export type RunState = {
  */
 export type TokenState = { hint: string | null; refused: "gh" | "none" | null };
 
+/** The notice address as the window may see it: masked by maskAddress, null when none is kept. */
+export type WebhookState = { masked: string | null };
+
 export type Settings = {
 	keepBackups: number;
 	notify: boolean;
@@ -392,6 +400,10 @@ export type Settings = {
 	waitDays: 0 | 1 | 3 | 7;
 	/** Automatic installs and early downloads wait while the connection is metered or the machine is on battery. A pressed Install never waits. */
 	waitUnmetered: boolean;
+	/** With a notice address kept: post when updates are ready, the moment the desktop notice would come. */
+	webhookReady: boolean;
+	/** With a notice address kept: post each run's result when it ends. */
+	webhookRun: boolean;
 };
 
 /**
@@ -632,6 +644,16 @@ export type Requests = {
 	setSettings: { params: Partial<Settings>; response: Settings };
 	/** The pasted GitHub token's last four characters and whether the last check found it refused. The token never comes back. */
 	token: { params: Record<string, never>; response: TokenState };
+	/** The kept notice address as Settings may show it (scheme and host, the rest masked), or null. The address never comes back. */
+	webhook: { params: Record<string, never>; response: WebhookState };
+	/**
+	 * Keeps a notice address, or forgets it with null. Refused, and nothing changed, for text that is not an http(s)
+	 * address ("address") or is http to a host off this computer and the home network ("plain").
+	 */
+	setWebhook: {
+		params: { address: string | null };
+		response: { ok: boolean; problem?: "address" | "plain" } & WebhookState;
+	};
 	/**
 	 * Keeps a pasted GitHub token, or forgets it with null. Refused, and nothing changed, when it does not read as one
 	 * ("shape") or GitHub answers it 401 ("refused").

@@ -116,6 +116,8 @@ function ctx(run: Run = realRun(t.paths)): KindCtx {
 			upkeepCommand: false,
 			waitDays: 0,
 			waitUnmetered: false,
+			webhookReady: true,
+			webhookRun: false,
 		},
 		log: (l) => lines.push(l),
 		stage: (s, p) => stages.push([s, p]),

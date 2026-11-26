@@ -15,6 +15,8 @@ const settings: Settings = {
 	upkeepCommand: false,
 	waitDays: 0,
 	waitUnmetered: false,
+	webhookReady: true,
+	webhookRun: false,
 };
 
 test("button layouts as the desktop writes them", () => {

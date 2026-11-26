@@ -60,6 +60,8 @@ const ctx = (): KindCtx => ({
 		upkeepCommand: false,
 		waitDays: 0,
 		waitUnmetered: false,
+		webhookReady: true,
+		webhookRun: false,
 	},
 	log: () => {},
 	stage: () => {},
