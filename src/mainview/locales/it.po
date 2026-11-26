@@ -148,6 +148,7 @@ msgid "Installed without asking when Upkeep checks in the background."
 msgstr "Si installa senza chiedere quando Upkeep controlla in background."
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Updates"
 msgstr "Aggiornamenti"
 
@@ -907,10 +908,6 @@ msgstr "Informazioni"
 #: src/mainview/lib/copy.ts
 msgid "Keeps the apps your package manager misses up to date."
 msgstr "Tiene aggiornate le app che il tuo gestore di pacchetti non copre."
-
-#: src/mainview/lib/copy.ts
-msgid "Extras"
-msgstr "Extra"
 
 #: src/mainview/lib/copy.ts
 msgid "Show system updates"
@@ -3294,3 +3291,20 @@ msgstr "Spegnimento tra {0} s"
 #: src/mainview/lib/copy.ts
 msgid "The system refused: {0}"
 msgstr "Il sistema ha rifiutato: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "General"
+msgstr "Generali"
+
+#: src/mainview/lib/copy.ts
+msgid "Notices"
+msgstr "Avvisi"
+
+#: src/mainview/lib/copy.ts
+msgid "Safety"
+msgstr "Sicurezza"
+
+#: src/mainview/lib/copy.ts
+msgctxt "Settings heading"
+msgid "System"
+msgstr "Sistema"

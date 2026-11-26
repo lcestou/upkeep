@@ -148,6 +148,7 @@ msgid "Installed without asking when Upkeep checks in the background."
 msgstr "Upkeep 在后台检查时直接安装，不再询问。"
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Updates"
 msgstr "更新"
 
@@ -873,10 +874,6 @@ msgstr "关于"
 #: src/mainview/lib/copy.ts
 msgid "Keeps the apps your package manager misses up to date."
 msgstr "让包管理器管不到的应用保持最新。"
-
-#: src/mainview/lib/copy.ts
-msgid "Extras"
-msgstr "附加功能"
 
 #: src/mainview/lib/copy.ts
 msgid "Show system updates"
@@ -3246,3 +3243,20 @@ msgstr "{0} 秒后关机"
 #: src/mainview/lib/copy.ts
 msgid "The system refused: {0}"
 msgstr "系统拒绝了：{0}"
+
+#: src/mainview/lib/copy.ts
+msgid "General"
+msgstr "常规"
+
+#: src/mainview/lib/copy.ts
+msgid "Notices"
+msgstr "通知"
+
+#: src/mainview/lib/copy.ts
+msgid "Safety"
+msgstr "安全"
+
+#: src/mainview/lib/copy.ts
+msgctxt "Settings heading"
+msgid "System"
+msgstr "系统"

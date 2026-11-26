@@ -148,6 +148,7 @@ msgid "Installed without asking when Upkeep checks in the background."
 msgstr "Устанавливается без вопросов, когда Upkeep проверяет обновления в фоне."
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Updates"
 msgstr "Обновления"
 
@@ -924,10 +925,6 @@ msgstr "О программе"
 #: src/mainview/lib/copy.ts
 msgid "Keeps the apps your package manager misses up to date."
 msgstr "Обновляет приложения, до которых не дотягивается ваш пакетный менеджер."
-
-#: src/mainview/lib/copy.ts
-msgid "Extras"
-msgstr "Дополнительно"
 
 #: src/mainview/lib/copy.ts
 msgid "Show system updates"
@@ -3318,3 +3315,20 @@ msgstr "Выключение через {0} с"
 #: src/mainview/lib/copy.ts
 msgid "The system refused: {0}"
 msgstr "Система отказала: {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "General"
+msgstr "Общие"
+
+#: src/mainview/lib/copy.ts
+msgid "Notices"
+msgstr "Уведомления"
+
+#: src/mainview/lib/copy.ts
+msgid "Safety"
+msgstr "Безопасность"
+
+#: src/mainview/lib/copy.ts
+msgctxt "Settings heading"
+msgid "System"
+msgstr "Система"
