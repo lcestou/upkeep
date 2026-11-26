@@ -83,8 +83,10 @@ export function createWhenDone(ports: WhenDonePorts) {
 
 		probe,
 
-		/** Picks the choice for this run. False for a power action logind does not allow here. */
+		/** Picks the choice for this run. False for an unknown word, or a power action logind does not allow here. */
 		choose(choice: WhenDone): boolean {
+			// The view's word is checked here: only a known choice is kept.
+			if (!WHEN_DONE.includes(choice)) return false;
 			if ((choice === "suspend" || choice === "poweroff") && !state.can[choice]) return false;
 			if (choice !== state.choice) set({ choice });
 			return true;
@@ -113,9 +115,20 @@ export function createWhenDone(ports: WhenDonePorts) {
 			void probe();
 		},
 
-		/** Follows the System install: one that ended with a failed step cancels a power action on the run after it. */
+		/**
+		 * Follows the System install: one that ended with a failed step cancels a power action on the run after it, and one
+		 * that starts during a countdown stops the countdown.
+		 */
 		system(sys: SystemState): void {
-			if (sys.phase === "installing" && systemWas !== "installing") systemFailed = false;
+			if (sys.phase === "installing" && systemWas !== "installing") {
+				systemFailed = false;
+				// Never power off under a System install started during the countdown: someone is at the PC.
+				if (state.countdown) {
+					stopClock();
+					ports.log(`When done: ${state.countdown.action} cancelled, a System install started`);
+					set({ countdown: null, choice: "nothing", cancelled: null });
+				}
+			}
 			if (systemWas === "installing" && sys.phase !== "installing")
 				systemFailed = sys.install?.outcomes.some((o) => o.status === "failed") === true;
 			systemWas = sys.phase;

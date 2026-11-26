@@ -124,6 +124,26 @@ test("Cancel stops the countdown, so logind is never asked, and the choice is us
 	expect(h.calls.some((c) => c.includes("Suspend"))).toBe(false);
 });
 
+test("a System install started during the countdown stops it, so logind is never asked", async () => {
+	const h = harness();
+	await h.control.probe();
+	h.control.system(system("idle"));
+	h.control.choose("poweroff");
+	h.control.runEnded(ended(["a", "updated"]));
+	h.control.system(system("installing"));
+	expect(h.timers[0]?.stopped).toBe(true);
+	expect(h.control.snapshot()).toMatchObject({ countdown: null, choice: "nothing", cancelled: null });
+	expect(h.calls.some((c) => c.includes("PowerOff"))).toBe(false);
+});
+
+test("an unknown choice from the view is refused and changes nothing", async () => {
+	const h = harness();
+	await h.control.probe();
+	// SAFETY: the test sends what a broken view could; the type is the very thing being checked at runtime.
+	expect(h.control.choose("bogus" as "nothing")).toBe(false);
+	expect(h.control.snapshot().choice).toBe("nothing");
+});
+
 test("a failed or stopped app cancels the power action with its reason and raises the window", async () => {
 	const h = harness();
 	await h.control.probe();
