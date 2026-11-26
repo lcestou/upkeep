@@ -75,6 +75,16 @@ function setup(over: Partial<Desktop> = {}) {
 			restart: async () => void did.push("self restart"),
 			dismiss: () => void did.push("self dismiss"),
 		},
+		whenDone: {
+			snapshot: () => ({
+				choice: "nothing" as const,
+				can: { suspend: true, poweroff: false },
+				countdown: null,
+				cancelled: null,
+			}),
+			choose: (c: string) => (did.push(`then ${c}`), c !== "poweroff"),
+			cancel: () => (did.push("cancel power"), false),
+		},
 		onSnapshot: () => {
 			if (watchSnapshots) did.push("snapshot asked");
 		},
@@ -176,6 +186,15 @@ test("open goes only to apps.toml, a run log, or a release page the engine fetch
 		`open ${join(t.paths.config, "apps.toml")}`,
 		`open ${join(t.paths.state, "logs", "20261112-090000-b.log")}`,
 	]);
+});
+
+test("the when-done requests answer from the main process, and a choice outside a run is refused", async () => {
+	const { r, did } = setup();
+	expect((await r.whenDone({})).can).toEqual({ suspend: true, poweroff: false });
+	// No run: the choice is not even passed on.
+	expect(await r.setWhenDone({ choice: "suspend" })).toEqual({ ok: false });
+	expect(await r.cancelWhenDone({})).toEqual({ ok: false });
+	expect(did).toEqual(["cancel power"]);
 });
 
 test("the self-update requests pass the press on, and What's new opens the offered version's release page", async () => {

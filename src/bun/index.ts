@@ -29,6 +29,7 @@ import { CATALOGUE_URL } from "./about";
 import { MESSAGES } from "../shared/messages";
 import { createSelf, type Self, startTestAnswer } from "./self-update";
 import { defineUpkeepRpc } from "./rpc";
+import { createWhenDone, WHEN_DONE } from "./when-done";
 import { loadWindowSize, saveWindowSize } from "./window-size";
 import {
 	createSettleWatch,
@@ -69,7 +70,6 @@ let win: BrowserWindow | null = null;
 let quitting = false;
 // Set when the quit handler gave the instance socket away, so a quit that then did not happen takes it back.
 let socketFreed = false;
-let quitAfterRun = false;
 // The tray's Quit during a System install: Upkeep quits once the install ends, never in the middle of it.
 let quitAfterSystem = false;
 let rebuilding = false;
@@ -260,6 +260,22 @@ const extras = createExtras({
 	// Cleanup looks for Upkeep's own leftovers beside each installed app.
 	leftoverDirs: () => [...new Set(engine.snapshot().apps.flatMap((a) => (a.dest ? [dirname(a.dest)] : [])))],
 });
+// What happens when a run ends, for this run only: the window and the tray both read and set this one.
+const whenDone = createWhenDone({
+	run: deps.run,
+	now: Date.now,
+	later: (ms, fn) => {
+		const timer = setTimeout(fn, ms);
+		return () => clearTimeout(timer);
+	},
+	raise: () => openWindow(),
+	quit: () => quit(),
+	tell: (state) => {
+		toView.push({ type: "whenDone", whenDone: state });
+		refreshTray();
+	},
+	log: (line) => console.log(line),
+});
 // The launcher and icon of this very install, so a login entry always points at the copy that wrote it.
 const launcher = join(import.meta.dir, "../../../bin/launcher");
 const appIcon = join(import.meta.dir, "../../appIcon.png");
@@ -356,6 +372,7 @@ function makeRpc(onSnapshot?: () => void) {
 		// desktop's locale is not generated; the environment is what the tray reads, so both use it.
 		languages: () => systemLanguages(process.env),
 		extras,
+		whenDone,
 		env: process.env,
 	});
 }
@@ -427,7 +444,7 @@ function refreshTray(): void {
 		shownTitle = title;
 		tray.setTitle(title);
 	}
-	const menu = trayMenu(snapshot, extras.snapshot().system, code, selfApi.snapshot());
+	const menu = trayMenu(snapshot, extras.snapshot().system, code, selfApi.snapshot(), whenDone.snapshot());
 	const key = JSON.stringify(menu);
 	if (key !== shownMenu) {
 		shownMenu = key;
@@ -446,10 +463,13 @@ tray.on("tray-clicked", (event) => {
 		else void engine.install(engine.readyKeys(false));
 	} else if (action === "quit") {
 		if (extras.installing()) quitAfterSystem = true;
-		if (engine.snapshot().run.phase === "installing") {
-			quitAfterRun = true;
-			engine.stopAfterCurrent();
-		} else if (!quitAfterSystem) quit();
+		// During a run the menu offers Quit as a when-done choice; a stale menu's Quit is taken the same way.
+		if (engine.snapshot().run.phase === "installing") whenDone.choose("quit");
+		else if (!quitAfterSystem) quit();
+	} else if (action === "cancel-power") whenDone.cancel();
+	else if (action?.startsWith("then-")) {
+		const choice = WHEN_DONE.find((c) => `then-${c}` === action);
+		if (choice && engine.snapshot().run.phase === "installing") whenDone.choose(choice);
 	}
 });
 
@@ -528,6 +548,7 @@ const schedule = startSchedule({
 // Through the same coalescer as the engine's events: a non-row event flushes pending rows first, so order holds.
 extras.subscribe((event) => {
 	toView.push(event);
+	whenDone.system(extras.snapshot().system);
 	refreshTray();
 	if (quitAfterSystem && !extras.installing() && engine.snapshot().run.phase !== "installing") quit();
 });
@@ -563,6 +584,7 @@ engine.subscribe((event) => {
 	}
 	const before = phase;
 	phase = event.run.phase;
+	if (phase === "installing" && before !== "installing") whenDone.runStarted();
 	refreshTray();
 	// A finished check or a dismissed run both just looked at every app: the schedule's wait starts again.
 	if (phase === "idle" && (before === "checking" || before === "summary")) schedule.checked();
@@ -574,6 +596,8 @@ engine.subscribe((event) => {
 	}
 	if (before === "installing" && phase === "summary") {
 		const done = engine.snapshot();
+		// A suspend or power-off raises the window here, before the hidden-window check below, so its summary stays.
+		const quitAfterRun = whenDone.runEnded(done.run) === "quit";
 		const said = runNotices(done.run.results, trayLanguage()).join("\n");
 		// Never awaited by the run; a quit after it waits for it (10 s at most), so the POST is not cut off.
 		const sent =

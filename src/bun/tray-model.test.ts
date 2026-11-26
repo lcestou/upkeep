@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { AppState, RunState, Snapshot } from "../shared/types";
+import type { AppState, RunState, Snapshot, WhenDoneState } from "../shared/types";
 import {
 	createSettleWatch,
 	failedNotice,
@@ -79,7 +79,49 @@ test("menu with updates offers them by count", () => {
 
 test("during a run the menu cannot start another and quitting waits", () => {
 	const labels = trayMenu(snap(3, { ...idle, phase: "installing" })).map((i) => (i.type === "normal" ? i.label : "-"));
-	expect(labels).toEqual(["Open Upkeep", "Check now", "-", "Quit after this run"]);
+	expect(labels).toEqual(["Open Upkeep", "Check now", "-", "When done: Nothing"]);
+});
+
+test("during a run Quit grows into the when-done choices, with only the power actions logind allows", () => {
+	const state: WhenDoneState = {
+		choice: "poweroff",
+		can: { suspend: false, poweroff: true },
+		countdown: null,
+		cancelled: null,
+	};
+	const menu = trayMenu(snap(3, { ...idle, phase: "installing" }), undefined, "en", undefined, state).at(-1);
+	expect(menu).toEqual({
+		type: "normal",
+		label: "When done: Shut down",
+		submenu: [
+			{ type: "normal", label: "Nothing", action: "then-nothing", checked: false },
+			{ type: "normal", label: "Quit Upkeep", action: "then-quit", checked: false },
+			{ type: "normal", label: "Shut down", action: "then-poweroff", checked: true },
+		],
+	});
+	const de = trayMenu(snap(3, { ...idle, phase: "installing" }), undefined, "de", undefined, {
+		...state,
+		can: { suspend: true, poweroff: true },
+		choice: "suspend",
+	}).at(-1);
+	expect(
+		de?.type === "normal" && "submenu" in de ? de.submenu.map((i) => (i.type === "normal" ? i.label : "-")) : [],
+	).toEqual(["Nichts", "Upkeep beenden", "Bereitschaft", "Herunterfahren"]);
+});
+
+test("a countdown after the run adds its Cancel, and the menu offers Quit again", () => {
+	const state: WhenDoneState = {
+		choice: "nothing",
+		can: { suspend: true, poweroff: true },
+		countdown: { action: "suspend", at: 0 },
+		cancelled: null,
+	};
+	const labels = (s: WhenDoneState) =>
+		trayMenu(snap(0, { ...idle, phase: "summary" }), undefined, "en", undefined, s).map((i) =>
+			i.type === "normal" ? i.label : "-",
+		);
+	expect(labels(state)).toEqual(["Open Upkeep", "Check now", "Cancel suspend", "-", "Quit"]);
+	expect(labels({ ...state, countdown: { action: "poweroff", at: 0 } })).toContain("Cancel shut down");
 });
 
 test("during a check the menu offers no install, because the engine would refuse it", () => {

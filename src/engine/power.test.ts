@@ -1,5 +1,17 @@
 import { expect, test } from "bun:test";
-import { canHoldSleep, holdSleep, inhibitArgv, metered, onBattery, waitReason } from "./power";
+import {
+	canHoldSleep,
+	canPower,
+	holdSleep,
+	inhibitArgv,
+	logindActArgv,
+	logindCanArgv,
+	metered,
+	onBattery,
+	powerBlocker,
+	powerNow,
+	waitReason,
+} from "./power";
 import type { ProcessResult, Run } from "./run";
 import { join } from "node:path";
 import { ok, realRun, script, tempHome } from "./testkit";
@@ -109,4 +121,77 @@ test("a metered query that throws reads as unmetered, and the battery is still a
 	};
 	expect(await waitReason(run)).toBe("battery");
 	expect(asked).toEqual(["Metered", "OnBattery"]);
+});
+
+test("logind's can-questions and calls name the method, and a call asks with interactive=true", () => {
+	expect(logindCanArgv("suspend")).toEqual([
+		"busctl",
+		"call",
+		"org.freedesktop.login1",
+		"/org/freedesktop/login1",
+		"org.freedesktop.login1.Manager",
+		"CanSuspend",
+	]);
+	expect(logindCanArgv("poweroff").at(-1)).toBe("CanPowerOff");
+	expect(logindActArgv("poweroff")).toEqual([
+		"busctl",
+		"--allow-interactive-authorization=yes",
+		"--timeout=120",
+		"call",
+		"org.freedesktop.login1",
+		"/org/freedesktop/login1",
+		"org.freedesktop.login1.Manager",
+		"PowerOff",
+		"b",
+		"true",
+	]);
+	expect(logindActArgv("suspend").slice(-3)).toEqual(["Suspend", "b", "true"]);
+});
+
+test("suspend and power-off are offered on yes and challenge only; no logind or a throw is no", async () => {
+	const says = (text: string) => answering({ CanSuspend: ok(`s "${text}"\n`), CanPowerOff: ok(`s "${text}"`) });
+	expect(await canPower(says("yes"), "suspend")).toBe(true);
+	expect(await canPower(says("challenge"), "poweroff")).toBe(true);
+	expect(await canPower(says("no"), "suspend")).toBe(false);
+	expect(await canPower(says("na"), "poweroff")).toBe(false);
+	expect(await canPower(answering({}), "suspend")).toBe(false);
+	expect(
+		await canPower(async () => {
+			throw new Error("no bus");
+		}, "suspend"),
+	).toBe(false);
+});
+
+test("a call logind took is null; a refusal or a throw comes back as what was said", async () => {
+	const calls: string[][] = [];
+	const took: Run = async (argv) => {
+		calls.push(argv);
+		return ok();
+	};
+	expect(await powerNow(took, "suspend")).toBeNull();
+	expect(calls).toEqual([logindActArgv("suspend")]);
+	expect(await powerNow(answering({ true: { ...fail, stdout: "Access denied" } }), "poweroff")).toBe(
+		"Access denied\nno such name",
+	);
+	expect(await powerNow(async () => ({ code: 3, stdout: "", stderr: "", timedOut: false }), "poweroff")).toBe(
+		"busctl exited 3",
+	);
+	expect(
+		await powerNow(async () => {
+			throw new Error("cannot start");
+		}, "poweroff"),
+	).toBe("busctl could not start");
+});
+
+test("a run may power off only when every app in it updated and no System step failed", () => {
+	const r = (key: string, result: string) => ({ key, result });
+	expect(powerBlocker({ results: [r("a", "updated"), r("b", "updated")], queue: ["a", "b"] }, false)).toBeNull();
+	expect(powerBlocker({ results: [r("a", "updated")] }, false)).toBeNull();
+	expect(powerBlocker({ results: [r("a", "updated"), r("b", "failed")], queue: ["a", "b"] }, false)).toBe("failed");
+	expect(powerBlocker({ results: [r("a", "rolled_back")] }, false)).toBe("failed");
+	expect(powerBlocker({ results: [r("a", "updated"), r("b", "stopped")], queue: ["a", "b"] }, false)).toBe("stopped");
+	// Stop after this one: b never started, so the run did not do everything it was asked.
+	expect(powerBlocker({ results: [r("a", "updated")], queue: ["a", "b"] }, false)).toBe("stopped");
+	expect(powerBlocker({ results: [], queue: [] }, false)).toBe("stopped");
+	expect(powerBlocker({ results: [r("a", "updated")], queue: ["a"] }, true)).toBe("system");
 });

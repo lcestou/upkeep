@@ -3053,6 +3053,7 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "В этом файле есть приложения, которые выполняют эти команды на этом компьютере. Импортируйте его, только если доверяете источнику."
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -3259,6 +3260,61 @@ msgstr "{0} {1} требует glibc {2}; в этой системе {3}, поэ
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} собран для {2}; этот процессор — {3}, поэтому ничего не установлено."
+
+#: src/mainview/lib/copy.ts
+msgid "When done"
+msgstr "По завершении"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing"
+msgstr "Ничего"
+
+#: src/mainview/lib/copy.ts
+msgid "Quit Upkeep"
+msgstr "Выйти из Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Suspend"
+msgstr "Ждущий режим"
+
+#: src/mainview/lib/copy.ts
+msgid "Shut down"
+msgstr "Выключить"
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not suspended."
+msgstr "Компьютер не переведён в ждущий режим."
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not shut down."
+msgstr "Компьютер не выключен."
+
+#: src/mainview/lib/copy.ts
+msgid "An app did not update."
+msgstr "Одно из приложений не обновилось."
+
+#: src/mainview/lib/copy.ts
+msgid "The run was stopped."
+msgstr "Проход был остановлен."
+
+#: src/mainview/lib/copy.ts
+msgid "A System update failed."
+msgstr "Не удалось установить обновление системы."
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Suspending in {0} s"
+msgstr "Ждущий режим через {0} с"
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Shutting down in {0} s"
+msgstr "Выключение через {0} с"
+
+#. 0: detail
+#: src/mainview/lib/copy.ts
+msgid "The system refused: {0}"
+msgstr "Система отказала: {0}"
 
 #: src/mainview/lib/copy.ts
 msgid "General"

@@ -3032,6 +3032,7 @@ msgid "This file has apps that run these commands on this computer. Import it on
 msgstr "Este archivo tiene apps que ejecutan estos comandos en este equipo. Impórtalo solo si confías en su origen."
 
 #: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -3235,6 +3236,61 @@ msgstr "{0} {1} necesita glibc {2}; este sistema tiene {3}, así que no se insta
 #: src/mainview/lib/engine-text.ts
 msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
 msgstr "{0} {1} está compilado para {2}; este procesador es {3}, así que no se instaló nada."
+
+#: src/mainview/lib/copy.ts
+msgid "When done"
+msgstr "Al terminar"
+
+#: src/mainview/lib/copy.ts
+msgid "Nothing"
+msgstr "Nada"
+
+#: src/mainview/lib/copy.ts
+msgid "Quit Upkeep"
+msgstr "Salir de Upkeep"
+
+#: src/mainview/lib/copy.ts
+msgid "Suspend"
+msgstr "Suspender"
+
+#: src/mainview/lib/copy.ts
+msgid "Shut down"
+msgstr "Apagar"
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not suspended."
+msgstr "El equipo no se suspendió."
+
+#: src/mainview/lib/copy.ts
+msgid "The PC was not shut down."
+msgstr "El equipo no se apagó."
+
+#: src/mainview/lib/copy.ts
+msgid "An app did not update."
+msgstr "Una aplicación no se actualizó."
+
+#: src/mainview/lib/copy.ts
+msgid "The run was stopped."
+msgstr "La tanda se detuvo."
+
+#: src/mainview/lib/copy.ts
+msgid "A System update failed."
+msgstr "Falló una actualización del sistema."
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Suspending in {0} s"
+msgstr "Suspensión en {0} s"
+
+#. 0: n
+#: src/mainview/lib/copy.ts
+msgid "Shutting down in {0} s"
+msgstr "Apagado en {0} s"
+
+#. 0: detail
+#: src/mainview/lib/copy.ts
+msgid "The system refused: {0}"
+msgstr "El sistema lo rechazó: {0}"
 
 #: src/mainview/lib/copy.ts
 msgid "General"

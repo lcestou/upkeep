@@ -13,6 +13,8 @@ import type {
 	Settings,
 	Snapshot,
 	SystemRow,
+	WhenDone,
+	WhenDoneState,
 	WindowButton,
 	WindowChrome,
 } from "../../shared/types";
@@ -161,6 +163,13 @@ export class Model {
 	extras = $state<ExtrasSnapshot | null>(null);
 	/** Upkeep's own update; "none" until the main process says otherwise. */
 	self = $state<SelfState>({ phase: "none" });
+	/** What happens when this run ends, as the main process holds it: Nothing, and no power action, until it answers. */
+	whenDone = $state<WhenDoneState>({
+		choice: "nothing",
+		can: { suspend: false, poweroff: false },
+		countdown: null,
+		cancelled: null,
+	});
 	/** True while a check, a run, a system install or a cleanup is going: Upkeep's own update waits for it. */
 	get selfBusy(): boolean {
 		return (
@@ -306,14 +315,16 @@ export class Model {
 		const bridge = this.#bridge;
 		if (!bridge) return;
 		this.#off = bridge.onEvent((e) => this.apply(e));
-		const [snap, chrome, extras, languages, self] = await Promise.all([
+		const [snap, chrome, extras, languages, self, whenDone] = await Promise.all([
 			bridge.request("snapshot", {}),
 			this.send("chrome", {}),
 			this.send("extras", {}),
 			this.send("languages", {}),
 			this.send("self", {}),
+			this.send("whenDone", {}),
 		]);
 		if (self) this.self = self;
+		if (whenDone) this.whenDone = whenDone;
 		this.desktopLanguages = languages ?? [];
 		this.chrome = chrome;
 		if (extras) this.extras = extras;
@@ -389,6 +400,9 @@ export class Model {
 			case "self":
 				this.self = e.self;
 				break;
+			case "whenDone":
+				this.whenDone = e.whenDone;
+				return;
 			case "extras": {
 				const was = this.extras?.system.phase;
 				this.extras = e.extras;
@@ -664,6 +678,16 @@ export class Model {
 		await this.send("stopNow", {});
 	}
 
+	/** Picks what happens when this run ends; the main process's whenDone event brings the change back. */
+	async setWhenDone(choice: WhenDone): Promise<void> {
+		await this.send("setWhenDone", { choice });
+	}
+
+	/** Cancels a suspend or power-off counting down, or takes away the note on why one did not happen. */
+	async cancelWhenDone(): Promise<void> {
+		await this.send("cancelWhenDone", {});
+	}
+
 	/** Asks the engine to stop after the app now running; nothing waits on the answer. */
 	async stopAfterCurrent(): Promise<void> {
 		await this.send("stopAfterCurrent", {});
@@ -671,6 +695,8 @@ export class Model {
 
 	/** Clears the run summary on the engine's side. */
 	async dismiss(): Promise<void> {
+		// A note on why the PC was not suspended or shut down belongs to this summary and goes with it.
+		if (this.whenDone.cancelled && !this.whenDone.countdown) void this.cancelWhenDone();
 		await this.send("dismissSummary", {});
 	}
 

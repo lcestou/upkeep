@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MESSAGES } from "./shared/messages";
-import { checkLine, main, pickSure, stopOnSignal, USAGE } from "./cli";
+import { checkLine, main, pickSure, powerAfter, stopOnSignal, thenOf, USAGE } from "./cli";
 import { createEngine, type EngineDeps } from "./engine/engine";
 import {
 	appendHistory,
@@ -62,8 +62,9 @@ function deps(): EngineDeps {
 	script(join(t.paths.home, ".local/bin/borg"), 'echo "borg 1.4.1"');
 	script(join(t.paths.home, ".local/bin/bat"), 'echo "bat 0.26.1"');
 	// gh, the system's own lists (Flatpak, Snap, apt) and the journal read as not there: no test reads the machine it runs on.
+	// busctl too, so no test can ever reach logind and suspend or power off the machine running it.
 	const { run } = recordingRun(t.paths, (argv) =>
-		["gh", "flatpak", "snap", "apt-cache", "journalctl"].includes(argv[0] ?? "")
+		["gh", "flatpak", "snap", "apt-cache", "journalctl", "busctl"].includes(argv[0] ?? "")
 			? { code: argv[0] === "gh" ? 1 : 127, stdout: "", stderr: "", timedOut: false }
 			: undefined,
 	);
@@ -1178,4 +1179,100 @@ test("an update whose saved row had no latest takes the installed version as its
 	await engine.idle();
 	const after = JSON.parse(readFileSync(rows, "utf8"));
 	expect(after.borg).toMatchObject({ installed: "1.4.2", latest: "1.4.2", status: "fresh" });
+});
+
+test("--then takes suspend or poweroff once, and refuses any other value before anything is installed", async () => {
+	expect(thenOf(["borg"])).toEqual({ action: null, rest: ["borg"] });
+	expect(thenOf(["borg", "--then", "suspend"])).toEqual({ action: "suspend", rest: ["borg"] });
+	expect(thenOf(["--then", "poweroff", "--all"])).toEqual({ action: "poweroff", rest: ["--all"] });
+	expect(thenOf(["borg", "--then", "reboot"])).toEqual({ error: "--then takes suspend or poweroff, not reboot." });
+	expect(thenOf(["borg", "--then"])).toEqual({ error: "--then takes suspend or poweroff, not nothing." });
+	expect(thenOf(["--then", "suspend", "borg", "--then", "poweroff"])).toEqual({ error: "--then is given once." });
+	const out: string[] = [];
+	const d = deps();
+	expect(await main(["install", "borg", "--then", "hibernate"], d, (l) => out.push(l))).toBe(2);
+	expect(out).toEqual(["--then takes suspend or poweroff, not hibernate.", USAGE]);
+	// Nothing was checked or installed.
+	expect((await realRun(t.paths)([join(t.paths.home, ".local/bin/borg")])).stdout).toBe("borg 1.4.1\n");
+	// --then alone names no app: usage.
+	const u: string[] = [];
+	expect(await main(["install", "--then", "poweroff"], d, (l) => u.push(l))).toBe(2);
+	expect(u).toEqual([USAGE]);
+});
+
+test("install --then leaves the PC on when not every app updated, and says so", async () => {
+	const out: string[] = [];
+	expect(await main(["install", "bat", "--then", "poweroff"], deps(), (l) => out.push(l))).toBe(1);
+	expect(out.slice(-2)).toEqual(["Nothing to install.", "Not shutting down: not every app updated."]);
+	const json: string[] = [];
+	expect(await main(["install", "bat", "--then", "suspend", "--json"], deps(), (l) => json.push(l))).toBe(1);
+	expect(JSON.parse(json.at(-1) ?? "{}")).toEqual({ after: "suspend", cancelled: true });
+});
+
+test("the countdown prints one line, Ctrl-C cancels it before logind is asked, and the listeners go", async () => {
+	const sig = fakeSignals();
+	const calls: string[][] = [];
+	const run = async (argv: string[]) => {
+		calls.push(argv);
+		return { code: 0, stdout: "", stderr: "", timedOut: false };
+	};
+	const out: string[] = [];
+	const waiting = powerAfter(
+		"poweroff",
+		run,
+		false,
+		(l) => out.push(l),
+		sig,
+		() => new Promise(() => {}),
+	);
+	expect(out).toEqual(["Shutting down in 60 s. Press Ctrl-C to cancel."]);
+	expect(sig.listening()).toBe(3);
+	sig.raise("SIGINT");
+	expect(await waiting).toBe(0);
+	expect(out.at(-1)).toBe("Cancelled. The PC stays on.");
+	expect(calls).toEqual([]);
+	expect(sig.listening()).toBe(0);
+	expect(sig.exits).toEqual([]);
+});
+
+test("at zero the countdown asks logind once with interactive=true; a refusal is said and exits 1", async () => {
+	const sig = fakeSignals();
+	const calls: string[][] = [];
+	const answer = { code: 0, stdout: "", stderr: "", timedOut: false };
+	const run = async (argv: string[]) => {
+		calls.push(argv);
+		return answer;
+	};
+	const out: string[] = [];
+	expect(
+		await powerAfter(
+			"suspend",
+			run,
+			false,
+			(l) => out.push(l),
+			sig,
+			async () => {},
+		),
+	).toBe(0);
+	expect(out).toEqual(["Suspending in 60 s. Press Ctrl-C to cancel."]);
+	expect(calls.at(-1)?.slice(-4)).toEqual(["org.freedesktop.login1.Manager", "Suspend", "b", "true"]);
+	expect(calls.at(-1)).toContain("--allow-interactive-authorization=yes");
+	answer.code = 1;
+	answer.stdout = "Interactive authentication required.";
+	const json: string[] = [];
+	expect(
+		await powerAfter(
+			"poweroff",
+			run,
+			true,
+			(l) => json.push(l),
+			sig,
+			async () => {},
+		),
+	).toBe(1);
+	expect(json.map((l) => JSON.parse(l))).toEqual([
+		{ after: "poweroff", in: 60 },
+		{ after: "poweroff", refused: "Interactive authentication required." },
+	]);
+	expect(sig.listening()).toBe(0);
 });

@@ -4,6 +4,10 @@ import {
 	WATCH,
 	goBackLabel,
 	watchLine,
+	WHEN,
+	refusedText,
+	shutDownIn,
+	suspendIn,
 	CHECKED,
 	CHECKED_SHORT,
 	IMPORT,
@@ -446,4 +450,25 @@ test("the watch words: a chip per sign, the pane's line per sign with the crash 
 	expect(watchLine("health", 0, "1.4.0", "yesterday")).toBe(
 		"Its health address has stopped answering since 1.4.0 was installed yesterday.",
 	);
+});
+
+test("the when-done words: the choices, the countdown and why nothing happened", () => {
+	expect([WHEN.label, WHEN.nothing, WHEN.quit, WHEN.suspend, WHEN.poweroff, WHEN.cancel]).toEqual([
+		"When done",
+		"Nothing",
+		"Quit Upkeep",
+		"Suspend",
+		"Shut down",
+		"Cancel",
+	]);
+	expect([WHEN.notSuspended, WHEN.notShutDown, WHEN.failed, WHEN.stopped, WHEN.system]).toEqual([
+		"The PC was not suspended.",
+		"The PC was not shut down.",
+		"An app did not update.",
+		"The run was stopped.",
+		"A System update failed.",
+	]);
+	expect(suspendIn(42)).toBe("Suspending in 42 s");
+	expect(shutDownIn(1)).toBe("Shutting down in 1 s");
+	expect(refusedText("Access denied")).toBe("The system refused: Access denied");
 });
