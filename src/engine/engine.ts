@@ -820,24 +820,25 @@ export function createEngine(deps: EngineDeps): Engine {
 	 */
 	async function lookFor(spec: AppSpec, c: Checked, ctx: KindCtx): Promise<void> {
 		const { installed, latest } = c;
-		const was = loadState(paths).security[spec.key];
-		if (c.status !== "ready" || !installed || !latest || !isNewer(installed, latest)) {
-			if (was)
-				updateState(paths, (s) => {
-					delete s.security[spec.key];
-				});
-			return;
-		}
-		if (was?.latest === latest && was.complete) return;
 		try {
+			const was = loadState(paths).security[spec.key];
+			if (c.status !== "ready" || !installed || !latest || !isNewer(installed, latest)) {
+				if (was)
+					updateState(paths, (s) => {
+						delete s.security[spec.key];
+					});
+				return;
+			}
+			if (was?.latest === latest && was.complete) return;
+			// Read before the release list too: with the budget low, nothing more goes to GitHub and the look stays incomplete.
+			const low = rate !== null && rate.remaining < SECURITY_RESERVE;
 			let notes = c.notes ? [c.notes] : [];
-			let listed = true;
-			if (canList(spec)) {
+			let listed = !low || !canList(spec);
+			if (canList(spec) && !low) {
 				const list = await allReleases(spec, ctx);
 				if (isFailure(list)) listed = false;
 				else notes = notesSpan(list, installed, latest, spec.prerelease === true).releases.map((r) => r.notes);
 			}
-			const low = rate !== null && rate.remaining < SECURITY_RESERVE;
 			const github = {
 				cacheDir: join(paths.cache, "github"),
 				token: ctx.token,

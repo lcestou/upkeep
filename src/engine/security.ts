@@ -73,6 +73,7 @@ export function advisoryIds(list: unknown[], installed: string, latest: string):
 				inSpan(p, installed, latest),
 			),
 		);
+		// shortcut: a repo that publishes several packages may flag another package's fix, since the release table names no package; filter by vulnerabilities[].package once a table can name one.
 		if (!fixed) continue;
 		for (const id of [str(a.ghsa_id), str(a.cve_id)]) if (id) ids.push(canonical(id));
 	}
@@ -102,7 +103,7 @@ export function osvIds(body: unknown, installed: string, latest: string): string
 			);
 		});
 		const id = str(v.id);
-		return fixed && id ? [id] : [];
+		return fixed && id ? [canonical(id)] : [];
 	});
 }
 

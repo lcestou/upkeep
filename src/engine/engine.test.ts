@@ -1323,6 +1323,26 @@ test("a security fix is looked for once per latest, and skips the wait while Exc
 	expect(fd()?.security?.ids).toHaveLength(2);
 });
 
+test("with GitHub's budget low, the security look asks GitHub nothing and stays open for the next check", async () => {
+	const d = await deps();
+	const asked: string[] = [];
+	const engine = createEngine({
+		...d,
+		fetch: async (url, init) => {
+			asked.push(url);
+			const r = await d.fetch(url, init);
+			const headers = new Headers(r.headers);
+			headers.set("x-ratelimit-remaining", "10");
+			headers.set("x-ratelimit-limit", "60");
+			return new Response(r.body, { status: r.status, headers });
+		},
+	});
+	await engine.check(["fd"]);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("ready");
+	expect(asked.some((u) => u.includes("security-advisories"))).toBe(false);
+	expect(asked.some((u) => u.includes("/repos/sharkdp/fd/releases?"))).toBe(false);
+});
+
 test("settlesAt: no wait, no date, an unreadable date or an old enough release offers it now", () => {
 	const now = new Date("2026-11-10T00:00:00Z");
 	expect(settlesAt("2026-11-09T00:00:00Z", 0, now)).toBeUndefined();
