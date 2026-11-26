@@ -136,6 +136,19 @@ test("a System install started during the countdown stops it, so logind is never
 	expect(h.calls.some((c) => c.includes("PowerOff"))).toBe(false);
 });
 
+test("a System install running when the countdown ends keeps logind from being asked", async () => {
+	const h = harness();
+	await h.control.probe();
+	h.control.choose("poweroff");
+	h.control.runEnded(ended(["a", "updated"]));
+	h.control.system(system("installing"));
+	// The timer fires anyway, standing in for one that went off in the same moment the install began.
+	h.timers[0]?.fn();
+	await Bun.sleep(0);
+	expect(h.calls.some((c) => c.includes("PowerOff"))).toBe(false);
+	expect(h.counts.quit).toBe(0);
+});
+
 test("an unknown choice from the view is refused and changes nothing", async () => {
 	const h = harness();
 	await h.control.probe();

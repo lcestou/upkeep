@@ -58,6 +58,12 @@ export function createWhenDone(ports: WhenDonePorts) {
 	const act = async (action: PowerAction) => {
 		stopTimer = null;
 		set({ countdown: null });
+		// shortcut: a System install started while logind's own password ask is open still goes ahead; logind's call cannot be taken back.
+		if (systemWas === "installing") {
+			ports.log(`When done: ${action} cancelled, a System install is running`);
+			set({ choice: "nothing" });
+			return;
+		}
 		ports.log(`When done: asking logind to ${action}`);
 		const refused = await powerNow(ports.run, action);
 		if (refused === null) {
