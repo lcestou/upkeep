@@ -141,3 +141,29 @@ test("a manual app is its own by-hand count and line, apart from ready, in the t
 	expect(text).toContain('upkeep_apps{state="manual"} 1\n');
 	expect(text).not.toContain('upkeep_update_ready{app="hand"');
 });
+
+test("an app with a sign since its update gets a WATCH line and a watch entry, whatever its bucket", () => {
+	const at = "2026-11-24T12:00:00.000Z";
+	const s = statusOf(
+		snap([
+			row("tool", "fresh", { installed: "1.1", watch: { sign: "crash", from: "1.0", to: "1.1", at, crashes: 2 } }),
+			row("web", "ready", { installed: "2.0", watch: { sign: "health", from: null, to: "2.0", at } }),
+			row("svc", "fresh", { watch: { sign: "service", from: "0.9", to: "1.0", at } }),
+			row("calm", "fresh"),
+		]),
+		false,
+	);
+	expect(s.watch.map((a) => a.key)).toEqual(["tool", "web", "svc"]);
+	expect(s.watch[0]).toEqual({
+		key: "tool",
+		name: "TOOL",
+		installed: "1.1",
+		watch: { sign: "crash", from: "1.0", to: "1.1", at, crashes: 2 },
+	});
+	const day = new Date(at).toLocaleDateString("sv-SE");
+	expect(statusLines(s).slice(-3)).toEqual([
+		`  WATCH:  TOOL 1.1 crashed 2 times since the update from 1.0 on ${day}`,
+		`  WATCH:  WEB 2.0 health address not answering since the update from unknown on ${day}`,
+		`  WATCH:  SVC 1.0 service failing since the update from 0.9 on ${day}`,
+	]);
+});

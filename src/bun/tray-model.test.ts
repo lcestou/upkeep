@@ -50,6 +50,7 @@ function snap(ready: number, run: RunState = idle): Snapshot {
 			waitUnmetered: false,
 			webhookReady: true,
 			webhookRun: false,
+			watchUpdates: true,
 		},
 		rate: null,
 		checkedAt: null,

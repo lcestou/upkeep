@@ -191,6 +191,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 			waitUnmetered: false,
 			webhookReady: true,
 			webhookRun: false,
+			watchUpdates: true,
 		},
 		notified: "",
 		restart: {},
@@ -202,6 +203,7 @@ test("state defaults, and updateState merges one change into what is on disk", (
 		changed: {},
 		origin: {},
 		swapped: {},
+		probation: {},
 		security: {},
 	});
 	updateState(t.paths, (s) => {

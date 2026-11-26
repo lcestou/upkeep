@@ -69,6 +69,7 @@ function ctx(run: Run = realRun(t.paths)): KindCtx {
 			waitUnmetered: false,
 			webhookReady: true,
 			webhookRun: false,
+			watchUpdates: true,
 		},
 		log: (l) => lines.push(l),
 		stage: () => {},

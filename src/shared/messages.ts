@@ -418,6 +418,8 @@ export const MESSAGES = {
 	/** manifest.ts. {0} app key */
 	liftZsyncAppimage: (v0: Value) => `${v0}: a zsync: latest is only for kind appimage, with an https address`,
 	/** manifest.ts. {0} app key */
+	liftHealthAddress: (v0: Value) => `${v0}: health must be an http or https address`,
+	/** manifest.ts. {0} app key */
 	liftPrereleaseNeedsList: (v0: Value) =>
 		`${v0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo`,
 	/** manifest.ts. {0} app key */

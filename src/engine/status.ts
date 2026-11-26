@@ -1,4 +1,4 @@
-import type { AppState, SecurityFix, Snapshot } from "../shared/types";
+import type { AppState, SecurityFix, Snapshot, Watch } from "../shared/types";
 
 /**
  * How many apps rest in each state, as `upkeep status`, its metrics and a sent notice count them. ready is what
@@ -51,6 +51,8 @@ export type Status = {
 	noted: StatusApp[];
 	/** Apps in the list the last check left no row for, by key and name. */
 	unchecked: { key: string; name: string }[];
+	/** Apps on probation with a sign up since Upkeep updated them, whatever bucket they count in. */
+	watch: (Pick<StatusApp, "key" | "name" | "installed"> & { watch: Watch })[];
 };
 
 /** The bucket a row counts in; a row still checking or in a run counts in none of them, only in apps. */
@@ -163,6 +165,9 @@ export function statusOf(snapshot: Snapshot, running: boolean, listed: { key: st
 		noted: of("upToDate")
 			.filter((a) => a.detail)
 			.map(listedApp),
+		watch: snapshot.apps.flatMap((a) =>
+			a.watch ? [{ key: a.key, name: a.name, installed: a.installed, watch: a.watch }] : [],
+		),
 	};
 }
 
@@ -187,7 +192,26 @@ export function statusLines(s: Status): string[] {
 	for (const a of s.held) lines.push(heldLine(a));
 	for (const a of s.failing) lines.push(`  FAILED: ${a.name}${why(a)}`);
 	for (const a of s.noted) lines.push(`  NOTE:   ${a.name} ${a.installed ?? "unknown"}${why(a)}`);
+	for (const a of s.watch) lines.push(watchLine(a));
 	return lines;
+}
+
+/** What each sign says on a WATCH line. */
+const SIGN_WORDS = {
+	crash: "crashed",
+	service: "service failing",
+	health: "health address not answering",
+} as const;
+
+/**
+ * The WATCH line `upkeep check` and `upkeep status` print for an app with a sign since its update: the version now,
+ * what was seen (with the crash count), and the version and day of the update it came with.
+ */
+export function watchLine(a: Pick<StatusApp, "name" | "installed"> & { watch: Watch }): string {
+	const w = a.watch;
+	const seen =
+		w.sign === "crash" && w.crashes ? `crashed ${w.crashes} time${w.crashes === 1 ? "" : "s"}` : SIGN_WORDS[w.sign];
+	return `  WATCH:  ${a.name} ${a.installed ?? "unknown"} ${seen} since the update from ${w.from ?? "unknown"} on ${localDay(w.at)}`;
 }
 
 /** A Prometheus label value: backslash, double quote and newline escaped, as the text format requires. */

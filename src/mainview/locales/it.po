@@ -3403,6 +3403,70 @@ msgid "Uses Timeshift. One is taken before system updates install, unless the ne
 msgstr "Usa Timeshift. Ne crea uno prima di installare gli aggiornamenti di sistema, a meno che lo snapshot più recente abbia meno di 6 ore; in modalità btrfs, sempre. Upkeep tiene i suoi 3 più recenti e non elimina mai i tuoi."
 
 #: src/mainview/lib/copy.ts
+msgid "Watch updated apps for 3 days"
+msgstr "Sorveglia le app aggiornate per 3 giorni"
+
+#: src/mainview/lib/copy.ts
+msgid "Each check reads crash reports, service state and an app's health address, and flags an app that started failing after its update. It never changes an app."
+msgstr "Ogni controllo legge i rapporti sui crash, lo stato del servizio e l'indirizzo di salute di un'app, e segnala un'app che ha iniziato a non funzionare dopo l'aggiornamento. Non modifica mai un'app."
+
+#: src/mainview/lib/copy.ts
+msgid "Crashed since update"
+msgstr "In crash dall'aggiornamento"
+
+#: src/mainview/lib/copy.ts
+msgid "Service failing since update"
+msgstr "Servizio in errore dall'aggiornamento"
+
+#: src/mainview/lib/copy.ts
+msgid "Not answering since update"
+msgstr "Non risponde dall'aggiornamento"
+
+#: src/mainview/lib/copy.ts
+msgid "Seen since Upkeep updated it. Open the app to go back or to keep this version."
+msgstr "Rilevato da quando Upkeep l'ha aggiornata. Apri l'app per tornare indietro o tenere questa versione."
+
+#: src/mainview/lib/copy.ts
+msgid "It's fine"
+msgstr "Va bene così"
+
+#: src/mainview/lib/copy.ts
+msgid "No restore point of the version before is left, so there is nothing to go back to."
+msgstr "Non resta alcun punto di ripristino della versione precedente, quindi non c'è nulla a cui tornare."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Go back to {0}"
+msgstr "Torna a {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "# time"
+msgid_plural "# times"
+msgstr[0] "# volta"
+msgstr[1] "# volte"
+msgstr[2] "# volte"
+
+#. 0: times; 1: to; 2: relative
+#: src/mainview/lib/copy.ts
+msgid "Crashed {0} since {1} was installed {2}."
+msgstr "Si è chiusa in crash {0} da quando {1} è stata installata {2}."
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its service has been failing since {0} was installed {1}."
+msgstr "Il suo servizio è in errore da quando {0} è stata installata {1}."
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its health address has stopped answering since {0} was installed {1}."
+msgstr "Il suo indirizzo di salute non risponde più da quando {0} è stata installata {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: health must be an http or https address"
+msgstr "{0}: health deve essere un indirizzo http o https"
+
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Security fix"
 msgstr "Correzione di sicurezza"

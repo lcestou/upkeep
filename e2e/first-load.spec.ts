@@ -31,7 +31,7 @@ test("Fresh is collapsed on first load and opens in place", async ({ page }) => 
 	const fold = page.getByTestId("group-fresh-toggle");
 	await expect(fold).toHaveAttribute("aria-expanded", "false");
 	await expect(fold).toContainText("Fresh");
-	await expect(fold).toContainText("24");
+	await expect(fold).toContainText("22");
 	await expect(page.getByTestId("row-bat")).toHaveCount(0);
 	await fold.click();
 	await expect(fold).toHaveAttribute("aria-expanded", "true");

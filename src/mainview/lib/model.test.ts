@@ -110,6 +110,7 @@ describe("events", () => {
 				waitUnmetered: false,
 				webhookReady: true,
 				webhookRun: false,
+				watchUpdates: true,
 			},
 			rate: null,
 			checkedAt: null,
@@ -129,6 +130,9 @@ describe("events", () => {
 	test("rows in a run form their own group, and a re-checked row keeps its group", () => {
 		expect(groupOf({ ...baseApp("x"), status: "checking" }, "ready")).toBe("ready");
 		expect(groupOf({ ...baseApp("x"), status: "checking" })).toBe("checking");
+		const watch = { sign: "crash" as const, from: "1.0", to: "1.1", at: "2026-11-09T00:00:00Z" };
+		expect(groupOf({ ...baseApp("x"), status: "fresh", watch })).toBe("problem");
+		expect(groupOf({ ...baseApp("x"), status: "ready", watch })).toBe("ready");
 		for (const status of ["queued", "working", "done", "failed", "rolled_back"] as const) {
 			expect(groupOf({ ...baseApp("x"), status })).toBe("run");
 		}

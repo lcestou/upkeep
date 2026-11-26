@@ -223,6 +223,7 @@ export const ENGINE_COPY = {
 	liftLinksPage: (v0: string) => `${v0}: a links: latest needs an https page and an asset pattern`,
 	liftLinksKinds: (v0: string) => `${v0}: a links: latest is only for kinds appimage, archive, file, deb and rpm`,
 	liftZsyncAppimage: (v0: string) => `${v0}: a zsync: latest is only for kind appimage, with an https address`,
+	liftHealthAddress: (v0: string) => `${v0}: health must be an http or https address`,
 	liftRelaunchNeedsDest: (v0: string) => `${v0}: relaunch needs dest`,
 	liftConfigDotDot: (v0: string) => `${v0}: a config file may not contain a .. part`,
 	importNothingAsked: () => "There is no file waiting to import. Press Import and pick it again.",
