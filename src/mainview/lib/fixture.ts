@@ -35,6 +35,7 @@ import type {
 	WindowButton,
 	WindowChrome,
 } from "../../shared/types";
+import { SNAPSHOT_HISTORY_KEY } from "../../shared/types";
 import { PICKED, scanResults, suggestFor } from "./fixture-add";
 import { afterClean, fixtureCleanupItems, fixtureReview } from "./fixture-cleanup";
 import { lastTryFailed, tomlWriteFailed } from "./copy";
@@ -885,13 +886,21 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			await new Promise((r) => setTimeout(r, 0));
 		}
 	};
-	const installing = opts.system === "install" || opts.system === "refuse";
+	const installing =
+		opts.system === "install" ||
+		opts.system === "refuse" ||
+		opts.system === "firmware" ||
+		opts.system === "snapshot-fail";
 	const systemSettings: ExtrasSettings =
 		!opts.system || opts.system === "off"
 			? { system: "off" }
-			: installing
-				? { system: "show", systemInstall: true }
-				: { system: "show" };
+			: opts.system === "snapshot-fail"
+				? { system: "show", systemInstall: true, snapshotBeforeSystem: true }
+				: installing
+					? { system: "show", systemInstall: true }
+					: { system: "show" };
+	// The person's answer to a failed snapshot's ask, while the fake install waits for one.
+	let snapshotAnswer: ((go: boolean) => void) | null = null;
 	let extras: ExtrasSnapshot = {
 		settings: opts.cleanup === "on" ? { ...systemSettings, cleanup: true } : systemSettings,
 		system: systemFor(opts.system ?? "off", iso(Date.now() - 5 * 60_000)),
@@ -982,13 +991,48 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			});
 			return;
 		}
+		const queued = { at, commands, refused: null, outcomes: picked.map((r) => fixtureOutcome(r, "queued")) };
+		if (extras.settings.snapshotBeforeSystem && extras.system.snapshotSetup) {
+			setExtras({ ...extras.system, install: { ...queued, snapshot: { phase: "taking" } } });
+			await sleep(900 / speed);
+			if (opts.system === "snapshot-fail") {
+				const reason = MESSAGES.snapshotFailed("E: Not enough disk space on the backup device");
+				setExtras({ ...extras.system, install: { ...queued, snapshot: { phase: "asking", reason } } });
+				const go = await new Promise<boolean>((resolve) => (snapshotAnswer = resolve));
+				snapshotAnswer = null;
+				if (!go) {
+					setExtras({
+						...extras.system,
+						phase: "idle",
+						install: { at, commands, outcomes: [], refused: MESSAGES.snapshotStopped() },
+					});
+					return;
+				}
+			} else
+				history.unshift({
+					key: SNAPSHOT_HISTORY_KEY,
+					name: "Timeshift",
+					from: null,
+					to: null,
+					result: "updated",
+					detail: MESSAGES.snapshotTaken("2026-11-26_10-00-00"),
+					ms: 900,
+					runId: `${at}-system`,
+					at,
+					stages: {},
+				});
+		}
 		setExtras({
 			...extras.system,
 			install: { at, commands, refused: null, outcomes: picked.map((r) => fixtureOutcome(r, "working")) },
 		});
 		await sleep(1200 / speed);
 		const outcomes = picked.map((r) =>
-			r.id === "apt:libsoup3" ? fixtureOutcome(r, "failed", MESSAGES.systemStillPending()) : fixtureOutcome(r, "done"),
+			r.id === "apt:libsoup3"
+				? fixtureOutcome(r, "failed", MESSAGES.systemStillPending())
+				: r.note === "restart-needed"
+					? fixtureOutcome(r, "done", MESSAGES.firmwareRestart())
+					: fixtureOutcome(r, "done"),
 		);
 		const done = new Set(outcomes.filter((o) => o.status === "done").map((o) => o.id));
 		setExtras({
@@ -1760,6 +1804,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 					: merged.systemInstall
 						? { system: "show", systemInstall: true }
 						: { system: "show" };
+			if (next.systemInstall && merged.snapshotBeforeSystem) next.snapshotBeforeSystem = true;
 			if (merged.cleanup) next.cleanup = true;
 			if (merged.cleanup && merged.devCaches) next.devCaches = true;
 			const turnedOn = next.system === "show" && extras.settings.system !== "show";
@@ -1812,6 +1857,12 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			sysOps.push(`systemPlan:${ids.join(",")}`);
 			const commands = fixturePlan(extras.system, ids);
 			return commands.length > 0 ? { commands } : { commands, reason: MESSAGES.systemNothing() };
+		},
+		systemSnapshotAnswer: ({ go }) => {
+			sysOps.push(`systemSnapshotAnswer:${go}`);
+			if (!snapshotAnswer) return { ok: false };
+			snapshotAnswer(go);
+			return { ok: true };
 		},
 		systemInstall: ({ ids, commands }) => {
 			sysOps.push(`systemInstall:${ids.join(",")}`);

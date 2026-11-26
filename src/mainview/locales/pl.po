@@ -3334,6 +3334,99 @@ msgid "System"
 msgstr "System"
 
 #: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "Wymaga ponownego uruchomienia"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "Oprogramowanie układowe"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "Ten komputer działa na baterii, więc nic nie zostało zainstalowane. Aktualizacje oprogramowania układowego wymagają zasilania sieciowego."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "Aby dokończyć aktualizację oprogramowania układowego, uruchom komputer ponownie."
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "Aktualizacje oprogramowania układowego mogą poprosić o hasło w oknie systemu."
+
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Snapper"
+msgstr "Snapper"
+
+#: src/mainview/components/SystemConfirm.svelte
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Timeshift"
+msgstr "Timeshift"
+
+#: src/mainview/lib/copy.ts
+msgid "Take a snapshot before system updates"
+msgstr "Twórz migawkę przed aktualizacjami systemu"
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Snapper: a pair of snapshots before and after system updates install. Snapper's own cleanup removes old ones."
+msgstr "Używa Snappera: para migawek przed instalacją aktualizacji systemu i po niej. Stare usuwa własne czyszczenie Snappera."
+
+#: src/mainview/lib/copy.ts
+msgid "Taking a snapshot"
+msgstr "Tworzenie migawki"
+
+#: src/mainview/lib/copy.ts
+msgid "Install the system updates anyway?"
+msgstr "Mimo to zainstalować aktualizacje systemu?"
+
+#: src/mainview/lib/copy.ts
+msgid "Install anyway"
+msgstr "Zainstaluj mimo to"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop"
+msgstr "Zatrzymaj"
+
+#: src/mainview/lib/copy.ts
+msgid "Taken"
+msgstr "Utworzono"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first."
+msgstr "Upkeep najpierw tworzy migawkę {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Snapshot {0} taken before the system updates."
+msgstr "Migawka {0} utworzona przed aktualizacjami systemu."
+
+#: src/mainview/lib/engine-text.ts
+msgid "A snapshot was taken before the system updates."
+msgstr "Przed aktualizacjami systemu utworzono migawkę."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No snapshot taken: {0} is under 6 hours old."
+msgstr "Nie utworzono migawki: {0} ma mniej niż 6 godzin."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish: {0}"
+msgstr "Migawka nie została ukończona: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here"
+msgstr "sudo wymaga tu hasła"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish, so nothing was installed."
+msgstr "Migawka nie została ukończona, więc nic nie zostało zainstalowane."
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
+msgstr "Używa Timeshift. Migawka powstaje przed instalacją aktualizacji systemu, chyba że najnowsza ma mniej niż 6 godzin; w trybie btrfs zawsze. Upkeep zachowuje 3 najnowsze własne i nigdy nie usuwa twoich."
+
+#: src/mainview/lib/copy.ts
 msgid "Watch updated apps for 3 days"
 msgstr "Obserwuj zaktualizowane aplikacje przez 3 dni"
 
@@ -3422,3 +3515,16 @@ msgstr "Oprócz poprawek bezpieczeństwa"
 #: src/mainview/lib/copy.ts
 msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
 msgstr "Aktualizacja usuwająca problem z bezpieczeństwem jest proponowana od razu. Sama instaluje się tylko w aplikacji ustawionej na Auto."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first, unless one is under 6 hours old."
+msgstr "Upkeep najpierw tworzy migawkę {0}, chyba że jakaś ma mniej niż 6 godzin."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Timeshift's list of snapshots could not be read"
+msgstr "Nie udało się odczytać listy migawek Timeshift"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep was quitting, so this was not installed."
+msgstr "Upkeep się zamykał, więc to nie zostało zainstalowane."

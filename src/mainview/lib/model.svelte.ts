@@ -545,6 +545,14 @@ export class Model {
 		return this.install();
 	}
 
+	/**
+	 * Answers the ask after a failed snapshot: go installs the system updates without one, otherwise nothing of
+	 * them runs and the ticked apps follow as after any System install.
+	 */
+	async answerSnapshot(go: boolean): Promise<void> {
+		await this.send("systemSnapshotAnswer", { go });
+	}
+
 	/** Opens an app in the inspector. During a run this pins the choice so the inspector stops following the queue. */
 	select(key: string): void {
 		this.adding = false;

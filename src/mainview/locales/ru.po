@@ -3334,6 +3334,99 @@ msgid "System"
 msgstr "Система"
 
 #: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "Нужна перезагрузка"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "Прошивка"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "Компьютер работает от батареи, поэтому ничего не установлено. Для обновления прошивки нужно питание от сети."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "Чтобы завершить обновление прошивки, нужна перезагрузка."
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "Обновление прошивки может запросить пароль в системном окне."
+
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Snapper"
+msgstr "Snapper"
+
+#: src/mainview/components/SystemConfirm.svelte
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Timeshift"
+msgstr "Timeshift"
+
+#: src/mainview/lib/copy.ts
+msgid "Take a snapshot before system updates"
+msgstr "Делать снимок перед обновлениями системы"
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Snapper: a pair of snapshots before and after system updates install. Snapper's own cleanup removes old ones."
+msgstr "Использует Snapper: пара снимков до и после установки обновлений системы. Старые удаляет собственная очистка Snapper."
+
+#: src/mainview/lib/copy.ts
+msgid "Taking a snapshot"
+msgstr "Создаётся снимок"
+
+#: src/mainview/lib/copy.ts
+msgid "Install the system updates anyway?"
+msgstr "Всё равно установить обновления системы?"
+
+#: src/mainview/lib/copy.ts
+msgid "Install anyway"
+msgstr "Всё равно установить"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop"
+msgstr "Остановить"
+
+#: src/mainview/lib/copy.ts
+msgid "Taken"
+msgstr "Создан"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first."
+msgstr "Сначала Upkeep делает снимок {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Snapshot {0} taken before the system updates."
+msgstr "Снимок {0} сделан перед обновлениями системы."
+
+#: src/mainview/lib/engine-text.ts
+msgid "A snapshot was taken before the system updates."
+msgstr "Перед обновлениями системы сделан снимок."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No snapshot taken: {0} is under 6 hours old."
+msgstr "Снимок не сделан: {0} моложе 6 часов."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish: {0}"
+msgstr "Снимок не завершён: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here"
+msgstr "sudo здесь требует пароль"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish, so nothing was installed."
+msgstr "Снимок не завершён, поэтому ничего не установлено."
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
+msgstr "Использует Timeshift. Снимок делается перед установкой обновлений системы, если самому новому снимку больше 6 часов; в режиме btrfs — всегда. Upkeep хранит 3 своих последних и никогда не удаляет ваши."
+
+#: src/mainview/lib/copy.ts
 msgid "Watch updated apps for 3 days"
 msgstr "Следить за обновлёнными приложениями 3 дня"
 
@@ -3422,3 +3515,16 @@ msgstr "Кроме исправлений безопасности"
 #: src/mainview/lib/copy.ts
 msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
 msgstr "Обновление, устраняющее проблему безопасности, предлагается сразу. Само оно устанавливается только для приложения с режимом «Авто»."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first, unless one is under 6 hours old."
+msgstr "Сначала Upkeep делает снимок {0}, если нет снимка моложе 6 часов."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Timeshift's list of snapshots could not be read"
+msgstr "Не удалось прочитать список снимков Timeshift"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep was quitting, so this was not installed."
+msgstr "Upkeep завершал работу, поэтому это не установлено."

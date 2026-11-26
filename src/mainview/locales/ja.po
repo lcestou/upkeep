@@ -3262,6 +3262,99 @@ msgid "System"
 msgstr "システム"
 
 #: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "再起動が必要"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "ファームウェア"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "このコンピューターはバッテリーで動作しているため、何もインストールしませんでした。ファームウェアの更新には電源の接続が必要です。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "ファームウェアの更新を完了するには再起動が必要です。"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "ファームウェアの更新では、システムのウィンドウでパスワードを求められることがあります。"
+
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Snapper"
+msgstr "Snapper"
+
+#: src/mainview/components/SystemConfirm.svelte
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Timeshift"
+msgstr "Timeshift"
+
+#: src/mainview/lib/copy.ts
+msgid "Take a snapshot before system updates"
+msgstr "システム更新の前にスナップショットを作成"
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Snapper: a pair of snapshots before and after system updates install. Snapper's own cleanup removes old ones."
+msgstr "Snapper を使います。システム更新のインストール前後に一対のスナップショットを作成します。古いものは Snapper 自身のクリーンアップが削除します。"
+
+#: src/mainview/lib/copy.ts
+msgid "Taking a snapshot"
+msgstr "スナップショットを作成中"
+
+#: src/mainview/lib/copy.ts
+msgid "Install the system updates anyway?"
+msgstr "それでもシステム更新をインストールしますか？"
+
+#: src/mainview/lib/copy.ts
+msgid "Install anyway"
+msgstr "それでもインストール"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop"
+msgstr "中止"
+
+#: src/mainview/lib/copy.ts
+msgid "Taken"
+msgstr "作成済み"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first."
+msgstr "Upkeep は最初に {0} のスナップショットを作成します。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Snapshot {0} taken before the system updates."
+msgstr "システム更新の前にスナップショット {0} を作成しました。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "A snapshot was taken before the system updates."
+msgstr "システム更新の前にスナップショットを作成しました。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No snapshot taken: {0} is under 6 hours old."
+msgstr "スナップショットは作成しませんでした：{0} は6時間以内です。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish: {0}"
+msgstr "スナップショットが完了しませんでした：{0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here"
+msgstr "ここでは sudo にパスワードが必要です"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish, so nothing was installed."
+msgstr "スナップショットが完了しなかったため、何もインストールしませんでした。"
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
+msgstr "Timeshift を使います。システム更新のインストール前に作成しますが、最新のスナップショットが6時間以内ならスキップします（btrfs モードでは常に作成）。Upkeep は自分のものを新しい順に3つ残し、あなたのものは削除しません。"
+
+#: src/mainview/lib/copy.ts
 msgid "Watch updated apps for 3 days"
 msgstr "更新したアプリを3日間見守る"
 
@@ -3347,3 +3440,16 @@ msgstr "セキュリティ修正は除く"
 #: src/mainview/lib/copy.ts
 msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
 msgstr "セキュリティの問題を修正する更新はすぐに提示されます。自動でインストールされるのは「自動」に設定したアプリだけです。"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first, unless one is under 6 hours old."
+msgstr "Upkeep は最初に {0} のスナップショットを作成します（6時間以内のものがある場合を除く）。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Timeshift's list of snapshots could not be read"
+msgstr "Timeshift のスナップショット一覧を読み取れませんでした"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep was quitting, so this was not installed."
+msgstr "Upkeep が終了中だったため、これはインストールされませんでした。"

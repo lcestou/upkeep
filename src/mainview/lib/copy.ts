@@ -1162,6 +1162,41 @@ export const SYS = {
 	get restartNote() {
 		return "Needs a restart after it installs.";
 	},
+	/** A firmware row whose device takes the new version only after a restart; Upkeep never restarts. */
+	get restartNeeded() {
+		return "Restart needed";
+	},
+	get snapshotSetting() {
+		return "Take a snapshot before system updates";
+	},
+	get snapshotHintTimeshift() {
+		return "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours.";
+	},
+	get snapshotHintSnapper() {
+		return "Uses Snapper: a pair of snapshots before and after system updates install. Snapper's own cleanup removes old ones.";
+	},
+	/** The line while the snapshot before a System install is being taken; it can take minutes. */
+	get snapshotTaking() {
+		return "Taking a snapshot";
+	},
+	/** After a failed snapshot's sentence: the question, with its two answers. */
+	get snapshotGoOn() {
+		return "Install the system updates anyway?";
+	},
+	get snapshotGo() {
+		return "Install anyway";
+	},
+	get snapshotStop() {
+		return "Stop";
+	},
+	/** History's result for the snapshot row when one was taken. */
+	get snapshotTaken() {
+		return "Taken";
+	},
+	/** The command sheet's line when firmware is ticked: fwupd asks polkit, not sudo. */
+	get confirmFirmware() {
+		return "Firmware updates may ask for your password in the system's own window.";
+	},
 	get installSetting() {
 		return "Install system updates from Upkeep";
 	},
@@ -1247,6 +1282,9 @@ export const SYS = {
 		get snap() {
 			return "Snap";
 		},
+		get firmware() {
+			return "Firmware";
+		},
 	} satisfies Record<SystemRow["type"], string>,
 } as const;
 
@@ -1295,10 +1333,13 @@ export const ALSO_FROM = {
 	get cinnamon() {
 		return "Cinnamon";
 	},
+	get firmware() {
+		return "fwupd";
+	},
 };
 
 /**
- * The subline's "From …" names: the package list (or Flatpak when there is none), then Snap and Cinnamon when the
+ * The subline's "From …" names: the package list (or Flatpak when there is none), then Snap, Cinnamon and fwupd when the
  * group holds their rows, joined the way the language joins a list. On Linux Mint, Update Manager already shows
  * Cinnamon's spices, so it is not named twice.
  */
@@ -1306,6 +1347,7 @@ export function systemSources(packages: SystemState["packages"], rows: { source:
 	const names = [packages ? PACKAGES_FROM[packages] : "Flatpak"];
 	if (rows.some((r) => r.source === "snap")) names.push(ALSO_FROM.snap);
 	if (packages !== "mint" && rows.some((r) => r.source === "cinnamon")) names.push(ALSO_FROM.cinnamon);
+	if (rows.some((r) => r.source === "firmware")) names.push(ALSO_FROM.firmware);
 	return new Intl.ListFormat(language.locale, { type: "conjunction" }).format(names);
 }
 
@@ -1318,11 +1360,13 @@ export function systemProblem(problem: NonNullable<SystemState["problem"]>): str
 			? "Flatpak"
 			: tool === "cinnamon-spice-updater"
 				? ALSO_FROM.cinnamon
-				: tool === "apt" || tool === "dnf" || tool === "zypper"
-					? tool
-					: tool === "checkupdates" || tool === "pacman"
-						? "pacman"
-						: PACKAGES_FROM.mint;
+				: tool === "fwupdmgr"
+					? ALSO_FROM.firmware
+					: tool === "apt" || tool === "dnf" || tool === "zypper"
+						? tool
+						: tool === "checkupdates" || tool === "pacman"
+							? "pacman"
+							: PACKAGES_FROM.mint;
 	return problem.detail ? `Could not read the ${source} list: ${problem.detail}` : `Could not read the ${source} list.`;
 }
 
@@ -1334,6 +1378,12 @@ export const glLine = (version: string) =>
 export function systemThenApps(n: number): string {
 	return plural(n, ["Then Upkeep installs the # ticked app.", "Then Upkeep installs the # ticked apps."]);
 }
+
+/** The command sheet's line when a snapshot is taken first; the tool is Timeshift or Snapper. */
+export const systemConfirmSnapshot = (tool: string) => `Upkeep takes a ${tool} snapshot first.`;
+/** The same for Timeshift in rsync mode, which takes none when its newest snapshot is under 6 hours old. */
+export const systemConfirmSnapshotFresh = (tool: string) =>
+	`Upkeep takes a ${tool} snapshot first, unless one is under 6 hours old.`;
 
 /** The line over a finished System install's results. */
 export const systemSummary = (done: number, all: number) => `Installed ${done} of ${all}.`;

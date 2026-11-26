@@ -191,7 +191,8 @@ export type ImportSwitch =
 	| "system"
 	| "systemInstall"
 	| "cleanup"
-	| "devCaches";
+	| "devCaches"
+	| "snapshotBeforeSystem";
 
 /** One app Upkeep proposes to add, with everything needed to add it in one press. */
 export type Suggestion = {
@@ -497,7 +498,15 @@ export type ExtrasSettings = {
 	cleanup?: boolean;
 	/** True only while cleanup is on: the uv, bun, npm and pip download caches join Cleanup's list. */
 	devCaches?: boolean;
+	/** True only while systemInstall is on: a Timeshift or Snapper snapshot is taken before a System install. */
+	snapshotBeforeSystem?: boolean;
 };
+
+/** History's key for the snapshot before a System install, which the engine writes and the view and CLI read. */
+export const SNAPSHOT_HISTORY_KEY = "system:snapshot";
+
+/** The snapshot tool set up on this machine: Timeshift (in rsync or btrfs mode) or Snapper (always btrfs). */
+export type SnapshotSetup = { tool: "timeshift" | "snapper"; btrfs: boolean };
 
 /** Every candidate Cleanup knows. Hugging Face's models are never one: they are hours of downloads, not a cache. */
 export type CleanupId =
@@ -574,10 +583,10 @@ export type CleanupState = {
 
 /** One pending update from the system's own lists. Upkeep installs one only when its id is in SystemState.installable. */
 export type SystemRow = {
-	/** "<source>:<package>", "flatpak:<ref>", "cinnamon:<spice type>:<uuid>" or "snap:<name>". */
+	/** "<source>:<package>", "flatpak:<ref>", "cinnamon:<spice type>:<uuid>", "snap:<name>" or "firmware:<fwupd device id>". */
 	id: string;
-	/** apt for Linux Mint's Update Manager and for apt; dnf; pacman; zypper; flatpak; cinnamon for Cinnamon's spices; snap. */
-	source: "apt" | "dnf" | "pacman" | "zypper" | "flatpak" | "cinnamon" | "snap";
+	/** apt for Linux Mint's Update Manager and for apt; dnf; pacman; zypper; flatpak; cinnamon for Cinnamon's spices; snap; firmware for fwupd's devices. */
+	source: "apt" | "dnf" | "pacman" | "zypper" | "flatpak" | "cinnamon" | "snap" | "firmware";
 	name: string;
 	type:
 		| "security"
@@ -590,13 +599,17 @@ export type SystemRow = {
 		| "desklet"
 		| "extension"
 		| "theme"
-		| "snap";
+		| "snap"
+		| "firmware";
 	installed: string | null;
 	latest: string;
 	/** A Flatpak app with a process running now. */
 	running: boolean;
-	/** Kernel and driver rows: Update Manager is the place to install them. */
-	note?: "update-manager-only";
+	/**
+	 * update-manager-only: a kernel or driver row, which the system's own updater installs. restart-needed: a firmware
+	 * row whose new version takes effect only after a restart; Upkeep installs it and never restarts.
+	 */
+	note?: "update-manager-only" | "restart-needed";
 };
 
 /** One ticked row in a System install: waiting its turn, running, or its result. detail is a MESSAGES sentence. */
@@ -617,6 +630,11 @@ export type SystemInstall = {
 	outcomes: SystemOutcome[];
 	/** Why nothing ran, as a MESSAGES sentence; null once it started. */
 	refused: string | null;
+	/**
+	 * The snapshot before the steps: being taken, or failed and waiting for the person to go on or stop (reason is a
+	 * MESSAGES sentence). Absent before it starts and once it is over.
+	 */
+	snapshot?: { phase: "taking" } | { phase: "asking"; reason: string };
 };
 
 export type SystemState = {
@@ -634,6 +652,8 @@ export type SystemState = {
 	installable?: string[];
 	/** The last System install since Upkeep started, if any. */
 	install?: SystemInstall;
+	/** The snapshot tool set up here, read at each check; absent or null when there is none. */
+	snapshotSetup?: SnapshotSetup | null;
 };
 
 /** What happens when a run ends. Chosen for one run only and never saved, so a forgotten choice cannot power the PC off. */
@@ -773,6 +793,8 @@ export type Requests = {
 	systemPlan: { params: { ids: string[] }; response: { commands: string[][]; reason?: string } };
 	/** Installs the rows, refused unless commands still equals what systemPlan answers now. Progress comes as extras events. */
 	systemInstall: { params: { ids: string[]; commands: string[][] }; response: { started: boolean; reason?: string } };
+	/** The person's answer when the snapshot before a System install failed: go on without it, or stop. */
+	systemSnapshotAnswer: { params: { go: boolean }; response: { ok: boolean } };
 	/** Measures every candidate again; the sizes come as extras events. */
 	cleanupMeasure: { params: Record<string, never>; response: { started: boolean } };
 	/** What deleting these picks would free and the commands it would run, each as its literal argv; nothing runs. */

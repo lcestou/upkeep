@@ -86,6 +86,7 @@
 						>{#if outcome.status === "working"}<Glyph name="dot" color="var(--sun)" />{/if}{SYS.state[outcome.status]}</span
 					>
 				{:else if row.note === "update-manager-only"}<span class="note" data-testid="sys-note">{SYS.restartNote}</span>
+				{:else if row.note === "restart-needed"}<span class="note" data-testid="sys-restart">{SYS.restartNeeded}</span>
 				{:else if can && spice}<span class="note" data-testid="sys-note">{spice}</span>
 				{:else if note}<span class="note" data-testid="sys-note">{note}</span>{/if}
 			</span>

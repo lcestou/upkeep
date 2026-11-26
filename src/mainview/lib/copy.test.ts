@@ -190,6 +190,9 @@ test("the System group's problem lines name the source and end cleanly without a
 	expect(systemProblem({ code: "failed", command: "flatpak remote-ls --updates", detail: "" })).toBe(
 		"Could not read the Flatpak list.",
 	);
+	expect(systemProblem({ code: "failed", command: "fwupdmgr get-updates --json", detail: "" })).toBe(
+		"Could not read the fwupd list.",
+	);
 	expect(systemChecked("2 minutes ago", false)).toBe("From Update Manager, checked 2 minutes ago");
 	expect(systemChecked(null, true)).toBe("From Update Manager, checking");
 	expect(systemChecked(null, false)).toBe("From Update Manager");

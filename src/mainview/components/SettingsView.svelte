@@ -185,6 +185,7 @@
 			waitExceptSecurity: TEXT.waitExceptSecurity,
 			system: SYS.setting,
 			systemInstall: SYS.installSetting,
+			snapshotBeforeSystem: SYS.snapshotSetting,
 			cleanup: CLEAN.setting,
 			devCaches: CLEAN.devSetting,
 		} satisfies Record<ImportSwitch, string>;
@@ -570,6 +571,23 @@
 				/>
 				<span class="help" data-testid="setting-system-install-help">{SYS.installSettingHelp}</span>
 			</label>
+			{#if model.extras.settings.systemInstall && model.extras.system.snapshotSetup}
+				<label class="row stack">
+					<span class="text">{SYS.snapshotSetting}</span>
+					<input
+						type="checkbox"
+						checked={model.extras.settings.snapshotBeforeSystem === true}
+						disabled={model.extras.system.phase === "installing"}
+						data-testid="setting-system-snapshot"
+						onchange={(e) => model.setExtras({ snapshotBeforeSystem: e.currentTarget.checked })}
+					/>
+					<span class="help" data-testid="setting-system-snapshot-help"
+						>{model.extras.system.snapshotSetup.tool === "snapper"
+							? SYS.snapshotHintSnapper
+							: SYS.snapshotHintTimeshift}</span
+					>
+				</label>
+			{/if}
 		{/if}
 		<label class="row stack">
 			<span class="text">{CLEAN.setting}</span>

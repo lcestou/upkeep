@@ -3310,6 +3310,99 @@ msgid "System"
 msgstr "Sistema"
 
 #: src/mainview/lib/copy.ts
+msgid "Restart needed"
+msgstr "Reinício necessário"
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware"
+msgstr "Firmware"
+
+#: src/mainview/lib/engine-text.ts
+msgid "This computer runs on its battery, so nothing was installed. Firmware updates need mains power."
+msgstr "Este computador está usando a bateria, então nada foi instalado. Atualizações de firmware precisam estar na tomada."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Restart needed to finish the firmware update."
+msgstr "É necessário reiniciar para concluir a atualização do firmware."
+
+#: src/mainview/lib/copy.ts
+msgid "Firmware updates may ask for your password in the system's own window."
+msgstr "As atualizações de firmware podem pedir sua senha na janela do próprio sistema."
+
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Snapper"
+msgstr "Snapper"
+
+#: src/mainview/components/SystemConfirm.svelte
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Timeshift"
+msgstr "Timeshift"
+
+#: src/mainview/lib/copy.ts
+msgid "Take a snapshot before system updates"
+msgstr "Criar um snapshot antes das atualizações do sistema"
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Snapper: a pair of snapshots before and after system updates install. Snapper's own cleanup removes old ones."
+msgstr "Usa o Snapper: um par de snapshots antes e depois de instalar as atualizações do sistema. A limpeza do próprio Snapper remove os antigos."
+
+#: src/mainview/lib/copy.ts
+msgid "Taking a snapshot"
+msgstr "Criando um snapshot"
+
+#: src/mainview/lib/copy.ts
+msgid "Install the system updates anyway?"
+msgstr "Instalar as atualizações do sistema mesmo assim?"
+
+#: src/mainview/lib/copy.ts
+msgid "Install anyway"
+msgstr "Instalar mesmo assim"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop"
+msgstr "Parar"
+
+#: src/mainview/lib/copy.ts
+msgid "Taken"
+msgstr "Criado"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first."
+msgstr "O Upkeep cria primeiro um snapshot do {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Snapshot {0} taken before the system updates."
+msgstr "Snapshot {0} criado antes das atualizações do sistema."
+
+#: src/mainview/lib/engine-text.ts
+msgid "A snapshot was taken before the system updates."
+msgstr "Um snapshot foi criado antes das atualizações do sistema."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No snapshot taken: {0} is under 6 hours old."
+msgstr "Nenhum snapshot criado: {0} tem menos de 6 horas."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish: {0}"
+msgstr "O snapshot não terminou: {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here"
+msgstr "o sudo pede senha aqui"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish, so nothing was installed."
+msgstr "O snapshot não terminou, então nada foi instalado."
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
+msgstr "Usa o Timeshift. Um é criado antes de instalar as atualizações do sistema, a menos que o snapshot mais recente tenha menos de 6 horas; no modo btrfs, sempre. O Upkeep mantém os 3 mais recentes dele e nunca apaga os seus."
+
+#: src/mainview/lib/copy.ts
 msgid "Watch updated apps for 3 days"
 msgstr "Vigiar as apps atualizadas durante 3 dias"
 
@@ -3397,3 +3490,16 @@ msgstr "Exceto correções de segurança"
 #: src/mainview/lib/copy.ts
 msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
 msgstr "Uma atualização que corrige um problema de segurança é oferecida na hora. Ela só se instala sozinha em um app definido como Auto."
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first, unless one is under 6 hours old."
+msgstr "O Upkeep cria primeiro um snapshot do {0}, a menos que haja um com menos de 6 horas."
+
+#: src/mainview/lib/engine-text.ts
+msgid "Timeshift's list of snapshots could not be read"
+msgstr "Não foi possível ler a lista de snapshots do Timeshift"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep was quitting, so this was not installed."
+msgstr "O Upkeep estava fechando, então isto não foi instalado."

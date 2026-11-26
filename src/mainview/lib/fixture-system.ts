@@ -1,7 +1,11 @@
 // The fixture's half of the System group: rows shaped like the engine's checkSystem output on a real machine.
 import type { SystemOutcome, SystemRow, SystemState } from "../../shared/types";
 
-/** install: installing is switched on. refuse: the same, and the fake install is refused by its sudo check. */
+/**
+ * install: installing is switched on. refuse: the same, and the fake install is refused by its sudo check. firmware:
+ * installing on, with fwupd's firmware rows under the rest and Timeshift set up for a snapshot. snapshot-fail: the
+ * same with the snapshot switched on, and the fake snapshot fails, so the install asks whether to go on.
+ */
 export type SystemVariant =
 	| "off"
 	| "show"
@@ -14,7 +18,9 @@ export type SystemVariant =
 	| "dnf"
 	| "pacman"
 	| "install"
-	| "refuse";
+	| "refuse"
+	| "firmware"
+	| "snapshot-fail";
 
 /** Builds an apt row. Nothing is running, and the note is only set when the caller passes one. */
 const apt = (
@@ -61,6 +67,29 @@ export const SPICE_ROWS: SystemRow[] = [
 		type: "extension",
 		installed: "2026.11.11",
 		latest: "2026.11.12",
+		running: false,
+	},
+];
+
+/** fwupd's rows as this machine listed them: two UEFI updates that take effect after a restart, and a dock that does not. */
+export const FIRMWARE_ROWS: SystemRow[] = [
+	{
+		id: "firmware:0000000000000000000000000000000000000003",
+		source: "firmware",
+		name: "UEFI dbx",
+		type: "firmware",
+		installed: "20230501",
+		latest: "20260402",
+		running: false,
+		note: "restart-needed",
+	},
+	{
+		id: "firmware:0000000000000000000000000000000000000004",
+		source: "firmware",
+		name: "USB-C Dock",
+		type: "firmware",
+		installed: "1.0.12",
+		latest: "1.0.14",
 		running: false,
 	},
 ];
@@ -126,6 +155,9 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 			};
 		case "gl":
 			return { ...base, glMissing: "580.178.04" };
+		case "firmware":
+		case "snapshot-fail":
+			return { ...base, rows: [...base.rows, ...FIRMWARE_ROWS], snapshotSetup: { tool: "timeshift", btrfs: false } };
 	}
 }
 
@@ -137,7 +169,7 @@ const RPM_RESTART = /^(kernel|.*nvidia)/;
 
 /**
  * The engine's rule, faked: never a kernel or driver, packages from Update Manager, plain apt, dnf or zypper (never a
- * kernel or NVIDIA package by name there), never pacman's, and Flatpak, Snap and Cinnamon.
+ * kernel or NVIDIA package by name there), never pacman's, and Flatpak, Snap, Cinnamon and firmware.
  */
 export function fixtureInstallable(state: SystemState): string[] {
 	const pkg = (r: SystemRow) =>
@@ -150,7 +182,9 @@ export function fixtureInstallable(state: SystemState): string[] {
 				r.note !== "update-manager-only" &&
 				r.type !== "kernel" &&
 				r.type !== "driver" &&
-				(["apt", "dnf", "zypper"].includes(r.source) ? pkg(r) : ["flatpak", "snap", "cinnamon"].includes(r.source)),
+				(["apt", "dnf", "zypper"].includes(r.source)
+					? pkg(r)
+					: ["flatpak", "snap", "cinnamon", "firmware"].includes(r.source)),
 		)
 		.map((r) => r.id);
 }
@@ -193,6 +227,19 @@ export function fixturePlan(state: SystemState, ids: string[]): string[][] {
 	if (refs.length > 0) commands.push(["flatpak", "update", "-y", "--noninteractive", ...refs]);
 	for (const type of new Set(picked.filter((r) => r.source === "cinnamon").map((r) => r.type)))
 		commands.push(["cinnamon-spice-updater", "--update", type]);
+	for (const r of picked.filter((x) => x.source === "firmware"))
+		commands.push([
+			"fwupdmgr",
+			"update",
+			r.id.slice("firmware:".length),
+			"--assume-yes",
+			"--no-reboot-check",
+			"--no-metadata-check",
+			"--no-remote-check",
+			"--no-unreported-check",
+			"--no-security-fix",
+			"--no-device-prompt",
+		]);
 	return commands;
 }
 

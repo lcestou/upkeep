@@ -1,0 +1,82 @@
+{
+	"Devices": [
+		{
+			"Name": "KEK CA",
+			"DeviceId": "0000000000000000000000000000000000000001",
+			"Plugin": "uefi_kek",
+			"Flags": [
+				"internal",
+				"updatable",
+				"supported",
+				"needs-reboot",
+				"usable-during-update",
+				"signed-payload",
+				"can-emulation-tag"
+			],
+			"Vendor": "Microsoft",
+			"Version": "2011",
+			"VersionFormat": "number",
+			"Releases": [
+				{
+					"Name": "Secure Boot KEK",
+					"Summary": "UEFI Secure Boot Key Exchange Key",
+					"Version": "2023",
+					"Flags": ["trusted-metadata", "is-upgrade"],
+					"Size": 2528
+				}
+			]
+		},
+		{
+			"Name": "UEFI CA",
+			"DeviceId": "0000000000000000000000000000000000000002",
+			"Plugin": "uefi_db",
+			"Flags": ["internal", "updatable", "supported", "needs-reboot", "signed-payload", "can-emulation-tag"],
+			"Vendor": "Microsoft",
+			"Version": "2011",
+			"VersionFormat": "number",
+			"Releases": [
+				{
+					"Name": "Secure Boot Signature Database",
+					"Summary": "UEFI Secure Boot Signature Database",
+					"Version": "2023",
+					"Flags": ["trusted-metadata", "is-upgrade"],
+					"Size": 10023
+				}
+			]
+		},
+		{
+			"Name": "UEFI dbx",
+			"DeviceId": "0000000000000000000000000000000000000003",
+			"Plugin": "uefi_dbx",
+			"Flags": [
+				"internal",
+				"updatable",
+				"supported",
+				"needs-reboot",
+				"usable-during-update",
+				"only-version-upgrade",
+				"signed-payload",
+				"can-emulation-tag"
+			],
+			"Vendor": "Microsoft",
+			"Version": "20230501",
+			"VersionFormat": "number",
+			"Releases": [
+				{
+					"Name": "Secure Boot dbx",
+					"Summary": "UEFI Secure Boot Forbidden Signature Database",
+					"Version": "20260402",
+					"Flags": ["trusted-metadata", "is-upgrade"],
+					"Size": 24629
+				},
+				{
+					"Name": "Secure Boot dbx",
+					"Summary": "UEFI Secure Boot Forbidden Signature Database",
+					"Version": "20250902",
+					"Flags": ["trusted-metadata", "is-upgrade", "trusted-report"],
+					"Size": 24053
+				}
+			]
+		}
+	]
+}

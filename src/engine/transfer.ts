@@ -188,7 +188,7 @@ function protectionsOff(paths: Paths, settings: Record<string, unknown>): Import
 	const next = clampSettings({ ...now, ...(settings as Partial<Settings>) });
 	return PROTECTIONS.filter((k) => now[k] && !next[k]);
 }
-const EXTRA_SWITCHES = ["system", "systemInstall", "cleanup", "devCaches"] as const;
+const EXTRA_SWITCHES = ["system", "systemInstall", "snapshotBeforeSystem", "cleanup", "devCaches"] as const;
 
 /**
  * Each setting and extra the import would turn on that is off on this machine, judged on the values as they would

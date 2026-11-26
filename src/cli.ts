@@ -10,6 +10,7 @@ import type {
 	ImportSwitch,
 	Suggestion,
 } from "./shared/types";
+import { SNAPSHOT_HISTORY_KEY } from "./shared/types";
 import { listBackups } from "./engine/backup";
 import { COUNTDOWN_MS, type PowerAction, powerBlocker, powerNow } from "./engine/power";
 import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
@@ -387,11 +388,20 @@ function history(engine: Engine, json: boolean, out: Out): number {
 	if (rows.length === 0) out("No runs yet.");
 	for (const r of rows) {
 		// A Cleanup row has no versions: what it freed stands in their place, and nothing when that went unmeasured
-		// (apt does not say what autoremove freed).
+		// (apt does not say what autoremove freed). The snapshot before a System install has none either, and one
+		// taken reads as Taken.
+		const snapshot = r.key === SNAPSHOT_HISTORY_KEY;
 		const what =
-			r.freed === undefined ? ` ${r.from ?? "?"} to ${r.to ?? "?"}` : r.freed > 0 ? ` freed ${r.freed} bytes` : "";
+			r.freed !== undefined
+				? r.freed > 0
+					? ` freed ${r.freed} bytes`
+					: ""
+				: snapshot
+					? ""
+					: ` ${r.from ?? "?"} to ${r.to ?? "?"}`;
+		const result = snapshot && r.result === "updated" ? "Taken" : RESULT_TEXT[r.result];
 		const checked = r.checked ? ` (${CHECKED_TEXT[r.checked]})` : "";
-		out(`${r.at} ${r.name}${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}${checked}`);
+		out(`${r.at} ${r.name}${what} ${result}${r.detail ? ` ${r.detail}` : ""}${checked}`);
 	}
 	return 0;
 }
@@ -531,6 +541,7 @@ const SWITCH_NAME = {
 	waitExceptSecurity: "Wait before offering a new release: except security fixes",
 	system: "Show system updates",
 	systemInstall: "Install system updates from Upkeep",
+	snapshotBeforeSystem: "Take a snapshot before system updates",
 	cleanup: "Show Cleanup",
 	devCaches: "Include developer caches",
 } satisfies Record<ImportSwitch, string>;

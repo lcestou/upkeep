@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isStopNote, say } from "../lib/engine-say";
-	import type { CleanupId, HistoryRow } from "../../shared/types";
-	import { CHECKED_SHORT, CLEAN, RUN_TEXT, TEXT, freedShort, installedText, runSentence } from "../lib/copy";
+	import { type CleanupId, type HistoryRow, SNAPSHOT_HISTORY_KEY } from "../../shared/types";
+	import { CHECKED_SHORT, CLEAN, RUN_TEXT, SYS, TEXT, freedShort, installedText, runSentence } from "../lib/copy";
 	import { formatBytes, formatDuration, formatRunTime } from "../lib/format";
 	import type { Model } from "../lib/model.svelte";
 	import { CARE, glyphColor } from "../lib/state";
@@ -69,7 +69,9 @@
 	{#if runs.length > 0}
 		{#each runs as run (run.id)}
 			<section>
-				<h2>{formatRunTime(run.at)} {#if run.rows.some((r) => r.result !== "restored")}<span class="counts" data-testid="history-counts">{runSentence(run.rows)}</span>{/if}
+				<h2>{formatRunTime(run.at)} {#if run.rows.some((r) => r.result !== "restored")}<span class="counts" data-testid="history-counts"
+						>{runSentence(run.rows.filter((r) => r.key !== SNAPSHOT_HISTORY_KEY))}</span
+					>{/if}
 					{#if run.rows.some((r) => r.retry)}<span class="tag" data-testid="history-retry">{RUN_TEXT.retry}</span>{/if}</h2>
 				<ul>
 					{#each run.rows as row (row.key)}
@@ -83,7 +85,7 @@
 									{#if row.freed !== undefined}<span class="mono vers" data-testid="history-freed">{freedShort(formatBytes(row.freed))}</span
 										>{:else if row.from === null && row.to}<span class="mono vers" data-testid="history-vers"
 											>{installedText(row.to)}</span
-										>{:else}<span class="mono vers" data-testid="history-vers"
+										>{:else if row.key !== SNAPSHOT_HISTORY_KEY}<span class="mono vers" data-testid="history-vers"
 											>{row.from ?? ""} <span class="to">to</span> <span class:struck={row.result !== "updated"}>{row.to ?? ""}</span></span
 										>{/if}
 								</span>
@@ -93,7 +95,9 @@
 										>{RUN_TEXT.restartPending}</span
 									>{/if}
 							</span>
-							<span class="result">{RESULT[row.result]}</span>
+							<span class="result" data-testid="history-result"
+								>{row.key === SNAPSHOT_HISTORY_KEY && row.result === "updated" ? SYS.snapshotTaken : RESULT[row.result]}</span
+							>
 							<span class="mono dur">{formatDuration(row.ms)}</span>
 						</li>
 					{/each}
