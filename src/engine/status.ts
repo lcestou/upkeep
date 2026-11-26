@@ -1,4 +1,4 @@
-import type { AppState, Snapshot } from "../shared/types";
+import type { AppState, SecurityFix, Snapshot } from "../shared/types";
 
 /**
  * How many apps rest in each state, as `upkeep status`, its metrics and a sent notice count them. ready is what
@@ -30,6 +30,8 @@ export type StatusApp = {
 	paused?: string;
 	skipped?: string;
 	settles?: string;
+	/** The waiting update fixes a security problem: its advisory IDs, none when only its release notes say so. */
+	security?: SecurityFix;
 };
 
 /** What `upkeep status` reports: the last check's rows as the engine keeps them, without a check of its own. */
@@ -103,12 +105,20 @@ function listedApp(a: AppState): StatusApp {
 	if (a.status === "held" && a.paused) out.paused = a.paused;
 	if (a.status === "held" && a.skipped) out.skipped = a.skipped;
 	if (a.status === "held" && a.settles) out.settles = a.settles;
+	if (a.security) out.security = a.security;
 	return out;
 }
 
 /** "1.0 -> 1.1", with "unknown" for a version the check could not read. */
 const versions = (a: Pick<StatusApp, "installed" | "latest">) =>
 	`${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
+
+/** " (security fix: CVE-…, GHSA-…)" when the waiting update fixes a security problem, " (security fix)" with no ID, else nothing. */
+export function securityNote(a: { security?: SecurityFix }): string {
+	if (!a.security) return "";
+	const ids = a.security.ids.map((i) => i.id).join(", ");
+	return ids ? ` (security fix: ${ids})` : " (security fix)";
+}
 
 /** The local calendar day of an ISO time as YYYY-MM-DD, the day the window shows, so a script can compare it with `date +%F`. */
 export const localDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE");
@@ -119,7 +129,7 @@ export const localDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE
  * when Upkeep held it itself (a release whose file changed, a repo replaced under the same name).
  */
 export function heldLine(
-	a: Pick<StatusApp, "name" | "installed" | "latest" | "detail" | "paused" | "skipped" | "settles">,
+	a: Pick<StatusApp, "name" | "installed" | "latest" | "detail" | "paused" | "skipped" | "settles" | "security">,
 ): string {
 	const why = a.paused
 		? ` (paused until ${localDay(a.paused)})`
@@ -128,7 +138,7 @@ export function heldLine(
 			: a.settles
 				? ` (offered from ${localDay(a.settles)})`
 				: "";
-	return `  HELD:   ${a.name} ${versions(a)}${why}${a.detail ? ` ${a.detail}` : ""}`;
+	return `  HELD:   ${a.name} ${versions(a)}${why}${securityNote(a)}${a.detail ? ` ${a.detail}` : ""}`;
 }
 
 /**
@@ -172,8 +182,8 @@ export function statusLines(s: Status): string[] {
 		`Last check: ${s.checkedAt}`,
 		`${c.apps} apps: ${c.upToDate} up to date, ${c.ready} ready, ${c.held} held, ${c.failing} failing${c.manual > 0 ? `, ${c.manual} by hand` : ""}${c.unchecked > 0 ? `, ${c.unchecked} not checked yet or not installed` : ""}`,
 	];
-	for (const a of s.ready) lines.push(`  UPDATE: ${a.name} ${versions(a)}${why(a)}`);
-	for (const a of s.manual) lines.push(`  BY HAND: ${a.name} ${versions(a)}${why(a)}`);
+	for (const a of s.ready) lines.push(`  UPDATE: ${a.name} ${versions(a)}${securityNote(a)}${why(a)}`);
+	for (const a of s.manual) lines.push(`  BY HAND: ${a.name} ${versions(a)}${securityNote(a)}${why(a)}`);
 	for (const a of s.held) lines.push(heldLine(a));
 	for (const a of s.failing) lines.push(`  FAILED: ${a.name}${why(a)}`);
 	for (const a of s.noted) lines.push(`  NOTE:   ${a.name} ${a.installed ?? "unknown"}${why(a)}`);
@@ -186,7 +196,8 @@ const label = (v: string) => v.replaceAll("\\", "\\\\").replaceAll('"', '\\"').r
 /**
  * The status in Prometheus's text format, for node_exporter's textfile collector: the version, the last check's
  * time (0 before the first), whether a run is under way, the count in each state, and one series per ready app with
- * its versions as labels. Ends with a newline, which the collector needs. A per-app series exists only while the
+ * its versions as labels, and how many apps wait for an update that fixes a security problem (ready, by hand or held).
+ * Ends with a newline, which the collector needs. A per-app series exists only while the
  * app is ready, so an alert on it clears once the update is in.
  */
 export function metricsText(s: Status): string {
@@ -209,6 +220,9 @@ export function metricsText(s: Status): string {
 		`upkeep_apps{state="held"} ${s.counts.held}`,
 		`upkeep_apps{state="failing"} ${s.counts.failing}`,
 		`upkeep_apps{state="unchecked"} ${s.counts.unchecked}`,
+		"# HELP upkeep_security_fixes Apps whose waiting update fixes a security problem, ready, by hand or held.",
+		"# TYPE upkeep_security_fixes gauge",
+		`upkeep_security_fixes ${[...s.ready, ...s.manual, ...s.held].filter((a) => a.security).length}`,
 		"# HELP upkeep_update_ready 1 for each app with an update ready, labelled with its versions.",
 		"# TYPE upkeep_update_ready gauge",
 		...s.ready.map(

@@ -3344,3 +3344,28 @@ msgstr "La instantánea no terminó, así que no se instaló nada."
 #: src/mainview/lib/copy.ts
 msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
 msgstr "Usa Timeshift. Se crea una antes de instalar las actualizaciones del sistema, salvo que la instantánea más reciente tenga menos de 6 horas; en modo btrfs, siempre. Upkeep conserva sus 3 más recientes y nunca borra las tuyas."
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "Corrección de seguridad"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "Esta actualización corrige un problema de seguridad. Abre la fila para ver cuál."
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "Mencionado en las notas de la versión"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "Encontrado en las notas de la versión, los avisos del proyecto en GitHub u OSV.dev. Cada uno abre su página en el navegador."
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "Excepto correcciones de seguridad"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "Una actualización que corrige un problema de seguridad se ofrece de inmediato. Solo se instala sola en una app configurada en Auto."

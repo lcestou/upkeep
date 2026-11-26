@@ -16,7 +16,7 @@ import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
 import { CATALOGUE_URL } from "./bun/about";
 import { SNAPSHOT_KEY } from "./engine/extras/snapshot";
-import { heldLine, localDay, metricsText, statusLines, statusOf } from "./engine/status";
+import { heldLine, localDay, metricsText, securityNote, statusLines, statusOf } from "./engine/status";
 import { claimLock, formatLogLine, loadState, lockHeld, readInflight, releaseLock } from "./engine/store";
 import { exportSetup, importSetup } from "./engine/transfer";
 import pkg from "../package.json";
@@ -51,7 +51,7 @@ export function checkLine(a: AppState): string {
 		case "manual":
 			// Claude Code's plugins have no one version; their detail names the plugins that wait.
 			if (a.versionless) return `  UPDATE: ${a.name}${a.detail ? ` ${a.detail}` : ""}`;
-			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}`;
+			return `  UPDATE: ${a.name} ${a.installed ?? "unknown"} -> ${a.latest ?? "unknown"}${securityNote(a)}`;
 		// install --all passes these by, so they are not offered as updates.
 		case "held":
 			return heldLine(a);
@@ -458,6 +458,7 @@ const SWITCH_NAME = {
 	checkAtLogin: "Start at login",
 	selfAuto: "Update Upkeep automatically",
 	upkeepCommand: "Add the upkeep command",
+	waitExceptSecurity: "Wait before offering a new release: except security fixes",
 	system: "Show system updates",
 	systemInstall: "Install system updates from Upkeep",
 	snapshotBeforeSystem: "Take a snapshot before system updates",

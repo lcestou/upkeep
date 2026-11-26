@@ -59,6 +59,7 @@
 				"src/engine/github.ts",
 				"src/engine/forge.ts",
 				"src/engine/managers.ts",
+				"src/engine/security.ts",
 				"src/engine/store.ts",
 				"src/engine/transfer.ts",
 				"src/engine/extras/state.ts",

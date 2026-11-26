@@ -3296,3 +3296,28 @@ msgstr "スナップショットが完了しなかったため、何もインス
 #: src/mainview/lib/copy.ts
 msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
 msgstr "Timeshift を使います。システム更新のインストール前に作成しますが、最新のスナップショットが6時間以内ならスキップします（btrfs モードでは常に作成）。Upkeep は自分のものを新しい順に3つ残し、あなたのものは削除しません。"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "セキュリティ修正"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "この更新はセキュリティの問題を修正します。行を開くと内容を確認できます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "リリースノートに記載あり"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "リリースノート、GitHub 上のプロジェクトのアドバイザリ、または OSV.dev で見つかりました。それぞれブラウザーでページを開きます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "セキュリティ修正は除く"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "セキュリティの問題を修正する更新はすぐに提示されます。自動でインストールされるのは「自動」に設定したアプリだけです。"

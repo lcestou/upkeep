@@ -3368,3 +3368,28 @@ msgstr "Migawka nie została ukończona, więc nic nie zostało zainstalowane."
 #: src/mainview/lib/copy.ts
 msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
 msgstr "Używa Timeshift. Migawka powstaje przed instalacją aktualizacji systemu, chyba że najnowsza ma mniej niż 6 godzin; w trybie btrfs zawsze. Upkeep zachowuje 3 najnowsze własne i nigdy nie usuwa twoich."
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "Poprawka bezpieczeństwa"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "Ta aktualizacja usuwa problem z bezpieczeństwem. Otwórz wiersz, aby zobaczyć jaki."
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "Wspomniane w informacjach o wydaniu"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "Znalezione w informacjach o wydaniu, ostrzeżeniach projektu na GitHubie lub w OSV.dev. Każde otwiera swoją stronę w przeglądarce."
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "Oprócz poprawek bezpieczeństwa"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "Aktualizacja usuwająca problem z bezpieczeństwem jest proponowana od razu. Sama instaluje się tylko w aplikacji ustawionej na Auto."

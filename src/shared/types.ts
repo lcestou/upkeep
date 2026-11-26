@@ -182,6 +182,7 @@ export type ImportSwitch =
 	| "checkAtLogin"
 	| "selfAuto"
 	| "upkeepCommand"
+	| "waitExceptSecurity"
 	| "system"
 	| "systemInstall"
 	| "cleanup"
@@ -309,6 +310,8 @@ export type AppState = {
 	skipped?: string;
 	/** When the release is offered, as an ISO time, while status is held because it is younger than the wait in Settings. */
 	settles?: string;
+	/** The waiting update fixes a security problem; absent when it does not, or when the app is up to date. */
+	security?: SecurityFix;
 	/** When the person's pause ends, as an ISO time, while status is held because of it. */
 	paused?: string;
 	held: boolean;
@@ -327,6 +330,15 @@ export type BreakingLine = { version: string; line: string };
  * The notes of every release after the installed one up to the latest, newest first. older counts releases left out
  * for size; more says the forge's list ran out before the installed version, so how many older ones exist is unknown.
  */
+/** One published advisory a waiting update fixes: its ID (CVE-…, GHSA-… or OSV's own) and the page that describes it. */
+export type Advisory = { id: string; url: string };
+
+/**
+ * A waiting update that fixes a security problem, as its release notes, its GitHub repo's advisories or OSV.dev say.
+ * ids is empty when only the release notes' words said so, with no ID to show.
+ */
+export type SecurityFix = { ids: Advisory[] };
+
 export type NotesSpan = { releases: ReleaseNotes[]; breaking: BreakingLine[]; older: number; more: boolean };
 
 export type RunPhase = "idle" | "checking" | "installing" | "summary";
@@ -399,6 +411,8 @@ export type Settings = {
 	upkeepCommand: boolean;
 	/** Days a new release waits before it is offered, counted from when it was published. 0 offers it at once. */
 	waitDays: 0 | 1 | 3 | 7;
+	/** While waitDays is above 0, an update that fixes a security problem is offered at once instead of waiting. */
+	waitExceptSecurity: boolean;
 	/** Automatic installs and early downloads wait while the connection is metered or the machine is on battery. A pressed Install never waits. */
 	waitUnmetered: boolean;
 	/** With a notice address kept: post when updates are ready, the moment the desktop notice would come. */
@@ -682,7 +696,12 @@ export type Requests = {
 	history: { params: { limit: number }; response: HistoryRow[] };
 	runLog: { params: { runId: string }; response: LogLine[] };
 	open: {
-		params: { what: "manifest" | "log" | "release" | "changelog" | "bug" | "repo" | "self-notes"; key?: string };
+		params: {
+			what: "manifest" | "log" | "release" | "advisory" | "changelog" | "bug" | "repo" | "self-notes";
+			key?: string;
+			/** advisory: which of the app's security IDs to open. */
+			id?: string;
+		};
 		response: { ok: boolean };
 	};
 	copy: { params: { text: string }; response: { ok: boolean } };
