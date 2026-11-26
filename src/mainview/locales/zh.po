@@ -3224,3 +3224,75 @@ msgstr "需要重启才能完成固件更新。"
 #: src/mainview/lib/copy.ts
 msgid "Firmware updates may ask for your password in the system's own window."
 msgstr "固件更新可能会在系统自己的窗口中要求输入密码。"
+
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Snapper"
+msgstr "Snapper"
+
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Timeshift"
+msgstr "Timeshift"
+
+#: src/mainview/lib/copy.ts
+msgid "Take a snapshot before system updates"
+msgstr "系统更新前创建快照"
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Snapper: a pair of snapshots before and after system updates install. Snapper's own cleanup removes old ones."
+msgstr "使用 Snapper：在安装系统更新前后各创建一个快照。旧快照由 Snapper 自己的清理功能删除。"
+
+#: src/mainview/lib/copy.ts
+msgid "Taking a snapshot"
+msgstr "正在创建快照"
+
+#: src/mainview/lib/copy.ts
+msgid "Install the system updates anyway?"
+msgstr "仍然安装系统更新吗？"
+
+#: src/mainview/lib/copy.ts
+msgid "Install anyway"
+msgstr "仍然安装"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop"
+msgstr "停止"
+
+#: src/mainview/lib/copy.ts
+msgid "Taken"
+msgstr "已创建"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first."
+msgstr "Upkeep 会先创建一个 {0} 快照。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Snapshot {0} taken before the system updates."
+msgstr "已在系统更新前创建快照 {0}。"
+
+#: src/mainview/lib/engine-text.ts
+msgid "A snapshot was taken before the system updates."
+msgstr "已在系统更新前创建一个快照。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No snapshot taken: {0} is under 6 hours old."
+msgstr "未创建快照：{0} 不到 6 小时。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish: {0}"
+msgstr "快照未完成：{0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here"
+msgstr "这里的 sudo 需要密码"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish, so nothing was installed."
+msgstr "快照未完成，因此没有安装任何内容。"
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
+msgstr "使用 Timeshift。安装系统更新前会创建一个快照，除非最新的快照不到 6 小时；在 btrfs 模式下总是创建。Upkeep 保留自己最新的 3 个，从不删除你的快照。"

@@ -78,6 +78,8 @@
 	const refused = $derived(fresh && install?.refused ? install.refused : model.systemReason);
 	const outcomes = $derived(installing && install ? new Map(install.outcomes.map((o) => [o.id, o])) : new Map());
 	const results = $derived(fresh && !installing && install && !install.refused ? install.outcomes : []);
+	// The snapshot before the steps, while it is taken or while a failed one waits for the person's answer.
+	const snapshot = $derived(installing ? (install?.snapshot ?? null) : null);
 	// A package row Upkeep cannot install (pacman's, or a kernel or driver row from apt, dnf or zypper) names the
 	// system's own tool; the rows Upkeep can install carry no such note.
 	const toolNote = $derived(
@@ -128,6 +130,27 @@
 					>{/if}
 			</span>
 		</div>
+		{#if snapshot?.phase === "taking"}
+			<p class="line" role="status" data-testid="system-snapshot-step">
+				<Glyph name="dot" color="var(--sun)" />{SYS.snapshotTaking}
+			</p>
+		{:else if snapshot?.phase === "asking"}
+			<div class="results" role="alert" data-testid="system-snapshot-ask">
+				<p data-testid="system-snapshot-reason">{say(snapshot.reason)}</p>
+				<p data-testid="system-snapshot-question">{SYS.snapshotGoOn}</p>
+				<div class="answers">
+					<button
+						type="button"
+						class="btn small primary"
+						data-testid="system-snapshot-go"
+						onclick={() => model.answerSnapshot(true)}>{SYS.snapshotGo}</button
+					>
+					<button type="button" class="btn small" data-testid="system-snapshot-stop" onclick={() => model.answerSnapshot(false)}
+						>{SYS.snapshotStop}</button
+					>
+				</div>
+			</div>
+		{/if}
 		{#if refused}
 			<p class="note" role="status" data-testid="system-refused"><Glyph name="bang" color="var(--rust)" />{say(refused)}</p>
 		{/if}
@@ -287,6 +310,10 @@
 	}
 	.results .btn {
 		align-self: flex-start;
+	}
+	.answers {
+		display: flex;
+		gap: var(--s2);
 	}
 	.part {
 		margin: 0;

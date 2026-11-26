@@ -64,6 +64,7 @@
 				"src/engine/extras/state.ts",
 				"src/engine/extras/system.ts",
 				"src/engine/extras/firmware.ts",
+				"src/engine/extras/snapshot.ts",
 				"src/engine/backup.ts",
 				"src/engine/kinds/plugins.ts",
 				"src/bun/window-size.ts",

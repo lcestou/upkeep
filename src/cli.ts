@@ -15,6 +15,7 @@ import { createEngine, type Engine, type EngineDeps } from "./engine/engine";
 import { ensureManifest, loadManifest } from "./engine/manifest";
 import { realDeps } from "./engine/real";
 import { CATALOGUE_URL } from "./bun/about";
+import { SNAPSHOT_KEY } from "./engine/extras/snapshot";
 import { heldLine, localDay, metricsText, statusLines, statusOf } from "./engine/status";
 import { claimLock, formatLogLine, loadState, lockHeld, readInflight, releaseLock } from "./engine/store";
 import { exportSetup, importSetup } from "./engine/transfer";
@@ -307,11 +308,20 @@ function history(engine: Engine, json: boolean, out: Out): number {
 	if (rows.length === 0) out("No runs yet.");
 	for (const r of rows) {
 		// A Cleanup row has no versions: what it freed stands in their place, and nothing when that went unmeasured
-		// (apt does not say what autoremove freed).
+		// (apt does not say what autoremove freed). The snapshot before a System install has none either, and one
+		// taken reads as Taken.
+		const snapshot = r.key === SNAPSHOT_KEY;
 		const what =
-			r.freed === undefined ? ` ${r.from ?? "?"} to ${r.to ?? "?"}` : r.freed > 0 ? ` freed ${r.freed} bytes` : "";
+			r.freed !== undefined
+				? r.freed > 0
+					? ` freed ${r.freed} bytes`
+					: ""
+				: snapshot
+					? ""
+					: ` ${r.from ?? "?"} to ${r.to ?? "?"}`;
+		const result = snapshot && r.result === "updated" ? "Taken" : RESULT_TEXT[r.result];
 		const checked = r.checked ? ` (${CHECKED_TEXT[r.checked]})` : "";
-		out(`${r.at} ${r.name}${what} ${RESULT_TEXT[r.result]}${r.detail ? ` ${r.detail}` : ""}${checked}`);
+		out(`${r.at} ${r.name}${what} ${result}${r.detail ? ` ${r.detail}` : ""}${checked}`);
 	}
 	return 0;
 }
@@ -450,6 +460,7 @@ const SWITCH_NAME = {
 	upkeepCommand: "Add the upkeep command",
 	system: "Show system updates",
 	systemInstall: "Install system updates from Upkeep",
+	snapshotBeforeSystem: "Take a snapshot before system updates",
 	cleanup: "Show Cleanup",
 	devCaches: "Include developer caches",
 } satisfies Record<ImportSwitch, string>;

@@ -163,6 +163,26 @@ test("install updates, exits 0, then restore and history work", async () => {
 	const e: string[] = [];
 	expect(await main(["history"], d, (l) => e.push(l))).toBe(0);
 	expect(e[0]).toBe("2026-11-15T00:00:00.000Z autoremove Cleaned");
+	// The snapshot before a System install has no versions either; one taken reads as Taken.
+	appendHistory(t.paths, [
+		{
+			runId: "s",
+			at: "2026-11-16T00:00:00.000Z",
+			key: "system:snapshot",
+			name: "Timeshift",
+			from: null,
+			to: null,
+			result: "updated",
+			detail: "Snapshot 2026-11-16_00-00-00 taken before the system updates.",
+			ms: 0,
+			stages: {},
+		},
+	]);
+	const s: string[] = [];
+	expect(await main(["history"], d, (l) => s.push(l))).toBe(0);
+	expect(s[0]).toBe(
+		"2026-11-16T00:00:00.000Z Timeshift Taken Snapshot 2026-11-16_00-00-00 taken before the system updates.",
+	);
 });
 
 test("install exits 1 when nothing could be installed, and a bad command line is a usage error", async () => {
@@ -622,7 +642,7 @@ test("import of a file that turns on a setting or extra that is off here asks fi
 	doc.settings.upkeepCommand = true;
 	doc.settings.language = "de";
 	// systemInstall without the list shown is clamped away, so only the list counts.
-	doc.extras = { system: "show", systemInstall: true, cleanup: true, devCaches: true };
+	doc.extras = { system: "show", systemInstall: true, snapshotBeforeSystem: true, cleanup: true, devCaches: true };
 	writeFileSync(file, JSON.stringify(doc));
 	const said: string[] = [];
 	expect(await main(["import", file], d, (l) => said.push(l))).toBe(1);
@@ -632,6 +652,7 @@ test("import of a file that turns on a setting or extra that is off here asks fi
 		"  Add the upkeep command",
 		"  Show system updates",
 		"  Install system updates from Upkeep",
+		"  Take a snapshot before system updates",
 		"  Show Cleanup",
 		"  Include developer caches",
 		"Nothing was changed. Read the list, then run it again with --yes to import.",

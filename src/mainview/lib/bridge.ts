@@ -25,6 +25,7 @@ const SYSTEM_VARIANTS: SystemVariant[] = [
 	"install",
 	"refuse",
 	"firmware",
+	"snapshot-fail",
 ];
 
 // Requests that wait on real work (a download, a restore, a scan) get five minutes; the engine has its own step limits.

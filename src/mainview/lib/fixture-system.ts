@@ -3,7 +3,8 @@ import type { SystemOutcome, SystemRow, SystemState } from "../../shared/types";
 
 /**
  * install: installing is switched on. refuse: the same, and the fake install is refused by its sudo check. firmware:
- * installing on, with fwupd's firmware rows under the rest.
+ * installing on, with fwupd's firmware rows under the rest and Timeshift set up for a snapshot. snapshot-fail: the
+ * same with the snapshot switched on, and the fake snapshot fails, so the install asks whether to go on.
  */
 export type SystemVariant =
 	| "off"
@@ -18,7 +19,8 @@ export type SystemVariant =
 	| "pacman"
 	| "install"
 	| "refuse"
-	| "firmware";
+	| "firmware"
+	| "snapshot-fail";
 
 /** Builds an apt row. Nothing is running, and the note is only set when the caller passes one. */
 const apt = (
@@ -154,7 +156,8 @@ export function systemFor(variant: SystemVariant, checkedAt: string): SystemStat
 		case "gl":
 			return { ...base, glMissing: "580.178.04" };
 		case "firmware":
-			return { ...base, rows: [...base.rows, ...FIRMWARE_ROWS] };
+		case "snapshot-fail":
+			return { ...base, rows: [...base.rows, ...FIRMWARE_ROWS], snapshotSetup: { tool: "timeshift", btrfs: false } };
 	}
 }
 

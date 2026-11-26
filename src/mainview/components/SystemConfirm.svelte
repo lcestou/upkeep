@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SYS, systemThenApps } from "../lib/copy";
+	import { SYS, systemConfirmSnapshot, systemThenApps } from "../lib/copy";
 	import type { Model } from "../lib/model.svelte";
 	import type { Attachment } from "svelte/attachments";
 
@@ -8,6 +8,13 @@
 	const root = $derived(plan.commands.some((argv) => argv[0] === "sudo"));
 	const firmware = $derived(plan.commands.some((argv) => argv[0] === "fwupdmgr"));
 	const apps = $derived(model.tickedApps.length);
+	// The snapshot is not one of the commands: it runs first, only while its setting is on and a tool is set up.
+	const setup = $derived(model.extras?.system.snapshotSetup ?? null);
+	const snapshot = $derived(
+		model.extras?.settings.snapshotBeforeSystem === true && setup
+			? systemConfirmSnapshot(setup.tool === "snapper" ? "Snapper" : "Timeshift")
+			: null,
+	);
 	/** Focus lands on Not now when the sheet opens, so a stray Enter cancels instead of running root commands. */
 	const focusFirst: Attachment<HTMLButtonElement> = (node) => {
 		node.focus();
@@ -18,6 +25,7 @@
      top edge, over the end of the list. -->
 <div class="confirm" role="group" aria-labelledby="system-confirm-ask" data-testid="system-confirm-sheet">
 	<p id="system-confirm-ask" data-testid="system-confirm-ask">{SYS.confirmIntro}</p>
+	{#if snapshot}<p data-testid="system-confirm-snapshot">{snapshot}</p>{/if}
 	<ol class="cmds">
 		{#each plan.commands as argv, i (i)}<li><code class="mono" data-testid="system-command">{argv.join(" ")}</code></li>{/each}
 	</ol>

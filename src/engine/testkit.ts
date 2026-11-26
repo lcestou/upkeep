@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { type Paths, paths } from "./paths";
 import { FWUPD_UPDATES } from "./extras/firmware";
+import { SNAPSHOT_PROBES } from "./extras/snapshot";
 import { USR_MOUNT } from "./kinds/package";
 import { createRunner, type Run, type RunOpts, type ProcessResult } from "./run";
 
@@ -78,8 +79,8 @@ export function strictRun(
 			calls.splice(calls.indexOf(call), 1);
 			return ok("rw,relatime\n");
 		}
-		// Nor fwupd, unless a test says otherwise; that question stays out of the call log too.
-		if (argv.join(" ") === FWUPD_UPDATES.join(" ")) {
+		// Nor fwupd, Timeshift or Snapper, unless a test says otherwise; those questions stay out of the call log too.
+		if ([FWUPD_UPDATES, ...SNAPSHOT_PROBES].some((q) => q.join(" ") === argv.join(" "))) {
 			calls.splice(calls.indexOf(call), 1);
 			return { code: 127, stdout: "", stderr: "", timedOut: false };
 		}

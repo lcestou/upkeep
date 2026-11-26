@@ -372,6 +372,18 @@ test("settings: defaults when absent or unreadable, clamped, written by rename",
 	expect(loadExtras(t.paths)).toEqual({ system: "off" });
 	writeFileSync(join(t.paths.state, "extras.json"), "{bad");
 	expect(loadExtras(t.paths)).toEqual({ system: "off" });
+	// The snapshot before system updates is on only while installing is, and only for exactly true.
+	expect(updateExtras(t.paths, { system: "show", snapshotBeforeSystem: true })).toEqual({ system: "show" });
+	expect(updateExtras(t.paths, { systemInstall: true, snapshotBeforeSystem: true })).toEqual({
+		system: "show",
+		systemInstall: true,
+		snapshotBeforeSystem: true,
+	});
+	writeFileSync(
+		join(t.paths.state, "extras.json"),
+		'{"system":"show","systemInstall":true,"snapshotBeforeSystem":"yes"}',
+	);
+	expect(loadExtras(t.paths)).toEqual({ system: "show", systemInstall: true });
 });
 
 const deps = (run: ReturnType<typeof box>["run"]) => ({

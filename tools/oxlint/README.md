@@ -14,6 +14,7 @@ Exemptions, all in `.oxlintrc.json` under `overrides`:
   - `src/engine/extras/state.ts` (the extras settings file)
   - `src/engine/extras/system.ts` (cinnamon-spice-updater's JSON)
   - `src/engine/extras/firmware.ts` (fwupdmgr's `get-updates --json`)
+  - `src/engine/extras/snapshot.ts` (Timeshift's `/etc/timeshift/timeshift.json`)
   - `src/engine/backup.ts` (a restore point's `meta.json`)
   - `src/engine/kinds/plugins.ts` (Claude Code's plugin registry and its `claude plugin update --json` answers)
   - `src/bun/window-size.ts` (the saved window size)

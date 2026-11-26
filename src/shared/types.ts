@@ -185,7 +185,8 @@ export type ImportSwitch =
 	| "system"
 	| "systemInstall"
 	| "cleanup"
-	| "devCaches";
+	| "devCaches"
+	| "snapshotBeforeSystem";
 
 /** One app Upkeep proposes to add, with everything needed to add it in one press. */
 export type Suggestion = {
@@ -465,7 +466,12 @@ export type ExtrasSettings = {
 	cleanup?: boolean;
 	/** True only while cleanup is on: the uv, bun, npm and pip download caches join Cleanup's list. */
 	devCaches?: boolean;
+	/** True only while systemInstall is on: a Timeshift or Snapper snapshot is taken before a System install. */
+	snapshotBeforeSystem?: boolean;
 };
+
+/** The snapshot tool set up on this machine: Timeshift (in rsync or btrfs mode) or Snapper (always btrfs). */
+export type SnapshotSetup = { tool: "timeshift" | "snapper"; btrfs: boolean };
 
 /** Every candidate Cleanup knows. Hugging Face's models are never one: they are hours of downloads, not a cache. */
 export type CleanupId =
@@ -589,6 +595,11 @@ export type SystemInstall = {
 	outcomes: SystemOutcome[];
 	/** Why nothing ran, as a MESSAGES sentence; null once it started. */
 	refused: string | null;
+	/**
+	 * The snapshot before the steps: being taken, or failed and waiting for the person to go on or stop (reason is a
+	 * MESSAGES sentence). Absent before it starts and once it is over.
+	 */
+	snapshot?: { phase: "taking" } | { phase: "asking"; reason: string };
 };
 
 export type SystemState = {
@@ -606,6 +617,8 @@ export type SystemState = {
 	installable?: string[];
 	/** The last System install since Upkeep started, if any. */
 	install?: SystemInstall;
+	/** The snapshot tool set up here, read at each check; absent or null when there is none. */
+	snapshotSetup?: SnapshotSetup | null;
 };
 
 export type ExtrasSnapshot = { settings: ExtrasSettings; system: SystemState; cleanup: CleanupState };
@@ -710,6 +723,8 @@ export type Requests = {
 	systemPlan: { params: { ids: string[] }; response: { commands: string[][]; reason?: string } };
 	/** Installs the rows, refused unless commands still equals what systemPlan answers now. Progress comes as extras events. */
 	systemInstall: { params: { ids: string[]; commands: string[][] }; response: { started: boolean; reason?: string } };
+	/** The person's answer when the snapshot before a System install failed: go on without it, or stop. */
+	systemSnapshotAnswer: { params: { go: boolean }; response: { ok: boolean } };
 	/** Measures every candidate again; the sizes come as extras events. */
 	cleanupMeasure: { params: Record<string, never>; response: { started: boolean } };
 	/** What deleting these picks would free and the commands it would run, each as its literal argv; nothing runs. */

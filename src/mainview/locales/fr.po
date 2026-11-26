@@ -3272,3 +3272,75 @@ msgstr "Un redémarrage est nécessaire pour terminer la mise à jour du microlo
 #: src/mainview/lib/copy.ts
 msgid "Firmware updates may ask for your password in the system's own window."
 msgstr "Les mises à jour du micrologiciel peuvent demander votre mot de passe dans la fenêtre du système."
+
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Snapper"
+msgstr "Snapper"
+
+#: src/mainview/components/SystemConfirm.svelte
+msgid "Timeshift"
+msgstr "Timeshift"
+
+#: src/mainview/lib/copy.ts
+msgid "Take a snapshot before system updates"
+msgstr "Prendre un instantané avant les mises à jour du système"
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Snapper: a pair of snapshots before and after system updates install. Snapper's own cleanup removes old ones."
+msgstr "Utilise Snapper : une paire d'instantanés avant et après l'installation des mises à jour du système. Le nettoyage propre à Snapper supprime les anciens."
+
+#: src/mainview/lib/copy.ts
+msgid "Taking a snapshot"
+msgstr "Prise d'un instantané"
+
+#: src/mainview/lib/copy.ts
+msgid "Install the system updates anyway?"
+msgstr "Installer quand même les mises à jour du système ?"
+
+#: src/mainview/lib/copy.ts
+msgid "Install anyway"
+msgstr "Installer quand même"
+
+#: src/mainview/lib/copy.ts
+msgid "Stop"
+msgstr "Arrêter"
+
+#: src/mainview/lib/copy.ts
+msgid "Taken"
+msgstr "Pris"
+
+#. 0: tool
+#: src/mainview/lib/copy.ts
+msgid "Upkeep takes a {0} snapshot first."
+msgstr "Upkeep prend d'abord un instantané {0}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "Snapshot {0} taken before the system updates."
+msgstr "Instantané {0} pris avant les mises à jour du système."
+
+#: src/mainview/lib/engine-text.ts
+msgid "A snapshot was taken before the system updates."
+msgstr "Un instantané a été pris avant les mises à jour du système."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "No snapshot taken: {0} is under 6 hours old."
+msgstr "Aucun instantané pris : {0} a moins de 6 heures."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish: {0}"
+msgstr "L'instantané n'a pas abouti : {0}"
+
+#: src/mainview/lib/engine-text.ts
+msgid "sudo needs a password here"
+msgstr "sudo demande ici un mot de passe"
+
+#: src/mainview/lib/engine-text.ts
+msgid "The snapshot did not finish, so nothing was installed."
+msgstr "L'instantané n'a pas abouti, donc rien n'a été installé."
+
+#: src/mainview/lib/copy.ts
+msgid "Uses Timeshift. One is taken before system updates install, unless the newest snapshot is under 6 hours old; in btrfs mode, always. Upkeep keeps its own 3 newest and never deletes yours."
+msgstr "Utilise Timeshift. Un instantané est pris avant l'installation des mises à jour du système, sauf si le plus récent a moins de 6 heures ; en mode btrfs, toujours. Upkeep garde ses 3 plus récents et ne supprime jamais les vôtres."

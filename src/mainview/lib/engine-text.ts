@@ -313,6 +313,12 @@ export const ENGINE_COPY = {
 	firmwareBattery: () =>
 		`This computer runs on its battery, so nothing was installed. Firmware updates need mains power.`,
 	firmwareRestart: () => `Restart needed to finish the firmware update.`,
+	snapshotTaken: (v0: string) => `Snapshot ${v0} taken before the system updates.`,
+	snapshotTakenNoName: () => `A snapshot was taken before the system updates.`,
+	snapshotSkipped: (v0: string) => `No snapshot taken: ${v0} is under 6 hours old.`,
+	snapshotFailed: (v0: string) => `The snapshot did not finish: ${v0}`,
+	snapshotNoRoot: () => `sudo needs a password here`,
+	snapshotStopped: () => `The snapshot did not finish, so nothing was installed.`,
 	cleanChanged: () => `Skipped: changed since you reviewed it.`,
 	cleanSudo: () => `Skipped: sudo needs a password here.`,
 	cleanPolkit: () => `Skipped: Flatpak would ask for a password here.`,

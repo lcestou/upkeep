@@ -582,6 +582,18 @@ export const MESSAGES = {
 		`This computer runs on its battery, so nothing was installed. Firmware updates need mains power.`,
 	/** extras/install.ts: a firmware row installed whose device needs a restart */
 	firmwareRestart: () => `Restart needed to finish the firmware update.`,
+	/** extras/extras.ts, History. {0} the snapshot's name (Timeshift) or number (Snapper) */
+	snapshotTaken: (v0: Value) => `Snapshot ${v0} taken before the system updates.`,
+	/** extras/extras.ts, History: a snapshot taken whose name could not be read back */
+	snapshotTakenNoName: () => `A snapshot was taken before the system updates.`,
+	/** extras/extras.ts, History. {0} the newest snapshot's name */
+	snapshotSkipped: (v0: Value) => `No snapshot taken: ${v0} is under 6 hours old.`,
+	/** extras/snapshot.ts. {0} why: snapshotNoRoot, a time limit, or the tool's first line */
+	snapshotFailed: (v0: Value) => `The snapshot did not finish: ${v0}`,
+	/** extras/snapshot.ts: a value inside snapshotFailed */
+	snapshotNoRoot: () => `sudo needs a password here`,
+	/** extras/extras.ts: the person chose Stop after a failed snapshot */
+	snapshotStopped: () => `The snapshot did not finish, so nothing was installed.`,
 	/** extras/cleanup.ts: a part whose size or time differs from what the review showed */
 	cleanChanged: () => `Skipped: changed since you reviewed it.`,
 	/** extras/cleanup.ts: a root part, and sudo -n true failed */

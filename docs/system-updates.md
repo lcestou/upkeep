@@ -20,3 +20,21 @@ Kernel and driver rows never get a tick: both need a restart, and a driver updat
 With any system row ticked, Install first shows the commands it will run, each as typed, and says which need administrator rights. Nothing runs until you confirm. The system updates go first; the ticked apps install once they finish, or at once if the system install is refused. Then, before any of them, Upkeep checks that sudo works without a password, that nothing holds dpkg's lock, that polkit lets Flatpak update without a dialog, that the package list is still the one you saw, and that a dry run (`mintupdate-cli upgrade -d`, or `apt-get install --only-upgrade --simulate` without Update Manager, no root) names no kernel or NVIDIA package and removes nothing. If any check fails, nothing runs and the group says why. Packages go first, then Flatpak, Snap, Cinnamon and firmware. Each row shows its state while it runs; afterwards the list is read again, a row that is gone is installed and one still listed is failed. Results go to History and the run log.
 
 A System install holds the same lock as an app install, so the two never run together. Closing the window or choosing Quit in the tray waits for it to finish. A background run at login never installs system updates.
+
+## Snapshot before system updates
+
+Where Timeshift or Snapper is set up, a third switch shows under the other two while installing is on: **Take a snapshot before system updates**. It is off until you turn it on. Timeshift counts as set up when `timeshift` is installed and `/etc/timeshift/timeshift.json` names a backup device; Snapper when `snapper` is installed and `/etc/snapper/configs/root` exists. With both, Timeshift is used. The hint under the switch names the tool.
+
+With it on, a System install takes the snapshot after the checks pass and before the first command runs, and the group shows "Taking a snapshot" meanwhile, which can take minutes. The command sheet says a snapshot is taken first. Snapshots need root, so every command below runs through `sudo -n`, as the package commands do. Like the rest of a System install, closing the window or choosing Quit waits for the snapshot to finish.
+
+- **Timeshift**: `sudo -n timeshift --list --scripted` first. When the newest snapshot of any kind (your scheduled daily one too) is under 6 hours old, none is taken and History says which one counts. In btrfs mode a snapshot is always taken, since it costs next to nothing. Otherwise `sudo -n timeshift --create --comments "Upkeep before system updates" --tags O --scripted`. Afterwards Upkeep keeps its own 3 newest: it deletes, with `sudo -n timeshift --delete --snapshot <name> --scripted`, only snapshots whose comment is exactly "Upkeep before system updates". Your own snapshots, and any with another comment, are never touched.
+- **Snapper**: `sudo -n snapper -c root create --type pre --print-number --cleanup-algorithm number --description "Upkeep before system updates"` before the commands, and a matching `--type post --pre-number <n>` after them, whether they worked or not. Snapper's own number cleanup removes old pairs, so Upkeep deletes nothing.
+
+If the snapshot fails (sudo wants a password, the backup disk is full, the tool reports an error), Upkeep asks before going on: "The snapshot did not finish: <reason>. Install the system updates anyway?", with **Install anyway** and **Stop**. Stop installs none of the system updates. An ask left unanswered for 30 minutes, or a quit that cannot wait, counts as Stop. History gets a line for the snapshot: the one taken, the one that counted instead, or why there is none.
+
+`upkeep install` on the command line installs Upkeep's apps only, never system updates, so it takes no snapshot.
+
+### Rolling back
+
+- **Timeshift**: open the Timeshift app, pick the snapshot named in History (its comment is "Upkeep before system updates"), and choose Restore. From a terminal: `sudo timeshift --restore --snapshot '<name>'`. A restore of the system replaces system files and needs a restart.
+- **Snapper**: `sudo snapper -c root status <pre>..<post>` shows what the updates changed, and `sudo snapper -c root undochange <pre>..<post>` puts those files back. The numbers are in History and the run log. On openSUSE you can also boot into the pre snapshot from the boot menu and run `sudo snapper rollback`.

@@ -262,6 +262,7 @@ export function upkeepRequests(
 		systemPlan: ({ ids }) => hooks.extras.planSystem(ids),
 		// The person's press, after they read the commands: nothing else in Upkeep starts a System install.
 		systemInstall: ({ ids, commands }) => hooks.extras.installSystem(ids, commands),
+		systemSnapshotAnswer: ({ go }) => hooks.extras.answerSnapshot(go),
 		cleanupMeasure: () => hooks.extras.measureCleanup(),
 		cleanupReview: ({ picks }) => hooks.extras.reviewCleanup(picks),
 		cleanupRun: ({ picks, commands, typed }) => hooks.extras.runCleanup(picks, commands, typed),
