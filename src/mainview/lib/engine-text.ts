@@ -67,6 +67,11 @@ export const ENGINE_COPY = {
 	downloadLeftHttps: () => `The download was sent on to an address that is not https, so it was refused.`,
 	releaseChanged: (v0: string) =>
 		`The file behind ${v0} changed after Upkeep first saw it. Check the release page before you release the hold.`,
+	badVersionPassed: (v0: string, v1: string) => `${v0} is marked as a bad version, so Upkeep passes over it: ${v1}`,
+	repoReplaced: (v0: string) =>
+		`${v0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold.`,
+	tagMoved: (v0: string) =>
+		`The tag ${v0} points at another commit than the one the check saw, so nothing was built. Check again before you install.`,
 	reasonChecking: () => `A check is running.`,
 	oldCopyRuns: (v0: string) =>
 		`Updated. A copy of ${v0} that was running keeps the old version until it exits; new runs use the new one.`,
@@ -222,6 +227,7 @@ export const ENGINE_COPY = {
 	liftRelaunchNeedsProcess: (v0: string) => `${v0}: relaunch needs process`,
 	liftPrereleaseNeedsList: (v0: string) =>
 		`${v0}: prerelease is only for an appimage, archive, file, deb or rpm table with a repo`,
+	liftBadVersionsNeedReason: (v0: string) => `${v0}: bad_versions needs a bad_reason that says why they are listed`,
 	liftRelaunchShared: (v0: string, v1: string) =>
 		`${v0}: relaunch would close every ${v1} process; give process the app's own name`,
 	liftInsideDir: (v0: string, v1: string) => `${v0}: ${v1} must stay inside dir`,

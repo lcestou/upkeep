@@ -3111,3 +3111,41 @@ msgstr "2 weeks"
 #: src/mainview/lib/copy.ts
 msgid "1 month"
 msgstr "1 month"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"
+msgstr "{0} is marked as a bad version, so Upkeep passes over it: {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold."
+msgstr "{0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The tag {0} points at another commit than the one the check saw, so nothing was built. Check again before you install."
+msgstr "The tag {0} points at another commit than the one the check saw, so nothing was built. Check again before you install."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
+msgstr "{0}: bad_versions needs a bad_reason that says why they are listed"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Breaking changes"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Older releases are not listed here. The release page has them all."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# older release not shown."
+msgstr[1] "# older releases not shown."

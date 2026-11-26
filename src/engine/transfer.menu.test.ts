@@ -30,6 +30,8 @@ test("import keeps the menu entry and trust state of an app it leaves as it was,
 	updateState(t.paths, (s) => {
 		s.menu = { a: files("a"), b: files("b"), c: files("c") };
 		s.changed = { a: "v1", b: "v1", c: "v1" };
+		s.origin = { a: { repo: "o/a", name: "o/a", id: 1, owner: 1 }, b: { repo: "o/b", name: "o/b", id: 2, owner: 1 } };
+		s.swapped = { a: "o/a", b: "o/b" };
 	});
 	// a is the same table, b moved its dest, c is not in the file.
 	const doc = JSON.stringify({ upkeep: 1, apps: [table("a", "~/a"), table("b", "~/elsewhere/b")].join("\n") });
@@ -39,5 +41,7 @@ test("import keeps the menu entry and trust state of an app it leaves as it was,
 	expect(loadState(t.paths).menu).toEqual({ a: files("a") });
 	// Download trust's held tags go the same way, in the same write.
 	expect(loadState(t.paths).changed).toEqual({ a: "v1" });
+	expect(loadState(t.paths).origin).toEqual({ a: { repo: "o/a", name: "o/a", id: 1, owner: 1 } });
+	expect(loadState(t.paths).swapped).toEqual({ a: "o/a" });
 	expect(["a", "b", "c"].flatMap(files).map((f) => existsSync(f))).toEqual([true, true, false, false, false, false]);
 });

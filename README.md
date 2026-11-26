@@ -86,7 +86,7 @@ Unpack that file and run `./installer`. [docs/develop.md](docs/develop.md) has t
 
 <p><img src="docs/media/detail.png" width="760" alt="The Updates tab with fd selected: four apps ready to install, three updated by hand, one that needs a look, and a pane showing fd's restore point, Skip, Hold and Install automatically, and the release notes"></p>
 
-Ready updates are ticked, apps you update yourself show the command you use, and anything Upkeep could not read says why. An app's pane has its release notes and its restore points, and lets you skip one version, hold the app where it is, or let it install on its own from now on. An app from GitHub, GitLab or Codeberg releases can also follow pre-releases, and Other versions lists its newest releases and installs the one you pick.
+Ready updates are ticked, apps you update yourself show the command you use, and anything Upkeep could not read says why. An app's pane has its release notes (every skipped release's, with any line that reads as a breaking change quoted on top) and its restore points, and lets you skip one version, hold the app where it is, or let it install on its own from now on. An app from GitHub, GitLab or Codeberg releases can also follow pre-releases, and Other versions lists its newest releases and installs the one you pick.
 
 ### Add an app without writing a config
 

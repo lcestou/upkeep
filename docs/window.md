@@ -12,6 +12,20 @@ Changing the frame or the corners rebuilds the window, which takes a moment.
 
 While a run installs, the footer shows **Stop after this one**: the app being installed runs to its end and the rest go back to ready. Once pressed, **Stop now** appears beside it. Stop now puts the app being installed back the way it was and ends the run there; the button reads "Stopping Zen Browser…" until it is done. A row whose step has printed nothing for two minutes says so ("No output for 3 min. It stops on its own in 7 min.") and carries its own Stop now. A stopped app reads Stopped, with what was put back, and History shows it as Stopped by you. What Stop now cuts and what it waits for is in [What an install does](how-an-install-works.md#stop-now).
 
+## Release notes
+
+An app's pane shows what changed in the release on offer. When the app comes from GitHub, GitLab or Codeberg releases and the installed version is more than one release behind, it shows the notes of every release after the installed one up to the latest, newest first, each under its version. Upkeep asks the forge for that list only when the pane opens, never during a check, and an unchanged list is read from its cache. The list holds the forge's ten newest releases and about 40,000 characters of notes; past either, the pane says that older releases are not shown, and the release page has them all. Source builds show their commits instead, and an app updated by its own command keeps the notes it showed before.
+
+Above the notes, a **Breaking changes** line quotes up to three lines that read as a breaking change, each with the version it comes from. It is found by plain word rules, not by a model, so it can miss one or quote a harmless line; it only informs and never holds an update. A line counts when it holds any of these, in any case:
+
+- "breaking" (as in "BREAKING CHANGE"), but not "non-breaking"
+- "migrate", "migrates", "migrated", "migrating", "migration" or "migrations"
+- "deprecated" and "removed" on the same line ("deprecated" alone only warns of a later removal)
+- "incompatible" or "incompatibility"
+- "requires manual" or "require manual"
+
+A heading that matches, such as "## Breaking changes", is not quoted itself: the first line under it is. The list lives in `BREAKING_MARKERS` in `src/engine/notes.ts`.
+
 ## About
 
 **About** in Settings shows the version and three links: **What's new** opens the changelog, **Report a bug** opens a new issue with the version, the distribution and the desktop already filled in, and **Upkeep on GitHub** opens the repo. Upkeep itself sends nothing: each opens a page in your browser, and the bug report's page carries the version and that one line about the system in its address.

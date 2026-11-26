@@ -7,6 +7,8 @@
 
 While a run installs, from its start to its end, Upkeep asks logind to hold sleep (`systemd-inhibit --what=sleep --mode=block`), so an idle timer or the menu's Suspend does not land between the restore point and the verify. Shutdown is never held, and closing the lid still suspends under logind's default `LidSwitchIgnoreInhibited=yes`. The lock is a child process tied to Upkeep's own (`tail --pid`), so it goes when the run ends or stops, and within a second if Upkeep crashes. A system without `systemd-inhibit` installs without it, and the run log says so once.
 
+A source build reads, when the check offers it, the commit its tag points at (`git ls-remote`, against the checkout's `origin` for a `dir` row or the repo for a clone). After the clone or the fetch, the tag must still point at that commit; if it moved, the build fails before any step runs or any restore point is taken, the run log names both commits, and the row says to check again. A tag moved between check and install is how a repointed release slips in. When the remote did not answer at check time, the build goes on as before.
+
 Root steps use `sudo -n`. If sudo wants a password the app fails with a message and nothing is changed.
 
 ## Stop now

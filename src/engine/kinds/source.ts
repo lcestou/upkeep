@@ -4,7 +4,7 @@ import { MESSAGES } from "../../shared/messages";
 import type { AppSpec } from "../../shared/types";
 import { cloneUrl, forgeRelease } from "../forge";
 import { compareRefs, isFailure, latestFromSource, type Release } from "../github";
-import { installBuilt } from "./built";
+import { installBuilt, tagStillAt } from "./built";
 import { dropTree } from "../drop";
 import { SUDO_PASSWORD, sudoNeedsPassword } from "../run";
 import { clearInflight, writeInflight } from "../store";
@@ -22,11 +22,48 @@ import {
 	stoppedOutcome,
 	type Target,
 } from "./context";
-import { checkRelease, destOf, probeInstalled } from "./release";
+import { checkRelease, destOf, listFailed, passBad, probeInstalled } from "./release";
+import { resolvePath } from "./tree";
 
-/** A row with check reads its own version (checkBuilt); a clone row without it probes dest, as tmux and cava do. */
-export function checkSource(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
-	return spec.check ? checkBuilt(spec, ctx) : checkRelease(spec, ctx, false);
+/**
+ * A row with check reads its own version (checkBuilt); a clone row without it probes dest, as tmux and cava do. An
+ * update on offer carries the commit its tag points at now, which the build checks again after it fetches.
+ */
+export async function checkSource(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> {
+	const c = spec.check ? await checkBuilt(spec, ctx) : await checkRelease(spec, ctx, false);
+	if (c?.status === "ready" && c.target) {
+		const commit = await remoteTagCommit(spec, c.target.tag, ctx);
+		if (commit) c.target.commit = commit;
+	}
+	return c;
+}
+
+/**
+ * The commit tag names on the remote the build will fetch it from: the checkout's origin for a dir row, the repo's
+ * clone address for a clone row. Null for a stage row (it builds no checkout), a tag that is not a plain name, or a
+ * remote that does not answer; the build then goes on unchecked, as it did before.
+ */
+async function remoteTagCommit(spec: AppSpec, tag: string, ctx: KindCtx): Promise<string | null> {
+	if (!PLAIN_REF.test(tag)) return null;
+	const refs = [`refs/tags/${tag}`, `refs/tags/${tag}^{}`];
+	const argv = spec.dir
+		? ["git", "-C", resolvePath(spec.dir, ctx.paths, null), "ls-remote", "origin", ...refs]
+		: !spec.stage && spec.repo
+			? ["git", "ls-remote", cloneUrl(spec.repo, spec.forge), ...refs]
+			: null;
+	if (!argv) return null;
+	const r = await ctx.run(argv, { timeoutMs: 30_000 });
+	return r.code === 0 ? tagCommitOf(r.stdout, tag) : null;
+}
+
+/**
+ * The commit of tag in git ls-remote's answer: the peeled ^{} line of an annotated tag, else the tag's own line, which
+ * for a lightweight tag is the commit. Null when neither line is there or its hash is not one.
+ */
+export function tagCommitOf(text: string, tag: string): string | null {
+	const lines = text.split("\n").map((l) => l.trim().split(/\s+/));
+	const sha = (ref: string) => lines.find(([h, r]) => r === ref && /^[0-9a-f]{40,64}$/.test(h ?? ""))?.[0] ?? null;
+	return sha(`refs/tags/${tag}^{}`) ?? sha(`refs/tags/${tag}`);
 }
 
 /** Semver order when both sides are semver, so prereleases compare in full; `isNewer`'s number-by-number order otherwise. */
@@ -86,11 +123,24 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 				...fromRelease(r),
 			};
 	}
+	// Only the list the version came from may stand in for it: with latest naming another source, repo's releases may not.
+	const passed = await passBad(spec.latest ? { ...spec, repo: undefined } : spec, ctx, { tag, version: latest }, false);
+	if (passed && isFailure(passed)) return listFailed(installed, passed);
+	const avoided = passed === undefined ? {} : { detail: MESSAGES.badVersionPassed(latest, spec.bad_reason ?? "") };
+	// Nothing else to offer: the row rests at the build it has, saying why.
+	if (passed === null)
+		return { installed, latest: installed, status: installed === null ? "problem" : "fresh", ...avoided };
+	if (passed) {
+		release = passed;
+		tag = passed.tag;
+		latest = passed.version ?? passed.tag;
+	}
 	const base = release ? fromRelease(release) : {};
 	if (!("version" in probe))
 		return { installed, latest, status: "problem", detail: probeProblem(spec.name, check[0] ?? "", probe), ...base };
 	const target: Target = { from: installed, version: latest, tag };
-	if (!spec.commit) return { installed, latest, status: newer(installed, latest) ? "ready" : "fresh", target, ...base };
+	if (!spec.commit)
+		return { installed, latest, status: newer(installed, latest) ? "ready" : "fresh", target, ...avoided, ...base };
 
 	const built = await ctx.run(spec.commit, { timeoutMs: 10_000, merge: true });
 	const sha = built.code === 0 ? (built.stdout.trim().split("\n")[0] ?? "") : "";
@@ -104,7 +154,7 @@ async function checkBuilt(spec: AppSpec, ctx: KindCtx): Promise<Checked | null> 
 		};
 	const cmp = await compareRefs(spec.repo ?? "", sha, tag, opts);
 	if (isFailure(cmp)) return { installed, latest, status: "problem", detail: cmp.detail, ...base };
-	const found = { installed, latest, target, commits: cmp.commits, ahead: cmp.ahead, ...base };
+	const found = { installed, latest, target, commits: cmp.commits, ahead: cmp.ahead, ...avoided, ...base };
 	if (cmp.status === "ahead") return { ...found, status: "ready" };
 	if (cmp.status === "diverged") return { ...found, status: "ready", detail: MESSAGES.divergedCommit() };
 	return { ...found, status: "fresh" };
@@ -151,6 +201,8 @@ export async function installSource(spec: AppSpec, target: Target, ctx: KindCtx)
 	// Stop now before the build changes anything. Once it starts, every step is waited out: there is no restore point.
 	if (stopPressed(ctx)) return { ...stoppedOutcome(target.from), stages: clock.stop() };
 	if (clone.code !== 0) return failed(MESSAGES.couldNotClone(String(spec.repo), target.tag));
+	const moved = await tagStillAt(target, dir, "HEAD", ctx);
+	if (moved) return failed(moved);
 
 	writeInflight(ctx.paths, { key: spec.key, dest: destOf(spec, ctx), backupVersion: null });
 	clock.start("install", 0);

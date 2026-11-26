@@ -3134,3 +3134,42 @@ msgstr "2 semanas"
 #: src/mainview/lib/copy.ts
 msgid "1 month"
 msgstr "1 mes"
+
+#. 0: v0; 1: v1
+#: src/mainview/lib/engine-text.ts
+msgid "{0} is marked as a bad version, so Upkeep passes over it: {1}"
+msgstr "{0} está marcada como versión defectuosa, así que Upkeep la pasa por alto: {1}"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0} now belongs to a different repository than the one Upkeep first saw. Check it before you release the hold."
+msgstr "{0} pertenece ahora a un repositorio distinto del que Upkeep vio por primera vez. Revísalo antes de reanudar las actualizaciones."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "The tag {0} points at another commit than the one the check saw, so nothing was built. Check again before you install."
+msgstr "La etiqueta {0} apunta a otro commit distinto del que vio la comprobación, así que no se compiló nada. Comprueba de nuevo antes de instalar."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
+msgstr "{0}: bad_versions necesita un bad_reason que diga por qué están en la lista"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Cambios incompatibles"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Líneas de estas notas que mencionan un cambio incompatible o una migración. Léelas antes de actualizar."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Las versiones anteriores no se muestran aquí. La página de la versión las tiene todas."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# versión anterior no mostrada."
+msgstr[1] "# versiones anteriores no mostradas."
+msgstr[2] "# versiones anteriores no mostradas."

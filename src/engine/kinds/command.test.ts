@@ -77,6 +77,19 @@ test("check reads the command's version and npm's latest; a missing command is l
 	expect((await checkCommand(claude([]), ctx()))?.status).toBe("fresh");
 });
 
+test("a listed bad latest is never offered: the row rests at the installed version and says why", async () => {
+	fakeClaude("2.1.322");
+	const bad = { ...claude([]), bad_versions: ["2.1.400"], bad_reason: "loses sessions" };
+	const c = await checkCommand(bad, ctx());
+	expect(c).toMatchObject({
+		installed: "2.1.322",
+		latest: "2.1.322",
+		status: "fresh",
+		detail: "2.1.400 is marked as a bad version, so Upkeep passes over it: loses sessions",
+	});
+	expect(c?.target).toBeUndefined();
+});
+
 test("install runs the update and passes when the version moved, asking a restart only of a table that can", async () => {
 	const state = fakeClaude("2.1.322");
 	script(join(t.paths.home, ".local/bin/claude-up"), `echo updating; printf 2.1.400 > ${state}`);

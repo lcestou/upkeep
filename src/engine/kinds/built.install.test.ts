@@ -683,6 +683,27 @@ test("Stop now may cut a built app's fetch, build, check and verify read; root s
 	expect(checks.map((o) => o.cuttable)).toEqual([true]);
 });
 
+test("a fetched tag that points elsewhere than the check saw fails before the backup, with both commits logged", async () => {
+	const before = hashTree(dir);
+	const box = fakeBox();
+	const logged: string[] = [];
+	const o = await installBuilt(spec(), { ...target, commit: "beef" }, { ...ctx(box), log: (l) => logged.push(l) });
+	expect(o).toMatchObject({
+		result: "failed",
+		installed: "f2918cabb",
+		detail:
+			"The tag v0.9.0 points at another commit than the one the check saw, so nothing was built. Check again before you install.",
+	});
+	expect(hashTree(dir)).toEqual(before);
+	expect(box.calls.some((c) => c.argv.join(" ") === "bash -c make all")).toBe(false);
+	expect(box.calls.map((c) => c.argv.join(" "))).toContainEqual(
+		expect.stringMatching(/^git -C .* rev-parse --verify v0\.9\.0\^\{commit\}$/),
+	);
+	expect(logged).toContain("v0.9.0 pointed at beef at check time, and at c0ffee now.");
+	// The commit the check saw is still there: the build goes on.
+	expect(await installBuilt(spec(), { ...target, commit: "c0ffee" }, ctx(fakeBox()))).toMatchObject({ result: "done" });
+});
+
 test("a unit's stop or start is cuttable on the way forward only when it does not run as root", async () => {
 	const seen: [string, boolean][] = [];
 	const run: Run = async (argv, opts = {}) => {

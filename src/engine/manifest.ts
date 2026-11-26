@@ -29,6 +29,7 @@ const STRING_FIELDS = [
 	"run",
 	"process",
 	"note",
+	"bad_reason",
 ] as const;
 const LIST_FIELDS = [
 	"bins",
@@ -39,6 +40,7 @@ const LIST_FIELDS = [
 	"restore",
 	"restart",
 	"keep_with_restore",
+	"bad_versions",
 ] as const;
 const BOOL_FIELDS = ["sudo", "versionless", "auto", "install_if_missing", "relaunch", "probe", "prerelease"] as const;
 // Process names that many programs share: relaunch closes every process with its name, so it refuses these.
@@ -178,6 +180,8 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	// Pre-releases are read from a forge's release list: a table without one would switch on nothing.
 	if (spec.prerelease && !(spec.repo && ["appimage", "archive", "file", "deb", "rpm"].includes(spec.kind)))
 		return MESSAGES.liftPrereleaseNeedsList(key);
+	// A version held back with no reason would leave the person guessing why the row never moves on.
+	if (spec.bad_versions?.length && !spec.bad_reason?.trim()) return MESSAGES.liftBadVersionsNeedReason(key);
 	// A .. part lets a dest that reads as under home resolve anywhere; no real table needs one.
 	if (spec.dest?.split("/").includes("..")) return MESSAGES.liftDestDotDot(key);
 	// Relaunch starts dest again and finds what to close by process name: a path match can miss an AppImage or a script.

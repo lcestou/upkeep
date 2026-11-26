@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { MESSAGES } from "../shared/messages";
 import type { AppSpec, EngineEvent } from "../shared/types";
 import { createEngine, type EngineDeps, REASON_CHECKING, REASON_NOTHING, REASON_STOPPING, settlesAt } from "./engine";
 import type { FetchLike } from "./github";
@@ -1336,7 +1337,8 @@ test("a saved token GitHub stops taking falls back to gh's sign-in for the check
 	expect(await engine.setToken(token)).toBe("ok");
 	expired = true;
 	await engine.check(["fd"]);
-	expect(sent).toEqual(["Bearer gho_fromgh"]);
+	// The release, then the repo's ids on first sight: both with gh's sign-in.
+	expect(sent).toEqual(["Bearer gho_fromgh", "Bearer gho_fromgh"]);
 	expect(engine.tokenState()).toEqual({ hint: "bbbb", refused: "gh" });
 	gh = false;
 	await engine.check(["fd"]);
@@ -1772,4 +1774,22 @@ test("a paused row turns Ready on its own when its pause ends, without a check",
 	await Bun.sleep(400);
 	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({ status: "ready", paused: undefined });
 	expect(engine.readyKeys(false)).toContain("fd");
+});
+
+test("a swapped repo's hold wins over a pause, and Release hold ends the pause but leaves the swap to its own release", async () => {
+	const engine = createEngine(await deps());
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	updateState(t.paths, (s) => {
+		s.swapped.fd = "github.com/other/fd";
+	});
+	await engine.check(["fd"]);
+	engine.setPause("fd", 7);
+	expect(fd()).toMatchObject({ status: "held", held: true, detail: MESSAGES.repoReplaced("github.com/other/fd") });
+	// The person's own hold and the swap together: releasing it ends the pause, and the swap still holds.
+	engine.setHold("fd", true);
+	engine.setPause("fd", 7);
+	engine.setHold("fd", false);
+	expect(loadState(t.paths).pause).toEqual({});
+	expect(loadState(t.paths).swapped.fd).toBe("github.com/other/fd");
+	expect(fd()).toMatchObject({ status: "held", held: true, paused: undefined });
 });

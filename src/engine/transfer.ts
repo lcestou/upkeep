@@ -328,6 +328,9 @@ export function importSetup(
 			// never outlives the table it was about.
 			s.seen = Object.fromEntries(Object.entries(s.seen).filter(([k]) => stays(k)));
 			s.changed = Object.fromEntries(Object.entries(s.changed).filter(([k]) => stays(k)));
+			// The repo a check first saw goes too: a changed table may name another repo, and the hold was about the old one.
+			s.origin = Object.fromEntries(Object.entries(s.origin).filter(([k]) => stays(k)));
+			s.swapped = Object.fromEntries(Object.entries(s.swapped).filter(([k]) => stays(k)));
 		});
 		if (isRecord(doc.extras)) {
 			// SAFETY: updateExtras clamps every field, so a wrong value reads as its default.
