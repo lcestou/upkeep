@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { isStopNote, say } from "../lib/engine-say";
-	import type { AppState } from "../../shared/types";
+	import type { AppState, NotesSpan } from "../../shared/types";
 	import {
 		CHECKED,
 		CHIP,
@@ -9,6 +9,7 @@
 		heldAt,
 		moreCommits,
 		KIND_LABEL,
+		olderNotes,
 		NO_RESTORE,
 		TEXT,
 		ADD,
@@ -35,7 +36,7 @@
 	import OtherVersions from "./OtherVersions.svelte";
 	import Stem from "./Stem.svelte";
 	import Versions from "./Versions.svelte";
-	import { tick } from "svelte";
+	import { tick, untrack } from "svelte";
 
 	let { app, model, onclose }: { app: AppState; model: Model; onclose: () => void } = $props();
 
@@ -77,6 +78,30 @@
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
 	const chip = CHIP.running;
 	const notes = $derived(app.notes ? parseNotes(app.notes) : []);
+	// The notes of every release skipped over, asked for when the pane opens on a listable app with a newer release, and
+	// again only when the installed or latest version or the pre-release switch changes (a row's every event would
+	// otherwise ask the forge again).
+	const spanOf = $derived(
+		app.prerelease !== undefined && pending ? `${app.installed} ${app.latest} ${app.prerelease}` : null,
+	);
+	let span = $state<NotesSpan | null>(null);
+	$effect(() => {
+		span = null;
+		if (spanOf === null) return;
+		const key = untrack(() => app.key);
+		let live = true;
+		void model.send("releaseNotes", { key }).then((res) => {
+			// A forge that cannot be read, or a request that ran out of time, keeps the latest release's notes.
+			if (live && res && !res.problem) span = res;
+		});
+		return () => (live = false);
+	});
+	// One release alone is the latest's notes, unless older ones were left out: then the pane says so under it.
+	const spanned = $derived(
+		span && (span.releases.length > 1 || (span.releases.length === 1 && (span.older > 0 || span.more)))
+			? span.releases
+			: null,
+	);
 	let asking = $state(false);
 	let keepBtn = $state<HTMLButtonElement | null>(null);
 	let removeBtn = $state<HTMLButtonElement | null>(null);
@@ -209,6 +234,22 @@
 				>
 			{:else}<span class="url">{part.s}</span>{/if}
 		{:else}{part.s}{/if}
+	{/each}
+{/snippet}
+
+{#snippet body(blocks: ReturnType<typeof parseNotes>)}
+	{#each blocks as block, b (b)}
+		{#if block.t === "list"}
+			<ul>
+				{#each block.items as item, i (i)}
+					<li>{@render runs(item)}</li>
+				{/each}
+			</ul>
+		{:else if block.t === "heading"}
+			<p class="nh">{@render runs(block.inline)}</p>
+		{:else}
+			<p>{@render runs(block.inline)}</p>
+		{/if}
 	{/each}
 {/snippet}
 
@@ -478,25 +519,36 @@
 	{#if pending || app.notes}
 		<div class="block">
 			<h3>{TEXT.whatChanged}</h3>
-			{#if app.publishedAt}<span class="released">{releasedLabel(relativeTime(app.publishedAt))}</span>{/if}
-			{#if notes.length > 0}
+			{#if span?.breaking.length}
+				<div class="breaking" data-testid="breaking">
+					<p class="nh"><Glyph name="bang" color="var(--rust)" /><span data-testid="breaking-heading">{TEXT.breakingChanges}</span></p>
+					<ul>
+						{#each span.breaking as line, i (i)}
+							<li data-testid="breaking-line"><span class="mono">{line.version}</span> {line.line}</li>
+						{/each}
+					</ul>
+					<p class="released" data-testid="breaking-hint">{TEXT.breakingHint}</p>
+				</div>
+			{/if}
+			{#if spanned && span}
 				<div class="notes" data-testid="notes">
-					{#each notes as block, b (b)}
-						{#if block.t === "list"}
-							<ul>
-								{#each block.items as item, i (i)}
-									<li>{@render runs(item)}</li>
-								{/each}
-							</ul>
-						{:else if block.t === "heading"}
-							<p class="nh">{@render runs(block.inline)}</p>
-						{:else}
-							<p>{@render runs(block.inline)}</p>
-						{/if}
+					{#each spanned as r (r.tag)}
+						<h4 class="nv" data-testid="notes-version-{r.version}">
+							<span class="mono">{r.version}</span>
+							{#if r.publishedAt}<span class="released">{releasedLabel(relativeTime(r.publishedAt))}</span>{/if}
+						</h4>
+						{#if r.notes}{@render body(parseNotes(r.notes))}{:else}<p class="none">{TEXT.noNotes}</p>{/if}
 					{/each}
+					{#if span.older > 0}<p class="released" data-testid="notes-older">{olderNotes(span.older)}</p>{/if}
+					{#if span.more}<p class="released" data-testid="notes-more">{TEXT.olderNotListed}</p>{/if}
 				</div>
 			{:else}
-				<p class="none">{TEXT.noNotes}</p>
+				{#if app.publishedAt}<span class="released">{releasedLabel(relativeTime(app.publishedAt))}</span>{/if}
+				{#if notes.length > 0}
+					<div class="notes" data-testid="notes">{@render body(notes)}</div>
+				{:else}
+					<p class="none">{TEXT.noNotes}</p>
+				{/if}
 			{/if}
 		</div>
 	{/if}
@@ -693,6 +745,40 @@
 	.notes .nh {
 		font-weight: 640;
 		margin-top: var(--s1);
+	}
+	/* One skipped release's heading: its version, then when it came out. */
+	.notes .nv {
+		display: flex;
+		gap: var(--s2);
+		align-items: baseline;
+		margin: var(--s2) 0 0;
+		font-size: var(--fs-12);
+		font-weight: 620;
+		color: var(--text-2);
+	}
+	.notes .nv:first-child {
+		margin-top: 0;
+	}
+	.breaking {
+		display: grid;
+		gap: var(--s1);
+		max-width: 68ch;
+		line-height: 1.5;
+		overflow-wrap: anywhere;
+	}
+	.breaking .nh {
+		display: flex;
+		gap: var(--s1);
+		align-items: center;
+		margin: 0;
+		font-weight: 640;
+	}
+	.breaking ul {
+		margin: 0;
+		padding-left: 1.2em;
+	}
+	.breaking .mono {
+		color: var(--text-2);
 	}
 	.inl {
 		font-size: 0.92em;

@@ -195,6 +195,18 @@ export const TEXT = {
 	get noNotes() {
 		return "No release notes.";
 	},
+	/** Over the lines of skipped releases' notes that read as a breaking change. */
+	get breakingChanges() {
+		return "Breaking changes";
+	},
+	/** Under those lines: they were found by plain word rules, so the notes stay the thing to read. */
+	get breakingHint() {
+		return "Lines in these notes that mention a breaking change or a migration. Read them before you update.";
+	},
+	/** Under the notes of skipped releases when the forge's list stops before the installed version. */
+	get olderNotListed() {
+		return "Older releases are not listed here. The release page has them all.";
+	},
 	get installedAt() {
 		return "Installed at";
 	},
@@ -466,6 +478,8 @@ export const installVersionLabel = (v: string) => `Install ${v}`;
 export const heldAt = (v: string) => `Held at ${v}.`;
 /** The release line in the pane; relative is already a phrase such as "3 days ago". */
 export const releasedLabel = (relative: string) => `Released ${relative}`;
+/** Under the notes of skipped releases: how many were left out because the notes shown are already long. */
+export const olderNotes = (n: number) => plural(n, ["# older release not shown.", "# older releases not shown."]);
 /** The pane's sentence on a release still settling: the day it is offered, or the hour when that is later today. */
 export const settlesLine = (version: string, iso: string) =>
 	isToday(iso)

@@ -3124,3 +3124,22 @@ msgstr "La etiqueta {0} apunta a otro commit distinto del que vio la comprobaci�
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
 msgstr "{0}: bad_versions necesita un bad_reason que diga por qué están en la lista"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Cambios incompatibles"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Líneas de estas notas que mencionan un cambio incompatible o una migración. Léelas antes de actualizar."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Las versiones anteriores no se muestran aquí. La página de la versión las tiene todas."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# versión anterior no mostrada."
+msgstr[1] "# versiones anteriores no mostradas."
+msgstr[2] "# versiones anteriores no mostradas."

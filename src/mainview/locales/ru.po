@@ -3147,3 +3147,23 @@ msgstr "Тег {0} указывает на другой коммит, чем т�
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
 msgstr "{0}: для bad_versions нужен bad_reason, который объясняет, почему они в списке"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Несовместимые изменения"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Строки этих заметок, где упомянуты несовместимое изменение или миграция. Прочтите их перед обновлением."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Более старые выпуски здесь не перечислены. На странице выпуска есть все."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# более старый выпуск не показан."
+msgstr[1] "# более старых выпуска не показаны."
+msgstr[2] "# более старых выпусков не показано."
+msgstr[3] "# более старого выпуска не показано."

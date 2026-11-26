@@ -116,6 +116,7 @@ export function upkeepRequests(
 		setAuto: ({ key, auto }) => ({ ok: engine.setAuto(key, auto) }),
 		setPrerelease: ({ key, prerelease }) => ({ ok: engine.setPrerelease(key, prerelease) }),
 		versions: ({ key }) => engine.versions(key),
+		releaseNotes: ({ key }) => engine.releaseNotes(key),
 		installVersion: ({ key, tag }) => engine.installVersion(key, tag),
 		setMenu: ({ key, menu }) => engine.setMenu(key, menu),
 		setSettings: (patch) => {

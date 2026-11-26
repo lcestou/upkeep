@@ -32,7 +32,15 @@ asset = 'tool-linux$'
 dest = "~/.local/bin/cb"
 `;
 
-type Rel = { tag: string; prerelease?: boolean; draft?: boolean; file?: string; broken?: boolean; prints?: string };
+type Rel = {
+	tag: string;
+	prerelease?: boolean;
+	draft?: boolean;
+	file?: string;
+	broken?: boolean;
+	prints?: string;
+	notes?: string;
+};
 
 /**
  * The releases o/tool has, newest first as GitHub lists them: another product of the repo (its own file, a higher
@@ -77,7 +85,7 @@ function body(r: Rel) {
 		draft: r.draft === true,
 		html_url: `https://github.com/o/tool/releases/tag/${r.tag}`,
 		published_at: "2026-11-09T00:00:00Z",
-		body: "",
+		body: r.notes ?? "",
 		assets: [
 			{
 				name: file,
@@ -480,4 +488,50 @@ test("a repo whose name now answers with another repository holds its update unt
 	});
 	expect((await engine.removeApp("tool")).ok).toBe(true);
 	expect(loadState(t.paths)).toMatchObject({ origin: {}, swapped: {} });
+});
+
+test("the notes of every release skipped over come newest first, with the lines that read as breaking", async () => {
+	const { engine, asked } = await setup();
+	// Nothing newer: no release list is asked for.
+	expect(await engine.releaseNotes("tool")).toEqual({ releases: [], breaking: [], older: 0, more: false });
+	expect(asked.some((a) => a.url.includes("per_page"))).toBe(false);
+	releases = [
+		{ tag: "v1.3.0", notes: "## Breaking changes\n- The config file moved to ~/.config/tool/tool.toml.\n" },
+		{ tag: "v1.2.0", notes: "- Migrate old settings by hand.\n- Faster start." },
+		...START,
+	];
+	latestTag = "v1.3.0";
+	await engine.check();
+	const span = await engine.releaseNotes("tool");
+	// The candidate is left out (the app follows stable releases), as is the repo's other product.
+	expect(span.releases.map((r) => r.version)).toEqual(["1.3.0", "1.2.0"]);
+	expect(span.releases[0]?.notes).toBe("## Breaking changes\n- The config file moved to ~/.config/tool/tool.toml.");
+	expect(span.breaking).toEqual([
+		{ version: "1.3.0", line: "The config file moved to ~/.config/tool/tool.toml." },
+		{ version: "1.2.0", line: "Migrate old settings by hand." },
+	]);
+	expect(span).toMatchObject({ older: 0, more: false });
+	// A list that holds none of them (the forge answered with nothing) shows nothing more than the latest's notes.
+	listed = [];
+	expect(await engine.releaseNotes("tool")).toEqual({ releases: [], breaking: [], older: 0, more: false });
+});
+
+test("the notes read every release, with or without a file for this machine", async () => {
+	const { engine } = await setup();
+	// 1.2.0 shipped no file this table installs, and the installed 1.1.0's file was renamed: both still count.
+	releases = [
+		{ tag: "v1.3.0", notes: "Faster." },
+		{ tag: "v1.2.0", file: "cli-linux", notes: "- **Breaking:** the `--old` flag is gone." },
+		{ tag: "v1.1.0", file: "Tool-x86_64" },
+	];
+	latestTag = "v1.3.0";
+	await engine.check();
+	const span = await engine.releaseNotes("tool");
+	expect(span.releases.map((r) => r.version)).toEqual(["1.3.0", "1.2.0"]);
+	expect(span.breaking).toEqual([{ version: "1.2.0", line: "Breaking: the --old flag is gone." }]);
+	// The list reaches the installed version, so nothing is said about older ones.
+	expect(span).toMatchObject({ older: 0, more: false });
+	// An app that keeps no release list answers with no span and no problem.
+	expect(await engine.releaseNotes("cmd")).toEqual({ releases: [], breaking: [], older: 0, more: false });
+	expect(await engine.releaseNotes("nope")).toMatchObject({ problem: MESSAGES.noApp("nope") });
 });

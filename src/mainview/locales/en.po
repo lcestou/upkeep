@@ -3101,3 +3101,21 @@ msgstr "The tag {0} points at another commit than the one the check saw, so noth
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
 msgstr "{0}: bad_versions needs a bad_reason that says why they are listed"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Breaking changes"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Older releases are not listed here. The release page has them all."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# older release not shown."
+msgstr[1] "# older releases not shown."

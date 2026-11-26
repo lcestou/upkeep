@@ -127,8 +127,16 @@ export function newestOf(list: Release[]): Release | null {
  * a monorepo, is never offered. A table with no pattern for this machine keeps none.
  */
 export async function listReleases(spec: AppSpec, ctx: KindCtx): Promise<Release[] | Failure> {
-	const list = await forgeReleases(spec.repo ?? "", spec.forge, releaseOpts(ctx));
+	const list = await allReleases(spec, ctx);
 	return isFailure(list) ? list : fitting(list, spec, ctx);
+}
+
+/**
+ * The newest releases of a listable app on its forge, whether or not they hold a file for this machine. Release notes
+ * read this list: a release with no file for this machine still says what changed in the project.
+ */
+export function allReleases(spec: AppSpec, ctx: KindCtx): Promise<Release[] | Failure> {
+	return forgeReleases(spec.repo ?? "", spec.forge, releaseOpts(ctx));
 }
 
 /** The releases of list that hold a file matching the table's pattern for this machine. */

@@ -309,6 +309,18 @@ export type AppState = {
 /** One release a person may install from Install another version. */
 export type VersionChoice = { tag: string; version: string; publishedAt: string; prerelease: boolean };
 
+/** One release's notes in the span a person skips over. */
+export type ReleaseNotes = { version: string; tag: string; publishedAt: string; notes: string };
+
+/** A line of release notes that reads as a breaking change, with the version whose notes hold it. */
+export type BreakingLine = { version: string; line: string };
+
+/**
+ * The notes of every release after the installed one up to the latest, newest first. older counts releases left out
+ * for size; more says the forge's list ran out before the installed version, so how many older ones exist is unknown.
+ */
+export type NotesSpan = { releases: ReleaseNotes[]; breaking: BreakingLine[]; older: number; more: boolean };
+
 export type RunPhase = "idle" | "checking" | "installing" | "summary";
 
 /**
@@ -608,6 +620,8 @@ export type Requests = {
 	setPrerelease: { params: { key: string; prerelease: boolean }; response: { ok: boolean } };
 	/** The newest releases of a listable app, asked only when the person opens the list. */
 	versions: { params: { key: string }; response: { versions: VersionChoice[]; problem?: string } };
+	/** The notes of every release between the installed version and the latest, asked for when the pane opens. */
+	releaseNotes: { params: { key: string }; response: NotesSpan & { problem?: string } };
 	/** Installs the release of tag through the usual run; an older one than the latest skips the latest once it is in. */
 	installVersion: { params: { key: string; tag: string }; response: { started: boolean; reason?: string } };
 	setMenu: { params: { key: string; menu: boolean }; response: { ok: boolean; detail?: string } };

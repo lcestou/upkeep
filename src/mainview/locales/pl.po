@@ -3147,3 +3147,23 @@ msgstr "Tag {0} wskazuje na inny commit niż ten, który widziało sprawdzenie, 
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
 msgstr "{0}: bad_versions wymaga bad_reason, który mówi, dlaczego są na liście"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "Zmiany niezgodne wstecz"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "Wiersze tych notatek, które wspominają o zmianie niezgodnej wstecz lub migracji. Przeczytaj je przed aktualizacją."
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "Starsze wydania nie są tu wymienione. Strona wydania ma je wszystkie."
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "# starsze wydanie nie jest pokazane."
+msgstr[1] "# starsze wydania nie są pokazane."
+msgstr[2] "# starszych wydań nie jest pokazanych."
+msgstr[3] "# starszego wydania nie pokazano."

@@ -3078,3 +3078,20 @@ msgstr "タグ {0} は確認時とは別のコミットを指しているため�
 #: src/mainview/lib/engine-text.ts
 msgid "{0}: bad_versions needs a bad_reason that says why they are listed"
 msgstr "{0}: bad_versions には、登録した理由を書いた bad_reason が必要です"
+
+#: src/mainview/lib/copy.ts
+msgid "Breaking changes"
+msgstr "互換性のない変更"
+
+#: src/mainview/lib/copy.ts
+msgid "Lines in these notes that mention a breaking change or a migration. Read them before you update."
+msgstr "互換性のない変更や移行に触れている、このノート内の行です。更新の前に読んでください。"
+
+#: src/mainview/lib/copy.ts
+msgid "Older releases are not listed here. The release page has them all."
+msgstr "古いリリースはここには表示されません。リリースページにすべてあります。"
+
+#: src/mainview/lib/copy.ts
+msgid "# older release not shown."
+msgid_plural "# older releases not shown."
+msgstr[0] "表示していない古いリリースが # 件あります。"
