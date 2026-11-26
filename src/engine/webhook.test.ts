@@ -199,3 +199,28 @@ test("each address has its own failure streak: a new address's first failure is 
 		"Could not send the notice to https://b.example.com/…: it answered HTTP 503",
 	]);
 });
+
+test("an address removed or replaced loses its failure streak, so its failures are logged again when it comes back", async () => {
+	const lines: string[] = [];
+	const sender = createNoticeSender({
+		paths: t.paths,
+		fetch: async () => new Response("", { status: 503 }),
+		log: (l) => lines.push(l),
+	});
+	writeWebhook(t.paths, "https://a.example.com/x");
+	await sender.send(BODY);
+	writeWebhook(t.paths, null);
+	await sender.send(BODY);
+	writeWebhook(t.paths, "https://a.example.com/x");
+	await sender.send(BODY);
+	writeWebhook(t.paths, "https://b.example.com/x");
+	await sender.send(BODY);
+	writeWebhook(t.paths, "https://a.example.com/x");
+	await sender.send(BODY);
+	expect(lines.map((l) => l.slice(29, 50))).toEqual([
+		"https://a.example.com",
+		"https://a.example.com",
+		"https://b.example.com",
+		"https://a.example.com",
+	]);
+});

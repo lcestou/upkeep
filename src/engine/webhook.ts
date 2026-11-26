@@ -132,6 +132,8 @@ export function createNoticeSender(deps: NoticeDeps): NoticeSender {
 	return {
 		async send(body) {
 			const address = readWebhook(deps.paths);
+			// A removed or replaced address leaves its streak behind, so its failures are logged again if it comes back.
+			for (const a of failing) if (a !== address) failing.delete(a);
 			if (!address || addressProblem(address)) return false;
 			let why: string | null = null;
 			try {

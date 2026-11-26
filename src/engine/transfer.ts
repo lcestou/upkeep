@@ -273,7 +273,8 @@ export function importSetup(
 	const turnsOn = switchesOn(paths, settings, isRecord(doc.extras) ? doc.extras : null);
 	const turnsOff = protectionsOff(paths, settings);
 	const waitDays = waitLowered(paths, settings);
-	const hook = typeof doc.webhook === "string" ? doc.webhook.trim() : null;
+	// An empty string names no address, as a missing field does: this machine's stays.
+	const hook = typeof doc.webhook === "string" && doc.webhook.trim() !== "" ? doc.webhook.trim() : null;
 	if (hook !== null && addressProblem(hook))
 		return { ok: false, problems: [MESSAGES.importBadWebhook(maskAddress(hook))] };
 	// Only a new or changed address asks: it would start sending this machine's app list somewhere.

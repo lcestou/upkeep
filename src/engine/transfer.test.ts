@@ -333,3 +333,18 @@ test("an import drops a skip on a versionless app, which has no version to skip"
 		t.cleanup();
 	}
 });
+
+test("an empty notice address in a file names none: the import keeps this machine's without asking", () => {
+	const t = tempHome("transfer-webhook-empty");
+	try {
+		const seed = join(t.dir, "seed.toml");
+		writeFileSync(seed, "");
+		writeWebhook(t.paths, "https://ntfy.sh/mine");
+		const out = exportSetup(t.paths, seed, new Date());
+		for (const webhook of ["", "   "])
+			expect(importSetup(t.paths, seed, JSON.stringify({ ...out, webhook }), new Date()).ok).toBe(true);
+		expect(readWebhook(t.paths)).toBe("https://ntfy.sh/mine");
+	} finally {
+		t.cleanup();
+	}
+});
