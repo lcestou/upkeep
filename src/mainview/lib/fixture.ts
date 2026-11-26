@@ -1381,7 +1381,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		},
 		setPause: ({ key, days }) => {
 			const app = get(key);
-			if (!app) return { ok: false };
+			// As the engine does: a hold wins over a pause, so pausing a held app is refused.
+			if (!app || (days !== null && app.held)) return { ok: false };
 			const pending = app.latest !== null && app.latest !== app.installed;
 			if (days !== null) put({ ...app, status: pending ? "held" : app.status, paused: iso(NOW + days * DAY) });
 			else put({ ...app, status: app.held || app.skipped ? "held" : pending ? "ready" : "fresh", paused: undefined });

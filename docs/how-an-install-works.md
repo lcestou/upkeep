@@ -25,11 +25,11 @@ While an app installs, a row whose step has printed nothing for two minutes says
 
 ## Where things live
 
-| Path                                  | Holds                                                                             |
-| ------------------------------------- | --------------------------------------------------------------------------------- |
-| `~/.config/upkeep/apps.toml`          | the app list                                                                      |
-| `~/.local/state/upkeep/state.json`    | skipped versions, held apps, automatic installs, pre-release switches, settings   |
-| `~/.local/state/upkeep/logs/`         | one log per run, the newest 50                                                    |
-| `~/.local/share/upkeep/history.jsonl` | every install and cleanup, append-only                                            |
-| `~/.local/share/upkeep/backups/`      | restore points                                                                    |
-| `~/.cache/upkeep/`                    | release lookups, downloads, source clones, the last check's rows. Safe to delete. |
+| Path                                  | Holds                                                                                      |
+| ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `~/.config/upkeep/apps.toml`          | the app list                                                                               |
+| `~/.local/state/upkeep/state.json`    | skipped versions, held and paused apps, automatic installs, pre-release switches, settings |
+| `~/.local/state/upkeep/logs/`         | one log per run, the newest 50                                                             |
+| `~/.local/share/upkeep/history.jsonl` | every install and cleanup, append-only                                                     |
+| `~/.local/share/upkeep/backups/`      | restore points                                                                             |
+| `~/.cache/upkeep/`                    | release lookups, downloads, source clones, the last check's rows. Safe to delete.          |

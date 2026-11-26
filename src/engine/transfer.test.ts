@@ -236,28 +236,33 @@ test("an import that shortens the release wait asks first; one that lengthens it
 	}
 });
 
-test("an export carries pauses, and an import takes them without asking, only for its apps and readable days", () => {
+test("an export carries running pauses, and an import takes them without asking, only for its apps and sane days", () => {
 	const t = tempHome("transfer-pause");
 	try {
 		const seed = join(t.dir, "seed.toml");
 		writeFileSync(seed, "");
+		const now = new Date();
+		const inDays = (d: number) => new Date(now.getTime() + d * 86_400_000).toISOString();
 		updateState(t.paths, (s) => {
-			s.pause.old = "2026-12-01T00:00:00.000Z";
+			s.pause.old = inDays(6);
+			s.pause.done = inDays(-1);
 		});
-		expect(exportSetup(t.paths, seed, new Date()).pause).toEqual({ old: "2026-12-01T00:00:00.000Z" });
+		// A pause that ran out stays behind.
+		expect(exportSetup(t.paths, seed, now).pause).toEqual({ old: inDays(6) });
 		const apps = '[apps.t]\nname = "T"\nkind = "file"\nrepo = "o/t"\nasset = "t-linux"\ndest = "~/.local/bin/t"\n';
-		const out = exportSetup(t.paths, seed, new Date());
-		const until = "2026-12-09T00:00:00.000Z";
-		const doc = { ...out, apps, pause: { t: until, gone: until, bad: "soon" } };
-		expect(importSetup(t.paths, seed, JSON.stringify({ ...doc, pause: { t: "soon" } }), new Date(), true).ok).toBe(
-			true,
-		);
-		expect(loadState(t.paths).pause).toEqual({});
-		expect(importSetup(t.paths, seed, JSON.stringify(doc), new Date(), true).ok).toBe(true);
+		const out = exportSetup(t.paths, seed, now);
+		const until = inDays(14);
+		const doc = { ...out, apps, pause: { t: until, gone: until } };
+		// An unreadable end, one already past and one more than 365 days ahead are each dropped.
+		for (const end of ["soon", inDays(-2), inDays(366), 7]) {
+			expect(importSetup(t.paths, seed, JSON.stringify({ ...doc, pause: { t: end } }), now, true).ok).toBe(true);
+			expect(loadState(t.paths).pause).toEqual({});
+		}
+		expect(importSetup(t.paths, seed, JSON.stringify(doc), now, true).ok).toBe(true);
 		expect(loadState(t.paths).pause).toEqual({ t: until });
 		// A file written before pauses has none, and clears them as it does holds.
 		const { pause: _pause, ...older } = doc;
-		expect(importSetup(t.paths, seed, JSON.stringify(older), new Date(), true).ok).toBe(true);
+		expect(importSetup(t.paths, seed, JSON.stringify(older), now, true).ok).toBe(true);
 		expect(loadState(t.paths).pause).toEqual({});
 	} finally {
 		t.cleanup();

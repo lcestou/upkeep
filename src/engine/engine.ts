@@ -167,6 +167,8 @@ export type Engine = {
 	setHold(key: string, held: boolean): boolean;
 	/** Pauses for a whole number of days from now, or ends the pause with null. False, and nothing written, for a key not in the list or a count that is not 1 to 365. */
 	setPause(key: string, days: number | null): boolean;
+	/** Whether an app is held, by the person or by Upkeep for a changed release or a swapped repo: a pause is refused then. */
+	isHeld(key: string): boolean;
 	/** False, and nothing written, for a key not in the list. */
 	setAuto(key: string, auto: boolean): boolean;
 	/** Writes the person's pre-release switch, then checks the app again when nothing else runs. False for an app whose releases cannot be listed. */
@@ -345,14 +347,15 @@ export function settlesAt(publishedAt: string | undefined, days: number, now: Da
 	return until > now.getTime() ? new Date(until).toISOString() : undefined;
 }
 
+/** The statuses refresh re-derives from a row's check result; every other status waits for its run or check to end. */
+const RESTING: ReadonlySet<AppState["status"]> = new Set(["ready", "held", "manual", "fresh"]);
+
 /**
  * The moment a resting row changes by itself: its pause's end, else a held row's wait end. Only statuses refresh
  * re-derives, so a checking or problem row's old date never fires the timer again and again.
  */
 const lapse = (a: AppState) =>
-	["ready", "held", "manual", "fresh"].includes(a.status)
-		? (a.paused ?? (a.status === "held" ? a.settles : undefined))
-		: undefined;
+	RESTING.has(a.status) ? (a.paused ?? (a.status === "held" ? a.settles : undefined)) : undefined;
 
 /** Whether a row goes into a run: Ready, or with now (Install now anyway) still settling. A held or skipped row never. */
 function takesRow(a: AppState | undefined, now: boolean): boolean {
@@ -623,8 +626,11 @@ export function createEngine(deps: EngineDeps): Engine {
 						: c.detail;
 		const until = state.pause[spec.key];
 		// Shown on a Fresh row too, so pausing an app that is up to date still says until when.
+		// A hold wins over a pause, so a held row never says Paused until.
 		const paused =
-			spec.kind !== "manual" && until !== undefined && Date.parse(until) > deps.now().getTime() ? until : undefined;
+			!held && spec.kind !== "manual" && until !== undefined && Date.parse(until) > deps.now().getTime()
+				? until
+				: undefined;
 		const none = { settles: undefined, paused };
 		if (c.status !== "ready") return { status: c.status, held, detail, ...none };
 		if (held) return { status: "held", held, skipped: skip, detail, ...none };
@@ -1509,12 +1515,25 @@ export function createEngine(deps: EngineDeps): Engine {
 		setPause(key, days) {
 			if (!specOf(key)) return false;
 			if (days !== null && !(Number.isInteger(days) && days >= 1 && days <= 365)) return false;
+			// A hold wins over a pause, so pausing a held app would show nothing and lapse unseen: refused.
+			if (days !== null && engine.isHeld(key)) return false;
+			const until = days === null ? undefined : new Date(deps.now().getTime() + days * DAY_MS).toISOString();
 			updateState(paths, (s) => {
-				if (days === null) delete s.pause[key];
-				else s.pause[key] = new Date(deps.now().getTime() + days * DAY_MS).toISOString();
+				if (until === undefined) delete s.pause[key];
+				else s.pause[key] = until;
 			});
+			const a = apps.get(key);
+			// A row refresh cannot re-derive (a problem, a failure, a check under way) shows the pause at once all the same.
+			if (a && !RESTING.has(a.status) && specOf(key)?.kind !== "manual") {
+				a.paused = until;
+				emitApp(a);
+			}
 			refresh(key);
 			return true;
+		},
+		isHeld(key) {
+			const s = loadState(paths);
+			return s.hold[key] === true || s.swapped[key] !== undefined || apps.get(key)?.held === true;
 		},
 		setAuto(key, auto) {
 			if (!specOf(key)) return false;
@@ -1689,7 +1708,8 @@ export function createEngine(deps: EngineDeps): Engine {
 				const a = apps.get(s.key);
 				if (!a) continue;
 				if (a.status === "ready" && (!autoOnly || a.auto)) keys.push(s.key);
-				else if (autoOnly && a.versionless && a.auto) keys.push(s.key);
+				// A versionless row runs in every automatic run, unless the person held, paused or skipped it.
+				else if (autoOnly && a.versionless && a.auto && !a.held && !a.paused && a.status !== "held") keys.push(s.key);
 			}
 			return keys;
 		},
@@ -1940,7 +1960,7 @@ export function createEngine(deps: EngineDeps): Engine {
 		const a = apps.get(key);
 		const c = checked.get(key);
 		if (!spec || !a || !c) return;
-		if (!["ready", "held", "manual", "fresh"].includes(a.status)) return;
+		if (!RESTING.has(a.status)) return;
 		Object.assign(a, { skipped: undefined }, resting(spec, c));
 		emitApp(a);
 		armSettle();
@@ -2028,6 +2048,12 @@ export function createEngine(deps: EngineDeps): Engine {
 		const ms = Math.min(Math.max(0, next - deps.now().getTime()) + 50, 2 ** 31 - 1);
 		settleTimer = setTimeout(() => {
 			settleTimer = null;
+			// A pause that ran out is dropped, so the state and an export carry only pauses still running.
+			const now = deps.now().getTime();
+			if (Object.values(loadState(paths).pause).some((u) => !(Date.parse(u) > now)))
+				updateState(paths, (s) => {
+					for (const [k, u] of Object.entries(s.pause)) if (!(Date.parse(u) > now)) delete s.pause[k];
+				});
 			for (const a of apps.values()) if (lapse(a)) refresh(a.key);
 			armSettle();
 		}, ms);
@@ -2062,7 +2088,10 @@ export function createEngine(deps: EngineDeps): Engine {
 		if (!row) continue;
 		const { checkedAt: _at, ...c } = row;
 		checked.set(spec.key, c);
+		const note = interrupted.get(spec.key);
 		apps.set(spec.key, buildApp(spec, c, []));
+		// The row built from the cache used the interrupted install's note; the first check's row must say it too.
+		if (note) interrupted.set(spec.key, note);
 	}
 	armSettle();
 	checkedAt =

@@ -245,8 +245,15 @@ test("pause sets an app's pause for days and off ends it; an unknown key or a ba
 	expect(JSON.parse(json[0] ?? "{}")).toMatchObject({ key: "bat", ok: true });
 	expect(await main(["pause", "nope", "7"], d, (l) => json.push(l))).toBe(1);
 	expect(json[1]).toBe("No app nope in the list.");
-	const bad = await Promise.all(["0", "366", "1.5", "soon"].map((n) => main(["pause", "bat", n], d, () => undefined)));
-	expect(bad).toEqual([2, 2, 2, 2]);
+	const counts = ["0", "366", "1.5", "soon", "0x7", "1e1", " 7 ", "+7", ""];
+	const bad = await Promise.all(counts.map((n) => main(["pause", "bat", n], d, () => undefined)));
+	expect(bad).toEqual(counts.map(() => 2));
+	// A hold wins over a pause: pausing a held app is refused and says why.
+	const held: string[] = [];
+	expect(await main(["hold", "bat", "on"], d, (l) => held.push(l))).toBe(0);
+	expect(await main(["pause", "bat", "7"], d, (l) => held.push(l))).toBe(1);
+	expect(held[1]).toBe("bat is held. Release the hold first, then pause it.");
+	expect(loadState(t.paths).pause).toEqual({});
 	expect(await main(["pause", "bat"], d, () => undefined)).toBe(2);
 });
 

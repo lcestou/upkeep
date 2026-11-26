@@ -37,6 +37,18 @@ export type Transfer = {
 	extras: ExtrasSettings;
 };
 
+/**
+ * The pauses still running at now and ending within 365 days of it, the longest Pause for allows. An unreadable end,
+ * one already past or one further off (a hand-edited or hostile file holding an app back for years) is dropped.
+ */
+function livePauses(pause: Record<string, unknown>, now: Date): Record<string, string> {
+	const from = now.getTime();
+	return only(pause, (x): x is string => {
+		const at = typeof x === "string" ? Date.parse(x) : Number.NaN;
+		return at > from && at <= from + 365 * 86_400_000;
+	});
+}
+
 /** The current setup as a Transfer. A missing apps.toml is first seeded, as a check would. */
 export function exportSetup(paths: Paths, seedFile: string, now: Date): Transfer {
 	const state = loadState(paths);
@@ -47,7 +59,7 @@ export function exportSetup(paths: Paths, seedFile: string, now: Date): Transfer
 		settings: state.settings,
 		skip: state.skip,
 		hold: state.hold,
-		pause: state.pause,
+		pause: livePauses(state.pause, now),
 		auto: state.auto,
 		extras: loadExtras(paths),
 	};
@@ -316,8 +328,8 @@ export function importSetup(
 			s.settings = { ...s.settings, ...(settings as Partial<Settings>) };
 			s.skip = mine(only(doc.skip, (x): x is string => typeof x === "string"));
 			s.hold = mine(only(doc.hold, (x): x is true => x === true));
-			// A pause only holds an app back for a while, so it comes in without asking; an unreadable end is dropped.
-			s.pause = mine(only(doc.pause, (x): x is string => typeof x === "string" && !Number.isNaN(Date.parse(x))));
+			// A pause only holds an app back for a while, so it comes in without asking; livePauses drops any other end.
+			s.pause = mine(livePauses(isRecord(doc.pause) ? doc.pause : {}, now));
 			// Every app gets an entry, so an auto = true written in an imported table never decides.
 			s.auto = picks;
 			// A pre-release switch changes what installs: kept from this machine for a matching table, never the file's.

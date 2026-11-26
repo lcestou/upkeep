@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- A held or paused Claude Code plugins row is left alone by automatic runs. Before, a row set to install automatically ran in every background run even while held. Run now still runs it.
+- After an install was cut off, its row says so again when Upkeep starts with the last check's rows kept. Before, the row went back to Ready at the first check and the restore hint was lost.
 - Pause in the Log stays paused while lines pour in. Before, the Log's own scroll to the newest line could undo a Pause pressed at the same moment, which happened often on a busy machine.
 - History can be scrolled from the keyboard: its list is one Tab stop when its runs do not fit the window.
 - An app's pane has "Pause for…" beside Hold updates: 1 week, 2 weeks or 1 month. A paused app sits under Held back, its row says "Paused until Dec 9", and on that day it is offered again by itself, with no check needed. Resume now, or a hold set or released, ends the pause early. On the command line, `upkeep pause <app> <days>` and `upkeep pause <app> off` do the same, and `check` shows the day. An export carries pauses, and an import takes them without asking.

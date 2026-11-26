@@ -602,6 +602,20 @@ test("an interrupted install shows on its row at the next check", async () => {
 	expect(Bun.file(join(bin, "fd.upkeep-new")).size).toBe(0);
 });
 
+test("an interrupted install still shows on its row when the last check's rows were kept", async () => {
+	const d = await deps();
+	await createEngine(d).check();
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	writeFileSync(join(bin, "fd.upkeep-new"), "half");
+	const engine = createEngine(d);
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")?.status).toBe("problem");
+	await engine.check();
+	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({
+		status: "problem",
+		detail: "An update was interrupted. Restore 10.5.1 from this row.",
+	});
+});
+
 const lockHeld = () => existsSync(join(t.paths.state, "run.lock"));
 
 test("a run log that cannot be written does not stop the run, and the lock is released", async () => {
@@ -1774,6 +1788,8 @@ test("a paused row turns Ready on its own when its pause ends, without a check",
 	await Bun.sleep(400);
 	expect(engine.snapshot().apps.find((a) => a.key === "fd")).toMatchObject({ status: "ready", paused: undefined });
 	expect(engine.readyKeys(false)).toContain("fd");
+	// The pause that ran out is dropped from the state, so an export never carries it.
+	expect(loadState(t.paths).pause).toEqual({});
 });
 
 test("a swapped repo's hold wins over a pause, and Release hold ends the pause but leaves the swap to its own release", async () => {
@@ -1792,4 +1808,68 @@ test("a swapped repo's hold wins over a pause, and Release hold ends the pause b
 	expect(loadState(t.paths).pause).toEqual({});
 	expect(loadState(t.paths).swapped.fd).toBe("github.com/other/fd");
 	expect(fd()).toMatchObject({ status: "held", held: true, paused: undefined });
+});
+
+test("a held app refuses a pause and never says Paused until; a pause on a problem row shows at once", async () => {
+	const engine = createEngine(await deps());
+	const fd = () => engine.snapshot().apps.find((a) => a.key === "fd");
+	await engine.check(["fd"]);
+	engine.setHold("fd", true);
+	expect(engine.isHeld("fd")).toBe(true);
+	expect(engine.setPause("fd", 7)).toBe(false);
+	expect(loadState(t.paths).pause).toEqual({});
+	// A pause written by hand beside a hold is hidden by it: the row says Held.
+	updateState(t.paths, (s) => {
+		s.pause.fd = new Date(Date.now() + 7 * 86_400_000).toISOString();
+	});
+	engine.setAuto("fd", false);
+	await engine.check(["fd"]);
+	expect(fd()).toMatchObject({ status: "held", held: true, paused: undefined });
+	engine.setHold("fd", false);
+	expect(engine.isHeld("fd")).toBe(false);
+	// A row refresh cannot re-derive takes the pause on its row at once, and Resume now clears it.
+	// An interrupted install read at start makes the next check's row a problem.
+	const d = await deps();
+	writeInflight(t.paths, { key: "fd", dest: join(bin, "fd"), backupVersion: "10.5.1" });
+	writeFileSync(join(bin, "fd.upkeep-new"), "half");
+	const later = createEngine(d);
+	const row = () => later.snapshot().apps.find((a) => a.key === "fd");
+	await later.check();
+	expect(row()?.status).toBe("problem");
+	expect(later.setPause("fd", 7)).toBe(true);
+	expect(row()?.paused).toBe(loadState(t.paths).pause.fd);
+	expect(later.setPause("fd", null)).toBe(true);
+	expect(row()?.paused).toBeUndefined();
+});
+
+test("an automatic run leaves a held or paused versionless row alone, and Run now still runs it", async () => {
+	const d = await deps();
+	writeFileSync(
+		join(t.dir, "seed.toml"),
+		`${MANIFEST}\n[apps.cc]\nname = "Claude Code plugins"\nkind = "claude-plugins"\nversionless = true\nauto = true\n`,
+	);
+	mkdirSync(join(t.paths.home, ".claude/plugins"), { recursive: true });
+	writeFileSync(
+		join(t.paths.home, ".claude/plugins/installed_plugins.json"),
+		JSON.stringify({ plugins: { "a@m": [{ scope: "user" }] } }),
+	);
+	script(
+		join(bin, "claude"),
+		`[ "$2" = update ] && echo '{"updateOutcome":"updated","message":"a@m updated"}'; exit 0`,
+	);
+	const engine = createEngine(d);
+	await engine.check();
+	expect(engine.readyKeys(true)).toContain("cc");
+	engine.setHold("cc", true);
+	expect(engine.readyKeys(true)).not.toContain("cc");
+	expect(engine.readyKeys(false)).not.toContain("cc");
+	engine.setHold("cc", false);
+	expect(engine.setPause("cc", 7)).toBe(true);
+	expect(engine.snapshot().apps.find((a) => a.key === "cc")?.paused).toBeDefined();
+	expect(engine.readyKeys(true)).not.toContain("cc");
+	// A skip cannot reach this row: its check names no version (latest is null), so the pane offers no Skip and no
+	// skip matches. The person's own press still runs it.
+	expect(await engine.install(["cc"])).toEqual({ started: true });
+	await engine.idle();
+	expect(engine.snapshot().run.results.find((r) => r.key === "cc")).toMatchObject({ result: "updated" });
 });

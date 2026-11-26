@@ -366,18 +366,20 @@ function hold(engine: Engine, key: string, to: string, json: boolean, out: Out):
 
 /**
  * Pauses an app's updates for a whole number of days, or ends the pause with off, as the window's Pause for and
- * Resume now do. A count that is not 1 to 365, or an unknown key, fails and writes nothing.
+ * Resume now do. Only plain digits from 1 to 365 count (never 0x7, 1e1 or " 7 "); a held app is refused, as a hold
+ * wins over a pause. A refusal or an unknown key writes nothing.
  */
 function pause(engine: Engine, paths: EngineDeps["paths"], key: string, to: string, json: boolean, out: Out): number {
-	const days = to === "off" ? null : Number(to);
-	if (days !== null && !(Number.isInteger(days) && days >= 1 && days <= 365)) {
+	const days = to === "off" ? null : /^\d+$/.test(to) ? Number(to) : Number.NaN;
+	if (days !== null && !(days >= 1 && days <= 365)) {
 		out(json ? JSON.stringify({ key, ok: false }) : "pause takes a number of days from 1 to 365, or off.");
 		return 2;
 	}
 	const ok = engine.setPause(key, days);
 	const until = ok && days !== null ? (loadState(paths).pause[key] ?? null) : null;
 	if (json) out(JSON.stringify({ key, until, ok }));
-	else if (!ok) out(MESSAGES.noAppInList(key));
+	else if (!ok)
+		out(engine.isHeld(key) ? `${key} is held. Release the hold first, then pause it.` : MESSAGES.noAppInList(key));
 	else out(until ? `Paused ${key} until ${localDay(until)}.` : `Resumed ${key}.`);
 	return ok ? 0 : 1;
 }
