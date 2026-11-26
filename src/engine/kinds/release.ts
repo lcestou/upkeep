@@ -15,6 +15,7 @@ import { basename, dirname, join } from "node:path";
 import { MESSAGES } from "../../shared/messages";
 import type { AppSpec, DownloadCheck } from "../../shared/types";
 import { packOlder, prune, relink, restoreBackup, swapFolder, takeBackup, takePoint } from "../backup";
+import { cannotRun } from "../preflight";
 import { download, type DownloadResult, hashFile, needsSha512, signedIn, statedSize, verifyAsset } from "../download";
 import { assetFor } from "../arch";
 import { cachedSum } from "../checksums";
@@ -388,6 +389,16 @@ function folderFree(folder: string, key: string): boolean {
 	}
 }
 
+/**
+ * Where a bin is in an unpacked archive: at its path from the archive's root when a regular file is there, else the
+ * first file with its base name anywhere below. A top folder can share the program's name (btop/bin/btop), which is
+ * why only a file at the direct path counts. Null when the archive has none.
+ */
+function binSource(extract: string, bin: string): string | null {
+	const direct = join(extract, bin);
+	return existsSync(direct) && statSync(direct).isFile() ? direct : findFile(extract, binMatcher(bin));
+}
+
 /** A test for a bin path: whether dir holds it as a regular file. */
 const holds = (dir: string) => (b: string) => existsSync(join(dir, b)) && statSync(join(dir, b)).isFile();
 
@@ -548,6 +559,27 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 		checked = await verified(spec, target, got, dl, ctx);
 		ctx.log(`Downloaded ${got.bytes} bytes, sha256 ${got.sha256}, ${CHECK_LOG[checked](asset)}`);
 
+		// An archive is unpacked before the restore point, so its programs are read before anything changes.
+		if (spec.kind === "archive") {
+			rmSync(extract, { recursive: true, force: true });
+			mkdirSync(extract, { recursive: true });
+			const unpack = asset.name.endsWith(".zip")
+				? ["unzip", "-q", dl, "-d", extract]
+				: // GNU tar tells gzip, xz, bzip2 and zstd apart on its own when it reads a file.
+					["tar", "xf", dl, "-C", extract];
+			const x = await ctx.run(unpack, { timeoutMs: 300_000, cuttable: true });
+			// Only the cache folder holds anything new yet.
+			if (stopPressed(ctx)) return finish(stoppedOutcome(target.from));
+			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x, unpack[0] ?? "tar"));
+		}
+		const programs = isPackage(spec.kind)
+			? []
+			: spec.kind === "archive"
+				? bins.flatMap((b) => binSource(extract, b) ?? [])
+				: [dl];
+		const refused = await cannotRun(programs, { name: spec.name, version: target.version }, ctx);
+		if (refused) return finish({ result: "failed", installed: target.from, detail: refused, restartToApply: false });
+
 		if (restorable && isPackage(spec.kind) && target.from) {
 			clock.start("backup");
 			const old = await oldPackage(spec, target, ctx);
@@ -599,16 +631,6 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 			}
 		} else if (spec.kind === "archive") {
 			if (!spec.sudo) mkdirSync(dirname(dest), { recursive: true });
-			rmSync(extract, { recursive: true, force: true });
-			mkdirSync(extract, { recursive: true });
-			const unpack = asset.name.endsWith(".zip")
-				? ["unzip", "-q", dl, "-d", extract]
-				: // GNU tar tells gzip, xz, bzip2 and zstd apart on its own when it reads a file.
-					["tar", "xf", dl, "-C", extract];
-			const x = await ctx.run(unpack, { timeoutMs: 300_000, cuttable: true });
-			// Only the cache folder holds anything new yet.
-			if (stopPressed(ctx)) return finish(stoppedOutcome(target.from));
-			if (x.code !== 0) throw new StepError(unpackProblem(asset.name, x, unpack[0] ?? "tar"));
 			if (spec.folder) {
 				// A failure after the swap (a link that cannot be made) is put back like a missing bin.
 				let missing: string | null;
@@ -633,9 +655,7 @@ export async function installRelease(spec: AppSpec, target: Target, ctx: KindCtx
 				if (stopPressed(ctx)) return finish(await putBack(spec, ctx, backupVersion, added));
 				const name = binName(bin, dest);
 				const to = join(dirname(dest), name);
-				const direct = join(extract, bin);
-				// A top folder can share the program's name (btop/bin/btop): only a file at the direct path is the program.
-				const src = existsSync(direct) && statSync(direct).isFile() ? direct : findFile(extract, binMatcher(bin));
+				const src = binSource(extract, bin);
 				let failed = src === null;
 				let sudoFail = false;
 				if (src) {

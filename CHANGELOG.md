@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An update whose program cannot start here is refused after the download, before any restore point or change: a loader this system lacks (a musl build on glibc), a newer glibc than the system has, or a higher x86-64 level than the CPU. The row says which, and the next check offers it again. Programs inside an AppImage are not read.
 - A held or paused Claude Code plugins row is left alone by automatic runs. Before, a row set to install automatically ran in every background run even while held. Run now still runs it.
 - After an install was cut off, its row says so again when Upkeep starts with the last check's rows kept. Before, the row went back to Ready at the first check and the restore hint was lost.
 - Pause in the Log stays paused while lines pour in. Before, the Log's own scroll to the newest line could undo a Pause pressed at the same moment, which happened often on a busy machine.

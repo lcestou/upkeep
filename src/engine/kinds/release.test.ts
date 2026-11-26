@@ -18,7 +18,7 @@ import { listBackups, restoreBackup, takeBackup } from "../backup";
 import type { FetchLike } from "../github";
 import type { Run } from "../run";
 import { readInflight } from "../store";
-import { ok, realRun, recordingRun, script, tempHome, withCancel } from "../testkit";
+import { elfFile, ok, realRun, recordingRun, script, tempHome, withCancel } from "../testkit";
 import type { KindCtx, Target } from "./context";
 import { canList, checkRelease, dlPath, installRelease, newestOf, probeInstalled, versionTarget } from "./release";
 
@@ -328,6 +328,54 @@ test("install: a checksum that does not match changes nothing", async () => {
 	await expect(installRelease(zen(), target, c)).rejects.toThrow("Checksum does not match the release.");
 	expect(readFileSync(dest, "utf8")).toContain("zen 1.17.9b");
 	expect(readInflight(t.paths)).toBeNull();
+});
+
+/** A runner whose getconf says this system has glibc 2.35; everything else runs for real in the temp home. */
+const glibc235 = () =>
+	recordingRun(t.paths, (argv) => (argv.join(" ") === "getconf GNU_LIBC_VERSION" ? ok("glibc 2.35\n") : undefined));
+
+test("install: a program that needs a newer glibc is refused after the download, before the restore point", async () => {
+	const dest = installZen("1.17.9b");
+	const ld = join(t.dir, "ld.so");
+	writeFileSync(ld, "");
+	publish("1.18.0b", { "zen.linux-x86_64.AppImage": elfFile({ interp: ld, versions: ["GLIBC_2.39"] }) });
+	const c = ctx(glibc235().run);
+	const outcome = await installRelease(zen(), await checkAndTarget(zen(), c), c);
+	expect(outcome).toMatchObject({
+		result: "failed",
+		installed: "1.17.9b",
+		detail: "Zen Browser 1.18.0b needs glibc 2.39; this system has 2.35, so nothing was installed.",
+	});
+	expect(Object.keys(outcome.stages)).toEqual(["download"]);
+	expect(readFileSync(dest, "utf8")).toContain("zen 1.17.9b");
+	expect(listBackups(t.paths, "zen")).toEqual([]);
+	expect(readInflight(t.paths)).toBeNull();
+	expect(readdirSync(join(t.paths.cache, "dl"))).toEqual([]);
+});
+
+test("install: an archive's program whose loader is missing is refused before anything changes", async () => {
+	const bin = join(t.paths.home, ".local/bin");
+	script(join(bin, "uv"), 'echo "uv 0.9.1"');
+	const src = join(t.dir, "tarsrc");
+	mkdirSync(join(src, "uv-x86_64-unknown-linux-gnu"), { recursive: true });
+	writeFileSync(join(src, "uv-x86_64-unknown-linux-gnu/uv"), elfFile({ interp: "/nonexistent/ld-musl-x86_64.so.1" }));
+	const out = join(t.dir, "out.tar.gz");
+	expect((await realRun(t.paths)(["tar", "czf", out, "-C", src, "."])).code).toBe(0);
+	publish("0.9.2", { "uv-x86_64-unknown-linux-gnu.tar.gz": new Uint8Array(readFileSync(out)) });
+	const spec = uv(["uv-x86_64-unknown-linux-gnu/uv"]);
+	const { run, calls } = glibc235();
+	const c = ctx(run);
+	const outcome = await installRelease(spec, await checkAndTarget(spec, c), c);
+	expect(outcome).toMatchObject({
+		result: "failed",
+		installed: "0.9.1",
+		detail:
+			"uv 0.9.2 needs /nonexistent/ld-musl-x86_64.so.1, which this system does not have, so nothing was installed.",
+	});
+	expect(readFileSync(join(bin, "uv"), "utf8")).toContain("uv 0.9.1");
+	expect(existsSync(join(t.paths.data, "backups/uv"))).toBe(false);
+	expect(calls.map((x) => x.argv[0])).not.toContain("install");
+	expect(readdirSync(join(t.paths.cache, "dl"))).toEqual([]);
 });
 
 async function tarball(files: Record<string, string>): Promise<Uint8Array<ArrayBuffer>> {
@@ -1210,6 +1258,9 @@ test("Stop now pressed as an archive unpacks ends the install there, with the in
 	expect(readFileSync(join(bin, "uv"), "utf8")).toContain("uv 0.9.1");
 	expect(existsSync(join(t.paths.cache, "dl", "uv-x"))).toBe(false);
 	expect(readInflight(t.paths)).toBeNull();
+	// The unpack comes before the restore point now, so a stop there takes none and changes nothing.
+	expect(existsSync(join(t.paths.data, "backups/uv"))).toBe(false);
+	expect(Object.keys(outcome.stages)).toEqual(["download"]);
 });
 
 test("Stop now during the version probe puts the point back; a put-back that fails says what the restore said", async () => {

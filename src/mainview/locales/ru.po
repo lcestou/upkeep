@@ -3197,3 +3197,18 @@ msgstr[0] "# более старый выпуск не показан."
 msgstr[1] "# более старых выпуска не показаны."
 msgstr[2] "# более старых выпусков не показано."
 msgstr[3] "# более старого выпуска не показано."
+
+#. 0: v0; 1: v1; 2: v2
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs {2}, which this system does not have, so nothing was installed."
+msgstr "{0} {1} требует {2}, которого нет в этой системе, поэтому ничего не установлено."
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} needs glibc {2}; this system has {3}, so nothing was installed."
+msgstr "{0} {1} требует glibc {2}; в этой системе {3}, поэтому ничего не установлено."
+
+#. 0: v0; 1: v1; 2: v2; 3: v3
+#: src/mainview/lib/engine-text.ts
+msgid "{0} {1} is built for {2}; this processor is {3}, so nothing was installed."
+msgstr "{0} {1} собран для {2}; этот процессор — {3}, поэтому ничего не установлено."
