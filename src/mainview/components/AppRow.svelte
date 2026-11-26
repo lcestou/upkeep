@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { say } from "../lib/engine-say";
 	import type { AppState } from "../../shared/types";
-	import { CHIP, KIND_LABEL, TEXT, quietLine, statusText } from "../lib/copy";
+	import { CHIP, KIND_LABEL, TEXT, WATCH, quietLine, statusText } from "../lib/copy";
 	import { fitLine, fitWords } from "../lib/fit";
 	import { formatBytes } from "../lib/format";
 	import { IN_RUN, type Model } from "../lib/model.svelte";
@@ -105,8 +105,13 @@
 			<!-- One line: the repo gives way first, then each chip shrinks to its glyph; nothing wraps or is cut. -->
 			<span class="line" {@attach fitLine}>
 				<span class="tag-name" id="name-{app.key}">{app.name}</span>
-				{#if app.running || (!fresh && (app.sudo || app.auto))}
+				{#if app.watch || app.running || (!fresh && (app.sudo || app.auto))}
 					<span class="chips">
+						{#if app.watch}<span class="chip watch" title={WATCH.title} data-testid="chip-watch-{app.key}"
+								><svg class="cg" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"
+									><path d="M6 2.5v4.25M6 9v.5" /></svg
+								><span class="ct">{WATCH.chip[app.watch.sign]}</span></span
+							>{/if}
 						{#if app.running}<span class="chip-use" title={chip.title} data-testid="chip-running"
 								><span class="dot" aria-hidden="true"></span><span class="ct">{chip.text}</span></span
 							>{/if}
@@ -396,8 +401,9 @@
 	.line:global(.compact) .ct {
 		display: none;
 	}
-	/* In use keeps its words for assistive tech when only its dot shows. */
-	.line:global(.compact) .chip-use .ct {
+	/* In use and a watch sign keep their words for assistive tech when only the glyph shows. */
+	.line:global(.compact) .chip-use .ct,
+	.line:global(.compact) .chip.watch .ct {
 		display: inline;
 		position: absolute;
 		width: 1px;
@@ -421,6 +427,17 @@
 	.auto-tile::before {
 		content: "A";
 		font-weight: 700;
+	}
+	/* A sign since the update needs a look: rust, as Needs a look, on the chip's own outline. */
+	.chip.watch {
+		color: var(--rust);
+		border-color: color-mix(in oklch, var(--rust) 55%, transparent);
+	}
+	.chip.watch path {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.6;
+		stroke-linecap: round;
 	}
 	.lock {
 		fill: none;

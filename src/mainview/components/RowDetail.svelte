@@ -12,6 +12,9 @@
 		olderNotes,
 		NO_RESTORE,
 		TEXT,
+		WATCH,
+		goBackLabel,
+		watchLine,
 		ADD,
 		releasedLabel,
 		removeAsk,
@@ -79,6 +82,12 @@
 	const failed = $derived(app.status === "failed" || app.status === "rolled_back");
 	const from = $derived(model.run.results.find((r) => r.key === app.key)?.from ?? null);
 	const chip = CHIP.running;
+	// The version from before the update the watch is about, when its restore point is still kept.
+	const back = $derived(
+		app.watch?.from && app.canRestore && app.watch.from !== app.installed && app.restorePoints.some((p) => p.version === app.watch?.from)
+			? app.watch.from
+			: null,
+	);
 	const notes = $derived(app.notes ? parseNotes(app.notes) : []);
 	// The notes of every release skipped over, asked for when the pane opens on a listable app with a newer release, and
 	// again only when the installed or latest version or the pre-release switch changes (a row's every event would
@@ -299,6 +308,32 @@
 			</div>
 		{/if}
 		{#if app.paused}<p class="sentence" data-testid="paused-line">{pausedLine(app.paused)}</p>{/if}
+		{#if app.watch}
+			<div class="watch" data-testid="watch-{app.key}">
+				<p class="sentence" data-testid="watch-line">
+					{watchLine(app.watch.sign, app.watch.crashes ?? 0, app.watch.to ?? app.installed ?? "", relativeTime(app.watch.at))}
+				</p>
+				{#if !back}<p class="sentence" data-testid="watch-no-point">{WATCH.noPoint}</p>{/if}
+				<div class="watch-buttons">
+					{#if back}
+						<button
+							type="button"
+							class="btn small"
+							disabled={inRun || busy}
+							title={inRun ? ADD.waitRun : undefined}
+							data-testid="watch-back-{app.key}"
+							onclick={() => back && restore(back)}>{goBackLabel(back)}</button
+						>
+					{/if}
+					<button
+						type="button"
+						class="btn small"
+						data-testid="watch-fine-{app.key}"
+						onclick={() => model.send("endWatch", { key: app.key })}>{WATCH.fine}</button
+					>
+				</div>
+			</div>
+		{/if}
 		{#if app.checked}<p class="sentence" data-testid="pane-checked">{CHECKED[app.checked]}</p>{/if}
 		{#if app.status === "working" && app.waiting}<p class="sentence note" data-testid="pane-wait">{say(app.waiting)}</p>
 		{:else if quiet}<p class="sentence note" data-testid="pane-quiet">{quietLine(quiet.m, quiet.n)}</p>{/if}
@@ -791,6 +826,19 @@
 	}
 	.notes .nv:first-child {
 		margin-top: 0;
+	}
+	/* What the watch saw reads in the problem tint, as a reason does: it needs a look, it is not a failure. */
+	.watch {
+		display: grid;
+		gap: var(--s2);
+	}
+	.watch .sentence:first-child {
+		color: oklch(0.84 0.08 48);
+	}
+	.watch-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--s2);
 	}
 	.breaking {
 		display: grid;

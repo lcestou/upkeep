@@ -3204,3 +3204,65 @@ msgstr "安全"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "システム"
+
+#: src/mainview/lib/copy.ts
+msgid "Watch updated apps for 3 days"
+msgstr "更新したアプリを3日間見守る"
+
+#: src/mainview/lib/copy.ts
+msgid "Each check reads crash reports, service state and an app's health address, and flags an app that started failing after its update. It never changes an app."
+msgstr "チェックのたびに、クラッシュレポート、サービスの状態、アプリのヘルスアドレスを読み取り、更新後に不調になったアプリに印を付けます。アプリを変更することはありません。"
+
+#: src/mainview/lib/copy.ts
+msgid "Crashed since update"
+msgstr "更新後にクラッシュ"
+
+#: src/mainview/lib/copy.ts
+msgid "Service failing since update"
+msgstr "更新後にサービスが失敗"
+
+#: src/mainview/lib/copy.ts
+msgid "Not answering since update"
+msgstr "更新後に応答なし"
+
+#: src/mainview/lib/copy.ts
+msgid "Seen since Upkeep updated it. Open the app to go back or to keep this version."
+msgstr "Upkeep が更新してから確認されました。アプリを開いて、元に戻すか、このバージョンのままにします。"
+
+#: src/mainview/lib/copy.ts
+msgid "It's fine"
+msgstr "問題なし"
+
+#: src/mainview/lib/copy.ts
+msgid "No restore point of the version before is left, so there is nothing to go back to."
+msgstr "以前のバージョンの復元ポイントが残っていないため、戻せません。"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Go back to {0}"
+msgstr "{0} に戻す"
+
+#: src/mainview/lib/copy.ts
+msgid "# time"
+msgid_plural "# times"
+msgstr[0] "# 回"
+
+#. 0: times; 1: to; 2: relative
+#: src/mainview/lib/copy.ts
+msgid "Crashed {0} since {1} was installed {2}."
+msgstr "{1} を{2}インストールしてから {0} クラッシュしました。"
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its service has been failing since {0} was installed {1}."
+msgstr "{0} を{1}インストールしてから、サービスが失敗しています。"
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its health address has stopped answering since {0} was installed {1}."
+msgstr "{0} を{1}インストールしてから、ヘルスアドレスが応答していません。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: health must be an http or https address"
+msgstr "{0}: health は http または https のアドレスにしてください"

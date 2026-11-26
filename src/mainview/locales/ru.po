@@ -3276,3 +3276,68 @@ msgstr "Безопасность"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "Система"
+
+#: src/mainview/lib/copy.ts
+msgid "Watch updated apps for 3 days"
+msgstr "Следить за обновлёнными приложениями 3 дня"
+
+#: src/mainview/lib/copy.ts
+msgid "Each check reads crash reports, service state and an app's health address, and flags an app that started failing after its update. It never changes an app."
+msgstr "Каждая проверка читает отчёты о сбоях, состояние службы и адрес проверки работоспособности приложения и отмечает приложение, которое начало сбоить после обновления. Приложения она никогда не меняет."
+
+#: src/mainview/lib/copy.ts
+msgid "Crashed since update"
+msgstr "Сбои после обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "Service failing since update"
+msgstr "Служба сбоит после обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "Not answering since update"
+msgstr "Не отвечает после обновления"
+
+#: src/mainview/lib/copy.ts
+msgid "Seen since Upkeep updated it. Open the app to go back or to keep this version."
+msgstr "Замечено после того, как Upkeep обновил приложение. Откройте его, чтобы вернуться или оставить эту версию."
+
+#: src/mainview/lib/copy.ts
+msgid "It's fine"
+msgstr "Всё в порядке"
+
+#: src/mainview/lib/copy.ts
+msgid "No restore point of the version before is left, so there is nothing to go back to."
+msgstr "Точки восстановления прежней версии не осталось, вернуться не к чему."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Go back to {0}"
+msgstr "Вернуться к {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "# time"
+msgid_plural "# times"
+msgstr[0] "# раз"
+msgstr[1] "# раза"
+msgstr[2] "# раз"
+msgstr[3] "# раза"
+
+#. 0: times; 1: to; 2: relative
+#: src/mainview/lib/copy.ts
+msgid "Crashed {0} since {1} was installed {2}."
+msgstr "Сбоило {0} с тех пор, как {1} установили {2}."
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its service has been failing since {0} was installed {1}."
+msgstr "Служба сбоит с тех пор, как {0} установили {1}."
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its health address has stopped answering since {0} was installed {1}."
+msgstr "Адрес проверки перестал отвечать с тех пор, как {0} установили {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: health must be an http or https address"
+msgstr "{0}: health должен быть адресом http или https"

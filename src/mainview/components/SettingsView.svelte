@@ -427,6 +427,18 @@
 				{/each}
 			</select>
 		</label>
+		<label class="row">
+			<span class="text">
+				<span data-testid="setting-watch-label">{TEXT.watchUpdates}</span>
+				<span class="hint" data-testid="setting-watch-hint">{TEXT.watchUpdatesHint}</span>
+			</span>
+			<input
+				type="checkbox"
+				checked={model.settings.watchUpdates}
+				data-testid="setting-watch"
+				onchange={(e) => set({ watchUpdates: e.currentTarget.checked })}
+			/>
+		</label>
 		<div class="row stack">
 			<span class="text">{TEXT.appList}</span>
 			<span class="buttons">

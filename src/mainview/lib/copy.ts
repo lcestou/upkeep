@@ -387,6 +387,12 @@ export const TEXT = {
 	get keepBackups() {
 		return "Restore points to keep";
 	},
+	get watchUpdates() {
+		return "Watch updated apps for 3 days";
+	},
+	get watchUpdatesHint() {
+		return "Each check reads crash reports, service state and an app's health address, and flags an app that started failing after its update. It never changes an app.";
+	},
 	get waitDays() {
 		return "Wait before offering a new release";
 	},
@@ -515,6 +521,46 @@ export const exportedNote = (file: string) => `Saved ${file}.`;
 export const importedNote = (n: number) => plural(n, ["Imported a list of # app.", "Imported a list of # apps."]);
 /** Why an Export or Import did nothing; the reason comes from the engine or the system, so it has no final stop. */
 export const setupFailed = (reason: string) => `Nothing was changed: ${reason}`;
+
+/** The row's chip and the pane's words for an app that misbehaves since Upkeep updated it. */
+export const WATCH = {
+	chip: {
+		get crash() {
+			return "Crashed since update";
+		},
+		get service() {
+			return "Service failing since update";
+		},
+		get health() {
+			return "Not answering since update";
+		},
+	},
+	get title() {
+		return "Seen since Upkeep updated it. Open the app to go back or to keep this version.";
+	},
+	get fine() {
+		return "It's fine";
+	},
+	get noPoint() {
+		return "No restore point of the version before is left, so there is nothing to go back to.";
+	},
+} as const;
+
+/** Button text that restores the version from before the update the watch is about. */
+export const goBackLabel = (v: string) => `Go back to ${v}`;
+
+/**
+ * What the watch saw, for the pane: the sign, the version it came with and when that was installed, relative being
+ * a phrase such as "yesterday" or "3 hours ago".
+ */
+export function watchLine(sign: "crash" | "service" | "health", crashes: number, to: string, relative: string): string {
+	if (sign === "crash") {
+		const times = plural(crashes, ["# time", "# times"]);
+		return `Crashed ${times} since ${to} was installed ${relative}.`;
+	}
+	if (sign === "service") return `Its service has been failing since ${to} was installed ${relative}.`;
+	return `Its health address has stopped answering since ${to} was installed ${relative}.`;
+}
 
 /** Button text for a restore point; the version is the one it restores to. */
 export const restoreLabel = (v: string) => `Restore ${v}`;
