@@ -3284,3 +3284,28 @@ msgstr "Sicherheit"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "System"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "Sicherheitskorrektur"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "Dieses Update behebt ein Sicherheitsproblem. Öffne die Zeile, um zu sehen, welches."
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "In den Versionshinweisen erwähnt"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "Gefunden in den Versionshinweisen, den Sicherheitshinweisen des Projekts auf GitHub oder bei OSV.dev. Jeder Eintrag öffnet seine Seite im Browser."
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "Außer Sicherheitskorrekturen"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "Ein Update, das ein Sicherheitsproblem behebt, wird sofort angeboten. Von selbst installiert wird es nur bei einer App auf Auto."

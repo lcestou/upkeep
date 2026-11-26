@@ -39,6 +39,7 @@ function ctx(): KindCtx {
 			selfAuto: false,
 			upkeepCommand: false,
 			waitDays: 0,
+			waitExceptSecurity: true,
 			waitUnmetered: false,
 			webhookReady: true,
 			webhookRun: false,

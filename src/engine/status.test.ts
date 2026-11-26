@@ -61,6 +61,22 @@ test("the status lists ready and held apps with versions, and failing ones with 
 	]);
 });
 
+test("a waiting security fix is marked in the lines, the JSON and the metrics", () => {
+	const fix = { ids: [{ id: "CVE-2026-0001", url: "https://www.cve.org/CVERecord?id=CVE-2026-0001" }] };
+	const s = statusOf(
+		snap([
+			row("borg", "ready", { security: fix }),
+			row("gh", "held", { security: { ids: [] }, settles: "2026-11-27T10:00:00.000Z" }),
+			row("jq", "ready"),
+		]),
+		false,
+	);
+	expect(s.ready[0]?.security).toEqual(fix);
+	expect(statusLines(s)).toContain("  UPDATE: BORG 1.0 -> 1.1 (security fix: CVE-2026-0001)");
+	expect(statusLines(s).find((l) => l.includes("HELD"))).toContain("(security fix)");
+	expect(metricsText(s)).toContain("upkeep_security_fixes 2\n");
+});
+
 test("metrics are Prometheus text: escaped labels, the check time in seconds, and a closing newline", () => {
 	const s = statusOf(snap([row('we"ird\\key', "ready", { installed: null, latest: "2\n0" })]), true);
 	const text = metricsText(s);

@@ -187,6 +187,14 @@ test("install exits 1 when nothing could be installed, and a bad command line is
 	expect(await main(["restore", "bat"], deps(), () => {})).toBe(1);
 });
 
+test("checkLine marks an update that fixes a security problem", () => {
+	const base = { key: "x", name: "fd", installed: "1.0", latest: "1.1", status: "ready" } as AppState;
+	const fix = { ids: [{ id: "CVE-2026-0001", url: "https://www.cve.org/CVERecord?id=CVE-2026-0001" }] };
+	expect(checkLine({ ...base, security: fix })).toBe("  UPDATE: fd 1.0 -> 1.1 (security fix: CVE-2026-0001)");
+	expect(checkLine({ ...base, security: { ids: [] } })).toBe("  UPDATE: fd 1.0 -> 1.1 (security fix)");
+	expect(checkLine(base)).toBe("  UPDATE: fd 1.0 -> 1.1");
+});
+
 test("checkLine maps problems to SKIP and BROKEN", () => {
 	const base = { key: "x", name: "tmux", installed: null, latest: null } as AppState;
 	expect(checkLine({ ...base, status: "problem", detail: "tmux will not start (/usr/local/bin/tmux)." })).toBe(

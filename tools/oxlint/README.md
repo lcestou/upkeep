@@ -9,6 +9,7 @@ Exemptions, all in `.oxlintrc.json` under `overrides`:
   - `src/engine/github.ts` (GitHub's API)
   - `src/engine/forge.ts` (GitLab's and Gitea's release APIs, and the links of a download page)
   - `src/engine/managers.ts` (the lists uv, pipx, npm and cargo print of what they installed, and uv's receipts)
+  - `src/engine/security.ts` (GitHub's repository advisories and OSV.dev's vulnerability answers)
   - `src/engine/store.ts` (`state.json`)
   - `src/engine/transfer.ts` (an export file handed to `upkeep import`, possibly from another machine or an agent)
   - `src/engine/extras/state.ts` (the extras settings file)

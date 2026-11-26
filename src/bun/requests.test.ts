@@ -5,7 +5,7 @@ import { createEngine, type EngineDeps } from "../engine/engine";
 import { createExtras } from "../engine/extras/extras";
 import { MESSAGES } from "../shared/messages";
 import type { SelfState } from "../shared/types";
-import { claimLock, loadState, readWebhook, releaseLock } from "../engine/store";
+import { claimLock, loadState, readWebhook, releaseLock, saveRows, updateState } from "../engine/store";
 import { recordingRun, tempHome } from "../engine/testkit";
 import { HOME } from "./about";
 import { type Desktop, upkeepRequests } from "./requests";
@@ -153,6 +153,21 @@ test("Cleanup's requests go to the extras, and with Cleanup off nothing is measu
 		started: false,
 		reason: MESSAGES.cleanNothing(),
 	});
+});
+
+test("an advisory opens only the page the engine built for one of the row's own IDs", async () => {
+	saveRows(t.paths, {
+		tool: { installed: "1.0.0", latest: "1.1.0", status: "ready", checkedAt: "2026-11-12T07:00:00Z" },
+	});
+	mkdirSync(t.paths.state, { recursive: true });
+	const url = "https://www.cve.org/CVERecord?id=CVE-2026-0001";
+	updateState(t.paths, (st) => {
+		st.security.tool = { latest: "1.1.0", fix: { ids: [{ id: "CVE-2026-0001", url }] }, complete: true };
+	});
+	const { r, did } = setup();
+	expect(await r.open({ what: "advisory", key: "tool", id: "CVE-2026-0001" })).toEqual({ ok: true });
+	expect(await r.open({ what: "advisory", key: "tool", id: "CVE-2026-9999" })).toEqual({ ok: false });
+	expect(did).toEqual([`url ${url}`]);
 });
 
 test("open goes only to apps.toml, a run log, or a release page the engine fetched", async () => {

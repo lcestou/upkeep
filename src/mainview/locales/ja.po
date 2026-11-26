@@ -3260,3 +3260,28 @@ msgstr "安全"
 msgctxt "Settings heading"
 msgid "System"
 msgstr "システム"
+
+#: src/mainview/lib/copy.ts
+#: src/mainview/lib/copy.ts
+msgid "Security fix"
+msgstr "セキュリティ修正"
+
+#: src/mainview/lib/copy.ts
+msgid "This update fixes a security problem. Open the row to see which."
+msgstr "この更新はセキュリティの問題を修正します。行を開くと内容を確認できます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Mentioned in the release notes"
+msgstr "リリースノートに記載あり"
+
+#: src/mainview/lib/copy.ts
+msgid "Found in the release notes, the project's advisories on GitHub, or OSV.dev. Each opens its page in your browser."
+msgstr "リリースノート、GitHub 上のプロジェクトのアドバイザリ、または OSV.dev で見つかりました。それぞれブラウザーでページを開きます。"
+
+#: src/mainview/lib/copy.ts
+msgid "Except security fixes"
+msgstr "セキュリティ修正は除く"
+
+#: src/mainview/lib/copy.ts
+msgid "An update that fixes a security problem is offered at once. It installs by itself only for an app set to Auto."
+msgstr "セキュリティの問題を修正する更新はすぐに提示されます。自動でインストールされるのは「自動」に設定したアプリだけです。"
