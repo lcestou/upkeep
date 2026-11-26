@@ -984,3 +984,76 @@ test("Ctrl-C while the install starts waits for the recovery of an earlier updat
 	unlisten();
 	expect(sig.listening()).toBe(0);
 });
+
+/** A fetch that fails the test if anything reaches the network. */
+const noNetwork: FetchLike = async (url) => {
+	throw new Error(`status reached the network: ${url}`);
+};
+
+test("status before any check says so and exits 1, without the network", async () => {
+	const out: string[] = [];
+	expect(await main(["status"], { ...deps(), fetch: noNetwork, version: "9.9.9" }, (l) => out.push(l))).toBe(1);
+	expect(out).toEqual(["Upkeep 9.9.9", "No check has run yet."]);
+	const metrics: string[] = [];
+	expect(await main(["status", "--metrics"], { ...deps(), fetch: noNetwork }, (l) => metrics.push(l))).toBe(0);
+	expect(metrics[0]).toContain("upkeep_last_check_timestamp_seconds 0\n");
+});
+
+test("status reads what the last check saved, as text, JSON and metrics, without the network", async () => {
+	const d = deps();
+	await main(["check"], d, () => {});
+	const quiet = { ...d, fetch: noNetwork, version: "9.9.9" };
+	const out: string[] = [];
+	expect(await main(["status"], quiet, (l) => out.push(l))).toBe(0);
+	expect(out[0]).toBe("Upkeep 9.9.9");
+	expect(out[1]).toMatch(/^Last check: \d{4}-\d\d-\d\dT/);
+	expect(out.slice(2)).toEqual([
+		"2 apps: 1 up to date, 1 ready, 0 held, 0 failing",
+		"  UPDATE: BorgBackup 1.4.1 -> 1.4.2",
+	]);
+
+	const json: string[] = [];
+	await main(["status", "--json"], quiet, (l) => json.push(l));
+	const s = JSON.parse(json[0] ?? "");
+	expect(s.running).toBe(false);
+	expect(s.counts).toEqual({ apps: 2, upToDate: 1, ready: 1, held: 0, failing: 0 });
+	expect(s.ready).toEqual([{ key: "borg", name: "BorgBackup", installed: "1.4.1", latest: "1.4.2" }]);
+
+	const metrics: string[] = [];
+	await main(["status", "--metrics"], quiet, (l) => metrics.push(l));
+	expect(metrics[0]).toContain('upkeep_info{version="9.9.9"} 1');
+	expect(metrics[0]).toContain('upkeep_update_ready{app="borg",installed="1.4.1",latest="1.4.2"} 1');
+});
+
+test("status says a run is in progress while another process holds the run lock, and a held app counts as held", async () => {
+	const d = deps();
+	await main(["check"], d, () => {});
+	updateState(t.paths, (s) => {
+		s.hold.borg = true;
+	});
+	// A live process: this test's own pid, with its real start time.
+	expect(claimLock(t.paths)).toBe(true);
+	const out: string[] = [];
+	try {
+		await main(["status"], { ...d, fetch: noNetwork, version: "9.9.9" }, (l) => out.push(l));
+	} finally {
+		releaseLock(t.paths);
+	}
+	expect(out[0]).toBe("Upkeep 9.9.9, a run is in progress");
+	expect(out).toContain("2 apps: 1 up to date, 0 ready, 1 held, 0 failing");
+	expect(out).toContain("  HELD:   BorgBackup 1.4.1 -> 1.4.2");
+});
+
+test("after an install the saved rows carry the new version, so status shows the app up to date before any check", async () => {
+	const d = deps();
+	expect(await main(["install", "borg"], d, () => {})).toBe(0);
+	const out: string[] = [];
+	await main(["status"], { ...d, fetch: noNetwork }, (l) => out.push(l));
+	expect(out).toContain("2 apps: 2 up to date, 0 ready, 0 held, 0 failing");
+});
+
+test("status with an unknown argument prints the usage", async () => {
+	const out: string[] = [];
+	expect(await main(["status", "now"], deps(), (l) => out.push(l))).toBe(2);
+	expect(out).toEqual([USAGE]);
+});

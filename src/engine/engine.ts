@@ -1124,6 +1124,7 @@ export function createEngine(deps: EngineDeps): Engine {
 			await eachApp(queue, history);
 		} finally {
 			appendHistory(paths, run.retry ? history.map((h) => ({ ...h, retry: true })) : history);
+			rememberUpdated(history);
 		}
 		say(null, `Run finished: ${run.results.filter((r) => r.result === "updated").length} updated`);
 		log?.close();
@@ -2015,6 +2016,27 @@ export function createEngine(deps: EngineDeps): Engine {
 			saveRows(paths, rows);
 		} catch {
 			// A cache that cannot be written only costs the next start its head start.
+		}
+	}
+
+	/**
+	 * Writes the new version of every app a run updated into the saved rows, as fresh, so `upkeep status` and the next
+	 * start do not show it waiting until a check. One that went to an older version than the latest (a picked one)
+	 * stays ready. A row the cache does not have is left out, and a cache that cannot be written costs nothing more.
+	 */
+	function rememberUpdated(done: HistoryRow[]): void {
+		const rows = loadRows(paths);
+		let changed = false;
+		for (const h of done) {
+			const row = rows[h.key];
+			if (h.result !== "updated" || !row || !h.to) continue;
+			rows[h.key] = { ...row, installed: h.to, status: isNewer(h.to, row.latest) ? "ready" : "fresh" };
+			changed = true;
+		}
+		try {
+			if (changed) saveRows(paths, rows);
+		} catch {
+			// only the next start's head start is lost
 		}
 	}
 
