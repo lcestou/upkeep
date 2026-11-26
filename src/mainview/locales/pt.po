@@ -3499,3 +3499,7 @@ msgstr "O Upkeep cria primeiro um snapshot do {0}, a menos que haja um com menos
 #: src/mainview/lib/engine-text.ts
 msgid "Timeshift's list of snapshots could not be read"
 msgstr "Não foi possível ler a lista de snapshots do Timeshift"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep was quitting, so this was not installed."
+msgstr "O Upkeep estava fechando, então isto não foi instalado."

@@ -83,8 +83,21 @@ test("checkSystem lists firmware after the rest, and nothing at all without fwup
 	const found = await checkSystem({ run: onlyFwupd(ok(SAMPLE)).run });
 	expect(found.rows.map((r) => r.id).at(-1)).toBe(DBX);
 	expect(found.rows).toHaveLength(3);
-	// Exit 2 is fwupd's "nothing to do".
-	expect((await checkSystem({ run: onlyFwupd(exit(2, "")).run })).rows).toEqual([]);
+	// Exit 2 is fwupd's "nothing to do", whatever it prints: no rows and no problem of fwupd's.
+	for (const r of [exit(2, ""), exit(2, "No updatable devices")]) {
+		// oxlint-disable-next-line no-await-in-loop -- each answer is its own machine
+		const nothing = await checkSystem({ run: onlyFwupd(r).run });
+		expect(nothing.rows).toEqual([]);
+		expect(nothing.problem?.command).not.toContain("fwupdmgr");
+	}
+	// On a Mint machine with Flatpak and nothing pending anywhere, exit 2 leaves the group with no problem at all.
+	const quiet = await checkSystem({
+		run: strictRun((argv) => {
+			if (argv.join(" ") === FWUPD_UPDATES.join(" ")) return exit(2, "No updatable devices");
+			return argv[0] === "cinnamon-spice-updater" || argv[0] === "snap" ? exit(127) : ok("");
+		}).run,
+	});
+	expect(quiet).toMatchObject({ rows: [], problem: null });
 	for (const r of [exit(127), exit(1, "Failed to connect to daemon"), { ...ok(SAMPLE), timedOut: true }]) {
 		// oxlint-disable-next-line no-await-in-loop -- each answer is its own machine
 		const check = await checkSystem({ run: onlyFwupd(r).run });

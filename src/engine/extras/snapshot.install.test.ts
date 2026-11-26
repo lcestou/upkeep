@@ -8,6 +8,10 @@ import { readHistory } from "../store";
 import { ok, strictRun, tempHome } from "../testkit";
 import { createExtras } from "./extras";
 import {
+	SNAPPER_HAS_ROOT,
+	SNAPPER_PRE,
+	SNAPPER_VERSION,
+	snapperPost,
 	SNAPSHOT_COMMENT,
 	TIMESHIFT_CREATE,
 	TIMESHIFT_LIST,
@@ -228,4 +232,39 @@ test("a System run that throws after the snapshot still writes the snapshot's Hi
 		detail: MESSAGES.snapshotTaken("2026-11-26_10-00-00"),
 	});
 	expect(x.snapshot().system.phase).toBe("idle");
+});
+
+test("a quit while a snapshot that then succeeds is taken runs no step, still pairs Snapper's post, writes History", async () => {
+	let finish: (r: ProcessResult) => void = () => undefined;
+	const box = strictRun((argv, opts) => {
+		const k = key(argv);
+		if (k === key(SNAPPER_VERSION)) return ok("snapper 0.11.0\n");
+		if (k === key(SNAPPER_HAS_ROOT)) return ok();
+		if (k === key(SNAPPER_PRE)) {
+			opts.onStart?.(NO_PID);
+			return new Promise<ProcessResult>((r) => (finish = r));
+		}
+		if (k === key(snapperPost(41))) return ok("42\n");
+		if (k === key(FLATPAK_UPDATES)) return ok(fx("flatpak-updates.txt"));
+		if (argv[0] === "flatpak" && argv[1] === "update") throw new Error("no step may run");
+		if (argv[0] === "flatpak" || argv[0] === "pkcheck" || argv[0] === "dpkg-query") return ok();
+		return exit(127);
+	});
+	updateExtras(t.paths, { system: "show", systemInstall: true, snapshotBeforeSystem: true });
+	const x = createExtras({ paths: t.paths, run: box.run, now: () => NOW });
+	await x.idle();
+	expect(x.snapshot().system.snapshotSetup).toEqual({ tool: "snapper", btrfs: true });
+	x.installSystem([DISCORD], x.planSystem([DISCORD]).commands);
+	await until(() => box.calls.some((c) => key(c.argv) === key(SNAPPER_PRE)));
+	x.stopSystem();
+	finish(ok("41\n"));
+	await x.idle();
+	expect(box.calls.some((c) => c.argv[0] === "flatpak" && c.argv[1] === "update")).toBe(false);
+	expect(box.calls.some((c) => key(c.argv) === key(snapperPost(41)))).toBe(true);
+	const history = readHistory(t.paths, 100);
+	expect(history.find((r) => r.key === "system:snapshot")?.result).toBe("updated");
+	expect(history.find((r) => r.key === `system:${DISCORD}`)).toMatchObject({
+		result: "failed",
+		detail: MESSAGES.systemQuitting(),
+	});
 });

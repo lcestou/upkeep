@@ -10,8 +10,6 @@ import { isRecord } from "../manifest";
  * versions may give here too, so 2 counts as an empty list.
  */
 export const FWUPD_UPDATES = ["fwupdmgr", "get-updates", "--json"];
-/** The exit codes of FWUPD_UPDATES that mean it answered: 0, and 2 for nothing to do. */
-export const FWUPD_OK = [0, 2];
 
 /**
  * The install of one device's newest release. fwupd's daemon flashes it and asks polkit itself, with the desktop's own

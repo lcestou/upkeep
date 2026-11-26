@@ -3524,3 +3524,7 @@ msgstr "Сначала Upkeep делает снимок {0}, если нет с�
 #: src/mainview/lib/engine-text.ts
 msgid "Timeshift's list of snapshots could not be read"
 msgstr "Не удалось прочитать список снимков Timeshift"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep was quitting, so this was not installed."
+msgstr "Upkeep завершал работу, поэтому это не установлено."

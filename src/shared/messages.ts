@@ -579,6 +579,8 @@ export const MESSAGES = {
 	/** extras/install.ts. {0} the first line of the failed re-read */
 	systemNotRechecked: (v0: Value) => `Could not read the list again to see whether it installed: ${v0}`,
 	systemRestartApp: () => `Updated. Restart it to use the new version.`,
+	/** extras/extras.ts: a ticked row left alone because a quit that could not wait came during the snapshot */
+	systemQuitting: () => `Upkeep was quitting, so this was not installed.`,
 	/** extras/install.ts: refused, a firmware step and UPower says the machine runs on its battery */
 	firmwareBattery: () =>
 		`This computer runs on its battery, so nothing was installed. Firmware updates need mains power.`,

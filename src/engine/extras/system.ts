@@ -2,7 +2,7 @@ import type { SystemRow, SystemState } from "../../shared/types";
 import { isRecord } from "../manifest";
 import type { Run, ProcessResult } from "../run";
 import { readOnlyUsr } from "../kinds/package";
-import { FWUPD_OK, FWUPD_UPDATES, parseFwupd } from "./firmware";
+import { FWUPD_UPDATES, parseFwupd } from "./firmware";
 
 export type SystemCtx = { run: Run };
 
@@ -385,12 +385,13 @@ async function packageList(ctx: SystemCtx): Promise<PackageAnswer | null | "imag
 
 /**
  * fwupd's pending firmware, one row per device. Without fwupdmgr, or when it fails (no daemon in a container or a VM),
- * there are none and nothing is said: firmware is a part of the group only where fwupd runs. An answer that is not
- * fwupd's JSON is a failed read, named like any other source's.
+ * there are none and nothing is said: firmware is a part of the group only where fwupd runs. Exit 2 is nothing to do.
+ * Only exit 0 with an answer that is not fwupd's JSON is a failed read, named like any other source's.
  */
 async function firmwareRows(ctx: SystemCtx): Promise<{ rows: SystemRow[]; problem: SystemCheck["problem"] }> {
 	const r = await ctx.run(FWUPD_UPDATES, { timeoutMs: 60_000 });
-	if (r.timedOut || !FWUPD_OK.includes(r.code)) return { rows: [], problem: null };
+	// Exit 2 is "nothing to do", whatever it prints with it (nothing, or a plain sentence).
+	if (r.timedOut || r.code !== 0) return { rows: [], problem: null };
 	const rows = parseFwupd(r.stdout);
 	if (rows) return { rows, problem: null };
 	const detail = (r.stdout.trim() || r.stderr.trim()).split("\n")[0] ?? "";

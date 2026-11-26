@@ -3449,3 +3449,7 @@ msgstr "Upkeep は最初に {0} のスナップショットを作成します（
 #: src/mainview/lib/engine-text.ts
 msgid "Timeshift's list of snapshots could not be read"
 msgstr "Timeshift のスナップショット一覧を読み取れませんでした"
+
+#: src/mainview/lib/engine-text.ts
+msgid "Upkeep was quitting, so this was not installed."
+msgstr "Upkeep が終了中だったため、これはインストールされませんでした。"

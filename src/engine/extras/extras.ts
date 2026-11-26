@@ -295,11 +295,14 @@ export function createExtras(deps: ExtrasDeps): Extras {
 			// A row whose step has run stays working until the list read afterwards says how it ended.
 			let failed: Map<string, string>;
 			try {
-				failed = await runSteps(steps, ctx, (step) => {
-					const outcomes = system.install?.outcomes ?? [];
-					for (const o of outcomes) if (step.ids.includes(o.id)) o.status = "working";
-					set(outcomes);
-				});
+				// A quit that could not wait, landing while the snapshot was taken, runs no step at all.
+				failed = stopAsked
+					? new Map(picked.map((r) => [r.id, MESSAGES.systemQuitting()]))
+					: await runSteps(steps, ctx, (step) => {
+							const outcomes = system.install?.outcomes ?? [];
+							for (const o of outcomes) if (step.ids.includes(o.id)) o.status = "working";
+							set(outcomes);
+						});
 			} finally {
 				await finishSnapshot(snap, {
 					run: deps.run,

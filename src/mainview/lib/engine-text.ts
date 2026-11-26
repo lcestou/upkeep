@@ -311,6 +311,7 @@ export const ENGINE_COPY = {
 	systemTimedOut: (v0: string) => `${v0} ran past its time limit and was stopped.`,
 	systemNotRechecked: (v0: string) => `Could not read the list again to see whether it installed: ${v0}`,
 	systemRestartApp: () => `Updated. Restart it to use the new version.`,
+	systemQuitting: () => `Upkeep was quitting, so this was not installed.`,
 	firmwareBattery: () =>
 		`This computer runs on its battery, so nothing was installed. Firmware updates need mains power.`,
 	firmwareRestart: () => `Restart needed to finish the firmware update.`,
