@@ -48,6 +48,12 @@ const commands = (a: AppSpec): [string, string][] =>
 		(a[f] ?? []).map((c): [string, string] => [f, c]),
 	);
 
+// health is the person's own address for their own copy of an app; a catalogue table naming one would make every
+// stranger's Upkeep send a request there at each check after an update.
+test("a catalogue table never carries a health address", () => {
+	expect(FIELDS.has("health")).toBe(false);
+});
+
 test("every catalogue table keeps to what a catalogue app may do", () => {
 	const { apps, errors } = loadCatalogue(join(import.meta.dir, "../../catalogue"));
 	expect(errors).toEqual([]);

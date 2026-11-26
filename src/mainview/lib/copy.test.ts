@@ -1,6 +1,9 @@
 import { expect, test } from "bun:test";
 import type { AppState, RunResult, RunState } from "../../shared/types";
 import {
+	WATCH,
+	goBackLabel,
+	watchLine,
 	WHEN,
 	refusedText,
 	shutDownIn,
@@ -427,6 +430,26 @@ test("the notice address copy, and the import ask's lines", () => {
 		"It turns off these settings, which are on on this computer:",
 		"It shortens the wait before a new release is offered:",
 	]);
+});
+
+test("the watch words: a chip per sign, the pane's line per sign with the crash count, and its buttons", () => {
+	expect([WATCH.chip.crash, WATCH.chip.service, WATCH.chip.health]).toEqual([
+		"Crashed since update",
+		"Service failing since update",
+		"Not answering since update",
+	]);
+	expect(WATCH.title).toContain("Seen since Upkeep updated it.");
+	expect(WATCH.fine).toBe("It's fine");
+	expect(WATCH.noPoint).toContain("No restore point");
+	expect(goBackLabel("1.3.0")).toBe("Go back to 1.3.0");
+	expect(watchLine("crash", 1, "1.4.0", "yesterday")).toBe("Crashed 1 time since 1.4.0 was installed yesterday.");
+	expect(watchLine("crash", 2, "1.4.0", "yesterday")).toBe("Crashed 2 times since 1.4.0 was installed yesterday.");
+	expect(watchLine("service", 0, "1.4.0", "2 hours ago")).toBe(
+		"Its service has been failing since 1.4.0 was installed 2 hours ago.",
+	);
+	expect(watchLine("health", 0, "1.4.0", "yesterday")).toBe(
+		"Its health address has stopped answering since 1.4.0 was installed yesterday.",
+	);
 });
 
 test("the when-done words: the choices, the countdown and why nothing happened", () => {

@@ -30,6 +30,7 @@ const STRING_FIELDS = [
 	"process",
 	"note",
 	"bad_reason",
+	"health",
 ] as const;
 const LIST_FIELDS = [
 	"bins",
@@ -180,6 +181,8 @@ export function lift(key: string, table: Record<string, unknown>): AppSpec | str
 	// Pre-releases are read from a forge's release list: a table without one would switch on nothing.
 	if (spec.prerelease && !(spec.repo && ["appimage", "archive", "file", "deb", "rpm"].includes(spec.kind)))
 		return MESSAGES.liftPrereleaseNeedsList(key);
+	// Read with a GET at each check while the app is on probation: only a web address, with a host.
+	if (spec.health !== undefined && !/^https?:\/\/[^/\s]+/.test(spec.health)) return MESSAGES.liftHealthAddress(key);
 	// A version held back with no reason would leave the person guessing why the row never moves on.
 	if (spec.bad_versions?.length && !spec.bad_reason?.trim()) return MESSAGES.liftBadVersionsNeedReason(key);
 	// A .. part lets a dest that reads as under home resolve anywhere; no real table needs one.

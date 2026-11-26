@@ -3310,6 +3310,70 @@ msgid "System"
 msgstr "Sistema"
 
 #: src/mainview/lib/copy.ts
+msgid "Watch updated apps for 3 days"
+msgstr "Vigiar as apps atualizadas durante 3 dias"
+
+#: src/mainview/lib/copy.ts
+msgid "Each check reads crash reports, service state and an app's health address, and flags an app that started failing after its update. It never changes an app."
+msgstr "Cada verificação lê os relatórios de falhas, o estado do serviço e o endereço de saúde de uma app, e assinala uma app que começou a falhar depois da atualização. Nunca altera uma app."
+
+#: src/mainview/lib/copy.ts
+msgid "Crashed since update"
+msgstr "Falha desde a atualização"
+
+#: src/mainview/lib/copy.ts
+msgid "Service failing since update"
+msgstr "Serviço com falhas desde a atualização"
+
+#: src/mainview/lib/copy.ts
+msgid "Not answering since update"
+msgstr "Não responde desde a atualização"
+
+#: src/mainview/lib/copy.ts
+msgid "Seen since Upkeep updated it. Open the app to go back or to keep this version."
+msgstr "Visto desde que o Upkeep a atualizou. Abra a app para voltar atrás ou manter esta versão."
+
+#: src/mainview/lib/copy.ts
+msgid "It's fine"
+msgstr "Está tudo bem"
+
+#: src/mainview/lib/copy.ts
+msgid "No restore point of the version before is left, so there is nothing to go back to."
+msgstr "Não resta nenhum ponto de restauração da versão anterior, por isso não há para onde voltar."
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Go back to {0}"
+msgstr "Voltar para {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "# time"
+msgid_plural "# times"
+msgstr[0] "# vez"
+msgstr[1] "# vezes"
+msgstr[2] "# vezes"
+
+#. 0: times; 1: to; 2: relative
+#: src/mainview/lib/copy.ts
+msgid "Crashed {0} since {1} was installed {2}."
+msgstr "Falhou {0} desde que {1} foi instalada {2}."
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its service has been failing since {0} was installed {1}."
+msgstr "O serviço tem falhado desde que {0} foi instalada {1}."
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its health address has stopped answering since {0} was installed {1}."
+msgstr "O endereço de saúde deixou de responder desde que {0} foi instalada {1}."
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: health must be an http or https address"
+msgstr "{0}: health tem de ser um endereço http ou https"
+
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Security fix"
 msgstr "Correção de segurança"

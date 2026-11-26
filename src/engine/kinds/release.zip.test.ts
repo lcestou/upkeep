@@ -63,6 +63,7 @@ const ctx = (): KindCtx => ({
 		waitUnmetered: false,
 		webhookReady: true,
 		webhookRun: false,
+		watchUpdates: true,
 	},
 	log: () => {},
 	stage: () => {},

@@ -3262,6 +3262,68 @@ msgid "System"
 msgstr "系统"
 
 #: src/mainview/lib/copy.ts
+msgid "Watch updated apps for 3 days"
+msgstr "更新后的应用观察 3 天"
+
+#: src/mainview/lib/copy.ts
+msgid "Each check reads crash reports, service state and an app's health address, and flags an app that started failing after its update. It never changes an app."
+msgstr "每次检查都会读取崩溃报告、服务状态和应用的健康检查地址，并标出更新后开始出问题的应用。它从不更改应用。"
+
+#: src/mainview/lib/copy.ts
+msgid "Crashed since update"
+msgstr "更新后崩溃"
+
+#: src/mainview/lib/copy.ts
+msgid "Service failing since update"
+msgstr "更新后服务失败"
+
+#: src/mainview/lib/copy.ts
+msgid "Not answering since update"
+msgstr "更新后无响应"
+
+#: src/mainview/lib/copy.ts
+msgid "Seen since Upkeep updated it. Open the app to go back or to keep this version."
+msgstr "自 Upkeep 更新以来发现。打开应用以回退或保留此版本。"
+
+#: src/mainview/lib/copy.ts
+msgid "It's fine"
+msgstr "没问题"
+
+#: src/mainview/lib/copy.ts
+msgid "No restore point of the version before is left, so there is nothing to go back to."
+msgstr "之前版本的还原点已不在，无法回退。"
+
+#. 0: v
+#: src/mainview/lib/copy.ts
+msgid "Go back to {0}"
+msgstr "回退到 {0}"
+
+#: src/mainview/lib/copy.ts
+msgid "# time"
+msgid_plural "# times"
+msgstr[0] "# 次"
+
+#. 0: times; 1: to; 2: relative
+#: src/mainview/lib/copy.ts
+msgid "Crashed {0} since {1} was installed {2}."
+msgstr "自 {1} 于{2}安装以来崩溃了 {0}。"
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its service has been failing since {0} was installed {1}."
+msgstr "自 {0} 于{1}安装以来，服务一直失败。"
+
+#. 0: to; 1: relative
+#: src/mainview/lib/copy.ts
+msgid "Its health address has stopped answering since {0} was installed {1}."
+msgstr "自 {0} 于{1}安装以来，健康检查地址不再响应。"
+
+#. 0: v0
+#: src/mainview/lib/engine-text.ts
+msgid "{0}: health must be an http or https address"
+msgstr "{0}：health 必须是 http 或 https 地址"
+
+#: src/mainview/lib/copy.ts
 #: src/mainview/lib/copy.ts
 msgid "Security fix"
 msgstr "安全修复"

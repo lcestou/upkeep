@@ -30,6 +30,8 @@ import type {
 	Suggestion,
 	TokenState,
 	SystemState,
+	Watch,
+	WatchSign,
 	WindowButton,
 	WindowChrome,
 } from "../../shared/types";
@@ -74,6 +76,8 @@ type Seed = {
 	also?: string[];
 	/** An AppImage's menu switch; "off" when left out. */
 	menu?: "on" | "off" | "elsewhere";
+	/** On probation with a sign: updated a day ago to installed, from its first restore point's version unless from says. */
+	watch?: { sign: WatchSign; crashes?: number; from?: string };
 	/** The waiting update fixes a security problem. */
 	security?: SecurityFix;
 };
@@ -187,10 +191,27 @@ const SEEDS: Seed[] = [
 			"Bugfixes\n- Fix --exec-batch when combined with --max-results.\n- Respect .ignore files in parent directories again.\n\nChanges\n- Colorize symlinks to directories like ls does.",
 		publishedDaysAgo: 3,
 	},
-	{ key: "fzf", name: "fzf", kind: "archive", repo: "junegunn/fzf", installed: "0.68.0", restore: ["0.67.0"] },
+	{
+		key: "fzf",
+		name: "fzf",
+		kind: "archive",
+		repo: "junegunn/fzf",
+		installed: "0.68.0",
+		restore: ["0.67.0"],
+		watch: { sign: "crash", crashes: 2 },
+	},
 	{ key: "rtk", name: "rtk", kind: "archive", repo: "rtk-ai/rtk", installed: "0.31.2", restore: ["0.31.0"] },
 	{ key: "uv", name: "uv", kind: "archive", repo: "astral-sh/uv", installed: "0.10.4", restore: ["0.10.2"] },
-	{ key: "bun", name: "Bun", kind: "archive", repo: "oven-sh/bun", installed: "1.4.4", restore: ["1.4.3"] },
+	{
+		key: "bun",
+		name: "Bun",
+		kind: "archive",
+		repo: "oven-sh/bun",
+		installed: "1.4.4",
+		restore: ["1.4.3"],
+		// Its update came from 1.4.1, whose restore point is gone: the pane has nothing to go back to.
+		watch: { sign: "health", from: "1.4.1" },
+	},
 	{
 		key: "borg",
 		name: "BorgBackup",
@@ -410,6 +431,9 @@ function toApp(seed: Seed): AppState {
 		note: seed.note,
 		dest: seed.dest,
 		stages: (seed.stages ?? DEFAULT_STAGES[seed.kind]).map(([id, weight]) => ({ id, weight })),
+		watch: seed.watch
+			? { ...seed.watch, from: seed.watch.from ?? restore[0] ?? null, to: seed.installed, at: iso(NOW - DAY) }
+			: undefined,
 		held: false,
 	};
 }
@@ -812,6 +836,7 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		waitUnmetered: false,
 		webhookReady: true,
 		webhookRun: false,
+		watchUpdates: true,
 	};
 	let chrome: WindowChrome = {
 		own: settings.frame === "own",
@@ -1036,6 +1061,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 		emit({ type: "app", app });
 	};
 	const get = (key: string) => apps.find((a) => a.key === key);
+	// Signs hidden while Watch updated apps is off, as the engine keeps them in state, by key.
+	const hiddenWatch = new Map<string, Watch>();
 	const setRun = (patch: Partial<RunState>) => {
 		run = { ...run, ...patch };
 		emit({ type: "run", run });
@@ -1430,6 +1457,8 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				status: skip ? "held" : "fresh",
 				skipped: skip,
 				detail: undefined,
+				// Going back answers the watch, as the engine's restore ends the probation.
+				watch: undefined,
 				restartToApply: app.running,
 				restorePoints,
 			});
@@ -1474,6 +1503,12 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 			const pending = app.latest !== null && app.latest !== app.installed;
 			if (days !== null) put({ ...app, status: pending ? "held" : app.status, paused: iso(NOW + days * DAY) });
 			else put({ ...app, status: app.held || app.skipped ? "held" : pending ? "ready" : "fresh", paused: undefined });
+			return { ok: true };
+		},
+		endWatch: ({ key }) => {
+			const app = get(key);
+			if (!app) return { ok: false };
+			put({ ...app, watch: undefined });
 			return { ok: true };
 		},
 		setAuto: ({ key, auto }) => {
@@ -1554,6 +1589,20 @@ export function createFixture(opts: FixtureOptions = {}): Bridge {
 				keepBackups: Math.min(5, Math.max(1, patch.keepBackups ?? settings.keepBackups)),
 			};
 			if (patch.waitDays !== undefined || patch.waitExceptSecurity !== undefined) settleRows(settings.waitDays);
+			// As the engine: off takes every sign down at once, on puts the kept ones back.
+			if (patch.watchUpdates === false)
+				for (const a of apps)
+					if (a.watch) {
+						hiddenWatch.set(a.key, a.watch);
+						put({ ...a, watch: undefined });
+					}
+			if (patch.watchUpdates === true) {
+				for (const [key, watch] of hiddenWatch) {
+					const a = get(key);
+					if (a) put({ ...a, watch });
+				}
+				hiddenWatch.clear();
+			}
 			emit({ type: "meta", rate, checkedAt, settings });
 			return clone(settings);
 		},

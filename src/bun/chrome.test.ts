@@ -18,6 +18,7 @@ const settings: Settings = {
 	waitUnmetered: false,
 	webhookReady: true,
 	webhookRun: false,
+	watchUpdates: true,
 };
 
 test("button layouts as the desktop writes them", () => {
