@@ -109,3 +109,17 @@ test("a quoted line loses its markdown marks and stays plain text", () => {
 		"Requires manual [steps](https://x.test)",
 	]);
 });
+
+test("numbers, issue refs and a bold start survive the marks being dropped, and #42 is not a heading", () => {
+	const notes =
+		"2.0 is breaking for old configs\n#123 requires manual steps\n**Breaking:** removes X\n#42 breaking: drops Y\nUnrelated fix line";
+	expect(breakingLines([{ version: "1.0.0", tag: "", publishedAt: "", notes }]).map((l) => l.line)).toEqual([
+		"2.0 is breaking for old configs",
+		"#123 requires manual steps",
+		"Breaking: removes X",
+	]);
+	const issue = breakingLines([
+		{ version: "1.0.0", tag: "", publishedAt: "", notes: "#42 breaking: drops Y\nUnrelated fix line" },
+	]);
+	expect(issue.map((l) => l.line)).toEqual(["#42 breaking: drops Y"]);
+});

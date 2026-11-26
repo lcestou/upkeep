@@ -63,9 +63,11 @@ export function notesSpan(list: Release[], installed: string, latest: string, wi
  * dropped. Other markdown (links, single * or _) stays as written: those can be part of the words.
  */
 function plain(raw: string): string {
+	// Inline marks first, so "**Breaking:**" does not leave a stray "*" for the list mark; a mark needs its space after
+	// it, so "2.0 is breaking" and "#123 …" keep their numbers.
 	return raw
-		.replace(/^\s*(?:#+|[-*+]|\d+[.)])\s*/, "")
 		.replaceAll(/\*\*|__|`/g, "")
+		.replace(/^\s*(?:#+\s+|[-*+]\s+|\d+[.)]\s+)/, "")
 		.trim();
 }
 
@@ -91,7 +93,8 @@ export function breakingLines(releases: ReleaseNotes[]): BreakingLine[] {
 			const line = plain(raw);
 			if (!line) continue;
 			const marked = BREAKING_MARKERS.some((m) => m.test(line));
-			if (/^\s*#/.test(raw)) {
+			// A heading is "#" marks then a space: "#42 breaking: …" is an issue number, not a heading.
+			if (/^\s*#+\s/.test(raw)) {
 				if (heading !== null) take(r.version, heading);
 				heading = marked ? line : null;
 			} else if (heading !== null || marked) {
